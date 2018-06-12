@@ -1,15 +1,16 @@
-module Main exposing (..)
+module LoveGraphVisualizer exposing (Model, Msg, init, subscriptions, update, view)
 
 import AnimationFrame exposing (times)
+import Bootstrap.Button as Button
+import Bootstrap.ButtonGroup as ButtonGroup
 import Graph exposing (Edge, Graph, Node, NodeContext, NodeId)
 import Html exposing (Html, button, program)
 import Html.Events exposing (on, onClick)
 import Json.Decode as Decode
 import LabeledLoveGraph exposing (NodeLabel, labeledLoveGraph)
-import LoveGraph exposing (Connection(..), Gender(..))
+import LoveGraph exposing (Connection(..), Gender(..), LoveGraph)
 import LoveGraphAutomata exposing (EntityNode, Visualisation, updateState)
 import Mouse exposing (Position)
-import SampleData exposing (sampleData)
 import Svg exposing (Attribute, Svg, g, line, rect, svg, text, text_)
 import Svg.Attributes as Attr exposing (..)
 import Time exposing (Time)
@@ -18,12 +19,12 @@ import Visualization.Force as Force exposing (State, simulation)
 
 screenWidth : Float
 screenWidth =
-    990
+    600
 
 
 screenHeight : Float
 screenHeight =
-    504
+    300
 
 
 type Msg
@@ -32,12 +33,14 @@ type Msg
     | DragEnd Position
     | Tick Time
     | NewState
+    | Reset
 
 
 type alias Model =
     { drag : Maybe Drag
     , graph : Visualisation
     , simulation : Force.State NodeId
+    , initialState : Visualisation
     }
 
 
@@ -48,13 +51,14 @@ type alias Drag =
     }
 
 
-miserablesGraph : Graph.Graph NodeLabel Connection
+
+{--miserablesGraph : Graph.Graph NodeLabel Connection
 miserablesGraph =
-    labeledLoveGraph sampleData
+    labeledLoveGraph sampleData--}
 
 
-init : ( Model, Cmd Msg )
-init =
+init : LoveGraph -> ( Model, Cmd Msg )
+init data =
     let
         {--graph : Visualisation--}
         graph =
@@ -62,23 +66,37 @@ init =
                 (\({ node } as ctx) ->
                     { ctx | node = { label = Force.entity node.id node.label, id = node.id } }
                 )
-                miserablesGraph
+                (labeledLoveGraph data)
 
         {--link : Edge a -> ( NodeId, NodeId )--}
-        link { from, to } =
-            ( from, to )
-        link2 {from, to } = 
-            {source=from,target=to, distance=1,strength= Just 0.05}
+        {--link { from, to } =
+            ( from, to )--}
+
+        link2 { from, to } =
+            if data |> Graph.nodes |> List.length |> (>) 20 then
+                { source = from
+                , target = to
+                , distance = 10 --1
+                , strength = Just 0.1
+                }
+            else
+                { source = from
+                , target = to
+                , distance = 20 --1
+                , strength = Just 0.5
+                }
 
         {--forces : List (Force.Force Int)--}
         forces =
             [ Force.customLinks 1 <| List.map link2 <| Graph.edges graph
-                --Force.links <| List.map link <| Graph.edges graph
+
+            --Force.links <| List.map link <| Graph.edges graph
             , Force.manyBody <| List.map .id <| Graph.nodes graph
             , Force.center (screenWidth / 2) (screenHeight / 2)
             ]
     in
-    Model Nothing graph (Force.simulation forces) ! [ Cmd.none ]
+    Model Nothing graph (Force.simulation forces) graph ! [ Cmd.none ]
+--}
 
 
 updateNode : Position -> NodeContext EntityNode a -> NodeContext EntityNode a
@@ -112,7 +130,7 @@ updateGraphWithList =
 
 
 update : Msg -> Model -> Model
-update msg ({ drag, graph, simulation } as model) =
+update msg ({ drag, graph, simulation, initialState } as model) =
     case msg of
         Tick t ->
             let
@@ -121,34 +139,39 @@ update msg ({ drag, graph, simulation } as model) =
             in
             case drag of
                 Nothing ->
-                    Model drag (updateGraphWithList graph list) newState
+                    { model | drag = drag, graph = updateGraphWithList graph list, simulation = newState }
 
                 Just { current, index } ->
-                    Model drag (Graph.update index (Maybe.map (updateNode current)) (updateGraphWithList graph list)) newState
+                    { model | drag = drag, graph = Graph.update index (Maybe.map (updateNode current)) (updateGraphWithList graph list), simulation = newState }
 
         DragStart index xy ->
-            Model (Just (Drag xy xy index)) graph simulation
+            { model | drag = Just (Drag xy xy index) }
 
         DragAt xy ->
             case drag of
                 Just { start, index } ->
-                    Model (Just (Drag start xy index))
-                        (Graph.update index (Maybe.map (updateNode xy)) graph)
-                        (Force.reheat simulation)
+                    { model
+                        | drag = Just (Drag start xy index)
+                        , graph = Graph.update index (Maybe.map (updateNode xy)) graph
+                        , simulation = Force.reheat simulation
+                    }
 
                 Nothing ->
-                    Model Nothing graph simulation
+                    { model | drag = Nothing }
 
         DragEnd xy ->
             case drag of
                 Just { start, index } ->
-                    Model Nothing (Graph.update index (Maybe.map (updateNode xy)) graph) simulation
+                    { model | drag = Nothing, graph = Graph.update index (Maybe.map (updateNode xy)) graph }
 
                 Nothing ->
-                    Model Nothing graph simulation
+                    { model | drag = Nothing }
 
         NewState ->
-            Model drag (updateState graph) simulation
+            { model | graph = updateState graph, simulation = Force.reheat simulation }
+
+        Reset ->
+            { model | graph = initialState, simulation = Force.reheat simulation }
 
 
 subscriptions : Model -> Sub Msg
@@ -211,7 +234,7 @@ moodEmoji a =
             "👩"
 
         _ ->
-            "👱"
+            "👨"
 
 
 defaultNode : Node EntityNode -> Svg Msg
@@ -240,8 +263,9 @@ defaultNode node =
             , y (toString (node.label.y + 20))
             , Attr.style "font-size:8px;"
             ]
-            [ text (toString node.id)]
-            -- [ text (toString node.id ++ ":" ++ node.label.value.name) ]
+            [ text (toString node.id) ]
+
+        -- [ text (toString node.id ++ ":" ++ node.label.value.name) ]
         ]
 
 
@@ -279,19 +303,13 @@ view : Model -> Html Msg
 view model =
     Html.div []
         [ canvas model
-        , button [ onClick (Tick 0) ] [ text "⏮️" ]
-        , button [ onClick NewState ] [ text "▶️" ]
+        , Html.p []
+            [ ButtonGroup.buttonGroup []
+                [ ButtonGroup.button [ Button.outlinePrimary, Button.onClick Reset ] [ text "Reset" ]
+                , ButtonGroup.button [ Button.primary, Button.onClick NewState ] [ text "Weiter" ]
+                ]
+            ]
         ]
-
-
-main : Program Never Model Msg
-main =
-    Html.program
-        { init = init
-        , view = view
-        , update = \msg model -> ( update msg model, Cmd.none )
-        , subscriptions = subscriptions
-        }
 
 
 

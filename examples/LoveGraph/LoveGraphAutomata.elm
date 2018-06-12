@@ -158,7 +158,7 @@ updateState g =
                             Just sublist ->
                                 case sublist |> List.head of
                                     Just max ->
-                                        if max == elem then
+                                        if (connectionsOf graph max == connectionsOf graph elem) then
                                             (elem :: sublist) :: Maybe.withDefault [] (List.tail list)
                                         else
                                             [ elem ] :: list
@@ -177,6 +177,7 @@ updateState g =
                 |> List.drop nr
                 |> List.head
                 |> Maybe.withDefault []
+                |> Debug.log "log"
 
         newPartnerFor : Visualisation -> FemaleId -> Int -> Maybe MaleId
         newPartnerFor graph a nr =
@@ -216,19 +217,6 @@ updateState g =
                    )
                 |> updateConnection male female Partner
 
-        {--isMale : Person -> Maybe MaleId
-        isMale a =
-            if a.label == M then
-                Just a.id
-            else
-                Nothing
-
-        males : List MaleId
-        males =
-            g
-                |> Graph.nodes
-                |> List.map (\a -> Graph.Node a.id a.label.value.gender)
-                |> List.filterMap isMale--}
         updateMaleConnections : List PartnerProposal -> Visualisation -> Visualisation
         updateMaleConnections newPartners graph =
             newPartners
@@ -258,7 +246,7 @@ updateState g =
     in
     List.range 0 (maxFemaleConnections - 1)
         |> List.foldl
-            (\nr ( graph, f ) ->
+            (\nr {graph, f ,proposals} ->
                 f
                     |> List.partition (\a -> newPartnerFor graph a nr /= Nothing)
                     |> Tuple.mapFirst
@@ -273,12 +261,12 @@ updateState g =
                                 |> Tuple.mapSecond (List.map .female >> List.append second)
                        )
                     |> (\( first, second ) ->
-                            ( first
+                            {graph = first
                                 |> List.foldl applyPartnerProposal graph
-                                |> updateMaleConnections first
-                            , second
-                            )
+                            , f = second
+                            ,proposals = proposals |> List.append first
+                            }
                        )
             )
-            ( g, females )
-        |> Tuple.first
+            { graph=g,f = females , proposals = []}
+        |> (\{graph,proposals} -> graph |> updateMaleConnections proposals)
