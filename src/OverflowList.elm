@@ -51,3 +51,10 @@ getOverflow overflowList =
                 else
                     Just list
            )
+
+
+append : List a -> OverflowList a -> OverflowList a
+append list overflowList =
+    { overflowList
+        | list = list |> List.append overflowList.list
+    }
