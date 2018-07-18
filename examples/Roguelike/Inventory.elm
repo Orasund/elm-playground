@@ -1,6 +1,18 @@
-module Roguelike.Inventory exposing (Inventory, add, drop, get, ground, init, rotateLeft, rotateRight, selected, take)
+module Roguelike.Inventory
+    exposing
+        ( Inventory
+        , add
+        , drop
+        , get
+        , ground
+        , init
+        , rotateLeft
+        , rotateRight
+        , selected
+        , take
+        )
 
-import Roguelike.GroupedList as GroupedList exposing (GroupedList)
+import Roguelike.GroupedList as GroupedList
 import Roguelike.GroupedOverflowList as GroupedOverflowList exposing (GroupedOverflowList)
 
 
@@ -24,7 +36,8 @@ rotateLeft inventory =
     inventory
         |> GroupedOverflowList.getList
         |> GroupedList.rotateLeft
-        |> GroupedOverflowList.fromList (inventory |> GroupedOverflowList.getMaxLength)
+        |> GroupedOverflowList.fromList
+            (inventory |> GroupedOverflowList.getMaxLength)
         |> GroupedOverflowList.setOverflow
             (inventory |> GroupedOverflowList.getOverflow)
 
@@ -34,7 +47,8 @@ rotateRight inventory =
     inventory
         |> GroupedOverflowList.getList
         |> GroupedList.rotateRight
-        |> GroupedOverflowList.fromList (inventory |> GroupedOverflowList.getMaxLength)
+        |> GroupedOverflowList.fromList
+            (inventory |> GroupedOverflowList.getMaxLength)
         |> GroupedOverflowList.setOverflow
             (inventory |> GroupedOverflowList.getOverflow)
 
@@ -50,15 +64,15 @@ take : Inventory a -> ( Maybe a, Inventory a )
 take inventory =
     ( inventory
         |> GroupedOverflowList.getList
-        |> List.head
+        |> GroupedList.head
         |> Maybe.map Tuple.first
     , inventory
         |> GroupedOverflowList.getList
         |> (\list ->
-                case list |> List.head of
-                    Just a ->
+                case list |> GroupedList.head of
+                    Just ( a, _ ) ->
                         list
-                            |> GroupedList.reduce (a |> Tuple.first)
+                            |> GroupedList.reduce a
 
                     Nothing ->
                         list
@@ -88,9 +102,7 @@ ground inventory =
 
 selected : Inventory a -> Maybe a
 selected inventory =
-    case inventory |> GroupedOverflowList.getList of
-        ( a, _ ) :: _ ->
-            Just a
-
-        [] ->
-            Nothing
+    inventory
+        |> GroupedOverflowList.getList
+        |> GroupedList.head
+        |> Maybe.map Tuple.first

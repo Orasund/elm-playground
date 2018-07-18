@@ -1,7 +1,8 @@
 module Roguelike.Player exposing (PlayerData, activate, attack, drop, face, getCell, init, move, rotateLeft, rotateRight)
 
-import Dict exposing (Dict)
-import Roguelike.Cell as Cell exposing (Cell(..), ConsumableType(..), Direction(..), EnemyType(..), Item(..), SolidType(..))
+import Dict
+import Pair
+import Roguelike.Cell exposing (Cell(..), ConsumableType(..), Direction(..), EnemyType(..), Item(..), SolidType(..))
 import Roguelike.Inventory as Inventory exposing (Inventory)
 import Roguelike.Map as Map exposing (Map)
 
@@ -23,7 +24,7 @@ getCell : Map Cell -> Maybe ( Map.Location, Direction )
 getCell map =
     map
         |> Map.getUnique
-            (\key cell ->
+            (\_ cell ->
                 case cell of
                     Player _ ->
                         True
@@ -53,41 +54,44 @@ attack player =
 
 
 move : Int -> Map.Location -> Direction -> ( PlayerData, Map Cell ) -> ( PlayerData, Map Cell )
-move worldSize ( x, y ) direction ( playerData, map ) =
+move worldSize location direction ( playerData, currentMap ) =
     let
-        ( i, j ) =
+        moveDir =
             Map.dirCoordinates direction
 
         outOfBound : Bool
         outOfBound =
-            case direction of
-                Up ->
-                    y == 0
+            location
+                |> (\( x, y ) ->
+                        case direction of
+                            Up ->
+                                y == 0
 
-                Down ->
-                    y == worldSize
+                            Down ->
+                                y == worldSize
 
-                Left ->
-                    x == worldSize
+                            Left ->
+                                x == 0
 
-                Right ->
-                    x == 0
+                            Right ->
+                                x == worldSize
+                   )
 
-        move : ( Int, Int ) -> ( Int, Int ) -> Map Cell -> Map Cell
-        move ( x, y ) ( i, j ) map =
-            case map |> Dict.get ( x, y ) of
+        moveTo : Map.Location -> Map.Location -> Map Cell -> Map Cell
+        moveTo pos dir map =
+            case map |> Dict.get pos of
                 Just cell ->
                     map
-                        |> Dict.update ( x + i, y + j ) (always (Just cell))
-                        |> Dict.remove ( x, y )
+                        |> Dict.update (Pair.map2 (+) pos dir) (always (Just cell))
+                        |> Dict.remove pos
 
                 Nothing ->
                     map
     in
     if outOfBound then
-        ( playerData, map )
+        ( playerData, currentMap )
     else
-        case map |> Dict.get ( x + i, y + j ) of
+        case currentMap |> Dict.get (Pair.map2 (+) location moveDir) of
             Just (Item a) ->
                 let
                     ( item, inventory ) =
@@ -99,40 +103,40 @@ move worldSize ( x, y ) direction ( playerData, map ) =
                                 | inventory = inventory |> Inventory.add a
                             }
                        )
-                , map
-                    |> move ( x, y ) ( i, j )
+                , currentMap
+                    |> moveTo location moveDir
                     |> (\m ->
                             case item of
-                                Just a ->
-                                    m |> Map.place ( x, y ) (Item a)
+                                Just c ->
+                                    m |> Map.place location (Item c)
 
                                 _ ->
                                     m
                        )
                 )
 
-            Just (Enemy a) ->
+            Just (Enemy _) ->
                 ( playerData
-                , case map |> Dict.get ( x + i * 2, y + j * 2 ) of
+                , case currentMap |> Dict.get ((moveDir |> Pair.map ((*) 2)) |> Pair.map2 (+) location) of
                     Just (Solid _) ->
-                        map
+                        currentMap
 
                     Just (Enemy _) ->
-                        map
+                        currentMap
 
                     _ ->
-                        case map |> Dict.get ( x + i * 3, y + j * 3 ) of
+                        case currentMap |> Dict.get ((moveDir |> Pair.map ((*) 3)) |> Pair.map2 (+) location) of
                             Just (Solid _) ->
-                                map
-                                    |> move ( x + i, y + j ) ( i, j )
+                                currentMap
+                                    |> moveTo (Pair.map2 (+) location moveDir) moveDir
 
                             Just (Enemy _) ->
-                                map
-                                    |> move ( x + i, y + j ) ( i, j )
+                                currentMap
+                                    |> moveTo (Pair.map2 (+) location moveDir) moveDir
 
                             _ ->
-                                map
-                                    |> move ( x + i, y + j ) ( i * 2, j * 2 )
+                                currentMap
+                                    |> moveTo (Pair.map2 (+) location moveDir) (Pair.map ((*) 2) moveDir)
                 )
 
             Nothing ->
@@ -141,12 +145,12 @@ move worldSize ( x, y ) direction ( playerData, map ) =
                         playerData.inventory |> Inventory.drop
                 in
                 ( playerData |> (\a -> { a | inventory = inventory })
-                , map
-                    |> move ( x, y ) ( i, j )
+                , currentMap
+                    |> moveTo location moveDir
                     |> (\m ->
                             case item of
                                 Just a ->
-                                    m |> Map.place ( x, y ) (Item a)
+                                    m |> Map.place location (Item a)
 
                                 Nothing ->
                                     m
@@ -159,12 +163,12 @@ move worldSize ( x, y ) direction ( playerData, map ) =
                         playerData.inventory |> Inventory.drop
                 in
                 ( playerData |> (\a -> { a | inventory = inventory })
-                , map
-                    |> move ( x, y ) ( i, j )
+                , currentMap
+                    |> moveTo location moveDir
                     |> (\m ->
                             case item of
                                 Just a ->
-                                    m |> Map.place ( x, y ) (Item a)
+                                    m |> Map.place location (Item a)
 
                                 Nothing ->
                                     m
@@ -180,14 +184,14 @@ move worldSize ( x, y ) direction ( playerData, map ) =
                                         |> Inventory.add (Consumable Dirt)
                             }
                        )
-                , map
-                    |> Dict.remove ( x + i, y + j )
+                , currentMap
+                    |> Dict.remove (Pair.map2 (+) location moveDir)
                 )
 
             _ ->
                 ( playerData
-                , map
-                    |> face ( x, y ) direction
+                , currentMap
+                    |> face location direction
                 )
 
 
@@ -298,10 +302,10 @@ drop ( playerData, map ) =
         dir : Map.Location
         dir =
             case getCell map of
-                Just ( ( x, y ), dir ) ->
+                Just ( ( x, y ), direction ) ->
                     let
                         ( i, j ) =
-                            Map.dirCoordinates dir
+                            Map.dirCoordinates direction
                     in
                     ( x + i, y + j )
 

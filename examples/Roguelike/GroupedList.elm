@@ -1,36 +1,45 @@
-module Roguelike.GroupedList exposing (GroupedList, add, drop, fromList, reduce, rotateLeft, rotateRight, toList)
+module Roguelike.GroupedList
+    exposing
+        ( GroupedList
+        , add
+        , fromList
+        , head
+        , reduce
+        , rotateLeft
+        , rotateRight
+        , toList
+        )
+
+import RollingList exposing (RollingList)
 
 
 type alias GroupedList a =
-    List ( a, Int )
-
-
-drop : Int -> GroupedList a -> GroupedList a
-drop n list =
-    list |> List.drop n
+    RollingList ( a, Int )
 
 
 fromList : List a -> GroupedList a
 fromList list =
     list
         |> List.foldr
-            (\elem list ->
-                case list of
+            (\elem base_list ->
+                case base_list of
                     ( a, b ) :: c ->
                         if a == elem then
                             ( elem, b + 1 ) :: c
                         else
-                            ( elem, 1 ) :: list
+                            ( elem, 1 ) :: base_list
 
                     b ->
                         ( elem, 1 ) :: b
             )
             []
+        |> RollingList.fromList
 
 
 toList : GroupedList a -> List a
 toList list =
     list
+        |> RollingList.toList
         |> List.concatMap
             (\( elem, num ) ->
                 List.repeat num elem
@@ -39,29 +48,18 @@ toList list =
 
 rotateLeft : GroupedList a -> GroupedList a
 rotateLeft list =
-    case list |> List.reverse of
-        a :: b ->
-            [ a ]
-                |> List.append b
-                |> List.reverse
-
-        [] ->
-            list
+    list |> RollingList.rollBack
 
 
 rotateRight : GroupedList a -> GroupedList a
 rotateRight list =
-    case list of
-        a :: b ->
-            [ a ] |> List.append b
-
-        [] ->
-            list
+    list |> RollingList.roll
 
 
 add : a -> GroupedList a -> GroupedList a
 add target l =
     l
+        |> RollingList.toList
         |> List.foldr
             (\elem ( list, found ) ->
                 if found == False then
@@ -82,11 +80,13 @@ add target l =
                 else
                     list
            )
+        |> RollingList.fromList
 
 
 reduce : a -> GroupedList a -> GroupedList a
 reduce target l =
     l
+        |> RollingList.toList
         |> List.foldr
             (\elem ( list, found ) ->
                 if found == False then
@@ -105,3 +105,10 @@ reduce target l =
             )
             ( [], False )
         |> Tuple.first
+        |> RollingList.fromList
+
+
+head : GroupedList a -> Maybe ( a, Int )
+head list =
+    list
+        |> RollingList.current

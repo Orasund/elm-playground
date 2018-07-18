@@ -47,7 +47,7 @@ init =
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg ({ visualizer, tabState } as model) =
+update msg ({ visualizer} as model) =
     case msg of
         Visualizer name m ->
             { model | visualizer = visualizer |> SampleData.update name (\a -> LoveGraphVisualizer.update m a) } ! [ Cmd.none ]
@@ -59,7 +59,7 @@ update msg ({ visualizer, tabState } as model) =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions { visualizer, tabState } =
+subscriptions { visualizer} =
     visualizer
         |> SampleData.toList
         |> List.map

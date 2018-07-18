@@ -1,12 +1,15 @@
 module SampleData exposing (SampleData, map, sampleData, toList, update)
 
-import Graph exposing (Adjacency, Edge, Node, NodeId)
+import Graph exposing (Edge, NodeId)
 import IntDict
-import LoveGraph exposing (Connection(..), Gender(..), LoveGraph, Person, Relation, contactPerson, femalePerson, malePerson)
+import LoveGraph exposing (Connection(..), Gender(..), LoveGraph, Relation, contactPerson, femalePerson, malePerson)
 
 
 type alias ConstructorLoveGraph =
-    { graph : LoveGraph, id : NodeId, total : NodeId }
+    { graph : LoveGraph
+    , id : NodeId
+    , total : NodeId
+    }
 
 
 appendFemale : ConstructorLoveGraph -> ConstructorLoveGraph
@@ -84,15 +87,15 @@ type alias SampleData a =
 
 toList : SampleData a -> List ( String, a )
 toList data =
-    [ (,) "introGraph" data.introGraph
-    , (,) "friendlyTriangle" data.friendlyTriangle
-    , (,) "twoCircles" data.twoCircles
-    , (,) "hostileTriangle" data.hostileTriangle
-    , (,) "loveSquare" data.loveSquare
-    , (,) "nonTerminatingTiangle" data.nonTerminatingTiangle
-    , (,) "theoremContact" data.theoremContact
-    , (,) "testing" data.testing
-    , (,) "doubleOnOff" data.doubleOnOff
+    [ ( "introGraph", data.introGraph )
+    , ( "friendlyTriangle", data.friendlyTriangle )
+    , ( "twoCircles", data.twoCircles )
+    , ( "hostileTriangle", data.hostileTriangle )
+    , ( "loveSquare", data.loveSquare )
+    , ( "nonTerminatingTiangle", data.nonTerminatingTiangle )
+    , ( "theoremContact", data.theoremContact )
+    , ( "testing", data.testing )
+    , ( "doubleOnOff", data.doubleOnOff )
     ]
 
 

@@ -1,7 +1,18 @@
 module Roguelike.Game exposing (Game, applyDirection)
 
-import Dict exposing (Dict)
-import Roguelike.Cell as Cell exposing (Cell(..), ConsumableType(..), Direction(..), MiscellaneousType(..), EffectType(..), EnemyType(..), Item(..), SolidType(..))
+import Dict
+import Pair
+import Roguelike.Cell
+    exposing
+        ( Cell(..)
+        , ConsumableType(..)
+        , Direction(..)
+        , EffectType(..)
+        , EnemyType(..)
+        , Item(..)
+        , MiscellaneousType(..)
+        , SolidType(..)
+        )
 import Roguelike.Map as Map exposing (Map)
 import Roguelike.Player as Player exposing (PlayerData)
 
@@ -12,101 +23,99 @@ type alias Game =
 
 applyDirection : Int -> Direction -> Game -> Game
 applyDirection size dir ( playerData, map ) =
-    let
-        player : Maybe ( Map.Location, Direction )
-        player =
-            Player.getCell map
-    in
-    case player of
-        Just ( ( x, y ), d ) ->
+    case player map of
+        Just ( location, d ) ->
             if d == dir then
                 ( playerData, map )
-                    |> Player.move size ( x, y ) d
+                    |> Player.move size location d
                     |> (\tuple ->
                             tuple
                                 |> Tuple.second
                                 |> Dict.foldl
-                                    (\( i, j ) cell out ->
-                                        case cell of
-                                            Enemy b ->
-                                                out |> updateEnemy ( i, j ) b
-
-                                            Effect a ->
-                                                out
-                                                    |> Tuple.mapSecond (Dict.remove ( i, j ))
-
-                                            _ ->
-                                                out
-                                    )
+                                    playerInteration
                                     tuple
                        )
             else
                 ( playerData
-                , map |> Player.face ( x, y ) dir
+                , map |> Player.face location dir
                 )
 
         Nothing ->
             ( playerData, map )
 
 
-removeCell : Map.Location -> EnemyType -> Map Cell -> Map Cell
-removeCell location enemyType map =
-    map |> Map.remove location
+playerInteration : Map.Location -> Cell -> Game -> Game
+playerInteration location cell game =
+    case cell of
+        Enemy enemy ->
+            game |> updateEnemy location enemy
+
+        Effect _ ->
+            game
+                |> Tuple.mapSecond (Dict.remove location)
+
+        _ ->
+            game
 
 
 updateEnemy : Map.Location -> EnemyType -> Game -> Game
-updateEnemy ( i, j ) enemyType ( playerData, map ) =
-    let
-        player : Maybe ( Map.Location, Direction )
-        player =
-            Player.getCell map
-    in
-    (case player of
-        Just ( ( x, y ), _ ) ->
-            [ Up, Down, Left, Right ]
-                |> List.filter (\dir -> ( i - x, j - y ) == Map.dirCoordinates dir)
-                |> (\list ->
-                        case list of
-                            _ :: _ ->
-                                ( playerData |> Player.attack
-                                , map
-                                )
+updateEnemy location enemyType game =
+    game
+        |> attackPlayer location
+        |> specialBehaviour location enemyType
 
-                            _ ->
-                                ( playerData, map )
-                   )
+
+player : Map Cell -> Maybe ( Map.Location, Direction )
+player map =
+    Player.getCell map
+
+
+attackPlayer : Map.Location -> Game -> Game
+attackPlayer location ( playerData, map ) =
+    case player map of
+        Just ( playerLocation, _ ) ->
+            [ Up, Down, Left, Right ]
+                |> List.filter
+                    ((==) (Pair.map2 (-) location playerLocation) << Map.dirCoordinates)
+                |> List.head
+                |> Maybe.map (always (( playerData, map ) |> Tuple.mapFirst Player.attack))
+                |> Maybe.withDefault ( playerData, map )
 
         Nothing ->
             ( playerData, map )
-    )
-        |> (\tuple ->
-                case enemyType of
-                    PlacedBombe ->
-                        [ Up, Down, Left, Right ]
-                            |> List.foldl
-                                (\dir t ->
-                                    let
-                                        ( x, y ) =
-                                            Map.dirCoordinates dir
-                                    in
-                                    case t |> Tuple.second |> Dict.get ( i + x, j + y ) of
-                                        Just (Enemy _) ->
-                                            t
-                                                |> Tuple.mapSecond
-                                                    (Dict.update ( i + x, j + y ) (always (Just (Item (Miscellaneous Bone)))))
 
-                                        Nothing ->
-                                            t
-                                                |> Tuple.mapSecond
-                                                    (Dict.update ( i + x, j + y ) (always (Just (Effect Smoke))))
 
-                                        _ ->
-                                            t
-                                )
-                                tuple
-                            |> Tuple.mapSecond
-                                (Dict.update ( i, j ) (always (Just (Effect Smoke))))
+specialBehaviour : Map.Location -> EnemyType -> Game -> Game
+specialBehaviour currentLocation enemyType game =
+    case enemyType of
+        PlacedBombe ->
+            [ Up, Down, Left, Right ]
+                |> List.foldl
+                    (placedBombeBehavoiur currentLocation)
+                    game
+                |> Tuple.mapSecond
+                    (Dict.update currentLocation (always (Just (Effect Smoke))))
 
-                    _ ->
-                        tuple
-           )
+        _ ->
+            game
+
+
+placedBombeBehavoiur : Map.Location -> Direction -> Game -> Game
+placedBombeBehavoiur currentLocation dir game =
+    let
+        newLocation =
+            Map.dirCoordinates dir |> Pair.map2 (+) currentLocation
+    in
+    case game |> Tuple.second |> Dict.get newLocation of
+        Just (Enemy _) ->
+            game
+                |> Tuple.mapSecond
+                    (Dict.update newLocation (always (Just (Item (Miscellaneous Bone)))))
+
+        Nothing ->
+            game
+                |> Tuple.mapSecond
+                    (Dict.update newLocation (always (Just (Effect Smoke))))
+
+        _ ->
+            game

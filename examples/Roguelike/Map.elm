@@ -2,7 +2,7 @@ module Roguelike.Map exposing (Location, Map, dirCoordinates, generate, getUniqu
 
 import Dict exposing (Dict)
 import Random
-import Roguelike.Cell as Cell exposing (Direction(..))
+import Roguelike.Cell exposing (Direction(..))
 
 
 type alias Location =
@@ -20,7 +20,7 @@ generate size fun seed =
             (\x out ->
                 List.range 0 size
                     |> List.foldl
-                        (\y ( map, seed ) -> fun ( x, y ) ( map, seed ))
+                        (\y tuple -> fun ( x, y ) tuple)
                         out
             )
             ( Dict.empty, seed )
@@ -36,10 +36,10 @@ dirCoordinates direction =
             ( 0, 1 )
 
         Left ->
-            ( 1, 0 )
+            ( -1, 0 )
 
         Right ->
-            ( -1, 0 )
+            ( 1, 0 )
 
 
 place : Location -> a -> Map a -> Map a

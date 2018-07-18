@@ -1,7 +1,7 @@
 module LabeledLoveGraph exposing (NodeLabel, labeledLoveGraph)
 
-import Graph exposing (Edge, Node)
-import LoveGraph exposing (Connection(..), Gender(..), LoveGraph, Person, contactPerson, femalePerson, malePerson)
+import Graph exposing (Node)
+import LoveGraph exposing (Connection(..), Gender(..), LoveGraph, Person)
 
 
 type alias NodeLabel =

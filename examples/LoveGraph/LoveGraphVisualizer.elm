@@ -1,20 +1,20 @@
 module LoveGraphVisualizer exposing (Model, Msg, init, subscriptions, update, view)
 
-import AnimationFrame exposing (times)
+import AnimationFrame
 import Bootstrap.Button as Button
 import Bootstrap.ButtonGroup as ButtonGroup
-import Graph exposing (Edge, Graph, Node, NodeContext, NodeId)
-import Html exposing (Html, button, program)
-import Html.Events exposing (on, onClick)
+import Graph exposing (Edge, Node, NodeContext, NodeId)
+import Html exposing (Html)
+import Html.Events exposing (on)
 import Json.Decode as Decode
 import LabeledLoveGraph exposing (NodeLabel, labeledLoveGraph)
 import LoveGraph exposing (Connection(..), Gender(..), LoveGraph)
 import LoveGraphAutomata exposing (EntityNode, Visualisation, updateState)
 import Mouse exposing (Position)
 import Svg exposing (Attribute, Svg, g, line, rect, svg, text, text_)
-import Svg.Attributes as Attr exposing (..)
+import Svg.Attributes as Attr
 import Time exposing (Time)
-import Visualization.Force as Force exposing (State, simulation)
+import Visualization.Force as Force
 
 
 screenWidth : Float
@@ -51,26 +51,15 @@ type alias Drag =
     }
 
 
-
-{--miserablesGraph : Graph.Graph NodeLabel Connection
-miserablesGraph =
-    labeledLoveGraph sampleData--}
-
-
 init : LoveGraph -> ( Model, Cmd Msg )
 init data =
     let
-        {--graph : Visualisation--}
         graph =
             Graph.mapContexts
                 (\({ node } as ctx) ->
                     { ctx | node = { label = Force.entity node.id node.label, id = node.id } }
                 )
                 (labeledLoveGraph data)
-
-        {--link : Edge a -> ( NodeId, NodeId )--}
-        {--link { from, to } =
-            ( from, to )--}
 
         link2 { from, to } =
             if data |> Graph.nodes |> List.length |> (>) 20 then
@@ -86,17 +75,13 @@ init data =
                 , strength = Just 0.5
                 }
 
-        {--forces : List (Force.Force Int)--}
         forces =
             [ Force.customLinks 1 <| List.map link2 <| Graph.edges graph
-
-            --Force.links <| List.map link <| Graph.edges graph
             , Force.manyBody <| List.map .id <| Graph.nodes graph
             , Force.center (screenWidth / 2) (screenHeight / 2)
             ]
     in
     Model Nothing graph (Force.simulation forces) graph ! [ Cmd.none ]
---}
 
 
 updateNode : Position -> NodeContext EntityNode a -> NodeContext EntityNode a
@@ -132,7 +117,7 @@ updateGraphWithList =
 update : Msg -> Model -> Model
 update msg ({ drag, graph, simulation, initialState } as model) =
     case msg of
-        Tick t ->
+        Tick _ ->
             let
                 ( newState, list ) =
                     Force.tick simulation <| List.map .label <| Graph.nodes graph
@@ -161,7 +146,7 @@ update msg ({ drag, graph, simulation, initialState } as model) =
 
         DragEnd xy ->
             case drag of
-                Just { start, index } ->
+                Just { index } ->
                     { model | drag = Nothing, graph = Graph.update index (Maybe.map (updateNode xy)) graph }
 
                 Nothing ->
@@ -206,23 +191,23 @@ linkElement graph edge =
     case edge.label of
         Partner ->
             line
-                [ strokeWidth "5"
-                , stroke "#983352"
-                , x1 (toString source.x)
-                , y1 (toString source.y)
-                , x2 (toString target.x)
-                , y2 (toString target.y)
+                [ Attr.strokeWidth "5"
+                , Attr.stroke "#983352"
+                , Attr.x1 (toString source.x)
+                , Attr.y1 (toString source.y)
+                , Attr.x2 (toString target.x)
+                , Attr.y2 (toString target.y)
                 ]
                 []
 
         _ ->
             line
-                [ strokeWidth "1"
-                , stroke "#aaa"
-                , x1 (toString source.x)
-                , y1 (toString source.y)
-                , x2 (toString target.x)
-                , y2 (toString target.y)
+                [ Attr.strokeWidth "1"
+                , Attr.stroke "#aaa"
+                , Attr.x1 (toString source.x)
+                , Attr.y1 (toString source.y)
+                , Attr.x2 (toString target.x)
+                , Attr.y2 (toString target.y)
                 ]
                 []
 
@@ -241,39 +226,37 @@ defaultNode : Node EntityNode -> Svg Msg
 defaultNode node =
     g []
         [ rect
-            [ x (toString (node.label.x - 30))
-            , y (toString (node.label.y - 30))
-            , width "60"
-            , height "60"
-            , fill "#000"
-            , fillOpacity "0"
-            , stroke "transparent"
-            , strokeWidth "7px"
+            [ Attr.x (toString (node.label.x - 30))
+            , Attr.y (toString (node.label.y - 30))
+            , Attr.width "60"
+            , Attr.height "60"
+            , Attr.fill "#000"
+            , Attr.fillOpacity "0"
+            , Attr.stroke "transparent"
+            , Attr.strokeWidth "7px"
             , onMouseDown node.id
             ]
             []
         , text_
-            [ x (toString (node.label.x - 13))
-            , y (toString (node.label.y + 7))
+            [ Attr.x (toString (node.label.x - 13))
+            , Attr.y (toString (node.label.y + 7))
             , Attr.style "font-size:20px"
             ]
             [ text (moodEmoji node.label.value.gender) ]
         , text_
-            [ x (toString (node.label.x - 2))
-            , y (toString (node.label.y + 20))
+            [ Attr.x (toString (node.label.x - 2))
+            , Attr.y (toString (node.label.y + 20))
             , Attr.style "font-size:8px;"
             ]
             [ text (toString node.id) ]
-
-        -- [ text (toString node.id ++ ":" ++ node.label.value.name) ]
         ]
 
 
 contactNode : Node EntityNode -> Svg Msg
 contactNode node =
     text_
-        [ x (toString (node.label.x - 6))
-        , y (toString (node.label.y + 3))
+        [ Attr.x (toString (node.label.x - 6))
+        , Attr.y (toString (node.label.y + 3))
         , Attr.style "font-size:10px"
         ]
         [ text (moodEmoji node.label.value.gender) ]
@@ -293,9 +276,9 @@ nodeElement node =
 
 canvas : Model -> Html Msg
 canvas model =
-    svg [ width (toString screenWidth ++ "px"), height (toString screenHeight ++ "px") ]
-        [ g [ class "links" ] <| List.map (linkElement model.graph) <| Graph.edges model.graph
-        , g [ class "nodes" ] <| List.map nodeElement <| Graph.nodes model.graph
+    svg [ Attr.width (toString screenWidth ++ "px"), Attr.height (toString screenHeight ++ "px") ]
+        [ g [ Attr.class "links" ] <| List.map (linkElement model.graph) <| Graph.edges model.graph
+        , g [ Attr.class "nodes" ] <| List.map nodeElement <| Graph.nodes model.graph
         ]
 
 
@@ -310,7 +293,3 @@ view model =
                 ]
             ]
         ]
-
-
-
-{---}

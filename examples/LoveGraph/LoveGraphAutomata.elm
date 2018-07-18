@@ -3,7 +3,7 @@ module LoveGraphAutomata exposing (EntityNode, Visualisation, updateState)
 import Graph exposing (Graph, NodeContext, NodeId)
 import IntDict
 import LabeledLoveGraph exposing (NodeLabel)
-import LoveGraph exposing (Connection(..), Gender(..), LoveGraph, Person, Relation)
+import LoveGraph exposing (Connection(..), Gender(..), Person, Relation)
 import Visualization.Force as Force
 
 
@@ -16,7 +16,9 @@ type alias FemaleId =
 
 
 type alias PartnerProposal =
-    { female : FemaleId, male : MaleId }
+    { female : FemaleId
+    , male : MaleId
+    }
 
 
 type alias EntityNode =
@@ -33,7 +35,7 @@ updateConnection from to connection graph =
         |> Graph.update
             from
             (Maybe.map
-                (\{node,incoming,outgoing} ->
+                (\{ node, incoming, outgoing } ->
                     NodeContext
                         node
                         incoming
@@ -50,7 +52,7 @@ removeConnection from to graph =
         |> Graph.update
             (max from to)
             (Maybe.map
-                (\{node,incoming,outgoing} ->
+                (\{ node, incoming, outgoing } ->
                     NodeContext
                         node
                         incoming
@@ -67,18 +69,15 @@ addConnection from to graph =
         |> Graph.update
             (max from to)
             (Maybe.map
-                (\{node,incoming,outgoing} ->
+                (\{ node, incoming, outgoing } ->
                     NodeContext
                         node
                         incoming
                         (outgoing
                             |> IntDict.insert (min from to) Friend
-                            
                         )
-                    
                 )
             )
-        
 
 
 updateState : Visualisation -> Visualisation
@@ -95,7 +94,7 @@ updateState g =
 
         connectionsOf : Visualisation -> NodeId -> Int
         connectionsOf graph a =
-            graph |> Graph.edges |> List.filterMap (hasRelationWith a) |> List.map (\a -> 1) |> List.sum
+            graph |> Graph.edges |> List.filterMap (hasRelationWith a) |> List.map (\_ -> 1) |> List.sum
 
         isFemale : Person -> Maybe FemaleId
         isFemale a =
@@ -158,7 +157,7 @@ updateState g =
                             Just sublist ->
                                 case sublist |> List.head of
                                     Just max ->
-                                        if (connectionsOf graph max == connectionsOf graph elem) then
+                                        if connectionsOf graph max == connectionsOf graph elem then
                                             (elem :: sublist) :: Maybe.withDefault [] (List.tail list)
                                         else
                                             [ elem ] :: list
@@ -177,7 +176,6 @@ updateState g =
                 |> List.drop nr
                 |> List.head
                 |> Maybe.withDefault []
-                |> Debug.log "log"
 
         newPartnerFor : Visualisation -> FemaleId -> Int -> Maybe MaleId
         newPartnerFor graph a nr =
@@ -240,13 +238,10 @@ updateState g =
                                )
                     )
                     graph
-                
-
-        -- Todo: Reaktion der Single Männer
     in
     List.range 0 (maxFemaleConnections - 1)
         |> List.foldl
-            (\nr {graph, f ,proposals} ->
+            (\nr { graph, f, proposals } ->
                 f
                     |> List.partition (\a -> newPartnerFor graph a nr /= Nothing)
                     |> Tuple.mapFirst
@@ -261,12 +256,13 @@ updateState g =
                                 |> Tuple.mapSecond (List.map .female >> List.append second)
                        )
                     |> (\( first, second ) ->
-                            {graph = first
-                                |> List.foldl applyPartnerProposal graph
+                            { graph =
+                                first
+                                    |> List.foldl applyPartnerProposal graph
                             , f = second
-                            ,proposals = proposals |> List.append first
+                            , proposals = proposals |> List.append first
                             }
                        )
             )
-            { graph=g,f = females , proposals = []}
-        |> (\{graph,proposals} -> graph |> updateMaleConnections proposals)
+            { graph = g, f = females, proposals = [] }
+        |> (\{ graph, proposals } -> graph |> updateMaleConnections proposals)

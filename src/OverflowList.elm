@@ -1,60 +1,56 @@
 -- List with overflow
 
 
-module OverflowList exposing (OverflowList, fromList, getList, getMaxLength, getOverflow, length, overflow)
+module OverflowList exposing (OverflowList, append, fromList, getList, getMaxLength, getOverflow, length, overflow)
 
 
-type alias OverflowList a =
-    { list : List a
-    , max_length : Int
-    }
+type OverflowList a
+    = OverflowList (List a) Int
 
 
 fromList : Int -> List a -> OverflowList a
 fromList max_length list =
-    { list = list, max_length = max_length }
+    OverflowList list max_length
 
 
 getList : OverflowList a -> List a
-getList overflowList =
-    overflowList.list
-        |> List.take overflowList.max_length
+getList (OverflowList list max_length) =
+    list
+        |> List.take max_length
 
 
 length : OverflowList a -> Int
-length overflowList =
-    overflowList.list
+length (OverflowList list max_length) =
+    list
         |> List.length
-        |> min overflowList.max_length
+        |> min max_length
 
 
 getMaxLength : OverflowList a -> Int
-getMaxLength overflowList =
-    overflowList.max_length
+getMaxLength (OverflowList _ max_length) =
+    max_length
 
 
 overflow : OverflowList a -> Int
-overflow overflowList =
-    overflowList.list
+overflow (OverflowList list max_length) =
+    list
         |> List.length
-        |> (-) overflowList.max_length
+        |> (-) max_length
         |> max 0
 
 
 getOverflow : OverflowList a -> Maybe (List a)
-getOverflow overflowList =
-    overflowList.list
-        |> List.drop overflowList.max_length
-        |> (\list ->
-                if list |> List.isEmpty then
+getOverflow (OverflowList list max_length) =
+    list
+        |> List.drop max_length
+        |> (\l ->
+                if l |> List.isEmpty then
                     Nothing
                 else
-                    Just list
+                    Just l
            )
 
 
 append : List a -> OverflowList a -> OverflowList a
-append list overflowList =
-    { overflowList
-        | list = list |> List.append overflowList.list
-    }
+append a (OverflowList list max_length) =
+    OverflowList (a |> List.append list) max_length

@@ -1,4 +1,14 @@
-module Roguelike.GroupedOverflowList exposing (GroupedOverflowList, empty, fromList, getList, getMaxLength, getOverflow, length, setOverflow)
+module Roguelike.GroupedOverflowList
+    exposing
+        ( GroupedOverflowList
+        , empty
+        , fromList
+        , getList
+        , getMaxLength
+        , getOverflow
+        , length
+        , setOverflow
+        )
 
 import OverflowList exposing (OverflowList)
 import Roguelike.GroupedList as GroupedList exposing (GroupedList)

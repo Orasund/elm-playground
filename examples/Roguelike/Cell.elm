@@ -1,5 +1,7 @@
 module Roguelike.Cell exposing (Cell(..), ConsumableType(..), Direction(..), EffectType(..), EnemyType(..), Item(..), MiscellaneousType(..), SolidType(..), getImage)
 
+import PixelEngine exposing (Tile, animatedTile, tile)
+
 
 type SolidType
     = DirtWall
@@ -45,49 +47,49 @@ type Cell
     | Effect EffectType
 
 
-getImage : Cell -> ( Int, Int )
+getImage : Cell -> Tile
 getImage cell =
     case cell of
         Player a ->
             case a of
                 Down ->
-                    ( 12, 12 )
+                    animatedTile ( 12, 12 ) 1
 
                 Up ->
-                    ( 13, 12 )
+                    animatedTile ( 12, 13 ) 1
 
                 Left ->
-                    ( 13, 13 )
+                    animatedTile ( 12, 14 ) 1
 
                 Right ->
-                    ( 12, 13 )
+                    animatedTile ( 12, 15 ) 1
 
         Solid DirtWall ->
-            ( 0, 2 )
+            tile ( 0, 2 )
 
         Solid PlacedDirt ->
-            ( 0, 3 )
+            tile ( 0, 3 )
 
         Item (Consumable Bombe) ->
-            ( 6, 6 )
+            tile ( 6, 6 )
 
         Item (Consumable Cheese) ->
-            ( 5, 7 )
+            tile ( 5, 7 )
 
         Item (Consumable Dirt) ->
-            ( 8, 7 )
+            tile ( 8, 7 )
 
         Item (Miscellaneous Bone) ->
-            ( 12, 15 )
+            tile ( 0, 10 )
 
         Enemy PlacedBombe ->
-            ( 4, 9 )
+            tile ( 4, 9 )
 
         Enemy Rat ->
-            ( 0, 8 )
+            animatedTile ( 0, 8 ) 1
 
         Effect Smoke ->
-            ( 14, 14 )
+            tile ( 14, 14 )
 
 
 
