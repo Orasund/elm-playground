@@ -47,7 +47,7 @@ applyDirection size dir ( playerData, map ) =
 playerInteration : Map.Location -> Cell -> Game -> Game
 playerInteration location cell game =
     case cell of
-        Enemy enemy ->
+        Enemy enemy id ->
             game |> updateEnemy location enemy
 
         Effect _ ->
@@ -107,7 +107,7 @@ placedBombeBehavoiur currentLocation dir game =
             Map.dirCoordinates dir |> Pair.map2 (+) currentLocation
     in
     case game |> Tuple.second |> Dict.get newLocation of
-        Just (Enemy _) ->
+        Just (Enemy _ _) ->
             game
                 |> Tuple.mapSecond
                     (Dict.update newLocation (always (Just (Item (Miscellaneous Bone)))))

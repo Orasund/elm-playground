@@ -11,6 +11,7 @@
     ],
     "exposed-modules": [],
     "dependencies": {
+        "Orasund/elm-pair": "1.0.1 <= v < 2.0.0",
         "elm-community/elm-time": "2.0.0 <= v < 3.0.0",
         "elm-community/graph": "5.0.1 <= v < 6.0.0",
         "elm-community/intdict": "2.0.0 <= v < 3.0.0",
