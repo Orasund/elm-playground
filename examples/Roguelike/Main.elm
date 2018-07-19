@@ -86,7 +86,7 @@ mapGenerator pos ( map, seed ) =
         , new_seed
         )
     else if r < 47 then
-        ( map |> Dict.insert pos (Enemy Rat)
+        ( map |> Dict.insert pos (Enemy Rat ("Rat" ++ toString r))
         , new_seed
         )
     else
@@ -216,7 +216,10 @@ view model =
                 |> SelectList.selected
                 |> Dict.foldl
                     (\pos cell list ->
-                        ( pos, Cell.getImage cell ) :: list
+                        ( pos
+                        , Cell.getImage cell
+                        )
+                            :: list
                     )
                     []
             )

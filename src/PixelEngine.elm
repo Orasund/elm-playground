@@ -1,20 +1,23 @@
-module PixelEngine exposing (Background(..), Tile, Tileset, animatedTile, render, tile, tiledArea)
+module PixelEngine exposing (Background(..), Tile, Tileset, animatedMovableTile, animatedTile, movableTile, render, tile, tiledArea)
 
 import Css exposing (px)
 import Css.Foreign as Foreign
 import Html.Styled exposing (Html, div, img)
 import Html.Styled.Attributes exposing (css, src)
+import Pair
 
 
 type alias Location =
     ( Int, Int )
 
 
-type alias Tile =
-    { top : Int
-    , left : Int
-    , steps : Int
-    }
+type Tile
+    = Tile
+        { top : Int
+        , left : Int
+        , steps : Int
+        , transitionId : Maybe String
+        }
 
 
 type alias Tileset =
@@ -59,19 +62,44 @@ tiledArea { height, tileset, background } content =
 
 tile : Location -> Tile
 tile ( left, top ) =
-    { top = top, left = left, steps = 0 }
+    Tile { top = top, left = left, steps = 0, transitionId = Nothing }
 
 
 animatedTile : Location -> Int -> Tile
 animatedTile ( left, top ) steps =
-    { top = top
-    , left = left
-    , steps =
-        if steps > 0 then
-            steps
-        else
-            0
-    }
+    Tile
+        { top = top
+        , left = left
+        , steps =
+            if steps > 0 then
+                steps
+            else
+                0
+        , transitionId = Nothing
+        }
+
+
+{-| Note: transitionId should be unique, if not the transition might fail every now and then.
+-}
+movableTile : Location -> String -> Tile
+movableTile ( left, top ) id =
+    Tile { top = top, left = left, steps = 0, transitionId = Just id }
+
+
+{-| Note: transitionId should be unique, if not the transition might fail every now and then.
+-}
+animatedMovableTile : Location -> Int -> String -> Tile
+animatedMovableTile ( left, top ) steps id =
+    Tile
+        { top = top
+        , left = left
+        , steps =
+            if steps > 0 then
+                steps
+            else
+                0
+        , transitionId = Just id
+        }
 
 
 render : Config -> List Area -> Html msg
@@ -121,20 +149,24 @@ renderTiledArea { scale, width } { height, background, content, tileset } =
             )
         ]
         (content
-            |> List.map (displayTile tileset scale)
+            |> List.partition (\( _, Tile { transitionId } ) -> transitionId == Nothing)
+            |> Tuple.mapSecond (List.sortBy (\( _, Tile { transitionId } ) -> transitionId |> Maybe.withDefault ""))
+            |> Pair.map (List.map (displayTile tileset scale))
+            |> Pair.map (div [])
+            |> Pair.toList
         )
 
 
 displayTile : Tileset -> Int -> ( Location, Tile ) -> Html msg
-displayTile { width, height, source } scale ( pos, tile ) =
+displayTile { width, height, source } scale ( pos, Tile { left, top, steps, transitionId } ) =
     let
         ( x, y ) =
             pos
 
         ( i, j ) =
-            ( tile.left, tile.top )
+            ( left, top )
     in
-    if tile.steps == 0 then
+    if steps == 0 then
         img
             [ src source
             , css
@@ -155,13 +187,21 @@ displayTile { width, height, source } scale ( pos, tile ) =
     else
         div
             [ css
-                [ Css.position Css.absolute
-                , Css.top <| px <| toFloat <| scale * height * y
-                , Css.left <| px <| toFloat <| scale * width * x
-                , Css.width <| px <| toFloat <| scale * width
-                , Css.height <| px <| toFloat <| scale * height
-                , Css.overflow Css.hidden
-                ]
+                ((if transitionId == Nothing then
+                    []
+                  else
+                    [ Css.property "transition" "left 0.2s,top 0.2s;"
+                    ]
+                 )
+                    |> List.append
+                        [ Css.position Css.absolute
+                        , Css.top <| px <| toFloat <| scale * height * y
+                        , Css.left <| px <| toFloat <| scale * width * x
+                        , Css.width <| px <| toFloat <| scale * width
+                        , Css.height <| px <| toFloat <| scale * height
+                        , Css.overflow Css.hidden
+                        ]
+                )
             ]
             [ img
                 [ src source
@@ -170,14 +210,14 @@ displayTile { width, height, source } scale ( pos, tile ) =
                     , Css.property
                         "object-position"
                         (toString (-1 * width * (i - 1)) ++ "px " ++ toString (-1 * height * j) ++ "px")
-                    , Css.width <| px <| toFloat <| width * (tile.steps + 2)
+                    , Css.width <| px <| toFloat <| width * (steps + 2)
                     , Css.height <| px <| toFloat <| height
                     , Css.position Css.relative
-                    , Css.right <| px <| toFloat <| width * 2 * (tile.steps + 1)
-                    , Css.marginLeft <| px <| toFloat <| width * (tile.steps + 2) // 2
+                    , Css.right <| px <| toFloat <| width * 2 * (steps + 1)
+                    , Css.marginLeft <| px <| toFloat <| width * (steps + 2) // 2
                     , Css.top <| px <| toFloat <| height // 2
                     , Css.property "image-rendering" "pixelated"
-                    , Css.property "animation" ("pixelengine_graphics_basic " ++ toString (tile.steps + 1) ++ ".0s steps(" ++ toString (tile.steps + 1) ++ ") infinite")
+                    , Css.property "animation" ("pixelengine_graphics_basic " ++ toString (steps + 1) ++ ".0s steps(" ++ toString (steps + 1) ++ ") infinite")
                     , Css.transform <| Css.scale2 scale scale
                     ]
                 ]

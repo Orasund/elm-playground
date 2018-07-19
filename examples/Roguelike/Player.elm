@@ -115,13 +115,13 @@ move worldSize location direction ( playerData, currentMap ) =
                        )
                 )
 
-            Just (Enemy _) ->
+            Just (Enemy _ id) ->
                 ( playerData
                 , case currentMap |> Dict.get ((moveDir |> Pair.map ((*) 2)) |> Pair.map2 (+) location) of
                     Just (Solid _) ->
                         currentMap
 
-                    Just (Enemy _) ->
+                    Just (Enemy _ _) ->
                         currentMap
 
                     _ ->
@@ -130,7 +130,7 @@ move worldSize location direction ( playerData, currentMap ) =
                                 currentMap
                                     |> moveTo (Pair.map2 (+) location moveDir) moveDir
 
-                            Just (Enemy _) ->
+                            Just (Enemy _ _) ->
                                 currentMap
                                     |> moveTo (Pair.map2 (+) location moveDir) moveDir
 
@@ -230,11 +230,11 @@ activate ( playerData, map ) =
                                 case tuple |> Tuple.second |> Dict.get pos of
                                     Nothing ->
                                         tuple
-                                            |> Tuple.mapSecond (Map.place pos (Enemy PlacedBombe))
+                                            |> Tuple.mapSecond (Map.place pos (Enemy PlacedBombe ""))
 
                                     Just (Effect _) ->
                                         tuple
-                                            |> Tuple.mapSecond (Map.place pos (Enemy PlacedBombe))
+                                            |> Tuple.mapSecond (Map.place pos (Enemy PlacedBombe ""))
 
                                     Just (Solid DirtWall) ->
                                         ( tuple
