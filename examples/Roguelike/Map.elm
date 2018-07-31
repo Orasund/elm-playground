@@ -1,12 +1,19 @@
-module Roguelike.Map exposing (Location, Map, dirCoordinates, generate, getUnique, place, remove)
+module Roguelike.Map exposing (Direction(..), Location, Map, approximateDirection, dirCoordinates, generate, getUnique, move, place, remove)
 
 import Dict exposing (Dict)
+import Pair
 import Random
-import Roguelike.Cell exposing (Direction(..))
 
 
 type alias Location =
     ( Int, Int )
+
+
+type Direction
+    = Up
+    | Down
+    | Left
+    | Right
 
 
 type alias Map a =
@@ -24,6 +31,31 @@ generate size fun seed =
                         out
             )
             ( Dict.empty, seed )
+
+
+move : Location -> Direction -> Map a -> Map a
+move pos dir map =
+    case map |> Dict.get pos of
+        Just a ->
+            map
+                |> Dict.update (Pair.map2 (+) pos (dirCoordinates dir)) (always (Just a))
+                |> Dict.remove pos
+
+        Nothing ->
+            map
+
+
+approximateDirection : Location -> Direction
+approximateDirection ( a, b ) =
+    if abs a > abs b then
+        if a > 0 then
+            Right
+        else
+            Left
+    else if b > 0 then
+        Down
+    else
+        Up
 
 
 dirCoordinates : Direction -> ( Int, Int )

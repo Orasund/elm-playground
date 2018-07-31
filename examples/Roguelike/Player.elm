@@ -1,16 +1,46 @@
-module Roguelike.Player exposing (PlayerData, activate, attack, drop, face, getCell, init, move, rotateLeft, rotateRight)
+module Roguelike.Player
+    exposing
+        ( Game
+        , PlayerCell
+        , PlayerData
+        , activate
+        , attack
+        , drop
+        , face
+        , init
+        , move
+        , rotateLeft
+        , rotateRight
+        )
 
 import Dict
 import Pair
-import Roguelike.Cell exposing (Cell(..), ConsumableType(..), Direction(..), EnemyType(..), Item(..), SolidType(..))
+import Roguelike.Cell as Cell
+    exposing
+        ( Cell(..)
+        , ConsumableType(..)
+        , EnemyType(..)
+        , Item(..)
+        , MaterialType(..)
+        , MiscellaneousType(..)
+        , SolidType(..)
+        )
 import Roguelike.Inventory as Inventory exposing (Inventory)
-import Roguelike.Map as Map exposing (Map)
+import Roguelike.Map as Map exposing (Direction(..), Location, Map)
 
 
 type alias PlayerData =
     { inventory : Inventory Item
     , lifes : Int
     }
+
+
+type alias PlayerCell =
+    ( Location, Direction )
+
+
+type alias Game =
+    ( PlayerData, Map Cell )
 
 
 init : Int -> PlayerData
@@ -20,41 +50,30 @@ init backpackSize =
     }
 
 
-getCell : Map Cell -> Maybe ( Map.Location, Direction )
-getCell map =
-    map
-        |> Map.getUnique
-            (\_ cell ->
-                case cell of
-                    Player _ ->
-                        True
-
-                    _ ->
-                        False
-            )
-        |> Maybe.andThen
-            (\( key, cell ) ->
-                case cell of
-                    Player dir ->
-                        Just ( key, dir )
-
-                    _ ->
-                        Nothing
-            )
-
-
-face : Map.Location -> Direction -> Map Cell -> Map Cell
+face : Location -> Direction -> Map Cell -> Map Cell
 face location direction map =
     map |> Map.place location (Player direction)
 
 
-attack : PlayerData -> PlayerData
-attack player =
-    { player | lifes = player.lifes - 1 }
+attack : PlayerCell -> Game -> Game
+attack ( location, _ ) ( playerData, currentMap ) =
+    let
+        lifes : Int
+        lifes =
+            playerData.lifes - 1
+    in
+    ( { playerData | lifes = lifes }
+    , currentMap
+        |> (if lifes > 0 then
+                identity
+            else
+                Dict.update location (always (Just (Item (Miscellaneous Bone))))
+           )
+    )
 
 
-move : Int -> Map.Location -> Direction -> ( PlayerData, Map Cell ) -> ( PlayerData, Map Cell )
-move worldSize location direction ( playerData, currentMap ) =
+move : Int -> ( PlayerCell, Game ) -> ( PlayerCell, Game )
+move worldSize ( ( location, direction ) as playerCell, ( playerData, currentMap ) as game ) =
     let
         moveDir =
             Map.dirCoordinates direction
@@ -77,66 +96,71 @@ move worldSize location direction ( playerData, currentMap ) =
                                 x == worldSize
                    )
 
-        moveTo : Map.Location -> Map.Location -> Map Cell -> Map Cell
-        moveTo pos dir map =
-            case map |> Dict.get pos of
-                Just cell ->
-                    map
-                        |> Dict.update (Pair.map2 (+) pos dir) (always (Just cell))
-                        |> Dict.remove pos
+        newLocation : Location
+        newLocation =
+            Pair.map2 (+) location moveDir
 
-                Nothing ->
-                    map
+        newPlayerCell : PlayerCell
+        newPlayerCell =
+            playerCell |> Tuple.mapFirst (always newLocation)
     in
     if outOfBound then
-        ( playerData, currentMap )
+        ( playerCell, game )
     else
-        case currentMap |> Dict.get (Pair.map2 (+) location moveDir) of
-            Just (Item a) ->
+        case currentMap |> Dict.get newLocation of
+            Just (Item item) ->
                 let
-                    ( item, inventory ) =
+                    ( maybeDroppedItem, inventory ) =
                         playerData.inventory |> Inventory.drop
                 in
-                ( playerData
-                    |> (\b ->
-                            { b
-                                | inventory = inventory |> Inventory.add a
-                            }
-                       )
-                , currentMap
-                    |> moveTo location moveDir
-                    |> (\m ->
-                            case item of
-                                Just c ->
-                                    m |> Map.place location (Item c)
+                ( newPlayerCell
+                , ( { playerData
+                        | inventory = inventory |> Inventory.add item
+                    }
+                  , currentMap
+                        |> Map.move location direction
+                        |> (case maybeDroppedItem of
+                                Just droppedItem ->
+                                    Map.place location (Item droppedItem)
 
                                 _ ->
-                                    m
-                       )
+                                    identity
+                           )
+                  )
                 )
 
-            Just (Enemy _ id) ->
-                ( playerData
-                , case currentMap |> Dict.get ((moveDir |> Pair.map ((*) 2)) |> Pair.map2 (+) location) of
-                    Just (Solid _) ->
+            Just (Enemy _ _) ->
+                ( playerCell
+                , ( playerData
+                  , case
                         currentMap
+                            |> Dict.get
+                                ((moveDir
+                                    |> Pair.map ((*) 2)
+                                 )
+                                    |> Pair.map2 (+) location
+                                )
+                    of
+                        Just (Solid _) ->
+                            currentMap
 
-                    Just (Enemy _ _) ->
-                        currentMap
+                        Just (Enemy _ _) ->
+                            currentMap
 
-                    _ ->
-                        case currentMap |> Dict.get ((moveDir |> Pair.map ((*) 3)) |> Pair.map2 (+) location) of
-                            Just (Solid _) ->
-                                currentMap
-                                    |> moveTo (Pair.map2 (+) location moveDir) moveDir
+                        _ ->
+                            currentMap
+                                |> Map.move newLocation direction
+                                |> (case currentMap |> Dict.get ((moveDir |> Pair.map ((*) 3)) |> Pair.map2 (+) location) of
+                                        Just (Solid _) ->
+                                            identity
 
-                            Just (Enemy _ _) ->
-                                currentMap
-                                    |> moveTo (Pair.map2 (+) location moveDir) moveDir
+                                        Just (Enemy _ _) ->
+                                            identity
 
-                            _ ->
-                                currentMap
-                                    |> moveTo (Pair.map2 (+) location moveDir) (Pair.map ((*) 2) moveDir)
+                                        _ ->
+                                            Map.move (Pair.map2 (+) location (Pair.map ((*) 2) moveDir)) direction
+                                   )
+                  )
                 )
 
             Nothing ->
@@ -144,17 +168,19 @@ move worldSize location direction ( playerData, currentMap ) =
                     ( item, inventory ) =
                         playerData.inventory |> Inventory.drop
                 in
-                ( playerData |> (\a -> { a | inventory = inventory })
-                , currentMap
-                    |> moveTo location moveDir
-                    |> (\m ->
-                            case item of
-                                Just a ->
-                                    m |> Map.place location (Item a)
+                ( newPlayerCell
+                , ( playerData |> (\a -> { a | inventory = inventory })
+                  , currentMap
+                        |> Map.move location direction
+                        |> (\m ->
+                                case item of
+                                    Just a ->
+                                        m |> Map.place location (Item a)
 
-                                Nothing ->
-                                    m
-                       )
+                                    Nothing ->
+                                        m
+                           )
+                  )
                 )
 
             Just (Effect _) ->
@@ -162,188 +188,216 @@ move worldSize location direction ( playerData, currentMap ) =
                     ( item, inventory ) =
                         playerData.inventory |> Inventory.drop
                 in
-                ( playerData |> (\a -> { a | inventory = inventory })
-                , currentMap
-                    |> moveTo location moveDir
-                    |> (\m ->
-                            case item of
-                                Just a ->
-                                    m |> Map.place location (Item a)
+                ( newPlayerCell
+                , ( playerData |> (\a -> { a | inventory = inventory })
+                  , currentMap
+                        |> Map.move location direction
+                        |> (\m ->
+                                case item of
+                                    Just a ->
+                                        m |> Map.place location (Item a)
 
-                                Nothing ->
-                                    m
-                       )
+                                    Nothing ->
+                                        m
+                           )
+                  )
                 )
 
-            Just (Solid PlacedDirt) ->
-                ( playerData
-                    |> (\pd ->
-                            { pd
-                                | inventory =
-                                    pd.inventory
-                                        |> Inventory.add (Consumable Dirt)
-                            }
-                       )
-                , currentMap
-                    |> Dict.remove (Pair.map2 (+) location moveDir)
+            Just (Solid solid) ->
+                ( playerCell
+                , case Cell.decomposing solid of
+                    ( Nothing, _ ) ->
+                        ( playerData
+                            |> addToInventory (Consumable (Material Dirt))
+                        , currentMap
+                            |> Dict.remove newLocation
+                        )
+
+                    _ ->
+                        game |> Tuple.mapSecond (face location direction)
                 )
 
             _ ->
-                ( playerData
-                , currentMap
-                    |> face location direction
+                ( playerCell
+                , game |> Tuple.mapSecond (face location direction)
                 )
 
 
-activate : ( PlayerData, Map Cell ) -> ( PlayerData, Map Cell )
-activate ( playerData, map ) =
-    case playerData.inventory |> Inventory.selected of
-        Just (Consumable a) ->
-            ( playerData
-                |> (\b ->
-                        { b
-                            | inventory =
-                                playerData.inventory
-                                    |> Inventory.take
-                                    |> Tuple.second
-                        }
-                   )
-            , map
+activate : PlayerCell -> Game -> Game
+activate playerCell (( playerData, _ ) as game) =
+    game
+        |> (case playerData |> .inventory |> Inventory.selected of
+                Just (Consumable consumable) ->
+                    Tuple.mapFirst takeFromInventory
+                        >> consumableAction playerCell consumable
+
+                _ ->
+                    drop playerCell
+           )
+
+
+consumableAction : PlayerCell -> ConsumableType -> Game -> Game
+consumableAction playerCell consumable (( playerData, map ) as game) =
+    let
+        defaultCase : Game -> Game
+        defaultCase =
+            Tuple.mapFirst (addToInventory (Consumable consumable))
+    in
+    game
+        |> ((case consumable of
+                Bombe ->
+                    bombeAction map playerCell
+
+                Material material ->
+                    materialAction map playerCell material
+
+                HealthPotion ->
+                    healthPotionAction playerData
             )
-                |> (\tuple ->
-                        case a of
-                            Bombe ->
-                                let
-                                    pos : ( Int, Int )
-                                    pos =
-                                        case getCell (tuple |> Tuple.second) of
-                                            Just ( ( x, y ), dir ) ->
-                                                let
-                                                    ( i, j ) =
-                                                        Map.dirCoordinates dir
-                                                in
-                                                ( x + i, y + j )
+                |> Maybe.withDefault defaultCase
+           )
 
-                                            Nothing ->
-                                                ( 0, 0 )
-                                in
-                                case tuple |> Tuple.second |> Dict.get pos of
-                                    Nothing ->
-                                        tuple
-                                            |> Tuple.mapSecond (Map.place pos (Enemy PlacedBombe ""))
 
-                                    Just (Effect _) ->
-                                        tuple
-                                            |> Tuple.mapSecond (Map.place pos (Enemy PlacedBombe ""))
+healthPotionAction : PlayerData -> Maybe (Game -> Game)
+healthPotionAction { lifes } =
+    if lifes < 3 then
+        Just
+            (\game ->
+                game
+                    |> Tuple.mapFirst
+                        (\playerData ->
+                            { playerData | lifes = lifes + 1 }
+                        )
+            )
+    else
+        Nothing
 
-                                    Just (Solid DirtWall) ->
-                                        ( tuple
-                                            |> Tuple.first
-                                            |> (\pd ->
-                                                    { pd
-                                                        | inventory =
-                                                            pd.inventory
-                                                                |> Inventory.add (Consumable Dirt)
-                                                    }
-                                               )
-                                        , tuple
-                                            |> Tuple.second
-                                            |> Map.place pos (Solid PlacedDirt)
-                                        )
 
-                                    _ ->
-                                        tuple
+bombeAction : Map Cell -> PlayerCell -> Maybe (Game -> Game)
+bombeAction currentMap playerCell =
+    let
+        specialCase : SolidType -> Maybe (Game -> Game)
+        specialCase solidType =
+            let
+                ( maybeSolid, material ) =
+                    Cell.decomposing solidType
+            in
+            maybeSolid
+                |> Maybe.map
+                    (\solid ->
+                        \( playerData, map ) ->
+                            ( playerData
+                                |> addToInventory (Consumable (Material material))
+                            , map
+                                |> Map.place (posFront playerCell) (Solid solid)
+                            )
+                    )
 
-                            Dirt ->
-                                let
-                                    pos : ( Int, Int )
-                                    pos =
-                                        case getCell (tuple |> Tuple.second) of
-                                            Just ( ( x, y ), dir ) ->
-                                                let
-                                                    ( i, j ) =
-                                                        Map.dirCoordinates dir
-                                                in
-                                                ( x + i, y + j )
+        --|> Maybe.withDefault game
+    in
+    placingItem currentMap playerCell (Enemy PlacedBombe "") specialCase
 
-                                            Nothing ->
-                                                ( 0, 0 )
-                                in
-                                case tuple |> Tuple.second |> Dict.get pos of
-                                    Nothing ->
-                                        tuple
-                                            |> Tuple.mapSecond (Map.place pos (Solid PlacedDirt))
 
-                                    Just (Effect _) ->
-                                        tuple
-                                            |> Tuple.mapSecond (Map.place pos (Solid PlacedDirt))
+materialAction : Map Cell -> PlayerCell -> MaterialType -> Maybe (Game -> Game)
+materialAction map playerCell material =
+    let
+        specialCase : SolidType -> Maybe (Game -> Game)
+        specialCase solidType =
+            Just
+                (case Cell.composing ( Just solidType, material ) of
+                    Just newSolid ->
+                        Tuple.mapSecond (Map.place (posFront playerCell) (Solid newSolid))
 
-                                    Just (Solid PlacedDirt) ->
-                                        tuple
-                                            |> Tuple.mapSecond (Map.place pos (Solid DirtWall))
+                    Nothing ->
+                        Tuple.mapFirst (addToInventory (Consumable (Material material)))
+                )
+    in
+    Cell.composing ( Nothing, material )
+        |> Maybe.andThen
+            (\solid ->
+                placingItem
+                    map
+                    playerCell
+                    (Solid solid)
+                    specialCase
+            )
 
-                                    _ ->
-                                        tuple
 
-                            _ ->
-                                tuple
-                   )
+placingItem : Map Cell -> PlayerCell -> Cell -> (SolidType -> Maybe (Game -> Game)) -> Maybe (Game -> Game)
+placingItem map playerCell cell specialCase =
+    let
+        frontPos : Map.Location
+        frontPos =
+            posFront playerCell
+    in
+    case map |> Dict.get frontPos of
+        Nothing ->
+            Just (Tuple.mapSecond (Map.place frontPos cell))
+
+        Just (Effect _) ->
+            Just (Tuple.mapSecond (Map.place frontPos cell))
+
+        Just (Solid solidType) ->
+            specialCase solidType
 
         _ ->
-            ( playerData, map )
+            Nothing
 
 
-drop : ( PlayerData, Map Cell ) -> ( PlayerData, Map Cell )
-drop ( playerData, map ) =
+posFront : PlayerCell -> Location
+posFront ( location, direction ) =
+    Pair.map2 (+) location (direction |> Map.dirCoordinates)
+
+
+drop : PlayerCell -> Game -> Game
+drop ( location, direction ) ( playerData, map ) =
     let
         ( item, inventory ) =
             playerData.inventory |> Inventory.take
 
         dir : Map.Location
         dir =
-            case getCell map of
-                Just ( ( x, y ), direction ) ->
-                    let
-                        ( i, j ) =
-                            Map.dirCoordinates direction
-                    in
-                    ( x + i, y + j )
-
-                Nothing ->
-                    ( 0, 0 )
+            Pair.map2 (+) location (Map.dirCoordinates direction)
     in
     case map |> Dict.get dir of
         Nothing ->
-            ( playerData |> (\a -> { a | inventory = inventory })
-            , case item of
-                Just a ->
-                    map |> Map.place dir (Item a)
-
-                _ ->
-                    map
+            ( { playerData | inventory = inventory }
+            , map
+                |> (item
+                        |> Maybe.map (\a -> Map.place dir (Item a))
+                        |> Maybe.withDefault identity
+                   )
             )
 
         _ ->
             ( playerData, map )
 
 
-rotateLeft : ( PlayerData, Map Cell ) -> ( PlayerData, Map Cell )
-rotateLeft ( playerData, map ) =
-    ( { playerData
-        | inventory =
-            playerData.inventory
-                |> Inventory.rotateLeft
-      }
-    , map
-    )
+takeFromInventory : PlayerData -> PlayerData
+takeFromInventory ({ inventory } as playerData) =
+    { playerData
+        | inventory = inventory |> Inventory.take |> Tuple.second
+    }
 
 
-rotateRight : ( PlayerData, Map Cell ) -> ( PlayerData, Map Cell )
-rotateRight ( playerData, map ) =
-    ( { playerData
+addToInventory : Item -> PlayerData -> PlayerData
+addToInventory item ({ inventory } as playerData) =
+    { playerData
         | inventory =
-            playerData.inventory
-                |> Inventory.rotateRight
-      }
-    , map
-    )
+            inventory
+                |> Inventory.add item
+    }
+
+
+rotateLeft : PlayerData -> PlayerData
+rotateLeft ({ inventory } as playerData) =
+    { playerData
+        | inventory = inventory |> Inventory.rotateLeft
+    }
+
+
+rotateRight : PlayerData -> PlayerData
+rotateRight ({ inventory } as playerData) =
+    { playerData
+        | inventory = inventory |> Inventory.rotateRight
+    }

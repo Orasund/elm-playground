@@ -1,19 +1,21 @@
-module Main exposing (main)
+module Roguelike.Main exposing (main)
 
 --import Roguelike.Inventory as Inventory exposing (Inventory)
 
 import Char
-import Css
+import Css exposing (px)
 import Dict
 import Html.Styled exposing (Html, program)
 import Keyboard
-import PixelEngine as Graphics exposing (tile)
+import PixelEngine.Graphics as Graphics exposing (Area)
+import PixelEngine.Graphics.Image as Image exposing (image)
+import PixelEngine.Graphics.Tile as Tile exposing (Tileset)
+import PixelEngine.ScreenTransition as Transition
 import Random
 import Roguelike.Cell as Cell
     exposing
         ( Cell(..)
         , ConsumableType(..)
-        , Direction(..)
         , EnemyType(..)
         , Item(..)
         , MiscellaneousType(..)
@@ -21,20 +23,13 @@ import Roguelike.Cell as Cell
         )
 import Roguelike.Game as Game
 import Roguelike.Inventory as Inventory
-import Roguelike.Map as Map exposing (Map)
-import Roguelike.Player as Player exposing (PlayerData)
-import SelectList exposing (SelectList)
-
-
-type alias Config r =
-    { r
-        | worldSeed : Int
-        , worldSize : Int
-    }
+import Roguelike.Map as Map exposing (Direction(..), Map)
+import Roguelike.Player as Player exposing (PlayerCell, PlayerData)
+import Roguelike.Tileset as Tileset
 
 
 type alias Model =
-    { map : SelectList (Map Cell)
+    { map : Map Cell
     , player : PlayerData
     , seed : Random.Seed
     , worldSeed : Int
@@ -44,7 +39,6 @@ type alias Model =
 
 type Input
     = Direction Direction
-    | Drop
     | Activate
     | RotateLeft
     | RotateRight
@@ -52,56 +46,13 @@ type Input
 
 type Msg
     = Input Input
+    | NextLevel
     | Idle
 
 
-updateSelected : (a -> a) -> SelectList a -> SelectList a
-updateSelected fun list =
-    list
-        |> SelectList.mapBy
-            (\pos ->
-                if pos == SelectList.Selected then
-                    fun
-                else
-                    identity
-            )
-
-
-mapGenerator : Map.Location -> ( Map Cell, Random.Seed ) -> ( Map Cell, Random.Seed )
-mapGenerator pos ( map, seed ) =
+init : Int -> ( Model, Cmd Msg )
+init worldSeed =
     let
-        ( r, new_seed ) =
-            Random.step (Random.int 0 100) seed
-    in
-    if r < 40 then
-        ( map |> Dict.insert pos (Solid DirtWall)
-        , new_seed
-        )
-    else if r < 45 then
-        ( map |> Dict.insert pos (Item (Consumable Bombe))
-        , new_seed
-        )
-    else if r < 46 then
-        ( map |> Dict.insert pos (Item (Consumable Cheese))
-        , new_seed
-        )
-    else if r < 47 then
-        ( map |> Dict.insert pos (Enemy Rat ("Rat" ++ toString r))
-        , new_seed
-        )
-    else
-        ( map
-        , new_seed
-        )
-
-
-init : ( Model, Cmd Msg )
-init =
-    let
-        worldSeed : Int
-        worldSeed =
-            31412
-
         worldSize : Int
         worldSize =
             16
@@ -113,10 +64,9 @@ init =
         ( currentMap, currentSeed ) =
             Map.generate
                 (worldSize - 1)
-                mapGenerator
+                Cell.mapGenerator
                 (Random.initialSeed worldSeed)
                 |> Tuple.mapFirst (Dict.update ( 7, 7 ) (always (Just (Player Down))))
-                |> Tuple.mapFirst SelectList.singleton
     in
     { map = currentMap
     , seed = currentSeed
@@ -128,158 +78,298 @@ init =
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update msg ({ player, map, worldSeed, worldSize } as model) =
     case msg of
         Input input ->
             let
-                ( playerData, map ) =
-                    case input of
-                        Drop ->
-                            ( model.player, model.map |> SelectList.selected )
-                                |> Player.drop
+                maybePlayer : Map Cell -> Maybe PlayerCell
+                maybePlayer currentMap =
+                    currentMap
+                        |> Map.getUnique
+                            (\_ cell ->
+                                case cell of
+                                    Player _ ->
+                                        True
 
-                        Activate ->
-                            ( model.player, model.map |> SelectList.selected )
-                                |> Player.activate
+                                    _ ->
+                                        False
+                            )
+                        |> Maybe.andThen
+                            (\( key, cell ) ->
+                                case cell of
+                                    Player dir ->
+                                        Just ( key, dir )
 
-                        Direction dir ->
-                            ( model.player, model.map |> SelectList.selected )
-                                |> Game.applyDirection (model.worldSize - 1) dir
-
-                        RotateLeft ->
-                            ( model.player, model.map |> SelectList.selected )
-                                |> Player.rotateLeft
-
-                        RotateRight ->
-                            ( model.player, model.map |> SelectList.selected )
-                                |> Player.rotateRight
+                                    _ ->
+                                        Nothing
+                            )
             in
-            { model
-                | player = playerData
-                , map = model.map |> updateSelected (always map)
-            }
-                ! [ Cmd.none ]
+            case maybePlayer map of
+                Just playerCell ->
+                    ( player, map )
+                        |> (case input of
+                                Activate ->
+                                    Player.activate playerCell
+
+                                Direction dir ->
+                                    \game -> ( playerCell, game ) |> Game.applyDirection (worldSize - 1) dir |> Tuple.second
+
+                                RotateLeft ->
+                                    Tuple.mapFirst Player.rotateLeft
+
+                                RotateRight ->
+                                    Tuple.mapFirst Player.rotateRight
+                           )
+                        |> (\( playerData, newMap ) ->
+                                { model
+                                    | player = playerData
+                                    , map = newMap
+                                }
+                                    ! [ Cmd.none ]
+                           )
+
+                Nothing ->
+                    init (worldSeed - 1)
+
+        NextLevel ->
+            init (worldSeed + 7)
 
         Idle ->
             model ! [ Cmd.none ]
 
 
 subscriptions : Model -> Sub Msg
-subscriptions _ =
+subscriptions { map } =
     Keyboard.presses <|
         Char.fromCode
             >> (\char ->
-                    case char of
-                        'w' ->
-                            Input (Direction Up)
+                    if
+                        map
+                            |> Dict.toList
+                            |> List.filter
+                                (\( _, cell ) ->
+                                    case cell of
+                                        Enemy _ _ ->
+                                            True
 
-                        's' ->
-                            Input (Direction Down)
+                                        _ ->
+                                            False
+                                )
+                            |> List.isEmpty
+                    then
+                        NextLevel
+                    else
+                        case char of
+                            'w' ->
+                                Input (Direction Up)
 
-                        'd' ->
-                            Input (Direction Right)
+                            's' ->
+                                Input (Direction Down)
 
-                        'a' ->
-                            Input (Direction Left)
+                            'd' ->
+                                Input (Direction Right)
 
-                        'f' ->
-                            Input Drop
+                            'a' ->
+                                Input (Direction Left)
 
-                        ' ' ->
-                            Input Activate
+                            ' ' ->
+                                Input Activate
 
-                        'q' ->
-                            Input RotateLeft
+                            'q' ->
+                                Input RotateLeft
 
-                        'e' ->
-                            Input RotateRight
+                            'e' ->
+                                Input RotateRight
 
-                        _ ->
-                            Idle
+                            _ ->
+                                Idle
                )
 
 
 view : Model -> Html Msg
 view model =
     let
-        tileset : Graphics.Tileset
+        tileset : Tileset
         tileset =
-            { source = "test.png", height = 16, width = 16 }
-    in
-    Graphics.render { scale = 2, width = 16 }
-        [ Graphics.tiledArea
-            { height = 16
-            , background = Graphics.Image "background.png"
-            , tileset = tileset
-            }
-            (model.map
-                |> SelectList.selected
-                |> Dict.foldl
-                    (\pos cell list ->
-                        ( pos
-                        , Cell.getImage cell
-                        )
-                            :: list
-                    )
-                    []
-            )
-        , Graphics.tiledArea
-            { height = 3
-            , background = Graphics.Color (Css.rgb 20 12 28)
-            , tileset = tileset
-            }
-            ([ ( ( 2, 0 ), tile ( 11, 13 ) ) --\/
-             , ( ( 3, 0 ), tile ( 1, 13 ) ) --f
-             , ( ( 4, 0 ), tile ( 10, 15 ) ) -- -
-             , ( ( 5, 0 ), tile ( 0, 15 ) ) --d
-             , ( ( 6, 0 ), tile ( 4, 13 ) ) --r
-             , ( ( 7, 0 ), tile ( 3, 14 ) ) --o
-             , ( ( 8, 0 ), tile ( 3, 15 ) ) --p
-             , ( ( 2, 2 ), tile ( 11, 12 ) ) --/\
-             , ( ( 3, 2 ), tile ( 4, 14 ) ) --s
-             , ( ( 4, 2 ), tile ( 3, 15 ) ) -- p
-             , ( ( 5, 2 ), tile ( 0, 12 ) ) --a
-             , ( ( 6, 2 ), tile ( 0, 14 ) ) --c
-             , ( ( 7, 2 ), tile ( 1, 12 ) ) --e
-             , ( ( 8, 2 ), tile ( 10, 15 ) ) -- -
-             , ( ( 9, 2 ), tile ( 5, 12 ) ) -- u
-             , ( ( 10, 2 ), tile ( 4, 14 ) ) --s
-             , ( ( 11, 2 ), tile ( 1, 12 ) ) --e
+            Tile.tileset { source = "tileset.png", spriteHeight = 16, spriteWidth = 16 }
 
-             --
-             , ( ( 12, 0 ), tile ( 4, 12 ) ) --q
-             , ( ( 13, 0 ), tile ( 11, 15 ) ) --<
-             , ( ( 14, 0 ), tile ( 11, 14 ) ) -->
-             , ( ( 15, 0 ), tile ( 1, 12 ) ) --e
-             ]
-                |> List.append
-                    (case model.player.inventory |> Inventory.ground of
-                        Just a ->
-                            [ ( ( 0, 1 ), Cell.getImage (Item a) ) ]
+        scale : Int
+        scale =
+            2
 
-                        Nothing ->
-                            []
-                    )
-                |> List.append
-                    (List.range 0 (model.player.lifes - 1)
-                        |> List.map (\i -> ( ( 15 - i, 2 ), tile ( 4, 8 ) ))
-                    )
-                |> List.append
-                    (model.player.inventory
-                        |> Inventory.get
-                        |> List.indexedMap
-                            (\i a ->
-                                ( ( 2 + i, 1 ), Cell.getImage (Item a) )
+        width : Int
+        width =
+            16
+
+        worldScreen : List (Area msg)
+        worldScreen =
+            [ Graphics.tiledArea
+                { rows = 1
+                , background = Graphics.colorBackground (Css.rgb 20 12 28)
+                , tileset = tileset
+                }
+                ([ ( ( 6, 0 ), Tileset.letter_s )
+                 , ( ( 7, 0 ), Tileset.letter_c )
+                 , ( ( 8, 0 ), Tileset.letter_o )
+                 , ( ( 9, 0 ), Tileset.letter_r )
+                 , ( ( 10, 0 ), Tileset.letter_e )
+                 , ( ( 11, 0 ), Tileset.letter_colon )
+                 , ( ( 13, 0 ), Tileset.numberToTile (abs model.worldSeed // 100) )
+                 , ( ( 14, 0 ), Tileset.numberToTile ((abs model.worldSeed % 100) // 10) )
+                 , ( ( 15, 0 ), Tileset.numberToTile (abs model.worldSeed % 10) )
+                 ]
+                    |> (if (model.worldSeed // abs model.worldSeed) == -1 then
+                            List.append [ ( ( 12, 0 ), Tileset.letter_minus ) ]
+                        else
+                            List.append []
+                       )
+                )
+            , Graphics.tiledArea
+                { rows = 16
+                , background = Graphics.imageBackground { source = "groundTile.png", width = 16, height = 16 }
+                , tileset = tileset
+                }
+                (model.map
+                    |> Dict.foldl
+                        (\pos cell list ->
+                            ( pos
+                            , Cell.getImage cell
                             )
-                    )
-            )
-        ]
+                                :: list
+                        )
+                        []
+                )
+            , Graphics.tiledArea
+                { rows = 3
+                , background = Graphics.colorBackground (Css.rgb 20 12 28)
+                , tileset = tileset
+                }
+                ([ ( ( 4, 2 ), Tileset.arrow_up )
+                 , ( ( 5, 2 ), Tileset.letter_s )
+                 , ( ( 6, 2 ), Tileset.letter_p )
+                 , ( ( 7, 2 ), Tileset.letter_a )
+                 , ( ( 8, 2 ), Tileset.letter_c )
+                 , ( ( 9, 2 ), Tileset.letter_e )
+                 , ( ( 10, 2 ), Tileset.letter_minus )
+                 , ( ( 11, 2 ), Tileset.letter_u )
+                 , ( ( 12, 2 ), Tileset.letter_s )
+                 , ( ( 13, 2 ), Tileset.letter_e )
+
+                 --
+                 , ( ( 0, 0 ), Tileset.arrow_down )
+                 , ( ( 1, 0 ), Tileset.letter_f )
+                 , ( ( 2, 0 ), Tileset.letter_l )
+                 , ( ( 3, 0 ), Tileset.letter_o )
+                 , ( ( 4, 0 ), Tileset.letter_o )
+                 , ( ( 5, 0 ), Tileset.letter_r )
+                 , ( ( 2, 1 ), Tileset.letter_q )
+                 , ( ( 3, 1 ), Tileset.arrow_left )
+                 , ( ( 12, 1 ), Tileset.arrow_right )
+                 , ( ( 13, 1 ), Tileset.letter_e )
+                 ]
+                    |> List.append
+                        (case model.player.inventory |> Inventory.ground of
+                            Just a ->
+                                [ ( ( 0, 1 ), Cell.getImage (Item a) ) ]
+
+                            Nothing ->
+                                []
+                        )
+                    |> List.append
+                        (List.range 0 (model.player.lifes - 1)
+                            |> List.map (\i -> ( ( 15 - i, 0 ), Tileset.heart ))
+                        )
+                    |> List.append
+                        (model.player.inventory
+                            |> Inventory.get
+                            |> List.indexedMap
+                                (\i a ->
+                                    ( ( 4 + i, 1 ), Cell.getImage (Item a) )
+                                )
+                        )
+                )
+            ]
+
+        options =
+            { scale = toFloat <| scale
+            , width = toFloat <| scale * tileset.spriteWidth * width
+            , transitionSpeedInSec = 0.2
+            }
+    in
+    if model.player.lifes > 0 then
+        Graphics.render options worldScreen
+    else
+        let
+            deathScreen : List (Area msg)
+            deathScreen =
+                [ Graphics.tiledArea
+                    { rows = 2
+                    , background = Graphics.colorBackground (Css.rgb 20 12 28)
+                    , tileset = tileset
+                    }
+                    []
+                , Graphics.tiledArea
+                    { rows = 2
+                    , background = Graphics.colorBackground (Css.rgb 20 12 28)
+                    , tileset = tileset
+                    }
+                    [ ( ( 4, 0 ), Tileset.letter_y )
+                    , ( ( 5, 0 ), Tileset.letter_o )
+                    , ( ( 6, 0 ), Tileset.letter_u )
+                    , ( ( 8, 0 ), Tileset.letter_h )
+                    , ( ( 9, 0 ), Tileset.letter_a )
+                    , ( ( 10, 0 ), Tileset.letter_v )
+                    , ( ( 11, 0 ), Tileset.letter_e )
+                    , ( ( 6, 1 ), Tileset.letter_d )
+                    , ( ( 7, 1 ), Tileset.letter_i )
+                    , ( ( 8, 1 ), Tileset.letter_e )
+                    , ( ( 9, 1 ), Tileset.letter_d )
+                    ]
+                , Graphics.imageArea
+                    { height = toFloat <| scale * 12 * 16
+                    , background = Graphics.colorBackground (Css.rgb 20 12 28)
+                    }
+                    [ ( ( toFloat <| (scale * 16 * width) // 2 - 128, toFloat <| (scale * 12 * width) // 2 - 128 ), image "skull.png" )
+                    ]
+                , Graphics.tiledArea
+                    { rows = 2
+                    , background = Graphics.colorBackground (Css.rgb 20 12 28)
+                    , tileset = tileset
+                    }
+                    [ ( ( 4, 0 ), Tileset.letter_p )
+                    , ( ( 5, 0 ), Tileset.letter_r )
+                    , ( ( 6, 0 ), Tileset.letter_e )
+                    , ( ( 7, 0 ), Tileset.letter_s )
+                    , ( ( 8, 0 ), Tileset.letter_s )
+                    , ( ( 10, 0 ), Tileset.letter_a )
+                    , ( ( 11, 0 ), Tileset.letter_n )
+                    , ( ( 12, 0 ), Tileset.letter_y )
+                    , ( ( 6, 1 ), Tileset.letter_b )
+                    , ( ( 7, 1 ), Tileset.letter_u )
+                    , ( ( 8, 1 ), Tileset.letter_t )
+                    , ( ( 9, 1 ), Tileset.letter_t )
+                    , ( ( 10, 1 ), Tileset.letter_o )
+                    , ( ( 11, 1 ), Tileset.letter_n )
+                    ]
+                , Graphics.tiledArea
+                    { rows = 2
+                    , background = Graphics.colorBackground (Css.rgb 20 12 28)
+                    , tileset = tileset
+                    }
+                    []
+                ]
+        in
+        Transition.apply
+            options
+            { from = worldScreen
+            , to = deathScreen
+            }
 
 
 main : Program Never Model Msg
 main =
     program
-        { init = init
+        { init = init 0
         , view = view
         , update = update
         , subscriptions = subscriptions
