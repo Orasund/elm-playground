@@ -30,6 +30,7 @@ import Roguelike.Tileset as Tileset
 
 type alias Model =
     { map : Map Cell
+    , oldScreen : Maybe (List (Area Msg))
     , player : PlayerData
     , seed : Random.Seed
     , worldSeed : Int
@@ -69,6 +70,7 @@ init worldSeed =
                 |> Tuple.mapFirst (Dict.update ( 7, 7 ) (always (Just (Player Down))))
     in
     { map = currentMap
+    , oldScreen = Nothing
     , seed = currentSeed
     , worldSeed = worldSeed
     , worldSize = worldSize
@@ -124,6 +126,7 @@ update msg ({ player, map, worldSeed, worldSize } as model) =
                                 { model
                                     | player = playerData
                                     , map = newMap
+                                    , oldScreen = Nothing
                                 }
                                     ! [ Cmd.none ]
                            )
@@ -133,6 +136,11 @@ update msg ({ player, map, worldSeed, worldSize } as model) =
 
         NextLevel ->
             init (worldSeed + 7)
+            |> Tuple.mapFirst (\newModel
+                -> {newModel|
+                    oldScreen = Just (worldScreen model)
+                    }
+            )
 
         Idle ->
             model ! [ Cmd.none ]
@@ -185,24 +193,12 @@ subscriptions { map } =
                                 Idle
                )
 
+tileset : Tileset
+tileset =
+    Tile.tileset { source = "tileset.png", spriteHeight = 16, spriteWidth = 16 }
 
-view : Model -> Html Msg
-view model =
-    let
-        tileset : Tileset
-        tileset =
-            Tile.tileset { source = "tileset.png", spriteHeight = 16, spriteWidth = 16 }
-
-        scale : Int
-        scale =
-            2
-
-        width : Int
-        width =
-            16
-
-        worldScreen : List (Area msg)
-        worldScreen =
+worldScreen : Model -> List (Area msg)
+worldScreen model=
             [ Graphics.tiledArea
                 { rows = 1
                 , background = Graphics.colorBackground (Css.rgb 20 12 28)
@@ -290,80 +286,119 @@ view model =
                 )
             ]
 
+
+view : Model -> Html Msg
+view model =
+    let
+
+
+        scale : Int
+        scale =
+            2
+
+        width : Int
+        width =
+            16
+
+        
+
         options =
             { scale = toFloat <| scale
             , width = toFloat <| scale * tileset.spriteWidth * width
             , transitionSpeedInSec = 0.2
             }
     in
-    if model.player.lifes > 0 then
-        Graphics.render options worldScreen
-    else
-        let
-            deathScreen : List (Area msg)
-            deathScreen =
-                [ Graphics.tiledArea
-                    { rows = 2
-                    , background = Graphics.colorBackground (Css.rgb 20 12 28)
-                    , tileset = tileset
-                    }
-                    []
-                , Graphics.tiledArea
-                    { rows = 2
-                    , background = Graphics.colorBackground (Css.rgb 20 12 28)
-                    , tileset = tileset
-                    }
-                    [ ( ( 4, 0 ), Tileset.letter_y )
-                    , ( ( 5, 0 ), Tileset.letter_o )
-                    , ( ( 6, 0 ), Tileset.letter_u )
-                    , ( ( 8, 0 ), Tileset.letter_h )
-                    , ( ( 9, 0 ), Tileset.letter_a )
-                    , ( ( 10, 0 ), Tileset.letter_v )
-                    , ( ( 11, 0 ), Tileset.letter_e )
-                    , ( ( 6, 1 ), Tileset.letter_d )
-                    , ( ( 7, 1 ), Tileset.letter_i )
-                    , ( ( 8, 1 ), Tileset.letter_e )
-                    , ( ( 9, 1 ), Tileset.letter_d )
-                    ]
-                , Graphics.imageArea
-                    { height = toFloat <| scale * 12 * 16
-                    , background = Graphics.colorBackground (Css.rgb 20 12 28)
-                    }
-                    [ ( ( toFloat <| (scale * 16 * width) // 2 - 128, toFloat <| (scale * 12 * width) // 2 - 128 ), image "skull.png" )
-                    ]
-                , Graphics.tiledArea
-                    { rows = 2
-                    , background = Graphics.colorBackground (Css.rgb 20 12 28)
-                    , tileset = tileset
-                    }
-                    [ ( ( 4, 0 ), Tileset.letter_p )
-                    , ( ( 5, 0 ), Tileset.letter_r )
-                    , ( ( 6, 0 ), Tileset.letter_e )
-                    , ( ( 7, 0 ), Tileset.letter_s )
-                    , ( ( 8, 0 ), Tileset.letter_s )
-                    , ( ( 10, 0 ), Tileset.letter_a )
-                    , ( ( 11, 0 ), Tileset.letter_n )
-                    , ( ( 12, 0 ), Tileset.letter_y )
-                    , ( ( 6, 1 ), Tileset.letter_b )
-                    , ( ( 7, 1 ), Tileset.letter_u )
-                    , ( ( 8, 1 ), Tileset.letter_t )
-                    , ( ( 9, 1 ), Tileset.letter_t )
-                    , ( ( 10, 1 ), Tileset.letter_o )
-                    , ( ( 11, 1 ), Tileset.letter_n )
-                    ]
-                , Graphics.tiledArea
-                    { rows = 2
-                    , background = Graphics.colorBackground (Css.rgb 20 12 28)
-                    , tileset = tileset
-                    }
-                    []
+    case model.oldScreen of
+        Just oldScreen ->
+            {name="next_level"
+            , animation = [ (0, "opacity:1;overflow:hidden;width:"++(toString <| scale * tileset.spriteWidth * width)++"px;")
+                        , (2, "opacity:1;overflow:hidden;width:0px;")
+
                 ]
-        in
-        Transition.apply
-            options
-            { from = worldScreen
-            , to = deathScreen
             }
+            |>
+            Transition.apply
+                options
+                { from = oldScreen
+                , to = (worldScreen model)
+                }
+        Nothing ->
+            if model.player.lifes > 0 then
+                Graphics.render options (worldScreen model)
+            else
+        
+                let
+                    deathScreen : List (Area msg)
+                    deathScreen =
+                        [ Graphics.tiledArea
+                            { rows = 2
+                            , background = Graphics.colorBackground (Css.rgb 20 12 28)
+                            , tileset = tileset
+                            }
+                            []
+                        , Graphics.tiledArea
+                            { rows = 2
+                            , background = Graphics.colorBackground (Css.rgb 20 12 28)
+                            , tileset = tileset
+                            }
+                            [ ( ( 4, 0 ), Tileset.letter_y )
+                            , ( ( 5, 0 ), Tileset.letter_o )
+                            , ( ( 6, 0 ), Tileset.letter_u )
+                            , ( ( 8, 0 ), Tileset.letter_h )
+                            , ( ( 9, 0 ), Tileset.letter_a )
+                            , ( ( 10, 0 ), Tileset.letter_v )
+                            , ( ( 11, 0 ), Tileset.letter_e )
+                            , ( ( 6, 1 ), Tileset.letter_d )
+                            , ( ( 7, 1 ), Tileset.letter_i )
+                            , ( ( 8, 1 ), Tileset.letter_e )
+                            , ( ( 9, 1 ), Tileset.letter_d )
+                            ]
+                        , Graphics.imageArea
+                            { height = toFloat <| scale * 12 * 16
+                            , background = Graphics.colorBackground (Css.rgb 20 12 28)
+                            }
+                            [ ( ( toFloat <| (scale * 16 * width) // 2 - 128, toFloat <| (scale * 12 * width) // 2 - 128 ), image "skull.png" )
+                            ]
+                        , Graphics.tiledArea
+                            { rows = 2
+                            , background = Graphics.colorBackground (Css.rgb 20 12 28)
+                            , tileset = tileset
+                            }
+                            [ ( ( 4, 0 ), Tileset.letter_p )
+                            , ( ( 5, 0 ), Tileset.letter_r )
+                            , ( ( 6, 0 ), Tileset.letter_e )
+                            , ( ( 7, 0 ), Tileset.letter_s )
+                            , ( ( 8, 0 ), Tileset.letter_s )
+                            , ( ( 10, 0 ), Tileset.letter_a )
+                            , ( ( 11, 0 ), Tileset.letter_n )
+                            , ( ( 12, 0 ), Tileset.letter_y )
+                            , ( ( 6, 1 ), Tileset.letter_b )
+                            , ( ( 7, 1 ), Tileset.letter_u )
+                            , ( ( 8, 1 ), Tileset.letter_t )
+                            , ( ( 9, 1 ), Tileset.letter_t )
+                            , ( ( 10, 1 ), Tileset.letter_o )
+                            , ( ( 11, 1 ), Tileset.letter_n )
+                            ]
+                        , Graphics.tiledArea
+                            { rows = 2
+                            , background = Graphics.colorBackground (Css.rgb 20 12 28)
+                            , tileset = tileset
+                            }
+                            []
+                        ]
+                in
+                {name="death_transition"
+                , animation= [ ( 0, "opacity:1;filter:grayscale(0%) blur(0px);" )
+                        , ( 1, "opacity:1;filter:grayscale(70%) blur(0px);" )
+                        , ( 3, "opacity:0;filter:grayscale(70%) blur(5px);" )
+                        ]
+                }
+                |>
+                Transition.apply
+                    options
+                    { from = (worldScreen model)
+                    , to = deathScreen
+                    }
 
 
 main : Program Never Model Msg

@@ -6,64 +6,22 @@ import Html.Styled exposing (Html, div)
 import Html.Styled.Attributes exposing (css)
 import PixelEngine.Graphics as Graphics exposing (Area)
 
-
-{- transition :
-       String
-       -> List ( Float, List ( String, String ) )
-       -> { animationCss : String, transitionLength : Float, animationName : String }
-   transition animationName listOfTransitions =
-       let
-           transitionLength =
-               listOfTransitions
-                   |> List.map Tuple.first
-                   |> List.sum
-       in
-       { animationName = animationName
-       , transitionLength = transitionLength
-       , animationCss =
-           listOfTransitions
-           |> List.foldl
-               (\( length, listOfFilter ) ( sum, css ) ->
-                   let
-                       currentTime = sum + length
-                   in
-                   ( currentTime
-                   , 100
-                   )
-               )
-               ( 0,
-                   ((transitionLength *100)/currentTime ++ "% {"
-                   ++ (listOfFilter
-                       |> List.foldl
-                           (\(name,value)->string->
-                           string++)
-                           "")
-               )
-       }
--}
-
-
 apply :
     { width : Float, scale : Float, transitionSpeedInSec : Float }
     -> { from : List (Area msg), to : List (Area msg) }
+    -> {name:String, animation:List ( Float, String )}
     -> Html msg
-apply ({ width } as options) { from, to } =
+apply ({ width } as options) { from, to } {name,animation}=
     let
-        transitions : List ( Float, String )
-        transitions =
-            [ ( 0, "opacity:1;filter:grayscale(0%) blur(0px);" )
-            , ( 1, "opacity:1;filter:grayscale(70%) blur(0px);" )
-            , ( 3, "opacity:0;filter:grayscale(70%) blur(5px);" )
-            ]
 
         transitionLength : Float
         transitionLength =
-            transitions
+            animation
                 |> List.map Tuple.first
                 |> List.sum
 
         animationCss =
-            transitions
+            animation
                 |> List.foldl
                     (\( length, css ) ( sum, string ) ->
                         ( sum + length
@@ -77,10 +35,6 @@ apply ({ width } as options) { from, to } =
                     ( 0, "" )
                 |> Tuple.second
                 |> (\a -> a ++ ";")
-
-        animationName : String
-        animationName =
-            "fade"
     in
     div
         [ css
@@ -90,7 +44,7 @@ apply ({ width } as options) { from, to } =
         [ Foreign.global
             [ Foreign.selector
                 ("@keyframes pixelengine_screen_transition_"
-                    ++ animationName
+                    ++ name
                 )
                 [ Css.property
                     animationCss
@@ -115,7 +69,7 @@ apply ({ width } as options) { from, to } =
                     , Css.opacity <| Css.num 0
                     , Css.property "animation"
                         ("pixelengine_screen_transition_"
-                            ++ animationName
+                            ++ name
                             ++ " "
                             ++ toString transitionLength
                             ++ "s 1"
