@@ -6,14 +6,14 @@ import Html.Styled exposing (Html, div)
 import Html.Styled.Attributes exposing (css)
 import PixelEngine.Graphics as Graphics exposing (Area)
 
+
 apply :
     { width : Float, scale : Float, transitionSpeedInSec : Float }
     -> { from : List (Area msg), to : List (Area msg) }
-    -> {name:String, animation:List ( Float, String )}
+    -> { name : String, animation : List ( Float, String ) }
     -> Html msg
-apply ({ width } as options) { from, to } {name,animation}=
+apply ({ width } as options) { from, to } { name, animation } =
     let
-
         transitionLength : Float
         transitionLength =
             animation
@@ -28,6 +28,7 @@ apply ({ width } as options) { from, to } {name,animation}=
                         , string
                             ++ (toString <| (sum + length) * 100 / transitionLength)
                             ++ "% {"
+                            ++ "visibility:visible;"
                             ++ css
                             ++ "} "
                         )
@@ -66,7 +67,7 @@ apply ({ width } as options) { from, to } {name,animation}=
                     [ Css.position Css.absolute
                     , Css.top <| px 0
                     , Css.left <| px 0
-                    , Css.opacity <| Css.num 0
+                    , Css.visibility Css.hidden
                     , Css.property "animation"
                         ("pixelengine_screen_transition_"
                             ++ name
