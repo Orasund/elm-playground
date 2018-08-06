@@ -1,4 +1,4 @@
-module Roguelike.Inventory
+module DigDigBoom.Component.Inventory
     exposing
         ( Inventory
         , add
@@ -12,8 +12,8 @@ module Roguelike.Inventory
         , take
         )
 
-import Roguelike.GroupedList as GroupedList
-import Roguelike.GroupedOverflowList as GroupedOverflowList exposing (GroupedOverflowList)
+import DigDigBoom.Component.GroupedList as GroupedList
+import DigDigBoom.Component.GroupedOverflowList as GroupedOverflowList exposing (GroupedOverflowList)
 
 
 type alias Inventory a =

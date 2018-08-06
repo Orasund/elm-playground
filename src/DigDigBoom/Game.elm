@@ -1,23 +1,21 @@
-module Roguelike.Game exposing (applyDirection)
+module DigDigBoom.Game exposing (applyDirection)
 
 import Dict
-import Pair
-import Roguelike.Cell as Cell
+import DigDigBoom.Cell as Cell
     exposing
         ( Cell(..)
-        , ConsumableType(..)
         , EffectType(..)
         , EnemyType(..)
-        , Item(..)
-        , MiscellaneousType(..)
+        , ItemType(..)
         , SolidType(..)
         )
-import Roguelike.Map as Map exposing (Direction(..), Location, Map)
-import Roguelike.Player as Player exposing (Game, PlayerCell)
+import DigDigBoom.Component.Map as Map exposing (Direction(..), Location)
+import DigDigBoom.Player as Player exposing (Game, PlayerCell)
+import Pair
 
 
 applyDirection : Int -> Direction -> ( PlayerCell, Game ) -> ( PlayerCell, Game )
-applyDirection size dir (( ( location, direction ), ( playerData, map ) ) as playerCellAndGame) =
+applyDirection size dir (( ( location, direction ), _ ) as playerCellAndGame) =
     if direction == dir then
         playerCellAndGame
             |> Player.move size
@@ -48,6 +46,9 @@ updateCell playerCell location cell =
         Effect _ ->
             Tuple.mapSecond (Dict.remove location)
 
+        Stunned enemy id ->
+            Tuple.mapSecond (Dict.update location (always <| Just <| Enemy enemy id))
+
         _ ->
             identity
 
@@ -69,12 +70,7 @@ attackPlayer location (( playerLocation, _ ) as playerCell) ( playerData, map ) 
 
 
 specialBehaviour : Location -> EnemyType -> PlayerCell -> Game -> Game
-specialBehaviour currentLocation enemyType ( playerLocation, _ ) game =
-    let
-        map : Map Cell
-        map =
-            game |> Tuple.second
-    in
+specialBehaviour currentLocation enemyType ( playerLocation, _ ) (( _, map ) as game) =
     case enemyType of
         PlacedBombe ->
             [ Up, Down, Left, Right ]
@@ -96,38 +92,40 @@ specialBehaviour currentLocation enemyType ( playerLocation, _ ) game =
                 newLocation =
                     Pair.map2 (+) currentLocation (Map.dirCoordinates moveDirection)
             in
-            case map |> Dict.get newLocation of
-                Nothing ->
-                    game |> Tuple.mapSecond (Map.move currentLocation moveDirection)
+            game
+                |> (case map |> Dict.get newLocation of
+                        Nothing ->
+                            Tuple.mapSecond (Map.move currentLocation moveDirection)
 
-                Just (Item _) ->
-                    game |> Tuple.mapSecond (Map.move currentLocation moveDirection)
+                        Just (Item _) ->
+                            Tuple.mapSecond (Map.move currentLocation moveDirection)
 
-                Just (Solid solid) ->
-                    if
-                        Cell.resistancy solid
-                            <= (case monster of
-                                    PlacedBombe ->
-                                        0
+                        Just (Solid solid) ->
+                            if
+                                Cell.resistancy solid
+                                    <= (case monster of
+                                            PlacedBombe ->
+                                                0
 
-                                    Oger ->
-                                        3
+                                            Oger ->
+                                                3
 
-                                    Goblin ->
-                                        2
+                                            Goblin ->
+                                                2
 
-                                    Rat ->
-                                        1
-                               )
-                    then
-                        game
-                            |> Tuple.mapSecond
-                                (Dict.update newLocation (always (Cell.decomposing solid |> Tuple.first |> Maybe.map Solid)))
-                    else
-                        game
+                                            Rat ->
+                                                1
+                                       )
+                            then
+                                Tuple.mapSecond <|
+                                    Dict.update newLocation <|
+                                        always (Cell.decomposing solid |> Tuple.first |> Maybe.map Solid)
+                            else
+                                identity
 
-                _ ->
-                    game
+                        _ ->
+                            identity
+                   )
 
 
 placedBombeBehavoiur : Location -> Direction -> Game -> Game
@@ -136,16 +134,16 @@ placedBombeBehavoiur currentLocation dir game =
         newLocation =
             Map.dirCoordinates dir |> Pair.map2 (+) currentLocation
     in
-    case game |> Tuple.second |> Dict.get newLocation of
-        Just (Enemy _ _) ->
-            game
-                |> Tuple.mapSecond
-                    (Dict.update newLocation (always (Just (Item (Miscellaneous Bone)))))
+    game
+        |> (case game |> Tuple.second |> Dict.get newLocation of
+                Just (Enemy _ _) ->
+                    Tuple.mapSecond
+                        (Dict.update newLocation <| always <| Just <| Effect Bone)
 
-        Nothing ->
-            game
-                |> Tuple.mapSecond
-                    (Dict.update newLocation (always (Just (Effect Smoke))))
+                Nothing ->
+                    Tuple.mapSecond
+                        (Dict.update newLocation <| always <| Just <| Effect Smoke)
 
-        _ ->
-            game
+                _ ->
+                    identity
+           )

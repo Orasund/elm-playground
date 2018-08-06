@@ -1,4 +1,4 @@
-module PixelEngine.ScreenTransition exposing (apply)
+module PixelEngine.ScreenTransition exposing (Transition, apply, customTransition)
 
 import Css exposing (px)
 import Css.Foreign as Foreign
@@ -7,21 +7,36 @@ import Html.Styled.Attributes exposing (css)
 import PixelEngine.Graphics as Graphics exposing (Area)
 
 
+type Transition
+    = Transition (List ( Float, String ))
+
+
+customTransition : List ( Float, String ) -> Transition
+customTransition =
+    Transition
+
+
 apply :
     { width : Float, scale : Float, transitionSpeedInSec : Float }
     -> { from : List (Area msg), to : List (Area msg) }
-    -> { name : String, animation : List ( Float, String ) }
+    -> { name : String, transition : Transition }
     -> Html msg
-apply ({ width } as options) { from, to } { name, animation } =
+apply ({ width } as options) { from, to } { name, transition } =
     let
+        transitionList : List ( Float, String )
+        transitionList =
+            case transition of
+                Transition transitionlist ->
+                    transitionlist
+
         transitionLength : Float
         transitionLength =
-            animation
+            transitionList
                 |> List.map Tuple.first
                 |> List.sum
 
         animationCss =
-            animation
+            transitionList
                 |> List.foldl
                     (\( length, css ) ( sum, string ) ->
                         ( sum + length

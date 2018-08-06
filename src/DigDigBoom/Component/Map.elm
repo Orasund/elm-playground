@@ -1,4 +1,4 @@
-module Roguelike.Map exposing (Direction(..), Location, Map, approximateDirection, dirCoordinates, generate, getUnique, move, place, remove)
+module DigDigBoom.Component.Map exposing (Direction(..), Location, Map, approximateDirection, dirCoordinates, generate, getUnique, move, place, remove)
 
 import Dict exposing (Dict)
 import Pair

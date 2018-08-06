@@ -1,35 +1,30 @@
-module Roguelike.Cell
+module DigDigBoom.Cell
     exposing
         ( Cell(..)
-        , ConsumableType(..)
         , EffectType(..)
         , EnemyType(..)
-        , Item(..)
+        , ItemType(..)
         , MaterialType(..)
-        , MiscellaneousType(..)
         , SolidType
         , composing
         , decomposing
         , getImage
         , mapGenerator
         , resistancy
+        , tutorial
         )
 
 import Dict
+import DigDigBoom.Component.Map exposing (Direction(..), Location, Map)
+import DigDigBoom.Tileset as Tileset
 import PixelEngine.Graphics.Tile exposing (Tile)
 import Random
-import Roguelike.Map exposing (Direction(..), Location, Map)
-import Roguelike.Tileset as Tileset
 
 
-type ConsumableType
+type ItemType
     = Bombe
     | HealthPotion
     | Material MaterialType
-
-
-type MiscellaneousType
-    = Bone
 
 
 type EnemyType
@@ -41,18 +36,15 @@ type EnemyType
 
 type EffectType
     = Smoke
-
-
-type Item
-    = Consumable ConsumableType
-    | Miscellaneous MiscellaneousType
+    | Bone
 
 
 type Cell
     = Player Direction
     | Solid SolidType
     | Enemy EnemyType String
-    | Item Item
+    | Stunned EnemyType String
+    | Item ItemType
     | Effect EffectType
 
 
@@ -133,23 +125,20 @@ getImage cell =
         Solid StoneBrickWall ->
             Tileset.stone_brick_wall
 
-        Item (Consumable Bombe) ->
+        Item Bombe ->
             Tileset.bombe
 
-        Item (Consumable HealthPotion) ->
+        Item HealthPotion ->
             Tileset.health_potion
 
-        Item (Consumable (Material Dirt)) ->
+        Item (Material Dirt) ->
             Tileset.dirt
 
-        Item (Consumable (Material Stone)) ->
+        Item (Material Stone) ->
             Tileset.stone
 
-        Item (Miscellaneous Bone) ->
-            Tileset.bone
-
-        Enemy PlacedBombe _ ->
-            Tileset.placed_bombe
+        Enemy PlacedBombe id ->
+            Tileset.placed_bombe id
 
         Enemy Oger id ->
             Tileset.oger id
@@ -160,8 +149,23 @@ getImage cell =
         Enemy Rat id ->
             Tileset.rat id
 
+        Stunned PlacedBombe id ->
+            Tileset.stunned_bombe id
+
+        Stunned Oger id ->
+            Tileset.stunned_oger id
+
+        Stunned Goblin id ->
+            Tileset.stunned_goblin id
+
+        Stunned Rat id ->
+            Tileset.stunned_rat id
+
         Effect Smoke ->
             Tileset.smoke
+
+        Effect Bone ->
+            Tileset.bone
 
 
 
@@ -183,6 +187,76 @@ resistancy solid =
 
         Placed Stone ->
             2
+
+
+tutorial : Int -> Map Cell
+tutorial num =
+    let
+        allBrick : Map Cell
+        allBrick =
+            List.range 0 15
+                |> List.foldl
+                    (\x out ->
+                        List.range 0 15
+                            |> List.foldl
+                                (\y map ->
+                                    map |> Dict.update ( x, y ) (always (Just (Solid StoneBrickWall)))
+                                )
+                                out
+                    )
+                    Dict.empty
+
+        newTutorial : Map Cell
+        newTutorial =
+            List.range 2 13
+                |> List.foldl
+                    (\x out ->
+                        List.range 7 8
+                            |> List.foldl
+                                (\y map ->
+                                    map |> Dict.update ( x, y ) (always Nothing)
+                                )
+                                out
+                    )
+                    allBrick
+    in
+    case num of
+        5 ->
+            newTutorial
+                |> Dict.update ( 13, 8 ) (always <| Just <| Enemy Rat "rat_1")
+                |> Dict.update ( 11, 7 ) (always <| Just <| Enemy Oger "Oger_1")
+                |> Dict.update ( 8, 7 ) (always <| Just <| Solid <| Placed <| Stone)
+                |> Dict.update ( 3, 8 ) (always <| Just <| Item <| Bombe)
+                |> Dict.update ( 6, 7 ) (always <| Just <| Item <| Material <| Stone)
+                |> Dict.update ( 7, 8 ) (always <| Just <| Item <| Bombe)
+
+        4 ->
+            newTutorial
+                |> Dict.update ( 9, 7 ) (always <| Just <| Solid StoneBrickWall)
+                |> Dict.update ( 9, 8 ) (always <| Just <| Solid StoneWall)
+                |> Dict.update ( 13, 7 ) (always <| Just <| Enemy Goblin "goblin_1")
+                |> Dict.update ( 7, 8 ) (always <| Just <| Item <| Bombe)
+                |> Dict.update ( 8, 8 ) (always <| Just <| Item <| Bombe)
+
+        3 ->
+            newTutorial
+                |> Dict.update ( 10, 8 ) (always <| Just <| Solid StoneWall)
+                |> Dict.update ( 13, 7 ) (always <| Just <| Enemy Goblin "goblin_1")
+                |> Dict.update ( 11, 8 ) (always <| Just <| Item <| Bombe)
+
+        2 ->
+            newTutorial
+                |> Dict.update ( 9, 7 ) (always <| Just <| Solid StoneWall)
+                |> Dict.update ( 11, 7 ) (always <| Just <| Solid <| Placed Dirt)
+                |> Dict.update ( 9, 8 ) (always <| Just <| Solid <| Placed Dirt)
+                |> Dict.update ( 13, 7 ) (always <| Just <| Enemy Goblin "goblin_1")
+                |> Dict.update ( 7, 8 ) (always <| Just <| Item <| Bombe)
+
+        _ ->
+            newTutorial
+                |> Dict.update ( 9, 7 ) (always <| Just <| Solid StoneWall)
+                |> Dict.update ( 13, 7 ) (always <| Just <| Enemy Rat "rat_1")
+                |> Dict.update ( 7, 8 ) (always <| Just <| Item <| Bombe)
 
 
 mapGenerator : Location -> ( Map Cell, Random.Seed ) -> ( Map Cell, Random.Seed )
@@ -217,11 +291,11 @@ mapGenerator pos ( map, seed ) =
         , new_seed
         )
     else if r < 225 then
-        ( map |> Dict.insert pos (Item (Consumable Bombe))
+        ( map |> Dict.insert pos (Item Bombe)
         , new_seed
         )
     else if r < 230 then
-        ( map |> Dict.insert pos (Item (Consumable HealthPotion))
+        ( map |> Dict.insert pos (Item HealthPotion)
         , new_seed
         )
     else if r < 235 then

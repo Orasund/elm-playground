@@ -1,4 +1,4 @@
-module Roguelike.Tileset exposing (..)
+module DigDigBoom.Tileset exposing (..)
 
 import PixelEngine.Graphics.Tile exposing (Tile, animated, movable, tile)
 
@@ -347,9 +347,9 @@ bone =
     tile ( 0, 10 )
 
 
-placed_bombe : Tile msg
-placed_bombe =
-    tile ( 4, 9 ) |> animated 1
+placed_bombe : String -> Tile msg
+placed_bombe id =
+    tile ( 4, 9 ) |> animated 1 |> movable id
 
 
 oger : String -> Tile msg
@@ -375,3 +375,23 @@ smoke =
 heart : Tile msg
 heart =
     tile ( 4, 8 )
+
+
+stunned_oger : String -> Tile msg
+stunned_oger id =
+    tile ( 0, 5 ) |> movable id
+
+
+stunned_goblin : String -> Tile msg
+stunned_goblin id =
+    tile ( 1, 4 ) |> movable id
+
+
+stunned_rat : String -> Tile msg
+stunned_rat id =
+    tile ( 0, 4 ) |> movable id
+
+
+stunned_bombe : String -> Tile msg
+stunned_bombe id =
+    tile ( 1, 5 ) |> movable id

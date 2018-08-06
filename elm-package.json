@@ -5,9 +5,10 @@
     "license": "BSD3",
     "source-directories": [
         "src",
-        "examples",
-        "examples/LoveGraph",
-        "examples/Roguelike"
+        "libs",
+        "src/LoveGraph",
+        "src/DigDigBoom",
+        "src/DigDigBoom/Component"
     ],
     "exposed-modules": [],
     "dependencies": {

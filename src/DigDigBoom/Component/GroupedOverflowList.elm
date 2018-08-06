@@ -1,4 +1,4 @@
-module Roguelike.GroupedOverflowList
+module DigDigBoom.Component.GroupedOverflowList
     exposing
         ( GroupedOverflowList
         , empty
@@ -10,8 +10,8 @@ module Roguelike.GroupedOverflowList
         , setOverflow
         )
 
+import DigDigBoom.Component.GroupedList as GroupedList exposing (GroupedList)
 import OverflowList exposing (OverflowList)
-import Roguelike.GroupedList as GroupedList exposing (GroupedList)
 
 
 type alias GroupedOverflowList a =

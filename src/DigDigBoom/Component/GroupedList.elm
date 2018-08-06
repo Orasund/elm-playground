@@ -1,4 +1,4 @@
-module Roguelike.GroupedList
+module DigDigBoom.Component.GroupedList
     exposing
         ( GroupedList
         , add
