@@ -1,7 +1,5 @@
 module DigDigBoom.Main exposing (main)
 
---import Roguelike.Inventory as Inventory exposing (Inventory)
-
 import Char
 import Css
 import Dict
@@ -645,13 +643,11 @@ view model =
                 Rogue { worldSeed } ->
                     case oldScreen of
                         Just justOldScreen ->
-                            { name = "next_level"
-                            , transition =
-                                Transition.customTransition
-                                    [ ( 0, "overflow:hidden;width:" ++ (toString <| scale * tileset.spriteWidth * width) ++ "px;" )
-                                    , ( 2, "overflow:hidden;width:0px;" )
-                                    ]
-                            }
+                            Transition.customTransition
+                                "next_level"
+                                [ ( 0, "overflow:hidden;width:" ++ (toString <| scale * tileset.spriteWidth * width) ++ "px;" )
+                                , ( 2, "overflow:hidden;width:0px;" )
+                                ]
                                 |> Transition.apply
                                     options
                                     { from = justOldScreen
@@ -662,14 +658,12 @@ view model =
                             if player.lifes > 0 then
                                 Graphics.render options (worldScreen worldSeed map player [])
                             else
-                                { name = "death_transition"
-                                , transition =
-                                    Transition.customTransition
-                                        [ ( 0, "opacity:1;filter:grayscale(0%) blur(0px);" )
-                                        , ( 1, "opacity:1;filter:grayscale(70%) blur(0px);" )
-                                        , ( 3, "opacity:0;filter:grayscale(70%) blur(5px);" )
-                                        ]
-                                }
+                                Transition.customTransition
+                                    "death_transition"
+                                    [ ( 0, "opacity:1;filter:grayscale(0%) blur(0px);" )
+                                    , ( 1, "opacity:1;filter:grayscale(70%) blur(0px);" )
+                                    , ( 3, "opacity:0;filter:grayscale(70%) blur(5px);" )
+                                    ]
                                     |> Transition.apply
                                         options
                                         { from = worldScreen worldSeed map player []
@@ -749,13 +743,11 @@ view model =
                     in
                     case oldScreen of
                         Just justOldScreen ->
-                            { name = "next_level"
-                            , transition =
-                                Transition.customTransition
-                                    [ ( 0, "overflow:hidden;width:" ++ (toString <| scale * tileset.spriteWidth * width) ++ "px;" )
-                                    , ( 2, "overflow:hidden;width:0px;" )
-                                    ]
-                            }
+                            Transition.customTransition
+                                "next_level"
+                                [ ( 0, "overflow:hidden;width:" ++ (toString <| scale * tileset.spriteWidth * width) ++ "px;" )
+                                , ( 2, "overflow:hidden;width:0px;" )
+                                ]
                                 |> Transition.apply
                                     options
                                     { from = justOldScreen
@@ -766,14 +758,12 @@ view model =
                             if player.lifes > 0 then
                                 Graphics.render options tutorialWorldScreen
                             else
-                                { name = "death_transition"
-                                , transition =
-                                    Transition.customTransition
-                                        [ ( 0, "opacity:1;filter:grayscale(0%) blur(0px);" )
-                                        , ( 1, "opacity:1;filter:grayscale(70%) blur(0px);" )
-                                        , ( 3, "opacity:0;filter:grayscale(70%) blur(5px);" )
-                                        ]
-                                }
+                                Transition.customTransition
+                                    "death_transition"
+                                    [ ( 0, "opacity:1;filter:grayscale(0%) blur(0px);" )
+                                    , ( 1, "opacity:1;filter:grayscale(70%) blur(0px);" )
+                                    , ( 3, "opacity:0;filter:grayscale(70%) blur(5px);" )
+                                    ]
                                     |> Transition.apply
                                         options
                                         { from = tutorialWorldScreen

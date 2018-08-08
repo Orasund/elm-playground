@@ -3,6 +3,7 @@ module Clock exposing (main)
 --import Html.Attributes exposing (..)
 
 import Css
+import Css.Foreign as Foreign
 import Date exposing (Date)
 import Html.Styled as Html exposing (Html)
 import Html.Styled.Attributes exposing (css)
@@ -79,7 +80,7 @@ update msg model =
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.batch
-        [ Time.every Time.second Tick
+        [ Time.every Time.minute Tick
         , Window.resizes Resize
         ]
 
@@ -87,29 +88,52 @@ subscriptions _ =
 
 -- VIEW
 
+
 color : Int -> Css.Color
 color hour =
     case hour of
-        12 -> Css.rgb 23 240 240
-        11 -> Css.rgb 255 178 25
-        10 -> Css.rgb 95 49 243
-        9 -> Css.rgb 255 255 25
-        8 -> Css.rgb 246 24 174
-        7 -> Css.rgb 24 248 24
-        6 -> Css.rgb 255 129 25
-        5 -> Css.rgb 46 106 243
-        4 -> Css.rgb 255 216 25
-        3 -> Css.rgb 163 36 243
-        2 -> Css.rgb 177 253 25
-        _ -> Css.rgb 255 25 25
+        12 ->
+            Css.rgb 23 240 240
+
+        11 ->
+            Css.rgb 255 178 25
+
+        10 ->
+            Css.rgb 95 49 243
+
+        9 ->
+            Css.rgb 255 255 25
+
+        8 ->
+            Css.rgb 246 24 174
+
+        7 ->
+            Css.rgb 24 248 24
+
+        6 ->
+            Css.rgb 255 129 25
+
+        5 ->
+            Css.rgb 46 106 243
+
+        4 ->
+            Css.rgb 255 216 25
+
+        3 ->
+            Css.rgb 163 36 243
+
+        2 ->
+            Css.rgb 177 253 25
+
+        _ ->
+            Css.rgb 255 25 25
 
 
 circle : Int -> { height : Int, width : Int } -> List Css.Style -> List (Html Msg) -> Html Msg
 circle size { height, width } styleList htmlList =
     Html.div
         [ css
-            ([ Css.textAlign Css.center
-             , Css.position Css.fixed
+            ([ Css.position Css.fixed
              , Css.top <| Css.px <| toFloat <| (height - size) // 2
              , Css.left <| Css.px <| toFloat <| (width - size) // 2
              , Css.width <| Css.px <| toFloat <| size
@@ -155,23 +179,69 @@ view ({ time, height, width } as model) =
     Html.div
         [ css
             [ Css.width <| Css.pct <| 100
-            , Css.height <| Css.pct <| 100
+            , Css.height <| Css.px <| toFloat <| height
             , Css.backgroundColor <| Css.rgb 0 0 0
             ]
         ]
-        [ circle
+        [ Foreign.global
+            [ Foreign.selector
+                "@keyframes puls"
+                [ Css.property "0% { opacity:1 } 50% { opacity:0.25 } 100% { opacity:1 };" "" ]
+            ]
+        , circle
             size
             { height = height, width = width }
             [ Css.backgroundColor <| Css.rgb 0 0 0
             , Css.border3 (Css.px <| 1) Css.solid (Css.rgb 63 63 63)
             ]
             []
-        , circle (size // 2 + (size * minutes) // (60 * 2))
+        , circle
+            (if hours == 5 || hours == 6 then
+                size // 2 + (size * minutes) // (60 * 2)
+             else
+                size // 2
+            )
             { height = height, width = width }
-            [ Css.backgroundColor <| Css.rgb 255 255 255 ]
+            [ Css.backgroundColor <| Css.rgb 255 255 255
+            , if hours >= 22 || hours <= 4 then
+                Css.visibility <| Css.hidden
+              else
+                Css.visibility <| Css.visible
+            ]
             []
         , circle (size // 2)
             { height = height, width = width }
-            [ Css.backgroundColor <| color hours]
-            [ Html.text (toString hours ++ ":" ++ toString minutes) ]
+            [ Css.backgroundColor <| color (hours % 12)
+            , Css.property "animation" "puls 2.0s infinite"
+            , if hours >= 22 || hours <= 4 then
+                Css.visibility <| Css.hidden
+              else
+                Css.visibility <| Css.visible
+            ]
+            []
+        , Html.div
+            [ css
+                [ Css.textAlign Css.center
+                , Css.fontSize <| Css.px <| toFloat <| size // 5
+                , Css.top <| Css.px <| toFloat <| height // 2 - size // 8
+                , Css.position <| Css.fixed
+                , Css.margin <| Css.auto
+                , Css.width <| Css.pct <| 100
+                , if hours >= 22 || hours <= 4 then
+                    Css.color <| color (hours % 12)
+                  else
+                    Css.color <| Css.rgb 0 0 0
+                ]
+            ]
+            [ Html.text
+                (toString hours
+                    ++ ":"
+                    ++ (if minutes < 10 then
+                            "0"
+                        else
+                            ""
+                       )
+                    ++ toString minutes
+                )
+            ]
         ]

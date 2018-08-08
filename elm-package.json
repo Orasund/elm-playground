@@ -8,7 +8,8 @@
         "libs",
         "src/LoveGraph",
         "src/DigDigBoom",
-        "src/DigDigBoom/Component"
+        "src/DigDigBoom/Component",
+        "src/CultSim"
     ],
     "exposed-modules": [],
     "dependencies": {
