@@ -1,4 +1,4 @@
-module CultSim.Person exposing (Person, Position, generate, move)
+module CultSim.Person exposing (Action(..), Person, Position, generate, update,move, setPraying)
 
 import Random
 
@@ -7,10 +7,15 @@ type alias Position =
     { x : Float, y : Float }
 
 
+type Action
+    = Walking
+    | PendingPraying
+    | Praying
+
+
 type alias Person =
     { position : Position
-    , id : String
-    , skin : Int
+    , action : Action
     }
 
 
@@ -36,6 +41,16 @@ generatePosition =
             )
 
 
+update : Person -> Random.Seed -> ( Person, Random.Seed )
+update ({ action } as person) =
+    case action of
+        PendingPraying ->
+            (,) <| pray person
+
+        _ ->
+            move person
+
+
 move : Person -> Random.Seed -> ( Person, Random.Seed )
 move person =
     Random.step generatePosition
@@ -43,18 +58,34 @@ move person =
             (\position ->
                 { person
                     | position = position
+                    , action = Walking
                 }
             )
 
 
-generate : Random.Generator Person
+pray : Person -> Person
+pray person =
+    { person
+        | action = Praying
+    }
+
+
+setPraying : Person -> Person
+setPraying person =
+    { person
+        | action = PendingPraying
+    }
+
+
+generate : Random.Generator ( String, Person )
 generate =
     Random.map2
         (\position float ->
-            { position = position
-            , id = "person_" ++ toString float
-            , skin = 0
-            }
+            ( "person_" ++ toString float
+            , { position = position
+              , action = Walking
+              }
+            )
         )
         generatePosition
     <|

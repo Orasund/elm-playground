@@ -1,8 +1,10 @@
 module CultSim.Main exposing (main)
 
 import Css
-import CultSim.Person as Person exposing (Person, Position)
+import CultSim.Person as Person exposing (Action(..), Person, Position)
+import Dict exposing (Dict)
 import Html.Styled exposing (Html, program)
+import Html.Styled.Events as Events
 import PixelEngine.Graphics as Graphics exposing (Area)
 import PixelEngine.Graphics.Image as Image exposing (image)
 import Process
@@ -14,13 +16,14 @@ import Time exposing (Time)
 type alias Model =
     { seed : Random.Seed
     , hunger : Float
-    , people : List Person
+    , people : Dict String Person
     }
 
 
 type Msg
     = Tick Time
     | NewGame Int
+    | Pray String
 
 
 init : ( Maybe Model, Cmd Msg )
@@ -29,25 +32,30 @@ init =
         ! [ Random.generate NewGame <| Random.int Random.minInt Random.maxInt ]
 
 
+tickTask : Time -> Cmd Msg
+tickTask delay =
+    Task.perform Tick
+        (Process.sleep delay
+            |> Task.andThen (\_ -> Time.now)
+        )
+
+
 newGame : Int -> ( Maybe Model, Cmd Msg )
 newGame int =
     let
-        ( newPerson, seed ) =
+        ( ( newId, newPerson ), seed ) =
             Random.step Person.generate <| Random.initialSeed int
     in
     Just
         { seed = seed
         , hunger = 0
-        , people = [ newPerson ]
+        , people = Dict.singleton newId newPerson
         }
-        ! [ Task.perform Tick
-                (Process.sleep (Time.second * 30)
-                    |> Task.andThen (\_ -> Time.now)
-                )
+        ! [ tickTask (Time.second * 30)
           ]
 
 
-updatePeople : (( List Person, Random.Seed ) -> ( List Person, Random.Seed )) -> Model -> Model
+updatePeople : (( Dict String Person, Random.Seed ) -> ( Dict String Person, Random.Seed )) -> Model -> Model
 updatePeople fun model =
     let
         ( people, seed ) =
@@ -70,18 +78,30 @@ update msg maybeModel =
                             |> updatePeople
                                 (\( people, seed ) ->
                                     people
-                                        |> List.foldl
-                                            (\person (( newPeople, newSeed ) as tuple) ->
-                                                Person.move person newSeed
+                                        |> Dict.foldl
+                                            (\id person (( newPeople, newSeed ) as tuple) ->
+                                                Person.update person newSeed
                                                     |> Tuple.mapFirst
                                                         (\elem ->
-                                                            elem :: newPeople
+                                                            newPeople
+                                                                |> Dict.update id (always <| Just elem)
                                                         )
                                             )
-                                            ( [], seed )
+                                            ( people, seed )
                                 )
                         )
-                        ! [ Cmd.none ]
+                        ! [ tickTask (Time.second * 10) ]
+
+                Pray id ->
+                    let
+                        { people } =
+                            model
+                    in
+                    Just
+                        { model
+                            | people = people |> Dict.update id (Maybe.map Person.setPraying)
+                        }
+                        ! []
 
                 NewGame int ->
                     newGame int
@@ -103,14 +123,14 @@ subscriptions maybeModel =
 view : Maybe Model -> Html Msg
 view maybeModel =
     let
-        scale : Int
+        scale : Float
         scale =
             2
 
         options =
-            { scale = toFloat <| scale
+            { scale = scale
             , width = 800
-            , transitionSpeedInSec = 0.2
+            , transitionSpeedInSec = 10
             }
     in
     Graphics.render options
@@ -121,13 +141,33 @@ view maybeModel =
             (case maybeModel of
                 Just ({ people } as model) ->
                     people
+                        |> Dict.toList
                         |> List.map
-                            (\{ position, id } ->
+                            (\( id, { position, action } ) ->
                                 let
                                     { x, y } =
                                         position
+
+                                    img_src =
+                                        case action of
+                                            Walking ->
+                                                "walking.png"
+
+                                            PendingPraying ->
+                                                "pendingPraying.png"
+
+                                            Praying ->
+                                                "praying.png"
                                 in
-                                ( ( 400 + x, 300 + y ), Image.image "walking.png" |> Image.movable id )
+                                ( ( 400 + x, 300 + y )
+                                , Image.multipleImages
+                                    [ ( ( 0, 0 ), Image.image img_src )
+                                    , ( (0,0), Image.image "heads/1.png")
+                                    ]
+                                    |> Image.movable id
+                                    |> Image.withAttributes
+                                        [ Events.onClick (Pray id) ]
+                                )
                             )
 
                 Nothing ->
