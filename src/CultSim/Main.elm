@@ -7,8 +7,10 @@ import Html.Styled exposing (Html, program)
 import Html.Styled.Events as Events
 import PixelEngine.Graphics as Graphics exposing (Area)
 import PixelEngine.Graphics.Image as Image exposing (image)
+import PixelEngine.Graphics.Tile as Tile
 import Process
 import Random
+import Random.Extra as RandomExtra
 import Task
 import Time exposing (Time)
 
@@ -16,6 +18,7 @@ import Time exposing (Time)
 type alias Model =
     { seed : Random.Seed
     , hunger : Float
+    , faith : Int
     , people : Dict String Person
     }
 
@@ -49,14 +52,15 @@ newGame int =
     Just
         { seed = seed
         , hunger = 0
+        , faith = 0
         , people = Dict.singleton newId newPerson
         }
-        ! [ tickTask (Time.second * 30)
+        ! [ tickTask 0
           ]
 
 
-updatePeople : (( Dict String Person, Random.Seed ) -> ( Dict String Person, Random.Seed )) -> Model -> Model
-updatePeople fun model =
+updatePeople2 : (( Dict String Person, Random.Seed ) -> ( Dict String Person, Random.Seed )) -> Model -> Model
+updatePeople2 fun model =
     let
         ( people, seed ) =
             fun ( model.people, model.seed )
@@ -70,35 +74,117 @@ updatePeople fun model =
 update : Msg -> Maybe Model -> ( Maybe Model, Cmd Msg )
 update msg maybeModel =
     case maybeModel of
-        Just model ->
+        Just oldModel ->
             case msg of
                 Tick _ ->
-                    Just
-                        (model
-                            |> updatePeople
-                                (\( people, seed ) ->
-                                    people
-                                        |> Dict.foldl
-                                            (\id person (( newPeople, newSeed ) as tuple) ->
-                                                Person.update person newSeed
-                                                    |> Tuple.mapFirst
-                                                        (\elem ->
-                                                            newPeople
-                                                                |> Dict.update id (always <| Just elem)
-                                                        )
-                                            )
-                                            ( people, seed )
+                    let
+                        model = (let
+                                    newPeople = 
+                                    oldModel.people |> Dict.filter (\_ person -> person.action /= Dying)
+
+                                    newHunger =
+                                        oldModel.hunger + 0.25 * (toFloat <| Dict.size newPeople)
+                                 in
+                                 if newHunger >= 1 then
+                                    let
+                                        ( maybeId, newSeed ) =
+                                            Random.step (RandomExtra.sample <| Dict.keys newPeople) oldModel.seed
+                                    in
+                                    { oldModel
+                                        | hunger = newHunger
+                                        , seed = newSeed
+                                        , people =
+                                            case maybeId of
+                                                Just id ->
+                                                    newPeople |> Dict.update id (Maybe.map (\person -> { person | action = Dying }))
+
+                                                Nothing ->
+                                                    newPeople
+                                    }
+                                 else
+                                    { oldModel
+                                        | hunger = newHunger
+                                        , people = newPeople
+                                    }
                                 )
+                    in
+                    Just
+                        (model.people
+                            |> Dict.foldl
+                                (\id ({ action } as person) ({ people, seed } as m) ->
+                                    case action of
+                                        PendingPraying ->
+                                            { m | people = people |> Dict.update id (Maybe.map <| always <| Person.pray person) }
+
+                                        Praying int ->
+                                            let
+                                                { hunger, faith } =
+                                                    m
+                                            in
+                                            if int == 0 then
+                                                let
+                                                    ( newPerson, newSeed ) =
+                                                        Person.move person seed
+                                                in
+                                                { m
+                                                    | people = people |> Dict.update id (Maybe.map <| always <| newPerson)
+                                                    , seed = newSeed
+                                                    , hunger = hunger - 0.1
+                                                    , faith = faith + 1
+                                                }
+                                            else
+                                                { m
+                                                    | people = people |> Dict.update id (Maybe.map <| always <| { person | action = Praying <| int - 1 })
+                                                    , hunger = hunger - 0.1
+                                                    , faith = faith + 1
+                                                }
+
+                                        Walking ->
+                                            let
+                                                ( newPerson, newSeed ) =
+                                                    Person.move person seed
+                                            in
+                                            { m
+                                                | people = people |> Dict.update id (Maybe.map <| always <| newPerson)
+                                                , seed = newSeed
+                                            }
+
+                                        Dying ->
+                                            { m | hunger = 0 }
+                                )
+                                model
+                            |> (\({ faith, people, seed } as m) ->
+                                    if faith >= 2 ^ Dict.size people then
+                                        let
+                                            ( ( newId, newPerson ), newSeed ) =
+                                                Random.step Person.generate seed
+                                        in
+                                        { m
+                                            | faith = faith - 2 ^ Dict.size people
+                                            , people = people |> Dict.insert newId newPerson
+                                            , seed = newSeed
+                                        }
+                                    else
+                                        m
+                               )
+                            |> (\({ hunger, seed, people } as m) ->
+                                    if hunger < 0 then
+                                        { m | hunger = 0 }
+                                    else if hunger > 1 then
+                                        { m | hunger = 1 }
+                                    else
+                                        m
+                               )
                         )
                         ! [ tickTask (Time.second * 10) ]
 
                 Pray id ->
                     let
                         { people } =
-                            model
+                            oldModel
                     in
                     Just
-                        { model
+                        { oldModel
                             | people = people |> Dict.update id (Maybe.map Person.setPraying)
                         }
                         ! []
@@ -139,36 +225,78 @@ view maybeModel =
             , background = Graphics.colorBackground <| Css.rgb 255 255 255
             }
             (case maybeModel of
-                Just ({ people } as model) ->
+                Just ({ people, hunger } as model) ->
                     people
                         |> Dict.toList
                         |> List.map
-                            (\( id, { position, action } ) ->
+                            (\( id, { position, action, skin, praying_duration } ) ->
                                 let
                                     { x, y } =
                                         position
 
-                                    img_src =
-                                        case action of
-                                            Walking ->
-                                                "walking.png"
+                                    image =
+                                        Image.fromTile (Person.tile action)
+                                            (Tile.tileset
+                                                { source = "bodys/" ++ toString body ++ ".png"
+                                                , spriteWidth = 16
+                                                , spriteHeight = 16
+                                                }
+                                            )
 
-                                            PendingPraying ->
-                                                "pendingPraying.png"
-
-                                            Praying ->
-                                                "praying.png"
+                                    { head, body } =
+                                        skin
                                 in
                                 ( ( 400 + x, 300 + y )
                                 , Image.multipleImages
-                                    [ ( ( 0, 0 ), Image.image img_src )
-                                    , ( (0,0), Image.image "heads/1.png")
-                                    ]
+                                    (if action == Dying then
+                                        [ ( ( 0, 0 ), Image.image "burning.png" ) ]
+                                     else
+                                        [ ( ( 0, 0 ), image )
+                                        , ( case action of
+                                                Praying _ ->
+                                                    ( 0, 4 )
+
+                                                _ ->
+                                                    ( 0, 0 )
+                                          , Image.image <| "heads/" ++ toString head ++ ".png"
+                                          )
+                                        ]
+                                            |> (case action of
+                                                    Praying int ->
+                                                        List.append
+                                                            [ ( ( 0, 33 )
+                                                              , Image.fromTile (Person.tile_bar <| (15 * int) // praying_duration)
+                                                                    (Tile.tileset
+                                                                        { source = "blue_bar.png"
+                                                                        , spriteWidth = 16
+                                                                        , spriteHeight = 4
+                                                                        }
+                                                                    )
+                                                              )
+                                                            ]
+
+                                                    _ ->
+                                                        identity
+                                               )
+                                    )
                                     |> Image.movable id
-                                    |> Image.withAttributes
-                                        [ Events.onClick (Pray id) ]
+                                    |> (case action of
+                                            Walking ->
+                                                Image.withAttributes [ Events.onClick (Pray id) ]
+
+                                            _ ->
+                                                identity
+                                       )
                                 )
                             )
+                        |> List.append
+                            [ ( ( 400 - 64, 300 - 64 )
+                              , if hunger < 1 then
+                                    Image.image "temple.png"
+                                else
+                                    Image.image "devil_temple.png"
+                              )
+                            ]
 
                 Nothing ->
                     []

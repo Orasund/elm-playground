@@ -1,5 +1,6 @@
-module CultSim.Person exposing (Action(..), Person, Position, generate, update,move, setPraying)
+module CultSim.Person exposing (Action(..), Person, Position, generate, move, pray, setPraying, tile, tile_bar)
 
+import PixelEngine.Graphics.Tile as Tile exposing (Tile)
 import Random
 
 
@@ -10,13 +11,56 @@ type alias Position =
 type Action
     = Walking
     | PendingPraying
-    | Praying
+    | Praying Int
+    | Dying
+
+
+type alias Skin =
+    { head : Int, body : Int }
 
 
 type alias Person =
     { position : Position
     , action : Action
+    , skin : Skin
+    , praying_duration : Int
     }
+
+
+tile : Action -> Tile msg
+tile action =
+    case action of
+        PendingPraying ->
+            Tile.tile ( 0, 1 )
+
+        Praying _ ->
+            Tile.tile ( 0, 2 )
+        
+        _ ->
+            Tile.tile ( 0, 0 )
+
+
+
+tile_bar : Int -> Tile msg
+tile_bar amount =
+    Tile.tile ( 0, amount )
+
+
+generateSkin : Random.Generator Skin
+generateSkin =
+    Random.map3
+        (\isMale head body ->
+            { head =
+                if isMale then
+                    head
+                else
+                    head + 50
+            , body = body
+            }
+        )
+        Random.bool
+        (Random.int 1 12)
+        (Random.int 0 7)
 
 
 generatePosition : Random.Generator Position
@@ -41,16 +85,6 @@ generatePosition =
             )
 
 
-update : Person -> Random.Seed -> ( Person, Random.Seed )
-update ({ action } as person) =
-    case action of
-        PendingPraying ->
-            (,) <| pray person
-
-        _ ->
-            move person
-
-
 move : Person -> Random.Seed -> ( Person, Random.Seed )
 move person =
     Random.step generatePosition
@@ -64,9 +98,10 @@ move person =
 
 
 pray : Person -> Person
-pray person =
+pray ({ praying_duration } as person) =
     { person
-        | action = Praying
+        | action = Praying <| praying_duration + 1
+        , praying_duration = praying_duration + 1
     }
 
 
@@ -79,14 +114,16 @@ setPraying person =
 
 generate : Random.Generator ( String, Person )
 generate =
-    Random.map2
-        (\position float ->
+    Random.map3
+        (\position float skin ->
             ( "person_" ++ toString float
             , { position = position
               , action = Walking
+              , skin = skin
+              , praying_duration = 0
               }
             )
         )
         generatePosition
-    <|
-        Random.float 0 1
+        (Random.float 0 1)
+        generateSkin
