@@ -35,15 +35,14 @@ tile action =
 
         Praying _ ->
             Tile.tile ( 0, 2 )
-        
+
         _ ->
             Tile.tile ( 0, 0 )
 
 
-
-tile_bar : Int -> Tile msg
-tile_bar amount =
-    Tile.tile ( 0, amount )
+tile_bar : Int -> Int -> Tile msg
+tile_bar from amount =
+    Tile.tile (8*amount, from )
 
 
 generateSkin : Random.Generator Skin

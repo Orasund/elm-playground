@@ -78,40 +78,42 @@ update msg maybeModel =
             case msg of
                 Tick _ ->
                     let
-                        model = (let
-                                    newPeople = 
+                        model =
+                            let
+                                newPeople =
                                     oldModel.people |> Dict.filter (\_ person -> person.action /= Dying)
 
-                                    newHunger =
-                                        oldModel.hunger + 0.25 * (toFloat <| Dict.size newPeople)
-                                 in
-                                 if newHunger >= 1 then
-                                    let
-                                        ( maybeId, newSeed ) =
-                                            Random.step (RandomExtra.sample <| Dict.keys newPeople) oldModel.seed
-                                    in
-                                    { oldModel
-                                        | hunger = newHunger
-                                        , seed = newSeed
-                                        , people =
-                                            case maybeId of
-                                                Just id ->
-                                                    newPeople |> Dict.update id (Maybe.map (\person -> { person | action = Dying }))
+                                newHunger =
+                                    oldModel.hunger + 0.25 * (toFloat <| Dict.size newPeople)
+                            in
+                            if newHunger >= 1 then
+                                let
+                                    ( maybeId, newSeed ) =
+                                        Random.step (RandomExtra.sample <| Dict.keys newPeople) oldModel.seed
+                                in
+                                { oldModel
+                                    | hunger = newHunger
+                                    , seed = newSeed
+                                    , people =
+                                        newPeople
+                                            |> (case maybeId of
+                                                    Just id ->
+                                                        Dict.update id (Maybe.map (\person -> { person | action = Dying }))
 
-                                                Nothing ->
-                                                    newPeople
-                                    }
-                                 else
-                                    { oldModel
-                                        | hunger = newHunger
-                                        , people = newPeople
-                                    }
-                                )
+                                                    Nothing ->
+                                                        identity
+                                               )
+                                }
+                            else
+                                { oldModel
+                                    | hunger = newHunger
+                                    , people = newPeople
+                                }
                     in
                     Just
                         (model.people
                             |> Dict.foldl
-                                (\id ({ action } as person) ({ people, seed } as m) ->
+                                (\id ({ action,praying_duration } as person) ({ people, seed } as m) ->
                                     case action of
                                         PendingPraying ->
                                             { m | people = people |> Dict.update id (Maybe.map <| always <| Person.pray person) }
@@ -129,13 +131,13 @@ update msg maybeModel =
                                                 { m
                                                     | people = people |> Dict.update id (Maybe.map <| always <| newPerson)
                                                     , seed = newSeed
-                                                    , hunger = hunger - 0.1
+                                                    , hunger = hunger - 0.2-0.1*(toFloat praying_duration)
                                                     , faith = faith + 1
                                                 }
                                             else
                                                 { m
                                                     | people = people |> Dict.update id (Maybe.map <| always <| { person | action = Praying <| int - 1 })
-                                                    , hunger = hunger - 0.1
+                                                    , hunger = hunger - 0.2-0.1*(toFloat praying_duration)
                                                     , faith = faith + 1
                                                 }
 
@@ -176,7 +178,7 @@ update msg maybeModel =
                                         m
                                )
                         )
-                        ! [ tickTask (Time.second * 10) ]
+                        ! [ tickTask (Time.second * 8) ]
 
                 Pray id ->
                     let
@@ -216,7 +218,7 @@ view maybeModel =
         options =
             { scale = scale
             , width = 800
-            , transitionSpeedInSec = 10
+            , transitionSpeedInSec = 8
             }
     in
     Graphics.render options
@@ -265,7 +267,12 @@ view maybeModel =
                                                     Praying int ->
                                                         List.append
                                                             [ ( ( 0, 33 )
-                                                              , Image.fromTile (Person.tile_bar <| (15 * int) // praying_duration)
+                                                              , Image.fromTile
+                                                                    (Person.tile_bar
+                                                                        (16 // (praying_duration+1)*(int+1)) 
+                                                                        (16 // (praying_duration+1)-1)
+                                                                        |> Tile.animated 7
+                                                                    )
                                                                     (Tile.tileset
                                                                         { source = "blue_bar.png"
                                                                         , spriteWidth = 16
