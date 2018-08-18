@@ -13,6 +13,7 @@ type Action
     | PendingPraying
     | Praying Int
     | Dying
+    | None
 
 
 type alias Skin =
@@ -42,7 +43,7 @@ tile action =
 
 tile_bar : Int -> Int -> Tile msg
 tile_bar from amount =
-    Tile.tile (8*amount, from )
+    Tile.tile ( 8 * amount, from )
 
 
 generateSkin : Random.Generator Skin
@@ -62,16 +63,12 @@ generateSkin =
         (Random.int 0 7)
 
 
-generatePosition : Random.Generator Position
-generatePosition =
+generatePosition : Float -> Random.Generator Position
+generatePosition r =
     Random.float 0 (2 * pi)
         |> Random.map
             (\phi ->
                 let
-                    r : Float
-                    r =
-                        150
-
                     x : Float
                     x =
                         r * cos phi
@@ -86,7 +83,7 @@ generatePosition =
 
 move : Person -> Random.Seed -> ( Person, Random.Seed )
 move person =
-    Random.step generatePosition
+    Random.step (generatePosition 150)
         >> Tuple.mapFirst
             (\position ->
                 { person
@@ -97,10 +94,18 @@ move person =
 
 
 pray : Person -> Person
-pray ({ praying_duration } as person) =
+pray ({ praying_duration, skin } as person) =
     { person
         | action = Praying <| praying_duration + 1
         , praying_duration = praying_duration + 1
+        , skin =
+            case praying_duration of
+                2 ->
+                    { skin | body = 10 }
+                4 ->
+                    { skin | body = 100, head = 100 }
+                _ ->
+                    skin
     }
 
 
@@ -117,12 +122,12 @@ generate =
         (\position float skin ->
             ( "person_" ++ toString float
             , { position = position
-              , action = Walking
+              , action = None
               , skin = skin
               , praying_duration = 0
               }
             )
         )
-        generatePosition
+        (generatePosition 275)
         (Random.float 0 1)
         generateSkin

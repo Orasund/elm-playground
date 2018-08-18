@@ -20,6 +20,7 @@ type alias Model =
     , hunger : Float
     , faith : Int
     , people : Dict String Person
+    , newPerson : ( String, Person )
     }
 
 
@@ -53,7 +54,8 @@ newGame int =
         { seed = seed
         , hunger = 0
         , faith = 0
-        , people = Dict.singleton newId newPerson
+        , people = Dict.empty --Dict.singleton newId newPerson
+        , newPerson = ( newId, newPerson )
         }
         ! [ tickTask 0
           ]
@@ -82,18 +84,14 @@ update msg maybeModel =
                             let
                                 newPeople =
                                     oldModel.people |> Dict.filter (\_ person -> person.action /= Dying)
-
-                                newHunger =
-                                    oldModel.hunger + 0.25 * (toFloat <| Dict.size newPeople)
                             in
-                            if newHunger >= 1 then
+                            if oldModel.hunger >= 1 then
                                 let
                                     ( maybeId, newSeed ) =
                                         Random.step (RandomExtra.sample <| Dict.keys newPeople) oldModel.seed
                                 in
                                 { oldModel
-                                    | hunger = newHunger
-                                    , seed = newSeed
+                                    | seed = newSeed
                                     , people =
                                         newPeople
                                             |> (case maybeId of
@@ -106,14 +104,13 @@ update msg maybeModel =
                                 }
                             else
                                 { oldModel
-                                    | hunger = newHunger
-                                    , people = newPeople
+                                    | people = newPeople
                                 }
                     in
                     Just
                         (model.people
                             |> Dict.foldl
-                                (\id ({ action,praying_duration } as person) ({ people, seed } as m) ->
+                                (\id ({ action, praying_duration } as person) ({ people, seed } as m) ->
                                     case action of
                                         PendingPraying ->
                                             { m | people = people |> Dict.update id (Maybe.map <| always <| Person.pray person) }
@@ -131,13 +128,13 @@ update msg maybeModel =
                                                 { m
                                                     | people = people |> Dict.update id (Maybe.map <| always <| newPerson)
                                                     , seed = newSeed
-                                                    , hunger = hunger - 0.2-0.1*(toFloat praying_duration)
+                                                    , hunger = hunger - 0 - 0.1 * toFloat praying_duration
                                                     , faith = faith + 1
                                                 }
                                             else
                                                 { m
                                                     | people = people |> Dict.update id (Maybe.map <| always <| { person | action = Praying <| int - 1 })
-                                                    , hunger = hunger - 0.2-0.1*(toFloat praying_duration)
+                                                    , hunger = hunger - 0 - 0.1 * toFloat praying_duration
                                                     , faith = faith + 1
                                                 }
 
@@ -153,17 +150,30 @@ update msg maybeModel =
 
                                         Dying ->
                                             { m | hunger = 0 }
+                                        
+                                        None ->
+                                            m
                                 )
                                 model
-                            |> (\({ faith, people, seed } as m) ->
+                            |> (\({ hunger, people } as m) ->
+                                    { m | hunger = hunger + 0.25 * (toFloat <| Dict.size people) }
+                               )
+                            |> (\({ faith, people, seed, newPerson } as m) ->
                                     if faith >= 2 ^ Dict.size people then
                                         let
-                                            ( ( newId, newPerson ), newSeed ) =
+                                            ( addedNewPerson, ( person, newSeed ) ) =
                                                 Random.step Person.generate seed
+                                                    |> Tuple.mapSecond
+                                                        (Person.move
+                                                            (newPerson
+                                                                |> Tuple.second
+                                                            )
+                                                        )
                                         in
                                         { m
                                             | faith = faith - 2 ^ Dict.size people
-                                            , people = people |> Dict.insert newId newPerson
+                                            , people = people |> Dict.insert (newPerson |> Tuple.first) person
+                                            , newPerson = addedNewPerson
                                             , seed = newSeed
                                         }
                                     else
@@ -174,6 +184,26 @@ update msg maybeModel =
                                         { m | hunger = 0 }
                                     else if hunger > 1 then
                                         { m | hunger = 1 }
+                                    else
+                                        m
+                               )
+                            |> (\({ seed, people, newPerson } as m) ->
+                                    if people |> Dict.isEmpty then
+                                        let
+                                            ( addedNewPerson, ( person, newSeed ) ) =
+                                                Random.step Person.generate seed
+                                                    |> Tuple.mapSecond
+                                                        (Person.move
+                                                            (newPerson
+                                                                |> Tuple.second
+                                                            )
+                                                        )
+                                        in
+                                        { m
+                                            | people = people |> Dict.insert (newPerson |> Tuple.first) person
+                                            , seed = newSeed
+                                            , newPerson = addedNewPerson
+                                        }
                                     else
                                         m
                                )
@@ -208,6 +238,7 @@ subscriptions maybeModel =
     Sub.none
 
 
+
 view : Maybe Model -> Html Msg
 view maybeModel =
     let
@@ -215,21 +246,30 @@ view maybeModel =
         scale =
             2
 
+        width : Float
+        width =
+            600
+
+        height : Float
+        height =
+            600
+
         options =
             { scale = scale
-            , width = 800
+            , width = width
             , transitionSpeedInSec = 8
             }
     in
     Graphics.render options
         [ Graphics.imageArea
-            { height = 600
+            { height = height
             , background = Graphics.colorBackground <| Css.rgb 255 255 255
             }
             (case maybeModel of
-                Just ({ people, hunger } as model) ->
+                Just ({ people, hunger, newPerson } as model) ->
                     people
                         |> Dict.toList
+                        |> List.append [ newPerson ]
                         |> List.map
                             (\( id, { position, action, skin, praying_duration } ) ->
                                 let
@@ -248,10 +288,19 @@ view maybeModel =
                                     { head, body } =
                                         skin
                                 in
-                                ( ( 400 + x, 300 + y )
+                                ( ( width / 2 + x, height / 2 + y )
                                 , Image.multipleImages
                                     (if action == Dying then
-                                        [ ( ( 0, 0 ), Image.image "burning.png" ) ]
+                                        [ ( ( 0, 0 )
+                                          , Image.fromTile
+                                                (Tile.tile ( 0, 0 ) |> Tile.animated 7)
+                                                (Tile.tileset
+                                                    { source = "burning.png", spriteWidth = 16, spriteHeight = 16 }
+                                                )
+                                          )
+                                        ]
+                                     else if action == None then
+                                        [ ( (0,0) , Image.image "empty.png")]
                                      else
                                         [ ( ( 0, 0 ), image )
                                         , ( case action of
@@ -269,8 +318,8 @@ view maybeModel =
                                                             [ ( ( 0, 33 )
                                                               , Image.fromTile
                                                                     (Person.tile_bar
-                                                                        (16 // (praying_duration+1)*(int+1)) 
-                                                                        (16 // (praying_duration+1)-1)
+                                                                        ((16 // (praying_duration + 1) * (int + 1)) - 1)
+                                                                        (16 // (praying_duration + 1) - 1)
                                                                         |> Tile.animated 7
                                                                     )
                                                                     (Tile.tileset
@@ -297,7 +346,7 @@ view maybeModel =
                                 )
                             )
                         |> List.append
-                            [ ( ( 400 - 64, 300 - 64 )
+                            [ ( ( width / 2 - 64, height / 2 - 64 )
                               , if hunger < 1 then
                                     Image.image "temple.png"
                                 else

@@ -1,5 +1,5 @@
 <!DOCTYPE HTML>
-<html><head><meta charset="UTF-8"><title>Clock</title><style>html,head,body { padding:0; margin:0; }
+<html><head><meta charset="UTF-8"><title>CultSim.Main</title><style>html,head,body { padding:0; margin:0; }
 body { font-family: calibri, helvetica, arial, sans-serif; }</style><script type="text/javascript">
 (function() {
 'use strict';
@@ -14558,6 +14558,908 @@ var _rtfeldman$elm_css$Html_Styled_Attributes$style = function (_p0) {
 	return _rtfeldman$elm_css$Html_Styled_Attributes$fromUnstyled(
 		_elm_lang$virtual_dom$VirtualDom$style(_p0));
 };
+var _rtfeldman$elm_css$Html_Styled_Keyed$node = _rtfeldman$elm_css$VirtualDom_Styled$keyedNode;
+var _rtfeldman$elm_css$Html_Styled_Keyed$ol = _rtfeldman$elm_css$Html_Styled_Keyed$node('ol');
+var _rtfeldman$elm_css$Html_Styled_Keyed$ul = _rtfeldman$elm_css$Html_Styled_Keyed$node('ul');
+var _Orasund$pixelengine$PixelEngine_Graphics_Abstract$pairMap = F2(
+	function (fun, _p0) {
+		var _p1 = _p0;
+		return {
+			ctor: '_Tuple2',
+			_0: fun(_p1._0),
+			_1: fun(_p1._1)
+		};
+	});
+var _Orasund$pixelengine$PixelEngine_Graphics_Abstract$displayTile = F2(
+	function (_p3, _p2) {
+		var _p4 = _p3;
+		var _p10 = _p4.scale;
+		var _p5 = _p2;
+		var _p9 = _p5._1.steps;
+		var _p8 = _p5._0;
+		var _p6 = _p5._1.tileset;
+		var spriteWidth = _p6.spriteWidth;
+		var spriteHeight = _p6.spriteHeight;
+		var source = _p6.source;
+		var _p7 = {ctor: '_Tuple2', _0: _p5._1.left, _1: _p5._1.top};
+		var i = _p7._0;
+		var j = _p7._1;
+		return _elm_lang$core$Native_Utils.eq(_p9, 0) ? A2(
+			_rtfeldman$elm_css$Html_Styled$img,
+			{
+				ctor: '::',
+				_0: _rtfeldman$elm_css$Html_Styled_Attributes$src(source),
+				_1: {
+					ctor: '::',
+					_0: _rtfeldman$elm_css$Html_Styled_Attributes$css(
+						{
+							ctor: '::',
+							_0: A2(_rtfeldman$elm_css$Css$property, 'object-fit', 'none'),
+							_1: {
+								ctor: '::',
+								_0: A2(
+									_rtfeldman$elm_css$Css$property,
+									'object-position',
+									A2(
+										_elm_lang$core$Basics_ops['++'],
+										_elm_lang$core$Basics$toString((-1 * spriteWidth) * i),
+										A2(
+											_elm_lang$core$Basics_ops['++'],
+											'px ',
+											A2(
+												_elm_lang$core$Basics_ops['++'],
+												_elm_lang$core$Basics$toString((-1 * spriteHeight) * j),
+												'px')))),
+								_1: {
+									ctor: '::',
+									_0: _rtfeldman$elm_css$Css$width(
+										_rtfeldman$elm_css$Css$px(
+											_elm_lang$core$Basics$toFloat(spriteWidth))),
+									_1: {
+										ctor: '::',
+										_0: _rtfeldman$elm_css$Css$height(
+											_rtfeldman$elm_css$Css$px(
+												_elm_lang$core$Basics$toFloat(spriteHeight))),
+										_1: {
+											ctor: '::',
+											_0: _rtfeldman$elm_css$Css$position(_rtfeldman$elm_css$Css$absolute),
+											_1: {
+												ctor: '::',
+												_0: _rtfeldman$elm_css$Css$top(
+													_rtfeldman$elm_css$Css$px(_p8.top)),
+												_1: {
+													ctor: '::',
+													_0: _rtfeldman$elm_css$Css$left(
+														_rtfeldman$elm_css$Css$px(_p8.left)),
+													_1: {
+														ctor: '::',
+														_0: A2(_rtfeldman$elm_css$Css$property, 'image-rendering', 'pixelated'),
+														_1: {
+															ctor: '::',
+															_0: A2(_rtfeldman$elm_css$Css$property, 'transform-origin', 'top left'),
+															_1: {
+																ctor: '::',
+																_0: _rtfeldman$elm_css$Css$transform(
+																	A2(_rtfeldman$elm_css$Css$scale2, _p10, _p10)),
+																_1: {ctor: '[]'}
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}),
+					_1: {ctor: '[]'}
+				}
+			},
+			{ctor: '[]'}) : A2(
+			_rtfeldman$elm_css$Html_Styled$div,
+			{
+				ctor: '::',
+				_0: _rtfeldman$elm_css$Html_Styled_Attributes$css(
+					{
+						ctor: '::',
+						_0: _rtfeldman$elm_css$Css$position(_rtfeldman$elm_css$Css$absolute),
+						_1: {
+							ctor: '::',
+							_0: _rtfeldman$elm_css$Css$top(
+								_rtfeldman$elm_css$Css$px(_p8.top)),
+							_1: {
+								ctor: '::',
+								_0: _rtfeldman$elm_css$Css$left(
+									_rtfeldman$elm_css$Css$px(_p8.left)),
+								_1: {
+									ctor: '::',
+									_0: _rtfeldman$elm_css$Css$width(
+										_rtfeldman$elm_css$Css$px(
+											_p10 * _elm_lang$core$Basics$toFloat(spriteWidth))),
+									_1: {
+										ctor: '::',
+										_0: _rtfeldman$elm_css$Css$height(
+											_rtfeldman$elm_css$Css$px(
+												_p10 * _elm_lang$core$Basics$toFloat(spriteHeight))),
+										_1: {
+											ctor: '::',
+											_0: _rtfeldman$elm_css$Css$overflow(_rtfeldman$elm_css$Css$hidden),
+											_1: {ctor: '[]'}
+										}
+									}
+								}
+							}
+						}
+					}),
+				_1: {ctor: '[]'}
+			},
+			{
+				ctor: '::',
+				_0: A2(
+					_rtfeldman$elm_css$Html_Styled$div,
+					{
+						ctor: '::',
+						_0: _rtfeldman$elm_css$Html_Styled_Attributes$css(
+							{
+								ctor: '::',
+								_0: _rtfeldman$elm_css$Css$position(_rtfeldman$elm_css$Css$absolute),
+								_1: {
+									ctor: '::',
+									_0: _rtfeldman$elm_css$Css$right(
+										_rtfeldman$elm_css$Css$px(
+											_p10 * _elm_lang$core$Basics$toFloat(spriteWidth * (_p9 + 2)))),
+									_1: {ctor: '[]'}
+								}
+							}),
+						_1: {ctor: '[]'}
+					},
+					{
+						ctor: '::',
+						_0: A2(
+							_rtfeldman$elm_css$Html_Styled$img,
+							{
+								ctor: '::',
+								_0: _rtfeldman$elm_css$Html_Styled_Attributes$src(source),
+								_1: {
+									ctor: '::',
+									_0: _rtfeldman$elm_css$Html_Styled_Attributes$css(
+										{
+											ctor: '::',
+											_0: A2(_rtfeldman$elm_css$Css$property, 'object-fit', 'none'),
+											_1: {
+												ctor: '::',
+												_0: A2(
+													_rtfeldman$elm_css$Css$property,
+													'object-position',
+													A2(
+														_elm_lang$core$Basics_ops['++'],
+														_elm_lang$core$Basics$toString((-1 * spriteWidth) * i),
+														A2(
+															_elm_lang$core$Basics_ops['++'],
+															'px ',
+															A2(
+																_elm_lang$core$Basics_ops['++'],
+																_elm_lang$core$Basics$toString((-1 * spriteHeight) * j),
+																'px')))),
+												_1: {
+													ctor: '::',
+													_0: _rtfeldman$elm_css$Css$width(
+														_rtfeldman$elm_css$Css$px(
+															_elm_lang$core$Basics$toFloat(spriteWidth * (_p9 + 1)))),
+													_1: {
+														ctor: '::',
+														_0: _rtfeldman$elm_css$Css$height(
+															_rtfeldman$elm_css$Css$px(
+																_elm_lang$core$Basics$toFloat(spriteHeight))),
+														_1: {
+															ctor: '::',
+															_0: _rtfeldman$elm_css$Css$position(_rtfeldman$elm_css$Css$absolute),
+															_1: {
+																ctor: '::',
+																_0: _rtfeldman$elm_css$Css$left(
+																	_rtfeldman$elm_css$Css$px(
+																		_p10 * _elm_lang$core$Basics$toFloat(spriteWidth * (_p9 + 1)))),
+																_1: {
+																	ctor: '::',
+																	_0: A2(_rtfeldman$elm_css$Css$property, 'image-rendering', 'pixelated'),
+																	_1: {
+																		ctor: '::',
+																		_0: A2(
+																			_rtfeldman$elm_css$Css$property,
+																			'animation',
+																			A2(
+																				_elm_lang$core$Basics_ops['++'],
+																				'pixelengine_graphics_basic ',
+																				A2(
+																					_elm_lang$core$Basics_ops['++'],
+																					_elm_lang$core$Basics$toString(_p9 + 1),
+																					A2(
+																						_elm_lang$core$Basics_ops['++'],
+																						'.0s steps(',
+																						A2(
+																							_elm_lang$core$Basics_ops['++'],
+																							_elm_lang$core$Basics$toString(_p9 + 1),
+																							') infinite'))))),
+																		_1: {
+																			ctor: '::',
+																			_0: A2(_rtfeldman$elm_css$Css$property, 'transform-origin', 'top left'),
+																			_1: {
+																				ctor: '::',
+																				_0: _rtfeldman$elm_css$Css$transform(
+																					A2(_rtfeldman$elm_css$Css$scale2, _p10, _p10)),
+																				_1: {
+																					ctor: '::',
+																					_0: _rtfeldman$elm_css$Css$float(_rtfeldman$elm_css$Css$right),
+																					_1: {ctor: '[]'}
+																				}
+																			}
+																		}
+																	}
+																}
+															}
+														}
+													}
+												}
+											}
+										}),
+									_1: {ctor: '[]'}
+								}
+							},
+							{ctor: '[]'}),
+						_1: {ctor: '[]'}
+					}),
+				_1: {ctor: '[]'}
+			});
+	});
+var _Orasund$pixelengine$PixelEngine_Graphics_Abstract$displayImage = F2(
+	function (_p12, _p11) {
+		var _p13 = _p12;
+		var _p15 = _p13.scale;
+		var _p14 = _p11;
+		return A2(
+			_rtfeldman$elm_css$Html_Styled$img,
+			{
+				ctor: '::',
+				_0: _rtfeldman$elm_css$Html_Styled_Attributes$src(_p14._1),
+				_1: {
+					ctor: '::',
+					_0: _rtfeldman$elm_css$Html_Styled_Attributes$css(
+						{
+							ctor: '::',
+							_0: A2(_rtfeldman$elm_css$Css$property, 'image-rendering', 'pixelated'),
+							_1: {
+								ctor: '::',
+								_0: A2(_rtfeldman$elm_css$Css$property, 'transform-origin', 'top left'),
+								_1: {
+									ctor: '::',
+									_0: _rtfeldman$elm_css$Css$transform(
+										A2(_rtfeldman$elm_css$Css$scale2, _p15, _p15)),
+									_1: {
+										ctor: '::',
+										_0: _rtfeldman$elm_css$Css$position(_rtfeldman$elm_css$Css$absolute),
+										_1: {
+											ctor: '::',
+											_0: _rtfeldman$elm_css$Css$left(
+												_rtfeldman$elm_css$Css$px(_p14._0.left)),
+											_1: {
+												ctor: '::',
+												_0: _rtfeldman$elm_css$Css$top(
+													_rtfeldman$elm_css$Css$px(_p14._0.top)),
+												_1: {ctor: '[]'}
+											}
+										}
+									}
+								}
+							}
+						}),
+					_1: {ctor: '[]'}
+				}
+			},
+			{ctor: '[]'});
+	});
+var _Orasund$pixelengine$PixelEngine_Graphics_Abstract$displayMultiple = F4(
+	function (_p17, _p16, transitionId, attributes) {
+		var _p18 = _p17;
+		var _p26 = _p18.transitionSpeedInSec;
+		var _p25 = _p18;
+		var _p19 = _p16;
+		var _p24 = _p19._0;
+		return {
+			ctor: '_Tuple2',
+			_0: A2(_elm_lang$core$Maybe$withDefault, '', transitionId),
+			_1: A2(
+				_rtfeldman$elm_css$Html_Styled$div,
+				A2(
+					_elm_lang$core$List$append,
+					attributes,
+					{
+						ctor: '::',
+						_0: _rtfeldman$elm_css$Html_Styled_Attributes$css(
+							A2(
+								_elm_lang$core$List$append,
+								{
+									ctor: '::',
+									_0: _rtfeldman$elm_css$Css$position(_rtfeldman$elm_css$Css$absolute),
+									_1: {
+										ctor: '::',
+										_0: _rtfeldman$elm_css$Css$left(
+											_rtfeldman$elm_css$Css$px(_p24.left)),
+										_1: {
+											ctor: '::',
+											_0: _rtfeldman$elm_css$Css$top(
+												_rtfeldman$elm_css$Css$px(_p24.top)),
+											_1: {ctor: '[]'}
+										}
+									}
+								},
+								_elm_lang$core$Native_Utils.eq(transitionId, _elm_lang$core$Maybe$Nothing) ? {ctor: '[]'} : {
+									ctor: '::',
+									_0: A2(
+										_rtfeldman$elm_css$Css$property,
+										'transition',
+										A2(
+											_elm_lang$core$Basics_ops['++'],
+											'left ',
+											A2(
+												_elm_lang$core$Basics_ops['++'],
+												_elm_lang$core$Basics$toString(_p26),
+												A2(
+													_elm_lang$core$Basics_ops['++'],
+													's,top ',
+													A2(
+														_elm_lang$core$Basics_ops['++'],
+														_elm_lang$core$Basics$toString(_p26),
+														's;'))))),
+									_1: {ctor: '[]'}
+								})),
+						_1: {ctor: '[]'}
+					}),
+				A2(
+					_elm_lang$core$List$map,
+					function (_p20) {
+						var _p21 = _p20;
+						var _p23 = _p21._0;
+						var pos = {top: _p23.top, left: _p23.left};
+						var _p22 = _p21._1;
+						if (_p22.ctor === 'ImageSource') {
+							return A2(
+								_Orasund$pixelengine$PixelEngine_Graphics_Abstract$displayImage,
+								_p25,
+								{ctor: '_Tuple2', _0: pos, _1: _p22._0});
+						} else {
+							return A2(
+								_Orasund$pixelengine$PixelEngine_Graphics_Abstract$displayTile,
+								_p25,
+								{ctor: '_Tuple2', _0: pos, _1: _p22._0});
+						}
+					},
+					_p19._1))
+		};
+	});
+var _Orasund$pixelengine$PixelEngine_Graphics_Abstract$displayElement = F2(
+	function (options, _p27) {
+		var _p28 = _p27;
+		var _p31 = _p28._1.uniqueId;
+		var _p30 = _p28._1.customAttributes;
+		var position = {left: _p28._0._0, top: _p28._0._1};
+		var _p29 = _p28._1.elementType;
+		if (_p29.ctor === 'SingleSource') {
+			return A4(
+				_Orasund$pixelengine$PixelEngine_Graphics_Abstract$displayMultiple,
+				options,
+				{
+					ctor: '_Tuple2',
+					_0: position,
+					_1: {
+						ctor: '::',
+						_0: {
+							ctor: '_Tuple2',
+							_0: {top: 0, left: 0},
+							_1: _p29._0
+						},
+						_1: {ctor: '[]'}
+					}
+				},
+				_p31,
+				_p30);
+		} else {
+			return A4(
+				_Orasund$pixelengine$PixelEngine_Graphics_Abstract$displayMultiple,
+				options,
+				{ctor: '_Tuple2', _0: position, _1: _p29._0},
+				_p31,
+				_p30);
+		}
+	});
+var _Orasund$pixelengine$PixelEngine_Graphics_Abstract$cssPositions = function (_p32) {
+	var _p33 = _p32;
+	return {
+		ctor: '::',
+		_0: _rtfeldman$elm_css$Css$left(
+			_rtfeldman$elm_css$Css$px(_p33.left)),
+		_1: {
+			ctor: '::',
+			_0: _rtfeldman$elm_css$Css$top(
+				_rtfeldman$elm_css$Css$px(_p33.top)),
+			_1: {ctor: '[]'}
+		}
+	};
+};
+var _Orasund$pixelengine$PixelEngine_Graphics_Abstract$cssBackgroundImage = F3(
+	function (scale, image, _p34) {
+		var _p35 = _p34;
+		return {
+			ctor: '::',
+			_0: _rtfeldman$elm_css$Css$backgroundImage(
+				_rtfeldman$elm_css$Css$url(image)),
+			_1: {
+				ctor: '::',
+				_0: _rtfeldman$elm_css$Css$backgroundRepeat(_rtfeldman$elm_css$Css$repeat),
+				_1: {
+					ctor: '::',
+					_0: A2(
+						_rtfeldman$elm_css$Css$backgroundSize2,
+						_rtfeldman$elm_css$Css$px(_p35.width * scale),
+						_rtfeldman$elm_css$Css$px(_p35.height * scale)),
+					_1: {
+						ctor: '::',
+						_0: A2(_rtfeldman$elm_css$Css$property, 'image-rendering', 'pixelated'),
+						_1: {ctor: '[]'}
+					}
+				}
+			}
+		};
+	});
+var _Orasund$pixelengine$PixelEngine_Graphics_Abstract$cssDimensions = function (_p36) {
+	var _p37 = _p36;
+	return {
+		ctor: '::',
+		_0: _rtfeldman$elm_css$Css$width(
+			_rtfeldman$elm_css$Css$px(_p37.width)),
+		_1: {
+			ctor: '::',
+			_0: _rtfeldman$elm_css$Css$height(
+				_rtfeldman$elm_css$Css$px(_p37.height)),
+			_1: {ctor: '[]'}
+		}
+	};
+};
+var _Orasund$pixelengine$PixelEngine_Graphics_Abstract$cssArea = F3(
+	function (scale, background, _p38) {
+		var _p39 = _p38;
+		return _rtfeldman$elm_css$Html_Styled_Attributes$css(
+			A2(
+				_elm_lang$core$List$append,
+				{
+					ctor: '::',
+					_0: _rtfeldman$elm_css$Css$margin(_rtfeldman$elm_css$Css$auto),
+					_1: {
+						ctor: '::',
+						_0: _rtfeldman$elm_css$Css$position(_rtfeldman$elm_css$Css$relative),
+						_1: {ctor: '[]'}
+					}
+				},
+				A2(
+					_elm_lang$core$List$append,
+					{
+						ctor: '::',
+						_0: _rtfeldman$elm_css$Css$width(
+							_rtfeldman$elm_css$Css$px(_p39.width)),
+						_1: {
+							ctor: '::',
+							_0: _rtfeldman$elm_css$Css$height(
+								_rtfeldman$elm_css$Css$px(_p39.height)),
+							_1: {ctor: '[]'}
+						}
+					},
+					function () {
+						var _p40 = background;
+						if (_p40.ctor === 'ColorBackground') {
+							return {
+								ctor: '::',
+								_0: _rtfeldman$elm_css$Css$backgroundColor(_p40._0),
+								_1: {ctor: '[]'}
+							};
+						} else {
+							var _p41 = _p40._0;
+							return A3(
+								_Orasund$pixelengine$PixelEngine_Graphics_Abstract$cssBackgroundImage,
+								scale,
+								_p41.source,
+								{width: _p41.width, height: _p41.height});
+						}
+					}())));
+	});
+var _Orasund$pixelengine$PixelEngine_Graphics_Abstract$renderImageArea = F2(
+	function (_p43, _p42) {
+		var _p44 = _p43;
+		var _p45 = _p42;
+		return A2(
+			_rtfeldman$elm_css$Html_Styled$div,
+			{
+				ctor: '::',
+				_0: A3(
+					_Orasund$pixelengine$PixelEngine_Graphics_Abstract$cssArea,
+					_p44.scale,
+					_p45.background,
+					{width: _p44.width, height: _p45.height}),
+				_1: {ctor: '[]'}
+			},
+			function (_p46) {
+				var _p47 = _p46;
+				return {
+					ctor: '::',
+					_0: A2(
+						_rtfeldman$elm_css$Html_Styled$div,
+						{ctor: '[]'},
+						A2(_elm_lang$core$List$map, _elm_lang$core$Tuple$second, _p47._0)),
+					_1: {
+						ctor: '::',
+						_0: A3(
+							_rtfeldman$elm_css$Html_Styled_Keyed$node,
+							'div',
+							{ctor: '[]'},
+							A2(_elm_lang$core$List$sortBy, _elm_lang$core$Tuple$first, _p47._1)),
+						_1: {ctor: '[]'}
+					}
+				};
+			}(
+				A2(
+					_Orasund$pixelengine$PixelEngine_Graphics_Abstract$pairMap,
+					_elm_lang$core$List$map(
+						_Orasund$pixelengine$PixelEngine_Graphics_Abstract$displayElement(_p44)),
+					A2(
+						_elm_lang$core$List$partition,
+						function (_p48) {
+							return A2(
+								F2(
+									function (x, y) {
+										return _elm_lang$core$Native_Utils.eq(x, y);
+									}),
+								_elm_lang$core$Maybe$Nothing,
+								function (_) {
+									return _.uniqueId;
+								}(
+									_elm_lang$core$Tuple$second(_p48)));
+						},
+						_p45.content))));
+	});
+var _Orasund$pixelengine$PixelEngine_Graphics_Abstract$Tile = F3(
+	function (a, b, c) {
+		return {info: a, customAttributes: b, uniqueId: c};
+	});
+var _Orasund$pixelengine$PixelEngine_Graphics_Abstract$TilesetImage = F2(
+	function (a, b) {
+		return {source: a, tile: b};
+	});
+var _Orasund$pixelengine$PixelEngine_Graphics_Abstract$Tileset = F3(
+	function (a, b, c) {
+		return {source: a, spriteWidth: b, spriteHeight: c};
+	});
+var _Orasund$pixelengine$PixelEngine_Graphics_Abstract$ImageAreaContent = F3(
+	function (a, b, c) {
+		return {height: a, background: b, content: c};
+	});
+var _Orasund$pixelengine$PixelEngine_Graphics_Abstract$ContentElement = F3(
+	function (a, b, c) {
+		return {elementType: a, customAttributes: b, uniqueId: c};
+	});
+var _Orasund$pixelengine$PixelEngine_Graphics_Abstract$TiledAreaContent = F4(
+	function (a, b, c, d) {
+		return {rows: a, tileset: b, background: c, content: d};
+	});
+var _Orasund$pixelengine$PixelEngine_Graphics_Abstract$Position = F2(
+	function (a, b) {
+		return {top: a, left: b};
+	});
+var _Orasund$pixelengine$PixelEngine_Graphics_Abstract$Dimensions = F2(
+	function (a, b) {
+		return {width: a, height: b};
+	});
+var _Orasund$pixelengine$PixelEngine_Graphics_Abstract$ImageBackground = function (a) {
+	return {ctor: 'ImageBackground', _0: a};
+};
+var _Orasund$pixelengine$PixelEngine_Graphics_Abstract$ColorBackground = function (a) {
+	return {ctor: 'ColorBackground', _0: a};
+};
+var _Orasund$pixelengine$PixelEngine_Graphics_Abstract$Images = function (a) {
+	return {ctor: 'Images', _0: a};
+};
+var _Orasund$pixelengine$PixelEngine_Graphics_Abstract$Tiled = function (a) {
+	return {ctor: 'Tiled', _0: a};
+};
+var _Orasund$pixelengine$PixelEngine_Graphics_Abstract$ImageSource = function (a) {
+	return {ctor: 'ImageSource', _0: a};
+};
+var _Orasund$pixelengine$PixelEngine_Graphics_Abstract$TileSource = function (a) {
+	return {ctor: 'TileSource', _0: a};
+};
+var _Orasund$pixelengine$PixelEngine_Graphics_Abstract$renderTiledArea = F2(
+	function (_p50, _p49) {
+		var _p51 = _p50;
+		var _p62 = _p51.scale;
+		var _p52 = _p49;
+		var _p61 = _p52.tileset;
+		var _p53 = _p61;
+		var spriteWidth = _p53.spriteWidth;
+		var spriteHeight = _p53.spriteHeight;
+		return A2(
+			_rtfeldman$elm_css$Html_Styled$div,
+			{
+				ctor: '::',
+				_0: A3(
+					_Orasund$pixelengine$PixelEngine_Graphics_Abstract$cssArea,
+					_p62,
+					_p52.background,
+					{
+						width: _p51.width,
+						height: _p62 * _elm_lang$core$Basics$toFloat(_p61.spriteHeight * _p52.rows)
+					}),
+				_1: {ctor: '[]'}
+			},
+			function (_p54) {
+				var _p55 = _p54;
+				return {
+					ctor: '::',
+					_0: A2(
+						_rtfeldman$elm_css$Html_Styled$div,
+						{ctor: '[]'},
+						A2(_elm_lang$core$List$map, _elm_lang$core$Tuple$second, _p55._0)),
+					_1: {
+						ctor: '::',
+						_0: A3(
+							_rtfeldman$elm_css$Html_Styled_Keyed$node,
+							'div',
+							{ctor: '[]'},
+							A2(_elm_lang$core$List$sortBy, _elm_lang$core$Tuple$first, _p55._1)),
+						_1: {ctor: '[]'}
+					}
+				};
+			}(
+				A2(
+					_Orasund$pixelengine$PixelEngine_Graphics_Abstract$pairMap,
+					_elm_lang$core$List$map(
+						function (_p56) {
+							var _p57 = _p56;
+							var _p59 = _p57._0;
+							var _p58 = _p57._1.info;
+							var top = _p58.top;
+							var left = _p58.left;
+							var steps = _p58.steps;
+							return A4(
+								_Orasund$pixelengine$PixelEngine_Graphics_Abstract$displayMultiple,
+								_p51,
+								{
+									ctor: '_Tuple2',
+									_0: {
+										left: _p62 * _elm_lang$core$Basics$toFloat(
+											spriteWidth * _elm_lang$core$Tuple$first(_p59)),
+										top: _p62 * _elm_lang$core$Basics$toFloat(
+											spriteHeight * _elm_lang$core$Tuple$second(_p59))
+									},
+									_1: {
+										ctor: '::',
+										_0: {
+											ctor: '_Tuple2',
+											_0: {top: 0, left: 0},
+											_1: _Orasund$pixelengine$PixelEngine_Graphics_Abstract$TileSource(
+												{left: left, top: top, steps: steps, tileset: _p61})
+										},
+										_1: {ctor: '[]'}
+									}
+								},
+								_p57._1.uniqueId,
+								_p57._1.customAttributes);
+						}),
+					A2(
+						_elm_lang$core$List$partition,
+						function (_p60) {
+							return A2(
+								F2(
+									function (x, y) {
+										return _elm_lang$core$Native_Utils.eq(x, y);
+									}),
+								_elm_lang$core$Maybe$Nothing,
+								function (_) {
+									return _.uniqueId;
+								}(
+									_elm_lang$core$Tuple$second(_p60)));
+						},
+						_p52.content))));
+	});
+var _Orasund$pixelengine$PixelEngine_Graphics_Abstract$renderFunction = F2(
+	function (options, listOfArea) {
+		return A2(
+			_rtfeldman$elm_css$Html_Styled$div,
+			{
+				ctor: '::',
+				_0: _rtfeldman$elm_css$Html_Styled_Attributes$css(
+					{
+						ctor: '::',
+						_0: _rtfeldman$elm_css$Css$backgroundColor(
+							A3(_rtfeldman$elm_css$Css$rgb, 0, 0, 0)),
+						_1: {ctor: '[]'}
+					}),
+				_1: {ctor: '[]'}
+			},
+			A3(
+				_elm_lang$core$List$foldl,
+				F2(
+					function (area, list) {
+						var _p63 = area;
+						if (_p63.ctor === 'Tiled') {
+							return A2(
+								_elm_lang$core$List$append,
+								list,
+								{
+									ctor: '::',
+									_0: A2(_Orasund$pixelengine$PixelEngine_Graphics_Abstract$renderTiledArea, options, _p63._0),
+									_1: {ctor: '[]'}
+								});
+						} else {
+							return A2(
+								_elm_lang$core$List$append,
+								list,
+								{
+									ctor: '::',
+									_0: A2(_Orasund$pixelengine$PixelEngine_Graphics_Abstract$renderImageArea, options, _p63._0),
+									_1: {ctor: '[]'}
+								});
+						}
+					}),
+				{
+					ctor: '::',
+					_0: _rtfeldman$elm_css$Css_Foreign$global(
+						{
+							ctor: '::',
+							_0: A2(
+								_rtfeldman$elm_css$Css_Foreign$selector,
+								'@keyframes pixelengine_graphics_basic',
+								{
+									ctor: '::',
+									_0: A2(_rtfeldman$elm_css$Css$property, '100% { left:0px };', ''),
+									_1: {ctor: '[]'}
+								}),
+							_1: {ctor: '[]'}
+						}),
+					_1: {ctor: '[]'}
+				},
+				listOfArea));
+	});
+var _Orasund$pixelengine$PixelEngine_Graphics_Abstract$MultipleSources = function (a) {
+	return {ctor: 'MultipleSources', _0: a};
+};
+var _Orasund$pixelengine$PixelEngine_Graphics_Abstract$SingleSource = function (a) {
+	return {ctor: 'SingleSource', _0: a};
+};
+var _Orasund$pixelengine$PixelEngine_Graphics_Abstract$Compatible = {ctor: 'Compatible'};
+var _Orasund$pixelengine$PixelEngine_Graphics_Tile$withAttributes = F2(
+	function (attributes, tile) {
+		return _elm_lang$core$Native_Utils.update(
+			tile,
+			{customAttributes: attributes});
+	});
+var _Orasund$pixelengine$PixelEngine_Graphics_Tile$movable = F2(
+	function (id, tile) {
+		return _elm_lang$core$Native_Utils.update(
+			tile,
+			{
+				uniqueId: _elm_lang$core$Maybe$Just(id)
+			});
+	});
+var _Orasund$pixelengine$PixelEngine_Graphics_Tile$animated = F2(
+	function (steps, _p0) {
+		var _p1 = _p0;
+		return _elm_lang$core$Native_Utils.update(
+			_p1,
+			{
+				info: _elm_lang$core$Native_Utils.update(
+					_p1.info,
+					{
+						steps: (_elm_lang$core$Native_Utils.cmp(steps, 0) > 0) ? steps : 0
+					})
+			});
+	});
+var _Orasund$pixelengine$PixelEngine_Graphics_Tile$tile = function (_p2) {
+	var _p3 = _p2;
+	return {
+		info: {top: _p3._1, left: _p3._0, steps: 0},
+		uniqueId: _elm_lang$core$Maybe$Nothing,
+		customAttributes: {ctor: '[]'}
+	};
+};
+var _Orasund$pixelengine$PixelEngine_Graphics_Tile$tileset = _elm_lang$core$Basics$identity;
+var _Orasund$pixelengine$PixelEngine_Graphics_Image$multipleImages = function (list) {
+	var images = A3(
+		_elm_lang$core$List$foldr,
+		function (_p0) {
+			var _p1 = _p0;
+			var _p2 = _p1._1.elementType;
+			if (_p2.ctor === 'SingleSource') {
+				return F2(
+					function (x, y) {
+						return {ctor: '::', _0: x, _1: y};
+					})(
+					{
+						ctor: '_Tuple2',
+						_0: {left: _p1._0._0, top: _p1._0._1},
+						_1: _p2._0
+					});
+			} else {
+				return _elm_lang$core$Basics$identity;
+			}
+		},
+		{ctor: '[]'},
+		list);
+	return {
+		elementType: _Orasund$pixelengine$PixelEngine_Graphics_Abstract$MultipleSources(images),
+		customAttributes: {ctor: '[]'},
+		uniqueId: _elm_lang$core$Maybe$Nothing
+	};
+};
+var _Orasund$pixelengine$PixelEngine_Graphics_Image$withAttributes = F2(
+	function (attributes, image) {
+		return _elm_lang$core$Native_Utils.update(
+			image,
+			{customAttributes: attributes});
+	});
+var _Orasund$pixelengine$PixelEngine_Graphics_Image$fromTile = F2(
+	function (_p3, tileset) {
+		var _p4 = _p3;
+		var _p5 = _p4.info;
+		var top = _p5.top;
+		var left = _p5.left;
+		var steps = _p5.steps;
+		return {
+			elementType: _Orasund$pixelengine$PixelEngine_Graphics_Abstract$SingleSource(
+				_Orasund$pixelengine$PixelEngine_Graphics_Abstract$TileSource(
+					{left: left, top: top, steps: steps, tileset: tileset})),
+			customAttributes: _p4.customAttributes,
+			uniqueId: _p4.uniqueId
+		};
+	});
+var _Orasund$pixelengine$PixelEngine_Graphics_Image$movable = F2(
+	function (transitionId, contentElement) {
+		return _elm_lang$core$Native_Utils.update(
+			contentElement,
+			{
+				uniqueId: _elm_lang$core$Maybe$Just(transitionId)
+			});
+	});
+var _Orasund$pixelengine$PixelEngine_Graphics_Image$image = function (source) {
+	return {
+		elementType: _Orasund$pixelengine$PixelEngine_Graphics_Abstract$SingleSource(
+			_Orasund$pixelengine$PixelEngine_Graphics_Abstract$ImageSource(source)),
+		customAttributes: {ctor: '[]'},
+		uniqueId: _elm_lang$core$Maybe$Nothing
+	};
+};
+var _Orasund$pixelengine$PixelEngine_Graphics$render = F2(
+	function (_p0, listOfArea) {
+		var _p1 = _p0;
+		return A2(
+			_Orasund$pixelengine$PixelEngine_Graphics_Abstract$renderFunction,
+			{width: _p1.width, scale: _p1.scale, transitionSpeedInSec: _p1.transitionSpeedInSec},
+			listOfArea);
+	});
+var _Orasund$pixelengine$PixelEngine_Graphics$tiledArea = F2(
+	function (_p2, content) {
+		var _p3 = _p2;
+		return _Orasund$pixelengine$PixelEngine_Graphics_Abstract$Tiled(
+			{rows: _p3.rows, tileset: _p3.tileset, background: _p3.background, content: content});
+	});
+var _Orasund$pixelengine$PixelEngine_Graphics$imageArea = F2(
+	function (_p4, content) {
+		var _p5 = _p4;
+		return _Orasund$pixelengine$PixelEngine_Graphics_Abstract$Images(
+			{height: _p5.height, background: _p5.background, content: content});
+	});
+var _Orasund$pixelengine$PixelEngine_Graphics$imageBackground = function (image) {
+	return _Orasund$pixelengine$PixelEngine_Graphics_Abstract$ImageBackground(image);
+};
+var _Orasund$pixelengine$PixelEngine_Graphics$colorBackground = function (color) {
+	return _Orasund$pixelengine$PixelEngine_Graphics_Abstract$ColorBackground(color);
+};
 //import Native.Scheduler //
 
 var _elm_lang$core$Native_Time = function() {
@@ -14967,706 +15869,1447 @@ var _elm_lang$core$Time$subMap = F2(
 			});
 	});
 _elm_lang$core$Native_Platform.effectManagers['Time'] = {pkg: 'elm-lang/core', init: _elm_lang$core$Time$init, onEffects: _elm_lang$core$Time$onEffects, onSelfMsg: _elm_lang$core$Time$onSelfMsg, tag: 'sub', subMap: _elm_lang$core$Time$subMap};
+var _elm_lang$core$Random$onSelfMsg = F3(
+	function (_p1, _p0, seed) {
+		return _elm_lang$core$Task$succeed(seed);
+	});
+var _elm_lang$core$Random$magicNum8 = 2147483562;
+var _elm_lang$core$Random$range = function (_p2) {
+	return {ctor: '_Tuple2', _0: 0, _1: _elm_lang$core$Random$magicNum8};
+};
+var _elm_lang$core$Random$magicNum7 = 2147483399;
+var _elm_lang$core$Random$magicNum6 = 2147483563;
+var _elm_lang$core$Random$magicNum5 = 3791;
+var _elm_lang$core$Random$magicNum4 = 40692;
+var _elm_lang$core$Random$magicNum3 = 52774;
+var _elm_lang$core$Random$magicNum2 = 12211;
+var _elm_lang$core$Random$magicNum1 = 53668;
+var _elm_lang$core$Random$magicNum0 = 40014;
+var _elm_lang$core$Random$step = F2(
+	function (_p3, seed) {
+		var _p4 = _p3;
+		return _p4._0(seed);
+	});
+var _elm_lang$core$Random$onEffects = F3(
+	function (router, commands, seed) {
+		var _p5 = commands;
+		if (_p5.ctor === '[]') {
+			return _elm_lang$core$Task$succeed(seed);
+		} else {
+			var _p6 = A2(_elm_lang$core$Random$step, _p5._0._0, seed);
+			var value = _p6._0;
+			var newSeed = _p6._1;
+			return A2(
+				_elm_lang$core$Task$andThen,
+				function (_p7) {
+					return A3(_elm_lang$core$Random$onEffects, router, _p5._1, newSeed);
+				},
+				A2(_elm_lang$core$Platform$sendToApp, router, value));
+		}
+	});
+var _elm_lang$core$Random$listHelp = F4(
+	function (list, n, generate, seed) {
+		listHelp:
+		while (true) {
+			if (_elm_lang$core$Native_Utils.cmp(n, 1) < 0) {
+				return {
+					ctor: '_Tuple2',
+					_0: _elm_lang$core$List$reverse(list),
+					_1: seed
+				};
+			} else {
+				var _p8 = generate(seed);
+				var value = _p8._0;
+				var newSeed = _p8._1;
+				var _v2 = {ctor: '::', _0: value, _1: list},
+					_v3 = n - 1,
+					_v4 = generate,
+					_v5 = newSeed;
+				list = _v2;
+				n = _v3;
+				generate = _v4;
+				seed = _v5;
+				continue listHelp;
+			}
+		}
+	});
+var _elm_lang$core$Random$minInt = -2147483648;
+var _elm_lang$core$Random$maxInt = 2147483647;
+var _elm_lang$core$Random$iLogBase = F2(
+	function (b, i) {
+		return (_elm_lang$core$Native_Utils.cmp(i, b) < 0) ? 1 : (1 + A2(_elm_lang$core$Random$iLogBase, b, (i / b) | 0));
+	});
+var _elm_lang$core$Random$command = _elm_lang$core$Native_Platform.leaf('Random');
+var _elm_lang$core$Random$Generator = function (a) {
+	return {ctor: 'Generator', _0: a};
+};
+var _elm_lang$core$Random$list = F2(
+	function (n, _p9) {
+		var _p10 = _p9;
+		return _elm_lang$core$Random$Generator(
+			function (seed) {
+				return A4(
+					_elm_lang$core$Random$listHelp,
+					{ctor: '[]'},
+					n,
+					_p10._0,
+					seed);
+			});
+	});
+var _elm_lang$core$Random$map = F2(
+	function (func, _p11) {
+		var _p12 = _p11;
+		return _elm_lang$core$Random$Generator(
+			function (seed0) {
+				var _p13 = _p12._0(seed0);
+				var a = _p13._0;
+				var seed1 = _p13._1;
+				return {
+					ctor: '_Tuple2',
+					_0: func(a),
+					_1: seed1
+				};
+			});
+	});
+var _elm_lang$core$Random$map2 = F3(
+	function (func, _p15, _p14) {
+		var _p16 = _p15;
+		var _p17 = _p14;
+		return _elm_lang$core$Random$Generator(
+			function (seed0) {
+				var _p18 = _p16._0(seed0);
+				var a = _p18._0;
+				var seed1 = _p18._1;
+				var _p19 = _p17._0(seed1);
+				var b = _p19._0;
+				var seed2 = _p19._1;
+				return {
+					ctor: '_Tuple2',
+					_0: A2(func, a, b),
+					_1: seed2
+				};
+			});
+	});
+var _elm_lang$core$Random$pair = F2(
+	function (genA, genB) {
+		return A3(
+			_elm_lang$core$Random$map2,
+			F2(
+				function (v0, v1) {
+					return {ctor: '_Tuple2', _0: v0, _1: v1};
+				}),
+			genA,
+			genB);
+	});
+var _elm_lang$core$Random$map3 = F4(
+	function (func, _p22, _p21, _p20) {
+		var _p23 = _p22;
+		var _p24 = _p21;
+		var _p25 = _p20;
+		return _elm_lang$core$Random$Generator(
+			function (seed0) {
+				var _p26 = _p23._0(seed0);
+				var a = _p26._0;
+				var seed1 = _p26._1;
+				var _p27 = _p24._0(seed1);
+				var b = _p27._0;
+				var seed2 = _p27._1;
+				var _p28 = _p25._0(seed2);
+				var c = _p28._0;
+				var seed3 = _p28._1;
+				return {
+					ctor: '_Tuple2',
+					_0: A3(func, a, b, c),
+					_1: seed3
+				};
+			});
+	});
+var _elm_lang$core$Random$map4 = F5(
+	function (func, _p32, _p31, _p30, _p29) {
+		var _p33 = _p32;
+		var _p34 = _p31;
+		var _p35 = _p30;
+		var _p36 = _p29;
+		return _elm_lang$core$Random$Generator(
+			function (seed0) {
+				var _p37 = _p33._0(seed0);
+				var a = _p37._0;
+				var seed1 = _p37._1;
+				var _p38 = _p34._0(seed1);
+				var b = _p38._0;
+				var seed2 = _p38._1;
+				var _p39 = _p35._0(seed2);
+				var c = _p39._0;
+				var seed3 = _p39._1;
+				var _p40 = _p36._0(seed3);
+				var d = _p40._0;
+				var seed4 = _p40._1;
+				return {
+					ctor: '_Tuple2',
+					_0: A4(func, a, b, c, d),
+					_1: seed4
+				};
+			});
+	});
+var _elm_lang$core$Random$map5 = F6(
+	function (func, _p45, _p44, _p43, _p42, _p41) {
+		var _p46 = _p45;
+		var _p47 = _p44;
+		var _p48 = _p43;
+		var _p49 = _p42;
+		var _p50 = _p41;
+		return _elm_lang$core$Random$Generator(
+			function (seed0) {
+				var _p51 = _p46._0(seed0);
+				var a = _p51._0;
+				var seed1 = _p51._1;
+				var _p52 = _p47._0(seed1);
+				var b = _p52._0;
+				var seed2 = _p52._1;
+				var _p53 = _p48._0(seed2);
+				var c = _p53._0;
+				var seed3 = _p53._1;
+				var _p54 = _p49._0(seed3);
+				var d = _p54._0;
+				var seed4 = _p54._1;
+				var _p55 = _p50._0(seed4);
+				var e = _p55._0;
+				var seed5 = _p55._1;
+				return {
+					ctor: '_Tuple2',
+					_0: A5(func, a, b, c, d, e),
+					_1: seed5
+				};
+			});
+	});
+var _elm_lang$core$Random$andThen = F2(
+	function (callback, _p56) {
+		var _p57 = _p56;
+		return _elm_lang$core$Random$Generator(
+			function (seed) {
+				var _p58 = _p57._0(seed);
+				var result = _p58._0;
+				var newSeed = _p58._1;
+				var _p59 = callback(result);
+				var genB = _p59._0;
+				return genB(newSeed);
+			});
+	});
+var _elm_lang$core$Random$State = F2(
+	function (a, b) {
+		return {ctor: 'State', _0: a, _1: b};
+	});
+var _elm_lang$core$Random$initState = function (seed) {
+	var s = A2(_elm_lang$core$Basics$max, seed, 0 - seed);
+	var q = (s / (_elm_lang$core$Random$magicNum6 - 1)) | 0;
+	var s2 = A2(_elm_lang$core$Basics_ops['%'], q, _elm_lang$core$Random$magicNum7 - 1);
+	var s1 = A2(_elm_lang$core$Basics_ops['%'], s, _elm_lang$core$Random$magicNum6 - 1);
+	return A2(_elm_lang$core$Random$State, s1 + 1, s2 + 1);
+};
+var _elm_lang$core$Random$next = function (_p60) {
+	var _p61 = _p60;
+	var _p63 = _p61._1;
+	var _p62 = _p61._0;
+	var k2 = (_p63 / _elm_lang$core$Random$magicNum3) | 0;
+	var rawState2 = (_elm_lang$core$Random$magicNum4 * (_p63 - (k2 * _elm_lang$core$Random$magicNum3))) - (k2 * _elm_lang$core$Random$magicNum5);
+	var newState2 = (_elm_lang$core$Native_Utils.cmp(rawState2, 0) < 0) ? (rawState2 + _elm_lang$core$Random$magicNum7) : rawState2;
+	var k1 = (_p62 / _elm_lang$core$Random$magicNum1) | 0;
+	var rawState1 = (_elm_lang$core$Random$magicNum0 * (_p62 - (k1 * _elm_lang$core$Random$magicNum1))) - (k1 * _elm_lang$core$Random$magicNum2);
+	var newState1 = (_elm_lang$core$Native_Utils.cmp(rawState1, 0) < 0) ? (rawState1 + _elm_lang$core$Random$magicNum6) : rawState1;
+	var z = newState1 - newState2;
+	var newZ = (_elm_lang$core$Native_Utils.cmp(z, 1) < 0) ? (z + _elm_lang$core$Random$magicNum8) : z;
+	return {
+		ctor: '_Tuple2',
+		_0: newZ,
+		_1: A2(_elm_lang$core$Random$State, newState1, newState2)
+	};
+};
+var _elm_lang$core$Random$split = function (_p64) {
+	var _p65 = _p64;
+	var _p68 = _p65._1;
+	var _p67 = _p65._0;
+	var _p66 = _elm_lang$core$Tuple$second(
+		_elm_lang$core$Random$next(_p65));
+	var t1 = _p66._0;
+	var t2 = _p66._1;
+	var new_s2 = _elm_lang$core$Native_Utils.eq(_p68, 1) ? (_elm_lang$core$Random$magicNum7 - 1) : (_p68 - 1);
+	var new_s1 = _elm_lang$core$Native_Utils.eq(_p67, _elm_lang$core$Random$magicNum6 - 1) ? 1 : (_p67 + 1);
+	return {
+		ctor: '_Tuple2',
+		_0: A2(_elm_lang$core$Random$State, new_s1, t2),
+		_1: A2(_elm_lang$core$Random$State, t1, new_s2)
+	};
+};
+var _elm_lang$core$Random$Seed = function (a) {
+	return {ctor: 'Seed', _0: a};
+};
+var _elm_lang$core$Random$int = F2(
+	function (a, b) {
+		return _elm_lang$core$Random$Generator(
+			function (_p69) {
+				var _p70 = _p69;
+				var _p75 = _p70._0;
+				var base = 2147483561;
+				var f = F3(
+					function (n, acc, state) {
+						f:
+						while (true) {
+							var _p71 = n;
+							if (_p71 === 0) {
+								return {ctor: '_Tuple2', _0: acc, _1: state};
+							} else {
+								var _p72 = _p75.next(state);
+								var x = _p72._0;
+								var nextState = _p72._1;
+								var _v27 = n - 1,
+									_v28 = x + (acc * base),
+									_v29 = nextState;
+								n = _v27;
+								acc = _v28;
+								state = _v29;
+								continue f;
+							}
+						}
+					});
+				var _p73 = (_elm_lang$core$Native_Utils.cmp(a, b) < 0) ? {ctor: '_Tuple2', _0: a, _1: b} : {ctor: '_Tuple2', _0: b, _1: a};
+				var lo = _p73._0;
+				var hi = _p73._1;
+				var k = (hi - lo) + 1;
+				var n = A2(_elm_lang$core$Random$iLogBase, base, k);
+				var _p74 = A3(f, n, 1, _p75.state);
+				var v = _p74._0;
+				var nextState = _p74._1;
+				return {
+					ctor: '_Tuple2',
+					_0: lo + A2(_elm_lang$core$Basics_ops['%'], v, k),
+					_1: _elm_lang$core$Random$Seed(
+						_elm_lang$core$Native_Utils.update(
+							_p75,
+							{state: nextState}))
+				};
+			});
+	});
+var _elm_lang$core$Random$bool = A2(
+	_elm_lang$core$Random$map,
+	F2(
+		function (x, y) {
+			return _elm_lang$core$Native_Utils.eq(x, y);
+		})(1),
+	A2(_elm_lang$core$Random$int, 0, 1));
+var _elm_lang$core$Random$float = F2(
+	function (a, b) {
+		return _elm_lang$core$Random$Generator(
+			function (seed) {
+				var _p76 = A2(
+					_elm_lang$core$Random$step,
+					A2(_elm_lang$core$Random$int, _elm_lang$core$Random$minInt, _elm_lang$core$Random$maxInt),
+					seed);
+				var number = _p76._0;
+				var newSeed = _p76._1;
+				var negativeOneToOne = _elm_lang$core$Basics$toFloat(number) / _elm_lang$core$Basics$toFloat(_elm_lang$core$Random$maxInt - _elm_lang$core$Random$minInt);
+				var _p77 = (_elm_lang$core$Native_Utils.cmp(a, b) < 0) ? {ctor: '_Tuple2', _0: a, _1: b} : {ctor: '_Tuple2', _0: b, _1: a};
+				var lo = _p77._0;
+				var hi = _p77._1;
+				var scaled = ((lo + hi) / 2) + ((hi - lo) * negativeOneToOne);
+				return {ctor: '_Tuple2', _0: scaled, _1: newSeed};
+			});
+	});
+var _elm_lang$core$Random$initialSeed = function (n) {
+	return _elm_lang$core$Random$Seed(
+		{
+			state: _elm_lang$core$Random$initState(n),
+			next: _elm_lang$core$Random$next,
+			split: _elm_lang$core$Random$split,
+			range: _elm_lang$core$Random$range
+		});
+};
+var _elm_lang$core$Random$init = A2(
+	_elm_lang$core$Task$andThen,
+	function (t) {
+		return _elm_lang$core$Task$succeed(
+			_elm_lang$core$Random$initialSeed(
+				_elm_lang$core$Basics$round(t)));
+	},
+	_elm_lang$core$Time$now);
+var _elm_lang$core$Random$Generate = function (a) {
+	return {ctor: 'Generate', _0: a};
+};
+var _elm_lang$core$Random$generate = F2(
+	function (tagger, generator) {
+		return _elm_lang$core$Random$command(
+			_elm_lang$core$Random$Generate(
+				A2(_elm_lang$core$Random$map, tagger, generator)));
+	});
+var _elm_lang$core$Random$cmdMap = F2(
+	function (func, _p78) {
+		var _p79 = _p78;
+		return _elm_lang$core$Random$Generate(
+			A2(_elm_lang$core$Random$map, func, _p79._0));
+	});
+_elm_lang$core$Native_Platform.effectManagers['Random'] = {pkg: 'elm-lang/core', init: _elm_lang$core$Random$init, onEffects: _elm_lang$core$Random$onEffects, onSelfMsg: _elm_lang$core$Random$onSelfMsg, tag: 'cmd', cmdMap: _elm_lang$core$Random$cmdMap};
+var _elm_community$random_extra$Random_Extra$andThen6 = F7(
+	function (constructor, generatorA, generatorB, generatorC, generatorD, generatorE, generatorF) {
+		return A2(
+			_elm_lang$core$Random$andThen,
+			function (a) {
+				return A2(
+					_elm_lang$core$Random$andThen,
+					function (b) {
+						return A2(
+							_elm_lang$core$Random$andThen,
+							function (c) {
+								return A2(
+									_elm_lang$core$Random$andThen,
+									function (d) {
+										return A2(
+											_elm_lang$core$Random$andThen,
+											function (e) {
+												return A2(
+													_elm_lang$core$Random$andThen,
+													function (f) {
+														return A6(constructor, a, b, c, d, e, f);
+													},
+													generatorF);
+											},
+											generatorE);
+									},
+									generatorD);
+							},
+							generatorC);
+					},
+					generatorB);
+			},
+			generatorA);
+	});
+var _elm_community$random_extra$Random_Extra$andThen5 = F6(
+	function (constructor, generatorA, generatorB, generatorC, generatorD, generatorE) {
+		return A2(
+			_elm_lang$core$Random$andThen,
+			function (a) {
+				return A2(
+					_elm_lang$core$Random$andThen,
+					function (b) {
+						return A2(
+							_elm_lang$core$Random$andThen,
+							function (c) {
+								return A2(
+									_elm_lang$core$Random$andThen,
+									function (d) {
+										return A2(
+											_elm_lang$core$Random$andThen,
+											function (e) {
+												return A5(constructor, a, b, c, d, e);
+											},
+											generatorE);
+									},
+									generatorD);
+							},
+							generatorC);
+					},
+					generatorB);
+			},
+			generatorA);
+	});
+var _elm_community$random_extra$Random_Extra$andThen4 = F5(
+	function (constructor, generatorA, generatorB, generatorC, generatorD) {
+		return A2(
+			_elm_lang$core$Random$andThen,
+			function (a) {
+				return A2(
+					_elm_lang$core$Random$andThen,
+					function (b) {
+						return A2(
+							_elm_lang$core$Random$andThen,
+							function (c) {
+								return A2(
+									_elm_lang$core$Random$andThen,
+									function (d) {
+										return A4(constructor, a, b, c, d);
+									},
+									generatorD);
+							},
+							generatorC);
+					},
+					generatorB);
+			},
+			generatorA);
+	});
+var _elm_community$random_extra$Random_Extra$andThen3 = F4(
+	function (constructor, generatorA, generatorB, generatorC) {
+		return A2(
+			_elm_lang$core$Random$andThen,
+			function (a) {
+				return A2(
+					_elm_lang$core$Random$andThen,
+					function (b) {
+						return A2(
+							_elm_lang$core$Random$andThen,
+							function (c) {
+								return A3(constructor, a, b, c);
+							},
+							generatorC);
+					},
+					generatorB);
+			},
+			generatorA);
+	});
+var _elm_community$random_extra$Random_Extra$andThen2 = F3(
+	function (constructor, generatorA, generatorB) {
+		return A2(
+			_elm_lang$core$Random$andThen,
+			function (a) {
+				return A2(
+					_elm_lang$core$Random$andThen,
+					function (b) {
+						return A2(constructor, a, b);
+					},
+					generatorB);
+			},
+			generatorA);
+	});
+var _elm_community$random_extra$Random_Extra$rangeLengthList = F3(
+	function (minLength, maxLength, generator) {
+		return A2(
+			_elm_lang$core$Random$andThen,
+			function (len) {
+				return A2(_elm_lang$core$Random$list, len, generator);
+			},
+			A2(_elm_lang$core$Random$int, minLength, maxLength));
+	});
+var _elm_community$random_extra$Random_Extra$result = F3(
+	function (genBool, genErr, genVal) {
+		return A2(
+			_elm_lang$core$Random$andThen,
+			function (b) {
+				return b ? A2(_elm_lang$core$Random$map, _elm_lang$core$Result$Ok, genVal) : A2(_elm_lang$core$Random$map, _elm_lang$core$Result$Err, genErr);
+			},
+			genBool);
+	});
+var _elm_community$random_extra$Random_Extra$sample = function () {
+	var find = F2(
+		function (k, ys) {
+			find:
+			while (true) {
+				var _p0 = ys;
+				if (_p0.ctor === '[]') {
+					return _elm_lang$core$Maybe$Nothing;
+				} else {
+					if (_elm_lang$core$Native_Utils.eq(k, 0)) {
+						return _elm_lang$core$Maybe$Just(_p0._0);
+					} else {
+						var _v1 = k - 1,
+							_v2 = _p0._1;
+						k = _v1;
+						ys = _v2;
+						continue find;
+					}
+				}
+			}
+		});
+	return function (xs) {
+		return A2(
+			_elm_lang$core$Random$map,
+			function (i) {
+				return A2(find, i, xs);
+			},
+			A2(
+				_elm_lang$core$Random$int,
+				0,
+				_elm_lang$core$List$length(xs) - 1));
+	};
+}();
+var _elm_community$random_extra$Random_Extra$frequency = function (pairs) {
+	var pick = F2(
+		function (choices, n) {
+			pick:
+			while (true) {
+				var _p1 = choices;
+				if ((_p1.ctor === '::') && (_p1._0.ctor === '_Tuple2')) {
+					var _p2 = _p1._0._0;
+					if (_elm_lang$core$Native_Utils.cmp(n, _p2) < 1) {
+						return _p1._0._1;
+					} else {
+						var _v4 = _p1._1,
+							_v5 = n - _p2;
+						choices = _v4;
+						n = _v5;
+						continue pick;
+					}
+				} else {
+					return _elm_lang$core$Native_Utils.crashCase(
+						'Random.Extra',
+						{
+							start: {line: 154, column: 13},
+							end: {line: 162, column: 79}
+						},
+						_p1)('Empty list passed to Random.Extra.frequency!');
+				}
+			}
+		});
+	var total = _elm_lang$core$List$sum(
+		A2(
+			_elm_lang$core$List$map,
+			function (_p4) {
+				return _elm_lang$core$Basics$abs(
+					_elm_lang$core$Tuple$first(_p4));
+			},
+			pairs));
+	return A2(
+		_elm_lang$core$Random$andThen,
+		pick(pairs),
+		A2(_elm_lang$core$Random$float, 0, total));
+};
+var _elm_community$random_extra$Random_Extra$choices = function (gens) {
+	return _elm_community$random_extra$Random_Extra$frequency(
+		A2(
+			_elm_lang$core$List$map,
+			function (g) {
+				return {ctor: '_Tuple2', _0: 1, _1: g};
+			},
+			gens));
+};
+var _elm_community$random_extra$Random_Extra$choice = F2(
+	function (x, y) {
+		return A2(
+			_elm_lang$core$Random$map,
+			function (b) {
+				return b ? x : y;
+			},
+			_elm_lang$core$Random$bool);
+	});
+var _elm_community$random_extra$Random_Extra$oneIn = function (n) {
+	return A2(
+		_elm_lang$core$Random$map,
+		F2(
+			function (x, y) {
+				return _elm_lang$core$Native_Utils.eq(x, y);
+			})(1),
+		A2(_elm_lang$core$Random$int, 1, n));
+};
+var _elm_community$random_extra$Random_Extra$andMap = F2(
+	function (generator, funcGenerator) {
+		return A3(
+			_elm_lang$core$Random$map2,
+			F2(
+				function (x, y) {
+					return x(y);
+				}),
+			funcGenerator,
+			generator);
+	});
+var _elm_community$random_extra$Random_Extra$map6 = F7(
+	function (f, generatorA, generatorB, generatorC, generatorD, generatorE, generatorF) {
+		return A2(
+			_elm_community$random_extra$Random_Extra$andMap,
+			generatorF,
+			A6(_elm_lang$core$Random$map5, f, generatorA, generatorB, generatorC, generatorD, generatorE));
+	});
+var _elm_community$random_extra$Random_Extra$constant = function (value) {
+	return A2(
+		_elm_lang$core$Random$map,
+		function (_p5) {
+			return value;
+		},
+		_elm_lang$core$Random$bool);
+};
+var _elm_community$random_extra$Random_Extra$filter = F2(
+	function (predicate, generator) {
+		return A2(
+			_elm_lang$core$Random$andThen,
+			function (a) {
+				return predicate(a) ? _elm_community$random_extra$Random_Extra$constant(a) : A2(_elm_community$random_extra$Random_Extra$filter, predicate, generator);
+			},
+			generator);
+	});
+var _elm_community$random_extra$Random_Extra$combine = function (generators) {
+	var _p6 = generators;
+	if (_p6.ctor === '[]') {
+		return _elm_community$random_extra$Random_Extra$constant(
+			{ctor: '[]'});
+	} else {
+		return A3(
+			_elm_lang$core$Random$map2,
+			F2(
+				function (x, y) {
+					return {ctor: '::', _0: x, _1: y};
+				}),
+			_p6._0,
+			_elm_community$random_extra$Random_Extra$combine(_p6._1));
+	}
+};
+var _elm_community$random_extra$Random_Extra$maybe = F2(
+	function (genBool, genA) {
+		return A2(
+			_elm_lang$core$Random$andThen,
+			function (b) {
+				return b ? A2(_elm_lang$core$Random$map, _elm_lang$core$Maybe$Just, genA) : _elm_community$random_extra$Random_Extra$constant(_elm_lang$core$Maybe$Nothing);
+			},
+			genBool);
+	});
 var _elm_lang$core$Process$kill = _elm_lang$core$Native_Scheduler.kill;
 var _elm_lang$core$Process$sleep = _elm_lang$core$Native_Scheduler.sleep;
 var _elm_lang$core$Process$spawn = _elm_lang$core$Native_Scheduler.spawn;
-//import Result //
-
-var _elm_lang$core$Native_Date = function() {
-
-function fromString(str)
-{
-	var date = new Date(str);
-	return isNaN(date.getTime())
-		? _elm_lang$core$Result$Err('Unable to parse \'' + str + '\' as a date. Dates must be in the ISO 8601 format.')
-		: _elm_lang$core$Result$Ok(date);
-}
-
-var dayTable = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-var monthTable =
-	['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-	 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-
-return {
-	fromString: fromString,
-	year: function(d) { return d.getFullYear(); },
-	month: function(d) { return { ctor: monthTable[d.getMonth()] }; },
-	day: function(d) { return d.getDate(); },
-	hour: function(d) { return d.getHours(); },
-	minute: function(d) { return d.getMinutes(); },
-	second: function(d) { return d.getSeconds(); },
-	millisecond: function(d) { return d.getMilliseconds(); },
-	toTime: function(d) { return d.getTime(); },
-	fromTime: function(t) { return new Date(t); },
-	dayOfWeek: function(d) { return { ctor: dayTable[d.getDay()] }; }
+var _elm_lang$elm_architecture_tutorial$CultSim_Person$generatePosition = function (r) {
+	return A2(
+		_elm_lang$core$Random$map,
+		function (phi) {
+			var y = r * _elm_lang$core$Basics$sin(phi);
+			var x = r * _elm_lang$core$Basics$cos(phi);
+			return {x: x, y: y};
+		},
+		A2(_elm_lang$core$Random$float, 0, 2 * _elm_lang$core$Basics$pi));
 };
-
-}();var _elm_lang$core$Date$millisecond = _elm_lang$core$Native_Date.millisecond;
-var _elm_lang$core$Date$second = _elm_lang$core$Native_Date.second;
-var _elm_lang$core$Date$minute = _elm_lang$core$Native_Date.minute;
-var _elm_lang$core$Date$hour = _elm_lang$core$Native_Date.hour;
-var _elm_lang$core$Date$dayOfWeek = _elm_lang$core$Native_Date.dayOfWeek;
-var _elm_lang$core$Date$day = _elm_lang$core$Native_Date.day;
-var _elm_lang$core$Date$month = _elm_lang$core$Native_Date.month;
-var _elm_lang$core$Date$year = _elm_lang$core$Native_Date.year;
-var _elm_lang$core$Date$fromTime = _elm_lang$core$Native_Date.fromTime;
-var _elm_lang$core$Date$toTime = _elm_lang$core$Native_Date.toTime;
-var _elm_lang$core$Date$fromString = _elm_lang$core$Native_Date.fromString;
-var _elm_lang$core$Date$now = A2(_elm_lang$core$Task$map, _elm_lang$core$Date$fromTime, _elm_lang$core$Time$now);
-var _elm_lang$core$Date$Date = {ctor: 'Date'};
-var _elm_lang$core$Date$Sun = {ctor: 'Sun'};
-var _elm_lang$core$Date$Sat = {ctor: 'Sat'};
-var _elm_lang$core$Date$Fri = {ctor: 'Fri'};
-var _elm_lang$core$Date$Thu = {ctor: 'Thu'};
-var _elm_lang$core$Date$Wed = {ctor: 'Wed'};
-var _elm_lang$core$Date$Tue = {ctor: 'Tue'};
-var _elm_lang$core$Date$Mon = {ctor: 'Mon'};
-var _elm_lang$core$Date$Dec = {ctor: 'Dec'};
-var _elm_lang$core$Date$Nov = {ctor: 'Nov'};
-var _elm_lang$core$Date$Oct = {ctor: 'Oct'};
-var _elm_lang$core$Date$Sep = {ctor: 'Sep'};
-var _elm_lang$core$Date$Aug = {ctor: 'Aug'};
-var _elm_lang$core$Date$Jul = {ctor: 'Jul'};
-var _elm_lang$core$Date$Jun = {ctor: 'Jun'};
-var _elm_lang$core$Date$May = {ctor: 'May'};
-var _elm_lang$core$Date$Apr = {ctor: 'Apr'};
-var _elm_lang$core$Date$Mar = {ctor: 'Mar'};
-var _elm_lang$core$Date$Feb = {ctor: 'Feb'};
-var _elm_lang$core$Date$Jan = {ctor: 'Jan'};
-var _elm_lang$dom$Native_Dom = function() {
-
-var fakeNode = {
-	addEventListener: function() {},
-	removeEventListener: function() {}
-};
-
-var onDocument = on(typeof document !== 'undefined' ? document : fakeNode);
-var onWindow = on(typeof window !== 'undefined' ? window : fakeNode);
-
-function on(node)
-{
-	return function(eventName, decoder, toTask)
-	{
-		return _elm_lang$core$Native_Scheduler.nativeBinding(function(callback) {
-
-			function performTask(event)
-			{
-				var result = A2(_elm_lang$core$Json_Decode$decodeValue, decoder, event);
-				if (result.ctor === 'Ok')
-				{
-					_elm_lang$core$Native_Scheduler.rawSpawn(toTask(result._0));
-				}
-			}
-
-			node.addEventListener(eventName, performTask);
-
-			return function()
-			{
-				node.removeEventListener(eventName, performTask);
+var _elm_lang$elm_architecture_tutorial$CultSim_Person$generateSkin = A4(
+	_elm_lang$core$Random$map3,
+	F3(
+		function (isMale, head, body) {
+			return {
+				head: isMale ? head : (head + 50),
+				body: body
 			};
-		});
-	};
-}
-
-var rAF = typeof requestAnimationFrame !== 'undefined'
-	? requestAnimationFrame
-	: function(callback) { callback(); };
-
-function withNode(id, doStuff)
-{
-	return _elm_lang$core$Native_Scheduler.nativeBinding(function(callback)
-	{
-		rAF(function()
-		{
-			var node = document.getElementById(id);
-			if (node === null)
-			{
-				callback(_elm_lang$core$Native_Scheduler.fail({ ctor: 'NotFound', _0: id }));
-				return;
-			}
-			callback(_elm_lang$core$Native_Scheduler.succeed(doStuff(node)));
-		});
+		}),
+	_elm_lang$core$Random$bool,
+	A2(_elm_lang$core$Random$int, 1, 12),
+	A2(_elm_lang$core$Random$int, 0, 7));
+var _elm_lang$elm_architecture_tutorial$CultSim_Person$tile_bar = F2(
+	function (from, amount) {
+		return _Orasund$pixelengine$PixelEngine_Graphics_Tile$tile(
+			{ctor: '_Tuple2', _0: 8 * amount, _1: from});
 	});
-}
-
-
-// FOCUS
-
-function focus(id)
-{
-	return withNode(id, function(node) {
-		node.focus();
-		return _elm_lang$core$Native_Utils.Tuple0;
-	});
-}
-
-function blur(id)
-{
-	return withNode(id, function(node) {
-		node.blur();
-		return _elm_lang$core$Native_Utils.Tuple0;
-	});
-}
-
-
-// SCROLLING
-
-function getScrollTop(id)
-{
-	return withNode(id, function(node) {
-		return node.scrollTop;
-	});
-}
-
-function setScrollTop(id, desiredScrollTop)
-{
-	return withNode(id, function(node) {
-		node.scrollTop = desiredScrollTop;
-		return _elm_lang$core$Native_Utils.Tuple0;
-	});
-}
-
-function toBottom(id)
-{
-	return withNode(id, function(node) {
-		node.scrollTop = node.scrollHeight;
-		return _elm_lang$core$Native_Utils.Tuple0;
-	});
-}
-
-function getScrollLeft(id)
-{
-	return withNode(id, function(node) {
-		return node.scrollLeft;
-	});
-}
-
-function setScrollLeft(id, desiredScrollLeft)
-{
-	return withNode(id, function(node) {
-		node.scrollLeft = desiredScrollLeft;
-		return _elm_lang$core$Native_Utils.Tuple0;
-	});
-}
-
-function toRight(id)
-{
-	return withNode(id, function(node) {
-		node.scrollLeft = node.scrollWidth;
-		return _elm_lang$core$Native_Utils.Tuple0;
-	});
-}
-
-
-// SIZE
-
-function width(options, id)
-{
-	return withNode(id, function(node) {
-		switch (options.ctor)
-		{
-			case 'Content':
-				return node.scrollWidth;
-			case 'VisibleContent':
-				return node.clientWidth;
-			case 'VisibleContentWithBorders':
-				return node.offsetWidth;
-			case 'VisibleContentWithBordersAndMargins':
-				var rect = node.getBoundingClientRect();
-				return rect.right - rect.left;
-		}
-	});
-}
-
-function height(options, id)
-{
-	return withNode(id, function(node) {
-		switch (options.ctor)
-		{
-			case 'Content':
-				return node.scrollHeight;
-			case 'VisibleContent':
-				return node.clientHeight;
-			case 'VisibleContentWithBorders':
-				return node.offsetHeight;
-			case 'VisibleContentWithBordersAndMargins':
-				var rect = node.getBoundingClientRect();
-				return rect.bottom - rect.top;
-		}
-	});
-}
-
-return {
-	onDocument: F3(onDocument),
-	onWindow: F3(onWindow),
-
-	focus: focus,
-	blur: blur,
-
-	getScrollTop: getScrollTop,
-	setScrollTop: F2(setScrollTop),
-	getScrollLeft: getScrollLeft,
-	setScrollLeft: F2(setScrollLeft),
-	toBottom: toBottom,
-	toRight: toRight,
-
-	height: F2(height),
-	width: F2(width)
-};
-
-}();
-var _elm_lang$dom$Dom_LowLevel$onWindow = _elm_lang$dom$Native_Dom.onWindow;
-var _elm_lang$dom$Dom_LowLevel$onDocument = _elm_lang$dom$Native_Dom.onDocument;
-var _elm_lang$window$Native_Window = function()
-{
-
-var size = _elm_lang$core$Native_Scheduler.nativeBinding(function(callback)	{
-	callback(_elm_lang$core$Native_Scheduler.succeed({
-		width: window.innerWidth,
-		height: window.innerHeight
-	}));
-});
-
-return {
-	size: size
-};
-
-}();var _elm_lang$window$Window_ops = _elm_lang$window$Window_ops || {};
-_elm_lang$window$Window_ops['&>'] = F2(
-	function (task1, task2) {
-		return A2(
-			_elm_lang$core$Task$andThen,
-			function (_p0) {
-				return task2;
-			},
-			task1);
-	});
-var _elm_lang$window$Window$onSelfMsg = F3(
-	function (router, dimensions, state) {
-		var _p1 = state;
-		if (_p1.ctor === 'Nothing') {
-			return _elm_lang$core$Task$succeed(state);
-		} else {
-			var send = function (_p2) {
-				var _p3 = _p2;
-				return A2(
-					_elm_lang$core$Platform$sendToApp,
-					router,
-					_p3._0(dimensions));
-			};
-			return A2(
-				_elm_lang$window$Window_ops['&>'],
-				_elm_lang$core$Task$sequence(
-					A2(_elm_lang$core$List$map, send, _p1._0.subs)),
-				_elm_lang$core$Task$succeed(state));
-		}
-	});
-var _elm_lang$window$Window$init = _elm_lang$core$Task$succeed(_elm_lang$core$Maybe$Nothing);
-var _elm_lang$window$Window$size = _elm_lang$window$Native_Window.size;
-var _elm_lang$window$Window$width = A2(
-	_elm_lang$core$Task$map,
-	function (_) {
-		return _.width;
-	},
-	_elm_lang$window$Window$size);
-var _elm_lang$window$Window$height = A2(
-	_elm_lang$core$Task$map,
-	function (_) {
-		return _.height;
-	},
-	_elm_lang$window$Window$size);
-var _elm_lang$window$Window$onEffects = F3(
-	function (router, newSubs, oldState) {
-		var _p4 = {ctor: '_Tuple2', _0: oldState, _1: newSubs};
-		if (_p4._0.ctor === 'Nothing') {
-			if (_p4._1.ctor === '[]') {
-				return _elm_lang$core$Task$succeed(_elm_lang$core$Maybe$Nothing);
-			} else {
-				return A2(
-					_elm_lang$core$Task$andThen,
-					function (pid) {
-						return _elm_lang$core$Task$succeed(
-							_elm_lang$core$Maybe$Just(
-								{subs: newSubs, pid: pid}));
-					},
-					_elm_lang$core$Process$spawn(
-						A3(
-							_elm_lang$dom$Dom_LowLevel$onWindow,
-							'resize',
-							_elm_lang$core$Json_Decode$succeed(
-								{ctor: '_Tuple0'}),
-							function (_p5) {
-								return A2(
-									_elm_lang$core$Task$andThen,
-									_elm_lang$core$Platform$sendToSelf(router),
-									_elm_lang$window$Window$size);
-							})));
-			}
-		} else {
-			if (_p4._1.ctor === '[]') {
-				return A2(
-					_elm_lang$window$Window_ops['&>'],
-					_elm_lang$core$Process$kill(_p4._0._0.pid),
-					_elm_lang$core$Task$succeed(_elm_lang$core$Maybe$Nothing));
-			} else {
-				return _elm_lang$core$Task$succeed(
-					_elm_lang$core$Maybe$Just(
-						{subs: newSubs, pid: _p4._0._0.pid}));
-			}
-		}
-	});
-var _elm_lang$window$Window$subscription = _elm_lang$core$Native_Platform.leaf('Window');
-var _elm_lang$window$Window$Size = F2(
-	function (a, b) {
-		return {width: a, height: b};
-	});
-var _elm_lang$window$Window$MySub = function (a) {
-	return {ctor: 'MySub', _0: a};
-};
-var _elm_lang$window$Window$resizes = function (tagger) {
-	return _elm_lang$window$Window$subscription(
-		_elm_lang$window$Window$MySub(tagger));
-};
-var _elm_lang$window$Window$subMap = F2(
-	function (func, _p6) {
-		var _p7 = _p6;
-		return _elm_lang$window$Window$MySub(
-			function (_p8) {
-				return func(
-					_p7._0(_p8));
-			});
-	});
-_elm_lang$core$Native_Platform.effectManagers['Window'] = {pkg: 'elm-lang/window', init: _elm_lang$window$Window$init, onEffects: _elm_lang$window$Window$onEffects, onSelfMsg: _elm_lang$window$Window$onSelfMsg, tag: 'sub', subMap: _elm_lang$window$Window$subMap};
-var _elm_lang$elm_architecture_tutorial$Clock$circle = F4(
-	function (size, _p0, styleList, htmlList) {
-		var _p1 = _p0;
-		return A2(
-			_rtfeldman$elm_css$Html_Styled$div,
-			{
-				ctor: '::',
-				_0: _rtfeldman$elm_css$Html_Styled_Attributes$css(
-					A2(
-						_elm_lang$core$List$append,
-						styleList,
-						{
-							ctor: '::',
-							_0: _rtfeldman$elm_css$Css$position(_rtfeldman$elm_css$Css$fixed),
-							_1: {
-								ctor: '::',
-								_0: _rtfeldman$elm_css$Css$top(
-									_rtfeldman$elm_css$Css$px(
-										_elm_lang$core$Basics$toFloat(((_p1.height - size) / 2) | 0))),
-								_1: {
-									ctor: '::',
-									_0: _rtfeldman$elm_css$Css$left(
-										_rtfeldman$elm_css$Css$px(
-											_elm_lang$core$Basics$toFloat(((_p1.width - size) / 2) | 0))),
-									_1: {
-										ctor: '::',
-										_0: _rtfeldman$elm_css$Css$width(
-											_rtfeldman$elm_css$Css$px(
-												_elm_lang$core$Basics$toFloat(size))),
-										_1: {
-											ctor: '::',
-											_0: _rtfeldman$elm_css$Css$height(
-												_rtfeldman$elm_css$Css$px(
-													_elm_lang$core$Basics$toFloat(size))),
-											_1: {
-												ctor: '::',
-												_0: _rtfeldman$elm_css$Css$borderRadius(
-													_rtfeldman$elm_css$Css$px(
-														_elm_lang$core$Basics$toFloat((size / 2) | 0))),
-												_1: {ctor: '[]'}
-											}
-										}
-									}
-								}
-							}
-						})),
-				_1: {ctor: '[]'}
-			},
-			htmlList);
-	});
-var _elm_lang$elm_architecture_tutorial$Clock$color = function (hour) {
-	var _p2 = hour;
-	switch (_p2) {
-		case 12:
-			return A3(_rtfeldman$elm_css$Css$rgb, 23, 240, 240);
-		case 11:
-			return A3(_rtfeldman$elm_css$Css$rgb, 255, 178, 25);
-		case 10:
-			return A3(_rtfeldman$elm_css$Css$rgb, 95, 49, 243);
-		case 9:
-			return A3(_rtfeldman$elm_css$Css$rgb, 255, 255, 25);
-		case 8:
-			return A3(_rtfeldman$elm_css$Css$rgb, 246, 24, 174);
-		case 7:
-			return A3(_rtfeldman$elm_css$Css$rgb, 24, 248, 24);
-		case 6:
-			return A3(_rtfeldman$elm_css$Css$rgb, 255, 129, 25);
-		case 5:
-			return A3(_rtfeldman$elm_css$Css$rgb, 46, 106, 243);
-		case 4:
-			return A3(_rtfeldman$elm_css$Css$rgb, 255, 216, 25);
-		case 3:
-			return A3(_rtfeldman$elm_css$Css$rgb, 163, 36, 243);
-		case 2:
-			return A3(_rtfeldman$elm_css$Css$rgb, 177, 253, 25);
+var _elm_lang$elm_architecture_tutorial$CultSim_Person$tile = function (action) {
+	var _p0 = action;
+	switch (_p0.ctor) {
+		case 'PendingPraying':
+			return _Orasund$pixelengine$PixelEngine_Graphics_Tile$tile(
+				{ctor: '_Tuple2', _0: 0, _1: 1});
+		case 'Praying':
+			return _Orasund$pixelengine$PixelEngine_Graphics_Tile$tile(
+				{ctor: '_Tuple2', _0: 0, _1: 2});
 		default:
-			return A3(_rtfeldman$elm_css$Css$rgb, 255, 25, 25);
+			return _Orasund$pixelengine$PixelEngine_Graphics_Tile$tile(
+				{ctor: '_Tuple2', _0: 0, _1: 0});
 	}
 };
-var _elm_lang$elm_architecture_tutorial$Clock$view = function (_p3) {
-	var _p4 = _p3;
-	var _p7 = _p4.width;
-	var _p6 = _p4.time;
-	var _p5 = _p4.height;
-	var angle = _elm_lang$core$Basics$turns(
-		_elm_lang$core$Time$inMinutes(
-			_elm_lang$core$Date$toTime(_p6)));
-	var handX = _elm_lang$core$Basics$toString(
-		50 + (40 * _elm_lang$core$Basics$cos(angle)));
-	var handY = _elm_lang$core$Basics$toString(
-		50 + (40 * _elm_lang$core$Basics$sin(angle)));
-	var milli = _elm_lang$core$Date$millisecond(_p6);
-	var seconds = _elm_lang$core$Date$second(_p6);
-	var minutes = _elm_lang$core$Date$minute(_p6);
-	var hours = _elm_lang$core$Date$hour(_p6);
-	var size = A2(_elm_lang$core$Basics$max, _p5, _p7);
-	return A2(
-		_rtfeldman$elm_css$Html_Styled$div,
+var _elm_lang$elm_architecture_tutorial$CultSim_Person$Position = F2(
+	function (a, b) {
+		return {x: a, y: b};
+	});
+var _elm_lang$elm_architecture_tutorial$CultSim_Person$Skin = F2(
+	function (a, b) {
+		return {head: a, body: b};
+	});
+var _elm_lang$elm_architecture_tutorial$CultSim_Person$Person = F4(
+	function (a, b, c, d) {
+		return {position: a, action: b, skin: c, praying_duration: d};
+	});
+var _elm_lang$elm_architecture_tutorial$CultSim_Person$None = {ctor: 'None'};
+var _elm_lang$elm_architecture_tutorial$CultSim_Person$generate = A4(
+	_elm_lang$core$Random$map3,
+	F3(
+		function (position, $float, skin) {
+			return {
+				ctor: '_Tuple2',
+				_0: A2(
+					_elm_lang$core$Basics_ops['++'],
+					'person_',
+					_elm_lang$core$Basics$toString($float)),
+				_1: {position: position, action: _elm_lang$elm_architecture_tutorial$CultSim_Person$None, skin: skin, praying_duration: 0}
+			};
+		}),
+	_elm_lang$elm_architecture_tutorial$CultSim_Person$generatePosition(275),
+	A2(_elm_lang$core$Random$float, 0, 1),
+	_elm_lang$elm_architecture_tutorial$CultSim_Person$generateSkin);
+var _elm_lang$elm_architecture_tutorial$CultSim_Person$Dying = {ctor: 'Dying'};
+var _elm_lang$elm_architecture_tutorial$CultSim_Person$Praying = function (a) {
+	return {ctor: 'Praying', _0: a};
+};
+var _elm_lang$elm_architecture_tutorial$CultSim_Person$pray = function (_p1) {
+	var _p2 = _p1;
+	var _p5 = _p2.skin;
+	var _p4 = _p2.praying_duration;
+	return _elm_lang$core$Native_Utils.update(
+		_p2,
 		{
+			action: _elm_lang$elm_architecture_tutorial$CultSim_Person$Praying(_p4 + 1),
+			praying_duration: _p4 + 1,
+			skin: function () {
+				var _p3 = _p4;
+				switch (_p3) {
+					case 2:
+						return _elm_lang$core$Native_Utils.update(
+							_p5,
+							{body: 10});
+					case 4:
+						return _elm_lang$core$Native_Utils.update(
+							_p5,
+							{body: 100, head: 100});
+					default:
+						return _p5;
+				}
+			}()
+		});
+};
+var _elm_lang$elm_architecture_tutorial$CultSim_Person$PendingPraying = {ctor: 'PendingPraying'};
+var _elm_lang$elm_architecture_tutorial$CultSim_Person$setPraying = function (person) {
+	return _elm_lang$core$Native_Utils.update(
+		person,
+		{action: _elm_lang$elm_architecture_tutorial$CultSim_Person$PendingPraying});
+};
+var _elm_lang$elm_architecture_tutorial$CultSim_Person$Walking = {ctor: 'Walking'};
+var _elm_lang$elm_architecture_tutorial$CultSim_Person$move = function (person) {
+	return function (_p6) {
+		return A2(
+			_elm_lang$core$Tuple$mapFirst,
+			function (position) {
+				return _elm_lang$core$Native_Utils.update(
+					person,
+					{position: position, action: _elm_lang$elm_architecture_tutorial$CultSim_Person$Walking});
+			},
+			A2(
+				_elm_lang$core$Random$step,
+				_elm_lang$elm_architecture_tutorial$CultSim_Person$generatePosition(150),
+				_p6));
+	};
+};
+var _rtfeldman$elm_css$Html_Styled_Events$keyCode = A2(_elm_lang$core$Json_Decode$field, 'keyCode', _elm_lang$core$Json_Decode$int);
+var _rtfeldman$elm_css$Html_Styled_Events$targetChecked = A2(
+	_elm_lang$core$Json_Decode$at,
+	{
+		ctor: '::',
+		_0: 'target',
+		_1: {
 			ctor: '::',
-			_0: _rtfeldman$elm_css$Html_Styled_Attributes$css(
-				{
-					ctor: '::',
-					_0: _rtfeldman$elm_css$Css$width(
-						_rtfeldman$elm_css$Css$pct(100)),
-					_1: {
-						ctor: '::',
-						_0: _rtfeldman$elm_css$Css$height(
-							_rtfeldman$elm_css$Css$px(
-								_elm_lang$core$Basics$toFloat(_p5))),
-						_1: {
-							ctor: '::',
-							_0: _rtfeldman$elm_css$Css$backgroundColor(
-								A3(_rtfeldman$elm_css$Css$rgb, 0, 0, 0)),
-							_1: {ctor: '[]'}
-						}
-					}
-				}),
+			_0: 'checked',
 			_1: {ctor: '[]'}
-		},
+		}
+	},
+	_elm_lang$core$Json_Decode$bool);
+var _rtfeldman$elm_css$Html_Styled_Events$targetValue = A2(
+	_elm_lang$core$Json_Decode$at,
+	{
+		ctor: '::',
+		_0: 'target',
+		_1: {
+			ctor: '::',
+			_0: 'value',
+			_1: {ctor: '[]'}
+		}
+	},
+	_elm_lang$core$Json_Decode$string);
+var _rtfeldman$elm_css$Html_Styled_Events$defaultOptions = _elm_lang$virtual_dom$VirtualDom$defaultOptions;
+var _rtfeldman$elm_css$Html_Styled_Events$onWithOptions = _rtfeldman$elm_css$VirtualDom_Styled$onWithOptions;
+var _rtfeldman$elm_css$Html_Styled_Events$on = _rtfeldman$elm_css$VirtualDom_Styled$on;
+var _rtfeldman$elm_css$Html_Styled_Events$onFocus = function (msg) {
+	return A2(
+		_rtfeldman$elm_css$Html_Styled_Events$on,
+		'focus',
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
+var _rtfeldman$elm_css$Html_Styled_Events$onBlur = function (msg) {
+	return A2(
+		_rtfeldman$elm_css$Html_Styled_Events$on,
+		'blur',
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
+var _rtfeldman$elm_css$Html_Styled_Events$onSubmitOptions = _elm_lang$core$Native_Utils.update(
+	_rtfeldman$elm_css$Html_Styled_Events$defaultOptions,
+	{preventDefault: true});
+var _rtfeldman$elm_css$Html_Styled_Events$onSubmit = function (msg) {
+	return A3(
+		_rtfeldman$elm_css$Html_Styled_Events$onWithOptions,
+		'submit',
+		_rtfeldman$elm_css$Html_Styled_Events$onSubmitOptions,
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
+var _rtfeldman$elm_css$Html_Styled_Events$onCheck = function (tagger) {
+	return A2(
+		_rtfeldman$elm_css$Html_Styled_Events$on,
+		'change',
+		A2(_elm_lang$core$Json_Decode$map, tagger, _rtfeldman$elm_css$Html_Styled_Events$targetChecked));
+};
+var _rtfeldman$elm_css$Html_Styled_Events$onInput = function (tagger) {
+	return A2(
+		_rtfeldman$elm_css$Html_Styled_Events$on,
+		'input',
+		A2(_elm_lang$core$Json_Decode$map, tagger, _rtfeldman$elm_css$Html_Styled_Events$targetValue));
+};
+var _rtfeldman$elm_css$Html_Styled_Events$onMouseOut = function (msg) {
+	return A2(
+		_rtfeldman$elm_css$Html_Styled_Events$on,
+		'mouseout',
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
+var _rtfeldman$elm_css$Html_Styled_Events$onMouseOver = function (msg) {
+	return A2(
+		_rtfeldman$elm_css$Html_Styled_Events$on,
+		'mouseover',
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
+var _rtfeldman$elm_css$Html_Styled_Events$onMouseLeave = function (msg) {
+	return A2(
+		_rtfeldman$elm_css$Html_Styled_Events$on,
+		'mouseleave',
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
+var _rtfeldman$elm_css$Html_Styled_Events$onMouseEnter = function (msg) {
+	return A2(
+		_rtfeldman$elm_css$Html_Styled_Events$on,
+		'mouseenter',
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
+var _rtfeldman$elm_css$Html_Styled_Events$onMouseUp = function (msg) {
+	return A2(
+		_rtfeldman$elm_css$Html_Styled_Events$on,
+		'mouseup',
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
+var _rtfeldman$elm_css$Html_Styled_Events$onMouseDown = function (msg) {
+	return A2(
+		_rtfeldman$elm_css$Html_Styled_Events$on,
+		'mousedown',
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
+var _rtfeldman$elm_css$Html_Styled_Events$onDoubleClick = function (msg) {
+	return A2(
+		_rtfeldman$elm_css$Html_Styled_Events$on,
+		'dblclick',
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
+var _rtfeldman$elm_css$Html_Styled_Events$onClick = function (msg) {
+	return A2(
+		_rtfeldman$elm_css$Html_Styled_Events$on,
+		'click',
+		_elm_lang$core$Json_Decode$succeed(msg));
+};
+var _rtfeldman$elm_css$Html_Styled_Events$Options = F2(
+	function (a, b) {
+		return {stopPropagation: a, preventDefault: b};
+	});
+var _elm_lang$elm_architecture_tutorial$CultSim_Main$subscriptions = function (maybeModel) {
+	return _elm_lang$core$Platform_Sub$none;
+};
+var _elm_lang$elm_architecture_tutorial$CultSim_Main$updatePeople2 = F2(
+	function (fun, model) {
+		var _p0 = fun(
+			{ctor: '_Tuple2', _0: model.people, _1: model.seed});
+		var people = _p0._0;
+		var seed = _p0._1;
+		return _elm_lang$core$Native_Utils.update(
+			model,
+			{people: people, seed: seed});
+	});
+var _elm_lang$elm_architecture_tutorial$CultSim_Main$Model = F5(
+	function (a, b, c, d, e) {
+		return {seed: a, hunger: b, faith: c, people: d, newPerson: e};
+	});
+var _elm_lang$elm_architecture_tutorial$CultSim_Main$Pray = function (a) {
+	return {ctor: 'Pray', _0: a};
+};
+var _elm_lang$elm_architecture_tutorial$CultSim_Main$view = function (maybeModel) {
+	var height = 600;
+	var width = 600;
+	var scale = 2;
+	var options = {scale: scale, width: width, transitionSpeedInSec: 8};
+	return A2(
+		_Orasund$pixelengine$PixelEngine_Graphics$render,
+		options,
 		{
 			ctor: '::',
-			_0: _rtfeldman$elm_css$Css_Foreign$global(
+			_0: A2(
+				_Orasund$pixelengine$PixelEngine_Graphics$imageArea,
 				{
-					ctor: '::',
-					_0: A2(
-						_rtfeldman$elm_css$Css_Foreign$selector,
-						'@keyframes puls',
-						{
-							ctor: '::',
-							_0: A2(_rtfeldman$elm_css$Css$property, '0% { opacity:1 } 50% { opacity:0.25 } 100% { opacity:1 };', ''),
-							_1: {ctor: '[]'}
-						}),
-					_1: {ctor: '[]'}
-				}),
-			_1: {
-				ctor: '::',
-				_0: A4(
-					_elm_lang$elm_architecture_tutorial$Clock$circle,
-					size,
-					{height: _p5, width: _p7},
-					{
-						ctor: '::',
-						_0: _rtfeldman$elm_css$Css$backgroundColor(
-							A3(_rtfeldman$elm_css$Css$rgb, 0, 0, 0)),
-						_1: {
-							ctor: '::',
-							_0: A3(
-								_rtfeldman$elm_css$Css$border3,
-								_rtfeldman$elm_css$Css$px(1),
-								_rtfeldman$elm_css$Css$solid,
-								A3(_rtfeldman$elm_css$Css$rgb, 63, 63, 63)),
-							_1: {ctor: '[]'}
-						}
-					},
-					{ctor: '[]'}),
-				_1: {
-					ctor: '::',
-					_0: A4(
-						_elm_lang$elm_architecture_tutorial$Clock$circle,
-						(_elm_lang$core$Native_Utils.eq(hours, 5) || _elm_lang$core$Native_Utils.eq(hours, 6)) ? (((size / 2) | 0) + (((size * minutes) / (60 * 2)) | 0)) : ((size / 2) | 0),
-						{height: _p5, width: _p7},
-						{
-							ctor: '::',
-							_0: _rtfeldman$elm_css$Css$backgroundColor(
-								A3(_rtfeldman$elm_css$Css$rgb, 255, 255, 255)),
-							_1: {
-								ctor: '::',
-								_0: ((_elm_lang$core$Native_Utils.cmp(hours, 22) > -1) || (_elm_lang$core$Native_Utils.cmp(hours, 4) < 1)) ? _rtfeldman$elm_css$Css$visibility(_rtfeldman$elm_css$Css$hidden) : _rtfeldman$elm_css$Css$visibility(_rtfeldman$elm_css$Css$visible),
-								_1: {ctor: '[]'}
-							}
-						},
-						{ctor: '[]'}),
-					_1: {
-						ctor: '::',
-						_0: A4(
-							_elm_lang$elm_architecture_tutorial$Clock$circle,
-							(size / 2) | 0,
-							{height: _p5, width: _p7},
+					height: height,
+					background: _Orasund$pixelengine$PixelEngine_Graphics$colorBackground(
+						A3(_rtfeldman$elm_css$Css$rgb, 255, 255, 255))
+				},
+				function () {
+					var _p1 = maybeModel;
+					if (_p1.ctor === 'Just') {
+						return A2(
+							_elm_lang$core$List$append,
 							{
 								ctor: '::',
-								_0: _rtfeldman$elm_css$Css$backgroundColor(
-									_elm_lang$elm_architecture_tutorial$Clock$color(
-										A2(_elm_lang$core$Basics_ops['%'], hours, 12))),
-								_1: {
-									ctor: '::',
-									_0: A2(_rtfeldman$elm_css$Css$property, 'animation', 'puls 2.0s infinite'),
-									_1: {
-										ctor: '::',
-										_0: ((_elm_lang$core$Native_Utils.cmp(hours, 22) > -1) || (_elm_lang$core$Native_Utils.cmp(hours, 4) < 1)) ? _rtfeldman$elm_css$Css$visibility(_rtfeldman$elm_css$Css$hidden) : _rtfeldman$elm_css$Css$visibility(_rtfeldman$elm_css$Css$visible),
-										_1: {ctor: '[]'}
-									}
-								}
+								_0: {
+									ctor: '_Tuple2',
+									_0: {ctor: '_Tuple2', _0: (width / 2) - 64, _1: (height / 2) - 64},
+									_1: (_elm_lang$core$Native_Utils.cmp(_p1._0.hunger, 1) < 0) ? _Orasund$pixelengine$PixelEngine_Graphics_Image$image('temple.png') : _Orasund$pixelengine$PixelEngine_Graphics_Image$image('devil_temple.png')
+								},
+								_1: {ctor: '[]'}
 							},
-							{ctor: '[]'}),
-						_1: {
-							ctor: '::',
-							_0: A2(
-								_rtfeldman$elm_css$Html_Styled$div,
-								{
-									ctor: '::',
-									_0: _rtfeldman$elm_css$Html_Styled_Attributes$css(
-										{
-											ctor: '::',
-											_0: _rtfeldman$elm_css$Css$textAlign(_rtfeldman$elm_css$Css$center),
-											_1: {
-												ctor: '::',
-												_0: _rtfeldman$elm_css$Css$fontSize(
-													_rtfeldman$elm_css$Css$px(
-														_elm_lang$core$Basics$toFloat((size / 5) | 0))),
-												_1: {
-													ctor: '::',
-													_0: _rtfeldman$elm_css$Css$top(
-														_rtfeldman$elm_css$Css$px(
-															_elm_lang$core$Basics$toFloat(((_p5 / 2) | 0) - ((size / 8) | 0)))),
-													_1: {
+							A2(
+								_elm_lang$core$List$map,
+								function (_p2) {
+									var _p3 = _p2;
+									var _p11 = _p3._1.praying_duration;
+									var _p10 = _p3._0;
+									var _p9 = _p3._1.action;
+									var _p4 = _p3._1.skin;
+									var head = _p4.head;
+									var body = _p4.body;
+									var image = A2(
+										_Orasund$pixelengine$PixelEngine_Graphics_Image$fromTile,
+										_elm_lang$elm_architecture_tutorial$CultSim_Person$tile(_p9),
+										_Orasund$pixelengine$PixelEngine_Graphics_Tile$tileset(
+											{
+												source: A2(
+													_elm_lang$core$Basics_ops['++'],
+													'bodys/',
+													A2(
+														_elm_lang$core$Basics_ops['++'],
+														_elm_lang$core$Basics$toString(body),
+														'.png')),
+												spriteWidth: 16,
+												spriteHeight: 16
+											}));
+									var _p5 = _p3._1.position;
+									var x = _p5.x;
+									var y = _p5.y;
+									return {
+										ctor: '_Tuple2',
+										_0: {ctor: '_Tuple2', _0: (width / 2) + x, _1: (height / 2) + y},
+										_1: function () {
+											var _p6 = _p9;
+											if (_p6.ctor === 'Walking') {
+												return _Orasund$pixelengine$PixelEngine_Graphics_Image$withAttributes(
+													{
 														ctor: '::',
-														_0: _rtfeldman$elm_css$Css$position(_rtfeldman$elm_css$Css$fixed),
-														_1: {
+														_0: _rtfeldman$elm_css$Html_Styled_Events$onClick(
+															_elm_lang$elm_architecture_tutorial$CultSim_Main$Pray(_p10)),
+														_1: {ctor: '[]'}
+													});
+											} else {
+												return _elm_lang$core$Basics$identity;
+											}
+										}()(
+											A2(
+												_Orasund$pixelengine$PixelEngine_Graphics_Image$movable,
+												_p10,
+												_Orasund$pixelengine$PixelEngine_Graphics_Image$multipleImages(
+													_elm_lang$core$Native_Utils.eq(_p9, _elm_lang$elm_architecture_tutorial$CultSim_Person$Dying) ? {
+														ctor: '::',
+														_0: {
+															ctor: '_Tuple2',
+															_0: {ctor: '_Tuple2', _0: 0, _1: 0},
+															_1: A2(
+																_Orasund$pixelengine$PixelEngine_Graphics_Image$fromTile,
+																A2(
+																	_Orasund$pixelengine$PixelEngine_Graphics_Tile$animated,
+																	7,
+																	_Orasund$pixelengine$PixelEngine_Graphics_Tile$tile(
+																		{ctor: '_Tuple2', _0: 0, _1: 0})),
+																_Orasund$pixelengine$PixelEngine_Graphics_Tile$tileset(
+																	{source: 'burning.png', spriteWidth: 16, spriteHeight: 16}))
+														},
+														_1: {ctor: '[]'}
+													} : (_elm_lang$core$Native_Utils.eq(_p9, _elm_lang$elm_architecture_tutorial$CultSim_Person$None) ? {
+														ctor: '::',
+														_0: {
+															ctor: '_Tuple2',
+															_0: {ctor: '_Tuple2', _0: 0, _1: 0},
+															_1: _Orasund$pixelengine$PixelEngine_Graphics_Image$image('empty.png')
+														},
+														_1: {ctor: '[]'}
+													} : function () {
+														var _p7 = _p9;
+														if (_p7.ctor === 'Praying') {
+															return _elm_lang$core$List$append(
+																{
+																	ctor: '::',
+																	_0: {
+																		ctor: '_Tuple2',
+																		_0: {ctor: '_Tuple2', _0: 0, _1: 33},
+																		_1: A2(
+																			_Orasund$pixelengine$PixelEngine_Graphics_Image$fromTile,
+																			A2(
+																				_Orasund$pixelengine$PixelEngine_Graphics_Tile$animated,
+																				7,
+																				A2(_elm_lang$elm_architecture_tutorial$CultSim_Person$tile_bar, (((16 / (_p11 + 1)) | 0) * (_p7._0 + 1)) - 1, ((16 / (_p11 + 1)) | 0) - 1)),
+																			_Orasund$pixelengine$PixelEngine_Graphics_Tile$tileset(
+																				{source: 'blue_bar.png', spriteWidth: 16, spriteHeight: 4}))
+																	},
+																	_1: {ctor: '[]'}
+																});
+														} else {
+															return _elm_lang$core$Basics$identity;
+														}
+													}()(
+														{
 															ctor: '::',
-															_0: _rtfeldman$elm_css$Css$margin(_rtfeldman$elm_css$Css$auto),
+															_0: {
+																ctor: '_Tuple2',
+																_0: {ctor: '_Tuple2', _0: 0, _1: 0},
+																_1: image
+															},
 															_1: {
 																ctor: '::',
-																_0: _rtfeldman$elm_css$Css$width(
-																	_rtfeldman$elm_css$Css$pct(100)),
-																_1: {
-																	ctor: '::',
-																	_0: ((_elm_lang$core$Native_Utils.cmp(hours, 22) > -1) || (_elm_lang$core$Native_Utils.cmp(hours, 4) < 1)) ? _rtfeldman$elm_css$Css$color(
-																		_elm_lang$elm_architecture_tutorial$Clock$color(
-																			A2(_elm_lang$core$Basics_ops['%'], hours, 12))) : _rtfeldman$elm_css$Css$color(
-																		A3(_rtfeldman$elm_css$Css$rgb, 0, 0, 0)),
-																	_1: {ctor: '[]'}
-																}
+																_0: {
+																	ctor: '_Tuple2',
+																	_0: function () {
+																		var _p8 = _p9;
+																		if (_p8.ctor === 'Praying') {
+																			return {ctor: '_Tuple2', _0: 0, _1: 4};
+																		} else {
+																			return {ctor: '_Tuple2', _0: 0, _1: 0};
+																		}
+																	}(),
+																	_1: _Orasund$pixelengine$PixelEngine_Graphics_Image$image(
+																		A2(
+																			_elm_lang$core$Basics_ops['++'],
+																			'heads/',
+																			A2(
+																				_elm_lang$core$Basics_ops['++'],
+																				_elm_lang$core$Basics$toString(head),
+																				'.png')))
+																},
+																_1: {ctor: '[]'}
 															}
-														}
-													}
-												}
-											}
-										}),
-									_1: {ctor: '[]'}
+														})))))
+									};
 								},
-								{
-									ctor: '::',
-									_0: _rtfeldman$elm_css$Html_Styled$text(
-										A2(
-											_elm_lang$core$Basics_ops['++'],
-											_elm_lang$core$Basics$toString(hours),
-											A2(
-												_elm_lang$core$Basics_ops['++'],
-												':',
-												A2(
-													_elm_lang$core$Basics_ops['++'],
-													(_elm_lang$core$Native_Utils.cmp(minutes, 10) < 0) ? '0' : '',
-													_elm_lang$core$Basics$toString(minutes))))),
-									_1: {ctor: '[]'}
-								}),
-							_1: {ctor: '[]'}
-						}
+								A2(
+									_elm_lang$core$List$append,
+									{
+										ctor: '::',
+										_0: _p1._0.newPerson,
+										_1: {ctor: '[]'}
+									},
+									_elm_lang$core$Dict$toList(_p1._0.people))));
+					} else {
+						return {ctor: '[]'};
 					}
-				}
-			}
+				}()),
+			_1: {ctor: '[]'}
 		});
 };
-var _elm_lang$elm_architecture_tutorial$Clock$update = F2(
-	function (msg, model) {
-		var _p8 = msg;
-		if (_p8.ctor === 'Tick') {
-			return A2(
-				_elm_lang$core$Platform_Cmd_ops['!'],
-				_elm_lang$core$Native_Utils.update(
-					model,
-					{
-						time: _elm_lang$core$Date$fromTime(_p8._0)
-					}),
-				{ctor: '[]'});
-		} else {
-			return A2(
-				_elm_lang$core$Platform_Cmd_ops['!'],
-				_elm_lang$core$Native_Utils.update(
-					model,
-					{height: _p8._0.height, width: _p8._0.width}),
-				{ctor: '[]'});
-		}
-	});
-var _elm_lang$elm_architecture_tutorial$Clock$Model = F3(
-	function (a, b, c) {
-		return {time: a, width: b, height: c};
-	});
-var _elm_lang$elm_architecture_tutorial$Clock$Resize = function (a) {
-	return {ctor: 'Resize', _0: a};
+var _elm_lang$elm_architecture_tutorial$CultSim_Main$NewGame = function (a) {
+	return {ctor: 'NewGame', _0: a};
 };
-var _elm_lang$elm_architecture_tutorial$Clock$Tick = function (a) {
+var _elm_lang$elm_architecture_tutorial$CultSim_Main$init = A2(
+	_elm_lang$core$Platform_Cmd_ops['!'],
+	_elm_lang$core$Maybe$Nothing,
+	{
+		ctor: '::',
+		_0: A2(
+			_elm_lang$core$Random$generate,
+			_elm_lang$elm_architecture_tutorial$CultSim_Main$NewGame,
+			A2(_elm_lang$core$Random$int, _elm_lang$core$Random$minInt, _elm_lang$core$Random$maxInt)),
+		_1: {ctor: '[]'}
+	});
+var _elm_lang$elm_architecture_tutorial$CultSim_Main$Tick = function (a) {
 	return {ctor: 'Tick', _0: a};
 };
-var _elm_lang$elm_architecture_tutorial$Clock$init = function () {
-	var height = 0;
-	var width = 0;
-	var time = _elm_lang$core$Date$fromTime(0);
+var _elm_lang$elm_architecture_tutorial$CultSim_Main$tickTask = function (delay) {
+	return A2(
+		_elm_lang$core$Task$perform,
+		_elm_lang$elm_architecture_tutorial$CultSim_Main$Tick,
+		A2(
+			_elm_lang$core$Task$andThen,
+			function (_p12) {
+				return _elm_lang$core$Time$now;
+			},
+			_elm_lang$core$Process$sleep(delay)));
+};
+var _elm_lang$elm_architecture_tutorial$CultSim_Main$newGame = function ($int) {
+	var _p13 = A2(
+		_elm_lang$core$Random$step,
+		_elm_lang$elm_architecture_tutorial$CultSim_Person$generate,
+		_elm_lang$core$Random$initialSeed($int));
+	var newId = _p13._0._0;
+	var newPerson = _p13._0._1;
+	var seed = _p13._1;
 	return A2(
 		_elm_lang$core$Platform_Cmd_ops['!'],
-		{time: time, width: width, height: height},
+		_elm_lang$core$Maybe$Just(
+			{
+				seed: seed,
+				hunger: 0,
+				faith: 0,
+				people: _elm_lang$core$Dict$empty,
+				newPerson: {ctor: '_Tuple2', _0: newId, _1: newPerson}
+			}),
 		{
 			ctor: '::',
-			_0: A2(_elm_lang$core$Task$perform, _elm_lang$elm_architecture_tutorial$Clock$Resize, _elm_lang$window$Window$size),
-			_1: {
-				ctor: '::',
-				_0: A2(_elm_lang$core$Task$perform, _elm_lang$elm_architecture_tutorial$Clock$Tick, _elm_lang$core$Time$now),
-				_1: {ctor: '[]'}
-			}
-		});
-}();
-var _elm_lang$elm_architecture_tutorial$Clock$subscriptions = function (_p9) {
-	return _elm_lang$core$Platform_Sub$batch(
-		{
-			ctor: '::',
-			_0: A2(_elm_lang$core$Time$every, _elm_lang$core$Time$minute, _elm_lang$elm_architecture_tutorial$Clock$Tick),
-			_1: {
-				ctor: '::',
-				_0: _elm_lang$window$Window$resizes(_elm_lang$elm_architecture_tutorial$Clock$Resize),
-				_1: {ctor: '[]'}
-			}
+			_0: _elm_lang$elm_architecture_tutorial$CultSim_Main$tickTask(0),
+			_1: {ctor: '[]'}
 		});
 };
-var _elm_lang$elm_architecture_tutorial$Clock$main = _rtfeldman$elm_css$Html_Styled$program(
-	{init: _elm_lang$elm_architecture_tutorial$Clock$init, view: _elm_lang$elm_architecture_tutorial$Clock$view, update: _elm_lang$elm_architecture_tutorial$Clock$update, subscriptions: _elm_lang$elm_architecture_tutorial$Clock$subscriptions})();
+var _elm_lang$elm_architecture_tutorial$CultSim_Main$update = F2(
+	function (msg, maybeModel) {
+		var _p14 = maybeModel;
+		if (_p14.ctor === 'Just') {
+			var _p53 = _p14._0;
+			var _p15 = msg;
+			switch (_p15.ctor) {
+				case 'Tick':
+					var model = function () {
+						var newPeople = A2(
+							_elm_lang$core$Dict$filter,
+							F2(
+								function (_p16, person) {
+									return !_elm_lang$core$Native_Utils.eq(person.action, _elm_lang$elm_architecture_tutorial$CultSim_Person$Dying);
+								}),
+							_p53.people);
+						if (_elm_lang$core$Native_Utils.cmp(_p53.hunger, 1) > -1) {
+							var _p17 = A2(
+								_elm_lang$core$Random$step,
+								_elm_community$random_extra$Random_Extra$sample(
+									_elm_lang$core$Dict$keys(newPeople)),
+								_p53.seed);
+							var maybeId = _p17._0;
+							var newSeed = _p17._1;
+							return _elm_lang$core$Native_Utils.update(
+								_p53,
+								{
+									seed: newSeed,
+									people: function () {
+										var _p18 = maybeId;
+										if (_p18.ctor === 'Just') {
+											return A2(
+												_elm_lang$core$Dict$update,
+												_p18._0,
+												_elm_lang$core$Maybe$map(
+													function (person) {
+														return _elm_lang$core$Native_Utils.update(
+															person,
+															{action: _elm_lang$elm_architecture_tutorial$CultSim_Person$Dying});
+													}));
+										} else {
+											return _elm_lang$core$Basics$identity;
+										}
+									}()(newPeople)
+								});
+						} else {
+							return _elm_lang$core$Native_Utils.update(
+								_p53,
+								{people: newPeople});
+						}
+					}();
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Maybe$Just(
+							function (_p19) {
+								var _p20 = _p19;
+								var _p24 = _p20.people;
+								var _p23 = _p20.newPerson;
+								var _p22 = _p20;
+								if (_elm_lang$core$Dict$isEmpty(_p24)) {
+									var _p21 = A2(
+										_elm_lang$core$Tuple$mapSecond,
+										_elm_lang$elm_architecture_tutorial$CultSim_Person$move(
+											_elm_lang$core$Tuple$second(_p23)),
+										A2(_elm_lang$core$Random$step, _elm_lang$elm_architecture_tutorial$CultSim_Person$generate, _p20.seed));
+									var addedNewPerson = _p21._0;
+									var person = _p21._1._0;
+									var newSeed = _p21._1._1;
+									return _elm_lang$core$Native_Utils.update(
+										_p22,
+										{
+											people: A3(
+												_elm_lang$core$Dict$insert,
+												_elm_lang$core$Tuple$first(_p23),
+												person,
+												_p24),
+											seed: newSeed,
+											newPerson: addedNewPerson
+										});
+								} else {
+									return _p22;
+								}
+							}(
+								function (_p25) {
+									var _p26 = _p25;
+									var _p28 = _p26;
+									var _p27 = _p26.hunger;
+									return (_elm_lang$core$Native_Utils.cmp(_p27, 0) < 0) ? _elm_lang$core$Native_Utils.update(
+										_p28,
+										{hunger: 0}) : ((_elm_lang$core$Native_Utils.cmp(_p27, 1) > 0) ? _elm_lang$core$Native_Utils.update(
+										_p28,
+										{hunger: 1}) : _p28);
+								}(
+									function (_p29) {
+										var _p30 = _p29;
+										var _p35 = _p30.people;
+										var _p34 = _p30.newPerson;
+										var _p33 = _p30;
+										var _p32 = _p30.faith;
+										if (_elm_lang$core$Native_Utils.cmp(
+											_p32,
+											Math.pow(
+												2,
+												_elm_lang$core$Dict$size(_p35))) > -1) {
+											var _p31 = A2(
+												_elm_lang$core$Tuple$mapSecond,
+												_elm_lang$elm_architecture_tutorial$CultSim_Person$move(
+													_elm_lang$core$Tuple$second(_p34)),
+												A2(_elm_lang$core$Random$step, _elm_lang$elm_architecture_tutorial$CultSim_Person$generate, _p30.seed));
+											var addedNewPerson = _p31._0;
+											var person = _p31._1._0;
+											var newSeed = _p31._1._1;
+											return _elm_lang$core$Native_Utils.update(
+												_p33,
+												{
+													faith: _p32 - Math.pow(
+														2,
+														_elm_lang$core$Dict$size(_p35)),
+													people: A3(
+														_elm_lang$core$Dict$insert,
+														_elm_lang$core$Tuple$first(_p34),
+														person,
+														_p35),
+													newPerson: addedNewPerson,
+													seed: newSeed
+												});
+										} else {
+											return _p33;
+										}
+									}(
+										function (_p36) {
+											var _p37 = _p36;
+											return _elm_lang$core$Native_Utils.update(
+												_p37,
+												{
+													hunger: _p37.hunger + (0.25 * _elm_lang$core$Basics$toFloat(
+														_elm_lang$core$Dict$size(_p37.people)))
+												});
+										}(
+											A3(
+												_elm_lang$core$Dict$foldl,
+												F3(
+													function (id, _p39, _p38) {
+														var _p40 = _p39;
+														var _p51 = _p40.praying_duration;
+														var _p50 = _p40;
+														var _p41 = _p38;
+														var _p49 = _p41.seed;
+														var _p48 = _p41.people;
+														var _p47 = _p41;
+														var _p42 = _p40.action;
+														switch (_p42.ctor) {
+															case 'PendingPraying':
+																return _elm_lang$core$Native_Utils.update(
+																	_p47,
+																	{
+																		people: A3(
+																			_elm_lang$core$Dict$update,
+																			id,
+																			_elm_lang$core$Maybe$map(
+																				_elm_lang$core$Basics$always(
+																					_elm_lang$elm_architecture_tutorial$CultSim_Person$pray(_p50))),
+																			_p48)
+																	});
+															case 'Praying':
+																var _p45 = _p42._0;
+																var _p43 = _p47;
+																var hunger = _p43.hunger;
+																var faith = _p43.faith;
+																if (_elm_lang$core$Native_Utils.eq(_p45, 0)) {
+																	var _p44 = A2(_elm_lang$elm_architecture_tutorial$CultSim_Person$move, _p50, _p49);
+																	var newPerson = _p44._0;
+																	var newSeed = _p44._1;
+																	return _elm_lang$core$Native_Utils.update(
+																		_p47,
+																		{
+																			people: A3(
+																				_elm_lang$core$Dict$update,
+																				id,
+																				_elm_lang$core$Maybe$map(
+																					_elm_lang$core$Basics$always(newPerson)),
+																				_p48),
+																			seed: newSeed,
+																			hunger: (hunger - 0) - (0.1 * _elm_lang$core$Basics$toFloat(_p51)),
+																			faith: faith + 1
+																		});
+																} else {
+																	return _elm_lang$core$Native_Utils.update(
+																		_p47,
+																		{
+																			people: A3(
+																				_elm_lang$core$Dict$update,
+																				id,
+																				_elm_lang$core$Maybe$map(
+																					_elm_lang$core$Basics$always(
+																						_elm_lang$core$Native_Utils.update(
+																							_p50,
+																							{
+																								action: _elm_lang$elm_architecture_tutorial$CultSim_Person$Praying(_p45 - 1)
+																							}))),
+																				_p48),
+																			hunger: (hunger - 0) - (0.1 * _elm_lang$core$Basics$toFloat(_p51)),
+																			faith: faith + 1
+																		});
+																}
+															case 'Walking':
+																var _p46 = A2(_elm_lang$elm_architecture_tutorial$CultSim_Person$move, _p50, _p49);
+																var newPerson = _p46._0;
+																var newSeed = _p46._1;
+																return _elm_lang$core$Native_Utils.update(
+																	_p47,
+																	{
+																		people: A3(
+																			_elm_lang$core$Dict$update,
+																			id,
+																			_elm_lang$core$Maybe$map(
+																				_elm_lang$core$Basics$always(newPerson)),
+																			_p48),
+																		seed: newSeed
+																	});
+															case 'Dying':
+																return _elm_lang$core$Native_Utils.update(
+																	_p47,
+																	{hunger: 0});
+															default:
+																return _p47;
+														}
+													}),
+												model,
+												model.people)))))),
+						{
+							ctor: '::',
+							_0: _elm_lang$elm_architecture_tutorial$CultSim_Main$tickTask(_elm_lang$core$Time$second * 8),
+							_1: {ctor: '[]'}
+						});
+				case 'Pray':
+					var _p52 = _p53;
+					var people = _p52.people;
+					return A2(
+						_elm_lang$core$Platform_Cmd_ops['!'],
+						_elm_lang$core$Maybe$Just(
+							_elm_lang$core$Native_Utils.update(
+								_p53,
+								{
+									people: A3(
+										_elm_lang$core$Dict$update,
+										_p15._0,
+										_elm_lang$core$Maybe$map(_elm_lang$elm_architecture_tutorial$CultSim_Person$setPraying),
+										people)
+								})),
+						{ctor: '[]'});
+				default:
+					return _elm_lang$elm_architecture_tutorial$CultSim_Main$newGame(_p15._0);
+			}
+		} else {
+			var _p54 = msg;
+			if (_p54.ctor === 'NewGame') {
+				return _elm_lang$elm_architecture_tutorial$CultSim_Main$newGame(_p54._0);
+			} else {
+				return A2(
+					_elm_lang$core$Platform_Cmd_ops['!'],
+					_elm_lang$core$Maybe$Nothing,
+					{
+						ctor: '::',
+						_0: _elm_lang$core$Platform_Cmd$none,
+						_1: {ctor: '[]'}
+					});
+			}
+		}
+	});
+var _elm_lang$elm_architecture_tutorial$CultSim_Main$main = _rtfeldman$elm_css$Html_Styled$program(
+	{init: _elm_lang$elm_architecture_tutorial$CultSim_Main$init, view: _elm_lang$elm_architecture_tutorial$CultSim_Main$view, update: _elm_lang$elm_architecture_tutorial$CultSim_Main$update, subscriptions: _elm_lang$elm_architecture_tutorial$CultSim_Main$subscriptions})();
 var Elm = {};
-Elm['Clock'] = Elm['Clock'] || {};
-if (typeof _elm_lang$elm_architecture_tutorial$Clock$main !== 'undefined') {
-    _elm_lang$elm_architecture_tutorial$Clock$main(Elm['Clock'], 'Clock', undefined);
+Elm['CultSim'] = Elm['CultSim'] || {};
+Elm['CultSim']['Main'] = Elm['CultSim']['Main'] || {};
+if (typeof _elm_lang$elm_architecture_tutorial$CultSim_Main$main !== 'undefined') {
+    _elm_lang$elm_architecture_tutorial$CultSim_Main$main(Elm['CultSim']['Main'], 'CultSim.Main', undefined);
 }
 
 if (typeof define === "function" && define['amd'])
@@ -15698,4 +17341,4 @@ for (var publicModule in Elm)
 }
 
 }).call(this);
-</script></head><body><script type="text/javascript">Elm.Clock.fullscreen()</script></body></html>
+</script></head><body><script type="text/javascript">Elm.CultSim.Main.fullscreen()</script></body></html>
