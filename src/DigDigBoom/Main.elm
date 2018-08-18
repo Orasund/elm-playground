@@ -68,20 +68,6 @@ init =
     Nothing ! [ Cmd.none ]
 
 
-
-{- { map = currentMap
-   , oldScreen = Nothing
-   , player = Player.init backpackSize
-   , gameType =
-       Rogue
-           { worldSeed = worldSeed
-           , seed = currentSeed
-           }
-   }
-       ! [ Cmd.none ]
--}
-
-
 tutorial : Int -> ModelContent
 tutorial num =
     let

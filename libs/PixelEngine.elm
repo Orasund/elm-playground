@@ -1,21 +1,25 @@
-module PixelEngine exposing (program,PixelEngine)
+module PixelEngine exposing (PixelEngine, program)
 
 import Html.Styled as Html exposing (Html)
-import PixelEngine.Controls as Controls
+import PixelEngine.Controls as Controls exposing (Input)
 import PixelEngine.Graphics as Graphics exposing (Area, Options)
+import Task
 import Window
 
-type alias PixelEngine flag model msg=
+
+type alias PixelEngine flag model msg =
     Program flag (Model model) (Msg msg)
 
+
 type alias Config =
-    { windowSize : Window.Size
+    { windowSize : Maybe Window.Size
+    , controls : Char -> Input
     }
 
 
 type alias Model model =
     { modelContent : model
-    , config : Maybe Config
+    , config : Config
     }
 
 
@@ -35,12 +39,9 @@ updateFunction update msg ({ modelContent, config } as model) =
         Resize windowSize ->
             { model
                 | config =
-                    case config of
-                        Nothing ->
-                            Just { windowSize = windowSize }
-
-                        Just c ->
-                            Just { c | windowSize = windowSize }
+                    { config
+                        | windowSize = Just windowSize
+                    }
             }
                 ! []
 
@@ -62,10 +63,10 @@ viewFunction view ({ modelContent, config } as model) =
         ( options, listOfArea ) =
             view modelContent
     in
-    (case config of
-        Just { windowSize } ->
+    (case config.windowSize of
+        Just wS ->
             Graphics.render
-                (options |> Controls.supportingMobile { windowSize = windowSize })
+                (options |> Controls.supportingMobile { windowSize = wS })
                 listOfArea
 
         Nothing ->
@@ -76,14 +77,41 @@ viewFunction view ({ modelContent, config } as model) =
         |> Html.map MsgContent
 
 
-initFunction : ( model, Cmd msg ) -> ( Model model, Cmd (Msg msg) )
-initFunction init =
+initFunction : (model -> (Char -> Input)) -> ( model, Cmd msg ) -> ( Model model, Cmd (Msg msg) )
+initFunction controls init =
     let
         ( modelContent, msg ) =
             init
     in
-    { modelContent = modelContent, config = Nothing }
-        ! [ msg |> Cmd.map MsgContent ]
+    { modelContent = modelContent
+    , config = { windowSize = Nothing, controls = controls modelContent }
+    }
+        ! [ Task.perform Resize Window.size
+          , msg |> Cmd.map MsgContent
+          ]
+
+
+programWithCustomControls :
+    { init : ( model, Cmd msg )
+    , update : msg -> model -> ( model, Cmd msg )
+    , subscriptions : model -> Sub msg
+    , view : model -> ( Options msg, List (Area msg) )
+    , controls : model -> (Char -> Input)
+    }
+    -> Program Never (Model model) (Msg msg)
+    
+programWithCustomControls { init, update, subscriptions, view, controls } =
+    Html.program
+        { init =
+            initFunction controls init
+        , update =
+            updateFunction update
+        , subscriptions =
+            subscriptionsFunction subscriptions
+        , view =
+            viewFunction view
+        }
+
 
 
 program :
@@ -96,7 +124,7 @@ program :
 program { init, update, subscriptions, view } =
     Html.program
         { init =
-            initFunction init
+            initFunction Controls.defaultLayout init
         , update =
             updateFunction update
         , subscriptions =
