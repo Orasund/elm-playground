@@ -15,14 +15,13 @@ import DigDigBoom.Component.Map as Map exposing (Direction(..), Location, Map)
 import DigDigBoom.Game as Game
 import DigDigBoom.Player as Player exposing (PlayerCell, PlayerData)
 import DigDigBoom.Tileset as Tileset
-import Html.Styled exposing (Html, program)
 import Keyboard
-import PixelEngine.Graphics as Graphics exposing (Area)
+import PixelEngine.Graphics as Graphics exposing (Options,Area)
 import PixelEngine.Graphics.Image as Image exposing (image)
 import PixelEngine.Graphics.Tile as Tile exposing (Tile, Tileset)
-import PixelEngine.ScreenTransition as Transition
+import PixelEngine.Graphics.Transition as Transition
+import PixelEngine exposing (PixelEngine,program)
 import Random
-
 
 type GameType
     = Rogue
@@ -42,6 +41,7 @@ type alias ModelContent =
 
 type alias Model =
     Maybe ModelContent
+
 
 
 type Input
@@ -290,7 +290,7 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Keyboard.presses <|
+     Keyboard.presses <|
         Char.fromCode
             >> (\char ->
                     case model of
@@ -356,6 +356,7 @@ subscriptions model =
                                 _ ->
                                     Idle
                )
+    
 
 
 tileset : Tileset
@@ -620,7 +621,7 @@ worldScreen worldSeed map player hints =
     ]
 
 
-view : Model -> Html Msg
+view : Model -> ( Options Msg, List (Area Msg) )
 view model =
     let
         scale : Int
@@ -632,10 +633,11 @@ view model =
             16
 
         options =
-            { scale = toFloat <| scale
-            , width = toFloat <| scale * tileset.spriteWidth * width
-            , transitionSpeedInSec = 0.2
-            }
+            Graphics.options
+                { scale = toFloat <| scale
+                , width = toFloat <| scale * tileset.spriteWidth * width
+                , transitionSpeedInSec = 0.2
+                }
     in
     case model of
         Just { oldScreen, gameType, player, map } ->
@@ -643,32 +645,39 @@ view model =
                 Rogue { worldSeed } ->
                     case oldScreen of
                         Just justOldScreen ->
-                            Transition.customTransition
-                                "next_level"
-                                [ ( 0, "overflow:hidden;width:" ++ (toString <| scale * tileset.spriteWidth * width) ++ "px;" )
-                                , ( 2, "overflow:hidden;width:0px;" )
-                                ]
-                                |> Transition.apply
-                                    options
-                                    { from = justOldScreen
-                                    , to = worldScreen worldSeed map player []
-                                    }
+                            ((options
+                                    |> Transition.from justOldScreen
+                                        (Transition.custom
+                                            "next_level"
+                                            [ ( 0, "overflow:hidden;width:" ++ (toString <| scale * tileset.spriteWidth * width) ++ "px;" )
+                                            , ( 2, "overflow:hidden;width:0px;" )
+                                            ]
+                                        )
+                                )
+                            ,(worldScreen worldSeed map player [])
+                            )
+                                
 
                         Nothing ->
                             if player.lifes > 0 then
-                                Graphics.render options (worldScreen worldSeed map player [])
+                               ( options ,(worldScreen worldSeed map player []))
                             else
-                                Transition.customTransition
-                                    "death_transition"
-                                    [ ( 0, "opacity:1;filter:grayscale(0%) blur(0px);" )
-                                    , ( 1, "opacity:1;filter:grayscale(70%) blur(0px);" )
-                                    , ( 3, "opacity:0;filter:grayscale(70%) blur(5px);" )
-                                    ]
-                                    |> Transition.apply
-                                        options
-                                        { from = worldScreen worldSeed map player []
-                                        , to = deathScreen
-                                        }
+                                    ((options
+                                        |> Transition.from deathScreen
+                                            (Transition.custom
+                                                "death_transition"
+                                                [ ( 0, "opacity:1;filter:grayscale(0%) blur(0px);" )
+                                                , ( 1, "opacity:1;filter:grayscale(70%) blur(0px);" )
+                                                , ( 3, "opacity:0;filter:grayscale(70%) blur(5px);" )
+                                                ]
+                                            )
+                                    ),
+                                    (worldScreen
+                                        worldSeed
+                                        map
+                                        player
+                                        []
+                                    ))
 
                 Tutorial num ->
                     let
@@ -743,38 +752,38 @@ view model =
                     in
                     case oldScreen of
                         Just justOldScreen ->
-                            Transition.customTransition
-                                "next_level"
-                                [ ( 0, "overflow:hidden;width:" ++ (toString <| scale * tileset.spriteWidth * width) ++ "px;" )
-                                , ( 2, "overflow:hidden;width:0px;" )
-                                ]
-                                |> Transition.apply
-                                    options
-                                    { from = justOldScreen
-                                    , to = tutorialWorldScreen
-                                    }
+                                ((options
+                                    |> Transition.from justOldScreen
+                                        (Transition.custom
+                                            "next_level"
+                                            [ ( 0, "overflow:hidden;width:" ++ (toString <| scale * tileset.spriteWidth * width) ++ "px;" )
+                                            , ( 2, "overflow:hidden;width:0px;" )
+                                            ]
+                                        )
+                                ),
+                                tutorialWorldScreen)
 
                         Nothing ->
                             if player.lifes > 0 then
-                                Graphics.render options tutorialWorldScreen
+                                (options, tutorialWorldScreen)
                             else
-                                Transition.customTransition
-                                    "death_transition"
-                                    [ ( 0, "opacity:1;filter:grayscale(0%) blur(0px);" )
-                                    , ( 1, "opacity:1;filter:grayscale(70%) blur(0px);" )
-                                    , ( 3, "opacity:0;filter:grayscale(70%) blur(5px);" )
-                                    ]
-                                    |> Transition.apply
-                                        options
-                                        { from = tutorialWorldScreen
-                                        , to = deathScreen
-                                        }
+                                    ((options
+                                        |> Transition.from tutorialWorldScreen
+                                            (Transition.custom
+                                                "death_transition"
+                                                [ ( 0, "opacity:1;filter:grayscale(0%) blur(0px);" )
+                                                , ( 1, "opacity:1;filter:grayscale(70%) blur(0px);" )
+                                                , ( 3, "opacity:0;filter:grayscale(70%) blur(5px);" )
+                                                ]
+                                            )
+                                    ),
+                                    deathScreen)
 
         Nothing ->
-            Graphics.render options menuScreen
+            (options ,menuScreen)
 
 
-main : Program Never Model Msg
+main : PixelEngine Never Model Msg
 main =
     program
         { init = init

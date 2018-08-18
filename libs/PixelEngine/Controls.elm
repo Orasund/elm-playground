@@ -1,8 +1,10 @@
-module PixelEngine.Controls exposing (Input)
+module PixelEngine.Controls exposing (Input,custom,basic,supportingMobile)
 
 import Char
 import Keyboard
-
+import PixelEngine.Graphics.Abstract as Abstract
+import PixelEngine.Graphics as Graphics exposing (Options)
+import Window
 
 type Input
     = Left
@@ -15,6 +17,9 @@ type Input
     | Y
     | None
 
+supportingMobile: {windowSize:Window.Size} -> Options msg -> Options msg
+supportingMobile {windowSize} (Abstract.Options options) =
+    Abstract.Options {options|controllerOptions=Just {windowSize = windowSize}}
 
 custom : { up : Char, down : Char, left : Char, right : Char, a : Char, b : Char
     , x : Char
