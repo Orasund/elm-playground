@@ -1,6 +1,5 @@
 module DigDigBoom.Main exposing (main)
 
-import Char
 import Css
 import Dict
 import DigDigBoom.Cell as Cell
@@ -15,13 +14,14 @@ import DigDigBoom.Component.Map as Map exposing (Direction(..), Location, Map)
 import DigDigBoom.Game as Game
 import DigDigBoom.Player as Player exposing (PlayerCell, PlayerData)
 import DigDigBoom.Tileset as Tileset
-import Keyboard
-import PixelEngine.Graphics as Graphics exposing (Options,Area)
+import PixelEngine exposing (PixelEngine, program)
+import PixelEngine.Controls as Controls exposing (Input(..))
+import PixelEngine.Graphics as Graphics exposing (Area, Options)
 import PixelEngine.Graphics.Image as Image exposing (image)
 import PixelEngine.Graphics.Tile as Tile exposing (Tile, Tileset)
 import PixelEngine.Graphics.Transition as Transition
-import PixelEngine exposing (PixelEngine,program)
 import Random
+
 
 type GameType
     = Rogue
@@ -43,19 +43,8 @@ type alias Model =
     Maybe ModelContent
 
 
-
-type Input
-    = Direction Direction
-    | Activate
-    | RotateLeft
-    | RotateRight
-
-
 type Msg
     = Input Input
-    | NextLevel
-    | Idle
-    | Return
 
 
 worldSize : Int
@@ -112,121 +101,166 @@ newMap worldSeed =
     }
 
 
+nextLevel : ModelContent -> ( Model, Cmd Msg )
+nextLevel { gameType, map, player } =
+    case gameType of
+        Rogue { worldSeed } ->
+            Just
+                (newMap (worldSeed + 7)
+                    |> (\newModel ->
+                            { newModel
+                                | oldScreen = Just (worldScreen worldSeed map player [])
+                            }
+                       )
+                )
+                ! [ Cmd.none ]
+
+        Tutorial num ->
+            if num == 5 then
+                Nothing ! [ Cmd.none ]
+            else
+                Just
+                    (tutorial (num + 1)
+                        |> (\newModel ->
+                                { newModel
+                                    | oldScreen = Just (worldScreen num map player [])
+                                }
+                           )
+                    )
+                    ! [ Cmd.none ]
+
+
+updateGame : (Player.Game -> Player.Game) -> ModelContent -> ( Model, Cmd Msg )
+updateGame fun ({ player, map, gameType } as modelContent) =
+    ( player, map )
+        |> fun
+        |> (\( playerData, newMap ) ->
+                Just
+                    { modelContent
+                        | player = playerData
+                        , map = newMap
+                        , oldScreen = Nothing
+                    }
+                    ! [ Cmd.none ]
+           )
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case model of
         Just ({ player, map, gameType } as modelContent) ->
-            case msg of
-                Input input ->
-                    let
-                        maybePlayer : Map Cell -> Maybe PlayerCell
-                        maybePlayer currentMap =
-                            currentMap
-                                |> Map.getUnique
-                                    (\_ cell ->
-                                        case cell of
-                                            Player _ ->
-                                                True
+            if
+                map
+                    |> Dict.toList
+                    |> List.filter
+                        (\( _, cell ) ->
+                            case cell of
+                                Enemy _ _ ->
+                                    True
 
-                                            _ ->
-                                                False
-                                    )
-                                |> Maybe.andThen
-                                    (\( key, cell ) ->
-                                        case cell of
-                                            Player dir ->
-                                                Just ( key, dir )
+                                _ ->
+                                    False
+                        )
+                    |> List.isEmpty
+            then
+                nextLevel modelContent
+            else
+                case msg of
 
-                                            _ ->
-                                                Nothing
-                                    )
-                    in
-                    case maybePlayer map of
-                        Just playerCell ->
-                            ( player, map )
-                                |> (case input of
-                                        Activate ->
-                                            Player.activate playerCell
+                    Input input ->
+                        let
+                            maybePlayer : Map Cell -> Maybe PlayerCell
+                            maybePlayer currentMap =
+                                currentMap
+                                    |> Map.getUnique
+                                        (\_ cell ->
+                                            case cell of
+                                                Player _ ->
+                                                    True
 
-                                        Direction dir ->
-                                            \game -> ( playerCell, game ) |> Game.applyDirection (worldSize - 1) dir |> Tuple.second
+                                                _ ->
+                                                    False
+                                        )
+                                    |> Maybe.andThen
+                                        (\( key, cell ) ->
+                                            case cell of
+                                                Player dir ->
+                                                    Just ( key, dir )
 
-                                        RotateLeft ->
-                                            Tuple.mapFirst Player.rotateLeft
+                                                _ ->
+                                                    Nothing
+                                        )
+                        in
+                        case maybePlayer map of
+                            Just playerCell ->
+                                let
+                                    updateDirection dir game =
+                                        ( playerCell, game )
+                                            |> Game.applyDirection (worldSize - 1) dir
+                                            |> Tuple.second
+                                in
+                                case input of
+                                    InputA ->
+                                        modelContent
+                                            |> updateGame (Player.activate playerCell)
 
-                                        RotateRight ->
-                                            Tuple.mapFirst Player.rotateRight
-                                   )
-                                |> (\( playerData, newMap ) ->
+                                    InputUp ->
+                                        modelContent
+                                            |> updateGame (updateDirection Up)
+
+                                    InputLeft ->
+                                        modelContent
+                                            |> updateGame (updateDirection Left)
+
+                                    InputDown ->
+                                        modelContent
+                                            |> updateGame (updateDirection Down)
+
+                                    InputRight ->
+                                        modelContent
+                                            |> updateGame (updateDirection Right)
+
+                                    InputX ->
+                                        modelContent
+                                            |> updateGame (Tuple.mapFirst Player.rotateLeft)
+
+                                    InputY ->
+                                        modelContent
+                                            |> updateGame (Tuple.mapFirst Player.rotateRight)
+                                    
+                                    
+                                    InputB ->
+                                        Nothing ! [ Cmd.none ]
+
+                                    InputNone ->
+                                        model ! [ Cmd.none ]
+
+                            Nothing ->
+                                case gameType of
+                                    Rogue { worldSeed } ->
                                         Just
-                                            { modelContent
-                                                | player = playerData
-                                                , map = newMap
-                                                , oldScreen = Nothing
-                                            }
+                                            (newMap (worldSeed - 1)
+                                                |> (\newModel ->
+                                                        { newModel
+                                                            | oldScreen = Just deathScreen
+                                                        }
+                                                   )
+                                            )
                                             ! [ Cmd.none ]
-                                   )
 
-                        Nothing ->
-                            case gameType of
-                                Rogue { worldSeed } ->
-                                    Just
-                                        (newMap (worldSeed - 1)
-                                            |> (\newModel ->
-                                                    { newModel
-                                                        | oldScreen = Just deathScreen
-                                                    }
-                                               )
-                                        )
-                                        ! [ Cmd.none ]
-
-                                Tutorial num ->
-                                    Just
-                                        (tutorial num
-                                            |> (\newModel ->
-                                                    { newModel
-                                                        | oldScreen = Just deathScreen
-                                                    }
-                                               )
-                                        )
-                                        ! [ Cmd.none ]
-
-                NextLevel ->
-                    case gameType of
-                        Rogue { worldSeed } ->
-                            Just
-                                (newMap (worldSeed + 7)
-                                    |> (\newModel ->
-                                            { newModel
-                                                | oldScreen = Just (worldScreen worldSeed map player [])
-                                            }
-                                       )
-                                )
-                                ! [ Cmd.none ]
-
-                        Tutorial num ->
-                            if num == 5 then
-                                Nothing ! [ Cmd.none ]
-                            else
-                                Just
-                                    (tutorial (num + 1)
-                                        |> (\newModel ->
-                                                { newModel
-                                                    | oldScreen = Just (worldScreen num map player [])
-                                                }
-                                           )
-                                    )
-                                    ! [ Cmd.none ]
-
-                Return ->
-                    Nothing ! [ Cmd.none ]
-
-                Idle ->
-                    model ! [ Cmd.none ]
-
+                                    Tutorial num ->
+                                        Just
+                                            (tutorial num
+                                                |> (\newModel ->
+                                                        { newModel
+                                                            | oldScreen = Just deathScreen
+                                                        }
+                                                   )
+                                            )
+                                            ! [ Cmd.none ]
         Nothing ->
             case msg of
-                Input (Direction Left) ->
+                Input InputLeft ->
                     Just
                         (newMap 0
                             |> (\newModel ->
@@ -237,7 +271,7 @@ update msg model =
                         )
                         ! [ Cmd.none ]
 
-                Input (Direction Right) ->
+                Input InputRight ->
                     Just
                         (newMap 0
                             |> (\newModel ->
@@ -248,7 +282,7 @@ update msg model =
                         )
                         ! [ Cmd.none ]
 
-                Input (Direction Up) ->
+                Input InputUp ->
                     Just
                         (tutorial 1
                             |> (\newModel ->
@@ -259,7 +293,7 @@ update msg model =
                         )
                         ! [ Cmd.none ]
 
-                Input (Direction Down) ->
+                Input InputDown ->
                     Just
                         (tutorial 1
                             |> (\newModel ->
@@ -276,73 +310,7 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-     Keyboard.presses <|
-        Char.fromCode
-            >> (\char ->
-                    case model of
-                        Just { map } ->
-                            if
-                                map
-                                    |> Dict.toList
-                                    |> List.filter
-                                        (\( _, cell ) ->
-                                            case cell of
-                                                Enemy _ _ ->
-                                                    True
-
-                                                _ ->
-                                                    False
-                                        )
-                                    |> List.isEmpty
-                            then
-                                NextLevel
-                            else
-                                case char of
-                                    'w' ->
-                                        Input (Direction Up)
-
-                                    's' ->
-                                        Input (Direction Down)
-
-                                    'd' ->
-                                        Input (Direction Right)
-
-                                    'a' ->
-                                        Input (Direction Left)
-
-                                    ' ' ->
-                                        Input Activate
-
-                                    'q' ->
-                                        Input RotateLeft
-
-                                    'e' ->
-                                        Input RotateRight
-
-                                    'x' ->
-                                        Return
-
-                                    _ ->
-                                        Idle
-
-                        Nothing ->
-                            case char of
-                                'w' ->
-                                    Input (Direction Up)
-
-                                's' ->
-                                    Input (Direction Down)
-
-                                'd' ->
-                                    Input (Direction Right)
-
-                                'a' ->
-                                    Input (Direction Left)
-
-                                _ ->
-                                    Idle
-               )
-    
+    Sub.none
 
 
 tileset : Tileset
@@ -631,39 +599,36 @@ view model =
                 Rogue { worldSeed } ->
                     case oldScreen of
                         Just justOldScreen ->
-                            ((options
-                                    |> Transition.from justOldScreen
-                                        (Transition.custom
-                                            "next_level"
-                                            [ ( 0, "overflow:hidden;width:" ++ (toString <| scale * tileset.spriteWidth * width) ++ "px;" )
-                                            , ( 2, "overflow:hidden;width:0px;" )
-                                            ]
-                                        )
-                                )
-                            ,(worldScreen worldSeed map player [])
+                            ( options
+                                |> Transition.from justOldScreen
+                                    (Transition.custom
+                                        "next_level"
+                                        [ ( 0, "overflow:hidden;width:" ++ (toString <| scale * tileset.spriteWidth * width) ++ "px;" )
+                                        , ( 2, "overflow:hidden;width:0px;" )
+                                        ]
+                                    )
+                            , worldScreen worldSeed map player []
                             )
-                                
 
                         Nothing ->
                             if player.lifes > 0 then
-                               ( options ,(worldScreen worldSeed map player []))
+                                ( options, worldScreen worldSeed map player [] )
                             else
-                                    ((options
-                                        |> Transition.from deathScreen
-                                            (Transition.custom
-                                                "death_transition"
-                                                [ ( 0, "opacity:1;filter:grayscale(0%) blur(0px);" )
-                                                , ( 1, "opacity:1;filter:grayscale(70%) blur(0px);" )
-                                                , ( 3, "opacity:0;filter:grayscale(70%) blur(5px);" )
-                                                ]
-                                            )
-                                    ),
-                                    (worldScreen
-                                        worldSeed
-                                        map
-                                        player
-                                        []
-                                    ))
+                                ( options
+                                    |> Transition.from deathScreen
+                                        (Transition.custom
+                                            "death_transition"
+                                            [ ( 0, "opacity:1;filter:grayscale(0%) blur(0px);" )
+                                            , ( 1, "opacity:1;filter:grayscale(70%) blur(0px);" )
+                                            , ( 3, "opacity:0;filter:grayscale(70%) blur(5px);" )
+                                            ]
+                                        )
+                                , worldScreen
+                                    worldSeed
+                                    map
+                                    player
+                                    []
+                                )
 
                 Tutorial num ->
                     let
@@ -738,35 +703,35 @@ view model =
                     in
                     case oldScreen of
                         Just justOldScreen ->
-                                ((options
-                                    |> Transition.from justOldScreen
-                                        (Transition.custom
-                                            "next_level"
-                                            [ ( 0, "overflow:hidden;width:" ++ (toString <| scale * tileset.spriteWidth * width) ++ "px;" )
-                                            , ( 2, "overflow:hidden;width:0px;" )
-                                            ]
-                                        )
-                                ),
-                                tutorialWorldScreen)
+                            ( options
+                                |> Transition.from justOldScreen
+                                    (Transition.custom
+                                        "next_level"
+                                        [ ( 0, "overflow:hidden;width:" ++ (toString <| scale * tileset.spriteWidth * width) ++ "px;" )
+                                        , ( 2, "overflow:hidden;width:0px;" )
+                                        ]
+                                    )
+                            , tutorialWorldScreen
+                            )
 
                         Nothing ->
                             if player.lifes > 0 then
-                                (options, tutorialWorldScreen)
+                                ( options, tutorialWorldScreen )
                             else
-                                    ((options
-                                        |> Transition.from tutorialWorldScreen
-                                            (Transition.custom
-                                                "death_transition"
-                                                [ ( 0, "opacity:1;filter:grayscale(0%) blur(0px);" )
-                                                , ( 1, "opacity:1;filter:grayscale(70%) blur(0px);" )
-                                                , ( 3, "opacity:0;filter:grayscale(70%) blur(5px);" )
-                                                ]
-                                            )
-                                    ),
-                                    deathScreen)
+                                ( options
+                                    |> Transition.from tutorialWorldScreen
+                                        (Transition.custom
+                                            "death_transition"
+                                            [ ( 0, "opacity:1;filter:grayscale(0%) blur(0px);" )
+                                            , ( 1, "opacity:1;filter:grayscale(70%) blur(0px);" )
+                                            , ( 3, "opacity:0;filter:grayscale(70%) blur(5px);" )
+                                            ]
+                                        )
+                                , deathScreen
+                                )
 
         Nothing ->
-            (options ,menuScreen)
+            ( options, menuScreen )
 
 
 main : PixelEngine Never Model Msg
@@ -776,4 +741,5 @@ main =
         , view = view
         , update = update
         , subscriptions = subscriptions
+        , controls = Input
         }

@@ -1,4 +1,4 @@
-module PixelEngine.Controls exposing (Input, basic, defaultLayout,custom, supportingMobile)
+module PixelEngine.Controls exposing (Input(..), basic, defaultLayout,custom, supportingMobile)
 
 import Char
 import Keyboard
@@ -8,15 +8,15 @@ import Window
 
 
 type Input
-    = Left
-    | Right
-    | Up
-    | Down
-    | A
-    | B
-    | X
-    | Y
-    | None
+    = InputLeft
+    | InputRight
+    | InputUp
+    | InputDown
+    | InputA
+    | InputB
+    | InputX
+    | InputY
+    | InputNone
 
 
 supportingMobile : { windowSize : Window.Size } -> Options msg -> Options msg
@@ -24,57 +24,57 @@ supportingMobile { windowSize } (Abstract.Options options) =
     Abstract.Options { options | controllerOptions = Just { windowSize = windowSize } }
 
 
-defaultLayout : Char -> Input
+defaultLayout : (Char -> Input)
 defaultLayout =
     \char ->
         case char of
             'w' ->
-                Up
+                InputUp
 
             'W' ->
-                Up
+                InputUp
 
             's' ->
-                Down
+                InputDown
 
             'S' ->
-                Down
+                InputDown
 
             'd' ->
-                Right
+                InputRight
 
             'D' ->
-                Right
+                InputRight
 
             'a' ->
-                Left
+                InputLeft
 
             'A' ->
-                Left
+                InputLeft
 
             ' ' ->
-                A
+                InputA
 
             'q' ->
-                X
+                InputX
 
             'Q' ->
-                X
+                InputX
 
             'e' ->
-                Y
+                InputY
 
             'E' ->
-                Y
+                InputY
 
             'x' ->
-                B
+                InputB
 
             'X' ->
-                B
+                InputB
 
             _ ->
-                None
+                InputNone
 
 
 custom : (Char -> Input) -> (Input -> msg) -> Sub msg
