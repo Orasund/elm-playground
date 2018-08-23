@@ -346,17 +346,17 @@ deathScreen =
         , background = Graphics.colorBackground (Css.rgb 20 12 28)
         , tileset = tileset
         }
-        [ ( ( 4, 0 ), Tileset.letter_y )
-        , ( ( 5, 0 ), Tileset.letter_o )
-        , ( ( 6, 0 ), Tileset.letter_u )
-        , ( ( 8, 0 ), Tileset.letter_h )
-        , ( ( 9, 0 ), Tileset.letter_a )
-        , ( ( 10, 0 ), Tileset.letter_v )
-        , ( ( 11, 0 ), Tileset.letter_e )
-        , ( ( 6, 1 ), Tileset.letter_d )
-        , ( ( 7, 1 ), Tileset.letter_i )
-        , ( ( 8, 1 ), Tileset.letter_e )
-        , ( ( 9, 1 ), Tileset.letter_d )
+        [ ( ( 4, 0 ), Tileset.letter_y Tileset.colorWhite )
+        , ( ( 5, 0 ), Tileset.letter_o Tileset.colorWhite )
+        , ( ( 6, 0 ), Tileset.letter_u Tileset.colorWhite )
+        , ( ( 8, 0 ), Tileset.letter_h Tileset.colorWhite )
+        , ( ( 9, 0 ), Tileset.letter_a Tileset.colorWhite )
+        , ( ( 10, 0 ), Tileset.letter_v Tileset.colorWhite )
+        , ( ( 11, 0 ), Tileset.letter_e Tileset.colorWhite )
+        , ( ( 6, 1 ), Tileset.letter_d Tileset.colorWhite )
+        , ( ( 7, 1 ), Tileset.letter_i Tileset.colorWhite )
+        , ( ( 8, 1 ), Tileset.letter_e Tileset.colorWhite )
+        , ( ( 9, 1 ), Tileset.letter_d Tileset.colorWhite )
         ]
     , Graphics.imageArea
         { height = toFloat <| scale * 12 * 16
@@ -369,20 +369,20 @@ deathScreen =
         , background = Graphics.colorBackground (Css.rgb 20 12 28)
         , tileset = tileset
         }
-        [ ( ( 4, 0 ), Tileset.letter_p )
-        , ( ( 5, 0 ), Tileset.letter_r )
-        , ( ( 6, 0 ), Tileset.letter_e )
-        , ( ( 7, 0 ), Tileset.letter_s )
-        , ( ( 8, 0 ), Tileset.letter_s )
-        , ( ( 10, 0 ), Tileset.letter_a )
-        , ( ( 11, 0 ), Tileset.letter_n )
-        , ( ( 12, 0 ), Tileset.letter_y )
-        , ( ( 6, 1 ), Tileset.letter_b )
-        , ( ( 7, 1 ), Tileset.letter_u )
-        , ( ( 8, 1 ), Tileset.letter_t )
-        , ( ( 9, 1 ), Tileset.letter_t )
-        , ( ( 10, 1 ), Tileset.letter_o )
-        , ( ( 11, 1 ), Tileset.letter_n )
+        [ ( ( 4, 0 ), Tileset.letter_p Tileset.colorWhite )
+        , ( ( 5, 0 ), Tileset.letter_r Tileset.colorWhite )
+        , ( ( 6, 0 ), Tileset.letter_e Tileset.colorWhite )
+        , ( ( 7, 0 ), Tileset.letter_s Tileset.colorWhite )
+        , ( ( 8, 0 ), Tileset.letter_s Tileset.colorWhite )
+        , ( ( 10, 0 ), Tileset.letter_a Tileset.colorWhite )
+        , ( ( 11, 0 ), Tileset.letter_n Tileset.colorWhite )
+        , ( ( 12, 0 ), Tileset.letter_y Tileset.colorWhite )
+        , ( ( 6, 1 ), Tileset.letter_b Tileset.colorWhite )
+        , ( ( 7, 1 ), Tileset.letter_u Tileset.colorWhite )
+        , ( ( 8, 1 ), Tileset.letter_t Tileset.colorWhite )
+        , ( ( 9, 1 ), Tileset.letter_t Tileset.colorWhite )
+        , ( ( 10, 1 ), Tileset.letter_o Tileset.colorWhite )
+        , ( ( 11, 1 ), Tileset.letter_n Tileset.colorWhite )
         ]
     , Graphics.tiledArea
         { rows = 2
@@ -419,16 +419,16 @@ menuScreen =
         , background = Graphics.colorBackground (Css.rgb 20 12 28)
         , tileset = tileset
         }
-        [ ( ( 5, 0 ), Tileset.letter_d )
-        , ( ( 6, 0 ), Tileset.letter_i )
-        , ( ( 7, 0 ), Tileset.letter_g )
-        , ( ( 6, 1 ), Tileset.letter_d )
-        , ( ( 7, 1 ), Tileset.letter_i )
-        , ( ( 8, 1 ), Tileset.letter_g )
-        , ( ( 6, 2 ), Tileset.letter_b )
-        , ( ( 7, 2 ), Tileset.letter_o )
-        , ( ( 8, 2 ), Tileset.letter_o )
-        , ( ( 9, 2 ), Tileset.letter_m )
+        [ ( ( 5, 0 ), Tileset.letter_d Tileset.colorWhite )
+        , ( ( 6, 0 ), Tileset.letter_i Tileset.colorWhite )
+        , ( ( 7, 0 ), Tileset.letter_g Tileset.colorWhite )
+        , ( ( 6, 1 ), Tileset.letter_d Tileset.colorWhite )
+        , ( ( 7, 1 ), Tileset.letter_i Tileset.colorWhite )
+        , ( ( 8, 1 ), Tileset.letter_g Tileset.colorWhite )
+        , ( ( 6, 2 ), Tileset.letter_b Tileset.colorWhite )
+        , ( ( 7, 2 ), Tileset.letter_o Tileset.colorWhite )
+        , ( ( 8, 2 ), Tileset.letter_o Tileset.colorWhite )
+        , ( ( 9, 2 ), Tileset.letter_m Tileset.colorWhite )
         ]
     , Graphics.imageArea
         { height = toFloat <| scale * 9 * 16
@@ -441,33 +441,33 @@ menuScreen =
         , background = Graphics.colorBackground (Css.rgb 20 12 28)
         , tileset = tileset
         }
-        [ ( ( 1, 0 ), Tileset.letter_a )
-        , ( ( 2, 0 ), Tileset.arrow_left )
-        , ( ( 3, 0 ), Tileset.arrow_right )
-        , ( ( 4, 0 ), Tileset.letter_d )
-        , ( ( 6, 0 ), Tileset.letter_minus )
-        , ( ( 7, 0 ), Tileset.letter_s )
-        , ( ( 8, 0 ), Tileset.letter_t )
-        , ( ( 9, 0 ), Tileset.letter_a )
-        , ( ( 10, 0 ), Tileset.letter_r )
-        , ( ( 11, 0 ), Tileset.letter_t )
-        , ( ( 8, 1 ), Tileset.letter_g )
-        , ( ( 9, 1 ), Tileset.letter_a )
-        , ( ( 10, 1 ), Tileset.letter_m )
-        , ( ( 11, 1 ), Tileset.letter_e )
-        , ( ( 1, 3 ), Tileset.letter_w )
-        , ( ( 2, 3 ), Tileset.arrow_up )
-        , ( ( 3, 3 ), Tileset.arrow_down )
-        , ( ( 4, 3 ), Tileset.letter_s )
-        , ( ( 6, 3 ), Tileset.letter_minus )
-        , ( ( 7, 3 ), Tileset.letter_t )
-        , ( ( 8, 3 ), Tileset.letter_u )
-        , ( ( 9, 3 ), Tileset.letter_t )
-        , ( ( 10, 3 ), Tileset.letter_o )
-        , ( ( 11, 3 ), Tileset.letter_r )
-        , ( ( 12, 3 ), Tileset.letter_i )
-        , ( ( 13, 3 ), Tileset.letter_a )
-        , ( ( 14, 3 ), Tileset.letter_l )
+        [ ( ( 1, 0 ), Tileset.letter_a Tileset.colorWhite )
+        , ( ( 2, 0 ), Tileset.arrow_left Tileset.colorWhite )
+        , ( ( 3, 0 ), Tileset.arrow_right Tileset.colorWhite )
+        , ( ( 4, 0 ), Tileset.letter_d Tileset.colorWhite )
+        , ( ( 6, 0 ), Tileset.letter_minus Tileset.colorWhite )
+        , ( ( 7, 0 ), Tileset.letter_s Tileset.colorWhite )
+        , ( ( 8, 0 ), Tileset.letter_t Tileset.colorWhite )
+        , ( ( 9, 0 ), Tileset.letter_a Tileset.colorWhite )
+        , ( ( 10, 0 ), Tileset.letter_r Tileset.colorWhite )
+        , ( ( 11, 0 ), Tileset.letter_t Tileset.colorWhite )
+        , ( ( 8, 1 ), Tileset.letter_g Tileset.colorWhite )
+        , ( ( 9, 1 ), Tileset.letter_a Tileset.colorWhite )
+        , ( ( 10, 1 ), Tileset.letter_m Tileset.colorWhite )
+        , ( ( 11, 1 ), Tileset.letter_e Tileset.colorWhite )
+        , ( ( 1, 3 ), Tileset.letter_w Tileset.colorWhite )
+        , ( ( 2, 3 ), Tileset.arrow_up Tileset.colorWhite )
+        , ( ( 3, 3 ), Tileset.arrow_down Tileset.colorWhite )
+        , ( ( 4, 3 ), Tileset.letter_s Tileset.colorWhite )
+        , ( ( 6, 3 ), Tileset.letter_minus Tileset.colorWhite )
+        , ( ( 7, 3 ), Tileset.letter_t Tileset.colorWhite )
+        , ( ( 8, 3 ), Tileset.letter_u Tileset.colorWhite )
+        , ( ( 9, 3 ), Tileset.letter_t Tileset.colorWhite )
+        , ( ( 10, 3 ), Tileset.letter_o Tileset.colorWhite )
+        , ( ( 11, 3 ), Tileset.letter_r Tileset.colorWhite )
+        , ( ( 12, 3 ), Tileset.letter_i Tileset.colorWhite )
+        , ( ( 13, 3 ), Tileset.letter_a Tileset.colorWhite )
+        , ( ( 14, 3 ), Tileset.letter_l Tileset.colorWhite )
         ]
     , Graphics.tiledArea
         { rows = 2
@@ -485,23 +485,23 @@ worldScreen worldSeed map player hints =
         , background = Graphics.colorBackground (Css.rgb 20 12 28)
         , tileset = tileset
         }
-        ([ ( ( 0, 0 ), Tileset.letter_x )
-         , ( ( 1, 0 ), Tileset.letter_minus )
-         , ( ( 2, 0 ), Tileset.letter_e )
-         , ( ( 3, 0 ), Tileset.letter_x )
-         , ( ( 4, 0 ), Tileset.letter_i )
-         , ( ( 5, 0 ), Tileset.letter_t )
-         , ( ( 7, 0 ), Tileset.letter_s )
-         , ( ( 8, 0 ), Tileset.letter_c )
-         , ( ( 9, 0 ), Tileset.letter_o )
-         , ( ( 10, 0 ), Tileset.letter_r )
-         , ( ( 11, 0 ), Tileset.letter_e )
-         , ( ( 12, 0 ), Tileset.letter_colon )
-         , ( ( 14, 0 ), Tileset.numberToTile ((abs worldSeed % 100) // 10) )
-         , ( ( 15, 0 ), Tileset.numberToTile (abs worldSeed % 10) )
+        ([ ( ( 0, 0 ), Tileset.letter_x Tileset.colorWhite )
+         , ( ( 1, 0 ), Tileset.letter_minus Tileset.colorWhite )
+         , ( ( 2, 0 ), Tileset.letter_e Tileset.colorWhite )
+         , ( ( 3, 0 ), Tileset.letter_x Tileset.colorWhite )
+         , ( ( 4, 0 ), Tileset.letter_i Tileset.colorWhite )
+         , ( ( 5, 0 ), Tileset.letter_t Tileset.colorWhite )
+         , ( ( 7, 0 ), Tileset.letter_s Tileset.colorWhite )
+         , ( ( 8, 0 ), Tileset.letter_c Tileset.colorWhite )
+         , ( ( 9, 0 ), Tileset.letter_o Tileset.colorWhite )
+         , ( ( 10, 0 ), Tileset.letter_r Tileset.colorWhite )
+         , ( ( 11, 0 ), Tileset.letter_e Tileset.colorWhite )
+         , ( ( 12, 0 ), Tileset.letter_colon Tileset.colorWhite )
+         , ( ( 14, 0 ), Tileset.numberToTile ((abs worldSeed % 100) // 10) Tileset.colorWhite )
+         , ( ( 15, 0 ), Tileset.numberToTile (abs worldSeed % 10) Tileset.colorWhite )
          ]
             |> (if (worldSeed // abs worldSeed) == -1 then
-                    List.append [ ( ( 13, 0 ), Tileset.letter_minus ) ]
+                    List.append [ ( ( 13, 0 ), Tileset.letter_minus Tileset.colorWhite ) ]
                 else
                     List.append []
                )
@@ -529,28 +529,28 @@ worldScreen worldSeed map player hints =
         , background = Graphics.colorBackground (Css.rgb 20 12 28)
         , tileset = tileset
         }
-        ([ ( ( 4, 2 ), Tileset.arrow_up )
-         , ( ( 5, 2 ), Tileset.letter_s )
-         , ( ( 6, 2 ), Tileset.letter_p )
-         , ( ( 7, 2 ), Tileset.letter_a )
-         , ( ( 8, 2 ), Tileset.letter_c )
-         , ( ( 9, 2 ), Tileset.letter_e )
-         , ( ( 10, 2 ), Tileset.letter_minus )
-         , ( ( 11, 2 ), Tileset.letter_u )
-         , ( ( 12, 2 ), Tileset.letter_s )
-         , ( ( 13, 2 ), Tileset.letter_e )
+        ([ ( ( 4, 2 ), Tileset.arrow_up Tileset.colorWhite )
+         , ( ( 5, 2 ), Tileset.letter_s Tileset.colorWhite )
+         , ( ( 6, 2 ), Tileset.letter_p Tileset.colorWhite )
+         , ( ( 7, 2 ), Tileset.letter_a Tileset.colorWhite )
+         , ( ( 8, 2 ), Tileset.letter_c Tileset.colorWhite )
+         , ( ( 9, 2 ), Tileset.letter_e Tileset.colorWhite )
+         , ( ( 10, 2 ), Tileset.letter_minus Tileset.colorWhite )
+         , ( ( 11, 2 ), Tileset.letter_u Tileset.colorWhite )
+         , ( ( 12, 2 ), Tileset.letter_s Tileset.colorWhite )
+         , ( ( 13, 2 ), Tileset.letter_e Tileset.colorWhite )
 
          --
-         , ( ( 0, 0 ), Tileset.arrow_down )
-         , ( ( 1, 0 ), Tileset.letter_f )
-         , ( ( 2, 0 ), Tileset.letter_l )
-         , ( ( 3, 0 ), Tileset.letter_o )
-         , ( ( 4, 0 ), Tileset.letter_o )
-         , ( ( 5, 0 ), Tileset.letter_r )
-         , ( ( 2, 1 ), Tileset.letter_q )
-         , ( ( 3, 1 ), Tileset.arrow_left )
-         , ( ( 12, 1 ), Tileset.arrow_right )
-         , ( ( 13, 1 ), Tileset.letter_e )
+         , ( ( 0, 0 ), Tileset.arrow_down Tileset.colorWhite )
+         , ( ( 1, 0 ), Tileset.letter_f Tileset.colorWhite )
+         , ( ( 2, 0 ), Tileset.letter_l Tileset.colorWhite )
+         , ( ( 3, 0 ), Tileset.letter_o Tileset.colorWhite )
+         , ( ( 4, 0 ), Tileset.letter_o Tileset.colorWhite )
+         , ( ( 5, 0 ), Tileset.letter_r Tileset.colorWhite )
+         , ( ( 2, 1 ), Tileset.letter_q Tileset.colorWhite )
+         , ( ( 3, 1 ), Tileset.arrow_left Tileset.colorWhite )
+         , ( ( 12, 1 ), Tileset.arrow_right Tileset.colorWhite )
+         , ( ( 13, 1 ), Tileset.letter_e Tileset.colorWhite )
          ]
             |> List.append
                 (case player.inventory |> Inventory.ground of
@@ -562,7 +562,7 @@ worldScreen worldSeed map player hints =
                 )
             |> List.append
                 (List.range 0 (player.lifes - 1)
-                    |> List.map (\i -> ( ( 15 - i, 0 ), Tileset.heart ))
+                    |> List.map (\i -> ( ( 15 - i, 0 ), Tileset.heart Tileset.colorRed ))
                 )
             |> List.append
                 (player.inventory
@@ -604,8 +604,8 @@ view model =
                                 |> Transition.from justOldScreen
                                     (Transition.custom
                                         "next_level"
-                                        [ ( 0, "overflow:hidden;width:" ++ (toString <| scale * tileset.spriteWidth * width) ++ "px;" )
-                                        , ( 2, "overflow:hidden;width:0px;" )
+                                        [ ( 0, "filter:saturate(200%) contrast(100%);overflow:hidden;width:" ++ (toString <| scale * tileset.spriteWidth * width) ++ "px;" )
+                                        , ( 2, "filter:saturate(50%) contrast(150%);overflow:hidden;width:0px;" )
                                         ]
                                     )
                             , worldScreen worldSeed map player []
@@ -637,67 +637,67 @@ view model =
                             worldScreen num
                                 map
                                 player
-                                ([ ( ( 2, 4 ), Tileset.letter_h )
-                                 , ( ( 3, 4 ), Tileset.letter_i )
-                                 , ( ( 4, 4 ), Tileset.letter_n )
-                                 , ( ( 5, 4 ), Tileset.letter_t )
-                                 , ( ( 6, 4 ), Tileset.letter_colon )
+                                ([ ( ( 2, 4 ), Tileset.letter_h Tileset.colorWhite )
+                                 , ( ( 3, 4 ), Tileset.letter_i Tileset.colorWhite )
+                                 , ( ( 4, 4 ), Tileset.letter_n Tileset.colorWhite )
+                                 , ( ( 5, 4 ), Tileset.letter_t Tileset.colorWhite )
+                                 , ( ( 6, 4 ), Tileset.letter_colon Tileset.colorWhite )
                                  ]
                                     |> List.append
                                         (case num of
                                             5 ->
-                                                [ ( ( 2, 5 ), Tileset.arrow_left )
-                                                , ( ( 3, 5 ), Tileset.arrow_left )
-                                                , ( ( 4, 5 ), Tileset.arrow_right )
-                                                , ( ( 5, 5 ), Tileset.arrow_right )
-                                                , ( ( 6, 5 ), Tileset.letter_exclamation_mark )
-                                                , ( ( 7, 5 ), Tileset.arrow_down )
-                                                , ( ( 8, 5 ), Tileset.arrow_down )
-                                                , ( ( 9, 5 ), Tileset.arrow_right )
-                                                , ( ( 10, 5 ), Tileset.letter_exclamation_mark )
-                                                , ( ( 11, 5 ), Tileset.arrow_right )
+                                                [ ( ( 2, 5 ), Tileset.arrow_left Tileset.colorWhite )
+                                                , ( ( 3, 5 ), Tileset.arrow_left Tileset.colorWhite )
+                                                , ( ( 4, 5 ), Tileset.arrow_right Tileset.colorWhite )
+                                                , ( ( 5, 5 ), Tileset.arrow_right Tileset.colorWhite )
+                                                , ( ( 6, 5 ), Tileset.letter_exclamation_mark Tileset.colorWhite )
+                                                , ( ( 7, 5 ), Tileset.arrow_down Tileset.colorWhite )
+                                                , ( ( 8, 5 ), Tileset.arrow_down Tileset.colorWhite )
+                                                , ( ( 9, 5 ), Tileset.arrow_right Tileset.colorWhite )
+                                                , ( ( 10, 5 ), Tileset.letter_exclamation_mark Tileset.colorWhite )
+                                                , ( ( 11, 5 ), Tileset.arrow_right Tileset.colorWhite )
                                                 ]
 
                                             4 ->
-                                                [ ( ( 2, 5 ), Tileset.arrow_down )
-                                                , ( ( 3, 5 ), Tileset.arrow_right )
-                                                , ( ( 4, 5 ), Tileset.arrow_right )
-                                                , ( ( 5, 5 ), Tileset.letter_exclamation_mark )
-                                                , ( ( 6, 5 ), Tileset.arrow_right )
-                                                , ( ( 7, 5 ), Tileset.arrow_right )
-                                                , ( ( 8, 5 ), Tileset.arrow_right )
-                                                , ( ( 9, 5 ), Tileset.letter_exclamation_mark )
-                                                , ( ( 10, 5 ), Tileset.arrow_right )
+                                                [ ( ( 2, 5 ), Tileset.arrow_down Tileset.colorWhite )
+                                                , ( ( 3, 5 ), Tileset.arrow_right Tileset.colorWhite )
+                                                , ( ( 4, 5 ), Tileset.arrow_right Tileset.colorWhite )
+                                                , ( ( 5, 5 ), Tileset.letter_exclamation_mark Tileset.colorWhite )
+                                                , ( ( 6, 5 ), Tileset.arrow_right Tileset.colorWhite )
+                                                , ( ( 7, 5 ), Tileset.arrow_right Tileset.colorWhite )
+                                                , ( ( 8, 5 ), Tileset.arrow_right Tileset.colorWhite )
+                                                , ( ( 9, 5 ), Tileset.letter_exclamation_mark Tileset.colorWhite )
+                                                , ( ( 10, 5 ), Tileset.arrow_right Tileset.colorWhite )
                                                 ]
 
                                             3 ->
-                                                [ ( ( 2, 5 ), Tileset.arrow_right )
-                                                , ( ( 3, 5 ), Tileset.arrow_right )
-                                                , ( ( 4, 5 ), Tileset.arrow_right )
-                                                , ( ( 5, 5 ), Tileset.arrow_right )
-                                                , ( ( 6, 5 ), Tileset.arrow_right )
-                                                , ( ( 7, 5 ), Tileset.arrow_right )
-                                                , ( ( 8, 5 ), Tileset.arrow_down )
-                                                , ( ( 9, 5 ), Tileset.arrow_down )
-                                                , ( ( 10, 5 ), Tileset.arrow_right )
-                                                , ( ( 11, 5 ), Tileset.letter_exclamation_mark )
+                                                [ ( ( 2, 5 ), Tileset.arrow_right Tileset.colorWhite )
+                                                , ( ( 3, 5 ), Tileset.arrow_right Tileset.colorWhite )
+                                                , ( ( 4, 5 ), Tileset.arrow_right Tileset.colorWhite )
+                                                , ( ( 5, 5 ), Tileset.arrow_right Tileset.colorWhite )
+                                                , ( ( 6, 5 ), Tileset.arrow_right Tileset.colorWhite )
+                                                , ( ( 7, 5 ), Tileset.arrow_right Tileset.colorWhite )
+                                                , ( ( 8, 5 ), Tileset.arrow_down Tileset.colorWhite )
+                                                , ( ( 9, 5 ), Tileset.arrow_down Tileset.colorWhite )
+                                                , ( ( 10, 5 ), Tileset.arrow_right Tileset.colorWhite )
+                                                , ( ( 11, 5 ), Tileset.letter_exclamation_mark Tileset.colorWhite )
                                                 ]
 
                                             2 ->
-                                                [ ( ( 2, 5 ), Tileset.arrow_down )
-                                                , ( ( 3, 5 ), Tileset.arrow_right )
-                                                , ( ( 4, 5 ), Tileset.arrow_right )
-                                                , ( ( 5, 5 ), Tileset.arrow_right )
-                                                , ( ( 6, 5 ), Tileset.arrow_right )
-                                                , ( ( 7, 5 ), Tileset.letter_exclamation_mark )
+                                                [ ( ( 2, 5 ), Tileset.arrow_down Tileset.colorWhite )
+                                                , ( ( 3, 5 ), Tileset.arrow_right Tileset.colorWhite )
+                                                , ( ( 4, 5 ), Tileset.arrow_right Tileset.colorWhite )
+                                                , ( ( 5, 5 ), Tileset.arrow_right Tileset.colorWhite )
+                                                , ( ( 6, 5 ), Tileset.arrow_right Tileset.colorWhite )
+                                                , ( ( 7, 5 ), Tileset.letter_exclamation_mark Tileset.colorWhite )
                                                 ]
 
                                             _ ->
-                                                [ ( ( 2, 5 ), Tileset.arrow_down )
-                                                , ( ( 3, 5 ), Tileset.arrow_right )
-                                                , ( ( 4, 5 ), Tileset.arrow_right )
-                                                , ( ( 5, 5 ), Tileset.arrow_right )
-                                                , ( ( 6, 5 ), Tileset.letter_exclamation_mark )
+                                                [ ( ( 2, 5 ), Tileset.arrow_down Tileset.colorWhite )
+                                                , ( ( 3, 5 ), Tileset.arrow_right Tileset.colorWhite )
+                                                , ( ( 4, 5 ), Tileset.arrow_right Tileset.colorWhite )
+                                                , ( ( 5, 5 ), Tileset.arrow_right Tileset.colorWhite )
+                                                , ( ( 6, 5 ), Tileset.letter_exclamation_mark Tileset.colorWhite )
                                                 ]
                                         )
                                 )
@@ -708,8 +708,8 @@ view model =
                                 |> Transition.from justOldScreen
                                     (Transition.custom
                                         "next_level"
-                                        [ ( 0, "overflow:hidden;width:" ++ (toString <| scale * tileset.spriteWidth * width) ++ "px;" )
-                                        , ( 2, "overflow:hidden;width:0px;" )
+                                        [ ( 0, "filter:saturate(200%) contrast(100%);overflow:hidden;width:" ++ (toString <| scale * tileset.spriteWidth * width) ++ "px;" )
+                                        , ( 2, "filter:saturate(50%) contrast(150%);overflow:hidden;width:0px;" )
                                         ]
                                     )
                             , tutorialWorldScreen

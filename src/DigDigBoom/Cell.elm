@@ -100,7 +100,7 @@ getImage : Cell -> Tile msg
 getImage cell =
     case cell of
         Player a ->
-            case a of
+            (case a of
                 Down ->
                     Tileset.player_down
 
@@ -112,60 +112,74 @@ getImage cell =
 
                 Right ->
                     Tileset.player_right
+            )
+                Tileset.colorWhite
 
         Solid (Placed Stone) ->
-            Tileset.placed_stone
+            Tileset.placed_stone Tileset.colorGray
 
         Solid (Placed Dirt) ->
-            Tileset.dirt_wall
+            Tileset.dirt_wall Tileset.colorBrown
 
         Solid StoneWall ->
-            Tileset.stone_wall
+            Tileset.stone_wall Tileset.colorGray
 
         Solid StoneBrickWall ->
-            Tileset.stone_brick_wall
+            Tileset.stone_brick_wall Tileset.colorGray
 
         Item Bombe ->
-            Tileset.bombe
+            Tileset.bombe Tileset.colorGreen
 
         Item HealthPotion ->
-            Tileset.health_potion
+            Tileset.health_potion Tileset.colorGreen
 
         Item (Material Dirt) ->
-            Tileset.dirt
+            Tileset.dirt_wall Tileset.colorBlue
 
         Item (Material Stone) ->
-            Tileset.stone
+            Tileset.stone Tileset.colorBlue
 
-        Enemy PlacedBombe id ->
-            Tileset.placed_bombe id
+        Enemy enemy id ->
+            (case enemy of
+                PlacedBombe ->
+                    Tileset.placed_bombe id
 
-        Enemy Oger id ->
-            Tileset.oger id
+                Oger ->
+                    Tileset.oger id
 
-        Enemy Goblin id ->
-            Tileset.goblin id
+                Goblin ->
+                    Tileset.goblin id
 
-        Enemy Rat id ->
-            Tileset.rat id
+                Rat ->
+                    Tileset.rat id
+            )
+                Tileset.colorRed
 
-        Stunned PlacedBombe id ->
-            Tileset.stunned_bombe id
+        Stunned enemy id ->
+            (case enemy of
+                PlacedBombe ->
+                    Tileset.placed_bombe id
 
-        Stunned Oger id ->
-            Tileset.stunned_oger id
+                Oger ->
+                    Tileset.oger id
 
-        Stunned Goblin id ->
-            Tileset.stunned_goblin id
+                Goblin ->
+                    Tileset.goblin id
 
-        Stunned Rat id ->
-            Tileset.stunned_rat id
+                Rat ->
+                    Tileset.rat id
+            )
+                Tileset.colorYellow
 
-        Effect Smoke ->
-            Tileset.smoke
+        Effect effect ->
+            (case effect of
+                Smoke ->
+                    Tileset.smoke
 
-        Effect Bone ->
-            Tileset.bone
+                Bone ->
+                    Tileset.bone
+            )
+                Tileset.colorWhite
 
 
 
