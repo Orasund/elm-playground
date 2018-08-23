@@ -1,4 +1,4 @@
-module PixelEngine.Graphics.Tile exposing (Tile, Tileset, animated, movable, tile, tileset, withAttributes)
+module PixelEngine.Graphics.Tile exposing (Tile, Tileset, animated, movable, tile, tileset, withAttributes, withBackgroundColor)
 
 {-| This module contains functions for creating tiles.
 These tiles are used for the _tiledArea_ function from the main module.
@@ -15,7 +15,9 @@ These tiles are used for the _tiledArea_ function from the main module.
 
 -}
 
+import Css
 import Html.Styled exposing (Attribute)
+import Html.Styled.Attributes exposing (css)
 import PixelEngine.Graphics.Abstract as Abstract
 
 
@@ -136,3 +138,19 @@ withAttributes attributes tile =
     { tile
         | customAttributes = attributes
     }
+
+
+{-| Adds a background color.
+
+This can be used to simulate monochrome sprites or to implement team colors.
+
+```
+tile (0,0) |> withAttributes [css [Css.backgroundColor <| Css.rgb 255 0 0]]
+=
+tile (0,0) |> withBackgroundColor Css.rgb 255 0 0
+```
+
+-}
+withBackgroundColor : Css.Color -> Tile msg -> Tile msg
+withBackgroundColor color =
+    withAttributes [ css [ Css.backgroundColor <| color ] ]

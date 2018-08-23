@@ -1,4 +1,4 @@
-module PixelEngine.Controls exposing (Input(..), basic, defaultLayout,custom, supportingMobile)
+module PixelEngine.Controls exposing (Input(..), basic, custom, defaultLayout, supportingMobile)
 
 import Char
 import Keyboard
@@ -19,12 +19,43 @@ type Input
     | InputNone
 
 
-supportingMobile : { windowSize : Window.Size } -> Options msg -> Options msg
-supportingMobile { windowSize } (Abstract.Options options) =
-    Abstract.Options { options | controllerOptions = Just { windowSize = windowSize } }
+supportingMobile : { windowSize : Window.Size, controls : Input -> msg } -> Options msg -> Options msg
+supportingMobile { windowSize, controls } (Abstract.Options options) =
+    let
+        convert : Abstract.AbstractInput -> Input
+        convert input =
+            case input of
+                Abstract.AbstractInputA ->
+                    InputA
+
+                Abstract.AbstractInputB ->
+                    InputB
+
+                Abstract.AbstractInputX ->
+                    InputX
+
+                Abstract.AbstractInputY ->
+                    InputY
+
+                Abstract.AbstractInputUp ->
+                    InputUp
+
+                Abstract.AbstractInputLeft ->
+                    InputLeft
+
+                Abstract.AbstractInputRight ->
+                    InputRight
+
+                Abstract.AbstractInputDown ->
+                    InputDown
+
+                Abstract.AbstractInputNone ->
+                    InputNone
+    in
+    Abstract.Options { options | controllerOptions = Just { windowSize = windowSize, controls = convert >> controls } }
 
 
-defaultLayout : (Char -> Input)
+defaultLayout : Char -> Input
 defaultLayout =
     \char ->
         case char of

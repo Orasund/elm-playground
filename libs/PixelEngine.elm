@@ -61,13 +61,17 @@ subscriptionsFunction subscriptions ({ modelContent, config } as model) =
 viewFunction : (model -> ( Options msg, List (Area msg) )) -> Model model msg -> Html (Msg msg)
 viewFunction view ({ modelContent, config } as model) =
     let
+        { windowSize, controls } =
+            config
+
         ( options, listOfArea ) =
             view modelContent
     in
-    (case config.windowSize of
+    (case windowSize of
         Just wS ->
             Graphics.render
-                (options |> Controls.supportingMobile { windowSize = wS })
+                options
+                --(options |> Controls.supportingMobile { windowSize = wS, controls = controls |> Tuple.second })
                 listOfArea
 
         Nothing ->

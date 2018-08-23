@@ -2,10 +2,12 @@ module PixelEngine.Graphics.Abstract exposing (..)
 
 import Css exposing (px)
 import Css.Foreign as Foreign
-import Html.Styled exposing (Attribute, Html, div, img)
+import Html.Styled as Html exposing (Attribute, Html, div, img)
 import Html.Styled.Attributes exposing (css, src)
+import Html.Styled.Events as Events
 import Html.Styled.Keyed as Keyed
 import Window
+
 
 type alias TileInformation additional =
     { additional
@@ -13,6 +15,18 @@ type alias TileInformation additional =
         , left : Int
         , steps : Int
     }
+
+
+type AbstractInput
+    = AbstractInputLeft
+    | AbstractInputRight
+    | AbstractInputUp
+    | AbstractInputDown
+    | AbstractInputA
+    | AbstractInputB
+    | AbstractInputX
+    | AbstractInputY
+    | AbstractInputNone
 
 
 type alias Tile msg =
@@ -43,15 +57,19 @@ type Background
     = ColorBackground Css.Color
     | ImageBackground { source : String, width : Float, height : Float }
 
-type alias ControllerOptions
-    = { windowSize : Window.Size}
+
+type alias ControllerOptions msg =
+    { windowSize : Window.Size
+    , controls : AbstractInput -> msg
+    }
+
 
 type Options msg
     = Options
         { width : Float
         , scale : Float
         , transitionSpeedInSec : Float
-        , controllerOptions : Maybe ControllerOptions
+        , controllerOptions : Maybe (ControllerOptions msg)
         , transitionFrom : List (Area msg)
         , transition : Transition
         }
@@ -234,36 +252,44 @@ render ((Options { width, transitionFrom, transition, controllerOptions }) as op
                 [ renderScreen options transitionFrom ]
             ]
          ]
-            |> case controllerOptions of
-                Nothing ->
-                    identity
-                
-                Just ({windowSize} as justCtrlOptions) ->
-                    if windowSize.width > windowSize.height then
-                        List.append <| renderControls justCtrlOptions
-                    else
+            |> (case controllerOptions of
+                    Nothing ->
                         identity
+
+                    Just ({ windowSize } as justCtrlOptions) ->
+                        if windowSize.width > windowSize.height then
+                            \l -> renderControls justCtrlOptions |> List.append l
+                        else
+                            identity
+               )
         )
 
 
-renderControls : ControllerOptions -> List (Html msg)
-renderControls controllerOptions =
+renderControls : ControllerOptions msg -> List (Html msg)
+renderControls { windowSize, controls } =
     let
         diameter : Float
         diameter =
-            100
+            toFloat <| windowSize.height // 4
 
-        circle : Html msg
-        circle =
+        circle : String -> AbstractInput -> Float -> List Css.Style -> Html msg
+        circle char input size listOfCss =
             div
                 [ css
-                    [ Css.width <| Css.px <| diameter
-                    , Css.height <| Css.px <| diameter
-                    , Css.borderRadius <| Css.px <|  diameter / 2
-                    , Css.backgroundColor <| Css.rgb 256 256 256
-                    ]
+                    ([ Css.width <| Css.px <| size
+                     , Css.height <| Css.px <| size
+                     , Css.borderRadius <| Css.px <| size / 2
+                     , Css.backgroundColor <| Css.rgb 256 256 256
+                     , Css.textAlign Css.center
+                     , Css.fontFamily Css.sansSerif
+                     , Css.fontSize <| Css.px <| size * 0.9
+                     , Css.opacity <| Css.num 0.5
+                     ]
+                        |> List.append listOfCss
+                    )
+                , Events.onClick <| controls <| input
                 ]
-                []
+                [ Html.text <| char ]
     in
     [ div
         [ css
@@ -272,7 +298,34 @@ renderControls controllerOptions =
             , Css.left <| px 0
             ]
         ]
-        [ circle
+        [ circle "◀"
+            AbstractInputLeft
+            diameter
+            [ Css.position Css.absolute
+            , Css.top <| px <| diameter * 1.5
+            , Css.left <| px 0
+            ]
+        , circle "▶"
+            AbstractInputRight
+            diameter
+            [ Css.position Css.absolute
+            , Css.top <| px <| diameter * 1.5
+            , Css.left <| px <| diameter + (sqrt (2 * diameter ^ 2) - diameter)
+            ]
+        , circle "▲"
+            AbstractInputUp
+            diameter
+            [ Css.position Css.absolute
+            , Css.top <| px <| diameter * 1.0 - (sqrt (2 * diameter ^ 2) - diameter) / 2
+            , Css.left <| px <| diameter * 0.5 + (sqrt (2 * diameter ^ 2) - diameter) / 2
+            ]
+        , circle "▼"
+            AbstractInputDown
+            diameter
+            [ Css.position Css.absolute
+            , Css.top <| px <| diameter * 2.0 + (sqrt (2 * diameter ^ 2) - diameter) / 2
+            , Css.left <| px <| diameter * 0.5 + (sqrt (2 * diameter ^ 2) - diameter) / 2
+            ]
         ]
     , div
         [ css
@@ -281,7 +334,34 @@ renderControls controllerOptions =
             , Css.right <| px 0
             ]
         ]
-        [ circle
+        [ circle "A"
+            AbstractInputA
+            diameter
+            [ Css.position Css.absolute
+            , Css.top <| px <| diameter * 1.5
+            , Css.right <| px 0
+            ]
+        , circle "X"
+            AbstractInputX
+            diameter
+            [ Css.position Css.absolute
+            , Css.top <| px <| diameter * 1.5
+            , Css.right <| px <| diameter + (sqrt (2 * diameter ^ 2) - diameter)
+            ]
+        , circle "Y"
+            AbstractInputY
+            diameter
+            [ Css.position Css.absolute
+            , Css.top <| px <| diameter * 1.0 - (sqrt (2 * diameter ^ 2) - diameter) / 2
+            , Css.right <| px <| diameter * 0.5 + (sqrt (2 * diameter ^ 2) - diameter) / 2
+            ]
+        , circle "B"
+            AbstractInputB
+            diameter
+            [ Css.position Css.absolute
+            , Css.top <| px <| diameter * 2.0 + (sqrt (2 * diameter ^ 2) - diameter) / 2
+            , Css.right <| px <| diameter * 0.5 + (sqrt (2 * diameter ^ 2) - diameter) / 2
+            ]
         ]
     ]
 
@@ -421,7 +501,7 @@ displayElement options ( ( left, top ), { elementType, uniqueId, customAttribute
 
 
 displayMultiple : Options msg -> ( Position, MultipleSources ) -> Maybe String -> List (Attribute msg) -> ( String, Html msg )
-displayMultiple ((Options { transitionSpeedInSec }) as options) ( rootPosition, multipleSources ) transitionId attributes =
+displayMultiple ((Options { scale, transitionSpeedInSec }) as options) ( rootPosition, multipleSources ) transitionId attributes =
     ( transitionId |> Maybe.withDefault ""
     , div
         ([ css
@@ -436,6 +516,20 @@ displayMultiple ((Options { transitionSpeedInSec }) as options) ( rootPosition, 
                     , Css.left (Css.px <| rootPosition.left)
                     , Css.top (Css.px <| rootPosition.top)
                     ]
+                |> (case multipleSources of
+                        [ ( _, TileSource { tileset } ) ] ->
+                            let
+                                { spriteWidth, spriteHeight } =
+                                    tileset
+                            in
+                            List.append
+                                [ Css.width <| Css.px <| scale * (toFloat <| spriteWidth)
+                                , Css.height <| Css.px <| scale * (toFloat <| spriteHeight)
+                                ]
+
+                        _ ->
+                            identity
+                   )
             )
          ]
             |> List.append attributes

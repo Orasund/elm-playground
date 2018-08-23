@@ -84,9 +84,11 @@ newMap worldSeed =
             8
 
         ( currentMap, currentSeed ) =
-            Map.generate
-                (worldSize - 1)
-                Cell.mapGenerator
+            Random.step
+                (Map.generator
+                    (worldSize - 1)
+                    Cell.generator
+                )
                 (Random.initialSeed worldSeed)
                 |> Tuple.mapFirst (Dict.update ( 7, 7 ) (always (Just (Player Down))))
     in
@@ -166,7 +168,6 @@ update msg model =
                 nextLevel modelContent
             else
                 case msg of
-
                     Input input ->
                         let
                             maybePlayer : Map Cell -> Maybe PlayerCell
@@ -227,8 +228,7 @@ update msg model =
                                     InputY ->
                                         modelContent
                                             |> updateGame (Tuple.mapFirst Player.rotateRight)
-                                    
-                                    
+
                                     InputB ->
                                         Nothing ! [ Cmd.none ]
 
@@ -258,6 +258,7 @@ update msg model =
                                                    )
                                             )
                                             ! [ Cmd.none ]
+
         Nothing ->
             case msg of
                 Input InputLeft ->
