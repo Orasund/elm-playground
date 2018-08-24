@@ -150,7 +150,7 @@ update msg maybeModel =
 
                                         Dying ->
                                             { m | hunger = 0 }
-                                        
+
                                         None ->
                                             m
                                 )
@@ -238,7 +238,6 @@ subscriptions maybeModel =
     Sub.none
 
 
-
 view : Maybe Model -> Html Msg
 view maybeModel =
     let
@@ -255,10 +254,11 @@ view maybeModel =
             600
 
         options =
-            { scale = scale
-            , width = width
-            , transitionSpeedInSec = 8
-            }
+            Graphics.options
+                { scale = scale
+                , width = width
+                , transitionSpeedInSec = 8
+                }
     in
     Graphics.render options
         [ Graphics.imageArea
@@ -300,7 +300,7 @@ view maybeModel =
                                           )
                                         ]
                                      else if action == None then
-                                        [ ( (0,0) , Image.image "empty.png")]
+                                        [ ( ( 0, 0 ), Image.image "empty.png" ) ]
                                      else
                                         [ ( ( 0, 0 ), image )
                                         , ( case action of
