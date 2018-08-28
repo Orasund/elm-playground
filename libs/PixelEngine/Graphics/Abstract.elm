@@ -262,7 +262,7 @@ render ((Options { width, transitionFrom, transition, controllerOptions }) as op
                         identity
 
                     Just ({ windowSize } as justCtrlOptions) ->
-                        if windowSize.width > windowSize.height then
+                        if toFloat windowSize.width > 1.5 * toFloat windowSize.height then
                             \l -> renderControls justCtrlOptions |> List.append l
                         else
                             identity

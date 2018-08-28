@@ -616,7 +616,13 @@ view model =
                                 ( options, worldScreen worldSeed map player [] )
                             else
                                 ( options
-                                    |> Transition.from deathScreen
+                                    |> Transition.from
+                                        (worldScreen
+                                            worldSeed
+                                            map
+                                            player
+                                            []
+                                        )
                                         (Transition.custom
                                             "death_transition"
                                             [ ( 0, "opacity:1;filter:grayscale(0%) blur(0px);" )
@@ -624,11 +630,7 @@ view model =
                                             , ( 3, "opacity:0;filter:grayscale(70%) blur(5px);" )
                                             ]
                                         )
-                                , worldScreen
-                                    worldSeed
-                                    map
-                                    player
-                                    []
+                                , deathScreen
                                 )
 
                 Tutorial num ->
