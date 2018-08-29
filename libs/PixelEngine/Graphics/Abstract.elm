@@ -181,7 +181,7 @@ renderScreen options listOfArea =
 
 
 render : Options msg -> List (Area msg) -> Html msg
-render ((Options { width, transitionFrom, transition, controllerOptions }) as options) to =
+render ((Options { width, scale, transitionFrom, transition, controllerOptions }) as options) to =
     let
         (Transition { name, transitionList }) =
             transition
@@ -232,7 +232,7 @@ render ((Options { width, transitionFrom, transition, controllerOptions }) as op
          , div
             [ css
                 [ Css.position Css.relative
-                , Css.width <| px <| width
+                , Css.width <| px <| scale * width
                 , Css.margin Css.auto
                 ]
             ]
@@ -452,8 +452,8 @@ cssArea scale background { width, height } =
                 cssBackgroundImage scale imageBackground.source { width = imageBackground.width, height = imageBackground.height }
          )
             |> List.append
-                [ Css.width (Css.px <| width)
-                , Css.height (Css.px <| height)
+                [ Css.width (Css.px <| scale * width)
+                , Css.height (Css.px <| scale * height)
                 ]
             |> List.append
                 [ Css.margin Css.auto
@@ -568,8 +568,8 @@ displayImage (Options { scale, transitionSpeedInSec }) ( { top, left }, source )
             , Css.property "transform-origin" "top left"
             , Css.transform <| Css.scale2 scale scale
             , Css.position Css.absolute
-            , Css.left (Css.px <| left)
-            , Css.top (Css.px <| top)
+            , Css.left (Css.px <| scale * left)
+            , Css.top (Css.px <| scale * top)
             ]
         ]
         []

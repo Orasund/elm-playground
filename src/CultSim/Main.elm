@@ -243,15 +243,15 @@ view maybeModel =
     let
         scale : Float
         scale =
-            2
+            1
 
         width : Float
         width =
-            600
+            300
 
         height : Float
         height =
-            600
+            300
 
         options =
             Graphics.options
@@ -346,7 +346,7 @@ view maybeModel =
                                 )
                             )
                         |> List.append
-                            [ ( ( width / 2 - 64, height / 2 - 64 )
+                            [ ( ( width / 2 - 32 * scale, height / 2 - 48 * scale )
                               , if hunger < 1 then
                                     Image.image "temple.png"
                                 else

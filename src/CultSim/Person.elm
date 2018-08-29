@@ -83,7 +83,7 @@ generatePosition r =
 
 move : Person -> Random.Seed -> ( Person, Random.Seed )
 move person =
-    Random.step (generatePosition 150)
+    Random.step (generatePosition 75)
         >> Tuple.mapFirst
             (\position ->
                 { person
@@ -102,8 +102,10 @@ pray ({ praying_duration, skin } as person) =
             case praying_duration of
                 2 ->
                     { skin | body = 10 }
+
                 4 ->
                     { skin | body = 100, head = 100 }
+
                 _ ->
                     skin
     }
@@ -128,6 +130,6 @@ generate =
               }
             )
         )
-        (generatePosition 275)
+        (generatePosition 135)
         (Random.float 0 1)
         generateSkin
