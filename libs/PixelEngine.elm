@@ -65,7 +65,7 @@ viewFunction view ({ modelContent, config } as model) =
         { windowSize, controls } =
             config
 
-        ( (Abstract.Options { scale }) as options, listOfArea ) =
+        ( (Abstract.Options { width, scale }) as options, listOfArea ) =
             view modelContent
 
         height =
@@ -75,7 +75,7 @@ viewFunction view ({ modelContent, config } as model) =
         Just wS ->
             Graphics.render
                 (options
-                    |> Graphics.usingScale ((toFloat <| wS.height) / height)
+                    |> Graphics.usingScale (min ((toFloat <| wS.height) / height) ((toFloat <| wS.width) / width))
                     |> Controls.supportingMobile { windowSize = wS, controls = controls |> Tuple.second }
                 )
                 listOfArea
