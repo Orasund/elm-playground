@@ -241,10 +241,6 @@ subscriptions maybeModel =
 view : Maybe Model -> Html Msg
 view maybeModel =
     let
-        scale : Float
-        scale =
-            1
-
         width : Float
         width =
             300
@@ -255,7 +251,7 @@ view maybeModel =
 
         options =
             Graphics.options
-                { scale = scale
+                { scale = 1
                 , width = width
                 , transitionSpeedInSec = 8
                 }
@@ -305,7 +301,7 @@ view maybeModel =
                                         [ ( ( 0, 0 ), image )
                                         , ( case action of
                                                 Praying _ ->
-                                                    ( 0, 4 )
+                                                    ( 0, 2 )
 
                                                 _ ->
                                                     ( 0, 0 )
@@ -315,7 +311,7 @@ view maybeModel =
                                             |> (case action of
                                                     Praying int ->
                                                         List.append
-                                                            [ ( ( 0, 33 )
+                                                            [ ( ( 0, 17 )
                                                               , Image.fromTile
                                                                     (Person.tile_bar
                                                                         ((16 // (praying_duration + 1) * (int + 1)) - 1)
@@ -346,7 +342,7 @@ view maybeModel =
                                 )
                             )
                         |> List.append
-                            [ ( ( width / 2 - 32 * scale, height / 2 - 48 * scale )
+                            [ ( ( width / 2 - 32, height / 2 - 48 )
                               , if hunger < 1 then
                                     Image.image "temple.png"
                                 else

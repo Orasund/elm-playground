@@ -1,4 +1,4 @@
-module PixelEngine.Graphics exposing (Area, Background, Options, colorBackground, imageArea, imageBackground, options, render, tiledArea)
+module PixelEngine.Graphics exposing (Area, Background, Options, colorBackground, heightOf, imageArea, imageBackground, options, render, tiledArea, usingScale)
 
 {-| A graphic engine for turn-based pixel games.
 
@@ -93,7 +93,7 @@ To get started, copy the following example:
 
 ## Area
 
-@docs Area,tiledArea,imageArea
+@docs Area,tiledArea,imageArea,heightOf
 
 
 ## Background
@@ -118,6 +118,24 @@ You can find more information about the valid elements in the curresponding modu
 -}
 type alias Area msg =
     Abstract.Area msg
+
+
+{-| returns the height of a list of Areas
+-}
+heightOf : List (Area msg) -> Float
+heightOf listOfArea =
+    List.sum
+        (listOfArea
+            |> List.map
+                (\area ->
+                    case area of
+                        Abstract.Tiled { rows, tileset } ->
+                            toFloat <| rows * tileset.spriteHeight
+
+                        Abstract.Images { height } ->
+                            height
+                )
+        )
 
 
 {-| Every area has a background.
@@ -217,6 +235,14 @@ For the start use the following settings
 options : { width : Float, scale : Float, transitionSpeedInSec : Float } -> Options msg
 options =
     Abstract.options
+
+
+{-| scale up EVERYTHING.
+it can not be used with PixelEngine.document.
+-}
+usingScale : Float -> Options msg -> Options msg
+usingScale scale (Abstract.Options { width, transitionSpeedInSec }) =
+    Abstract.options { width = width, scale = scale, transitionSpeedInSec = transitionSpeedInSec }
 
 
 {-| This functions displays the content of the game.

@@ -74,7 +74,6 @@ type Options msg
         , transition : Transition
         }
 
-
 options : { width : Float, scale : Float, transitionSpeedInSec : Float } -> Options msg
 options { width, scale, transitionSpeedInSec } =
     Options
@@ -382,7 +381,7 @@ renderTiledArea ((Options { width, scale }) as options) { rows, background, cont
             scale
             background
             { width = width
-            , height = scale * (toFloat <| tileset.spriteHeight * rows)
+            , height = toFloat <| tileset.spriteHeight * rows
             }
         ]
         (content
@@ -395,8 +394,8 @@ renderTiledArea ((Options { width, scale }) as options) { rows, background, cont
                                 info
                         in
                         displayMultiple options
-                            ( { left = scale * (toFloat <| spriteWidth * (location |> Tuple.first))
-                              , top = scale * (toFloat <| spriteHeight * (location |> Tuple.second))
+                            ( { left = toFloat <| spriteWidth * (location |> Tuple.first)
+                              , top = toFloat <| spriteHeight * (location |> Tuple.second)
                               }
                             , [ ( { top = 0, left = 0 }
                                 , TileSource
@@ -486,9 +485,9 @@ cssPositions { left, top } =
 
 
 displayElement : Options msg -> ( ( Float, Float ), ContentElement msg ) -> ( String, Html msg )
-displayElement options ( ( left, top ), { elementType, uniqueId, customAttributes } ) =
+displayElement ((Options { scale }) as options) ( ( left, top ), { elementType, uniqueId, customAttributes } ) =
     let
-        position =
+        pos =
             { left = left, top = top }
     in
     case elementType of
@@ -499,10 +498,10 @@ displayElement options ( ( left, top ), { elementType, uniqueId, customAttribute
                displayImage options ( position, imageSource ) uniqueId customAttributes
         -}
         SingleSource singleSource ->
-            displayMultiple options ( position, [ ( { top = 0, left = 0 }, singleSource ) ] ) uniqueId customAttributes
+            displayMultiple options ( pos, [ ( { top = 0, left = 0 }, singleSource ) ] ) uniqueId customAttributes
 
         MultipleSources multipleSources ->
-            displayMultiple options ( position, multipleSources ) uniqueId customAttributes
+            displayMultiple options ( pos, multipleSources ) uniqueId customAttributes
 
 
 displayMultiple : Options msg -> ( Position, MultipleSources ) -> Maybe String -> List (Attribute msg) -> ( String, Html msg )
@@ -518,8 +517,8 @@ displayMultiple ((Options { scale, transitionSpeedInSec }) as options) ( rootPos
              )
                 |> List.append
                     [ Css.position Css.absolute
-                    , Css.left (Css.px <| rootPosition.left)
-                    , Css.top (Css.px <| rootPosition.top)
+                    , Css.left (Css.px <| scale * rootPosition.left)
+                    , Css.top (Css.px <| scale * rootPosition.top)
                     ]
                 |> (case multipleSources of
                         [ ( _, TileSource { tileset } ) ] ->
@@ -544,8 +543,8 @@ displayMultiple ((Options { scale, transitionSpeedInSec }) as options) ( rootPos
                 (\( position, source ) ->
                     let
                         pos =
-                            { top = position.top
-                            , left = position.left
+                            { top = scale * position.top
+                            , left = scale * position.left
                             }
                     in
                     case source of
@@ -568,8 +567,8 @@ displayImage (Options { scale, transitionSpeedInSec }) ( { top, left }, source )
             , Css.property "transform-origin" "top left"
             , Css.transform <| Css.scale2 scale scale
             , Css.position Css.absolute
-            , Css.left (Css.px <| scale * left)
-            , Css.top (Css.px <| scale * top)
+            , Css.left (Css.px <| left)
+            , Css.top (Css.px <| top)
             ]
         ]
         []

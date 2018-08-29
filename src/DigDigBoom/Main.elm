@@ -327,10 +327,6 @@ logo =
 deathScreen : List (Area msg)
 deathScreen =
     let
-        scale : Int
-        scale =
-            2
-
         width : Int
         width =
             16
@@ -359,10 +355,10 @@ deathScreen =
         , ( ( 9, 1 ), Tileset.letter_d Tileset.colorWhite )
         ]
     , Graphics.imageArea
-        { height = toFloat <| scale * 12 * 16
+        { height = toFloat <| 12 * 16
         , background = Graphics.colorBackground (Css.rgb 20 12 28)
         }
-        [ ( ( toFloat <| (scale * 16 * width) // 2 - 128, toFloat <| (scale * 12 * width) // 2 - 128 ), image "skull.png" )
+        [ ( ( toFloat <| (16 * width) // 2 - 64, toFloat <| (12 * width) // 2 - 64 ), image "skull.png" )
         ]
     , Graphics.tiledArea
         { rows = 2
@@ -396,10 +392,6 @@ deathScreen =
 menuScreen : List (Area msg)
 menuScreen =
     let
-        scale : Int
-        scale =
-            2
-
         width : Int
         width =
             16
@@ -431,10 +423,10 @@ menuScreen =
         , ( ( 9, 2 ), Tileset.letter_m Tileset.colorWhite )
         ]
     , Graphics.imageArea
-        { height = toFloat <| scale * 9 * 16
+        { height = toFloat <| 9 * 16
         , background = Graphics.colorBackground (Css.rgb 20 12 28)
         }
-        [ ( ( toFloat <| (scale * 16 * width) // 2 - 128, 0 ), Image.fromTile tile logo )
+        [ ( ( toFloat <| (16 * width) // 2 - 64, 0 ), Image.fromTile tile logo )
         ]
     , Graphics.tiledArea
         { rows = 4
@@ -581,7 +573,7 @@ view model =
     let
         scale : Int
         scale =
-            2
+            1
 
         width : Int
         width =
@@ -590,7 +582,7 @@ view model =
         options =
             Graphics.options
                 { scale = toFloat <| scale
-                , width = toFloat <| scale * tileset.spriteWidth * width
+                , width = toFloat <| tileset.spriteWidth * width
                 , transitionSpeedInSec = 0.2
                 }
     in
