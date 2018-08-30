@@ -588,7 +588,7 @@ view model =
                                 |> Transition.from justOldScreen
                                     (Transition.custom
                                         "next_level"
-                                        [ ( 0, "filter:saturate(200%) contrast(100%);overflow:hidden;width:100%;" ) --(toString <| scale * tileset.spriteWidth * width)
+                                        [ ( 0, "filter:saturate(200%) contrast(100%);overflow:hidden;width:100%" ) --(toString <| scale * tileset.spriteWidth * width)
                                         , ( 2, "filter:saturate(50%) contrast(150%);overflow:hidden;width:0%;" )
                                         ]
                                     )

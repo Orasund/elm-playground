@@ -243,8 +243,8 @@ options { width, transitionSpeedInSec } =
 it can not be used with PixelEngine.document.
 -}
 usingScale : Float -> Options msg -> Options msg
-usingScale scale (Abstract.Options { width, transitionSpeedInSec }) =
-    Abstract.options { width = width, scale = scale, transitionSpeedInSec = transitionSpeedInSec }
+usingScale scale (Abstract.Options options) =
+    Abstract.Options { options | scale = scale }
 
 
 {-| This functions displays the content of the game.
