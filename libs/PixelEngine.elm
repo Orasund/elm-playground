@@ -1,5 +1,12 @@
 module PixelEngine exposing (PixelEngine, program, programWithCustomControls)
 
+{-| The Libary may support more then just simple rendering. This module exists to take care of everything else.
+It provides a document that is already set up.
+
+@docs PixelEngine, program, programWithCustomControls
+
+-}
+
 import Html.Styled as Html exposing (Html)
 import PixelEngine.Controls as Controls exposing (Input)
 import PixelEngine.Graphics as Graphics exposing (Area, Options)
@@ -8,6 +15,8 @@ import Task
 import Window
 
 
+{-| an alias for the specific document
+-}
 type alias PixelEngine flag model msg =
     Program flag (Model model msg) (Msg msg)
 
@@ -75,7 +84,11 @@ viewFunction view ({ modelContent, config } as model) =
         Just wS ->
             Graphics.render
                 (options
-                    |> Graphics.usingScale (min ((toFloat <| wS.height) / height) ((toFloat <| wS.width) / width))
+                    |> Graphics.usingScale
+                        (toFloat <|
+                            min (2 ^ (floor <| logBase 2 <| (toFloat <| wS.height) / height))
+                                (2 ^ (floor <| logBase 2 <| (toFloat <| wS.width) / width))
+                        )
                     |> Controls.supportingMobile { windowSize = wS, controls = controls |> Tuple.second }
                 )
                 listOfArea
@@ -100,6 +113,8 @@ initFunction controls init =
           ]
 
 
+{-| uses custom controls
+-}
 programWithCustomControls :
     { init : ( model, Cmd msg )
     , update : msg -> model -> ( model, Cmd msg )
@@ -121,6 +136,8 @@ programWithCustomControls { init, update, subscriptions, view, controls } =
         }
 
 
+{-| use this function as usual
+-}
 program :
     { init : ( model, Cmd msg )
     , update : msg -> model -> ( model, Cmd msg )

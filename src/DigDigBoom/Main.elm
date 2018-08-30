@@ -85,10 +85,7 @@ newMap worldSeed =
 
         ( currentMap, currentSeed ) =
             Random.step
-                (Map.generator
-                    (worldSize)
-                    Cell.generator
-                )
+                (Map.generator worldSize Cell.generator)
                 (Random.initialSeed worldSeed)
                 |> Tuple.mapFirst (Dict.update ( 7, 7 ) (always (Just (Player Down))))
     in
@@ -571,18 +568,13 @@ worldScreen worldSeed map player hints =
 view : Model -> ( Options Msg, List (Area Msg) )
 view model =
     let
-        scale : Int
-        scale =
-            1
-
         width : Int
         width =
             16
 
         options =
             Graphics.options
-                { scale = toFloat <| scale
-                , width = toFloat <| tileset.spriteWidth * width
+                { width = toFloat <| tileset.spriteWidth * width
                 , transitionSpeedInSec = 0.2
                 }
     in
@@ -596,8 +588,8 @@ view model =
                                 |> Transition.from justOldScreen
                                     (Transition.custom
                                         "next_level"
-                                        [ ( 0, "filter:saturate(200%) contrast(100%);overflow:hidden;width:" ++ (toString <| scale * tileset.spriteWidth * width) ++ "px;" )
-                                        , ( 2, "filter:saturate(50%) contrast(150%);overflow:hidden;width:0px;" )
+                                        [ ( 0, "filter:saturate(200%) contrast(100%);overflow:hidden;width:100%;" ) --(toString <| scale * tileset.spriteWidth * width)
+                                        , ( 2, "filter:saturate(50%) contrast(150%);overflow:hidden;width:0%;" )
                                         ]
                                     )
                             , worldScreen worldSeed map player []
@@ -702,8 +694,8 @@ view model =
                                 |> Transition.from justOldScreen
                                     (Transition.custom
                                         "next_level"
-                                        [ ( 0, "filter:saturate(200%) contrast(100%);overflow:hidden;width:" ++ (toString <| scale * tileset.spriteWidth * width) ++ "px;" )
-                                        , ( 2, "filter:saturate(50%) contrast(150%);overflow:hidden;width:0px;" )
+                                        [ ( 0, "filter:saturate(200%) contrast(100%);overflow:hidden;width:100%;" ) --(toString <| scale * tileset.spriteWidth * width)
+                                        , ( 2, "filter:saturate(50%) contrast(150%);overflow:hidden;width:0%;" )
                                         ]
                                     )
                             , tutorialWorldScreen

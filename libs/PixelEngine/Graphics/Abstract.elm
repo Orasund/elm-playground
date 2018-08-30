@@ -74,6 +74,7 @@ type Options msg
         , transition : Transition
         }
 
+
 options : { width : Float, scale : Float, transitionSpeedInSec : Float } -> Options msg
 options { width, scale, transitionSpeedInSec } =
     Options
