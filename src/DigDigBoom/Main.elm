@@ -86,7 +86,7 @@ newMap worldSeed =
         ( currentMap, currentSeed ) =
             Random.step
                 (Map.generator
-                    (worldSize - 1)
+                    (worldSize)
                     Cell.generator
                 )
                 (Random.initialSeed worldSeed)
