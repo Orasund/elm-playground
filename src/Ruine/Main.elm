@@ -2,6 +2,7 @@ module Ruine.Main exposing (main)
 
 import Css
 import Dict exposing (Dict)
+import DigDigBoom.Component.Map as Map
 import Html.Styled exposing (Html, program)
 import Html.Styled.Events as Events
 import PixelEngine.Graphics as Graphics exposing (Area)
@@ -9,8 +10,9 @@ import PixelEngine.Graphics.Image as Image exposing (image)
 import PixelEngine.Graphics.Tile as Tile exposing (Tileset)
 import Random
 
+
 type alias Model =
-    { map : Dict (Int,Int) Int
+    { map : Dict ( Int, Int ) Int
     , seed : Random.Seed
     }
 
@@ -21,10 +23,12 @@ type Msg
 
 init : Int -> ( Maybe Model, Cmd Msg )
 init int =
-    Just { seed = Random.initialSeed int
-    , map = Dict.empty
-    } ! []
-    
+    Just
+        { seed = Random.initialSeed int
+        , map = Dict.empty
+        }
+        ! []
+
 
 update : Msg -> Maybe Model -> ( Maybe Model, Cmd Msg )
 update msg maybeModel =
@@ -36,7 +40,6 @@ update msg maybeModel =
 subscriptions : Maybe Model -> Sub Msg
 subscriptions maybeModel =
     Sub.none
-
 
 
 view : Maybe Model -> Html Msg
@@ -59,9 +62,10 @@ view maybeModel =
             , width = width
             , transitionSpeedInSec = 8
             }
-        
+
         rows : Int
-        rows = 32
+        rows =
+            32
 
         tileset : Tileset
         tileset =
@@ -76,12 +80,12 @@ view maybeModel =
             , rows = rows
             , tileset = tileset
             }
-            (   case maybeModel of
-                    Just model ->
-                        []
+            (case maybeModel of
+                Just model ->
+                    []
 
-                    Nothing ->
-                        []
+                Nothing ->
+                    []
             )
         ]
 
@@ -89,8 +93,9 @@ view maybeModel =
 main : Program Never (Maybe Model) Msg
 main =
     program
-        { init = Nothing
-            ! [ Random.generate Init <| Random.int Random.minInt Random.maxInt ]
+        { init =
+            Nothing
+                ! [ Random.generate Init <| Random.int Random.minInt Random.maxInt ]
         , view = view
         , update = update
         , subscriptions = subscriptions
