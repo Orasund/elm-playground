@@ -40,17 +40,20 @@ init =
         tabState =
             Tab.initialState
     in
-    { visualizer = visualizer
-    , tabState = tabState
-    }
-        ! [ Cmd.none ]
+    ( { visualizer = visualizer
+      , tabState = tabState
+      }
+    , Cmd.none
+    )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg ({ visualizer} as model) =
+update msg ({ visualizer } as model) =
     case msg of
         Visualizer name m ->
-            { model | visualizer = visualizer |> SampleData.update name (\a -> LoveGraphVisualizer.update m a) } ! [ Cmd.none ]
+            ( { model | visualizer = visualizer |> SampleData.update name (\a -> LoveGraphVisualizer.update m a) }
+            , Cmd.none
+            )
 
         TabMsg state ->
             ( { model | tabState = state }
@@ -59,7 +62,7 @@ update msg ({ visualizer} as model) =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions { visualizer} =
+subscriptions { visualizer } =
     visualizer
         |> SampleData.toList
         |> List.map
@@ -142,17 +145,13 @@ view { visualizer, tabState } =
                             , Html.li []
                                 [ Html.text "Beschriftete Kanten : "
                                 , Html.span
-                                    [ style
-                                        [ ( "color", "#aaa" )
-                                        ]
+                                    [ style "color" "#aaa"
                                     ]
                                     [ Html.text "Freundschaft" ]
                                 , Html.text " und "
                                 , Html.span
-                                    [ style
-                                        [ ( "color", "#983352" )
-                                        , ( "font-weight", "bold" )
-                                        ]
+                                    [ style "color" "#983352"
+                                    , style "font-weight" "bold"
                                     ]
                                     [ Html.text "Beziehung" ]
                                 ]
@@ -195,11 +194,11 @@ view { visualizer, tabState } =
                             , Html.li []
                                 [ Html.text "Grundwert (von m): "
                                 , Html.br [] []
-                                , Html.code [] [ Html.text "| Menge aller Kanten mit Männern von m in der Grundform des Graphen |"]
+                                , Html.code [] [ Html.text "| Menge aller Kanten mit Männern von m in der Grundform des Graphen |" ]
                                 , Html.br [] []
                                 , Html.b [] [ Html.text "Vereinbarung: Grundwert ist eindeutig ⇒ Einfache Liebes Graphen" ]
                                 , Html.br [] []
-                                , Html.p [] [Html.text "Vermutung: hilft der Frau beim Entscheiden"]
+                                , Html.p [] [ Html.text "Vermutung: hilft der Frau beim Entscheiden" ]
                                 ]
                             ]
                         ]
@@ -219,10 +218,10 @@ view { visualizer, tabState } =
                             , Html.li [] [ Html.text "Männer: Der Rivale meines Rivalen ist mein Freund." ]
                             , Html.li [] [ Html.text "Männer: keine Freundschaft mit Rivalen" ]
                             , Html.li [] [ Html.text "Männer haben nur Rivalen wenn sie Single sind." ]
-                            , Html.li [] [ Html.text "Es existieren Freunde auserhalt von Freundschaften "
-                                , Html.code [] [ Html.text "⇒ Grundwert"]
-                                
-                            ]
+                            , Html.li []
+                                [ Html.text "Es existieren Freunde auserhalt von Freundschaften "
+                                , Html.code [] [ Html.text "⇒ Grundwert" ]
+                                ]
                             , Html.li [] [ Html.text "Männer: Umso mehr Freundschaften umso attraktiver." ]
                             ]
                         , Html.b [] [ Html.text "Freundeskreise" ]
@@ -233,19 +232,19 @@ view { visualizer, tabState } =
                         ]
                     , slide [ Html.text "Friedliche Dreiecksbeziehung (1 2 0)" ]
                         [ drawVisualizer "friendlyTriangle" visualizer.friendlyTriangle
-                        , Html.i [] [Html.text "Harry Potter: 0-Hermine, 1-Ginny, 2-Harry, 3-Ron"]
+                        , Html.i [] [ Html.text "Harry Potter: 0-Hermine, 1-Ginny, 2-Harry, 3-Ron" ]
                         ]
-                    , slide [ Html.text "Feindliche Dreiecksbeziehung (1 3 0)"]
-                         [ drawVisualizer "hostileTriangle" visualizer.hostileTriangle
-                         , Html.i [] [Html.text "How I Met Your Mother: 0-Frau des Tages, 1-Robin, 2-Barney, 3-Ted"]
-                         ]
+                    , slide [ Html.text "Feindliche Dreiecksbeziehung (1 3 0)" ]
+                        [ drawVisualizer "hostileTriangle" visualizer.hostileTriangle
+                        , Html.i [] [ Html.text "How I Met Your Mother: 0-Frau des Tages, 1-Robin, 2-Barney, 3-Ted" ]
+                        ]
                     , slide [ Html.text "Friedliche Vierecksbeziehung (0 2 1 3)" ]
-                        [ drawVisualizer "loveSquare" visualizer.loveSquare 
-                        , Html.i [] [Html.text "Game of Thrones: 0-Cersei Lannester, 1-Catelyn Tully, 2-Robert Baratheon, 3-Ned Stark, 4-Jaime Lannester"]
+                        [ drawVisualizer "loveSquare" visualizer.loveSquare
+                        , Html.i [] [ Html.text "Game of Thrones: 0-Cersei Lannester, 1-Catelyn Tully, 2-Robert Baratheon, 3-Ned Stark, 4-Jaime Lannester" ]
                         ]
                     , slide [ Html.text "Satz der Isomorphie" ]
                         [ Html.b [] [ Html.text "Satz" ]
-                        , Html.p [class "text-center"] [Html.text "Jeder Liebes Graph lässt sich als Einfacher Liebes Graph darstellen"]
+                        , Html.p [ class "text-center" ] [ Html.text "Jeder Liebes Graph lässt sich als Einfacher Liebes Graph darstellen" ]
                         , Html.b [] [ Html.text "Beweis" ]
                         , drawVisualizer "theoremContact" visualizer.theoremContact
                         , Html.b [] [ Html.text "Absofort: Grundwert ist nicht eindeutig ⇒ (normale) Liebes Graphen" ]

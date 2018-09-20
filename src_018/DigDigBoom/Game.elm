@@ -24,6 +24,7 @@ applyDirection size dir (( ( location, direction ), _ ) as playerCellAndGame) =
                     , updateGame newPlayerCell game
                     )
                )
+
     else
         playerCellAndGame
             |> Tuple.mapSecond (Tuple.mapSecond (Player.face location dir))
@@ -120,6 +121,7 @@ specialBehaviour currentLocation enemyType ( playerLocation, _ ) (( _, map ) as 
                                 Tuple.mapSecond <|
                                     Dict.update newLocation <|
                                         always (Cell.decomposing solid |> Tuple.first |> Maybe.map Solid)
+
                             else
                                 identity
 

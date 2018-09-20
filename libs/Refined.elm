@@ -11,6 +11,7 @@ refine : a -> (a -> Bool) -> Result String (Refined a)
 refine value refinement =
     if refinement value then
         Ok { value = value, refinement = refinement }
+
     else
         Err (toString value ++ " does not satisfy the refinement!")
 

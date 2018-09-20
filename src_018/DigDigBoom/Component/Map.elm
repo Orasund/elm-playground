@@ -42,7 +42,7 @@ generator size fun =
                     let
                         x : Int
                         x =
-                            xy % size
+                            modBy size xy
 
                         y : Int
                         y =
@@ -81,10 +81,13 @@ approximateDirection ( a, b ) =
     if abs a > abs b then
         if a > 0 then
             Right
+
         else
             Left
+
     else if b > 0 then
         Down
+
     else
         Up
 

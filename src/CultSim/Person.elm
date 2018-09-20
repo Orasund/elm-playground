@@ -53,12 +53,13 @@ generateSkin =
             { head =
                 if isMale then
                     head
+
                 else
                     head + 50
             , body = body
             }
         )
-        Random.bool
+        (Random.uniform True [False])
         (Random.int 1 12)
         (Random.int 0 7)
 
@@ -122,7 +123,7 @@ generate : Random.Generator ( String, Person )
 generate =
     Random.map3
         (\position float skin ->
-            ( "person_" ++ toString float
+            ( "person_" ++ String.fromFloat float
             , { position = position
               , action = None
               , skin = skin

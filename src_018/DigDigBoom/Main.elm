@@ -54,7 +54,9 @@ worldSize =
 
 init : ( Model, Cmd Msg )
 init =
-    Nothing ! [ Cmd.none ]
+    ( Nothing
+    , Cmd.none
+    )
 
 
 tutorial : Int -> ModelContent
@@ -104,7 +106,7 @@ nextLevel : ModelContent -> ( Model, Cmd Msg )
 nextLevel { gameType, map, player } =
     case gameType of
         Rogue { worldSeed } ->
-            Just
+            ( Just
                 (newMap (worldSeed + 7)
                     |> (\newModel ->
                             { newModel
@@ -112,13 +114,17 @@ nextLevel { gameType, map, player } =
                             }
                        )
                 )
-                ! [ Cmd.none ]
+            , Cmd.none
+            )
 
         Tutorial num ->
             if num == 5 then
-                Nothing ! [ Cmd.none ]
+                ( Nothing
+                , Cmd.none
+                )
+
             else
-                Just
+                ( Just
                     (tutorial (num + 1)
                         |> (\newModel ->
                                 { newModel
@@ -126,7 +132,8 @@ nextLevel { gameType, map, player } =
                                 }
                            )
                     )
-                    ! [ Cmd.none ]
+                , Cmd.none
+                )
 
 
 updateGame : (Player.Game -> Player.Game) -> ModelContent -> ( Model, Cmd Msg )
@@ -134,13 +141,14 @@ updateGame fun ({ player, map, gameType } as modelContent) =
     ( player, map )
         |> fun
         |> (\( playerData, newMap ) ->
-                Just
+                ( Just
                     { modelContent
                         | player = playerData
                         , map = newMap
                         , oldScreen = Nothing
                     }
-                    ! [ Cmd.none ]
+                , Cmd.none
+                )
            )
 
 
@@ -163,6 +171,7 @@ update msg model =
                     |> List.isEmpty
             then
                 nextLevel modelContent
+
             else
                 case msg of
                     Input input ->
@@ -227,15 +236,19 @@ update msg model =
                                             |> updateGame (Tuple.mapFirst Player.rotateRight)
 
                                     InputB ->
-                                        Nothing ! [ Cmd.none ]
+                                        ( Nothing
+                                        , Cmd.none
+                                        )
 
                                     InputNone ->
-                                        model ! [ Cmd.none ]
+                                        ( model
+                                        , Cmd.none
+                                        )
 
                             Nothing ->
                                 case gameType of
                                     Rogue { worldSeed } ->
-                                        Just
+                                        ( Just
                                             (newMap (worldSeed - 1)
                                                 |> (\newModel ->
                                                         { newModel
@@ -243,10 +256,11 @@ update msg model =
                                                         }
                                                    )
                                             )
-                                            ! [ Cmd.none ]
+                                        , Cmd.none
+                                        )
 
                                     Tutorial num ->
-                                        Just
+                                        ( Just
                                             (tutorial num
                                                 |> (\newModel ->
                                                         { newModel
@@ -254,12 +268,13 @@ update msg model =
                                                         }
                                                    )
                                             )
-                                            ! [ Cmd.none ]
+                                        , Cmd.none
+                                        )
 
         Nothing ->
             case msg of
                 Input InputLeft ->
-                    Just
+                    ( Just
                         (newMap 0
                             |> (\newModel ->
                                     { newModel
@@ -267,10 +282,11 @@ update msg model =
                                     }
                                )
                         )
-                        ! [ Cmd.none ]
+                    , Cmd.none
+                    )
 
                 Input InputRight ->
-                    Just
+                    ( Just
                         (newMap 0
                             |> (\newModel ->
                                     { newModel
@@ -278,10 +294,11 @@ update msg model =
                                     }
                                )
                         )
-                        ! [ Cmd.none ]
+                    , Cmd.none
+                    )
 
                 Input InputUp ->
-                    Just
+                    ( Just
                         (tutorial 1
                             |> (\newModel ->
                                     { newModel
@@ -289,10 +306,11 @@ update msg model =
                                     }
                                )
                         )
-                        ! [ Cmd.none ]
+                    , Cmd.none
+                    )
 
                 Input InputDown ->
-                    Just
+                    ( Just
                         (tutorial 1
                             |> (\newModel ->
                                     { newModel
@@ -300,10 +318,13 @@ update msg model =
                                     }
                                )
                         )
-                        ! [ Cmd.none ]
+                    , Cmd.none
+                    )
 
                 _ ->
-                    model ! [ Cmd.none ]
+                    ( model
+                    , Cmd.none
+                    )
 
 
 subscriptions : Model -> Sub Msg
@@ -486,11 +507,12 @@ worldScreen worldSeed map player hints =
          , ( ( 10, 0 ), Tileset.letter_r Tileset.colorWhite )
          , ( ( 11, 0 ), Tileset.letter_e Tileset.colorWhite )
          , ( ( 12, 0 ), Tileset.letter_colon Tileset.colorWhite )
-         , ( ( 14, 0 ), Tileset.numberToTile ((abs worldSeed % 100) // 10) Tileset.colorWhite )
-         , ( ( 15, 0 ), Tileset.numberToTile (abs worldSeed % 10) Tileset.colorWhite )
+         , ( ( 14, 0 ), Tileset.numberToTile (modBy 100 (abs worldSeed) // 10) Tileset.colorWhite )
+         , ( ( 15, 0 ), Tileset.numberToTile (modBy 10 (abs worldSeed)) Tileset.colorWhite )
          ]
             |> (if (worldSeed // abs worldSeed) == -1 then
                     List.append [ ( ( 13, 0 ), Tileset.letter_minus Tileset.colorWhite ) ]
+
                 else
                     List.append []
                )
@@ -598,6 +620,7 @@ view model =
                         Nothing ->
                             if player.lifes > 0 then
                                 ( options, worldScreen worldSeed map player [] )
+
                             else
                                 ( options
                                     |> Transition.from
@@ -704,6 +727,7 @@ view model =
                         Nothing ->
                             if player.lifes > 0 then
                                 ( options, tutorialWorldScreen )
+
                             else
                                 ( options
                                     |> Transition.from tutorialWorldScreen

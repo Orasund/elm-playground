@@ -46,6 +46,7 @@ getOverflow (OverflowList list max_length) =
         |> (\l ->
                 if l |> List.isEmpty then
                     Nothing
+
                 else
                     Just l
            )

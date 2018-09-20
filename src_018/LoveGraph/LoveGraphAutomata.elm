@@ -87,8 +87,10 @@ updateState g =
         hasRelationWith a relation =
             if relation.from == a then
                 Just relation.to
+
             else if relation.to == a then
                 Just relation.from
+
             else
                 Nothing
 
@@ -100,6 +102,7 @@ updateState g =
         isFemale a =
             if a.label == F then
                 Just a.id
+
             else
                 Nothing
 
@@ -159,6 +162,7 @@ updateState g =
                                     Just max ->
                                         if connectionsOf graph max == connectionsOf graph elem then
                                             (elem :: sublist) :: Maybe.withDefault [] (List.tail list)
+
                                         else
                                             [ elem ] :: list
 

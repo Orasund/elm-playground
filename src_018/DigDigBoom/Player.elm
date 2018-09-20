@@ -1,17 +1,16 @@
-module DigDigBoom.Player
-    exposing
-        ( Game
-        , PlayerCell
-        , PlayerData
-        , activate
-        , attack
-        , drop
-        , face
-        , init
-        , move
-        , rotateLeft
-        , rotateRight
-        )
+module DigDigBoom.Player exposing
+    ( Game
+    , PlayerCell
+    , PlayerData
+    , activate
+    , attack
+    , drop
+    , face
+    , init
+    , move
+    , rotateLeft
+    , rotateRight
+    )
 
 import Dict
 import DigDigBoom.Cell as Cell
@@ -66,6 +65,7 @@ attack ( location, _ ) ( playerData, currentMap ) =
     , currentMap
         |> (if lifes > 0 then
                 identity
+
             else
                 Dict.update location <| always <| Just <| Effect Bone
            )
@@ -106,6 +106,7 @@ move worldSize ( ( location, direction ) as playerCell, ( playerData, currentMap
     in
     if outOfBound then
         ( playerCell, game )
+
     else
         case currentMap |> Dict.get newLocation of
             Just (Item item) ->
@@ -368,6 +369,7 @@ healthPotionAction { lifes } =
                             { playerData | lifes = lifes + 1 }
                         )
             )
+
     else
         Nothing
 

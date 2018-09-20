@@ -68,6 +68,7 @@ init data =
                 , distance = 10 --1
                 , strength = Just 0.1
                 }
+
             else
                 { source = from
                 , target = to
@@ -81,7 +82,9 @@ init data =
             , Force.center (screenWidth / 2) (screenHeight / 2)
             ]
     in
-    Model Nothing graph (Force.simulation forces) graph ! [ Cmd.none ]
+    ( Model Nothing graph (Force.simulation forces) graph
+    , Cmd.none
+    )
 
 
 updateNode : Position -> NodeContext EntityNode a -> NodeContext EntityNode a
@@ -167,6 +170,7 @@ subscriptions model =
             -- to the rAF.
             if Force.isCompleted model.simulation then
                 Sub.none
+
             else
                 AnimationFrame.times Tick
 

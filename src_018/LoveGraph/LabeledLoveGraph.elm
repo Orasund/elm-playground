@@ -12,7 +12,7 @@ type alias NodeLabel =
 
 femaleName : Int -> String
 femaleName id =
-    case id % 5 of
+    case modBy 5 id of
         0 ->
             "Flora"
 
@@ -31,7 +31,7 @@ femaleName id =
 
 maleName : Int -> String
 maleName id =
-    case id % 10 of
+    case modBy 10 id of
         0 ->
             "Manfried"
 

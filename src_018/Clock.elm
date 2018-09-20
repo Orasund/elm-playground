@@ -48,10 +48,12 @@ init =
         height =
             0
     in
-    { time = time, width = width, height = height }
-        ! [ Task.perform Resize Window.size
-          , Task.perform Tick Time.now
-          ]
+    ( { time = time, width = width, height = height }
+    , Cmd.batch
+        [ Task.perform Resize Window.size
+        , Task.perform Tick Time.now
+        ]
+    )
 
 
 
@@ -67,10 +69,14 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Tick time ->
-            { model | time = Date.fromTime time } ! []
+            ( { model | time = Date.fromTime time }
+            , Cmd.none
+            )
 
         Resize { height, width } ->
-            { model | height = height, width = width } ! []
+            ( { model | height = height, width = width }
+            , Cmd.none
+            )
 
 
 
@@ -198,6 +204,7 @@ view ({ time, height, width } as model) =
         , circle
             (if hours == 5 || hours == 6 then
                 size // 2 + (size * minutes) // (60 * 2)
+
              else
                 size // 2
             )
@@ -205,16 +212,18 @@ view ({ time, height, width } as model) =
             [ Css.backgroundColor <| Css.rgb 255 255 255
             , if hours >= 22 || hours <= 4 then
                 Css.visibility <| Css.hidden
+
               else
                 Css.visibility <| Css.visible
             ]
             []
         , circle (size // 2)
             { height = height, width = width }
-            [ Css.backgroundColor <| color (hours % 12)
+            [ Css.backgroundColor <| color (modBy 12 hours)
             , Css.property "animation" "puls 2.0s infinite"
             , if hours >= 22 || hours <= 4 then
                 Css.visibility <| Css.hidden
+
               else
                 Css.visibility <| Css.visible
             ]
@@ -228,7 +237,8 @@ view ({ time, height, width } as model) =
                 , Css.margin <| Css.auto
                 , Css.width <| Css.pct <| 100
                 , if hours >= 22 || hours <= 4 then
-                    Css.color <| color (hours % 12)
+                    Css.color <| color (modBy 12 hours)
+
                   else
                     Css.color <| Css.rgb 0 0 0
                 ]
@@ -238,6 +248,7 @@ view ({ time, height, width } as model) =
                     ++ ":"
                     ++ (if minutes < 10 then
                             "0"
+
                         else
                             ""
                        )

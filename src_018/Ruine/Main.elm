@@ -23,11 +23,12 @@ type Msg
 
 init : Int -> ( Maybe Model, Cmd Msg )
 init int =
-    Just
+    ( Just
         { seed = Random.initialSeed int
         , map = Dict.empty
         }
-        ! []
+    , Cmd.none
+    )
 
 
 update : Msg -> Maybe Model -> ( Maybe Model, Cmd Msg )
@@ -94,8 +95,9 @@ main : Program Never (Maybe Model) Msg
 main =
     program
         { init =
-            Nothing
-                ! [ Random.generate Init <| Random.int Random.minInt Random.maxInt ]
+            ( Nothing
+            , Random.generate Init <| Random.int Random.minInt Random.maxInt
+            )
         , view = view
         , update = update
         , subscriptions = subscriptions
