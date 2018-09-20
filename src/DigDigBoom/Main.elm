@@ -1,5 +1,6 @@
 module DigDigBoom.Main exposing (main)
 
+import Browser exposing (Document)
 import Css
 import Dict
 import DigDigBoom.Cell as Cell
@@ -10,9 +11,9 @@ import DigDigBoom.Cell as Cell
         , SolidType(..)
         )
 import DigDigBoom.Component.Inventory as Inventory
-import DigDigBoom.Component.Map as Map exposing (Direction(..), Location, Map)
+import DigDigBoom.Component.Map as Map exposing (Actor, Direction(..), Location, Map)
 import DigDigBoom.Game as Game
-import DigDigBoom.Player as Player exposing (PlayerCell, PlayerData)
+import DigDigBoom.Player as Player exposing (PlayerData)
 import DigDigBoom.Tileset as Tileset
 import PixelEngine exposing (PixelEngine, program)
 import PixelEngine.Controls as Controls exposing (Input(..))
@@ -52,8 +53,8 @@ worldSize =
     16
 
 
-init : ( Model, Cmd Msg )
-init =
+init : flag -> ( Model, Cmd Msg )
+init _ =
     ( Nothing
     , Cmd.none
     )
@@ -78,8 +79,8 @@ tutorial num =
     }
 
 
-newMap : Int -> ModelContent
-newMap worldSeed =
+createNewMap : Int -> ModelContent
+createNewMap worldSeed =
     let
         backpackSize : Int
         backpackSize =
@@ -107,7 +108,7 @@ nextLevel { gameType, map, player } =
     case gameType of
         Rogue { worldSeed } ->
             ( Just
-                (newMap (worldSeed + 7)
+                (createNewMap (worldSeed + 7)
                     |> (\newModel ->
                             { newModel
                                 | oldScreen = Just (worldScreen worldSeed map player [])
@@ -176,7 +177,7 @@ update msg model =
                 case msg of
                     Input input ->
                         let
-                            maybePlayer : Map Cell -> Maybe PlayerCell
+                            maybePlayer : Map Cell -> Maybe Actor
                             maybePlayer currentMap =
                                 currentMap
                                     |> Map.getUnique
@@ -249,7 +250,7 @@ update msg model =
                                 case gameType of
                                     Rogue { worldSeed } ->
                                         ( Just
-                                            (newMap (worldSeed - 1)
+                                            (createNewMap (worldSeed - 1)
                                                 |> (\newModel ->
                                                         { newModel
                                                             | oldScreen = Just deathScreen
@@ -275,7 +276,7 @@ update msg model =
             case msg of
                 Input InputLeft ->
                     ( Just
-                        (newMap 0
+                        (createNewMap 0
                             |> (\newModel ->
                                     { newModel
                                         | oldScreen = Just menuScreen
@@ -287,7 +288,7 @@ update msg model =
 
                 Input InputRight ->
                     ( Just
-                        (newMap 0
+                        (createNewMap 0
                             |> (\newModel ->
                                     { newModel
                                         | oldScreen = Just menuScreen
@@ -587,7 +588,7 @@ worldScreen worldSeed map player hints =
     ]
 
 
-view : Model -> ( Options Msg, List (Area Msg) )
+view : Model -> { title : String, options : Options Msg, body : List (Area Msg) }
 view model =
     let
         width : Int
@@ -599,6 +600,10 @@ view model =
                 { width = toFloat <| tileset.spriteWidth * width
                 , transitionSpeedInSec = 0.2
                 }
+
+        title : String
+        title =
+            "Dig Dig Boom"
     in
     case model of
         Just { oldScreen, gameType, player, map } ->
@@ -606,39 +611,46 @@ view model =
                 Rogue { worldSeed } ->
                     case oldScreen of
                         Just justOldScreen ->
-                            ( options
-                                |> Transition.from justOldScreen
-                                    (Transition.custom
-                                        "next_level"
-                                        [ ( 0, "filter:saturate(200%) contrast(100%);overflow:hidden;width:100%" ) --(toString <| scale * tileset.spriteWidth * width)
-                                        , ( 2, "filter:saturate(50%) contrast(150%);overflow:hidden;width:0%;" )
-                                        ]
-                                    )
-                            , worldScreen worldSeed map player []
-                            )
+                            { title = title
+                            , options =
+                                options
+                                    |> Transition.from justOldScreen
+                                        (Transition.custom
+                                            "next_level"
+                                            [ ( 0, "filter:saturate(200%) contrast(100%);overflow:hidden;width:100%" ) --(toString <| scale * tileset.spriteWidth * width)
+                                            , ( 2, "filter:saturate(50%) contrast(150%);overflow:hidden;width:0%;" )
+                                            ]
+                                        )
+                            , body = worldScreen worldSeed map player []
+                            }
 
                         Nothing ->
                             if player.lifes > 0 then
-                                ( options, worldScreen worldSeed map player [] )
+                                { title = title
+                                , options = options
+                                , body = worldScreen worldSeed map player []
+                                }
 
                             else
-                                ( options
-                                    |> Transition.from
-                                        (worldScreen
-                                            worldSeed
-                                            map
-                                            player
-                                            []
-                                        )
-                                        (Transition.custom
-                                            "death_transition"
-                                            [ ( 0, "opacity:1;filter:grayscale(0%) blur(0px);" )
-                                            , ( 1, "opacity:1;filter:grayscale(70%) blur(0px);" )
-                                            , ( 3, "opacity:0;filter:grayscale(70%) blur(5px);" )
-                                            ]
-                                        )
-                                , deathScreen
-                                )
+                                { title = title
+                                , options =
+                                    options
+                                        |> Transition.from
+                                            (worldScreen
+                                                worldSeed
+                                                map
+                                                player
+                                                []
+                                            )
+                                            (Transition.custom
+                                                "death_transition"
+                                                [ ( 0, "opacity:1;filter:grayscale(0%) blur(0px);" )
+                                                , ( 1, "opacity:1;filter:grayscale(70%) blur(0px);" )
+                                                , ( 3, "opacity:0;filter:grayscale(70%) blur(5px);" )
+                                                ]
+                                            )
+                                , body = deathScreen
+                                }
 
                 Tutorial num ->
                     let
@@ -713,39 +725,49 @@ view model =
                     in
                     case oldScreen of
                         Just justOldScreen ->
-                            ( options
-                                |> Transition.from justOldScreen
-                                    (Transition.custom
-                                        "next_level"
-                                        [ ( 0, "filter:saturate(200%) contrast(100%);overflow:hidden;width:100%;" ) --(toString <| scale * tileset.spriteWidth * width)
-                                        , ( 2, "filter:saturate(50%) contrast(150%);overflow:hidden;width:0%;" )
-                                        ]
-                                    )
-                            , tutorialWorldScreen
-                            )
+                            { title = title
+                            , options =
+                                options
+                                    |> Transition.from justOldScreen
+                                        (Transition.custom
+                                            "next_level"
+                                            [ ( 0, "filter:saturate(200%) contrast(100%);overflow:hidden;width:100%;" ) --(toString <| scale * tileset.spriteWidth * width)
+                                            , ( 2, "filter:saturate(50%) contrast(150%);overflow:hidden;width:0%;" )
+                                            ]
+                                        )
+                            , body = tutorialWorldScreen
+                            }
 
                         Nothing ->
                             if player.lifes > 0 then
-                                ( options, tutorialWorldScreen )
+                                { title = title
+                                , options = options
+                                , body = tutorialWorldScreen
+                                }
 
                             else
-                                ( options
-                                    |> Transition.from tutorialWorldScreen
-                                        (Transition.custom
-                                            "death_transition"
-                                            [ ( 0, "opacity:1;filter:grayscale(0%) blur(0px);" )
-                                            , ( 1, "opacity:1;filter:grayscale(70%) blur(0px);" )
-                                            , ( 3, "opacity:0;filter:grayscale(70%) blur(5px);" )
-                                            ]
-                                        )
-                                , deathScreen
-                                )
+                                { title = title
+                                , options =
+                                    options
+                                        |> Transition.from tutorialWorldScreen
+                                            (Transition.custom
+                                                "death_transition"
+                                                [ ( 0, "opacity:1;filter:grayscale(0%) blur(0px);" )
+                                                , ( 1, "opacity:1;filter:grayscale(70%) blur(0px);" )
+                                                , ( 3, "opacity:0;filter:grayscale(70%) blur(5px);" )
+                                                ]
+                                            )
+                                , body = deathScreen
+                                }
 
         Nothing ->
-            ( options, menuScreen )
+            { title = title
+            , options = options
+            , body = menuScreen
+            }
 
 
-main : PixelEngine Never Model Msg
+main : PixelEngine {} Model Msg
 main =
     program
         { init = init

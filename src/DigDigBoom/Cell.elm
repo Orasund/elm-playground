@@ -94,7 +94,6 @@ composing tuple =
         ( Just _, _ ) ->
             Nothing
 
-
 getImage : Cell -> Tile msg
 getImage cell =
     case cell of
@@ -326,21 +325,21 @@ generator =
                     Random.float 0 1
                         |> Random.andThen
                             (\id ->
-                                locationToMaybeCell <| Just <| Enemy Rat <| "Rat" ++ toString id
+                                locationToMaybeCell <| Just <| Enemy Rat <| "Rat" ++ String.fromFloat id
                             )
 
                 else if r < 238 then
                     Random.float 0 1
                         |> Random.andThen
                             (\id ->
-                                locationToMaybeCell <| Just <| Enemy Goblin <| "Goblin" ++ toString id
+                                locationToMaybeCell <| Just <| Enemy Goblin <| "Goblin" ++ String.fromFloat id
                             )
 
                 else if r < 239 then
                     Random.float 0 1
                         |> Random.andThen
                             (\id ->
-                                locationToMaybeCell <| Just <| Enemy Oger <| "Oger" ++ toString id
+                                locationToMaybeCell <| Just <| Enemy Oger <| "Oger" ++ String.fromFloat id
                             )
 
                 else
