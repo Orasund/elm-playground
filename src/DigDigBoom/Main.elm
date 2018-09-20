@@ -250,7 +250,7 @@ update msg model =
                                 case gameType of
                                     Rogue { worldSeed } ->
                                         ( Just
-                                            (createNewMap (worldSeed - 1)
+                                            (createNewMap (worldSeed - 2)
                                                 |> (\newModel ->
                                                         { newModel
                                                             | oldScreen = Just deathScreen
@@ -276,7 +276,7 @@ update msg model =
             case msg of
                 Input InputLeft ->
                     ( Just
-                        (createNewMap 0
+                        (createNewMap 1
                             |> (\newModel ->
                                     { newModel
                                         | oldScreen = Just menuScreen
@@ -288,7 +288,7 @@ update msg model =
 
                 Input InputRight ->
                     ( Just
-                        (createNewMap 0
+                        (createNewMap 1
                             |> (\newModel ->
                                     { newModel
                                         | oldScreen = Just menuScreen

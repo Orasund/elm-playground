@@ -1,4 +1,4 @@
-module DigDigBoom.Component.Map exposing (Direction(..), Location,Actor, Map, approximateDirection, dirCoordinates, generator, getUnique, move, place, posFront, remove)
+module DigDigBoom.Component.Map exposing (Actor, Direction(..), Location, Map, approximateDirection, dirCoordinates, generator, getUnique, move, place, posFront, remove)
 
 import Dict exposing (Dict)
 import Random exposing (Generator)
@@ -14,18 +14,19 @@ type Direction
     | Left
     | Right
 
+
 type alias Actor =
-    (Location,Direction)
+    ( Location, Direction )
 
 
 posFront : Int -> Actor -> Location
-posFront n (( loc_x, loc_y ),direction) =
+posFront n ( ( loc_x, loc_y ), direction ) =
     let
         ( dir_x, dir_y ) =
             dirCoordinates direction
     in
-    ( dir_x + loc_x * n
-    , dir_y + loc_y * n
+    ( loc_x + dir_x * n
+    , loc_y + dir_y * n
     )
 
 
@@ -78,7 +79,7 @@ generator size fun =
 
 
 move : Actor -> Map a -> Map a
-move (pos,dir) map =
+move ( pos, dir ) map =
     case map |> Dict.get pos of
         Just a ->
             map
