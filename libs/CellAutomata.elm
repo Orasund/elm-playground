@@ -1,4 +1,4 @@
-module CellAutomata exposing (Rule(..),step,Field,RuleState,Automata )
+module CellAutomata exposing (Rule(..),step,Field,RuleState(..),Automata )
 
 import Dict exposing (Dict)
 
@@ -19,7 +19,7 @@ type RuleState state
     | Anything
 
 type Rule neighborhood state
-    = Rule neighborhood (RuleState state) state
+    = Rule neighborhood state state
 
 type alias Automata neighborhood location state
   = { ruleSet:RuleSet neighborhood state

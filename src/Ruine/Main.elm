@@ -1,11 +1,13 @@
 module Ruine.Main exposing (main)
 
 import Css
+import Browser exposing (Document)
+import PixelEngine exposing (PixelEngine, program)
 import Dict exposing (Dict)
 import DigDigBoom.Component.Map as Map
-import Html.Styled exposing (Html, program)
+import Html.Styled exposing (Html)
 import Html.Styled.Events as Events
-import PixelEngine.Graphics as Graphics exposing (Area)
+import PixelEngine.Graphics as Graphics exposing (Area, Options)
 import PixelEngine.Graphics.Image as Image exposing (image)
 import PixelEngine.Graphics.Tile as Tile exposing (Tileset)
 import Random
@@ -19,6 +21,7 @@ type alias Model =
 
 type Msg
     = Init Int
+    | None
 
 
 init : Int -> ( Maybe Model, Cmd Msg )
@@ -36,6 +39,8 @@ update msg maybeModel =
     case msg of
         Init int ->
             init int
+        None ->
+            (maybeModel,Cmd.none)
 
 
 subscriptions : Maybe Model -> Sub Msg
@@ -43,12 +48,9 @@ subscriptions maybeModel =
     Sub.none
 
 
-view : Maybe Model -> Html Msg
+view : Maybe Model -> { title : String, options : Options Msg, body : List (Area Msg) }
 view maybeModel =
     let
-        scale : Float
-        scale =
-            2
 
         width : Float
         width =
@@ -59,8 +61,8 @@ view maybeModel =
             600
 
         options =
-            { scale = scale
-            , width = width
+            Graphics.options
+            { width = width
             , transitionSpeedInSec = 8
             }
 
@@ -75,8 +77,9 @@ view maybeModel =
             , spriteHeight = 3
             }
     in
-    Graphics.render options
-        [ Graphics.tiledArea
+    { title = "Ruine Jump"
+    , options = options
+    , body = [ Graphics.tiledArea
             { background = Graphics.colorBackground <| Css.rgb 255 255 255
             , rows = rows
             , tileset = tileset
@@ -89,16 +92,19 @@ view maybeModel =
                     []
             )
         ]
+    }
+        
 
 
-main : Program Never (Maybe Model) Msg
+main : PixelEngine {} (Maybe Model) Msg
 main =
     program
-        { init =
+        { init = \_ ->
             ( Nothing
             , Random.generate Init <| Random.int Random.minInt Random.maxInt
             )
         , view = view
         , update = update
         , subscriptions = subscriptions
+        , controls = \_ -> None
         }

@@ -1,11 +1,11 @@
-module CellAutomata.GridBased exposing (step)
+module CellAutomata.Grid2DBased exposing (noSymmetry,neighborhoodFunction,GridAutomata,Neighborhood,Grid,Location)
 
-import CellAutomata exposing (Field, RuleState,Automata,Rule)
+import CellAutomata exposing (Field, RuleState(..),Automata,Rule(..))
 import Dict
 
 
 type alias Location =
-    { x : Int, y : Int }
+    (Int,Int)
 
 
 type alias Grid state =
@@ -28,26 +28,28 @@ type alias GridAutomata state =
     Automata (Neighborhood state) Location state
 
 
+
 neighborhoodFunction :
     Location
+    -> state
     -> Field Location state
-    -> Neighborhood (Maybe state)
-neighborhoodFunction ({ x, y } as location) field =
-    { north = field |> Dict.get { location | y = y - 1 }
-    , northEast = field |> Dict.get { y = y - 1, x = x + 1 }
-    , east = field |> Dict.get { location | x = x + 1 }
-    , southEast = field |> Dict.get { y = y + 1, x = x + 1 }
-    , south = field |> Dict.get { location | y = y + 1 }
-    , southWest = field |> Dict.get { x = x - 1, y = y + 1 }
-    , west = field |> Dict.get { location | x = x - 1 }
-    , northWest = field |> Dict.get { y = y - 1, x = x - 1 }
+    -> Neighborhood state
+neighborhoodFunction ((x,y) as location) defaultState field =
+    { north = field |> Dict.get (x, y - 1) |> Maybe.withDefault defaultState
+    , northEast = field |> Dict.get (x + 1, y - 1) |> Maybe.withDefault defaultState
+    , east = field |> Dict.get (x + 1,y) |> Maybe.withDefault defaultState
+    , southEast = field |> Dict.get (x + 1,y + 1) |> Maybe.withDefault defaultState
+    , south = field |> Dict.get (x,y + 1) |> Maybe.withDefault defaultState
+    , southWest = field |> Dict.get (x - 1, y + 1) |> Maybe.withDefault defaultState
+    , west = field |> Dict.get (x - 1,y) |> Maybe.withDefault defaultState
+    , northWest = field |> Dict.get (x - 1,y - 1) |> Maybe.withDefault defaultState
     }
 
 
-noSymmetry : Maybe state -> Neighborhood (Maybe state) -> Rule (Neighborhood (RuleState state)) (Maybe state) -> Bool
-noSymmetry maybeState neighborhood (Rule ruleNeighborhood ruleState) =
-    (maybeState == ruleState)
-        (ruleNeighborhood.north
+noSymmetry : state -> Neighborhood state -> Rule (Neighborhood (RuleState state)) state -> Bool
+noSymmetry state neighborhood (Rule ruleNeighborhood ruleState _) =
+        (state == ruleState)
+        && (ruleNeighborhood.north
             == Anything
             || Exactly neighborhood.north
             == ruleNeighborhood.north
@@ -87,3 +89,6 @@ noSymmetry maybeState neighborhood (Rule ruleNeighborhood ruleState) =
                 || Exactly neighborhood.northWest
                 == ruleNeighborhood.northWest
            )
+
+step : GridAutomata state -> Grid state -> Location -> (state -> state)
+step = CellAutomata.step
