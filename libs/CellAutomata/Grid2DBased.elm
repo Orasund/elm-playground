@@ -1,6 +1,6 @@
-module CellAutomata.Grid2DBased exposing (step,noSymmetry,automata,neighborhoodFunction,RuleSet,GridAutomata,Neighborhood,Grid,Location)
+module CellAutomata.Grid2DBased exposing (step,noSymmetry,automata,neighborhoodFunction,Rule,RuleSet,GridAutomata,Neighborhood,Grid,Location)
 
-import CellAutomata exposing (Field,Symmetry,Automata,Rule(..),RuleState(..),NeighborhoodFunction,Symmetry)
+import CellAutomata exposing (Field,Symmetry,Automata,RuleState(..),NeighborhoodFunction,Symmetry)
 import Dict
 
 
@@ -22,6 +22,10 @@ type alias Neighborhood state =
     , west : state
     , northWest : state
     }
+
+type alias Rule state =
+    CellAutomata.Rule (Neighborhood (RuleState state)) state 
+
 
 type alias RuleSet state = 
     CellAutomata.RuleSet (Neighborhood (RuleState state)) state
@@ -57,7 +61,7 @@ neighborhoodFunction ((x,y) as location) defaultState field =
 
 
 noSymmetry : Symmetry (Neighborhood state) (Neighborhood (RuleState state)) state
-noSymmetry state neighborhood (Rule ruleNeighborhood ruleState _) =
+noSymmetry state neighborhood (CellAutomata.Rule ruleNeighborhood ruleState _) =
         (state == ruleState)
         && (ruleNeighborhood.north
                 == Anything
