@@ -1,4 +1,4 @@
-module CellAutomata exposing (Rule(..),step,Field,RuleState(..),Automata )
+module CellAutomata exposing (Rule(..),step,Field,RuleSet(..),RuleState(..),Automata,Symmetry, NeighborhoodFunction)
 
 import Dict exposing (Dict)
 
@@ -21,10 +21,16 @@ type RuleState state
 type Rule neighborhood state
     = Rule neighborhood state state
 
-type alias Automata neighborhood location state
-  = { ruleSet:RuleSet neighborhood state
-  , symmetry : state -> neighborhood -> Rule neighborhood state-> Bool
-  , neighborhoodFunction : Comparable location -> state -> Field (Comparable location) state -> neighborhood
+type alias Symmetry neighborhood ruleNeighborhood state
+    = state -> neighborhood -> Rule ruleNeighborhood state -> Bool
+
+type alias NeighborhoodFunction location neighborhood state
+    = Comparable location -> state -> Field (Comparable location) state -> neighborhood
+
+type alias Automata neighborhood ruleNeighborhood location state
+  = { ruleSet: RuleSet ruleNeighborhood state
+  , symmetry : Symmetry neighborhood ruleNeighborhood state
+  , neighborhoodFunction : NeighborhoodFunction location neighborhood state
   , order: state -> Int
   , defaultState: state
   }
@@ -44,7 +50,7 @@ find predicate list =
                 find predicate rest
 
 
-step : Automata neighborhood location state -> Field location state -> Comparable location -> (state -> state)
+step : Automata neighborhood ruleNeighborhood location state -> Field location state -> Comparable location -> (state -> state)
 step ({neighborhoodFunction,symmetry,order,defaultState} as automata) field location =
     let
         neighborhood : neighborhood

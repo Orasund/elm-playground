@@ -266,7 +266,7 @@ view maybeModel =
                 { width = width
                 , transitionSpeedInSec = 8
                 }
-            |> Graphics.usingScale 2
+                |> Graphics.usingScale 2
     in
     { title = "CultSim"
     , body =

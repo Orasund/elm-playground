@@ -1,6 +1,6 @@
-module CellAutomata.Grid2DBased exposing (noSymmetry,neighborhoodFunction,GridAutomata,Neighborhood,Grid,Location)
+module CellAutomata.Grid2DBased exposing (step,noSymmetry,automata,neighborhoodFunction,RuleSet,GridAutomata,Neighborhood,Grid,Location)
 
-import CellAutomata exposing (Field, RuleState(..),Automata,Rule(..))
+import CellAutomata exposing (Field,Symmetry,Automata,Rule(..),RuleState(..),NeighborhoodFunction,Symmetry)
 import Dict
 
 
@@ -23,17 +23,27 @@ type alias Neighborhood state =
     , northWest : state
     }
 
+type alias RuleSet state = 
+    CellAutomata.RuleSet (Neighborhood (RuleState state)) state
 
 type alias GridAutomata state =
-    Automata (Neighborhood state) Location state
+    Automata (Neighborhood state) (Neighborhood (RuleState state)) Location state
+
+automata : { ruleSet:RuleSet state
+  , symmetry : Symmetry (Neighborhood state) (Neighborhood (RuleState state)) state
+  , order: state -> Int
+  , defaultState: state
+  } -> GridAutomata state
+automata {ruleSet,symmetry,order,defaultState}=
+    { ruleSet=ruleSet
+  , symmetry = symmetry
+  , neighborhoodFunction = neighborhoodFunction
+  , order= order
+  , defaultState= defaultState
+  }
 
 
-
-neighborhoodFunction :
-    Location
-    -> state
-    -> Field Location state
-    -> Neighborhood state
+neighborhoodFunction : NeighborhoodFunction Location (Neighborhood state) state
 neighborhoodFunction ((x,y) as location) defaultState field =
     { north = field |> Dict.get (x, y - 1) |> Maybe.withDefault defaultState
     , northEast = field |> Dict.get (x + 1, y - 1) |> Maybe.withDefault defaultState
@@ -46,13 +56,13 @@ neighborhoodFunction ((x,y) as location) defaultState field =
     }
 
 
-noSymmetry : state -> Neighborhood state -> Rule (Neighborhood (RuleState state)) state -> Bool
+noSymmetry : Symmetry (Neighborhood state) (Neighborhood (RuleState state)) state
 noSymmetry state neighborhood (Rule ruleNeighborhood ruleState _) =
         (state == ruleState)
         && (ruleNeighborhood.north
-            == Anything
-            || Exactly neighborhood.north
-            == ruleNeighborhood.north
+                == Anything
+                || Exactly neighborhood.north
+                == ruleNeighborhood.north
         )
         && (ruleNeighborhood.northEast
                 == Anything

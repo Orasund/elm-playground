@@ -59,7 +59,7 @@ generateSkin =
             , body = body
             }
         )
-        (Random.uniform True [False])
+        (Random.uniform True [ False ])
         (Random.int 1 12)
         (Random.int 0 7)
 

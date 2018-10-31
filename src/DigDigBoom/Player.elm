@@ -22,13 +22,14 @@ import DigDigBoom.Cell as Cell
         , SolidType(..)
         )
 import DigDigBoom.Component.Inventory as Inventory exposing (Inventory)
-import DigDigBoom.Component.Map as Map exposing (Direction(..), Location, Map,Actor)
+import DigDigBoom.Component.Map as Map exposing (Actor, Direction(..), Location, Map)
 
 
 type alias PlayerData =
     { inventory : Inventory ItemType
     , lifes : Int
     }
+
 
 type alias Game =
     ( PlayerData, Map Cell )
@@ -204,7 +205,7 @@ throwEnemy (( location, direction ) as playerCell) enemyType enemyId currentMap 
                 _ ->
                     \newMap ->
                         newMap
-                            |> Map.move (newLocation,direction)
+                            |> Map.move ( newLocation, direction )
                             |> (case
                                     newMap
                                         |> Dict.get (playerCell |> Map.posFront 3)
@@ -216,7 +217,7 @@ throwEnemy (( location, direction ) as playerCell) enemyType enemyId currentMap 
                                         identity
 
                                     _ ->
-                                        Map.move ((playerCell |> Map.posFront 2),direction)
+                                        Map.move ( playerCell |> Map.posFront 2, direction )
                                )
            )
 
@@ -263,7 +264,7 @@ drop playerCell ( playerData, map ) =
 
         dir : Map.Location
         dir =
-             playerCell |> Map.posFront 1
+            playerCell |> Map.posFront 1
     in
     case map |> Dict.get dir of
         Nothing ->
