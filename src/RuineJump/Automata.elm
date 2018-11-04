@@ -1,22 +1,32 @@
-module RuineJump.Automata exposing (Grid,automata)
+module RuineJump.Automata exposing (Grid, automata, order)
 
-import RuineJump.MapElement as MapElement exposing (Block(..))
-import CellAutomata.Grid2DBased as Automata exposing (Location,Neighborhood,RuleSet,Rule, GridAutomata)
+import CellAutomata.Grid2DBased as Automata exposing (GridAutomata, Location, Neighborhood, Rule, ruleSet)
 import Dict exposing (Dict)
+import RuineJump.MapElement as MapElement exposing (Block(..))
 
-type alias Grid = Automata.Grid (Maybe Block)
 
-order: (Maybe Block) -> Int
-order maybeBlock = case maybeBlock of
-  Nothing -> 0
-  Just Dirt -> 1
+type alias Grid =
+    Automata.Grid Block
 
-automata : Dict Int (List (Rule state)) -> GridAutomata (Maybe Block)
-automata ruleSet =
-  Automata.automata
-    { ruleSet = RuleSet ruleSet
-    , symmetry = Automata.noSymmetry
-    , order=order
-    , defaultState=Nothing
-    }
 
+order : Maybe Block -> Int
+order maybeBlock =
+    case maybeBlock of
+        Nothing ->
+            0
+
+        Just Dirt ->
+            1
+
+
+automata : Dict Int (List (Rule (Maybe Block))) -> GridAutomata (Maybe Block)
+automata rules =
+    Automata.automata
+        { rules = rules
+        , symmetry = Automata.noSymmetry
+        , order = order
+        , defaultState = Nothing
+        }
+
+step : GridAutomata (Maybe Block) -> Grid -> Grid
+step = Automata.step

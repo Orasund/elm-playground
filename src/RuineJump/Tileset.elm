@@ -9,7 +9,7 @@ module RuineJump.Tileset exposing
     )
 
 import Natural exposing (Natural16(..))
-import PixelEngine.Graphics.Tile exposing (Tile, tile)
+import PixelEngine.Graphics.Tile exposing (Tile, movable, tile)
 
 
 variantTile : Natural16 -> ( Int, Int ) -> Tile msg
@@ -38,6 +38,7 @@ quadTile { tilePos, pos } =
 dirt : Natural16 -> Tile msg
 dirt seed =
     variantTile seed ( 4, 0 )
+        |> movable (String.fromInt <| Natural.toIntFrom16 seed)
 
 
 stone : Natural16 -> Tile msg
@@ -53,18 +54,22 @@ grass seed =
 player_left : ( Int, Int ) -> List ( ( Int, Int ), Tile msg )
 player_left pos =
     quadTile { tilePos = ( 0, 8 ), pos = pos }
+        |> List.indexedMap (\i -> Tuple.mapSecond <| movable <| "player" ++ String.fromInt i)
 
 
 player_right : ( Int, Int ) -> List ( ( Int, Int ), Tile msg )
 player_right pos =
     quadTile { tilePos = ( 2, 8 ), pos = pos }
+        |> List.indexedMap (\i -> Tuple.mapSecond <| movable <| "player" ++ String.fromInt i)
 
 
 player_jump_left : ( Int, Int ) -> List ( ( Int, Int ), Tile msg )
 player_jump_left pos =
     quadTile { tilePos = ( 0, 10 ), pos = pos }
+        |> List.indexedMap (\i -> Tuple.mapSecond <| movable <| "player" ++ String.fromInt i)
 
 
 player_jump_right : ( Int, Int ) -> List ( ( Int, Int ), Tile msg )
 player_jump_right pos =
     quadTile { tilePos = ( 2, 10 ), pos = pos }
+        |> List.indexedMap (\i -> Tuple.mapSecond <| movable <| "player" ++ String.fromInt i)

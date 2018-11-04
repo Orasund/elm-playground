@@ -25,14 +25,13 @@ type alias Symmetry neighborhood ruleNeighborhood state
     = state -> neighborhood -> Rule ruleNeighborhood state -> Bool
 
 type alias NeighborhoodFunction location neighborhood state
-    = Comparable location -> state -> Field (Comparable location) state -> neighborhood
+    = Comparable location -> Field (Comparable location) state -> neighborhood
 
 type alias Automata neighborhood ruleNeighborhood location state
-  = { ruleSet: RuleSet ruleNeighborhood state
-  , symmetry : Symmetry neighborhood ruleNeighborhood state
+  = { ruleSet: RuleSet ruleNeighborhood (Maybe state)
+  , symmetry : Symmetry neighborhood ruleNeighborhood (Maybe state)
   , neighborhoodFunction : NeighborhoodFunction location neighborhood state
-  , order: state -> Int
-  , defaultState: state
+  , order: (Maybe state) -> Int
   }
 
 
@@ -50,19 +49,20 @@ find predicate list =
                 find predicate rest
 
 
-step : Automata neighborhood ruleNeighborhood location state -> Field location state -> Comparable location -> (state -> state)
-step ({neighborhoodFunction,symmetry,order,defaultState} as automata) field location =
-    let
-        neighborhood : neighborhood
-        neighborhood =
-            field |> neighborhoodFunction location defaultState
-        
-        (RuleSet ruleSet) = automata.ruleSet
-    in
-    \state ->
+step : Automata neighborhood ruleNeighborhood location state -> Field location state -> (location-> (Maybe state) -> Maybe state)
+step ({neighborhoodFunction,symmetry,order} as automata) field=
+    \location state ->
+        let
+            neighborhood : neighborhood
+            neighborhood =
+                field |> neighborhoodFunction location
+            
+            (RuleSet ruleSet) = automata.ruleSet
+        in
         ruleSet
             |> Dict.get (order state)
             |> Maybe.withDefault []
             |> find (symmetry state neighborhood)
             |> Maybe.map (\(Rule _ _ a) -> a)
             |> Maybe.withDefault state
+    

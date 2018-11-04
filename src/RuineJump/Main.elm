@@ -7,6 +7,7 @@ import DigDigBoom.Component.Map as Map
 import Html.Styled exposing (Html)
 import Html.Styled.Events as Events
 import PixelEngine exposing (PixelEngine, program)
+import PixelEngine.Controls as Controls exposing (Input(..))
 import PixelEngine.Graphics as Graphics exposing (Area, Options)
 import PixelEngine.Graphics.Image as Image exposing (image)
 import PixelEngine.Graphics.Tile as Tile exposing (Tile, Tileset)
@@ -34,11 +35,16 @@ type alias Model =
 type Msg
     = Init Int
     | Tick
+    | Input Input
     | None
 
 
-tickTask : Float -> Cmd Msg
-tickTask delay =
+tickTask : Cmd Msg
+tickTask =
+    let
+        delay =
+            50
+    in
     Task.perform (always Tick)
         (Process.sleep delay
             |> Task.andThen (\_ -> Time.now)
@@ -56,7 +62,7 @@ init int =
         , player = { pos = ( 10, -15 ), action = Standing, faceing = FaceingLeft }
         , map = segment
         }
-    , tickTask 50
+    , tickTask
     )
 
 
@@ -74,7 +80,7 @@ updatePlayer ({ pos, action } as player) map =
         Nothing ->
             case map |> Dict.get ( x + 1, y + 2 ) of
                 Nothing ->
-                    ( player |> Player.fall, tickTask 50 )
+                    ( player |> Player.fall, tickTask )
 
                 Just _ ->
                     defaultCase
@@ -85,6 +91,10 @@ updatePlayer ({ pos, action } as player) map =
 
 update : Msg -> Maybe Model -> ( Maybe Model, Cmd Msg )
 update msg maybeModel =
+    let
+        defaultCase =
+            ( maybeModel, Cmd.none )
+    in
     case maybeModel of
         Nothing ->
             case msg of
@@ -92,7 +102,7 @@ update msg maybeModel =
                     init int
 
                 _ ->
-                    ( maybeModel, Cmd.none )
+                    defaultCase
 
         Just ({ player, map } as model) ->
             case msg of
@@ -104,8 +114,37 @@ update msg maybeModel =
                         |> Tuple.mapFirst
                             (\newPlayer -> Just { model | player = newPlayer })
 
+                Input input ->
+                    case input of
+                        InputA ->
+                            defaultCase
+
+                        InputUp ->
+                            defaultCase
+
+                        InputLeft ->
+                            ( Just { model | player = player |> Player.move FaceingLeft map }, tickTask )
+
+                        InputDown ->
+                            defaultCase
+
+                        InputRight ->
+                            ( Just { model | player = player |> Player.move FaceingRight map }, tickTask )
+
+                        InputX ->
+                            defaultCase
+
+                        InputY ->
+                            defaultCase
+
+                        InputB ->
+                            defaultCase
+
+                        InputNone ->
+                            defaultCase
+
                 None ->
-                    ( maybeModel, Cmd.none )
+                    defaultCase
 
 
 subscriptions : Maybe Model -> Sub Msg
@@ -127,7 +166,7 @@ view maybeModel =
         options =
             Graphics.options
                 { width = width
-                , transitionSpeedInSec = 8
+                , transitionSpeedInSec = 0.5
                 }
 
         rows : Int
@@ -204,5 +243,5 @@ main =
         , view = view
         , update = update
         , subscriptions = subscriptions
-        , controls = \_ -> None
+        , controls = Input
         }
