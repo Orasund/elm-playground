@@ -34,7 +34,6 @@ type alias Automata neighborhood ruleNeighborhood location state
   , order: (Maybe state) -> Int
   }
 
-
 find : (a -> Bool) -> List a -> Maybe a
 find predicate list =
     case list of

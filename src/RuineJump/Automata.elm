@@ -1,4 +1,4 @@
-module RuineJump.Automata exposing (Grid, automata, order)
+module RuineJump.Automata exposing (Grid, automata, step,order)
 
 import CellAutomata.Grid2DBased as Automata exposing (GridAutomata, Location, Neighborhood, Rule, ruleSet)
 import Dict exposing (Dict)
@@ -19,14 +19,13 @@ order maybeBlock =
             1
 
 
-automata : Dict Int (List (Rule (Maybe Block))) -> GridAutomata (Maybe Block)
+automata : Dict Int (List (Rule (Maybe Block))) -> GridAutomata Block
 automata rules =
     Automata.automata
         { rules = rules
         , symmetry = Automata.noSymmetry
         , order = order
-        , defaultState = Nothing
         }
 
-step : GridAutomata (Maybe Block) -> Grid -> Grid
+step : GridAutomata Block -> Grid -> (Location->Maybe Block->Maybe Block)
 step = Automata.step

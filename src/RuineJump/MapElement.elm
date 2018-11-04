@@ -9,6 +9,7 @@ import RuineJump.Tileset as Tileset
 
 type Block
     = Dirt
+    | Grass
 
 
 type MapElement
@@ -56,3 +57,5 @@ toTiles pos mapElement =
             case block of
                 Dirt ->
                     List.singleton ( pos, Tileset.dirt id )
+                Grass ->
+                    List.singleton ( pos, Tileset.grass id )

@@ -44,11 +44,13 @@ dirt seed =
 stone : Natural16 -> Tile msg
 stone seed =
     variantTile seed ( 0, 4 )
+        |> movable (String.fromInt <| Natural.toIntFrom16 seed)
 
 
 grass : Natural16 -> Tile msg
 grass seed =
     variantTile seed ( 4, 4 )
+        |> movable (String.fromInt <| Natural.toIntFrom16 seed)
 
 
 player_left : ( Int, Int ) -> List ( ( Int, Int ), Tile msg )
