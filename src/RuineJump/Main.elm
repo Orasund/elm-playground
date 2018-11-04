@@ -59,7 +59,7 @@ init int =
     in
     ( Just
         { seed = seed
-        , player = { pos = ( 10, -15 ), action = Standing, faceing = FaceingLeft }
+        , player = { pos = ( 10, -35 ), action = Standing, faceing = FaceingLeft }
         , map = segment
         }
     , tickTask
@@ -192,7 +192,9 @@ view maybeModel =
                 Just { map, player } ->
                     let
                         (( centerX, centerY ) as center) =
-                            ( floor (width / 6) - 1, floor (height / 6) - 1 )
+                            ( floor (width / 6) - 1
+                            , floor (height / 6) - 1
+                            )
                     in
                     map
                         |> Dict.insert player.pos (PlayerElement player.action player.faceing)
@@ -206,16 +208,19 @@ view maybeModel =
                                         player.pos
 
                                     ( x, y ) =
-                                        ( posX, posY - playerY + centerY )
+                                        ( posX
+                                        , if playerY > -1*centerY then
+                                            posY+floor (width / 3)-1
+                                          else
+                                            posY - playerY + centerY
+                                        )
                                 in
                                 list
                                     |> (if
-                                            x
-                                                >= 0
-                                                && (x < floor (width / 3))
-                                                && y
-                                                >= 0
-                                                && (y < floor (height / 3))
+                                            (x >= 0)
+                                            && (x < floor (width / 3))
+                                            && (y >= 0)
+                                            && (y < floor (height / 3))
                                         then
                                             List.append (MapElement.toTiles ( x, y ) elem)
 
