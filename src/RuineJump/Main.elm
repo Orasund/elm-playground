@@ -28,6 +28,8 @@ type alias Map =
 
 type alias Model =
     { map : Map
+    , lowestY : Int
+    , xSlice : List Int
     , player : Player
     , seed : Random.Seed
     }
@@ -38,6 +40,35 @@ type Msg
     | Tick
     | Input Input
     | None
+
+getSlice : Int -> Random.Seed -> Map -> (List Int,Random.Seed)
+getSlice lowestY seed map =
+    let
+        getWeights : List a -> Random.Seed -> (List Int,Random.Seed)
+        getWeights list oldSeed =
+            Random.step
+            ( Random.list
+                (list|>List.length)
+                (Random.int Random.minInt Random.maxInt)
+            )
+            oldSeed
+        
+        orderedSlice =
+            map
+            |> Dict.filter (\(_,y) _ -> y == lowestY)
+            |> Dict.toList
+        
+        (weights,newSeed) = getWeights orderedSlice seed
+
+        shuffledSlice =
+            orderedSlice
+            |> List.map2
+                (\s ((_,y),_) -> (y,s))
+                weights
+            |> List.sortBy Tuple.second
+            |> List.map Tuple.first
+    in
+    (shuffledSlice,newSeed)
 
 
 tickTask : Cmd Msg
@@ -71,11 +102,32 @@ init int =
                         )
                 )
                 (Dict.empty,Random.initialSeed int)
+
+        lowestY = 0
     in
     ( Just
         { seed = seed
         , player = { pos = ( Config.width//2, -7 ), action = Standing, faceing = FaceingLeft }
         , map = map
+        , lowestY = lowestY
+        , xSlice = map
+            |> Dict.filter (\(_,y) _ -> y == lowestY)
+            |> Dict.toList
+            |> (\list -> 
+                    list
+                    |> List.map2
+                        (\s ((_,y),_) -> (y,s))
+                        ( Random.step
+                            ( Random.list
+                                (list|>List.length)
+                                (Random.int Random.minInt Random.maxInt)
+                            )
+                            seed
+                          |> Tuple.first
+                        )
+                )
+            |> List.sortBy Tuple.second
+            |> List.map Tuple.first
         }
     , tickTask
     )
@@ -119,7 +171,7 @@ update msg maybeModel =
                 _ ->
                     defaultCase
 
-        Just ({ player, map } as model) ->
+        Just ({ player, map, lowestY,xSlice,seed} as model) ->
             case msg of
                 Init int ->
                     init int
@@ -130,21 +182,48 @@ update msg maybeModel =
                             (\newPlayer -> Just { model | player = newPlayer })
 
                 Input input ->
+                    let
+                        (newMap) = map
+
+                        ((newSlice,newSeed),newLowestY) =
+                            case xSlice of
+                                _ :: tail ->
+                                    ((tail,seed),lowestY)
+                                [] ->
+                                    (map |> getSlice (lowestY-1) seed,lowestY-1)
+
+                            
+
+                        newModel : Player -> Maybe Model
+                        newModel newPlayer =
+                            { model 
+                                | player = newPlayer
+                                , map = newMap
+                                , xSlice = newSlice
+                                , seed = newSeed
+                            } |> Just
+                    in
                     case input of
                         InputA ->
                             defaultCase
 
                         InputUp ->
-                            ( Just { model | player = player |> Player.jump map }, tickTask )
+                            ( newModel (player |> Player.jump map)
+                            , tickTask
+                            )
 
                         InputLeft ->
-                            ( Just { model | player = player |> Player.move FaceingLeft map }, tickTask )
+                            ( newModel (player |> Player.move FaceingLeft map)
+                            , tickTask
+                            )
 
                         InputDown ->
                             defaultCase
 
                         InputRight ->
-                            ( Just { model | player = player |> Player.move FaceingRight map }, tickTask )
+                            ( newModel (player |> Player.move FaceingRight map)
+                            , tickTask
+                            )
 
                         InputX ->
                             defaultCase
