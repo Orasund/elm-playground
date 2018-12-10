@@ -12,14 +12,14 @@ import Natural exposing (Natural16(..))
 import PixelEngine.Graphics.Tile exposing (Tile, movable, tile)
 
 
-variantTile : Natural16 -> ( Int, Int ) -> Tile msg
-variantTile nat16 ( x, y ) =
+variantTile : Int -> ( Int, Int ) -> Tile msg
+variantTile int ( x, y ) =
     let
-        seed : Int
-        seed =
-            nat16 |> Natural.toIntFrom16
+        variant : Int
+        variant =
+            int |> modBy 16
     in
-    tile ( x + (seed |> modBy 4), y + seed // 4 )
+    tile ( x + (variant |> modBy 4), y + variant // 4 )
 
 
 quadCoordinates : ( Int, Int ) -> List ( Int, Int )
@@ -35,22 +35,22 @@ quadTile { tilePos, pos } =
         (quadCoordinates tilePos |> List.map tile)
 
 
-dirt : Natural16 -> Tile msg
+dirt : Int -> Tile msg
 dirt seed =
     variantTile seed ( 4, 0 )
-        |> movable (String.fromInt <| Natural.toIntFrom16 seed)
+        |> movable ""{-("tile_" ++ (String.fromInt seed))-}
 
 
-stone : Natural16 -> Tile msg
+stone : Int -> Tile msg
 stone seed =
     variantTile seed ( 0, 4 )
-        |> movable (String.fromInt <| Natural.toIntFrom16 seed)
+        |> movable ""{-("tile_" ++ (String.fromInt seed))-}
 
 
-grass : Natural16 -> Tile msg
+grass : Int -> Tile msg
 grass seed =
     variantTile seed ( 4, 4 )
-        |> movable (String.fromInt <| Natural.toIntFrom16 seed)
+        |> movable ""{-("tile_" ++ (String.fromInt seed))-}
 
 
 player_left : ( Int, Int ) -> List ( ( Int, Int ), Tile msg )

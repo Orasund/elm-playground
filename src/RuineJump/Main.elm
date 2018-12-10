@@ -17,6 +17,7 @@ import RuineJump.MapElement as MapElement exposing (MapElement(..))
 import RuineJump.MapSegment as MapSegment
 import RuineJump.Player as Player exposing (FaceingDirection(..), Player, PlayerAction(..))
 import RuineJump.Tileset as Tileset
+import RuineJump.Config as Config
 import Task
 import Time
 
@@ -43,7 +44,7 @@ tickTask : Cmd Msg
 tickTask =
     let
         delay =
-            50
+            200
     in
     Task.perform (always Tick)
         (Process.sleep delay
@@ -54,13 +55,27 @@ tickTask =
 init : Int -> ( Maybe Model, Cmd Msg )
 init int =
     let
-        ( segment, seed ) =
-            Random.step MapSegment.floorGenerator <| Random.initialSeed int
+        ( map, seed ) =
+            [ MapSegment.floorGenerator 0
+            , MapSegment.parkourGenerator 1
+            , MapSegment.parkourGenerator 2
+            , MapSegment.parkourGenerator 3
+            , MapSegment.parkourGenerator 4
+            , MapSegment.parkourGenerator 5
+            ]
+            |> List.foldl
+                (\generator (oldMap,oldSeed)->
+                    Random.step generator oldSeed
+                    |> (\(newSegment,newSeed) ->
+                            (oldMap |> Dict.union newSegment,newSeed)
+                        )
+                )
+                (Dict.empty,Random.initialSeed int)
     in
     ( Just
         { seed = seed
-        , player = { pos = ( 10, -35 ), action = Standing, faceing = FaceingLeft }
-        , map = segment
+        , player = { pos = ( Config.width//2, -7 ), action = Standing, faceing = FaceingLeft }
+        , map = map
         }
     , tickTask
     )
@@ -80,7 +95,7 @@ updatePlayer ({ pos, action } as player) map =
         Nothing ->
             case map |> Dict.get ( x + 1, y + 2 ) of
                 Nothing ->
-                    ( player |> Player.fall, tickTask )
+                    ( player |> Player.fall map, tickTask )
 
                 Just _ ->
                     defaultCase
@@ -120,7 +135,7 @@ update msg maybeModel =
                             defaultCase
 
                         InputUp ->
-                            defaultCase
+                            ( Just { model | player = player |> Player.jump map }, tickTask )
 
                         InputLeft ->
                             ( Just { model | player = player |> Player.move FaceingLeft map }, tickTask )
@@ -157,11 +172,11 @@ view maybeModel =
     let
         width : Float
         width =
-            60
+            toFloat <| 3*Config.width
 
         height : Float
         height =
-            60
+            toFloat <| 3*Config.width
 
         options =
             Graphics.options
@@ -170,8 +185,7 @@ view maybeModel =
                 }
 
         rows : Int
-        rows =
-            20
+        rows = Config.width
 
         tileset : Tileset
         tileset =
@@ -209,10 +223,20 @@ view maybeModel =
 
                                     ( x, y ) =
                                         ( posX
-                                        , if playerY > -1*centerY then
-                                            posY+floor (width / 3)-1
+                                        , if playerY > -1*centerY-1 then
+                                            posY + floor (height / 3) - 1
                                           else
-                                            posY - playerY + centerY
+                                            let
+                                                heightModSection =  
+                                                    ((playerY + centerY+2)// floor (height / 6))-1
+                                                    |> (*) (floor (height / 6))
+                                                    {-
+                                                    (playerY + centerY)// Config.sectionHeight
+                                                    |> (*) Config.sectionHeight-}
+                                            in
+                                            posY
+                                            + floor (height / 3) - 1
+                                            - heightModSection
                                         )
                                 in
                                 list

@@ -1,4 +1,4 @@
-module RuineJump.MapElement exposing (Block(..), MapElement(..), dirtGenerator, nat16Generator, toTiles)
+module RuineJump.MapElement exposing (Block(..), MapElement(..), dirtGenerator, toTiles)
 
 import Natural exposing (Natural16(..))
 import PixelEngine.Graphics.Tile exposing (Tile)
@@ -10,22 +10,23 @@ import RuineJump.Tileset as Tileset
 type Block
     = Dirt
     | Grass
+    | Stone
 
 
 type MapElement
     = PlayerElement PlayerAction FaceingDirection
-    | BlockElement Block Natural16
+    | BlockElement Block Int
 
 
-nat16Generator : Generator Natural16
+{-nat16Generator : Generator Natural16
 nat16Generator =
     Random.int 0 15
         |> Random.map (Natural.fromIntTo16 >> Maybe.withDefault Zero)
-
+-}
 
 dirtGenerator : Generator MapElement
 dirtGenerator =
-    nat16Generator |> Random.map (BlockElement Dirt)
+    Random.int 0 Random.maxInt |> Random.map (BlockElement Dirt)
 
 
 toTiles : ( Int, Int ) -> MapElement -> List ( ( Int, Int ), Tile msg )
@@ -59,3 +60,5 @@ toTiles pos mapElement =
                     List.singleton ( pos, Tileset.dirt id )
                 Grass ->
                     List.singleton ( pos, Tileset.grass id )
+                Stone ->
+                    List.singleton ( pos, Tileset.stone id )

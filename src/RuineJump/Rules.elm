@@ -1,10 +1,30 @@
-module RuineJump.Rules exposing (placeDirt,placeGrass)
+module RuineJump.Rules exposing (placeDirt,placeGrass,parkour)
 
 import RuineJump.MapElement as MapElement exposing (Block(..))
 import CellAutomata.Grid2DBased exposing (Rule,rule)
 import CellAutomata exposing (RuleState(..))
 import RuineJump.Automata as Automata
 import Dict exposing (Dict)
+
+parkour : Dict Int (List (Rule (Maybe Block)))
+parkour =
+    Dict.empty
+    |> Dict.insert (Nothing |> Automata.order)
+        [ rule
+            { from = Nothing
+            , neighbors =
+                { north = Anything
+                , northEast = Exactly <| Nothing
+                , east = Exactly <| Just Stone
+                , southEast = Exactly <| Nothing
+                , south = Anything
+                , southWest = Anything
+                , west = Anything
+                , northWest = Anything
+                }
+            , to = Just Stone
+            }
+        ]
 
 placeGrass : Dict Int (List (Rule (Maybe Block)))
 placeGrass =

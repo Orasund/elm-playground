@@ -1,7 +1,7 @@
-module RuineJump.Player exposing (FaceingDirection(..), Player, PlayerAction(..), fall, move)
+module RuineJump.Player exposing (FaceingDirection(..), Player, PlayerAction(..), fall, jump, move)
 
 import Dict exposing (Dict)
-
+import RuineJump.Config as Config
 
 type alias Map a =
     Dict ( Int, Int ) a
@@ -21,13 +21,41 @@ type PlayerAction
     | Falling
 
 
-fall : Player -> Player
-fall ({ pos, action } as player) =
+fall : Map a -> Player -> Player
+fall map ({ pos, action,faceing } as player) =
     let
         ( x, y ) =
             pos
     in
     { player | pos = ( x, y + 1 ), action = Falling }
+    |> if case faceing of
+                FaceingLeft -> x <= 0
+                FaceingRight -> x >= Config.width-2
+            then
+                identity
+            else
+                forwardByOne map
+
+
+upwardsByOne : Map a -> Player -> Player
+upwardsByOne map ({ pos, action, faceing } as player) =
+    let
+        ( x, y ) =
+            pos
+        
+        defaultCase : Player
+        defaultCase =
+            player
+    in
+    case map |> Dict.get ( x, y-1 ) of
+        Nothing ->
+            case map |> Dict.get ( x+1, y-1 ) of
+                Nothing ->
+                    { player | pos = ( x, y - 1 ) }
+                Just _ ->
+                    defaultCase
+        Just _ ->
+            defaultCase
 
 
 forwardByOne : Map a -> Player -> Player
@@ -73,11 +101,19 @@ forwardByOne map ({ pos, action, faceing } as player) =
                             defaultCase
 
         Just _ ->
-            defaultCase
+            case map |> Dict.get ( x + dir, y - 1 ) of
+                Nothing ->
+                    case map |> Dict.get ( x + dir, y - 2 ) of
+                        Nothing ->
+                            { player | pos = ( newX, y-1 ) }
+                        Just _ ->
+                            defaultCase
+                Just _ ->
+                    defaultCase
 
 
-move : FaceingDirection -> Map a -> Player -> Player
-move direction map ({ pos, action } as player) =
+jump : Map a -> Player -> Player
+jump map ({pos, action} as player) =
     let
         defaultCase : Player
         defaultCase =
@@ -85,9 +121,35 @@ move direction map ({ pos, action } as player) =
     in
     case action of
         Standing ->
-            { player | faceing = direction }
-                |> forwardByOne map
-                |> forwardByOne map
+            { player | action = Falling }
+            |> upwardsByOne map
+            |> upwardsByOne map
+            |> upwardsByOne map
+            |> upwardsByOne map
+            |> upwardsByOne map
+        Falling ->
+            defaultCase
 
-        _ ->
+move : FaceingDirection -> Map a -> Player -> Player
+move direction map ({ pos,action} as player) =
+    let
+        defaultCase : (Player->Player)
+        defaultCase =
+            identity
+        
+        x : Int
+        x = pos |> Tuple.first
+    in
+    { player | faceing = direction }
+    |> case action of
+        Standing ->
+            if case direction of
+                FaceingLeft -> x <= 0
+                FaceingRight -> x >= Config.width-2
+            then
+                defaultCase
+            else
+                forwardByOne map
+                >> forwardByOne map
+        Falling ->
             defaultCase

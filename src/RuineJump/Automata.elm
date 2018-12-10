@@ -17,6 +17,12 @@ order maybeBlock =
 
         Just Dirt ->
             1
+        
+        Just Grass ->
+            2
+        
+        Just Stone ->
+            3
 
 
 automata : Dict Int (List (Rule (Maybe Block))) -> GridAutomata Block
