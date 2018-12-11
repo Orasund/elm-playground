@@ -13,13 +13,14 @@ import PixelEngine.Graphics.Image as Image exposing (image)
 import PixelEngine.Graphics.Tile as Tile exposing (Tile, Tileset)
 import Process
 import Random
+import RuineJump.Config as Config
 import RuineJump.MapElement as MapElement exposing (MapElement(..))
 import RuineJump.MapSegment as MapSegment
 import RuineJump.Player as Player exposing (FaceingDirection(..), Player, PlayerAction(..))
 import RuineJump.Tileset as Tileset
-import RuineJump.Config as Config
 import Task
 import Time
+import List.Zipper as Zipper exposing (Zipper)
 
 
 type alias Map =
@@ -29,7 +30,7 @@ type alias Map =
 type alias Model =
     { map : Map
     , lowestY : Int
-    , xSlice : List Int
+    , xSlice : Zipper Int
     , player : Player
     , seed : Random.Seed
     }
@@ -41,34 +42,38 @@ type Msg
     | Input Input
     | None
 
-getSlice : Int -> Random.Seed -> Map -> (List Int,Random.Seed)
+
+getSlice : Int -> Random.Seed -> Map -> ( Zipper Int, Random.Seed )
 getSlice lowestY seed map =
     let
-        getWeights : List a -> Random.Seed -> (List Int,Random.Seed)
+        getWeights : List a -> Random.Seed -> ( List Int, Random.Seed )
         getWeights list oldSeed =
             Random.step
-            ( Random.list
-                (list|>List.length)
-                (Random.int Random.minInt Random.maxInt)
-            )
-            oldSeed
-        
+                (Random.list
+                    (list |> List.length)
+                    (Random.int Random.minInt Random.maxInt)
+                )
+                oldSeed
+
         orderedSlice =
             map
-            |> Dict.filter (\(_,y) _ -> y == lowestY)
-            |> Dict.toList
-        
-        (weights,newSeed) = getWeights orderedSlice seed
+                |> Dict.filter (\( _, y ) _ -> y == lowestY)
+                |> Dict.toList
+
+        ( weights, newSeed ) =
+            getWeights orderedSlice seed
 
         shuffledSlice =
             orderedSlice
-            |> List.map2
-                (\s ((_,y),_) -> (y,s))
-                weights
-            |> List.sortBy Tuple.second
-            |> List.map Tuple.first
+                |> List.map2
+                    (\s ( ( x, _ ), _ ) -> ( x, s ))
+                    weights
+                |> List.sortBy Tuple.second
+                |> List.map Tuple.first
+                |> Zipper.fromList
+                |> Zipper.withDefault 0
     in
-    (shuffledSlice,newSeed)
+    ( shuffledSlice, newSeed )
 
 
 tickTask : Cmd Msg
@@ -94,40 +99,27 @@ init int =
             , MapSegment.parkourGenerator 4
             , MapSegment.parkourGenerator 5
             ]
-            |> List.foldl
-                (\generator (oldMap,oldSeed)->
-                    Random.step generator oldSeed
-                    |> (\(newSegment,newSeed) ->
-                            (oldMap |> Dict.union newSegment,newSeed)
-                        )
-                )
-                (Dict.empty,Random.initialSeed int)
+                |> List.foldl
+                    (\generator ( oldMap, oldSeed ) ->
+                        Random.step generator oldSeed
+                            |> (\( newSegment, newSeed ) ->
+                                    ( oldMap |> Dict.union newSegment, newSeed )
+                               )
+                    )
+                    ( Dict.empty, Random.initialSeed int )
 
-        lowestY = 0
+        lowestY =
+            0
     in
     ( Just
         { seed = seed
-        , player = { pos = ( Config.width//2, -7 ), action = Standing, faceing = FaceingLeft }
+        , player = { pos = ( Config.width // 2, -7 ), action = Standing, faceing = FaceingLeft }
         , map = map
         , lowestY = lowestY
-        , xSlice = map
-            |> Dict.filter (\(_,y) _ -> y == lowestY)
-            |> Dict.toList
-            |> (\list -> 
-                    list
-                    |> List.map2
-                        (\s ((_,y),_) -> (y,s))
-                        ( Random.step
-                            ( Random.list
-                                (list|>List.length)
-                                (Random.int Random.minInt Random.maxInt)
-                            )
-                            seed
-                          |> Tuple.first
-                        )
-                )
-            |> List.sortBy Tuple.second
-            |> List.map Tuple.first
+        , xSlice =
+            map
+            |> getSlice lowestY seed
+            |> Tuple.first
         }
     , tickTask
     )
@@ -171,7 +163,7 @@ update msg maybeModel =
                 _ ->
                     defaultCase
 
-        Just ({ player, map, lowestY,xSlice,seed} as model) ->
+        Just ({ player, map, lowestY, xSlice, seed } as model) ->
             case msg of
                 Init int ->
                     init int
@@ -183,25 +175,32 @@ update msg maybeModel =
 
                 Input input ->
                     let
-                        (newMap) = map
+                        ( (newSlice, newSeed), newLowestY) =
+                            case xSlice |> Zipper.next of
+                                Just slice ->
+                                    ( ( slice, seed ), lowestY)
 
-                        ((newSlice,newSeed),newLowestY) =
-                            case xSlice of
-                                _ :: tail ->
-                                    ((tail,seed),lowestY)
-                                [] ->
-                                    (map |> getSlice (lowestY-1) seed,lowestY-1)
-
-                            
+                                Nothing ->
+                                    ( map |> getSlice (lowestY - 1) seed
+                                    , lowestY - 1
+                                    )
+                        
+                        newMap =
+                            let
+                                x : Int
+                                x = xSlice |> Zipper.current
+                            in
+                            map |> Dict.remove (x,newLowestY)
 
                         newModel : Player -> Maybe Model
                         newModel newPlayer =
-                            { model 
+                            { model
                                 | player = newPlayer
                                 , map = newMap
-                                , xSlice = newSlice
+                                , xSlice = newSlice |> Debug.log "slice"
                                 , seed = newSeed
-                            } |> Just
+                            }
+                                |> Just
                     in
                     case input of
                         InputA ->
@@ -251,11 +250,11 @@ view maybeModel =
     let
         width : Float
         width =
-            toFloat <| 3*Config.width
+            toFloat <| 3 * Config.width
 
         height : Float
         height =
-            toFloat <| 3*Config.width
+            toFloat <| 3 * Config.width
 
         options =
             Graphics.options
@@ -264,7 +263,8 @@ view maybeModel =
                 }
 
         rows : Int
-        rows = Config.width
+        rows =
+            Config.width
 
         tileset : Tileset
         tileset =
@@ -302,28 +302,33 @@ view maybeModel =
 
                                     ( x, y ) =
                                         ( posX
-                                        , if playerY > -1*centerY-1 then
+                                        , if playerY > -1 * centerY - 1 then
                                             posY + floor (height / 3) - 1
+
                                           else
                                             let
-                                                heightModSection =  
-                                                    ((playerY + centerY+2)// floor (height / 6))-1
-                                                    |> (*) (floor (height / 6))
-                                                    {-
-                                                    (playerY + centerY)// Config.sectionHeight
-                                                    |> (*) Config.sectionHeight-}
+                                                heightModSection =
+                                                    ((playerY + centerY + 2) // floor (height / 6))
+                                                        - 1
+                                                        |> (*) (floor (height / 6))
+
+                                                {-
+                                                   (playerY + centerY)// Config.sectionHeight
+                                                   |> (*) Config.sectionHeight
+                                                -}
                                             in
                                             posY
-                                            + floor (height / 3) - 1
-                                            - heightModSection
+                                                + floor (height / 3)
+                                                - 1
+                                                - heightModSection
                                         )
                                 in
                                 list
                                     |> (if
                                             (x >= 0)
-                                            && (x < floor (width / 3))
-                                            && (y >= 0)
-                                            && (y < floor (height / 3))
+                                                && (x < floor (width / 3))
+                                                && (y >= 0)
+                                                && (y < floor (height / 3))
                                         then
                                             List.append (MapElement.toTiles ( x, y ) elem)
 

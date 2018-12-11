@@ -38,19 +38,31 @@ quadTile { tilePos, pos } =
 dirt : Int -> Tile msg
 dirt seed =
     variantTile seed ( 4, 0 )
-        |> movable ""{-("tile_" ++ (String.fromInt seed))-}
+        |> movable ""
+
+
+
+{- ("tile_" ++ (String.fromInt seed)) -}
 
 
 stone : Int -> Tile msg
 stone seed =
     variantTile seed ( 0, 4 )
-        |> movable ""{-("tile_" ++ (String.fromInt seed))-}
+        |> movable ""
+
+
+
+{- ("tile_" ++ (String.fromInt seed)) -}
 
 
 grass : Int -> Tile msg
 grass seed =
     variantTile seed ( 4, 4 )
-        |> movable ""{-("tile_" ++ (String.fromInt seed))-}
+        |> movable ""
+
+
+
+{- ("tile_" ++ (String.fromInt seed)) -}
 
 
 player_left : ( Int, Int ) -> List ( ( Int, Int ), Tile msg )

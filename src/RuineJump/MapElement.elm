@@ -18,11 +18,13 @@ type MapElement
     | BlockElement Block Int
 
 
-{-nat16Generator : Generator Natural16
-nat16Generator =
-    Random.int 0 15
-        |> Random.map (Natural.fromIntTo16 >> Maybe.withDefault Zero)
+
+{- nat16Generator : Generator Natural16
+   nat16Generator =
+       Random.int 0 15
+           |> Random.map (Natural.fromIntTo16 >> Maybe.withDefault Zero)
 -}
+
 
 dirtGenerator : Generator MapElement
 dirtGenerator =
@@ -58,7 +60,9 @@ toTiles pos mapElement =
             case block of
                 Dirt ->
                     List.singleton ( pos, Tileset.dirt id )
+
                 Grass ->
                     List.singleton ( pos, Tileset.grass id )
+
                 Stone ->
                     List.singleton ( pos, Tileset.stone id )
