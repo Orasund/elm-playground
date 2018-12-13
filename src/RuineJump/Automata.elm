@@ -13,7 +13,7 @@ order : Maybe Block -> Int
 order maybeBlock =
     case maybeBlock of
         Just Air ->
-            -1
+            0
 
         Nothing ->
             0

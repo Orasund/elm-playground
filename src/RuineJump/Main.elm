@@ -87,6 +87,12 @@ tickTask =
             |> Task.andThen (\_ -> Time.now)
         )
 
+restart : ( Maybe Model, Cmd Msg )
+restart = 
+    ( Nothing
+    , Random.generate Init <| Random.int Random.minInt Random.maxInt
+    )
+
 
 init : Int -> ( Maybe Model, Cmd Msg )
 init int =
@@ -169,9 +175,17 @@ update msg maybeModel =
                     init int
 
                 Tick ->
-                    updatePlayer player map
-                        |> Tuple.mapFirst
-                            (\newPlayer -> Just { model | player = newPlayer })
+                    let
+                        (_,playerY) = player.pos
+                    in
+                    if lowestY <= playerY then
+                        restart
+                    else
+                        updatePlayer player map
+                            |> Tuple.mapFirst
+                                (\newPlayer -> 
+                                    Just { model | player = newPlayer }
+                                )
 
                 Input input ->
                     let
@@ -201,6 +215,15 @@ update msg maybeModel =
                                             BlockElement _ id ->
                                                 BlockElement Air id
                                 )
+                            |> if  
+                                    lowestY
+                                    |> modBy (Config.sectionHeight)
+                                    |> (==) 0
+                                then
+                                    Dict.filter (\(_,y) _ -> y <= lowestY)
+                                else
+                                    identity
+
 
                         newModel : Player -> Maybe Model
                         newModel newPlayer =
@@ -293,7 +316,7 @@ view maybeModel =
             , tileset = tileset
             }
             (case maybeModel of
-                Just { map, player } ->
+                Just { map, player, lowestY } ->
                     let
                         (( centerX, centerY ) as center) =
                             ( floor (width / 6) - 1
@@ -311,23 +334,22 @@ view maybeModel =
                                     ( playerX, playerY ) =
                                         player.pos
 
+                                    lowestYModSection =
+                                        (lowestY // Config.sectionHeight)
+                                        |> (*) Config.sectionHeight
+                                    
+                                    heightModSection =
+                                        ((playerY + centerY + 2) // floor (height / 6))
+                                            - 1
+                                            |> (*) (floor (height / 6))
+
                                     ( x, y ) =
                                         ( posX
-                                        , if playerY > -1 * centerY - 1 then
-                                            posY + floor (height / 3) - 1
-
+                                        , if playerY > -1 * centerY - 1 + lowestYModSection then
+                                            posY
+                                            + floor (height / 3) - 1
+                                            - lowestYModSection
                                           else
-                                            let
-                                                heightModSection =
-                                                    ((playerY + centerY + 2) // floor (height / 6))
-                                                        - 1
-                                                        |> (*) (floor (height / 6))
-
-                                                {-
-                                                   (playerY + centerY)// Config.sectionHeight
-                                                   |> (*) Config.sectionHeight
-                                                -}
-                                            in
                                             posY
                                                 + floor (height / 3)
                                                 - 1
@@ -359,11 +381,7 @@ view maybeModel =
 main : PixelEngine {} (Maybe Model) Msg
 main =
     program
-        { init =
-            \_ ->
-                ( Nothing
-                , Random.generate Init <| Random.int Random.minInt Random.maxInt
-                )
+        { init = always restart
         , view = view
         , update = update
         , subscriptions = subscriptions
