@@ -12,6 +12,9 @@ type alias Grid =
 order : Maybe Block -> Int
 order maybeBlock =
     case maybeBlock of
+        Just Air ->
+            -1
+
         Nothing ->
             0
 

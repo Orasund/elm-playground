@@ -11,6 +11,7 @@ type Block
     = Dirt
     | Grass
     | Stone
+    | Air
 
 
 type MapElement
@@ -57,12 +58,20 @@ toTiles pos mapElement =
                            )
 
         BlockElement block id ->
-            case block of
-                Dirt ->
-                    List.singleton ( pos, Tileset.dirt id )
+            List.singleton
+                ( pos
+                , id
+                    |> case block of
+                        Dirt ->
+                            Tileset.dirt
+                        
+                        Grass ->
+                            Tileset.grass
+                        
+                        Stone ->
+                            Tileset.stone
+                        
+                        Air ->
+                            Tileset.air
+                )
 
-                Grass ->
-                    List.singleton ( pos, Tileset.grass id )
-
-                Stone ->
-                    List.singleton ( pos, Tileset.stone id )

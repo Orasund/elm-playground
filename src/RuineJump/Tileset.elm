@@ -6,6 +6,7 @@ module RuineJump.Tileset exposing
     , player_left
     , player_right
     , stone
+    , air
     )
 
 import Natural exposing (Natural16(..))
@@ -33,6 +34,11 @@ quadTile { tilePos, pos } =
         (\p t -> ( p, t ))
         (quadCoordinates pos)
         (quadCoordinates tilePos |> List.map tile)
+
+air : Int -> Tile msg
+air seed =
+    tile (0,0)
+        |> movable ""
 
 
 dirt : Int -> Tile msg

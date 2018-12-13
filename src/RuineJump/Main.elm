@@ -14,7 +14,7 @@ import PixelEngine.Graphics.Tile as Tile exposing (Tile, Tileset)
 import Process
 import Random
 import RuineJump.Config as Config
-import RuineJump.MapElement as MapElement exposing (MapElement(..))
+import RuineJump.MapElement as MapElement exposing (MapElement(..),Block(..))
 import RuineJump.MapSegment as MapSegment
 import RuineJump.Player as Player exposing (FaceingDirection(..), Player, PlayerAction(..))
 import RuineJump.Tileset as Tileset
@@ -190,7 +190,17 @@ update msg maybeModel =
                                 x : Int
                                 x = xSlice |> Zipper.current
                             in
-                            map |> Dict.remove (x,newLowestY)
+                            map
+                            |> Dict.update
+                                (x,lowestY)
+                                (Maybe.map 
+                                    <| \element ->
+                                        case element of
+                                            PlayerElement _ _ ->
+                                                BlockElement Air 0
+                                            BlockElement _ id ->
+                                                BlockElement Air id
+                                )
 
                         newModel : Player -> Maybe Model
                         newModel newPlayer =
@@ -199,6 +209,7 @@ update msg maybeModel =
                                 , map = newMap
                                 , xSlice = newSlice |> Debug.log "slice"
                                 , seed = newSeed
+                                , lowestY = newLowestY
                             }
                                 |> Just
                     in
