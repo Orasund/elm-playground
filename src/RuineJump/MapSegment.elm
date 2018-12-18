@@ -1,7 +1,7 @@
 module RuineJump.MapSegment exposing (floorGenerator, parkourGenerator)
 
-import CellAutomata exposing (RuleState(..))
-import CellAutomata.Grid2DBased exposing (Location, Rule, rule)
+import CellAutomata exposing (RuleExpression(..))
+import CellAutomata.Grid2DBased exposing (Location, Rule)
 import Dict exposing (Dict)
 import Natural exposing (Natural16(..))
 import Random exposing (Generator)

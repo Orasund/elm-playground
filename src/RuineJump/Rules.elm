@@ -1,7 +1,7 @@
 module RuineJump.Rules exposing (parkour, placeDirt, placeGrass)
 
-import CellAutomata exposing (RuleState(..))
-import CellAutomata.Grid2DBased exposing (Rule, rule)
+import CellAutomata exposing (RuleExpression(..))
+import CellAutomata.Grid2DBased exposing (Rule)
 import Dict exposing (Dict)
 import RuineJump.Automata as Automata
 import RuineJump.MapElement as MapElement exposing (Block(..))
@@ -11,8 +11,7 @@ parkour : Dict Int (List (Rule (Maybe Block)))
 parkour =
     Dict.empty
         |> Dict.insert (Nothing |> Automata.order)
-            [ rule
-                { from = Nothing
+            [ { from = Nothing
                 , neighbors =
                     { north = Anything
                     , northEast = Exactly <| Nothing
@@ -32,8 +31,7 @@ placeGrass : Dict Int (List (Rule (Maybe Block)))
 placeGrass =
     Dict.empty
         |> Dict.insert (Just Dirt |> Automata.order)
-            [ rule
-                { from = Just Dirt
+            [ { from = Just Dirt
                 , neighbors =
                     { north = Exactly <| Nothing
                     , northEast = Anything
@@ -46,8 +44,7 @@ placeGrass =
                     }
                 , to = Just Grass
                 }
-            , rule
-                { from = Just Dirt
+            , { from = Just Dirt
                 , neighbors =
                     { north = Exactly <| Just Grass
                     , northEast = Anything
@@ -60,8 +57,7 @@ placeGrass =
                     }
                 , to = Just Grass
                 }
-            , rule
-                { from = Just Dirt
+            , { from = Just Dirt
                 , neighbors =
                     { north = Exactly <| Just Grass
                     , northEast = Exactly <| Just Grass
@@ -81,8 +77,7 @@ placeDirt : Dict Int (List (Rule (Maybe Block)))
 placeDirt =
     Dict.empty
         |> Dict.insert (Nothing |> Automata.order)
-            [ rule
-                { from = Nothing
+            [ { from = Nothing
                 , neighbors =
                     { north = Anything
                     , northEast = Anything
@@ -95,8 +90,7 @@ placeDirt =
                     }
                 , to = Nothing
                 }
-            , rule
-                { from = Nothing
+            , { from = Nothing
                 , neighbors =
                     { north = Anything
                     , northEast = Anything
@@ -111,8 +105,7 @@ placeDirt =
                 }
             ]
         |> Dict.insert (Just Dirt |> Automata.order)
-            [ rule
-                { from = Just Dirt
+            [ { from = Just Dirt
                 , neighbors =
                     { north = Anything
                     , northEast = Anything

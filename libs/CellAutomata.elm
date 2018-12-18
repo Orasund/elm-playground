@@ -1,4 +1,4 @@
-module CellAutomata exposing (Rule(..),step,Field,RuleSet(..),RuleState(..),Automata,Symmetry, NeighborhoodFunction)
+module CellAutomata exposing (Rule,step,ruleSet,Field,RuleSet(..),RuleExpression(..),Automata,Symmetry, NeighborhoodFunction)
 
 import Dict exposing (Dict)
 
@@ -14,12 +14,28 @@ type alias Field location state =
 type RuleSet neighborhood state
     = RuleSet (Dict Int (List (Rule neighborhood state)))
 
-type RuleState state
+
+ruleSet : ((Maybe state) -> Int) -> List (Rule neighborhood (Maybe state)) -> RuleSet neighborhood (Maybe state)
+ruleSet order = List.foldr
+    (\({neighbors,from,to} as r) dict ->
+        dict
+        |> Dict.update
+            (from |> order)
+            (\maybeList ->
+                case maybeList of
+                    Nothing -> Just [r]
+                    Just list -> Just (r :: list)
+            )
+    )
+    Dict.empty
+    >> RuleSet
+
+type RuleExpression state
     = Exactly state
     | Anything
 
-type Rule neighborhood state
-    = Rule neighborhood state state
+type alias Rule neighborhood state
+    = {from:state,neighbors:neighborhood,to:state}
 
 type alias Symmetry neighborhood ruleNeighborhood state
     = state -> neighborhood -> Rule ruleNeighborhood state -> Bool
@@ -56,12 +72,12 @@ step ({neighborhoodFunction,symmetry,order} as automata) field=
             neighborhood =
                 field |> neighborhoodFunction location
             
-            (RuleSet ruleSet) = automata.ruleSet
+            (RuleSet rSet) = automata.ruleSet
         in
-        ruleSet
+        rSet
             |> Dict.get (order state)
             |> Maybe.withDefault []
             |> find (symmetry state neighborhood)
-            |> Maybe.map (\(Rule _ _ a) -> a)
+            |> Maybe.map .to
             |> Maybe.withDefault state
     

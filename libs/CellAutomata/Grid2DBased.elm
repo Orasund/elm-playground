@@ -1,6 +1,6 @@
-module CellAutomata.Grid2DBased exposing (step,noSymmetry,automata,rule,neighborhoodFunction,ruleSet,Rule,RuleSet,GridAutomata,Neighborhood,Grid,Location)
+module CellAutomata.Grid2DBased exposing (step,noSymmetry,automata,neighborhoodFunction,ruleSet,Rule,RuleSet,GridAutomata,Neighborhood,Grid,Location)
 
-import CellAutomata exposing (Field,Symmetry,Automata,RuleState(..),NeighborhoodFunction,Symmetry)
+import CellAutomata exposing (Field,Symmetry,Automata,RuleExpression(..),NeighborhoodFunction,Symmetry)
 import Dict exposing (Dict)
 
 
@@ -24,23 +24,19 @@ type alias Neighborhood state =
     }
 
 type alias Rule state =
-    CellAutomata.Rule (Neighborhood (RuleState state)) state 
-
-rule : {from:state,neighbors:(Neighborhood (RuleState state)),to:state} -> Rule state
-rule {from,neighbors,to}=
-    CellAutomata.Rule neighbors from to
+    CellAutomata.Rule (Neighborhood (RuleExpression state)) state 
 
 type alias RuleSet state = 
-    CellAutomata.RuleSet (Neighborhood (RuleState state)) state
+    CellAutomata.RuleSet (Neighborhood (RuleExpression state)) state
 
 ruleSet : Dict Int (List (Rule state)) -> RuleSet state
 ruleSet = CellAutomata.RuleSet
 
 type alias GridAutomata state =
-    Automata (Neighborhood (Maybe state)) (Neighborhood (RuleState (Maybe state))) Location state
+    Automata (Neighborhood (Maybe state)) (Neighborhood (RuleExpression (Maybe state))) Location state
 
 automata : { rules:Dict Int (List (Rule (Maybe state)))
-  , symmetry : Symmetry (Neighborhood (Maybe state)) (Neighborhood (RuleState (Maybe state))) (Maybe state)
+  , symmetry : Symmetry (Neighborhood (Maybe state)) (Neighborhood (RuleExpression (Maybe state))) (Maybe state)
   , order: (Maybe state) -> Int
   } -> GridAutomata state
 automata {rules,symmetry,order}=
@@ -64,48 +60,48 @@ neighborhoodFunction ((x,y) as location) field =
     }
 
 
-noSymmetry : Symmetry (Neighborhood state) (Neighborhood (RuleState state)) state
-noSymmetry state neighborhood (CellAutomata.Rule ruleNeighborhood ruleState _) =
-        (state == ruleState)
-        && (ruleNeighborhood.north
+noSymmetry : Symmetry (Neighborhood state) (Neighborhood (RuleExpression state)) state
+noSymmetry state neighborhood {neighbors,from} =
+        (state == from)
+        && (neighbors.north
                 == Anything
                 || Exactly neighborhood.north
-                == ruleNeighborhood.north
+                == neighbors.north
         )
-        && (ruleNeighborhood.northEast
+        && (neighbors.northEast
                 == Anything
                 || Exactly neighborhood.northEast
-                == ruleNeighborhood.northEast
+                == neighbors.northEast
            )
-        && (ruleNeighborhood.east
+        && (neighbors.east
                 == Anything
                 || Exactly neighborhood.east
-                == ruleNeighborhood.east
+                == neighbors.east
            )
-        && (ruleNeighborhood.southEast
+        && (neighbors.southEast
                 == Anything
                 || Exactly neighborhood.southEast
-                == ruleNeighborhood.southEast
+                == neighbors.southEast
            )
-        && (ruleNeighborhood.south
+        && (neighbors.south
                 == Anything
                 || Exactly neighborhood.south
-                == ruleNeighborhood.south
+                == neighbors.south
            )
-        && (ruleNeighborhood.southWest
+        && (neighbors.southWest
                 == Anything
                 || Exactly neighborhood.southWest
-                == ruleNeighborhood.southWest
+                == neighbors.southWest
            )
-        && (ruleNeighborhood.west
+        && (neighbors.west
                 == Anything
                 || Exactly neighborhood.west
-                == ruleNeighborhood.west
+                == neighbors.west
            )
-        && (ruleNeighborhood.northWest
+        && (neighbors.northWest
                 == Anything
                 || Exactly neighborhood.northWest
-                == ruleNeighborhood.northWest
+                == neighbors.northWest
            )
 
 step : GridAutomata state -> Grid state -> (Location-> (Maybe state) -> Maybe state)
