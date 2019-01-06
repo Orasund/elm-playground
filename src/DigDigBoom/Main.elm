@@ -1,6 +1,5 @@
 module DigDigBoom.Main exposing (main)
 
-import Browser exposing (Document)
 import Css
 import Dict
 import DigDigBoom.Cell as Cell
@@ -16,7 +15,7 @@ import DigDigBoom.Game as Game
 import DigDigBoom.Player as Player exposing (PlayerData)
 import DigDigBoom.Tileset as Tileset
 import PixelEngine exposing (PixelEngine, program)
-import PixelEngine.Controls as Controls exposing (Input(..))
+import PixelEngine.Controls exposing (Input(..))
 import PixelEngine.Graphics as Graphics exposing (Area, Options)
 import PixelEngine.Graphics.Image as Image exposing (image)
 import PixelEngine.Graphics.Tile as Tile exposing (Tile, Tileset)
@@ -138,7 +137,7 @@ nextLevel { gameType, map, player } =
 
 
 updateGame : (Player.Game -> Player.Game) -> ModelContent -> ( Model, Cmd Msg )
-updateGame fun ({ player, map, gameType } as modelContent) =
+updateGame fun ({ player, map} as modelContent) =
     ( player, map )
         |> fun
         |> (\( playerData, newMap ) ->
@@ -156,7 +155,7 @@ updateGame fun ({ player, map, gameType } as modelContent) =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case model of
-        Just ({ player, map, gameType } as modelContent) ->
+        Just ({ map, gameType } as modelContent) ->
             if
                 map
                     |> Dict.toList
@@ -329,7 +328,7 @@ update msg model =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Sub.none
 
 

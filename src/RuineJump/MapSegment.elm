@@ -1,13 +1,12 @@
 module RuineJump.MapSegment exposing (floorGenerator, parkourGenerator)
 
-import CellAutomata exposing (RuleExpression(..))
-import CellAutomata.Grid2DBased exposing (Location, Rule)
+import CellAutomata exposing (Location, Rule, RuleExpression(..))
 import Dict exposing (Dict)
 import Natural exposing (Natural16(..))
 import Random exposing (Generator)
 import RuineJump.Automata as Automata exposing (Grid, automata)
 import RuineJump.Config as Config
-import RuineJump.MapElement as MapElement exposing (Block(..), MapElement(..))
+import RuineJump.MapElement exposing (Block(..), MapElement(..))
 import RuineJump.Rules as Rules
 
 
@@ -34,7 +33,7 @@ toSegment seed =
         )
 
 
-step : Int -> Dict Int (List (Rule (Maybe Block))) -> Grid -> Grid
+step : Int -> List (Rule Block) -> Grid -> Grid
 step yOffset rules grid =
     List.range 0 width
         |> List.foldl

@@ -36,7 +36,7 @@ quadTile { tilePos, pos } =
         (quadCoordinates tilePos |> List.map tile)
 
 air : Int -> Tile msg
-air seed =
+air _ =
     tile (0,0)
         |> movable ""
 

@@ -2,11 +2,10 @@ module CultSim.Main exposing (main)
 
 import Browser exposing (Document, document)
 import Css
-import CultSim.Person as Person exposing (Action(..), Person, Position)
+import CultSim.Person as Person exposing (Action(..), Person)
 import Dict exposing (Dict)
-import Html exposing (Html)
 import Html.Styled.Events as Events
-import PixelEngine.Graphics as Graphics exposing (Area)
+import PixelEngine.Graphics as Graphics
 import PixelEngine.Graphics.Image as Image exposing (image)
 import PixelEngine.Graphics.Tile as Tile
 import Process
@@ -61,18 +60,6 @@ newGame int =
         }
     , tickTask 0
     )
-
-
-updatePeople2 : (( Dict String Person, Random.Seed ) -> ( Dict String Person, Random.Seed )) -> Model -> Model
-updatePeople2 fun model =
-    let
-        ( people, seed ) =
-            fun ( model.people, model.seed )
-    in
-    { model
-        | people = people
-        , seed = seed
-    }
 
 
 update : Msg -> Maybe Model -> ( Maybe Model, Cmd Msg )
@@ -184,7 +171,7 @@ update msg maybeModel =
                                     else
                                         m
                                )
-                            |> (\({ hunger, seed, people } as m) ->
+                            |> (\({ hunger } as m) ->
                                     if hunger < 0 then
                                         { m | hunger = 0 }
 
@@ -246,7 +233,7 @@ update msg maybeModel =
 
 
 subscriptions : Maybe Model -> Sub Msg
-subscriptions maybeModel =
+subscriptions _ =
     Sub.none
 
 
@@ -276,7 +263,7 @@ view maybeModel =
                 , background = Graphics.colorBackground <| Css.rgb 255 255 255
                 }
                 (case maybeModel of
-                    Just ({ people, hunger, newPerson } as model) ->
+                    Just { people, hunger, newPerson } ->
                         people
                             |> Dict.toList
                             |> List.append [ newPerson ]

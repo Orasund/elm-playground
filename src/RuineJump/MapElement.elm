@@ -3,7 +3,7 @@ module RuineJump.MapElement exposing (Block(..), MapElement(..), dirtGenerator, 
 import Natural exposing (Natural16(..))
 import PixelEngine.Graphics.Tile exposing (Tile)
 import Random exposing (Generator)
-import RuineJump.Player exposing (FaceingDirection(..), Player, PlayerAction(..))
+import RuineJump.Player exposing (FaceingDirection(..),  PlayerAction(..))
 import RuineJump.Tileset as Tileset
 
 

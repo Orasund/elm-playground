@@ -184,7 +184,7 @@ move worldSize ( ( location, direction ) as playerCell, ( playerData, currentMap
 
 
 throwEnemy : Actor -> EnemyType -> String -> Map Cell -> Map Cell
-throwEnemy (( location, direction ) as playerCell) enemyType enemyId currentMap =
+throwEnemy (( _,direction ) as playerCell) enemyType enemyId currentMap =
     let
         newLocation : Location
         newLocation =

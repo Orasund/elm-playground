@@ -9,7 +9,10 @@ type alias Map a =
 
 
 type alias Player =
-    { pos : ( Int, Int ), action : PlayerAction, faceing : FaceingDirection }
+    { pos : ( Int, Int )
+    , action : PlayerAction
+    , faceing : FaceingDirection
+    }
 
 
 type FaceingDirection
@@ -23,7 +26,7 @@ type PlayerAction
 
 
 fall : Map a -> Player -> Player
-fall map ({ pos, action, faceing } as player) =
+fall map ({ pos, faceing } as player) =
     let
         ( x, y ) =
             pos
@@ -45,7 +48,7 @@ fall map ({ pos, action, faceing } as player) =
 
 
 upwardsByOne : Map a -> Player -> Player
-upwardsByOne map ({ pos, action, faceing } as player) =
+upwardsByOne map ({ pos } as player) =
     let
         ( x, y ) =
             pos
@@ -68,7 +71,7 @@ upwardsByOne map ({ pos, action, faceing } as player) =
 
 
 forwardByOne : Map a -> Player -> Player
-forwardByOne map ({ pos, action, faceing } as player) =
+forwardByOne map ({ pos, faceing } as player) =
     let
         ( x, y ) =
             pos
@@ -124,7 +127,7 @@ forwardByOne map ({ pos, action, faceing } as player) =
 
 
 jump : Map a -> Player -> Player
-jump map ({ pos, action } as player) =
+jump map ({ action } as player) =
     let
         defaultCase : Player
         defaultCase =

@@ -1,26 +1,20 @@
 module RuineJump.Main exposing (main)
 
-import Browser exposing (Document)
 import Css
 import Dict exposing (Dict)
-import DigDigBoom.Component.Map as Map
-import Html.Styled exposing (Html)
-import Html.Styled.Events as Events
+import List.Zipper as Zipper exposing (Zipper)
 import PixelEngine exposing (PixelEngine, program)
-import PixelEngine.Controls as Controls exposing (Input(..))
+import PixelEngine.Controls exposing (Input(..))
 import PixelEngine.Graphics as Graphics exposing (Area, Options)
-import PixelEngine.Graphics.Image as Image exposing (image)
-import PixelEngine.Graphics.Tile as Tile exposing (Tile, Tileset)
+import PixelEngine.Graphics.Tile exposing (Tileset)
 import Process
 import Random
 import RuineJump.Config as Config
-import RuineJump.MapElement as MapElement exposing (MapElement(..),Block(..))
+import RuineJump.MapElement as MapElement exposing (Block(..), MapElement(..))
 import RuineJump.MapSegment as MapSegment
 import RuineJump.Player as Player exposing (FaceingDirection(..), Player, PlayerAction(..))
-import RuineJump.Tileset as Tileset
 import Task
 import Time
-import List.Zipper as Zipper exposing (Zipper)
 
 
 type alias Map =
@@ -40,7 +34,6 @@ type Msg
     = Init Int
     | Tick
     | Input Input
-    | None
 
 
 getSlice : Int -> Random.Seed -> Map -> ( Zipper Int, Random.Seed )
@@ -87,8 +80,9 @@ tickTask =
             |> Task.andThen (\_ -> Time.now)
         )
 
+
 restart : ( Maybe Model, Cmd Msg )
-restart = 
+restart =
     ( Nothing
     , Random.generate Init <| Random.int Random.minInt Random.maxInt
     )
@@ -124,15 +118,15 @@ init int =
         , lowestY = lowestY
         , xSlice =
             map
-            |> getSlice lowestY seed
-            |> Tuple.first
+                |> getSlice lowestY seed
+                |> Tuple.first
         }
     , tickTask
     )
 
 
 updatePlayer : Player -> Map -> ( Player, Cmd Msg )
-updatePlayer ({ pos, action } as player) map =
+updatePlayer ({ pos } as player) map =
     let
         ( x, y ) =
             pos
@@ -176,61 +170,66 @@ update msg maybeModel =
 
                 Tick ->
                     let
-                        (_,playerY) = player.pos
+                        ( _, playerY ) =
+                            player.pos
                     in
                     if lowestY <= playerY then
                         restart
+
                     else
                         updatePlayer player map
                             |> Tuple.mapFirst
-                                (\newPlayer -> 
+                                (\newPlayer ->
                                     Just { model | player = newPlayer }
                                 )
 
                 Input input ->
                     let
-                        ( (newSlice, newSeed), newLowestY) =
+                        ( ( newSlice, newSeed ), newLowestY ) =
                             case xSlice |> Zipper.next of
                                 Just slice ->
-                                    ( ( slice, seed ), lowestY)
+                                    ( ( slice, seed ), lowestY )
 
                                 Nothing ->
                                     ( map |> getSlice (lowestY - 1) seed
                                     , lowestY - 1
                                     )
-                        
+
                         newMap =
                             let
                                 x : Int
-                                x = xSlice |> Zipper.current
+                                x =
+                                    xSlice |> Zipper.current
                             in
                             map
-                            |> Dict.update
-                                (x,lowestY)
-                                (Maybe.map 
-                                    <| \element ->
-                                        case element of
-                                            PlayerElement _ _ ->
-                                                BlockElement Air 0
-                                            BlockElement _ id ->
-                                                BlockElement Air id
-                                )
-                            |> if  
-                                    lowestY
-                                    |> modBy (Config.sectionHeight)
-                                    |> (==) 0
-                                then
-                                    Dict.filter (\(_,y) _ -> y <= lowestY)
-                                else
-                                    identity
+                                |> Dict.update
+                                    ( x, lowestY )
+                                    (Maybe.map <|
+                                        \element ->
+                                            case element of
+                                                PlayerElement _ _ ->
+                                                    BlockElement Air 0
 
+                                                BlockElement _ id ->
+                                                    BlockElement Air id
+                                    )
+                                |> (if
+                                        lowestY
+                                            |> modBy Config.sectionHeight
+                                            |> (==) 0
+                                    then
+                                        Dict.filter (\( _, y ) _ -> y <= lowestY)
+
+                                    else
+                                        identity
+                                   )
 
                         newModel : Player -> Maybe Model
                         newModel newPlayer =
                             { model
                                 | player = newPlayer
                                 , map = newMap
-                                , xSlice = newSlice |> Debug.log "slice"
+                                , xSlice = newSlice
                                 , seed = newSeed
                                 , lowestY = newLowestY
                             }
@@ -270,12 +269,9 @@ update msg maybeModel =
                         InputNone ->
                             defaultCase
 
-                None ->
-                    defaultCase
-
 
 subscriptions : Maybe Model -> Sub Msg
-subscriptions maybeModel =
+subscriptions _ =
     Sub.none
 
 
@@ -318,7 +314,7 @@ view maybeModel =
             (case maybeModel of
                 Just { map, player, lowestY } ->
                     let
-                        (( centerX, centerY ) as center) =
+                        (( _, centerY )) =
                             ( floor (width / 6) - 1
                             , floor (height / 6) - 1
                             )
@@ -331,13 +327,13 @@ view maybeModel =
                                     ( posX, posY ) =
                                         pos
 
-                                    ( playerX, playerY ) =
+                                    ( _, playerY ) =
                                         player.pos
 
                                     lowestYModSection =
                                         (lowestY // Config.sectionHeight)
-                                        |> (*) Config.sectionHeight
-                                    
+                                            |> (*) Config.sectionHeight
+
                                     heightModSection =
                                         ((playerY + centerY + 2) // floor (height / 6))
                                             - 1
@@ -347,8 +343,10 @@ view maybeModel =
                                         ( posX
                                         , if playerY > -1 * centerY - 1 + lowestYModSection then
                                             posY
-                                            + floor (height / 3) - 1
-                                            - lowestYModSection
+                                                + floor (height / 3)
+                                                - 1
+                                                - lowestYModSection
+
                                           else
                                             posY
                                                 + floor (height / 3)

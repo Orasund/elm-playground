@@ -438,10 +438,6 @@ health_potion color =
     tile ( 5, 7 ) |> withAttributes [ backgroundColor color ]
 
 
-dirt : Css.Color -> Tile msg
-dirt color =
-    tile ( 8, 7 ) |> withAttributes [ backgroundColor color ]
-
 
 stone : Css.Color -> Tile msg
 stone color =
