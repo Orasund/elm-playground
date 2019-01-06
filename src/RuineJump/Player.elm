@@ -1,4 +1,4 @@
-module RuineJump.Player exposing (FaceingDirection(..), Player, PlayerAction(..), fall, jump, move)
+module RuineJump.Player exposing (FaceingDirection(..), Player, PlayerAction(..),update, fall, jump, move)
 
 import Dict exposing (Dict)
 import RuineJump.Config as Config
@@ -23,6 +23,30 @@ type FaceingDirection
 type PlayerAction
     = Standing
     | Falling
+
+
+update : Player -> Map a -> (Maybe a -> Bool) -> { newPlayer : Player, nextTick : Bool }
+update ({ pos } as player) map isOccupied =
+    let
+        ( x, y ) =
+            pos
+
+        defaultCase : { newPlayer : Player, nextTick : Bool }
+        defaultCase =
+            { newPlayer = { player | action = Standing }
+            , nextTick = False
+            }
+    in
+    if
+        (map |> Dict.get ( x, y + 2 ) |> isOccupied)
+            || (map |> Dict.get ( x + 1, y + 2 ) |> isOccupied)
+    then
+        defaultCase
+
+    else
+        { newPlayer = player |> fall map
+        , nextTick = True
+        }
 
 
 fall : Map a -> Player -> Player

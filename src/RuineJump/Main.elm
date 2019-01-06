@@ -125,29 +125,6 @@ init int =
     )
 
 
-updatePlayer : Player -> Map -> ( Player, Cmd Msg )
-updatePlayer ({ pos } as player) map =
-    let
-        ( x, y ) =
-            pos
-
-        defaultCase : ( Player, Cmd Msg )
-        defaultCase =
-            ( { player | action = Standing }, Cmd.none )
-    in
-    case map |> Dict.get ( x, y + 2 ) of
-        Nothing ->
-            case map |> Dict.get ( x + 1, y + 2 ) of
-                Nothing ->
-                    ( player |> Player.fall map, tickTask )
-
-                Just _ ->
-                    defaultCase
-
-        Just _ ->
-            defaultCase
-
-
 update : Msg -> Maybe Model -> ( Maybe Model, Cmd Msg )
 update msg maybeModel =
     let
@@ -177,11 +154,25 @@ update msg maybeModel =
                         restart
 
                     else
-                        updatePlayer player map
-                            |> Tuple.mapFirst
-                                (\newPlayer ->
-                                    Just { model | player = newPlayer }
+                        let
+                          {newPlayer,nextTick} =
+                            Player.update
+                                player
+                                map
+                                (\elem -> case elem of
+                                    Nothing ->
+                                        False
+
+                                    Just (BlockElement Air _) ->
+                                        False
+
+                                    Just _ ->
+                                        True
                                 )
+                        in
+                        (Just { model | player = newPlayer }
+                        , if nextTick then tickTask else Cmd.none
+                        )
 
                 Input input ->
                     let
@@ -307,14 +298,14 @@ view maybeModel =
     , options = options
     , body =
         [ Graphics.tiledArea
-            { background = Graphics.colorBackground <| Css.rgb 255 255 255
+            { background = Graphics.colorBackground <| Css.rgb 68 36 52
             , rows = rows
             , tileset = tileset
             }
             (case maybeModel of
                 Just { map, player, lowestY } ->
                     let
-                        (( _, centerY )) =
+                        ( _, centerY ) =
                             ( floor (width / 6) - 1
                             , floor (height / 6) - 1
                             )

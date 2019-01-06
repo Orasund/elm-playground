@@ -37,7 +37,7 @@ quadTile { tilePos, pos } =
 
 air : Int -> Tile msg
 air _ =
-    tile (0,0)
+    tile (1,0)
         |> movable ""
 
 
