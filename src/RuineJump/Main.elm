@@ -12,6 +12,7 @@ import Random
 import RuineJump.Config as Config
 import RuineJump.MapElement as MapElement exposing (Block(..), MapElement(..))
 import RuineJump.MapSegment as MapSegment
+import RuineJump.MapSlice as MapSlice
 import RuineJump.Player as Player exposing (FaceingDirection(..), Player, PlayerAction(..))
 import Task
 import Time
@@ -45,39 +46,6 @@ width =
 height : Float
 height =
     toFloat <| 3 * Config.width
-
-
-getSlice : Int -> Random.Seed -> Map -> ( Zipper Int, Random.Seed )
-getSlice lowestY seed map =
-    let
-        getWeights : List a -> Random.Seed -> ( List Int, Random.Seed )
-        getWeights list oldSeed =
-            Random.step
-                (Random.list
-                    (list |> List.length)
-                    (Random.int Random.minInt Random.maxInt)
-                )
-                oldSeed
-
-        orderedSlice =
-            map
-                |> Dict.filter (\( _, y ) _ -> y == lowestY)
-                |> Dict.toList
-
-        ( weights, newSeed ) =
-            getWeights orderedSlice seed
-
-        shuffledSlice =
-            orderedSlice
-                |> List.map2
-                    (\s ( ( x, _ ), _ ) -> ( x, s ))
-                    weights
-                |> List.sortBy Tuple.second
-                |> List.map Tuple.first
-                |> Zipper.fromList
-                |> Zipper.withDefault 0
-    in
-    ( shuffledSlice, newSeed )
 
 
 tickTask : Cmd Msg
@@ -133,11 +101,129 @@ init int =
         , currentY = y
         , xSlice =
             map
-                |> getSlice lowestY seed
+                |> MapSlice.fromMap lowestY seed
                 |> Tuple.first
         }
     , tickTask
     )
+
+
+onInput : Input -> Model -> Maybe ( Model, Cmd Msg )
+onInput input ({ player, map, lowestY, xSlice, seed } as model) =
+    (case input of
+        InputUp ->
+            Just <| Player.jump map
+
+        InputLeft ->
+            Just <| Player.move FaceingLeft map
+
+        InputDown ->
+            Nothing
+
+        InputRight ->
+            Just <| Player.move FaceingRight map
+
+        _ ->
+            Nothing
+    )
+        |> Maybe.andThen
+            (\action ->
+                let
+                    ( ( newSlice, newSeed ), newLowestY ) =
+                        case xSlice |> Zipper.next of
+                            Just slice ->
+                                ( ( slice, seed ), lowestY )
+
+                            Nothing ->
+                                ( map |> MapSlice.fromMap (lowestY - 1) seed
+                                , lowestY - 1
+                                )
+
+                    newMap =
+                        let
+                            x : Int
+                            x =
+                                xSlice |> Zipper.current
+                        in
+                        map
+                            |> Dict.update
+                                ( x, lowestY )
+                                (Maybe.map <|
+                                    \element ->
+                                        case element of
+                                            PlayerElement _ _ ->
+                                                BlockElement Air 0
+
+                                            BlockElement _ id ->
+                                                BlockElement Air id
+                                )
+                            |> (if
+                                    lowestY
+                                        |> modBy Config.sectionHeight
+                                        |> (==) 0
+                                then
+                                    Dict.filter (\( _, y ) _ -> y <= lowestY)
+
+                                else
+                                    identity
+                               )
+                in
+                Just
+                    ( { model
+                        | player = player |> action
+                        , map = newMap
+                        , xSlice = newSlice
+                        , seed = newSeed
+                        , lowestY = newLowestY
+                      }
+                    , tickTask
+                    )
+            )
+
+
+onTick : Model -> ( Maybe Model, Cmd Msg )
+onTick ({ map, player, lowestY } as model) =
+    let
+        ( _, playerY ) =
+            player.pos
+    in
+    if lowestY <= playerY then
+        restart
+
+    else
+        let
+            { newPlayer, nextTick } =
+                Player.update
+                    player
+                    map
+                    (\elem ->
+                        case elem of
+                            Nothing ->
+                                False
+
+                            Just (BlockElement Air _) ->
+                                False
+
+                            Just _ ->
+                                True
+                    )
+
+            ( _, y ) =
+                newPlayer.pos
+        in
+        if nextTick then
+            ( Just { model | player = newPlayer }
+            , tickTask
+            )
+
+        else
+            ( Just
+                { model
+                    | player = newPlayer
+                    , currentY = y
+                }
+            , Cmd.none
+            )
 
 
 update : Msg -> Maybe Model -> ( Maybe Model, Cmd Msg )
@@ -155,129 +241,21 @@ update msg maybeModel =
                 _ ->
                     defaultCase
 
-        Just ({ player, map, lowestY, xSlice, seed } as model) ->
+        Just model ->
             case msg of
                 Init int ->
                     init int
 
                 Tick ->
-                    let
-                        ( _, playerY ) =
-                            player.pos
-                    in
-                    if lowestY <= playerY then
-                        restart
-
-                    else
-                        let
-                            { newPlayer, nextTick } =
-                                Player.update
-                                    player
-                                    map
-                                    (\elem ->
-                                        case elem of
-                                            Nothing ->
-                                                False
-
-                                            Just (BlockElement Air _) ->
-                                                False
-
-                                            Just _ ->
-                                                True
-                                    )
-                        in
-                        if nextTick then
-                            ( Just { model | player = newPlayer }
-                            , tickTask
-                            )
-
-                        else
-                            let
-                                ( _, y ) =
-                                    newPlayer.pos
-                            in
-                            ( Just
-                                { model
-                                    | player = newPlayer
-                                    , currentY = y
-                                }
-                            , Cmd.none
-                            )
+                    model |> onTick
 
                 Input input ->
-                    let
-                        ( ( newSlice, newSeed ), newLowestY ) =
-                            case xSlice |> Zipper.next of
-                                Just slice ->
-                                    ( ( slice, seed ), lowestY )
+                    case model |> onInput input of
+                        Nothing ->
+                            defaultCase
 
-                                Nothing ->
-                                    ( map |> getSlice (lowestY - 1) seed
-                                    , lowestY - 1
-                                    )
-
-                        newMap =
-                            let
-                                x : Int
-                                x =
-                                    xSlice |> Zipper.current
-                            in
-                            map
-                                |> Dict.update
-                                    ( x, lowestY )
-                                    (Maybe.map <|
-                                        \element ->
-                                            case element of
-                                                PlayerElement _ _ ->
-                                                    BlockElement Air 0
-
-                                                BlockElement _ id ->
-                                                    BlockElement Air id
-                                    )
-                                |> (if
-                                        lowestY
-                                            |> modBy Config.sectionHeight
-                                            |> (==) 0
-                                    then
-                                        Dict.filter (\( _, y ) _ -> y <= lowestY)
-
-                                    else
-                                        identity
-                                   )
-                    in
-                    (case input of
-                        InputUp ->
-                            Just <| Player.jump map
-
-                        InputLeft ->
-                            Just <| Player.move FaceingLeft map
-
-                        InputDown ->
-                            Nothing
-
-                        InputRight ->
-                            Just <| Player.move FaceingRight map
-
-                        _ ->
-                            Nothing
-                    )
-                        |> (\maybeAction ->
-                                case maybeAction of
-                                    Nothing ->
-                                        defaultCase
-
-                                    Just action ->
-                                        ( Just
-                                            { model
-                                                | player = (player |> action)
-                                                , map = newMap
-                                                , xSlice = newSlice
-                                                , seed = newSeed
-                                                , lowestY = newLowestY
-                                            }
-                                        , tickTask
-                                        )
-                           )
+                        Just ( newModel, cmd ) ->
+                            ( Just newModel, cmd )
 
 
 subscriptions : Maybe Model -> Sub Msg
