@@ -6,7 +6,7 @@ import List.Zipper as Zipper exposing (Zipper)
 import PixelEngine exposing (PixelEngine, program)
 import PixelEngine.Controls exposing (Input(..))
 import PixelEngine.Graphics as Graphics exposing (Area, Options)
-import PixelEngine.Graphics.Tile exposing (Tileset)
+import PixelEngine.Graphics.Tile exposing (Tile, Tileset)
 import Process
 import Random
 import RuineJump.Config as Config
@@ -24,6 +24,7 @@ type alias Map =
 type alias Model =
     { map : Map
     , lowestY : Int
+    , currentY : Int
     , xSlice : Zipper Int
     , player : Player
     , seed : Random.Seed
@@ -34,6 +35,16 @@ type Msg
     = Init Int
     | Tick
     | Input Input
+
+
+width : Float
+width =
+    toFloat <| 3 * Config.width
+
+
+height : Float
+height =
+    toFloat <| 3 * Config.width
 
 
 getSlice : Int -> Random.Seed -> Map -> ( Zipper Int, Random.Seed )
@@ -108,14 +119,18 @@ init int =
                     )
                     ( Dict.empty, Random.initialSeed int )
 
+        (( _, y ) as pos) =
+            ( Config.width // 2, -7 )
+
         lowestY =
             0
     in
     ( Just
         { seed = seed
-        , player = { pos = ( Config.width // 2, -7 ), action = Standing, faceing = FaceingLeft }
+        , player = { pos = pos, action = Standing, faceing = FaceingLeft }
         , map = map
         , lowestY = lowestY
+        , currentY = y
         , xSlice =
             map
                 |> getSlice lowestY seed
@@ -155,24 +170,39 @@ update msg maybeModel =
 
                     else
                         let
-                          {newPlayer,nextTick} =
-                            Player.update
-                                player
-                                map
-                                (\elem -> case elem of
-                                    Nothing ->
-                                        False
+                            { newPlayer, nextTick } =
+                                Player.update
+                                    player
+                                    map
+                                    (\elem ->
+                                        case elem of
+                                            Nothing ->
+                                                False
 
-                                    Just (BlockElement Air _) ->
-                                        False
+                                            Just (BlockElement Air _) ->
+                                                False
 
-                                    Just _ ->
-                                        True
-                                )
+                                            Just _ ->
+                                                True
+                                    )
                         in
-                        (Just { model | player = newPlayer }
-                        , if nextTick then tickTask else Cmd.none
-                        )
+                        if nextTick then
+                            ( Just { model | player = newPlayer }
+                            , tickTask
+                            )
+
+                        else
+                            let
+                                ( _, y ) =
+                                    newPlayer.pos
+                            in
+                            ( Just
+                                { model
+                                    | player = newPlayer
+                                    , currentY = y
+                                }
+                            , Cmd.none
+                            )
 
                 Input input ->
                     let
@@ -214,51 +244,40 @@ update msg maybeModel =
                                     else
                                         identity
                                    )
-
-                        newModel : Player -> Maybe Model
-                        newModel newPlayer =
-                            { model
-                                | player = newPlayer
-                                , map = newMap
-                                , xSlice = newSlice
-                                , seed = newSeed
-                                , lowestY = newLowestY
-                            }
-                                |> Just
                     in
-                    case input of
-                        InputA ->
-                            defaultCase
-
+                    (case input of
                         InputUp ->
-                            ( newModel (player |> Player.jump map)
-                            , tickTask
-                            )
+                            Just <| Player.jump map
 
                         InputLeft ->
-                            ( newModel (player |> Player.move FaceingLeft map)
-                            , tickTask
-                            )
+                            Just <| Player.move FaceingLeft map
 
                         InputDown ->
-                            defaultCase
+                            Nothing
 
                         InputRight ->
-                            ( newModel (player |> Player.move FaceingRight map)
-                            , tickTask
-                            )
+                            Just <| Player.move FaceingRight map
 
-                        InputX ->
-                            defaultCase
+                        _ ->
+                            Nothing
+                    )
+                        |> (\maybeAction ->
+                                case maybeAction of
+                                    Nothing ->
+                                        defaultCase
 
-                        InputY ->
-                            defaultCase
-
-                        InputB ->
-                            defaultCase
-
-                        InputNone ->
-                            defaultCase
+                                    Just action ->
+                                        ( Just
+                                            { model
+                                                | player = (player |> action)
+                                                , map = newMap
+                                                , xSlice = newSlice
+                                                , seed = newSeed
+                                                , lowestY = newLowestY
+                                            }
+                                        , tickTask
+                                        )
+                           )
 
 
 subscriptions : Maybe Model -> Sub Msg
@@ -266,17 +285,65 @@ subscriptions _ =
     Sub.none
 
 
+getTilesList : { currentY : Int, lowestY : Int } -> Map -> List ( ( Int, Int ), Tile Msg )
+getTilesList { currentY, lowestY } =
+    Dict.foldl
+        (\pos elem list ->
+            let
+                ( posX, posY ) =
+                    pos
+
+                ( _, centerY ) =
+                    ( floor (width / 6) - 1
+                    , floor (height / 6) - 1
+                    )
+
+                lowestYModSection =
+                    (lowestY // Config.sectionHeight)
+                        |> (*) Config.sectionHeight
+
+                heightModSection =
+                    ((currentY + centerY + 2) // floor (height / 6))
+                        - 1
+                        |> (*) (floor (height / 6))
+
+                ( x, y ) =
+                    ( posX
+                    , if currentY > -1 * centerY - 1 + lowestYModSection then
+                        posY
+                            + floor (height / 3)
+                            - 1
+                            - lowestYModSection
+
+                      else
+                        posY
+                            + floor (height / 3)
+                            - 1
+                            - heightModSection
+                    )
+            in
+            list
+                |> (if
+                        (x >= 0)
+                            && (x < floor (width / 3))
+                            && (y >= 0)
+                            && (y < floor (height / 3))
+                    then
+                        List.append <|
+                            MapElement.toTiles
+                                ( x, y )
+                                elem
+
+                    else
+                        identity
+                   )
+        )
+        []
+
+
 view : Maybe Model -> { title : String, options : Options Msg, body : List (Area Msg) }
 view maybeModel =
     let
-        width : Float
-        width =
-            toFloat <| 3 * Config.width
-
-        height : Float
-        height =
-            toFloat <| 3 * Config.width
-
         options =
             Graphics.options
                 { width = width
@@ -303,62 +370,13 @@ view maybeModel =
             , tileset = tileset
             }
             (case maybeModel of
-                Just { map, player, lowestY } ->
-                    let
-                        ( _, centerY ) =
-                            ( floor (width / 6) - 1
-                            , floor (height / 6) - 1
-                            )
-                    in
+                Just { map, player, currentY, lowestY } ->
                     map
-                        |> Dict.insert player.pos (PlayerElement player.action player.faceing)
-                        |> Dict.foldl
-                            (\pos elem list ->
-                                let
-                                    ( posX, posY ) =
-                                        pos
-
-                                    ( _, playerY ) =
-                                        player.pos
-
-                                    lowestYModSection =
-                                        (lowestY // Config.sectionHeight)
-                                            |> (*) Config.sectionHeight
-
-                                    heightModSection =
-                                        ((playerY + centerY + 2) // floor (height / 6))
-                                            - 1
-                                            |> (*) (floor (height / 6))
-
-                                    ( x, y ) =
-                                        ( posX
-                                        , if playerY > -1 * centerY - 1 + lowestYModSection then
-                                            posY
-                                                + floor (height / 3)
-                                                - 1
-                                                - lowestYModSection
-
-                                          else
-                                            posY
-                                                + floor (height / 3)
-                                                - 1
-                                                - heightModSection
-                                        )
-                                in
-                                list
-                                    |> (if
-                                            (x >= 0)
-                                                && (x < floor (width / 3))
-                                                && (y >= 0)
-                                                && (y < floor (height / 3))
-                                        then
-                                            List.append (MapElement.toTiles ( x, y ) elem)
-
-                                        else
-                                            identity
-                                       )
-                            )
-                            []
+                        |> Dict.insert
+                            player.pos
+                            (PlayerElement player.action player.faceing)
+                        |> getTilesList
+                            { currentY = currentY, lowestY = lowestY }
 
                 Nothing ->
                     []
