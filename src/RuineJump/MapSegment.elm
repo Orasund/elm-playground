@@ -1,4 +1,4 @@
-module RuineJump.MapSegment exposing (floorGenerator, parkourGenerator)
+module RuineJump.MapSegment exposing (append,concat,floorGenerator, parkourGenerator)
 
 import CellAutomata exposing (Location, Rule, RuleExpression(..))
 import Dict exposing (Dict)
@@ -6,9 +6,9 @@ import Natural exposing (Natural16(..))
 import Random exposing (Generator)
 import RuineJump.Automata as Automata exposing (Grid, automata)
 import RuineJump.Config as Config
+import RuineJump.Map exposing (Map)
 import RuineJump.MapElement exposing (Block(..), MapElement(..))
 import RuineJump.Rules as Rules
-
 
 width : Int
 width =
@@ -19,13 +19,31 @@ height : Int
 height =
     Config.sectionHeight
 
+append : Generator Map -> Generator Map -> Generator Map
+append =
+    Random.map2
+        (\map segment ->
+            map |> Dict.union segment
+        )
+
+concat : List (Generator Map) -> Generator Map
+concat list =
+    case list of
+        [] ->
+            Random.constant Dict.empty
+
+        a :: tail ->
+            tail
+                |> List.foldl
+                    append
+                    a
 
 newSeed : Int -> Location -> Random.Seed
 newSeed seed ( x, y ) =
     Random.initialSeed (seed + x * width + y)
 
 
-toSegment : Int -> Grid -> Dict Location MapElement
+toSegment : Int -> Grid -> Map
 toSegment seed =
     Dict.map
         (\pos block ->
@@ -69,7 +87,7 @@ repeat num fun dict =
         |> List.foldl (always <| fun) dict
 
 
-parkourGenerator : Int -> Generator (Dict Location MapElement)
+parkourGenerator : Int -> Generator Map
 parkourGenerator level =
     let
         yOffset : Int
@@ -103,7 +121,7 @@ parkourGenerator level =
         (Random.list (width * (height // 2)) <| Random.weighted ( 10, Nothing ) [ ( 1, Just Stone ) ])
 
 
-floorGenerator : Int -> Generator (Dict Location MapElement)
+floorGenerator : Int -> Generator Map
 floorGenerator level =
     let
         yOffset : Int

@@ -1,4 +1,4 @@
-module RuineJump.MapElement exposing (Block(..), MapElement(..), dirtGenerator, toTiles)
+module RuineJump.MapElement exposing (Block(..), MapElement(..), remove,dirtGenerator, toTiles)
 
 import Natural exposing (Natural16(..))
 import PixelEngine.Graphics.Tile exposing (Tile)
@@ -18,6 +18,14 @@ type MapElement
     = PlayerElement PlayerAction FaceingDirection
     | BlockElement Block Int
 
+remove : MapElement -> MapElement
+remove element =
+    case element of
+                PlayerElement _ _ ->
+                    BlockElement Air 0
+
+                BlockElement _ id ->
+                    BlockElement Air id
 
 
 {- nat16Generator : Generator Natural16
