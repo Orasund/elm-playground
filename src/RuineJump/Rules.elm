@@ -1,6 +1,6 @@
-module RuineJump.Rules exposing (parkour, placeDirt, placeGrass)
+module RuineJump.Rules exposing (parkour, placeDirt, removeGrass, placeGrass)
 
-import CellAutomata exposing (Rule, RuleExpression(..))
+import CellAutomata exposing (Rule, RuleExpression(..),anyNeighborhood)
 import RuineJump.MapElement exposing (Block(..))
 
 
@@ -8,14 +8,10 @@ parkour : List (Rule Block)
 parkour =
     [ { from = Nothing
       , neighbors =
-            { north = Anything
-            , northEast = Exactly <| Nothing
+            { anyNeighborhood
+            | northEast = Exactly <| Nothing
             , east = Exactly <| Just Stone
             , southEast = Exactly <| Nothing
-            , south = Anything
-            , southWest = Anything
-            , west = Anything
-            , northWest = Anything
             }
       , to = Just Stone
       }
@@ -26,85 +22,128 @@ placeGrass : List (Rule Block)
 placeGrass =
     [ { from = Just Dirt
       , neighbors =
-            { north = Exactly <| Nothing
-            , northEast = Anything
-            , east = Anything
-            , southEast = Anything
-            , south = Anything
-            , southWest = Anything
-            , west = Anything
-            , northWest = Anything
+            { anyNeighborhood
+            | north = Exactly <| Nothing
             }
       , to = Just Grass
       }
     , { from = Just Dirt
       , neighbors =
-            { north = Exactly <| Just Grass
-            , northEast = Anything
-            , east = Anything
-            , southEast = Anything
-            , south = Anything
-            , southWest = Anything
-            , west = Anything
+            { anyNeighborhood
+            | north = Exactly <| Just Grass
             , northWest = Exactly <| Just Grass
             }
       , to = Just Grass
       }
     , { from = Just Dirt
       , neighbors =
-            { north = Exactly <| Just Grass
+            { anyNeighborhood
+            | north = Exactly <| Just Grass
             , northEast = Exactly <| Just Grass
-            , east = Anything
-            , southEast = Anything
-            , south = Anything
-            , southWest = Anything
-            , west = Anything
-            , northWest = Anything
+            }
+      , to = Just Grass
+      }
+    , { from = Just Dirt
+      , neighbors =
+            { anyNeighborhood
+            | north = Exactly <| Just Grass
+            , northEast = Exactly <| Just Grass
             }
       , to = Just Grass
       }
     ]
 
+removeGrass : List (Rule Block)
+removeGrass =
+    [ { from = Just Grass
+      , neighbors =
+            { anyNeighborhood
+            | north = Exactly <| Nothing
+            , east = Exactly <| Nothing
+            , west = Exactly <| Nothing
+            , south = Exactly <| Nothing
+            }
+      , to = Nothing
+      }
+    , { from = Just Grass
+      , neighbors =
+            { anyNeighborhood
+            | east = Exactly <| Just Stone
+            , south = Exactly <| Nothing
+            }
+      , to = Just Grass
+      }
+    , { from = Just Grass
+      , neighbors =
+            { anyNeighborhood
+            | east = Exactly <| Just Dirt
+            , south = Exactly <| Nothing
+            }
+      , to = Just Grass
+      }
+    , { from = Just Grass
+      , neighbors =
+            { anyNeighborhood
+            | east = Exactly <| Just Grass
+            , west = Exactly <| Just Grass
+            , south = Exactly <| Nothing
+            }
+      , to = Just Grass
+      }
+    , { from = Just Grass
+      , neighbors =
+            { anyNeighborhood
+            | south = Exactly <| Nothing
+            }
+      , to = Nothing
+      }
+    ]
 
 placeDirt : List (Rule Block)
 placeDirt =
     [ { from = Nothing
       , neighbors =
-            { north = Anything
-            , northEast = Anything
-            , east = Exactly <| Just Dirt
+            { anyNeighborhood
+            | east = Exactly <| Just Dirt
             , southEast = Exactly <| Just Dirt
             , south = Exactly <| Just Dirt
             , southWest = Exactly <| Just Dirt
             , west = Exactly <| Just Dirt
-            , northWest = Anything
             }
       , to = Nothing
       }
     , { from = Nothing
       , neighbors =
-            { north = Anything
-            , northEast = Anything
-            , east = Anything
-            , southEast = Exactly <| Just Dirt
+            { anyNeighborhood
+            | southEast = Exactly <| Just Dirt
             , south = Exactly <| Just Dirt
             , southWest = Exactly <| Just Dirt
-            , west = Anything
-            , northWest = Anything
             }
       , to = Just Dirt
       }
     , { from = Just Dirt
       , neighbors =
-            { north = Anything
-            , northEast = Anything
-            , east = Exactly <| Nothing
+            { anyNeighborhood
+            | east = Exactly <| Nothing
             , southEast = Exactly <| Just Dirt
             , south = Exactly <| Just Dirt
             , southWest = Exactly <| Just Dirt
             , west = Exactly <| Nothing
-            , northWest = Anything
             }
       , to = Nothing
+      }
+    , { from = Just Stone
+      , neighbors =
+            { anyNeighborhood
+            | east = Exactly <| Just Dirt
+            }
+      , to = Just Dirt
+      }
+    , { from = Just Stone
+      , neighbors =
+            { anyNeighborhood
+            | west = Exactly <| Just Dirt
+            }
+      , to = Just Dirt
       }
     ]

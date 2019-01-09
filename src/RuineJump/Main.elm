@@ -66,7 +66,22 @@ init int =
                         , MapSegment.parkourGenerator 2
                         , MapSegment.parkourGenerator 3
                         , MapSegment.parkourGenerator 4
-                        , MapSegment.parkourGenerator 5
+                        , MapSegment.intersectionGenerator 5
+                        , MapSegment.parkourGenerator 6
+                        , MapSegment.parkourGenerator 7
+                        , MapSegment.parkourGenerator 8
+                        , MapSegment.parkourGenerator 9
+                        , MapSegment.intersectionGenerator 10
+                        , MapSegment.parkourGenerator 11
+                        , MapSegment.parkourGenerator 12
+                        , MapSegment.parkourGenerator 13
+                        , MapSegment.parkourGenerator 14
+                        , MapSegment.intersectionGenerator 15
+                        , MapSegment.parkourGenerator 16
+                        , MapSegment.parkourGenerator 17
+                        , MapSegment.parkourGenerator 18
+                        , MapSegment.parkourGenerator 19
+                        , MapSegment.intersectionGenerator 20
                         ]
                         |> Random.andThen
                             (\newMap ->
