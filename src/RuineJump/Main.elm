@@ -25,6 +25,7 @@ type alias Model =
     , currentY : Int
     , xSlice : Zipper Int
     , player : Player
+    , decaySpeed : Int
     , seed : Random.Seed
     }
 
@@ -102,6 +103,10 @@ init int =
         lowestY =
             0
 
+        decaySpeed : Int
+        decaySpeed =
+            1
+
         player : Player
         player =
             { pos = pos, action = Standing, faceing = FaceingLeft }
@@ -113,41 +118,88 @@ init int =
         , lowestY = lowestY
         , currentY = y
         , xSlice = xSlice
+        , decaySpeed = decaySpeed
         }
     , tickTask
     )
 
 
-applyAction : (Player -> Player) -> Model -> Model
-applyAction action ({ player, map, lowestY, xSlice, seed } as model) =
+removeOne : { a | xSlice : Zipper Int, lowestY : Int, map : Map } -> Random.Generator { a | xSlice : Zipper Int, lowestY : Int, map : Map }
+removeOne ({ xSlice, lowestY, map } as rec) =
     let
         x : Int
         x =
             xSlice |> Zipper.current
-
-        ( { newSlice, newLowestY }, newSeed ) =
-            case xSlice |> Zipper.next of
-                Just slice ->
-                    ( { newSlice = slice, newLowestY = lowestY }, seed )
-
-                Nothing ->
-                    seed
-                        |> Random.step
-                            (MapSlice.generator (lowestY - 1) map
-                                |> Random.map
-                                    (\slice ->
-                                        { newSlice = slice
-                                        , newLowestY = lowestY - 1
-                                        }
-                                    )
-                            )
     in
+    case xSlice |> Zipper.next of
+        Just slice ->
+            Random.constant
+                { rec
+                    | xSlice = slice
+                    , map = map |> Map.remove ( x, lowestY )
+                }
+
+        Nothing ->
+            MapSlice.generator (lowestY - 1) map
+                |> Random.map
+                    (\slice ->
+                        { rec
+                            | xSlice = slice
+                            , lowestY = lowestY - 1
+                            , map = map |> Map.remove ( x, lowestY )
+                        }
+                    )
+
+
+removeN : Int -> Model -> Model
+removeN decaySpeed ({ seed } as model) =
+    let
+       ( newModel, newSeed ) =
+           List.range 1 decaySpeed
+               |> List.foldl
+                   (always
+                       (\( m, s ) ->
+                           s
+                               |> Random.step
+                                   (m |> removeOne)
+                       )
+                   )
+                   ( model, seed )
+   in
+   { newModel
+       | seed = newSeed
+   }
+
+
+applyAction : (Player -> Player) -> Model -> Model
+applyAction action ({ player, map, lowestY, xSlice, seed, decaySpeed } as model) =
     { model
         | player = player |> action
-        , map = map |> Map.remove ( x, lowestY )
-        , xSlice = newSlice
+    }
+        |> removeN decaySpeed
+
+
+placeBlock : Model -> Model
+placeBlock ({ map, seed, decaySpeed, player } as model) =
+    let
+        ( x, y ) =
+            player.pos
+
+        pos =
+            case player.faceing of
+                FaceingLeft ->
+                    ( x - 1, y + 1 )
+
+                FaceingRight ->
+                    ( x + 2, y + 1 )
+
+        ( elem, newSeed ) =
+            Random.step MapElement.woodGenerator seed
+    in
+    { model
+        | map = map |> Dict.insert pos elem
+        , decaySpeed = decaySpeed + 1
         , seed = newSeed
-        , lowestY = newLowestY
     }
 
 
@@ -155,24 +207,27 @@ onInput : Input -> Model -> Maybe ( Model, Cmd Msg )
 onInput input ({ map } as model) =
     (case input of
         InputUp ->
-            Just <| Player.jump map
+            Just <| applyAction <| Player.jump map
 
         InputLeft ->
-            Just <| Player.move FaceingLeft map
+            Just <| applyAction <| Player.move FaceingLeft map
 
         InputDown ->
-            Nothing
+            Just <| applyAction <| Player.drop map
 
         InputRight ->
-            Just <| Player.move FaceingRight map
+            Just <| applyAction <| Player.move FaceingRight map
+
+        InputA ->
+            Just <| placeBlock
 
         _ ->
             Nothing
     )
         |> Maybe.map
-            (\action ->
+            (\function ->
                 model
-                    |> applyAction action
+                    |> function
                     |> (\newModel ->
                             ( newModel
                             , tickTask

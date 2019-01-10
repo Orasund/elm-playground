@@ -26,14 +26,19 @@ order maybeBlock =
         Just Stone ->
             3
 
+        Just Wood ->
+            4
+
 
 automata : List (Rule Block) -> Automata Block
 automata rules =
     Automata.automataWithoutSymmetry order rules
 
+
 mirroringAutomata : List (Rule Block) -> Automata Block
 mirroringAutomata rules =
     Automata.automata (Automata.horMirrorSymmetry identity) order rules
+
 
 step : Automata Block -> Grid -> (Location -> Maybe Block -> Maybe Block)
 step =

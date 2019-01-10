@@ -6,6 +6,7 @@ module RuineJump.Tileset exposing
     , player_left
     , player_right
     , stone
+    , wood
     , air
     )
 
@@ -46,7 +47,10 @@ dirt seed =
     variantTile seed ( 4, 0 )
         |> movable ""
 
-
+wood : Int -> Tile msg
+wood seed =
+    variantTile seed ( 8, 0 )
+        |> movable ""
 
 {- ("tile_" ++ (String.fromInt seed)) -}
 
