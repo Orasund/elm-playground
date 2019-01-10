@@ -161,6 +161,14 @@ intersectionGenerator level =
             , horizontalLine <| -yOffset
             , sparceHorLine <| -3 - yOffset
             , sparceHorLine <| -6 - yOffset
+            , piliar (width//2+1,1) yOffset
+            , piliar (width//2-4,1) yOffset
+            , piliar (width//2+1,3) yOffset
+            , piliar (width//2-4,3) yOffset
+            , piliar (width//2+1,5) yOffset
+            , piliar (width//2-4,5) yOffset
+            , piliar (width//2+1,7) yOffset
+            , piliar (width//2-4,7) yOffset
             ]
                 |> List.concat
                 |> Dict.fromList

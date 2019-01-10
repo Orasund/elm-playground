@@ -176,8 +176,6 @@ applyAction action ({ player, map, lowestY, xSlice, seed, decaySpeed } as model)
     { model
         | player = player |> action
     }
-        |> removeN decaySpeed
-
 
 placeBlock : Model -> Model
 placeBlock ({ map, seed, decaySpeed, player } as model) =
@@ -185,29 +183,33 @@ placeBlock ({ map, seed, decaySpeed, player } as model) =
         ( x, y ) =
             player.pos
 
-        pos =
+        (pos1,pos2) =
             case player.faceing of
                 FaceingLeft ->
-                    ( x - 1, y + 1 )
+                    (( x - 2, y )
+                    ,( x - 1, y + 1)
+                    )
 
                 FaceingRight ->
-                    ( x + 2, y + 1 )
+                    (( x + 3, y )
+                    ,( x + 2, y + 1 )
+                    )
 
         ( elem, newSeed ) =
             Random.step MapElement.woodGenerator seed
     in
     { model
-        | map = map |> Dict.insert pos elem
+        | map = map |> Dict.insert pos2 elem |> Dict.insert pos1 elem
         , decaySpeed = decaySpeed + 1
         , seed = newSeed
     }
 
 
 onInput : Input -> Model -> Maybe ( Model, Cmd Msg )
-onInput input ({ map } as model) =
+onInput input ({ map,decaySpeed } as model) =
     (case input of
         InputUp ->
-            Just <| applyAction <| Player.jump map
+            Just <| (removeN decaySpeed << (applyAction <| Player.jump map))
 
         InputLeft ->
             Just <| applyAction <| Player.move FaceingLeft map
