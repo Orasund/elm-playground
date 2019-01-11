@@ -1,10 +1,11 @@
 module CultSim.Main exposing (main)
 
 import Browser exposing (Document, document)
-import Css
+import Color
+import Html
+import Html.Attributes as Attributes
 import CultSim.Person as Person exposing (Action(..), Person)
 import Dict exposing (Dict)
-import Html.Styled.Events as Events
 import PixelEngine.Graphics as Graphics
 import PixelEngine.Graphics.Image as Image exposing (image)
 import PixelEngine.Graphics.Tile as Tile
@@ -253,14 +254,17 @@ view maybeModel =
                 { width = width
                 , transitionSpeedInSec = 8
                 }
-                |> Graphics.usingScale 2
     in
     { title = "CultSim"
     , body =
-        [ Graphics.render options
+        [ Html.h1 [Attributes.style "text-align" "center"]
+            [Html.text "Cult Simulator"]
+        , Html.h3 [Attributes.style "text-align" "center"]
+            [Html.text "Start a Cult. Pray to Cuthulu. Die."]
+        , Graphics.render 2 options
             [ Graphics.imageArea
                 { height = height
-                , background = Graphics.colorBackground <| Css.rgb 255 255 255
+                , background = Graphics.colorBackground <| Color.rgb255 255 255 255
                 }
                 (case maybeModel of
                     Just { people, hunger, newPerson } ->
@@ -337,7 +341,7 @@ view maybeModel =
                                         |> Image.movable id
                                         |> (case action of
                                                 Walking ->
-                                                    Image.withAttributes [ Events.onClick (Pray id) ]
+                                                    Image.withAttributes [ Image.onClick (Pray id) ]
 
                                                 _ ->
                                                     identity
@@ -358,6 +362,10 @@ view maybeModel =
                         []
                 )
             ]
+        , Html.p [Attributes.style "text-align" "center"]
+            [Html.text "Click on people to let them pray. If your cult members stop praying, eventually Cuthulu will come out and ask for a sacrifice."]
+        ,  Html.p [Attributes.style "text-align" "center"]
+            [Html.text "The game is won, once you have 10 or more cult members."]
         ]
     }
 

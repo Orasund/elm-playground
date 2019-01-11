@@ -1,7 +1,7 @@
 module DigDigBoom.Main exposing (main)
 
-import Css
 import Dict
+import Color
 import DigDigBoom.Cell as Cell
     exposing
         ( Cell(..)
@@ -14,7 +14,7 @@ import DigDigBoom.Component.Map as Map exposing (Actor, Direction(..), Location,
 import DigDigBoom.Game as Game
 import DigDigBoom.Player as Player exposing (PlayerData)
 import DigDigBoom.Tileset as Tileset
-import PixelEngine exposing (PixelEngine, program)
+import PixelEngine exposing (PixelEngine, game)
 import PixelEngine.Controls exposing (Input(..))
 import PixelEngine.Graphics as Graphics exposing (Area, Options)
 import PixelEngine.Graphics.Image as Image exposing (image)
@@ -351,13 +351,13 @@ deathScreen =
     in
     [ Graphics.tiledArea
         { rows = 2
-        , background = Graphics.colorBackground (Css.rgb 20 12 28)
+        , background = Graphics.colorBackground (Color.rgb255 20 12 28)
         , tileset = tileset
         }
         []
     , Graphics.tiledArea
         { rows = 2
-        , background = Graphics.colorBackground (Css.rgb 20 12 28)
+        , background = Graphics.colorBackground (Color.rgb255 20 12 28)
         , tileset = tileset
         }
         [ ( ( 4, 0 ), Tileset.letter_y Tileset.colorWhite )
@@ -374,13 +374,13 @@ deathScreen =
         ]
     , Graphics.imageArea
         { height = toFloat <| 12 * 16
-        , background = Graphics.colorBackground (Css.rgb 20 12 28)
+        , background = Graphics.colorBackground (Color.rgb255 20 12 28)
         }
         [ ( ( toFloat <| (16 * width) // 2 - 64, toFloat <| (12 * width) // 2 - 64 ), image "skull.png" )
         ]
     , Graphics.tiledArea
         { rows = 2
-        , background = Graphics.colorBackground (Css.rgb 20 12 28)
+        , background = Graphics.colorBackground (Color.rgb255 20 12 28)
         , tileset = tileset
         }
         [ ( ( 4, 0 ), Tileset.letter_p Tileset.colorWhite )
@@ -400,7 +400,7 @@ deathScreen =
         ]
     , Graphics.tiledArea
         { rows = 2
-        , background = Graphics.colorBackground (Css.rgb 20 12 28)
+        , background = Graphics.colorBackground (Color.rgb255 20 12 28)
         , tileset = tileset
         }
         []
@@ -420,13 +420,13 @@ menuScreen =
     in
     [ Graphics.tiledArea
         { rows = 2
-        , background = Graphics.colorBackground (Css.rgb 20 12 28)
+        , background = Graphics.colorBackground (Color.rgb255 20 12 28)
         , tileset = tileset
         }
         []
     , Graphics.tiledArea
         { rows = 3
-        , background = Graphics.colorBackground (Css.rgb 20 12 28)
+        , background = Graphics.colorBackground (Color.rgb255 20 12 28)
         , tileset = tileset
         }
         [ ( ( 5, 0 ), Tileset.letter_d Tileset.colorWhite )
@@ -442,13 +442,13 @@ menuScreen =
         ]
     , Graphics.imageArea
         { height = toFloat <| 9 * 16
-        , background = Graphics.colorBackground (Css.rgb 20 12 28)
+        , background = Graphics.colorBackground (Color.rgb255 20 12 28)
         }
         [ ( ( toFloat <| (16 * width) // 2 - 64, 0 ), Image.fromTile tile logo )
         ]
     , Graphics.tiledArea
         { rows = 4
-        , background = Graphics.colorBackground (Css.rgb 20 12 28)
+        , background = Graphics.colorBackground (Color.rgb255 20 12 28)
         , tileset = tileset
         }
         [ ( ( 1, 0 ), Tileset.letter_a Tileset.colorWhite )
@@ -481,7 +481,7 @@ menuScreen =
         ]
     , Graphics.tiledArea
         { rows = 2
-        , background = Graphics.colorBackground (Css.rgb 20 12 28)
+        , background = Graphics.colorBackground (Color.rgb255 20 12 28)
         , tileset = tileset
         }
         []
@@ -492,7 +492,7 @@ worldScreen : Int -> Map Cell -> PlayerData -> List ( Location, Tile msg ) -> Li
 worldScreen worldSeed map player hints =
     [ Graphics.tiledArea
         { rows = 1
-        , background = Graphics.colorBackground (Css.rgb 20 12 28)
+        , background = Graphics.colorBackground (Color.rgb255 20 12 28)
         , tileset = tileset
         }
         ([ ( ( 0, 0 ), Tileset.letter_x Tileset.colorWhite )
@@ -537,7 +537,7 @@ worldScreen worldSeed map player hints =
         )
     , Graphics.tiledArea
         { rows = 3
-        , background = Graphics.colorBackground (Css.rgb 20 12 28)
+        , background = Graphics.colorBackground (Color.rgb255 20 12 28)
         , tileset = tileset
         }
         ([ ( ( 4, 2 ), Tileset.arrow_up Tileset.colorWhite )
@@ -768,7 +768,7 @@ view model =
 
 main : PixelEngine {} Model Msg
 main =
-    program
+    game
         { init = init
         , view = view
         , update = update

@@ -1,14 +1,14 @@
 module RuinJump.Main exposing (main)
 
-import Css
-import Dict exposing (Dict)
+import Color
+import Dict
 import List.Zipper as Zipper exposing (Zipper)
-import PixelEngine exposing (PixelEngine, program)
+import PixelEngine exposing (PixelEngine, game)
 import PixelEngine.Controls exposing (Input(..))
 import PixelEngine.Graphics as Graphics exposing (Area, Options)
 import PixelEngine.Graphics.Tile exposing (Tile, Tileset)
 import Process
-import Random exposing (Generator)
+import Random
 import RuinJump.Config as Config
 import RuinJump.Map as Map exposing (Map)
 import RuinJump.MapElement as MapElement exposing (Block(..), MapElement(..))
@@ -163,7 +163,7 @@ removeN decaySpeed ({ seed } as model) =
 
 
 applyAction : (Player -> Player) -> Model -> Model
-applyAction action ({ player, map, lowestY, xSlice, seed, decaySpeed } as model) =
+applyAction action ({ player } as model) =
     { model
         | player = player |> action
     }
@@ -396,7 +396,7 @@ view maybeModel =
     , options = options
     , body =
         [ Graphics.tiledArea
-            { background = Graphics.colorBackground <| Css.rgb 68 36 52
+            { background = Graphics.colorBackground <| Color.rgb255 68 36 52
             , rows = rows
             , tileset = tileset
             }
@@ -418,7 +418,7 @@ view maybeModel =
 
 main : PixelEngine {} (Maybe Model) Msg
 main =
-    program
+    game
         { init = always restart
         , view = view
         , update = update
