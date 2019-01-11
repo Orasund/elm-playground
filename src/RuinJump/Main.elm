@@ -1,4 +1,4 @@
-module RuineJump.Main exposing (main)
+module RuinJump.Main exposing (main)
 
 import Css
 import Dict exposing (Dict)
@@ -9,12 +9,12 @@ import PixelEngine.Graphics as Graphics exposing (Area, Options)
 import PixelEngine.Graphics.Tile exposing (Tile, Tileset)
 import Process
 import Random exposing (Generator)
-import RuineJump.Config as Config
-import RuineJump.Map as Map exposing (Map)
-import RuineJump.MapElement as MapElement exposing (Block(..), MapElement(..))
-import RuineJump.MapSegment as MapSegment
-import RuineJump.MapSlice as MapSlice
-import RuineJump.Player as Player exposing (FaceingDirection(..), Player, PlayerAction(..))
+import RuinJump.Config as Config
+import RuinJump.Map as Map exposing (Map)
+import RuinJump.MapElement as MapElement exposing (Block(..), MapElement(..))
+import RuinJump.MapSegment as MapSegment
+import RuinJump.MapSlice as MapSlice
+import RuinJump.Player as Player exposing (FaceingDirection(..), Player, PlayerAction(..))
 import Task
 import Time
 
