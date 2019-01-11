@@ -62,28 +62,19 @@ init int =
             Random.initialSeed int
                 |> Random.step
                     (MapSegment.concat
-                        [ MapSegment.floorGenerator 0
-                        , MapSegment.parkourGenerator 1
-                        , MapSegment.parkourGenerator 2
-                        , MapSegment.parkourGenerator 3
-                        , MapSegment.parkourGenerator 4
-                        , MapSegment.intersectionGenerator 5
-                        , MapSegment.parkourGenerator 6
-                        , MapSegment.parkourGenerator 7
-                        , MapSegment.parkourGenerator 8
-                        , MapSegment.parkourGenerator 9
-                        , MapSegment.intersectionGenerator 10
-                        , MapSegment.parkourGenerator 11
-                        , MapSegment.parkourGenerator 12
-                        , MapSegment.parkourGenerator 13
-                        , MapSegment.parkourGenerator 14
-                        , MapSegment.intersectionGenerator 15
-                        , MapSegment.parkourGenerator 16
-                        , MapSegment.parkourGenerator 17
-                        , MapSegment.parkourGenerator 18
-                        , MapSegment.parkourGenerator 19
-                        , MapSegment.intersectionGenerator 20
-                        ]
+                        (List.range 0 10
+                            |> List.map
+                                (\i ->
+                                    [ MapSegment.parkourGenerator <| i * 5 + 1
+                                    , MapSegment.parkourGenerator <| i * 5 + 2
+                                    , MapSegment.parkourGenerator <| i * 5 + 3
+                                    , MapSegment.parkourGenerator <| i * 5 + 4
+                                    , MapSegment.intersectionGenerator <| i * 5 + 5
+                                    ]
+                                )
+                            |> List.concat
+                            |> List.append [ MapSegment.floorGenerator 0 ]
+                        )
                         |> Random.andThen
                             (\newMap ->
                                 (newMap |> MapSlice.generator lowestY)
@@ -154,21 +145,21 @@ removeOne ({ xSlice, lowestY, map } as rec) =
 removeN : Int -> Model -> Model
 removeN decaySpeed ({ seed } as model) =
     let
-       ( newModel, newSeed ) =
-           List.range 1 decaySpeed
-               |> List.foldl
-                   (always
-                       (\( m, s ) ->
-                           s
-                               |> Random.step
-                                   (m |> removeOne)
-                       )
-                   )
-                   ( model, seed )
-   in
-   { newModel
-       | seed = newSeed
-   }
+        ( newModel, newSeed ) =
+            List.range 1 decaySpeed
+                |> List.foldl
+                    (always
+                        (\( m, s ) ->
+                            s
+                                |> Random.step
+                                    (m |> removeOne)
+                        )
+                    )
+                    ( model, seed )
+    in
+    { newModel
+        | seed = newSeed
+    }
 
 
 applyAction : (Player -> Player) -> Model -> Model
@@ -177,22 +168,23 @@ applyAction action ({ player, map, lowestY, xSlice, seed, decaySpeed } as model)
         | player = player |> action
     }
 
+
 placeBlock : Model -> Model
 placeBlock ({ map, seed, decaySpeed, player } as model) =
     let
         ( x, y ) =
             player.pos
 
-        (pos1,pos2) =
+        ( pos1, pos2 ) =
             case player.faceing of
                 FaceingLeft ->
-                    (( x - 2, y )
-                    ,( x - 1, y + 1)
+                    ( ( x - 2, y )
+                    , ( x - 1, y + 1 )
                     )
 
                 FaceingRight ->
-                    (( x + 3, y )
-                    ,( x + 2, y + 1 )
+                    ( ( x + 3, y )
+                    , ( x + 2, y + 1 )
                     )
 
         ( elem, newSeed ) =
@@ -206,7 +198,7 @@ placeBlock ({ map, seed, decaySpeed, player } as model) =
 
 
 onInput : Input -> Model -> Maybe ( Model, Cmd Msg )
-onInput input ({ map,decaySpeed } as model) =
+onInput input ({ map, decaySpeed } as model) =
     (case input of
         InputUp ->
             Just <| (removeN decaySpeed << (applyAction <| Player.jump map))
