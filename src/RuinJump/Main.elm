@@ -98,23 +98,6 @@ init int =
     )
 
 
-removeN : Int -> State -> State
-removeN decaySpeed ( model, seed ) =
-    let
-        { stage } =
-            model
-
-        ( newStage, newSeed ) =
-            ( stage, seed )
-                |> Stage.removeN decaySpeed
-    in
-    ( { model
-        | stage = newStage
-      }
-    , newSeed
-    )
-
-
 applyAction : (Player -> Player) -> Model -> Model
 applyAction action ({ player } as model) =
     { model
@@ -152,17 +135,20 @@ placeStairs ({ player, stage } as model) =
 onInput : Input -> State -> Maybe ( State, Cmd Msg )
 onInput input (( model, _ ) as state) =
     let
-        { stage } =
-            model
-
-        { map, decaySpeed } =
-            stage
+        { map, decaySpeed } = model.stage
     in
     (case input of
         InputUp ->
             Just
                 ((Player.jump map |> applyAction |> Tuple.mapFirst)
-                    >> removeN decaySpeed
+                    >> (\({stage} as m,seed) ->
+                        seed
+                            |> Random.step
+                                (Stage.removeN decaySpeed stage
+                                    |> Random.map
+                                        (\s -> {m|stage = s})
+                                )
+                    )
                 )
 
         InputLeft ->

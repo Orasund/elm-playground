@@ -60,21 +60,18 @@ placeStairs pos1 pos2 ({ map, decaySpeed } as stage) =
             )
 
 
-removeN : Int -> ( Stage, Seed ) -> ( Stage, Seed )
-removeN decaySpeed ( stage, seed ) =
+removeN : Int -> Stage -> Generator Stage
+removeN decaySpeed stage =
     List.range 1 decaySpeed
         |> List.foldl
             (always
-                (\( m, s ) ->
-                    s
-                        |> Random.step
-                            (m |> removeOne)
+                (Random.andThen removeOne
                 )
             )
-            ( stage, seed )
+            (Random.constant stage)
 
 
-removeOne : Stage -> Random.Generator Stage
+removeOne : Stage -> Generator Stage
 removeOne ({ xSlice, lowestY, map } as stage) =
     let
         x : Int
