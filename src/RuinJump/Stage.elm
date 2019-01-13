@@ -1,10 +1,11 @@
-module RuinJump.Stage exposing (Stage, placeStairs, removeN)
+module RuinJump.Stage exposing (Stage, generate, placeStairs, removeN)
 
 import Dict
 import List.Zipper as Zipper exposing (Zipper)
 import Random exposing (Generator, Seed)
 import RuinJump.Map as Map exposing (Map)
 import RuinJump.MapElement as MapElement exposing (Block(..), MapElement(..))
+import RuinJump.MapSegment as MapSegment
 import RuinJump.MapSlice as MapSlice
 
 
@@ -17,24 +18,46 @@ type alias Stage =
     }
 
 
-placeStairs : ( Int, Int ) -> ( Int, Int ) -> Stage -> Generator Stage
-placeStairs pos1 pos2 ( { map, decaySpeed } as stage) =
-    (MapElement.woodGenerator
-            |> Random.andThen
-                (\e1 ->
-                    MapElement.woodGenerator
-                        |> Random.map
-                            (\e2 ->
-                                { stage
-                                    | map =
-                                        map
-                                            |> Dict.insert pos2 e1
-                                            |> Dict.insert pos1 e2
-                                    , decaySpeed = decaySpeed + 1
-                                }
-                            )
-                )
+generate : { lowestY : Int, currentY : Int, decaySpeed : Int } -> (Int -> List (Generator Map)) -> Generator Stage
+generate { lowestY, currentY, decaySpeed } segments =
+    MapSegment.concat
+        (List.range 0 10
+            |> List.map segments
+            |> List.concat
+            |> List.append [ MapSegment.floorGenerator 0 ]
         )
+        |> Random.andThen
+            (\newMap ->
+                (newMap |> MapSlice.generator lowestY)
+                    |> Random.map
+                        (\newXSlice ->
+                            { map = newMap
+                            , xSlice = newXSlice
+                            , lowestY = lowestY
+                            , currentY = currentY
+                            , decaySpeed = decaySpeed
+                            }
+                        )
+            )
+
+
+placeStairs : ( Int, Int ) -> ( Int, Int ) -> Stage -> Generator Stage
+placeStairs pos1 pos2 ({ map, decaySpeed } as stage) =
+    MapElement.woodGenerator
+        |> Random.andThen
+            (\e1 ->
+                MapElement.woodGenerator
+                    |> Random.map
+                        (\e2 ->
+                            { stage
+                                | map =
+                                    map
+                                        |> Dict.insert pos2 e1
+                                        |> Dict.insert pos1 e2
+                                , decaySpeed = decaySpeed + 1
+                            }
+                        )
+            )
 
 
 removeN : Int -> ( Stage, Seed ) -> ( Stage, Seed )

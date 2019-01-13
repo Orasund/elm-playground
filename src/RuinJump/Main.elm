@@ -2,7 +2,6 @@ module RuinJump.Main exposing (main)
 
 import Color
 import Dict
-import List.Zipper as Zipper exposing (Zipper)
 import PixelEngine exposing (PixelEngine, game)
 import PixelEngine.Controls exposing (Input(..))
 import PixelEngine.Graphics as Graphics exposing (Area, Options)
@@ -14,12 +13,11 @@ import RuinJump.Map as Map exposing (Map)
 import RuinJump.MapElement as MapElement exposing (Block(..), MapElement(..))
 import RuinJump.MapSegment as MapSegment
 import RuinJump.MapSlice as MapSlice
-import RuinJump.Player as Player
-    exposing
-        ( FaceingDirection(..)
-        , Player
-        , PlayerAction(..)
-        )
+import RuinJump.Player as Player exposing (
+    FaceingDirection(..)
+    , Player
+    , PlayerAction(..)
+    )
 import RuinJump.Stage as Stage exposing (Stage)
 import Task
 import Time
@@ -60,28 +58,6 @@ restart =
     )
 
 
-generateMap : Int -> (Int -> List (Generator Map)) -> Seed -> ( { map : Map, xSlice : Zipper Int }, Seed )
-generateMap lowestY segments =
-    Random.step
-        (MapSegment.concat
-            (List.range 0 10
-                |> List.map segments
-                |> List.concat
-                |> List.append [ MapSegment.floorGenerator 0 ]
-            )
-            |> Random.andThen
-                (\newMap ->
-                    (newMap |> MapSlice.generator lowestY)
-                        |> Random.map
-                            (\newXSlice ->
-                                { map = newMap
-                                , xSlice = newXSlice
-                                }
-                            )
-                )
-        )
-
-
 init : Int -> ( Maybe State, Cmd Msg )
 init int =
     let
@@ -94,20 +70,19 @@ init int =
             , MapSegment.intersectionGenerator <| i * 5 + 5
             ]
 
-        ( { map, xSlice }, seed ) =
-            Random.initialSeed int
-                |> generateMap lowestY segments
-
         (( _, y ) as pos) =
             ( Config.width // 2, -7 )
 
-        lowestY : Int
-        lowestY =
-            0
-
-        decaySpeed : Int
-        decaySpeed =
-            1
+        ( stage, seed ) =
+            Random.initialSeed int
+                |> Random.step
+                    (Stage.generate
+                        { lowestY = 0
+                        , currentY = y
+                        , decaySpeed = 1
+                        }
+                        segments
+                    )
 
         player : Player
         player =
@@ -115,13 +90,7 @@ init int =
     in
     ( Just
         ( { player = player
-          , stage =
-                { map = map
-                , lowestY = lowestY
-                , currentY = y
-                , xSlice = xSlice
-                , decaySpeed = decaySpeed
-                }
+          , stage = stage
           }
         , seed
         )
@@ -181,7 +150,7 @@ placeStairs ({ player, stage } as model) =
 
 
 onInput : Input -> State -> Maybe ( State, Cmd Msg )
-onInput input (( model,_) as state) =
+onInput input (( model, _ ) as state) =
     let
         { stage } =
             model
@@ -207,7 +176,7 @@ onInput input (( model,_) as state) =
             Just (Player.move FaceingRight map |> applyAction |> Tuple.mapFirst)
 
         InputA ->
-            Just (\(m,s) -> s |> Random.step (placeStairs m))
+            Just (\( m, s ) -> s |> Random.step (placeStairs m))
 
         _ ->
             Nothing
