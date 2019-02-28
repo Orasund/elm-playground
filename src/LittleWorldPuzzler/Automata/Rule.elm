@@ -26,6 +26,7 @@ rules cellType =
         Fire ->
             [ rule { from = Just Fire, to = Just Volcano } [ ( 2, Just Stone ) ]
             , rule { from = Just Fire, to = Nothing } []
+            , rule { from = Nothing, to = Just Desert } [ ( 1, Just Volcano ), ( 3, Just Fire ) ]
             ]
 
         Stone ->
@@ -42,4 +43,8 @@ rules cellType =
         Fog ->
             [ rule { from = Just Fog, to = Just Water } [ ( 1, Just Water ) ]
             , rule { from = Just Fog, to = Just Wood } [ ( 1, Just Wood ) ]
+            ]
+
+        Desert ->
+            [ rule { from = Just Desert, to = Nothing } [ ( 2, Just Water ) ]
             ]

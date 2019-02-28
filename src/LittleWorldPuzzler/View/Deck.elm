@@ -15,101 +15,114 @@ import LittleWorldPuzzler.Automata.Neighborhood as Neighborhood
 import LittleWorldPuzzler.Automata.Rule as Rule
 import LittleWorldPuzzler.Data.CellType as CellType exposing (CellType(..))
 import LittleWorldPuzzler.Data.Deck as Deck exposing (Deck, Selected(..))
+import LittleWorldPuzzler.View.Button as Button
+import LittleWorldPuzzler.View.Rule as RuleView
 
 
-viewInactiveCard : Element msg -> Element msg
-viewInactiveCard content =
+viewInactiveCard : Float -> Element msg -> Element msg
+viewInactiveCard scale content =
     Element.el
-        [ Element.width <| Element.px <| 120
-        , Element.height <| Element.px <| 176
-        , Element.alignBottom
-        , Element.padding 20
-        ]
-    <|
-        content
-
-
-viewSelectable : msg -> Element msg -> Element msg
-viewSelectable msg content =
-    Element.el
-        [ Element.width <| Element.px <| 120
-        , Element.height <| Element.px <| 176
-        , Element.alignBottom
-        , Border.shadow { blur = 10, color = Element.rgba 0 0 0 0.05, offset = ( 0, 2 ), size = 1 }
-        , Border.width 1
-        , Border.color <| Element.rgba255 219 219 219 1
-        , Border.rounded 4
-        , Element.padding 20
-        , Events.onClick msg
-        , Background.color <| Element.rgb255 255 255 255
-        ]
-    <|
-        content
-
-
-viewSelected : Element msg -> Element msg
-viewSelected content =
-    Element.el
-        [ Element.width <| Element.px <| 120
-        , Element.height <| Element.px <| 176
+        [ Element.width <| Element.px <| floor <| 120 * scale
+        , Element.height <| Element.px <| floor <| 176 * scale
         , Element.alignTop
-        , Border.shadow { blur = 10, color = Element.rgba 0 0 0 0.05, offset = ( 0, 2 ), size = 1 }
+        , Element.padding <| floor <| 5 * scale
+        ]
+    <|
+        content
+
+
+viewSelectable : Float -> msg -> Element msg -> Element msg
+viewSelectable scale msg content =
+    Button.view
+        [ Element.width <| Element.px <| floor <| 120 * scale
+        , Element.height <| Element.px <| floor <| 176 * scale
+        , Element.alignBottom
+        , Border.shadow
+            { blur = 10
+            , color = Element.rgba 0 0 0 0.05
+            , offset = ( 0, 2 )
+            , size = 1 * scale
+            }
+        , Border.rounded <| floor <| 4 * scale
+        , Element.padding <| floor <| 5 * scale
+        ]
+    <|
+        { onPress = Just msg
+        , label = content
+        }
+
+
+viewSelected : Float -> Element msg -> Element msg
+viewSelected scale content =
+    Element.el
+        [ Element.width <| Element.px <| floor <| 120 * scale
+        , Element.height <| Element.px <| floor <| 176 * scale
+        , Element.alignTop
+        , Border.shadow
+            { blur = 10
+            , color = Element.rgba 0 0 0 0.05
+            , offset = ( 0, 2 )
+            , size = 1 * scale
+            }
         , Border.width 1
         , Border.color <| Element.rgba255 219 219 219 1
-        , Border.rounded 4
-        , Element.padding 20
+        , Border.rounded <| floor <| 4 * scale
+        , Element.padding <| floor <| 5 * scale
         , Background.color <| Element.rgb255 255 255 255
         ]
     <|
         content
 
 
-viewRules : CellType -> List (Element msg)
-viewRules =
-    Rule.rules
-        >> List.map
-            (\{ from, to, neighbors } ->
-                Element.text <|
-                    (from |> Maybe.map CellType.toString |> Maybe.withDefault "⭕")
-                        ++ "➕"
-                        ++ Neighborhood.toString neighbors
-                        ++ "➡"
-                        ++ (to |> Maybe.map CellType.toString |> Maybe.withDefault "⭕")
-            )
-
-
-viewCardList : List CellType -> Element msg
-viewCardList =
+viewCardList : Float -> List CellType -> Element msg
+viewCardList scale =
     List.map CellType.toString
         >> List.sort
         >> List.map Element.text
-        >> Element.wrappedRow [ Font.size 18, Element.spacing 5, Element.centerX ]
+        >> Element.wrappedRow
+            [ Font.size <| floor <| 25 * scale
+            , Element.spacing <| floor <| 5 * scale
+            , Element.centerX
+            ]
 
 
-viewContent : CellType -> Element msg
-viewContent cellType =
-    Element.column [ Element.spacing 40, Element.centerX ]
-        [ Element.el [ Font.size 60, Element.centerX ] <|
+viewContent : Float -> CellType -> Element msg
+viewContent scale cellType =
+    Element.column [ Element.spacing <| floor <| 40 * scale, Element.centerX ]
+        [ Element.el [ Font.size <| floor <| 60 * scale, Element.centerX ] <|
             Element.text <|
                 CellType.toString cellType
-        , Element.column [ Font.size 8, Element.spacing 5, Element.centerX ] <|
-            viewRules cellType
+        , Element.column
+            [ Font.size <| floor <| 11 * scale
+            , Element.spacing <| floor <| 5 * scale
+            , Element.centerX
+            ]
+          <|
+            RuleView.view cellType
         ]
 
 
-view : (Selected -> msg) -> Maybe Selected -> Deck -> Element msg
-view selectedMsg maybeSelected deck =
+view : Float -> (Selected -> msg) -> Maybe Selected -> Deck -> Element msg
+view scale selectedMsg maybeSelected deck =
     Element.row
         [ Element.centerX
-        , Element.spacing 10
-        , Element.height <| Element.px <| 200
+        , Element.spaceEvenly
+        , Element.height <| Element.px <| floor <| 200 * scale
+        , Element.width <| Element.fill
         ]
     <|
-        [ viewInactiveCard <|
-            Element.column [ Element.spacing 10, Element.centerX ]
-                [ Element.el [ Font.size 30, Element.centerX ] <|
+        [ viewInactiveCard scale <|
+            Element.column
+                [ Element.spacing <| floor <| 10 * scale
+                , Element.centerX
+                ]
+                [ Element.el
+                    [ Font.size <| floor <| 30 * scale
+                    , Element.centerX
+                    ]
+                  <|
                     Element.text "📤"
-                , viewCardList
+                , viewCardList scale
                     (deck
                         |> Deck.remaining
                         |> List.tail
@@ -117,32 +130,35 @@ view selectedMsg maybeSelected deck =
                     )
                 ]
         , (if maybeSelected == Just First then
-            viewSelected
+            viewSelected scale
 
            else
-            viewSelectable <| selectedMsg First
+            viewSelectable scale <| selectedMsg First
           )
           <|
-            viewContent <|
+            viewContent scale <|
                 Deck.first deck
         , case deck |> Deck.second of
             Just cellType ->
                 (if maybeSelected == Just Second then
-                    viewSelected
+                    viewSelected scale
 
                  else
-                    viewSelectable <| selectedMsg Second
+                    viewSelectable scale <| selectedMsg Second
                 )
                 <|
-                    viewContent cellType
+                    viewContent scale cellType
 
             Nothing ->
-                viewInactiveCard <|
+                viewInactiveCard scale <|
                     Element.text ""
-        , viewInactiveCard <|
-            Element.column [ Element.spacing 10, Element.centerX ]
-                [ Element.el [ Font.size 30, Element.centerX ] <|
+        , viewInactiveCard scale <|
+            Element.column
+                [ Element.spacing <| floor <| 10 * scale
+                , Element.centerX
+                ]
+                [ Element.el [ Font.size <| floor <| 30 * scale, Element.centerX ] <|
                     Element.text "🗑"
-                , viewCardList (deck |> Deck.played)
+                , viewCardList scale (deck |> Deck.played)
                 ]
         ]

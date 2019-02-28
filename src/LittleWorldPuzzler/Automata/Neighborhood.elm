@@ -175,10 +175,13 @@ toString { north, east, south, west } =
                 Exactly maybeCellType ->
                     maybeCellType
                         |> Maybe.map CellType.toString
-                        |> Maybe.withDefault "⭕"
+                        |> Maybe.withDefault " "
 
+                --"⭕"
                 Anything ->
-                    "❓"
+                    "▪"
+
+        --"❓"
     in
     (north |> expressionToString)
         ++ (east |> expressionToString)

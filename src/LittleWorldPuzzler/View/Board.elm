@@ -12,30 +12,77 @@ import Grid.Bordered as Grid exposing (Grid)
 import Grid.Position as Position exposing (Position)
 import Html exposing (Html)
 import LittleWorldPuzzler.Data.CellType as CellType exposing (CellType)
+import LittleWorldPuzzler.View.Rule as RuleView
 
 
-viewCell : msg -> Maybe CellType -> Element msg
-viewCell msg maybeCellType =
+viewCell : Float -> msg -> Maybe CellType -> Element msg
+viewCell scale msg maybeCellType =
     Element.el
-        [ Font.size 100
-        , Element.centerX
-        , Border.width 1
-        , Border.color <| Element.rgba255 219 219 219 1
-        , Element.width <| Element.px <| 142
-        , Element.height <| Element.px <| 142
-        , Events.onClick msg
-        ]
+        ([ Element.centerX
+         , Border.width 1
+         , Border.color <| Element.rgba255 219 219 219 1
+         , Element.width <| Element.px <| floor <| scale * 142
+         , Element.height <| Element.px <| floor <| scale * 142
+         , Element.inFront <|
+            Element.el
+                [ Element.height <| Element.fill
+                , Element.width <| Element.fill
+                , Background.color <| Element.rgb255 242 242 242
+                , Element.mouseOver [ Element.transparent True ]
+                ]
+            <|
+                Element.el
+                    [ Element.centerY
+                    , Font.size <| floor <| scale * 100
+                    , Element.centerX
+                    , Font.center
+                    ]
+                <|
+                    Element.text <|
+                        (maybeCellType
+                            |> Maybe.map CellType.toString
+                            |> Maybe.withDefault ""
+                        )
+         ]
+            |> (if maybeCellType == Nothing then
+                    (::) (Events.onClick msg)
+
+                else
+                    identity
+               )
+        )
     <|
-        Element.el [ Element.centerY, Element.centerX, Font.center ] <|
-            Element.text <|
-                (maybeCellType
-                    |> Maybe.map CellType.toString
-                    |> Maybe.withDefault ""
-                )
+        Element.column
+            [ Element.centerY
+            , Element.centerX
+            , Font.center
+            , Element.spacing <| floor <| scale * 10
+            ]
+        <|
+            case maybeCellType of
+                Just cellType ->
+                    [ Element.el
+                        [ Font.size <| floor <| scale * 50
+                        , Font.center
+                        , Element.centerX
+                        ]
+                      <|
+                        Element.text <|
+                            (cellType |> CellType.toString)
+                    , Element.column
+                        [ Font.size <| floor <| scale * 12
+                        , Element.spacing <| floor <| scale * 5
+                        , Element.centerX
+                        ]
+                        (RuleView.view cellType)
+                    ]
+
+                Nothing ->
+                    []
 
 
-view : (Position -> msg) -> Grid CellType -> Element msg
-view positionMsg grid =
+view : Float -> (Position -> msg) -> Grid CellType -> Element msg
+view scale positionMsg grid =
     Element.column [ Element.spaceEvenly, Element.centerX ] <|
         (grid
             |> Grid.foldr
@@ -43,7 +90,7 @@ view positionMsg grid =
                     let
                         newRow : List (Element msg)
                         newRow =
-                            viewCell (positionMsg ( x, y )) maybeCellType
+                            viewCell scale (positionMsg ( x, y )) maybeCellType
                                 :: workingRow
                     in
                     if y == 0 then
