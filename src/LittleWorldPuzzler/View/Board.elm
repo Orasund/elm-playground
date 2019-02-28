@@ -15,8 +15,8 @@ import LittleWorldPuzzler.Data.CellType as CellType exposing (CellType)
 import LittleWorldPuzzler.View.Rule as RuleView
 
 
-viewCell : Float -> msg -> Maybe CellType -> Element msg
-viewCell scale msg maybeCellType =
+viewCell : Float -> Position -> Maybe (Position -> msg) -> Maybe CellType -> Element msg
+viewCell scale position maybeMsg maybeCellType =
     Element.el
         ([ Element.centerX
          , Border.width 1
@@ -45,7 +45,12 @@ viewCell scale msg maybeCellType =
                         )
          ]
             |> (if maybeCellType == Nothing then
-                    (::) (Events.onClick msg)
+                    case maybeMsg of
+                        Just msg ->
+                            (::) (Events.onClick <| msg position)
+
+                        Nothing ->
+                            identity
 
                 else
                     identity
@@ -81,8 +86,8 @@ viewCell scale msg maybeCellType =
                     []
 
 
-view : Float -> (Position -> msg) -> Grid CellType -> Element msg
-view scale positionMsg grid =
+view : Float -> Maybe (Position -> msg) -> Grid CellType -> Element msg
+view scale maybePositionMsg grid =
     Element.column [ Element.spaceEvenly, Element.centerX ] <|
         (grid
             |> Grid.foldr
@@ -90,7 +95,7 @@ view scale positionMsg grid =
                     let
                         newRow : List (Element msg)
                         newRow =
-                            viewCell scale (positionMsg ( x, y )) maybeCellType
+                            viewCell scale ( x, y ) maybePositionMsg maybeCellType
                                 :: workingRow
                     in
                     if y == 0 then

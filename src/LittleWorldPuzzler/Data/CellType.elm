@@ -1,4 +1,14 @@
-module LittleWorldPuzzler.Data.CellType exposing (CellType(..), list, toInt, toString)
+module LittleWorldPuzzler.Data.CellType exposing
+    ( CellType(..)
+    , decoder
+    , encode
+    , list
+    , toInt
+    , toString
+    )
+
+import Json.Decode as D exposing (Decoder)
+import Json.Encode as E exposing (Value)
 
 
 type CellType
@@ -14,6 +24,34 @@ type CellType
 list : List CellType
 list =
     [ Wood, Water, Fire, Stone, Volcano, Fog, Desert ]
+
+
+fromInt : Int -> CellType
+fromInt n =
+    case n of
+        1 ->
+            Wood
+
+        2 ->
+            Water
+
+        3 ->
+            Fire
+
+        4 ->
+            Stone
+
+        5 ->
+            Volcano
+
+        6 ->
+            Fog
+
+        7 ->
+            Desert
+
+        _ ->
+            Wood
 
 
 toInt : CellType -> Int
@@ -65,3 +103,25 @@ toString cellType =
 
             Desert ->
                 '🏜'
+
+
+
+{------------------------
+   Decoder
+------------------------}
+
+
+decoder : Decoder CellType
+decoder =
+    D.int |> D.map fromInt
+
+
+
+{------------------------
+   Encoder
+------------------------}
+
+
+encode : CellType -> Value
+encode =
+    toInt >> E.int

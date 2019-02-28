@@ -16,13 +16,17 @@ import LittleWorldPuzzler.Automata as Automata
 import LittleWorldPuzzler.Data.Board as Board exposing (Board)
 import LittleWorldPuzzler.Data.CellType as CellType exposing (CellType(..))
 import LittleWorldPuzzler.Data.Deck as Deck exposing (Deck, Selected(..))
+import LittleWorldPuzzler.Data.Game as Game exposing (EndCondition(..), Game)
 import LittleWorldPuzzler.State.Playing as PlayingState
+import LittleWorldPuzzler.State.Prepairing as PrepairingState
+import LittleWorldPuzzler.State.Replaying as ReplayingState
 import LittleWorldPuzzler.View.Board as BoardView
 import LittleWorldPuzzler.View.Button as Button
 import LittleWorldPuzzler.View.Deck as DeckView
 import Process
 import Random exposing (Generator, Seed)
 import Task
+import UndoList exposing (UndoList)
 
 
 height : Float
@@ -45,22 +49,16 @@ type alias Config =
     { scale : Float }
 
 
-type alias PrepairingModel =
-    { scale : Maybe Float, seed : Maybe Seed }
-
-
 type Model
-    = Prepairing PrepairingModel
+    = Prepairing PrepairingState.Model
     | Playing ( PlayingState.Model, Config )
-
-
-type PrepairingMsg
-    = GotSeed Seed
+    | Replaying ( ReplayingState.Model, Config )
 
 
 type Msg
     = PlayingSpecific PlayingState.Msg
-    | PrepairingSpecific PrepairingMsg
+    | PrepairingSpecific PrepairingState.Msg
+    | ReplayingSpecific ReplayingState.Msg
     | Resized Float
     | Restart
 
@@ -84,7 +82,8 @@ init : () -> ( Model, Cmd Msg )
 init _ =
     ( Prepairing { scale = Nothing, seed = Nothing }
     , Cmd.batch
-        [ Random.generate (PrepairingSpecific << GotSeed) Random.independentSeed
+        [ Random.generate (PrepairingSpecific << PrepairingState.GotSeed)
+            Random.independentSeed
         , Task.perform
             (\{ viewport } ->
                 { width = viewport.width, height = viewport.height }
@@ -102,25 +101,6 @@ init _ =
 ----------------------
 
 
-prepairingUpdate : PrepairingMsg -> PrepairingModel -> ( Model, Cmd Msg )
-prepairingUpdate msg model =
-    case msg of
-        GotSeed seed ->
-            case model.scale of
-                Just scale ->
-                    ( Playing
-                        ( PlayingState.init seed
-                        , { scale = scale }
-                        )
-                    , Cmd.none
-                    )
-
-                Nothing ->
-                    ( Prepairing { model | seed = Just seed }
-                    , Cmd.none
-                    )
-
-
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     let
@@ -132,7 +112,30 @@ update msg model =
         PrepairingSpecific prepairingMsg ->
             case model of
                 Prepairing prepairingModel ->
-                    prepairingUpdate prepairingMsg prepairingModel
+                    PrepairingState.update
+                        (\scale seed ->
+                            Playing
+                                ( PlayingState.init seed
+                                , { scale = scale }
+                                )
+                        )
+                        Prepairing
+                        prepairingMsg
+                        prepairingModel
+                        |> (\( a, b ) ->
+                                ( a, b |> Cmd.map PrepairingSpecific )
+                           )
+
+                _ ->
+                    defaultCase
+
+        ReplayingSpecific replayingMsg ->
+            case model of
+                Replaying ( replayingModel, config ) ->
+                    ReplayingState.update replayingMsg replayingModel
+                        |> (\( a, b ) ->
+                                ( Replaying ( a, config ), b |> Cmd.map ReplayingSpecific )
+                           )
 
                 _ ->
                     defaultCase
@@ -140,9 +143,13 @@ update msg model =
         PlayingSpecific playingMsg ->
             case model of
                 Playing ( playingModel, config ) ->
-                    PlayingState.update playingMsg playingModel
+                    PlayingState.update
+                        (\m -> Replaying ( m, config ))
+                        (\m -> Playing ( m, config ))
+                        playingMsg
+                        playingModel
                         |> (\( a, b ) ->
-                                ( Playing ( a, config ), b |> Cmd.map PlayingSpecific )
+                                ( a, b |> Cmd.map PlayingSpecific )
                            )
 
                 _ ->
@@ -155,6 +162,9 @@ update msg model =
             ( case model of
                 Playing ( playingModel, config ) ->
                     Playing ( playingModel, { config | scale = scale } )
+
+                Replaying ( replayingModel, config ) ->
+                    Replaying ( replayingModel, { config | scale = scale } )
 
                 Prepairing ({ seed } as prepairingModel) ->
                     case seed of
@@ -214,6 +224,9 @@ view model =
                 case model of
                     Playing ( playingModel, { scale } ) ->
                         PlayingState.view scale Restart PlayingSpecific playingModel
+
+                    Replaying ( replayingModel, { scale } ) ->
+                        ReplayingState.view scale Restart ReplayingSpecific replayingModel
 
                     Prepairing _ ->
                         Element.text ""

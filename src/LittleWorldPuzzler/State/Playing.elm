@@ -16,22 +16,17 @@ import LittleWorldPuzzler.Automata as Automata
 import LittleWorldPuzzler.Data.Board as Board exposing (Board)
 import LittleWorldPuzzler.Data.CellType as CellType exposing (CellType(..))
 import LittleWorldPuzzler.Data.Deck as Deck exposing (Deck, Selected(..))
+import LittleWorldPuzzler.Data.Entry as Entry exposing (Entry)
+import LittleWorldPuzzler.Data.Game as Game exposing (EndCondition(..), Game)
+import LittleWorldPuzzler.Request as Request exposing (Response(..))
 import LittleWorldPuzzler.View.Board as BoardView
 import LittleWorldPuzzler.View.Button as Button
 import LittleWorldPuzzler.View.Deck as DeckView
+import LittleWorldPuzzler.View.Game as GameView
 import Process
 import Random exposing (Generator, Seed)
 import Task
-
-
-columns : Int
-columns =
-    4
-
-
-rows : Int
-rows =
-    columns
+import UndoList exposing (UndoList)
 
 
 
@@ -41,10 +36,11 @@ rows =
 
 
 type alias State =
-    { board : Board
-    , deck : Deck
+    { game : Game
     , selected : Maybe Selected
-    , score : Int
+    , history : UndoList Game
+    , status : Maybe EndCondition
+    , highscore : Maybe Entry
     }
 
 
@@ -56,6 +52,8 @@ type Msg
     = Selected Selected
     | PositionSelected Position
     | CardPlaced
+    | RequestedReplay
+    | RequestedHighscore Response
 
 
 
@@ -66,26 +64,14 @@ type Msg
 
 stateGenerator : Generator State
 stateGenerator =
-    [ Wood
-    , Wood
-    , Wood
-    , Wood
-    , Water
-    , Water
-    , Water
-    , Water
-    , Stone
-    , Fire
-    ]
-        |> Deck.fromList
-        |> Deck.shuffle
+    Game.generator
         |> Random.map
-            (\deck ->
-                { board =
-                    Grid.empty { columns = columns, rows = rows }
-                , deck = deck
+            (\game ->
+                { game = game
                 , selected = Nothing
-                , score = 0
+                , history = UndoList.fresh game
+                , status = Nothing
+                , highscore = Nothing
                 }
             )
 
@@ -101,88 +87,165 @@ init seed =
 ----------------------
 
 
-play : ( State, Seed ) -> ( Model, Cmd Msg )
-play ( state, seed ) =
+play : (Model -> model) -> UndoList Game -> ( Game, Seed ) -> ( model, Cmd Msg )
+play modelMapper history ( game, seed ) =
     let
         seconds : Float
         seconds =
             1000
     in
-    ( ( state, seed )
+    ( modelMapper
+        ( { game = game
+          , selected = Nothing
+          , history = history |> UndoList.new game
+          , status = Nothing
+          , highscore = Nothing
+          }
+        , seed
+        )
     , Task.perform (always CardPlaced) <| Process.sleep (0.1 * seconds)
     )
 
 
-playFirst : Position -> ( State, Seed ) -> ( Model, Cmd Msg )
-playFirst position ( { board } as state, seed ) =
+playFirst : (Model -> model) -> Position -> Game -> UndoList Game -> Seed -> ( model, Cmd Msg )
+playFirst modelMapper position ({ board } as game) history seed =
     Random.step
-        (Deck.playFirst state.deck
+        (Deck.playFirst game.deck
             |> Random.map
                 (\deck ->
-                    { state
+                    { game
                         | deck = deck
-                        , selected = Nothing
                         , board =
                             board
                                 |> Board.place position
-                                    (state.deck |> Deck.first)
+                                    (game.deck |> Deck.first)
                     }
                 )
         )
         seed
-        |> play
+        |> play modelMapper history
 
 
-playSecond : Position -> CellType -> State -> (Seed -> ( Model, Cmd Msg ))
-playSecond position cellType ({ board, deck } as state) =
-    { state
+playSecond : (Model -> model) -> Position -> CellType -> Game -> UndoList Game -> (Seed -> ( model, Cmd Msg ))
+playSecond modelMapper position cellType ({ board, deck } as game) history =
+    { game
         | deck = deck |> Deck.playSecond
-        , selected = Nothing
         , board = board |> Board.place position cellType
     }
         |> (\a b ->
-                play ( a, b )
+                ( a, b ) |> play modelMapper history
            )
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg ( { board, deck, score } as state, seed ) =
+update : (UndoList Game -> model) -> (Model -> model) -> Msg -> Model -> ( model, Cmd Msg )
+update replayGame modelMapper msg ( { game, highscore, history, selected } as state, seed ) =
     let
-        defaultCase : ( Model, Cmd Msg )
+        defaultCase : ( model, Cmd Msg )
         defaultCase =
-            ( ( state, seed ), Cmd.none )
+            ( modelMapper ( state, seed ), Cmd.none )
     in
     case msg of
         Selected select ->
-            ( ( { state | selected = Just select }, seed ), Cmd.none )
+            ( modelMapper ( { state | selected = Just select }, seed ), Cmd.none )
 
         PositionSelected position ->
-            case state.selected of
+            case selected of
                 Just First ->
-                    playFirst position ( state, seed )
+                    playFirst modelMapper position game history seed
 
                 Just Second ->
-                    case deck |> Deck.second of
+                    case game.deck |> Deck.second of
                         Just second ->
-                            playSecond position second state seed
+                            playSecond modelMapper position second game history seed
 
                         Nothing ->
-                            playFirst position ( state, seed )
+                            playFirst modelMapper position game history seed
 
                 Nothing ->
                     defaultCase
 
         CardPlaced ->
-            ( ( { state
-                    | board =
-                        board
-                            |> Grid.map (Automata.step (board |> Grid.toDict))
-                    , score = score + 1
-                }
-              , seed
-              )
-            , Cmd.none
+            let
+                newGame =
+                    game |> Game.step
+
+                status : Maybe EndCondition
+                status =
+                    if newGame.board |> Grid.emptyPositions |> (==) [] then
+                        Just Lost
+
+                    else
+                        Nothing
+            in
+            ( modelMapper
+                ( { state
+                    | game = newGame
+                    , history = history |> UndoList.new newGame
+                    , status = status
+                  }
+                , seed
+                )
+            , case status of
+                Just Lost ->
+                    Request.getHighscore game.score
+                        |> Cmd.map RequestedHighscore
+
+                Just NewHighscore ->
+                    Cmd.none
+
+                Nothing ->
+                    Cmd.none
             )
+
+        RequestedReplay ->
+            case highscore of
+                Just h ->
+                    case h.history |> UndoList.toList of
+                        present :: future ->
+                            ( replayGame <| UndoList.fromList present future
+                            , Cmd.none
+                            )
+
+                        _ ->
+                            defaultCase
+
+                Nothing ->
+                    defaultCase
+
+        RequestedHighscore response ->
+            case response of
+                GotHighscore entry ->
+                    ( modelMapper
+                        ( { state
+                            | highscore = Just entry
+                          }
+                        , seed
+                        )
+                    , Cmd.none
+                    )
+
+                AchivedNewHighscore ->
+                    let
+                        newEntry : Entry
+                        newEntry =
+                            Entry.new history
+                    in
+                    ( modelMapper
+                        ( { state
+                            | status = Just NewHighscore
+                            , highscore = Just newEntry
+                          }
+                        , seed
+                        )
+                    , Request.setHighscore newEntry
+                        |> Cmd.map RequestedHighscore
+                    )
+
+                GotError _ ->
+                    defaultCase
+
+                Done ->
+                    defaultCase
 
 
 
@@ -192,7 +255,11 @@ update msg ( { board, deck, score } as state, seed ) =
 
 
 view : Float -> msg -> (Msg -> msg) -> Model -> Element msg
-view scale restartMsg msgMapper ( { board, deck, selected, score }, _ ) =
+view scale restartMsg msgMapper ( { game, selected, status, highscore }, _ ) =
+    let
+        { board, deck, score } =
+            game
+    in
     Element.column
         [ Element.centerY
         , Element.centerX
@@ -224,23 +291,19 @@ view scale restartMsg msgMapper ( { board, deck, selected, score }, _ ) =
                 { onPress = Just restartMsg
                 , label = Element.text "Restart"
                 }
-
-            --Button.buttonWidth [ Medium ] (Just Restart) "Restart" (floor <| 120 * scale)
             ]
-        , Element.column
-            ([ Element.spacing (floor <| 5 * scale)
-             , Background.color <| Element.rgb255 242 242 242
-             , Element.padding (floor <| 20 * scale)
-             , Border.rounded (floor <| 10 * scale)
-             ]
-                |> (if board |> Grid.emptyPositions |> (==) [] then
-                        (::) (Element.alpha 0.3)
-
-                    else
-                        identity
-                   )
+        , GameView.view
+            { scale = scale
+            , selected = selected
+            , restartMsg = restartMsg
+            , status = status
+            , highscore = highscore |> Maybe.map (.history >> .present >> .score)
+            }
+            (Just
+                { positionSelectedMsg = msgMapper << PositionSelected
+                , selectedMsg = msgMapper << Selected
+                , requestedReplayMsg = msgMapper RequestedReplay
+                }
             )
-            [ BoardView.view scale (msgMapper << PositionSelected) board
-            , DeckView.view scale (msgMapper << Selected) selected deck
-            ]
+            game
         ]

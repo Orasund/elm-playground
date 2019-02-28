@@ -31,8 +31,8 @@ viewInactiveCard scale content =
         content
 
 
-viewSelectable : Float -> msg -> Element msg -> Element msg
-viewSelectable scale msg content =
+viewSelectable : Float -> Selected -> Maybe (Selected -> msg) -> Element msg -> Element msg
+viewSelectable scale selected maybeMsg content =
     Button.view
         [ Element.width <| Element.px <| floor <| 120 * scale
         , Element.height <| Element.px <| floor <| 176 * scale
@@ -47,7 +47,7 @@ viewSelectable scale msg content =
         , Element.padding <| floor <| 5 * scale
         ]
     <|
-        { onPress = Just msg
+        { onPress = maybeMsg |> Maybe.map (\fun -> fun selected)
         , label = content
         }
 
@@ -88,7 +88,11 @@ viewCardList scale =
 
 viewContent : Float -> CellType -> Element msg
 viewContent scale cellType =
-    Element.column [ Element.spacing <| floor <| 40 * scale, Element.centerX ]
+    Element.column
+        [ Element.spacing <| floor <| 40 * scale
+        , Element.centerX
+        , Element.centerY
+        ]
         [ Element.el [ Font.size <| floor <| 60 * scale, Element.centerX ] <|
             Element.text <|
                 CellType.toString cellType
@@ -102,8 +106,8 @@ viewContent scale cellType =
         ]
 
 
-view : Float -> (Selected -> msg) -> Maybe Selected -> Deck -> Element msg
-view scale selectedMsg maybeSelected deck =
+view : Float -> Maybe (Selected -> msg) -> Maybe Selected -> Deck -> Element msg
+view scale maybeSelectedMsg maybeSelected deck =
     Element.row
         [ Element.centerX
         , Element.spaceEvenly
@@ -133,7 +137,7 @@ view scale selectedMsg maybeSelected deck =
             viewSelected scale
 
            else
-            viewSelectable scale <| selectedMsg First
+            viewSelectable scale First maybeSelectedMsg
           )
           <|
             viewContent scale <|
@@ -144,7 +148,7 @@ view scale selectedMsg maybeSelected deck =
                     viewSelected scale
 
                  else
-                    viewSelectable scale <| selectedMsg Second
+                    viewSelectable scale Second maybeSelectedMsg
                 )
                 <|
                     viewContent scale cellType
