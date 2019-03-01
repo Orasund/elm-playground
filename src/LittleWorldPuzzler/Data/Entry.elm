@@ -32,7 +32,7 @@ import UndoList.Encode as UndoListE
 
 gameVersion : Int
 gameVersion =
-    1
+    2
 
 
 type alias Entry =

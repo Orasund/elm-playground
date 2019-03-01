@@ -20,7 +20,11 @@ type Response
 
 url : String
 url =
-    "https://www.jsonstore.io/af03b4dff8d40b568fb0a32885b718ba9de323f3e68b395cc0980fa3e73e0e88"
+    ""
+
+
+
+--"https://www.jsonstore.io/af03b4dff8d40b568fb0a32885b718ba9de323f3e68b395cc0980fa3e73e0e88"
 
 
 getHighscore : Int -> Cmd Response

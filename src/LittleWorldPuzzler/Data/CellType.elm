@@ -19,11 +19,12 @@ type CellType
     | Volcano
     | Fog
     | Desert
+    | Sea
 
 
 list : List CellType
 list =
-    [ Wood, Water, Fire, Stone, Volcano, Fog, Desert ]
+    [ Wood, Water, Fire, Stone, Volcano, Fog, Desert, Sea ]
 
 
 fromInt : Int -> CellType
@@ -49,6 +50,9 @@ fromInt n =
 
         7 ->
             Desert
+
+        8 ->
+            Sea
 
         _ ->
             Wood
@@ -78,6 +82,9 @@ toInt cellType =
         Desert ->
             7
 
+        Sea ->
+            8
+
 
 toString : CellType -> String
 toString cellType =
@@ -87,7 +94,7 @@ toString cellType =
                 '🌳'
 
             Water ->
-                '🌊'
+                '💧'
 
             Fire ->
                 '🔥'
@@ -103,6 +110,9 @@ toString cellType =
 
             Desert ->
                 '🏜'
+
+            Sea ->
+                '🌊'
 
 
 
