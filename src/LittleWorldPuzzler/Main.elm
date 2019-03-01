@@ -10,6 +10,8 @@ import Framework.Modifier exposing (Modifier(..))
 import LittleWorldPuzzler.Data.CellType exposing (CellType(..))
 import LittleWorldPuzzler.Data.Deck exposing (Selected(..))
 import LittleWorldPuzzler.Data.Game exposing (EndCondition(..))
+import LittleWorldPuzzler.Request as Request exposing (Response(..))
+import LittleWorldPuzzler.State.Finished as FinishedState
 import LittleWorldPuzzler.State.Playing as PlayingState
 import LittleWorldPuzzler.State.Prepairing as PrepairingState
 import LittleWorldPuzzler.State.Replaying as ReplayingState
@@ -41,12 +43,14 @@ type Model
     = Prepairing PrepairingState.Model
     | Playing ( PlayingState.Model, Config )
     | Replaying ( ReplayingState.Model, Config )
+    | Finished ( FinishedState.Model, Config )
 
 
 type Msg
     = PlayingSpecific PlayingState.Msg
     | PrepairingSpecific PrepairingState.Msg
     | ReplayingSpecific ReplayingState.Msg
+    | FinishedSpecific FinishedState.Msg
     | Resized Float
     | Restart
 
@@ -132,12 +136,28 @@ update msg model =
             case model of
                 Playing ( playingModel, config ) ->
                     PlayingState.update
-                        (\m -> Replaying ( m, config ))
+                        (FinishedState.init
+                            (\m -> Finished ( m, config ))
+                            FinishedSpecific
+                        )
+                        PlayingSpecific
                         (\m -> Playing ( m, config ))
                         playingMsg
                         playingModel
+
+                _ ->
+                    defaultCase
+
+        FinishedSpecific finishedMsg ->
+            case model of
+                Finished ( finishedModel, config ) ->
+                    FinishedState.update
+                        (\m -> Replaying ( m, config ))
+                        (\m -> Finished ( m, config ))
+                        finishedMsg
+                        finishedModel
                         |> (\( a, b ) ->
-                                ( a, b |> Cmd.map PlayingSpecific )
+                                ( a, b |> Cmd.map FinishedSpecific )
                            )
 
                 _ ->
@@ -153,6 +173,9 @@ update msg model =
 
                 Replaying ( replayingModel, config ) ->
                     Replaying ( replayingModel, { config | scale = scale } )
+
+                Finished ( finishedModel, config ) ->
+                    Finished ( finishedModel, { config | scale = scale } )
 
                 Prepairing ({ seed } as prepairingModel) ->
                     case seed of
@@ -215,6 +238,9 @@ view model =
 
                     Replaying ( replayingModel, { scale } ) ->
                         ReplayingState.view scale Restart ReplayingSpecific replayingModel
+
+                    Finished ( finishedModel, { scale } ) ->
+                        FinishedState.view scale Restart FinishedSpecific finishedModel
 
                     Prepairing _ ->
                         Element.text ""

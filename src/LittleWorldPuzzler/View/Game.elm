@@ -1,4 +1,4 @@
-module LittleWorldPuzzler.View.Game exposing (view)
+module LittleWorldPuzzler.View.Game exposing (view, viewFinished, viewReplay)
 
 import Element exposing (Attribute, Element)
 import Element.Background as Background
@@ -124,71 +124,79 @@ viewHighscore { scale, score, highscore, requestedReplayMsg } =
         ]
 
 
-view : { scale : Float, status : Maybe EndCondition, selected : Maybe Selected, restartMsg : msg, highscore : Maybe Int } -> Maybe { positionSelectedMsg : Position -> msg, selectedMsg : Selected -> msg, requestedReplayMsg : msg } -> Game -> Element msg
-view { scale, selected, status, highscore } maybeMsgMapper { board, deck, score } =
+viewFinished : { scale : Float, status : EndCondition, highscore : Maybe Int, requestedReplayMsg : msg } -> Game -> Element msg
+viewFinished { scale, status, highscore, requestedReplayMsg } { board, deck, score } =
     Element.column
         ([ Element.spacing (floor <| 5 * scale)
          , Background.color <| Element.rgb255 242 242 242
          , Element.padding (floor <| 20 * scale)
          , Border.rounded (floor <| 10 * scale)
          ]
-            |> (case status of
-                    Just endCondition ->
-                        case maybeMsgMapper of
-                            Just { requestedReplayMsg } ->
-                                (::) <|
-                                    Element.inFront <|
-                                        case endCondition of
-                                            Lost ->
-                                                case highscore of
-                                                    Just int ->
-                                                        viewHighscore { scale = scale, score = score, highscore = int, requestedReplayMsg = requestedReplayMsg }
+            |> ((::) <|
+                    Element.inFront <|
+                        case status of
+                            Lost ->
+                                case highscore of
+                                    Just int ->
+                                        viewHighscore { scale = scale, score = score, highscore = int, requestedReplayMsg = requestedReplayMsg }
 
-                                                    Nothing ->
-                                                        viewLost { scale = scale, score = score }
+                                    Nothing ->
+                                        viewLost { scale = scale, score = score }
 
-                                            NewHighscore ->
-                                                viewNewHighscore { scale = scale, score = score, requestedReplayMsg = requestedReplayMsg }
-
-                            Nothing ->
-                                identity
-
-                    Nothing ->
-                        identity
-               )
-            |> (if maybeMsgMapper == Nothing then
-                    (::) <|
-                        Element.inFront <|
-                            Element.el
-                                [ Element.width <| Element.fill
-                                , Element.height <| Element.fill
-                                , Border.rounded (floor <| 10 * scale)
-                                , Background.color <| Element.rgb255 255 255 255
-                                , Element.alpha 0.3
-                                ]
-                            <|
-                                Element.el
-                                    [ Element.centerX
-                                    , Element.centerY
-                                    , Font.size 80
-                                    , Font.family
-                                        [ Font.sansSerif ]
-                                    ]
-                                <|
-                                    Element.text "REPLAY"
-
-                else
-                    identity
+                            NewHighscore ->
+                                viewNewHighscore { scale = scale, score = score, requestedReplayMsg = requestedReplayMsg }
                )
         )
     <|
-        case maybeMsgMapper of
-            Just { positionSelectedMsg, selectedMsg } ->
-                [ BoardView.view scale (Just positionSelectedMsg) board
-                , DeckView.view scale (Just selectedMsg) selected deck
-                ]
+        [ BoardView.view scale Nothing board
+        , DeckView.view scale Nothing Nothing deck
+        ]
 
-            Nothing ->
-                [ BoardView.view scale Nothing board
-                , DeckView.view scale Nothing selected deck
-                ]
+
+viewReplay : Float -> Game -> Element msg
+viewReplay scale { board, deck } =
+    Element.column
+        ([ Element.spacing (floor <| 5 * scale)
+         , Background.color <| Element.rgb255 242 242 242
+         , Element.padding (floor <| 20 * scale)
+         , Border.rounded (floor <| 10 * scale)
+         ]
+            |> ((::) <|
+                    Element.inFront <|
+                        Element.el
+                            [ Element.width <| Element.fill
+                            , Element.height <| Element.fill
+                            , Border.rounded (floor <| 10 * scale)
+                            , Background.color <| Element.rgb255 255 255 255
+                            , Element.alpha 0.3
+                            ]
+                        <|
+                            Element.el
+                                [ Element.centerX
+                                , Element.centerY
+                                , Font.size 80
+                                , Font.family
+                                    [ Font.sansSerif ]
+                                ]
+                            <|
+                                Element.text "REPLAY"
+               )
+        )
+    <|
+        [ BoardView.view scale Nothing board
+        , DeckView.view scale Nothing Nothing deck
+        ]
+
+
+view : { scale : Float, selected : Maybe Selected } -> { positionSelectedMsg : Position -> msg, selectedMsg : Selected -> msg } -> Game -> Element msg
+view { scale, selected } { positionSelectedMsg, selectedMsg } { board, deck } =
+    Element.column
+        [ Element.spacing (floor <| 5 * scale)
+        , Background.color <| Element.rgb255 242 242 242
+        , Element.padding (floor <| 20 * scale)
+        , Border.rounded (floor <| 10 * scale)
+        ]
+    <|
+        [ BoardView.view scale (Just positionSelectedMsg) board
+        , DeckView.view scale (Just selectedMsg) selected deck
+        ]

@@ -109,13 +109,5 @@ view scale restartMsg msgMapper model =
                 , label = Element.text "Restart"
                 }
             ]
-        , GameView.view
-            { scale = scale
-            , selected = Nothing
-            , restartMsg = restartMsg
-            , status = Nothing
-            , highscore = Nothing
-            }
-            Nothing
-            game
+        , GameView.viewReplay scale game
         ]
