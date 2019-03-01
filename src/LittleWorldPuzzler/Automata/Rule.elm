@@ -2,7 +2,7 @@ module LittleWorldPuzzler.Automata.Rule exposing (rules)
 
 import CellAutomata exposing (Rule)
 import LittleWorldPuzzler.Automata.Neighborhood as Neighborhood
-import LittleWorldPuzzler.Data.CellType as CellType exposing (CellType(..))
+import LittleWorldPuzzler.Data.CellType exposing (CellType(..))
 
 
 rule : { from : Maybe CellType, to : Maybe CellType } -> List ( Int, Maybe CellType ) -> Rule CellType

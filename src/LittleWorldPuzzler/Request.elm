@@ -4,10 +4,9 @@ module LittleWorldPuzzler.Request exposing
     , setHighscore
     )
 
-import Dict exposing (Dict)
-import Http exposing (Body, Error(..), Expect)
-import Json.Decode as D exposing (Decoder)
-import Json.Encode as E exposing (Value)
+import Http exposing (Error(..))
+import Json.Decode as D
+import Json.Encode exposing (Value)
 import LittleWorldPuzzler.Data.Entry as Entry exposing (Entry, gameVersion)
 
 

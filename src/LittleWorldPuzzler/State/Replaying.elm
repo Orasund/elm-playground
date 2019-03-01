@@ -1,29 +1,14 @@
 module LittleWorldPuzzler.State.Replaying exposing (Model, Msg, update, view)
 
-import Browser
-import Browser.Dom as Dom
-import Browser.Events exposing (onResize)
 import Element exposing (Element)
-import Element.Background as Background
 import Element.Border as Border
-import Element.Events as Events
 import Element.Font as Font
-import Framework.Modifier as Modifier exposing (Modifier(..))
-import Grid.Bordered as Grid exposing (Grid)
-import Grid.Position as Position exposing (Position)
-import Html exposing (Html)
-import LittleWorldPuzzler.Automata as Automata
-import LittleWorldPuzzler.Data.Board as Board exposing (Board)
-import LittleWorldPuzzler.Data.CellType as CellType exposing (CellType(..))
-import LittleWorldPuzzler.Data.Deck as Deck exposing (Deck, Selected(..))
-import LittleWorldPuzzler.Data.Game as Game exposing (Game)
-import LittleWorldPuzzler.View.Board as BoardView
+import Framework.Modifier exposing (Modifier(..))
+import LittleWorldPuzzler.Data.CellType exposing (CellType(..))
+import LittleWorldPuzzler.Data.Deck exposing (Selected(..))
+import LittleWorldPuzzler.Data.Game exposing (Game)
 import LittleWorldPuzzler.View.Button as Button
-import LittleWorldPuzzler.View.Deck as DeckView
 import LittleWorldPuzzler.View.Game as GameView
-import Process
-import Random exposing (Generator, Seed)
-import Task
 import UndoList exposing (UndoList)
 
 
@@ -67,7 +52,7 @@ update msg model =
 view : Float -> msg -> (Msg -> msg) -> Model -> Element msg
 view scale restartMsg msgMapper model =
     let
-        ({ board, deck, score } as game) =
+        ({ score } as game) =
             model.present
     in
     Element.column
@@ -90,7 +75,7 @@ view scale restartMsg msgMapper model =
                     [ Element.padding <| floor <| 7 * scale
                     , Border.rounded (floor <| 10 * scale)
                     , Font.size <| floor <| 36 * scale
-                    , Element.width <| Element.px <|floor <| 36 * scale
+                    , Element.width <| Element.px <| floor <| 36 * scale
                     , Font.family
                         [ Font.sansSerif ]
                     ]
@@ -100,7 +85,7 @@ view scale restartMsg msgMapper model =
                 , Button.view
                     [ Element.padding <| floor <| 7 * scale
                     , Border.rounded (floor <| 10 * scale)
-                    , Element.width <| Element.px <|floor <| 36 * scale
+                    , Element.width <| Element.px <| floor <| 36 * scale
                     , Font.size <| floor <| 36 * scale
                     , Font.family
                         [ Font.sansSerif ]

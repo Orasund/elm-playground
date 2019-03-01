@@ -1,16 +1,12 @@
 module LittleWorldPuzzler.View.Board exposing (view)
 
-import Browser
 import Element exposing (Element)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Events as Events
 import Element.Font as Font
-import Framework.Card as Card
-import Framework.Color as Color
 import Grid.Bordered as Grid exposing (Grid)
-import Grid.Position as Position exposing (Position)
-import Html exposing (Html)
+import Grid.Position exposing (Position)
 import LittleWorldPuzzler.Data.CellType as CellType exposing (CellType)
 import LittleWorldPuzzler.View.Rule as RuleView
 

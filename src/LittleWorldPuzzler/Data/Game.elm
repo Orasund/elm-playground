@@ -1,30 +1,14 @@
 module LittleWorldPuzzler.Data.Game exposing (EndCondition(..), Game, decoder, encode, generator, step)
 
-import Browser
-import Browser.Dom as Dom
-import Browser.Events exposing (onResize)
-import Element exposing (Element)
-import Element.Background as Background
-import Element.Border as Border
-import Element.Events as Events
-import Element.Font as Font
-import Framework.Modifier as Modifier exposing (Modifier(..))
-import Grid.Bordered as Grid exposing (Grid)
-import Grid.Position as Position exposing (Position)
-import Html exposing (Html)
+import Framework.Modifier exposing (Modifier(..))
+import Grid.Bordered as Grid
 import Json.Decode as D exposing (Decoder)
 import Json.Encode as E exposing (Value)
 import LittleWorldPuzzler.Automata as Automata
 import LittleWorldPuzzler.Data.Board as Board exposing (Board, columns, rows)
-import LittleWorldPuzzler.Data.CellType as CellType exposing (CellType(..))
+import LittleWorldPuzzler.Data.CellType exposing (CellType(..))
 import LittleWorldPuzzler.Data.Deck as Deck exposing (Deck, Selected(..))
-import LittleWorldPuzzler.View.Board as BoardView
-import LittleWorldPuzzler.View.Button as Button
-import LittleWorldPuzzler.View.Deck as DeckView
-import Process
-import Random exposing (Generator, Seed)
-import Task
-import UndoList exposing (UndoList)
+import Random exposing (Generator)
 
 
 type EndCondition
@@ -40,7 +24,7 @@ type alias Game =
 
 
 step : Game -> Game
-step ({ board, deck, score } as game) =
+step ({ board, score } as game) =
     { game
         | board =
             board

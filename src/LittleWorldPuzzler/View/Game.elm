@@ -1,29 +1,17 @@
 module LittleWorldPuzzler.View.Game exposing (view)
 
-import Browser
-import Browser.Dom as Dom
-import Browser.Events exposing (onResize)
 import Element exposing (Attribute, Element)
 import Element.Background as Background
 import Element.Border as Border
-import Element.Events as Events
 import Element.Font as Font
-import Framework.Modifier as Modifier exposing (Modifier(..))
-import Grid.Bordered as Grid exposing (Grid)
-import Grid.Position as Position exposing (Position)
-import Html exposing (Html)
-import LittleWorldPuzzler.Automata as Automata
-import LittleWorldPuzzler.Data.Board as Board exposing (Board)
-import LittleWorldPuzzler.Data.CellType as CellType exposing (CellType(..))
-import LittleWorldPuzzler.Data.Deck as Deck exposing (Deck, Selected(..))
-import LittleWorldPuzzler.Data.Game as Game exposing (EndCondition(..), Game)
+import Framework.Modifier exposing (Modifier(..))
+import Grid.Position exposing (Position)
+import LittleWorldPuzzler.Data.CellType exposing (CellType(..))
+import LittleWorldPuzzler.Data.Deck exposing (Selected(..))
+import LittleWorldPuzzler.Data.Game exposing (EndCondition(..), Game)
 import LittleWorldPuzzler.View.Board as BoardView
 import LittleWorldPuzzler.View.Button as Button
 import LittleWorldPuzzler.View.Deck as DeckView
-import Process
-import Random exposing (Generator, Seed)
-import Task
-import UndoList exposing (UndoList)
 
 
 viewShade : Float -> List (Attribute msg) -> List (Element msg) -> Element msg
@@ -137,7 +125,7 @@ viewHighscore { scale, score, highscore, requestedReplayMsg } =
 
 
 view : { scale : Float, status : Maybe EndCondition, selected : Maybe Selected, restartMsg : msg, highscore : Maybe Int } -> Maybe { positionSelectedMsg : Position -> msg, selectedMsg : Selected -> msg, requestedReplayMsg : msg } -> Game -> Element msg
-view { scale, selected, restartMsg, status, highscore } maybeMsgMapper { board, deck, score } =
+view { scale, selected, status, highscore } maybeMsgMapper { board, deck, score } =
     Element.column
         ([ Element.spacing (floor <| 5 * scale)
          , Background.color <| Element.rgb255 242 242 242

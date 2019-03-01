@@ -1,18 +1,9 @@
 module LittleWorldPuzzler.View.Deck exposing (view)
 
-import Browser
 import Element exposing (Element)
 import Element.Background as Background
 import Element.Border as Border
-import Element.Events as Events
 import Element.Font as Font
-import Framework.Card as Card
-import Framework.Color as Color
-import Grid.Bordered as Grid exposing (Grid)
-import Grid.Position as Position exposing (Position)
-import Html exposing (Html)
-import LittleWorldPuzzler.Automata.Neighborhood as Neighborhood
-import LittleWorldPuzzler.Automata.Rule as Rule
 import LittleWorldPuzzler.Data.CellType as CellType exposing (CellType(..))
 import LittleWorldPuzzler.Data.Deck as Deck exposing (Deck, Selected(..))
 import LittleWorldPuzzler.View.Button as Button

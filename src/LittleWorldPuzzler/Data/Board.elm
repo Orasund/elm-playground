@@ -8,7 +8,7 @@ module LittleWorldPuzzler.Data.Board exposing
     )
 
 import Grid.Bordered as Grid exposing (Grid)
-import Grid.Position as Position exposing (Position)
+import Grid.Position exposing (Position)
 import Json.Decode as D exposing (Decoder)
 import Json.Encode as E exposing (Value)
 import LittleWorldPuzzler.Data.CellType as CellType exposing (CellType(..))

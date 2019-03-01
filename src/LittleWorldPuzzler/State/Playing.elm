@@ -1,28 +1,16 @@
 module LittleWorldPuzzler.State.Playing exposing (Model, Msg, init, update, view)
 
-import Browser
-import Browser.Dom as Dom
-import Browser.Events exposing (onResize)
 import Element exposing (Element)
-import Element.Background as Background
-import Element.Border as Border
-import Element.Events as Events
-import Element.Font as Font
-import Framework.Modifier as Modifier exposing (Modifier(..))
-import Grid.Bordered as Grid exposing (Grid)
-import Grid.Position as Position exposing (Position)
-import Html exposing (Html)
-import Http exposing (Body, Error(..), Expect)
-import LittleWorldPuzzler.Automata as Automata
-import LittleWorldPuzzler.Data.Board as Board exposing (Board)
-import LittleWorldPuzzler.Data.CellType as CellType exposing (CellType(..))
-import LittleWorldPuzzler.Data.Deck as Deck exposing (Deck, Selected(..))
-import LittleWorldPuzzler.Data.Entry as Entry exposing (Entry, gameVersion)
+import Framework.Modifier exposing (Modifier(..))
+import Grid.Bordered as Grid
+import Grid.Position exposing (Position)
+import Http exposing (Error(..))
+import LittleWorldPuzzler.Data.Board as Board
+import LittleWorldPuzzler.Data.CellType exposing (CellType(..))
+import LittleWorldPuzzler.Data.Deck as Deck exposing (Selected(..))
+import LittleWorldPuzzler.Data.Entry as Entry exposing (Entry)
 import LittleWorldPuzzler.Data.Game as Game exposing (EndCondition(..), Game)
 import LittleWorldPuzzler.Request as Request exposing (Response(..))
-import LittleWorldPuzzler.View.Board as BoardView
-import LittleWorldPuzzler.View.Button as Button
-import LittleWorldPuzzler.View.Deck as DeckView
 import LittleWorldPuzzler.View.Game as GameView
 import LittleWorldPuzzler.View.Header as HeaderView
 import Process
@@ -183,7 +171,7 @@ update replayGame modelMapper msg ( state, seed ) =
 
         PositionSelected position ->
             case state of
-                Running ({ game, history, selected } as runningState) ->
+                Running { game, history, selected } ->
                     case selected of
                         Just First ->
                             playFirst modelMapper position game history seed
@@ -244,7 +232,7 @@ update replayGame modelMapper msg ( state, seed ) =
 
         RequestedReplay ->
             case state of
-                Highscore ({ highscore } as runningState) ->
+                Highscore { highscore } ->
                     case highscore.history |> UndoList.toList of
                         present :: future ->
                             ( replayGame <| UndoList.fromList present future
@@ -259,7 +247,7 @@ update replayGame modelMapper msg ( state, seed ) =
 
         RequestedHighscore response ->
             case state of
-                Finished ({ history, game } as endState) ->
+                Finished { history, game } ->
                     case response of
                         GotHighscore entry ->
                             ( modelMapper
