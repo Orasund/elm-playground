@@ -1,6 +1,5 @@
 module LittleWorldPuzzler.Data.Game exposing (EndCondition(..), Game, decoder, encode, generator, step)
 
-import Framework.Modifier exposing (Modifier(..))
 import Grid.Bordered as Grid
 import Json.Decode as D exposing (Decoder)
 import Json.Encode as E exposing (Value)

@@ -3,17 +3,14 @@ module Main exposing (main)
 import Browser
 import Browser.Dom as Dom
 import Browser.Events exposing (onResize)
-import Element
+import Element exposing (Option)
 import Element.Background as Background
 import Element.Font as Font
-import Framework.Modifier exposing (Modifier(..))
-import LittleWorldPuzzler.Data.CellType exposing (CellType(..))
-import LittleWorldPuzzler.Data.Deck exposing (Selected(..))
-import LittleWorldPuzzler.Data.Game exposing (EndCondition(..))
-import LittleWorldPuzzler.Request as Request exposing (Response(..))
+import LittleWorldPuzzler.State as State exposing (Action)
 import LittleWorldPuzzler.State.Finished as FinishedState
 import LittleWorldPuzzler.State.Playing as PlayingState
-import LittleWorldPuzzler.State.Prepairing as PrepairingState
+import LittleWorldPuzzler.State.Prepairing as PreparingState
+import LittleWorldPuzzler.State.Ready as ReadyState
 import LittleWorldPuzzler.State.Replaying as ReplayingState
 import Random
 import Task
@@ -36,11 +33,14 @@ width =
 
 
 type alias Config =
-    { scale : Float }
+    { scale : Float
+    , portraitMode : Bool
+    }
 
 
 type Model
-    = Prepairing PrepairingState.Model
+    = Preparing PreparingState.Model
+    | Ready ( ReadyState.Model, Config )
     | Playing ( PlayingState.Model, Config )
     | Replaying ( ReplayingState.Model, Config )
     | Finished ( FinishedState.Model, Config )
@@ -48,16 +48,22 @@ type Model
 
 type Msg
     = PlayingSpecific PlayingState.Msg
-    | PrepairingSpecific PrepairingState.Msg
+    | ReadySpecific ReadyState.Msg
+    | PreparingSpecific PreparingState.Msg
     | ReplayingSpecific ReplayingState.Msg
     | FinishedSpecific FinishedState.Msg
-    | Resized Float
+    | Resized Config
     | Restart
+
+
+calcPortraitMode : { height : Float, width : Float } -> Bool
+calcPortraitMode dim =
+    dim.height > dim.width
 
 
 calcScale : { height : Float, width : Float } -> Float
 calcScale dim =
-    if dim.width > dim.height then
+    if dim.width / dim.height > width / height then
         dim.height / height
 
     else
@@ -72,15 +78,19 @@ calcScale dim =
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( Prepairing { scale = Nothing, seed = Nothing }
+    ( Preparing { scale = Nothing, seed = Nothing, portraitMode = False }
     , Cmd.batch
-        [ Random.generate (PrepairingSpecific << PrepairingState.GotSeed)
+        [ Random.generate (PreparingSpecific << PreparingState.GotSeed)
             Random.independentSeed
         , Task.perform
             (\{ viewport } ->
                 { width = viewport.width, height = viewport.height }
-                    |> calcScale
-                    |> Resized
+                    |> (\dim ->
+                            Resized
+                                { scale = calcScale dim
+                                , portraitMode = calcPortraitMode dim
+                                }
+                       )
             )
             Dom.getViewport
         ]
@@ -101,22 +111,82 @@ update msg model =
             ( model, Cmd.none )
     in
     case msg of
-        PrepairingSpecific prepairingMsg ->
+        PreparingSpecific preparingMsg ->
             case model of
-                Prepairing prepairingModel ->
-                    PrepairingState.update
-                        (\scale seed ->
-                            Playing
-                                ( PlayingState.init seed
-                                , { scale = scale }
-                                )
-                        )
-                        Prepairing
-                        prepairingMsg
-                        prepairingModel
-                        |> (\( a, b ) ->
-                                ( a, b |> Cmd.map PrepairingSpecific )
-                           )
+                Preparing preparingModel ->
+                    PreparingState.update preparingMsg preparingModel
+                        |> State.apply
+                            { exit = init ()
+                            , modelMapper = Preparing
+                            , msgMapper = PreparingSpecific
+                            , transition =
+                                \{ scale, portraitMode, seed } ->
+                                    ReadyState.init seed
+                                        |> (\( m, c ) ->
+                                                ( Ready
+                                                    ( m
+                                                    , { scale = scale
+                                                      , portraitMode = portraitMode
+                                                      }
+                                                    )
+                                                , c |> Cmd.map ReadySpecific
+                                                )
+                                           )
+                            }
+
+                _ ->
+                    defaultCase
+
+        ReadySpecific readyMsg ->
+            case model of
+                Ready ( readyModel, config ) ->
+                    ReadyState.update readyMsg readyModel
+                        |> State.apply
+                            { exit = init ()
+                            , modelMapper = \m -> Ready ( m, config )
+                            , msgMapper = ReadySpecific
+                            , transition =
+                                PlayingState.init
+                                    >> (\( m, c ) ->
+                                            ( Playing ( m, config ), c |> Cmd.map PlayingSpecific )
+                                       )
+                            }
+
+                _ ->
+                    defaultCase
+
+        PlayingSpecific playingMsg ->
+            case model of
+                Playing ( playingModel, config ) ->
+                    PlayingState.update playingMsg playingModel
+                        |> State.apply
+                            { exit = init ()
+                            , modelMapper = \m -> Playing ( m, config )
+                            , msgMapper = PlayingSpecific
+                            , transition =
+                                FinishedState.init
+                                    >> (\( m, c ) ->
+                                            ( Finished ( m, config ), c |> Cmd.map FinishedSpecific )
+                                       )
+                            }
+
+                _ ->
+                    defaultCase
+
+        FinishedSpecific finishedMsg ->
+            case model of
+                Finished ( finishedModel, config ) ->
+                    FinishedState.update finishedMsg finishedModel
+                        |> State.apply
+                            { exit = init ()
+                            , modelMapper = \m -> Finished ( m, config )
+                            , msgMapper = FinishedSpecific
+                            , transition =
+                                \m ->
+                                    ( Replaying ( m, config )
+                                    , Cmd.none
+                                    )
+                            }
 
                 _ ->
                     defaultCase
@@ -125,40 +195,12 @@ update msg model =
             case model of
                 Replaying ( replayingModel, config ) ->
                     ReplayingState.update replayingMsg replayingModel
-                        |> (\( a, b ) ->
-                                ( Replaying ( a, config ), b |> Cmd.map ReplayingSpecific )
-                           )
-
-                _ ->
-                    defaultCase
-
-        PlayingSpecific playingMsg ->
-            case model of
-                Playing ( playingModel, config ) ->
-                    PlayingState.update
-                        (FinishedState.init
-                            (\m -> Finished ( m, config ))
-                            FinishedSpecific
-                        )
-                        PlayingSpecific
-                        (\m -> Playing ( m, config ))
-                        playingMsg
-                        playingModel
-
-                _ ->
-                    defaultCase
-
-        FinishedSpecific finishedMsg ->
-            case model of
-                Finished ( finishedModel, config ) ->
-                    FinishedState.update
-                        (\m -> Replaying ( m, config ))
-                        (\m -> Finished ( m, config ))
-                        finishedMsg
-                        finishedModel
-                        |> (\( a, b ) ->
-                                ( a, b |> Cmd.map FinishedSpecific )
-                           )
+                        |> State.apply
+                            { exit = init ()
+                            , modelMapper = \m -> Replaying ( m, config )
+                            , msgMapper = ReplayingSpecific
+                            , transition = never
+                            }
 
                 _ ->
                     defaultCase
@@ -166,30 +208,36 @@ update msg model =
         Restart ->
             init ()
 
-        Resized scale ->
+        Resized { scale, portraitMode } ->
             ( case model of
                 Playing ( playingModel, config ) ->
-                    Playing ( playingModel, { config | scale = scale } )
+                    Playing ( playingModel, { config | scale = scale, portraitMode = portraitMode } )
 
                 Replaying ( replayingModel, config ) ->
-                    Replaying ( replayingModel, { config | scale = scale } )
+                    Replaying ( replayingModel, { config | scale = scale, portraitMode = portraitMode } )
 
                 Finished ( finishedModel, config ) ->
-                    Finished ( finishedModel, { config | scale = scale } )
+                    Finished ( finishedModel, { config | scale = scale, portraitMode = portraitMode } )
 
-                Prepairing ({ seed } as prepairingModel) ->
+                Ready ( readyModel, config ) ->
+                    Ready ( readyModel, { config | scale = scale, portraitMode = portraitMode } )
+
+                Preparing ({ seed } as prepairingModel) ->
                     case seed of
                         Just s ->
-                            Playing
-                                ( PlayingState.init s
+                            Ready
+                                ( ReadyState.init s
+                                    |> Tuple.first
                                 , { scale = scale
+                                  , portraitMode = portraitMode
                                   }
                                 )
 
                         Nothing ->
-                            Prepairing
+                            Preparing
                                 { prepairingModel
                                     | scale = Just scale
+                                    , portraitMode = portraitMode
                                 }
             , Cmd.none
             )
@@ -206,8 +254,12 @@ subscriptions _ =
     onResize
         (\w h ->
             { width = toFloat w, height = toFloat h }
-                |> calcScale
-                |> Resized
+                |> (\dim ->
+                        Resized
+                            { scale = calcScale dim
+                            , portraitMode = calcPortraitMode dim
+                            }
+                   )
         )
 
 
@@ -219,10 +271,48 @@ subscriptions _ =
 
 view : Model -> Browser.Document Msg
 view model =
+    let
+        forceHover : Bool -> List Option
+        forceHover bool =
+            if bool then
+                [ Element.forceHover
+                ]
+
+            else
+                []
+
+        ( content, options ) =
+            case model of
+                Playing ( playingModel, { scale, portraitMode } ) ->
+                    ( PlayingState.view scale Restart PlayingSpecific playingModel
+                    , forceHover portraitMode
+                    )
+
+                Replaying ( replayingModel, { scale, portraitMode } ) ->
+                    ( ReplayingState.view scale Restart ReplayingSpecific replayingModel
+                    , forceHover portraitMode
+                    )
+
+                Finished ( finishedModel, { scale, portraitMode } ) ->
+                    ( FinishedState.view scale Restart FinishedSpecific finishedModel
+                    , forceHover portraitMode
+                    )
+
+                Ready ( readyModel, { scale, portraitMode } ) ->
+                    ( ReadyState.view scale Restart ReadySpecific readyModel
+                    , forceHover portraitMode
+                    )
+
+                Preparing _ ->
+                    ( Element.text ""
+                    , []
+                    )
+    in
     { title = "Little World Puzzler"
     , body =
         List.singleton <|
-            Element.layout
+            Element.layoutWith
+                { options = options }
                 [ Font.family
                     [ Font.external
                         { url = "font.css"
@@ -232,18 +322,7 @@ view model =
                 , Background.color <| Element.rgb255 44 48 51
                 ]
             <|
-                case model of
-                    Playing ( playingModel, { scale } ) ->
-                        PlayingState.view scale Restart PlayingSpecific playingModel
-
-                    Replaying ( replayingModel, { scale } ) ->
-                        ReplayingState.view scale Restart ReplayingSpecific replayingModel
-
-                    Finished ( finishedModel, { scale } ) ->
-                        FinishedState.view scale Restart FinishedSpecific finishedModel
-
-                    Prepairing _ ->
-                        Element.text ""
+                content
     }
 
 

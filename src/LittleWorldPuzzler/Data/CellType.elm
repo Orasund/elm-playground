@@ -24,7 +24,7 @@ type CellType
 
 list : List CellType
 list =
-    [ Wood, Water, Fire, Stone, Volcano, Fog, Desert, Sea ]
+    [ Sea, Desert, Fog, Volcano, Stone, Fire, Water, Wood ]
 
 
 fromInt : Int -> CellType

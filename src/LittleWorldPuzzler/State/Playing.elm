@@ -11,6 +11,7 @@ import LittleWorldPuzzler.Data.Deck as Deck exposing (Selected(..))
 import LittleWorldPuzzler.Data.Entry as Entry exposing (Entry)
 import LittleWorldPuzzler.Data.Game as Game exposing (EndCondition(..), Game)
 import LittleWorldPuzzler.Request as Request exposing (Response(..))
+import LittleWorldPuzzler.State as State exposing (Action(..))
 import LittleWorldPuzzler.View.Game as GameView
 import LittleWorldPuzzler.View.Header as HeaderView
 import Process
@@ -29,6 +30,7 @@ type alias State =
     { game : Game
     , selected : Maybe Selected
     , history : UndoList Game
+    , trainingMode : Bool
     }
 
 
@@ -40,6 +42,8 @@ type Msg
     = Selected Selected
     | PositionSelected Position
     | CardPlaced
+    | Undo
+    | Redo
 
 
 
@@ -48,21 +52,17 @@ type Msg
 ----------------------
 
 
-stateGenerator : Generator State
-stateGenerator =
-    Game.generator
-        |> Random.map
-            (\game ->
-                { game = game
-                , selected = Nothing
-                , history = UndoList.fresh game
-                }
-            )
-
-
-init : Seed -> Model
-init seed =
-    Random.step stateGenerator seed
+init : { game : Game, seed : Seed, trainingMode : Bool } -> ( Model, Cmd Msg )
+init { game, seed, trainingMode } =
+    ( ( { game = game
+        , selected = Nothing
+        , history = UndoList.fresh game
+        , trainingMode = trainingMode
+        }
+      , seed
+      )
+    , Cmd.none
+    )
 
 
 
@@ -71,82 +71,90 @@ init seed =
 ----------------------
 
 
-play : (Msg -> msg) -> (Model -> model) -> UndoList Game -> ( Game, Seed ) -> ( model, Cmd msg )
-play msgMapper modelMapper history ( game, seed ) =
+play : Model -> Action Model Msg { game : Game, history : UndoList Game }
+play ( { game, history } as state, seed ) =
     let
         seconds : Float
         seconds =
             1000
     in
-    ( modelMapper
-        ( { game = game
-          , selected = Nothing
-          , history = history |> UndoList.new game
-          }
-        , seed
+    Update
+        ( ( { state
+                | game = game
+                , selected = Nothing
+                , history = history |> UndoList.new game
+            }
+          , seed
+          )
+        , Task.perform (always CardPlaced) <| Process.sleep (0.1 * seconds)
         )
-    , Task.perform (always <| msgMapper CardPlaced) <| Process.sleep (0.1 * seconds)
-    )
 
 
-playFirst : (Msg -> msg) -> (Model -> model) -> Position -> Game -> UndoList Game -> Seed -> ( model, Cmd msg )
-playFirst msgMapper modelMapper position ({ board } as game) history seed =
+playFirst : Position -> Model -> Action Model Msg { game : Game, history : UndoList Game }
+playFirst position ( { game, history } as state, seed ) =
     Random.step
         (Deck.playFirst game.deck
             |> Random.map
                 (\deck ->
-                    { game
-                        | deck = deck
-                        , board =
-                            board
-                                |> Board.place position
-                                    (game.deck |> Deck.first)
+                    { state
+                        | game =
+                            { game
+                                | deck = deck
+                                , board =
+                                    game.board
+                                        |> Board.place position
+                                            (game.deck |> Deck.first)
+                            }
                     }
                 )
         )
         seed
-        |> play msgMapper modelMapper history
+        |> play
 
 
-playSecond : (Msg -> msg) -> (Model -> model) -> Position -> CellType -> Game -> UndoList Game -> (Seed -> ( model, Cmd msg ))
-playSecond msgMapper modelMapper position cellType ({ board, deck } as game) history =
-    { game
-        | deck = deck |> Deck.playSecond
-        , board = board |> Board.place position cellType
-    }
-        |> (\a b ->
-                ( a, b ) |> play msgMapper modelMapper history
-           )
+playSecond : Position -> CellType -> Model -> Action Model Msg { game : Game, history : UndoList Game }
+playSecond position cellType ( { game } as state, seed ) =
+    play
+        ( { state
+            | game =
+                { game
+                    | deck = game.deck |> Deck.playSecond
+                    , board = game.board |> Board.place position cellType
+                }
+          }
+        , seed
+        )
 
 
-update : (Game -> UndoList Game -> ( model, Cmd msg )) -> (Msg -> msg) -> (Model -> model) -> Msg -> Model -> ( model, Cmd msg )
-update finished msgMapper modelMapper msg ( { game, history, selected } as model, seed ) =
+update : Msg -> Model -> Action Model Msg { game : Game, history : UndoList Game }
+update msg (( { game, history, selected, trainingMode } as state, seed ) as model) =
     let
-        defaultCase : ( model, Cmd msg )
+        defaultCase : Action Model Msg { game : Game, history : UndoList Game }
         defaultCase =
-            ( modelMapper ( model, seed ), Cmd.none )
+            Update
+                ( model, Cmd.none )
     in
     case msg of
         Selected select ->
-            ( modelMapper
-                ( { model | selected = Just select }
-                , seed
+            Update
+                ( ( { state | selected = Just select }
+                  , seed
+                  )
+                , Cmd.none
                 )
-            , Cmd.none
-            )
 
         PositionSelected position ->
             case selected of
                 Just First ->
-                    playFirst msgMapper modelMapper position game history seed
+                    playFirst position model
 
                 Just Second ->
                     case game.deck |> Deck.second of
                         Just second ->
-                            playSecond msgMapper modelMapper position second game history seed
+                            playSecond position second model
 
                         Nothing ->
-                            playFirst msgMapper modelMapper position game history seed
+                            playFirst position model
 
                 Nothing ->
                     defaultCase
@@ -161,17 +169,56 @@ update finished msgMapper modelMapper msg ( { game, history, selected } as model
                 newHistory =
                     history |> UndoList.new newGame
             in
-            if newGame.board |> Grid.emptyPositions |> (==) [] then
-                finished newGame newHistory
+            if (newGame.board |> Grid.emptyPositions |> (==) []) && not trainingMode then
+                Transition
+                    { game = newGame
+                    , history = newHistory
+                    }
 
             else
-                ( modelMapper
-                    ( { model
-                        | game = newGame
-                        , history = newHistory
-                      }
-                    , seed
+                Update
+                    ( ( { state
+                            | game = newGame
+                            , history = newHistory
+                        }
+                      , seed
+                      )
+                    , Cmd.none
                     )
+
+        Redo ->
+            let
+                newHistory : UndoList Game
+                newHistory =
+                    history
+                        |> UndoList.redo
+                        |> UndoList.redo
+            in
+            Update
+                ( ( { state
+                        | history = newHistory
+                        , game = newHistory |> .present
+                    }
+                  , seed
+                  )
+                , Cmd.none
+                )
+
+        Undo ->
+            let
+                newHistory : UndoList Game
+                newHistory =
+                    history
+                        |> UndoList.undo
+                        |> UndoList.undo
+            in
+            Update
+                ( ( { state
+                        | history = newHistory
+                        , game = newHistory |> .present
+                    }
+                  , seed
+                  )
                 , Cmd.none
                 )
 
@@ -183,13 +230,22 @@ update finished msgMapper modelMapper msg ( { game, history, selected } as model
 
 
 view : Float -> msg -> (Msg -> msg) -> Model -> Element msg
-view scale restartMsg msgMapper ( { game, selected }, _ ) =
+view scale restartMsg msgMapper ( { game, selected, trainingMode }, _ ) =
     Element.column
         [ Element.centerY
         , Element.centerX
         , Element.spacing 5
         ]
-        [ HeaderView.view scale restartMsg game.score
+        [ if trainingMode then
+            HeaderView.viewWithUndo scale
+                { restartMsg = restartMsg
+                , previousMsg = msgMapper Undo
+                , nextMsg = msgMapper Redo
+                }
+                game.score
+
+          else
+            HeaderView.view scale restartMsg game.score
         , GameView.view
             { scale = scale
             , selected = selected

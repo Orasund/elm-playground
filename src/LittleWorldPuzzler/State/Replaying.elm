@@ -7,8 +7,10 @@ import Framework.Modifier exposing (Modifier(..))
 import LittleWorldPuzzler.Data.CellType exposing (CellType(..))
 import LittleWorldPuzzler.Data.Deck exposing (Selected(..))
 import LittleWorldPuzzler.Data.Game exposing (Game)
+import LittleWorldPuzzler.State as State exposing (Action(..))
 import LittleWorldPuzzler.View.Button as Button
 import LittleWorldPuzzler.View.Game as GameView
+import LittleWorldPuzzler.View.Header as HeaderView
 import UndoList exposing (UndoList)
 
 
@@ -33,14 +35,16 @@ type Msg
 ----------------------
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
+update : Msg -> Model -> Action Model Msg Never
 update msg model =
     case msg of
         Next ->
-            ( model |> UndoList.redo, Cmd.none )
+            Update
+                ( model |> UndoList.redo, Cmd.none )
 
         Previous ->
-            ( model |> UndoList.undo, Cmd.none )
+            Update
+                ( model |> UndoList.undo, Cmd.none )
 
 
 
@@ -60,54 +64,11 @@ view scale restartMsg msgMapper model =
         , Element.centerX
         , Element.spacing 5
         ]
-        [ Element.row
-            [ Element.spaceEvenly
-            , Element.centerX
-            , Element.width <| Element.px <| floor <| 608 * scale
-            ]
-          <|
-            [ Element.row
-                [ Element.width <| Element.px <| floor <| 150 * scale
-                , Element.spacing 5
-                ]
-              <|
-                [ Button.view
-                    [ Element.padding <| floor <| 7 * scale
-                    , Border.rounded (floor <| 10 * scale)
-                    , Font.size <| floor <| 36 * scale
-                    , Element.width <| Element.px <| floor <| 36 * scale
-                    , Font.family
-                        [ Font.sansSerif ]
-                    ]
-                    { onPress = Just (msgMapper Previous)
-                    , label = Element.text "<"
-                    }
-                , Button.view
-                    [ Element.padding <| floor <| 7 * scale
-                    , Border.rounded (floor <| 10 * scale)
-                    , Element.width <| Element.px <| floor <| 36 * scale
-                    , Font.size <| floor <| 36 * scale
-                    , Font.family
-                        [ Font.sansSerif ]
-                    ]
-                    { onPress = Just (msgMapper Next)
-                    , label = Element.text ">"
-                    }
-                ]
-            , Element.el [ Font.size <| floor <| 50 * scale ] <|
-                Element.text <|
-                    String.fromInt score
-            , Button.view
-                [ Element.width <| Element.px <| floor <| 150 * scale
-                , Element.padding <| floor <| 7 * scale
-                , Border.rounded (floor <| 10 * scale)
-                , Font.size <| floor <| 36 * scale
-                , Font.family
-                    [ Font.sansSerif ]
-                ]
-                { onPress = Just restartMsg
-                , label = Element.text "Restart"
-                }
-            ]
+        [ HeaderView.viewWithUndo scale
+            { restartMsg = restartMsg
+            , previousMsg = msgMapper Previous
+            , nextMsg = msgMapper Next
+            }
+            score
         , GameView.viewReplay scale game
         ]

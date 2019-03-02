@@ -1,21 +1,13 @@
 module LittleWorldPuzzler.State.Finished exposing (Model, Msg(..), init, update, view)
 
 import Element exposing (Element)
-import Framework.Modifier exposing (Modifier(..))
-import Grid.Bordered as Grid
-import Grid.Position exposing (Position)
 import Http exposing (Error(..))
-import LittleWorldPuzzler.Data.Board as Board
-import LittleWorldPuzzler.Data.CellType exposing (CellType(..))
-import LittleWorldPuzzler.Data.Deck as Deck exposing (Selected(..))
 import LittleWorldPuzzler.Data.Entry as Entry exposing (Entry)
 import LittleWorldPuzzler.Data.Game as Game exposing (EndCondition(..), Game)
 import LittleWorldPuzzler.Request as Request exposing (Response(..))
+import LittleWorldPuzzler.State as State exposing (Action(..))
 import LittleWorldPuzzler.View.Game as GameView
 import LittleWorldPuzzler.View.Header as HeaderView
-import Process
-import Random exposing (Generator, Seed)
-import Task
 import UndoList exposing (UndoList)
 
 
@@ -25,16 +17,15 @@ import UndoList exposing (UndoList)
 ----------------------
 
 
-init : (Model -> model) -> (Msg -> msg) -> Game -> UndoList Game -> ( model, Cmd msg )
-init modelMapper msgMapper game history =
-    ( modelMapper <|
-        End
-            { game = game
-            , history = history
-            , error = Nothing
-            }
+init : { game : Game, history : UndoList Game } -> ( Model, Cmd Msg )
+init { game, history } =
+    ( End
+        { game = game
+        , history = history
+        , error = Nothing
+        }
     , Request.getHighscore game.score
-        |> Cmd.map (msgMapper << RequestedHighscore)
+        |> Cmd.map RequestedHighscore
     )
 
 
@@ -79,12 +70,13 @@ type Msg
 ----------------------
 
 
-update : (UndoList Game -> model) -> (Model -> model) -> Msg -> Model -> ( model, Cmd Msg )
-update replayGame modelMapper msg model =
+update : Msg -> Model -> Action Model Msg (UndoList Game)
+update msg model =
     let
-        defaultCase : ( model, Cmd Msg )
+        defaultCase : Action Model Msg (UndoList Game)
         defaultCase =
-            ( modelMapper model, Cmd.none )
+            Update
+                ( model, Cmd.none )
     in
     case msg of
         RequestedReplay ->
@@ -92,9 +84,8 @@ update replayGame modelMapper msg model =
                 Highscore { highscore } ->
                     case highscore.history |> UndoList.toList of
                         present :: future ->
-                            ( replayGame <| UndoList.fromList present future
-                            , Cmd.none
-                            )
+                            Transition <|
+                                UndoList.fromList present future
 
                         _ ->
                             defaultCase
@@ -104,36 +95,40 @@ update replayGame modelMapper msg model =
 
         RequestedHighscore response ->
             case model of
-                End { history, game } ->
+                End ({ history, game } as endState) ->
                     case response of
                         GotHighscore entry ->
-                            ( modelMapper <|
-                                Highscore
+                            Update
+                                ( Highscore
                                     { game = game
                                     , highscore = entry
                                     , newHighscore = False
                                     }
-                            , Cmd.none
-                            )
+                                , Cmd.none
+                                )
 
-                        AchivedNewHighscore ->
+                        AchievedNewHighscore ->
                             let
                                 newEntry : Entry
                                 newEntry =
                                     Entry.new history
                             in
-                            ( modelMapper <|
-                                Highscore
+                            Update
+                                ( Highscore
                                     { game = game
                                     , highscore = newEntry
                                     , newHighscore = True
                                     }
-                            , Request.setHighscore newEntry
-                                |> Cmd.map RequestedHighscore
-                            )
+                                , Request.setHighscore newEntry
+                                    |> Cmd.map RequestedHighscore
+                                )
 
-                        GotError _ ->
-                            defaultCase
+                        GotError error ->
+                            Update
+                                ( End
+                                    { endState | error = Just error }
+                                , Cmd.none
+                                )
 
                         Done ->
                             defaultCase
@@ -156,13 +151,33 @@ view scale restartMsg msgMapper model =
         , Element.spacing 5
         ]
         (case model of
-            End { game } ->
+            End { game, error } ->
                 [ HeaderView.view scale restartMsg game.score
                 , GameView.viewFinished
                     { scale = scale
                     , status = Lost
                     , highscore = Nothing
                     , requestedReplayMsg = msgMapper RequestedReplay
+                    , error =
+                        error
+                            |> Maybe.map
+                                (\e ->
+                                    case e of
+                                        BadUrl string ->
+                                            "BadUrl: " ++ string
+
+                                        Timeout ->
+                                            "Timeout"
+
+                                        NetworkError ->
+                                            "Network Error"
+
+                                        BadStatus int ->
+                                            "Response Status: " ++ String.fromInt int
+
+                                        BadBody string ->
+                                            string
+                                )
                     }
                     game
                 ]
@@ -179,6 +194,7 @@ view scale restartMsg msgMapper model =
                             Lost
                     , highscore = Just highscore.history.present.score
                     , requestedReplayMsg = msgMapper RequestedReplay
+                    , error = Nothing
                     }
                     game
                 ]

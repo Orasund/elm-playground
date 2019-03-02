@@ -1,18 +1,11 @@
-module LittleWorldPuzzler.Data.Entry exposing (Entry, decoder, encode, gameVersion, new)
+module LittleWorldPuzzler.Data.Entry exposing (Entry, decoder, encode, new)
 
-import Framework.Modifier exposing (Modifier(..))
 import Json.Decode as D exposing (Decoder)
 import Json.Encode as E exposing (Value)
-import LittleWorldPuzzler.Data.CellType exposing (CellType(..))
-import LittleWorldPuzzler.Data.Deck exposing (Selected(..))
+import LittleWorldPuzzler.Data exposing (gameVersion)
 import LittleWorldPuzzler.Data.Game as Game exposing (EndCondition(..), Game)
 import UndoList exposing (UndoList)
 import UndoList.Encode as UndoListE
-
-
-gameVersion : Int
-gameVersion =
-    2
 
 
 type alias Entry =

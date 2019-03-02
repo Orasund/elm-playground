@@ -20,19 +20,19 @@ rules cellType =
 
         Water ->
             [ rule { from = Just Water, to = Nothing } [ ( 2, Just Fire ) ]
-            , rule { from = Just Water, to = Just Sea } [ ( 1, Just Water ) ]
+            , rule { from = Just Water, to = Just Sea } [ ( 2, Just Water ) ]
             , rule { from = Nothing, to = Just Wood } [ ( 1, Just Water ) ]
             ]
 
         Fire ->
             [ rule { from = Just Fire, to = Just Volcano } [ ( 2, Just Stone ) ]
             , rule { from = Just Fire, to = Nothing } []
-            , rule { from = Nothing, to = Just Desert } [ ( 1, Just Volcano ), ( 3, Just Fire ) ]
+            , rule { from = Nothing, to = Just Desert } [ ( 3, Just Fire ) ]
             ]
 
         Stone ->
             [ rule { from = Just Stone, to = Nothing }
-                [ ( 1, Just Volcano ), ( 2, Just Water ) ]
+                [ ( 1, Just Volcano ), ( 1, Just Water ) ]
             ]
 
         Volcano ->
@@ -47,7 +47,8 @@ rules cellType =
             ]
 
         Desert ->
-            [ rule { from = Just Desert, to = Nothing } [ ( 1, Just Sea ) ]
+            [ rule { from = Just Desert, to = Nothing } [ ( 2, Just Water ) ]
+            , rule { from = Just Desert, to = Nothing } [ ( 1, Just Sea ) ]
             ]
 
         Sea ->

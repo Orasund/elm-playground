@@ -1,4 +1,4 @@
-module LittleWorldPuzzler.View.Game exposing (view, viewFinished, viewReplay)
+module LittleWorldPuzzler.View.Game exposing (view, viewFinished, viewHome, viewReplay)
 
 import Element exposing (Attribute, Element)
 import Element.Background as Background
@@ -38,8 +38,8 @@ viewShade scale attributes content =
             content
 
 
-viewLost : { scale : Float, score : Int } -> Element msg
-viewLost { scale, score } =
+viewLost : { scale : Float, score : Int, error : Maybe String } -> Element msg
+viewLost { scale, score, error } =
     viewShade scale
         [ Background.color <| Element.rgba255 0 0 0 0.7
         , Font.color <| Element.rgb255 255 255 255
@@ -52,6 +52,17 @@ viewLost { scale, score } =
             Element.text <|
                 String.fromInt <|
                     score
+        , Element.paragraph
+            [ Element.alignLeft
+            , Font.color <| Element.rgb 255 0 0
+            , Font.size <| 14
+            ]
+          <|
+            [ Element.text
+                (error
+                    |> Maybe.withDefault ""
+                )
+            ]
         ]
 
 
@@ -124,8 +135,8 @@ viewHighscore { scale, score, highscore, requestedReplayMsg } =
         ]
 
 
-viewFinished : { scale : Float, status : EndCondition, highscore : Maybe Int, requestedReplayMsg : msg } -> Game -> Element msg
-viewFinished { scale, status, highscore, requestedReplayMsg } { board, deck, score } =
+viewFinished : { scale : Float, status : EndCondition, highscore : Maybe Int, requestedReplayMsg : msg, error : Maybe String } -> Game -> Element msg
+viewFinished { scale, status, highscore, requestedReplayMsg, error } { board, deck, score } =
     Element.column
         ([ Element.spacing (floor <| 5 * scale)
          , Background.color <| Element.rgb255 242 242 242
@@ -141,7 +152,7 @@ viewFinished { scale, status, highscore, requestedReplayMsg } { board, deck, sco
                                         viewHighscore { scale = scale, score = score, highscore = int, requestedReplayMsg = requestedReplayMsg }
 
                                     Nothing ->
-                                        viewLost { scale = scale, score = score }
+                                        viewLost { scale = scale, score = score, error = error }
 
                             NewHighscore ->
                                 viewNewHighscore { scale = scale, score = score, requestedReplayMsg = requestedReplayMsg }
@@ -180,6 +191,69 @@ viewReplay scale { board, deck } =
                                 ]
                             <|
                                 Element.text "REPLAY"
+               )
+        )
+    <|
+        [ BoardView.view scale Nothing board
+        , DeckView.view scale Nothing Nothing deck
+        ]
+
+
+viewHome : Float -> { normalModeSelectedMsg : msg, trainingModeSelectedMsg : msg } -> Game -> Element msg
+viewHome scale { normalModeSelectedMsg, trainingModeSelectedMsg } { board, deck } =
+    Element.column
+        ([ Element.spacing (floor <| 5 * scale)
+         , Background.color <| Element.rgb255 242 242 242
+         , Element.padding (floor <| 20 * scale)
+         , Border.rounded (floor <| 10 * scale)
+         ]
+            |> ((::) <|
+                    Element.inFront <|
+                        viewShade scale
+                            [ Background.color <| Element.rgba255 0 0 0 0.7
+                            ]
+                            [ Element.column
+                                [ Font.size <| floor <| scale * 100
+                                , Element.centerX
+                                , Font.color <| Element.rgb255 255 255 255
+                                , Font.center
+                                ]
+                              <|
+                                [ Element.text "Little"
+                                , Element.text "World"
+                                , Element.text "Puzzler"
+                                ]
+                            , Button.view
+                                [ Element.padding <| floor <| 7 * scale
+                                , Border.rounded (floor <| 10 * scale)
+                                , Element.padding 10
+                                , Font.size <| floor <| 36 * scale
+                                , Font.family
+                                    [ Font.sansSerif ]
+                                , Element.centerX
+                                , Font.color <| Element.rgb255 0 0 0
+                                ]
+                              <|
+                                { onPress = Just normalModeSelectedMsg
+                                , label =
+                                    Element.text "Play"
+                                }
+                            , Button.view
+                                [ Element.padding <| floor <| 7 * scale
+                                , Border.rounded (floor <| 10 * scale)
+                                , Element.padding 10
+                                , Font.size <| floor <| 36 * scale
+                                , Font.family
+                                    [ Font.sansSerif ]
+                                , Element.centerX
+                                , Font.color <| Element.rgb255 0 0 0
+                                ]
+                              <|
+                                { onPress = Just trainingModeSelectedMsg
+                                , label =
+                                    Element.text "Training"
+                                }
+                            ]
                )
         )
     <|

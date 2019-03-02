@@ -7,23 +7,24 @@ module LittleWorldPuzzler.Request exposing
 import Http exposing (Error(..))
 import Json.Decode as D
 import Json.Encode exposing (Value)
-import LittleWorldPuzzler.Data.Entry as Entry exposing (Entry, gameVersion)
+import LittleWorldPuzzler.Data exposing (devMode, gameVersion)
+import LittleWorldPuzzler.Data.Entry as Entry exposing (Entry)
 
 
 type Response
     = GotHighscore Entry
-    | AchivedNewHighscore
+    | AchievedNewHighscore
     | GotError Error
     | Done
 
 
 url : String
 url =
-    ""
+    if devMode then
+        "https://www.jsonstore.io/af03b4dff8d40b568fb0a32885b718ba9de323f3e68b395cc0980fa3e73e0e88/dev"
 
-
-
---"https://www.jsonstore.io/af03b4dff8d40b568fb0a32885b718ba9de323f3e68b395cc0980fa3e73e0e88"
+    else
+        "https://www.jsonstore.io/af03b4dff8d40b568fb0a32885b718ba9de323f3e68b395cc0980fa3e73e0e88"
 
 
 getHighscore : Int -> Cmd Response
@@ -41,13 +42,13 @@ getHighscore score =
                         GotHighscore entry
 
                     else
-                        AchivedNewHighscore
+                        AchievedNewHighscore
 
                 Err error ->
                     case error of
                         BadBody _ ->
                             (error |> Debug.log "Error")
-                                |> always AchivedNewHighscore
+                                |> always AchievedNewHighscore
 
                         _ ->
                             error |> GotError
