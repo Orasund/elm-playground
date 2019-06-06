@@ -13,6 +13,7 @@ display scale restartMsg score content =
         [ Element.spaceEvenly
         , Element.centerX
         , Element.width <| Element.px <| floor <| 608 * scale
+        , Element.height <| Element.px <| floor <| scale * 52
         ]
     <|
         [ content

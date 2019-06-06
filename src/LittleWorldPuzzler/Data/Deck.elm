@@ -1,10 +1,10 @@
 module LittleWorldPuzzler.Data.Deck exposing
     ( Deck
     , Selected(..)
-    , decoder
-    , encode
     , first
     , fromList
+    , generator
+    , json
     , playFirst
     , playSecond
     , played
@@ -13,8 +13,7 @@ module LittleWorldPuzzler.Data.Deck exposing
     , shuffle
     )
 
-import Json.Decode as D exposing (Decoder)
-import Json.Encode as E exposing (Value)
+import Jsonstore exposing (Json)
 import List.Zipper as Zipper exposing (Zipper(..))
 import LittleWorldPuzzler.Data.CellType as CellType exposing (CellType(..))
 import Random exposing (Generator)
@@ -28,6 +27,23 @@ type Selected
 
 type alias Deck =
     Zipper CellType
+
+
+generator : Generator Deck
+generator =
+    [ Wood
+    , Wood
+    , Wood
+    , Wood
+    , Water
+    , Water
+    , Water
+    , Water
+    , Stone
+    , Fire
+    ]
+        |> fromList
+        |> shuffle
 
 
 fromList : List CellType -> Deck
@@ -57,29 +73,41 @@ second =
         >> List.head
 
 
-playFirst : Deck -> Generator Deck
-playFirst deck =
+{-| Move the focus to the first element of the list.
+-}
+moveTofirst : Zipper a -> Zipper a
+moveTofirst ((Zipper ls x rs) as zipper) =
+    case List.reverse ls of
+        [] ->
+            zipper
+
+        y :: ys ->
+            Zipper [] y (ys ++ [ x ] ++ rs)
+
+
+playFirst : { shuffle : Bool } -> Deck -> Generator Deck
+playFirst options deck =
     case deck |> Zipper.next of
         Just newDeck ->
             Random.constant newDeck
 
         Nothing ->
-            deck |> shuffle
+            if options.shuffle then
+                deck |> shuffle
+
+            else
+                generator
 
 
 playSecond : Deck -> Deck
 playSecond deck =
-    let
-        a =
-            deck |> first
-    in
-    case deck |> second of
-        Just b ->
+    case deck |> Zipper.after of
+        b :: tail ->
             deck
-                |> Zipper.mapBefore ((::) b)
-                |> Zipper.mapAfter (List.tail >> Maybe.withDefault [])
+                |> Zipper.mapBefore (\list -> [ b ] |> List.append list)
+                |> Zipper.mapAfter (always tail)
 
-        Nothing ->
+        [] ->
             deck
 
 
@@ -92,39 +120,19 @@ shuffle =
 
 
 {------------------------
-   Decoder
+   Json
 ------------------------}
 
 
-decoder : Decoder Deck
-decoder =
-    D.map3
+json : Json Deck
+json =
+    Jsonstore.object
         (\remainingD firstD playedD ->
             Zipper.singleton firstD
                 |> Zipper.mapBefore (always playedD)
                 |> Zipper.mapAfter (always remainingD)
         )
-        ((D.map (Maybe.withDefault []) << D.maybe << D.field "remaining") <|
-            D.list <|
-                CellType.decoder
-        )
-        (D.field "first" <| CellType.decoder)
-        ((D.map (Maybe.withDefault []) << D.maybe << D.field "played") <|
-            D.list <|
-                CellType.decoder
-        )
-
-
-
-{------------------------
-   Encoder
-------------------------}
-
-
-encode : Deck -> Value
-encode deck =
-    E.object
-        [ ( "remaining", E.list CellType.encode <| remaining deck )
-        , ( "first", CellType.encode <| first deck )
-        , ( "played", E.list CellType.encode <| played deck )
-        ]
+        |> Jsonstore.withList "remaining" CellType.json remaining
+        |> Jsonstore.with "first" CellType.json first
+        |> Jsonstore.withList "played" CellType.json played
+        |> Jsonstore.toJson

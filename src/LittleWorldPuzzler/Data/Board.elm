@@ -1,16 +1,17 @@
 module LittleWorldPuzzler.Data.Board exposing
     ( Board
     , columns
-    , decoder
-    , encode
+    , fromList
+    , jsonTuple
     , place
     , rows
+    , toList
+    , values
     )
 
 import Grid.Bordered as Grid exposing (Grid)
 import Grid.Position exposing (Position)
-import Json.Decode as D exposing (Decoder)
-import Json.Encode as E exposing (Value)
+import Jsonstore exposing (Json)
 import LittleWorldPuzzler.Data.CellType as CellType exposing (CellType(..))
 
 
@@ -36,49 +37,32 @@ place position cellType =
 
 
 {------------------------
-   Decoder
+   Json
 ------------------------}
 
 
-tupleDecoder : Decoder ( Position, CellType )
-tupleDecoder =
-    D.map3
-        (\x y value ->
-            ( ( x, y ), value )
-        )
-        (D.field "x" D.int)
-        (D.field "y" D.int)
-        (D.field "value" CellType.decoder)
+jsonTuple : Json ( Position, CellType )
+jsonTuple =
+    Jsonstore.object (\x y value -> ( ( x, y ), value ))
+        |> Jsonstore.with "x" Jsonstore.int (\( ( x, _ ), _ ) -> x)
+        |> Jsonstore.with "y" Jsonstore.int (\( ( _, y ), _ ) -> y)
+        |> Jsonstore.with "value" CellType.json (\( _, value ) -> value)
+        |> Jsonstore.toJson
 
 
-decoder : Decoder Board
-decoder =
-    D.map
-        (Grid.fromList
-            { rows = rows
-            , columns = columns
-            }
-        )
-        (D.list tupleDecoder)
+values : Board -> List CellType
+values =
+    Grid.values
 
 
-
-{------------------------
-   Encoder
-------------------------}
-
-
-tupleEncoder : ( Position, CellType ) -> Value
-tupleEncoder ( ( x, y ), cellType ) =
-    E.object
-        [ ( "x", E.int x )
-        , ( "y", E.int y )
-        , ( "value", CellType.encode cellType )
-        ]
-
-
-encode : Board -> Value
-encode =
+toList : Board -> List ( Position, CellType )
+toList =
     Grid.toList
-        >> E.list
-            tupleEncoder
+
+
+fromList : List ( Position, CellType ) -> Board
+fromList =
+    Grid.fromList
+        { rows = rows
+        , columns = columns
+        }

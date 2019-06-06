@@ -160,7 +160,7 @@ viewFinished { scale, status, highscore, requestedReplayMsg, error } { board, de
         )
     <|
         [ BoardView.view scale Nothing board
-        , DeckView.view scale Nothing Nothing deck
+        , DeckView.view scale { sort = False } Nothing Nothing deck
         ]
 
 
@@ -195,12 +195,48 @@ viewReplay scale { board, deck } =
         )
     <|
         [ BoardView.view scale Nothing board
-        , DeckView.view scale Nothing Nothing deck
+        , DeckView.view scale { sort = False } Nothing Nothing deck
         ]
 
 
-viewHome : Float -> { normalModeSelectedMsg : msg, trainingModeSelectedMsg : msg } -> Game -> Element msg
-viewHome scale { normalModeSelectedMsg, trainingModeSelectedMsg } { board, deck } =
+viewMode : Float -> msg -> { title : String, desc : String } -> Element msg
+viewMode scale msg { title, desc } =
+    Button.view
+        [ Element.padding <| floor <| 10 * scale
+        , Border.rounded (floor <| 10 * scale)
+        , Font.size <| floor <| 36 * scale
+        , Font.family
+            [ Font.sansSerif ]
+        , Element.centerX
+        , Font.color <| Element.rgb255 0 0 0
+        ]
+    <|
+        { onPress = Just msg
+        , label =
+            Element.column
+                [ Element.centerX
+                , Border.rounded <| floor <| scale * 10
+                , Element.padding <| floor <| scale * 10
+                , Element.spacing <| floor <| scale * 10
+                , Element.width <| Element.px <| floor <| scale * 400
+                ]
+            <|
+                [ Element.el [ Font.size <| floor <| scale * 40, Element.centerX ] <|
+                    Element.text title
+                , Element.paragraph
+                    [ Font.size <| floor <| scale * 20
+                    , Element.width <| Element.fill
+                    ]
+                  <|
+                    [ Element.text
+                        desc
+                    ]
+                ]
+        }
+
+
+viewHome : Float -> { normalModeSelectedMsg : msg, trainingModeSelectedMsg : msg, challengeModeSelectedMsg : msg } -> Game -> Element msg
+viewHome scale { normalModeSelectedMsg, trainingModeSelectedMsg, challengeModeSelectedMsg } { board, deck } =
     Element.column
         ([ Element.spacing (floor <| 5 * scale)
          , Background.color <| Element.rgb255 242 242 242
@@ -212,65 +248,55 @@ viewHome scale { normalModeSelectedMsg, trainingModeSelectedMsg } { board, deck 
                         viewShade scale
                             [ Background.color <| Element.rgba255 0 0 0 0.7
                             ]
-                            [ Element.column
-                                [ Font.size <| floor <| scale * 100
-                                , Element.centerX
-                                , Font.color <| Element.rgb255 255 255 255
-                                , Font.center
+                            [ Element.row []
+                                [ Element.el
+                                    [ Font.size <| floor <| scale * 150
+                                    , Font.family
+                                        [ Font.typeface "Noto Emoji" ]
+                                    ]
+                                  <|
+                                    Element.text "🌍"
+                                , Element.column
+                                    [ Font.size <| floor <| scale * 80
+                                    , Element.centerX
+                                    , Font.color <| Element.rgb255 255 255 255
+                                    , Font.center
+                                    ]
+                                  <|
+                                    [ Element.text "Little"
+                                    , Element.text "World"
+                                    , Element.text "Puzzler"
+                                    ]
                                 ]
-                              <|
-                                [ Element.text "Little"
-                                , Element.text "World"
-                                , Element.text "Puzzler"
-                                ]
-                            , Button.view
-                                [ Element.padding <| floor <| 7 * scale
-                                , Border.rounded (floor <| 10 * scale)
-                                , Element.padding 10
-                                , Font.size <| floor <| 36 * scale
-                                , Font.family
-                                    [ Font.sansSerif ]
-                                , Element.centerX
-                                , Font.color <| Element.rgb255 0 0 0
-                                ]
-                              <|
-                                { onPress = Just normalModeSelectedMsg
-                                , label =
-                                    Element.text "Play"
+                            , viewMode scale
+                                normalModeSelectedMsg
+                                { title = "Normal"
+                                , desc = "Random cards, one life. If you loose you can blame RNG."
                                 }
-                            , Button.view
-                                [ Element.padding <| floor <| 7 * scale
-                                , Border.rounded (floor <| 10 * scale)
-                                , Element.padding 10
-                                , Font.size <| floor <| 36 * scale
-                                , Font.family
-                                    [ Font.sansSerif ]
-                                , Element.centerX
-                                , Font.color <| Element.rgb255 0 0 0
-                                ]
-                              <|
-                                { onPress = Just trainingModeSelectedMsg
-                                , label =
-                                    Element.text "Training"
+                            , viewMode scale
+                                challengeModeSelectedMsg
+                                { title = "Monthly Challenge"
+                                , desc = "No randomness. Fixed card order. Comes with an undo button."
                                 }
                             ]
                )
         )
     <|
         [ BoardView.view scale Nothing board
-        , DeckView.view scale Nothing Nothing deck
+        , DeckView.view scale { sort = False } Nothing Nothing deck
         ]
 
 
-view : { scale : Float, selected : Maybe Selected } -> { positionSelectedMsg : Position -> msg, selectedMsg : Selected -> msg } -> Game -> Element msg
-view { scale, selected } { positionSelectedMsg, selectedMsg } { board, deck } =
+view : { scale : Float, selected : Maybe Selected, sort : Bool } -> { positionSelectedMsg : Position -> msg, selectedMsg : Selected -> msg } -> Game -> Element msg
+view { scale, selected, sort } { positionSelectedMsg, selectedMsg } { board, deck } =
     Element.column
         [ Element.spacing (floor <| 5 * scale)
         , Background.color <| Element.rgb255 242 242 242
         , Element.padding (floor <| 20 * scale)
         , Border.rounded (floor <| 10 * scale)
+        , Element.width <| Element.fill
         ]
     <|
         [ BoardView.view scale (Just positionSelectedMsg) board
-        , DeckView.view scale (Just selectedMsg) selected deck
+        , DeckView.view scale { sort = sort } (Just selectedMsg) selected deck
         ]

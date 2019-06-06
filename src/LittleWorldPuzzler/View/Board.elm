@@ -84,7 +84,12 @@ viewCell scale position maybeMsg maybeCellType =
 
 view : Float -> Maybe (Position -> msg) -> Grid CellType -> Element msg
 view scale maybePositionMsg grid =
-    Element.column [ Element.spaceEvenly, Element.centerX ] <|
+    Element.column
+        [ Element.spaceEvenly
+        , Element.centerX
+        , Element.height <| Element.px <| floor <| scale * 568
+        ]
+    <|
         (grid
             |> Grid.foldr
                 (\( x, y ) maybeCellType ( workingRow, list ) ->

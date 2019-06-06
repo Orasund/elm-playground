@@ -1,13 +1,13 @@
-module LittleWorldPuzzler.Data.Game exposing (EndCondition(..), Game, decoder, encode, generator, step)
+module LittleWorldPuzzler.Data.Game exposing (EndCondition(..), Game, generator, json, step)
 
 import Grid.Bordered as Grid
-import Json.Decode as D exposing (Decoder)
-import Json.Encode as E exposing (Value)
+import Jsonstore exposing (Json)
 import LittleWorldPuzzler.Automata as Automata
 import LittleWorldPuzzler.Data.Board as Board exposing (Board, columns, rows)
-import LittleWorldPuzzler.Data.CellType exposing (CellType(..))
+import LittleWorldPuzzler.Data.CellType as CellType exposing (CellType(..))
 import LittleWorldPuzzler.Data.Deck as Deck exposing (Deck, Selected(..))
 import Random exposing (Generator)
+import Set exposing (Set)
 
 
 type EndCondition
@@ -22,31 +22,33 @@ type alias Game =
     }
 
 
-step : Game -> Game
-step ({ board, score } as game) =
-    { game
-        | board =
-            board
-                |> Grid.map (Automata.step (board |> Grid.toDict))
+occuringTypes : Board -> Set String
+occuringTypes board =
+    board
+        |> Board.values
+        |> List.map CellType.toString
+        |> Set.fromList
+
+
+step : Set String -> Game -> ( Game, Set String )
+step set ({ score } as game) =
+    let
+        board : Board
+        board =
+            game.board
+                |> Grid.map (Automata.step (game.board |> Grid.toDict))
+    in
+    ( { game
+        | board = board
         , score = score + 1
-    }
+      }
+    , set |> Set.union (occuringTypes board)
+    )
 
 
 generator : Generator Game
 generator =
-    [ Wood
-    , Wood
-    , Wood
-    , Wood
-    , Water
-    , Water
-    , Water
-    , Water
-    , Stone
-    , Fire
-    ]
-        |> Deck.fromList
-        |> Deck.shuffle
+    Deck.generator
         |> Random.map
             (\deck ->
                 { board =
@@ -59,43 +61,14 @@ generator =
 
 
 {------------------------
-   Decoder
+   Json
 ------------------------}
 
 
-decoder : Decoder Game
-decoder =
-    D.map3
-        (\board deck score ->
-            { board = board
-            , deck = deck
-            , score = score
-            }
-        )
-        ((D.map
-            (Maybe.withDefault <|
-                Grid.empty { columns = columns, rows = rows }
-            )
-            << D.maybe
-            << D.field "board"
-         )
-         <|
-            Board.decoder
-        )
-        (D.field "deck" Deck.decoder)
-        (D.field "score" D.int)
-
-
-
-{------------------------
-   Encoder
-------------------------}
-
-
-encode : Game -> Value
-encode { board, deck, score } =
-    E.object
-        [ ( "board", Board.encode board )
-        , ( "deck", Deck.encode deck )
-        , ( "score", E.int score )
-        ]
+json : Json Game
+json =
+    Jsonstore.object (\board -> Game (board |> Board.fromList))
+        |> Jsonstore.withList "board" Board.jsonTuple (.board >> Board.toList)
+        |> Jsonstore.with "deck" Deck.json .deck
+        |> Jsonstore.with "score" Jsonstore.int .score
+        |> Jsonstore.toJson

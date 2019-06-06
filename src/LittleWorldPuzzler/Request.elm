@@ -7,8 +7,10 @@ module LittleWorldPuzzler.Request exposing
 import Http exposing (Error(..))
 import Json.Decode as D
 import Json.Encode exposing (Value)
+import Jsonstore
 import LittleWorldPuzzler.Data exposing (devMode, gameVersion)
 import LittleWorldPuzzler.Data.Entry as Entry exposing (Entry)
+import Task
 
 
 type Response
@@ -27,22 +29,27 @@ url =
         "https://www.jsonstore.io/af03b4dff8d40b568fb0a32885b718ba9de323f3e68b395cc0980fa3e73e0e88"
 
 
-getHighscore : Int -> Cmd Response
-getHighscore score =
+getHighscore : { score : Int, challenge : Bool } -> Cmd Response
+getHighscore { score, challenge } =
     let
-        response : Result Error Entry -> Response
+        response : Result Error (Maybe Entry) -> Response
         response result =
             case result of
-                Ok entry ->
-                    if
-                        entry.version
-                            > gameVersion
-                            || (entry.version == gameVersion && entry.score > score)
-                    then
-                        GotHighscore entry
+                Ok maybeEntry ->
+                    case maybeEntry of
+                        Just entry ->
+                            if
+                                entry.version
+                                    > gameVersion
+                                    || (entry.version == gameVersion && entry.score > score)
+                            then
+                                GotHighscore entry
 
-                    else
-                        AchievedNewHighscore
+                            else
+                                AchievedNewHighscore
+
+                        Nothing ->
+                            AchievedNewHighscore
 
                 Err error ->
                     case error of
@@ -53,18 +60,27 @@ getHighscore score =
                         _ ->
                             error |> GotError
     in
-    Http.get
-        { url = url ++ "/highscore"
-        , expect = Http.expectJson response (D.field "result" <| Entry.decoder)
-        }
+    Task.attempt
+        response
+        (Jsonstore.get
+            (url
+                ++ (if challenge then
+                        "/challenge"
+
+                    else
+                        "/highscore"
+                   )
+            )
+            (Jsonstore.decode <| Entry.json)
+        )
 
 
-setHighscore : Entry -> Cmd Response
-setHighscore entry =
+setHighscore : { entry : Entry, challenge : Bool } -> Cmd Response
+setHighscore { entry, challenge } =
     let
         value : Value
         value =
-            Entry.encode entry
+            (Entry.json |> Jsonstore.encode) entry
 
         response : Result Error () -> Response
         response result =
@@ -75,8 +91,16 @@ setHighscore entry =
                 Err error ->
                     error |> GotError
     in
-    Http.post
-        { url = url ++ "/highscore"
-        , body = Http.jsonBody value
-        , expect = Http.expectWhatever response
-        }
+    Task.attempt
+        response
+        (Jsonstore.insert
+            (url
+                ++ (if challenge then
+                        "/challenge"
+
+                    else
+                        "/highscore"
+                   )
+            )
+            value
+        )

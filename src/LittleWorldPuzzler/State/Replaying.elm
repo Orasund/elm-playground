@@ -1,5 +1,6 @@
 module LittleWorldPuzzler.State.Replaying exposing (Model, Msg, update, view)
 
+import Action
 import Element exposing (Element)
 import Element.Border as Border
 import Element.Font as Font
@@ -7,7 +8,6 @@ import Framework.Modifier exposing (Modifier(..))
 import LittleWorldPuzzler.Data.CellType exposing (CellType(..))
 import LittleWorldPuzzler.Data.Deck exposing (Selected(..))
 import LittleWorldPuzzler.Data.Game exposing (Game)
-import LittleWorldPuzzler.State as State exposing (Action(..))
 import LittleWorldPuzzler.View.Button as Button
 import LittleWorldPuzzler.View.Game as GameView
 import LittleWorldPuzzler.View.Header as HeaderView
@@ -29,21 +29,25 @@ type Msg
     | Previous
 
 
+type alias Action =
+    Action.Action Model Never Never Never
+
+
 
 ----------------------
 -- Update
 ----------------------
 
 
-update : Msg -> Model -> Action Model Msg Never
+update : Msg -> Model -> Action
 update msg model =
     case msg of
         Next ->
-            Update
+            Action.updating
                 ( model |> UndoList.redo, Cmd.none )
 
         Previous ->
-            Update
+            Action.updating
                 ( model |> UndoList.undo, Cmd.none )
 
 

@@ -1,15 +1,15 @@
 module LittleWorldPuzzler.State.Ready exposing (Model, Msg, init, update, view)
 
+import Action
 import Element exposing (Element)
-import Grid.Position exposing (Position)
-import LittleWorldPuzzler.Data.Board as Board
-import LittleWorldPuzzler.Data.Deck as Deck
 import LittleWorldPuzzler.Data.Game as Game exposing (Game)
-import LittleWorldPuzzler.State exposing (Action(..))
+import LittleWorldPuzzler.State.Playing as PlayingState exposing (Mode(..))
 import LittleWorldPuzzler.View.Game as GameView
 import LittleWorldPuzzler.View.Header as HeaderView
+import LittleWorldPuzzler.View.PageSelector as PageSelectorView
 import Random exposing (Generator, Seed)
-import UndoList exposing (UndoList)
+import Task
+import Time exposing (Month(..))
 
 
 
@@ -30,6 +30,12 @@ type alias Model =
 type Msg
     = NormalModeSelected
     | TrainingModeSelected
+    | ChallengeModeSelected
+    | ObtainedData ( Month, Int )
+
+
+type alias Action =
+    Action.Action Model Msg PlayingState.TransitionData Never
 
 
 
@@ -59,21 +65,83 @@ init seed =
 ----------------------
 
 
-update : Msg -> Model -> Action Model Msg { game : Game, seed : Seed, trainingMode : Bool }
-update msg ( { game }, seed ) =
+monthToInt : Month -> Int
+monthToInt month =
+    case month of
+        Jan ->
+            1
+
+        Feb ->
+            2
+
+        Mar ->
+            3
+
+        Apr ->
+            4
+
+        May ->
+            5
+
+        Jun ->
+            6
+
+        Jul ->
+            7
+
+        Aug ->
+            8
+
+        Sep ->
+            9
+
+        Oct ->
+            10
+
+        Nov ->
+            11
+
+        Dec ->
+            12
+
+
+update : Msg -> Model -> Action
+update msg (( { game }, seed ) as model) =
     case msg of
         NormalModeSelected ->
-            Transition
+            Action.transitioning
                 { game = game
                 , seed = seed
-                , trainingMode = False
+                , mode = Normal
                 }
 
         TrainingModeSelected ->
-            Transition
+            Action.transitioning
                 { game = game
                 , seed = seed
-                , trainingMode = True
+                , mode = Training
+                }
+
+        ChallengeModeSelected ->
+            Action.updating
+                ( model
+                , Task.perform
+                    (\t ->
+                        ObtainedData ( t |> Time.toMonth Time.utc, t |> Time.toYear Time.utc )
+                    )
+                    Time.now
+                )
+
+        ObtainedData ( month, year ) ->
+            let
+                newSeed : Seed
+                newSeed =
+                    Random.initialSeed <| year * 100 + monthToInt month
+            in
+            Action.transitioning
+                { game = Random.step Game.generator newSeed |> Tuple.first
+                , seed = newSeed
+                , mode = Challenge
                 }
 
 
@@ -95,6 +163,8 @@ view scale restartMsg msgMapper ( { game }, _ ) =
             scale
             { normalModeSelectedMsg = msgMapper <| NormalModeSelected
             , trainingModeSelectedMsg = msgMapper <| TrainingModeSelected
+            , challengeModeSelectedMsg = msgMapper <| ChallengeModeSelected
             }
             game
+        , PageSelectorView.viewInactive scale
         ]

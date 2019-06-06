@@ -1,11 +1,9 @@
-module LittleWorldPuzzler.Data.Entry exposing (Entry, decoder, encode, new)
+module LittleWorldPuzzler.Data.Entry exposing (Entry, json, new)
 
-import Json.Decode as D exposing (Decoder)
-import Json.Encode as E exposing (Value)
-import LittleWorldPuzzler.Data exposing (gameVersion)
+import Jsonstore exposing (Json)
+import LittleWorldPuzzler.Data as Data exposing (gameVersion)
 import LittleWorldPuzzler.Data.Game as Game exposing (EndCondition(..), Game)
 import UndoList exposing (UndoList)
-import UndoList.Encode as UndoListE
 
 
 type alias Entry =
@@ -25,42 +23,23 @@ new history =
 
 
 {------------------------
-   Decoder
+   Json
 ------------------------}
 
 
-undoListDecoder : Decoder (UndoList Game)
-undoListDecoder =
-    D.map3 UndoList
-        ((D.map (Maybe.withDefault []) << D.maybe << D.field "past") <| D.list Game.decoder)
-        (D.field "present" Game.decoder)
-        ((D.map (Maybe.withDefault []) << D.maybe << D.field "future") <| D.list Game.decoder)
+jsonUndoList : Json (UndoList Game)
+jsonUndoList =
+    Jsonstore.object UndoList
+        |> Jsonstore.withList "past" Game.json (.past >> List.take Data.maxHistorySize)
+        |> Jsonstore.with "present" Game.json .present
+        |> Jsonstore.withList "future" Game.json .future
+        |> Jsonstore.toJson
 
 
-decoder : Decoder Entry
-decoder =
-    D.map3
-        (\history version score ->
-            { history = history
-            , version = version
-            , score = score
-            }
-        )
-        (D.field "history" <| undoListDecoder)
-        (D.field "version" <| D.int)
-        (D.field "score" <| D.int)
-
-
-
-{------------------------
-   Encoder
-------------------------}
-
-
-encode : Entry -> Value
-encode { history, version, score } =
-    E.object
-        [ ( "history", UndoListE.undolist <| UndoList.map Game.encode <| history )
-        , ( "version", E.int version )
-        , ( "score", E.int score )
-        ]
+json : Json Entry
+json =
+    Jsonstore.object Entry
+        |> Jsonstore.with "history" jsonUndoList .history
+        |> Jsonstore.with "version" Jsonstore.int .version
+        |> Jsonstore.with "score" Jsonstore.int .score
+        |> Jsonstore.toJson

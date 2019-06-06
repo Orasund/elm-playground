@@ -1,14 +1,19 @@
-module LittleWorldPuzzler.State.Finished exposing (Model, Msg(..), init, update, view)
+module LittleWorldPuzzler.State.Finished exposing (Model, Msg(..), TransitionData, init, update, view)
 
+import Action
 import Element exposing (Element)
 import Http exposing (Error(..))
 import LittleWorldPuzzler.Data.Entry as Entry exposing (Entry)
 import LittleWorldPuzzler.Data.Game as Game exposing (EndCondition(..), Game)
 import LittleWorldPuzzler.Request as Request exposing (Response(..))
-import LittleWorldPuzzler.State as State exposing (Action(..))
 import LittleWorldPuzzler.View.Game as GameView
 import LittleWorldPuzzler.View.Header as HeaderView
+import LittleWorldPuzzler.View.PageSelector as PageSelectorView
 import UndoList exposing (UndoList)
+
+
+type alias TransitionData =
+    { game : Game, history : UndoList Game, challenge : Bool }
 
 
 
@@ -17,14 +22,15 @@ import UndoList exposing (UndoList)
 ----------------------
 
 
-init : { game : Game, history : UndoList Game } -> ( Model, Cmd Msg )
-init { game, history } =
+init : TransitionData -> ( Model, Cmd Msg )
+init { game, history, challenge } =
     ( End
         { game = game
         , history = history
         , error = Nothing
+        , challenge = challenge
         }
-    , Request.getHighscore game.score
+    , Request.getHighscore { score = game.score, challenge = challenge }
         |> Cmd.map RequestedHighscore
     )
 
@@ -43,6 +49,7 @@ type alias Basic =
 type alias EndState basic =
     { basic
         | history : UndoList Game
+        , challenge : Bool
         , error : Maybe Error
     }
 
@@ -64,18 +71,22 @@ type Msg
     | RequestedHighscore Response
 
 
+type alias Action =
+    Action.Action Model Msg (UndoList Game) Never
+
+
 
 ----------------------
 -- Update
 ----------------------
 
 
-update : Msg -> Model -> Action Model Msg (UndoList Game)
+update : Msg -> Model -> Action
 update msg model =
     let
-        defaultCase : Action Model Msg (UndoList Game)
+        defaultCase : Action
         defaultCase =
-            Update
+            Action.updating
                 ( model, Cmd.none )
     in
     case msg of
@@ -84,7 +95,7 @@ update msg model =
                 Highscore { highscore } ->
                     case highscore.history |> UndoList.toList of
                         present :: future ->
-                            Transition <|
+                            Action.transitioning <|
                                 UndoList.fromList present future
 
                         _ ->
@@ -95,10 +106,10 @@ update msg model =
 
         RequestedHighscore response ->
             case model of
-                End ({ history, game } as endState) ->
+                End ({ history, game, challenge } as endState) ->
                     case response of
                         GotHighscore entry ->
-                            Update
+                            Action.updating
                                 ( Highscore
                                     { game = game
                                     , highscore = entry
@@ -113,18 +124,18 @@ update msg model =
                                 newEntry =
                                     Entry.new history
                             in
-                            Update
+                            Action.updating
                                 ( Highscore
                                     { game = game
                                     , highscore = newEntry
                                     , newHighscore = True
                                     }
-                                , Request.setHighscore newEntry
+                                , Request.setHighscore { entry = newEntry, challenge = challenge }
                                     |> Cmd.map RequestedHighscore
                                 )
 
                         GotError error ->
-                            Update
+                            Action.updating
                                 ( End
                                     { endState | error = Just error }
                                 , Cmd.none
@@ -180,6 +191,7 @@ view scale restartMsg msgMapper model =
                                 )
                     }
                     game
+                , PageSelectorView.viewInactive scale
                 ]
 
             Highscore { game, highscore, newHighscore } ->
@@ -197,5 +209,6 @@ view scale restartMsg msgMapper model =
                     , error = Nothing
                     }
                     game
+                , PageSelectorView.viewInactive scale
                 ]
         )

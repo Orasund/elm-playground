@@ -1,6 +1,6 @@
-module LittleWorldPuzzler.View.Deck exposing (view)
+module LittleWorldPuzzler.View.Deck exposing (view, viewOne)
 
-import Element exposing (Element)
+import Element exposing (Attribute, Element)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
@@ -65,10 +65,15 @@ viewSelected scale content =
         content
 
 
-viewCardList : Float -> List CellType -> Element msg
-viewCardList scale =
+viewCardList : Float -> { sort : Bool } -> List CellType -> Element msg
+viewCardList scale { sort } =
     List.map CellType.toString
-        >> List.sort
+        >> (if sort then
+                List.sort
+
+            else
+                identity
+           )
         >> List.map Element.text
         >> Element.wrappedRow
             [ Font.size <| floor <| 25 * scale
@@ -97,15 +102,43 @@ viewContent scale cellType =
         ]
 
 
-view : Float -> Maybe (Selected -> msg) -> Maybe Selected -> Deck -> Element msg
-view scale maybeSelectedMsg maybeSelected deck =
-    Element.row
-        [ Element.centerX
-        , Element.spaceEvenly
-        , Element.height <| Element.px <| floor <| 200 * scale
-        , Element.width <| Element.fill
+viewAttributes : Float -> List (Attribute msg)
+viewAttributes scale =
+    [ Element.centerX
+    , Element.spaceEvenly
+    , Element.height <| Element.px <| floor <| 200 * scale
+    , Element.width <| Element.fill
+    ]
+
+
+viewOne : Float -> Maybe CellType -> Element msg
+viewOne scale maybeCellType =
+    Element.el
+        [ Element.height <| Element.px <| floor <| 200 * scale
+        , Element.centerX
         ]
     <|
+        case maybeCellType of
+            Just cellType ->
+                viewSelected scale <|
+                    viewContent scale cellType
+
+            Nothing ->
+                Element.el
+                    [ Font.size <| floor <| 40 * scale
+                    , Font.family
+                        [ Font.sansSerif ]
+                    , Font.center
+                    , Element.centerX
+                    , Element.centerY
+                    ]
+                <|
+                    Element.text "please select a card"
+
+
+view : Float -> { sort : Bool } -> Maybe (Selected -> msg) -> Maybe Selected -> Deck -> Element msg
+view scale sort maybeSelectedMsg maybeSelected deck =
+    Element.row (viewAttributes scale) <|
         [ viewInactiveCard scale <|
             Element.column
                 [ Element.spacing <| floor <| 10 * scale
@@ -118,6 +151,7 @@ view scale maybeSelectedMsg maybeSelected deck =
                   <|
                     Element.text "📤"
                 , viewCardList scale
+                    sort
                     (deck
                         |> Deck.remaining
                         |> List.tail
@@ -154,6 +188,6 @@ view scale maybeSelectedMsg maybeSelected deck =
                 ]
                 [ Element.el [ Font.size <| floor <| 30 * scale, Element.centerX ] <|
                     Element.text "🗑"
-                , viewCardList scale (deck |> Deck.played)
+                , viewCardList scale sort (deck |> Deck.played)
                 ]
         ]

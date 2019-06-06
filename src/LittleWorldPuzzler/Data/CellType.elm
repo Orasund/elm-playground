@@ -1,7 +1,6 @@
 module LittleWorldPuzzler.Data.CellType exposing
     ( CellType(..)
-    , decoder
-    , encode
+    , json
     , list
     , toInt
     , toString
@@ -9,6 +8,7 @@ module LittleWorldPuzzler.Data.CellType exposing
 
 import Json.Decode as D exposing (Decoder)
 import Json.Encode as E exposing (Value)
+import Jsonstore exposing (Json)
 
 
 type CellType
@@ -19,12 +19,20 @@ type CellType
     | Volcano
     | Fog
     | Desert
-    | Sea
+    | Glacier
+    | Ice
+    | Snow
+    | Evergreen
+
+
+old_List : List CellType
+old_List =
+    [ Desert, Fire, Glacier, Volcano, Stone, Ice, Fog, Water, Wood ]
 
 
 list : List CellType
 list =
-    [ Sea, Desert, Fog, Volcano, Stone, Fire, Water, Wood ]
+    [ Snow, Desert, Fire, Glacier, Volcano, Stone, Evergreen, Ice, Fog, Water, Wood ]
 
 
 fromInt : Int -> CellType
@@ -52,7 +60,16 @@ fromInt n =
             Desert
 
         8 ->
-            Sea
+            Glacier
+
+        9 ->
+            Ice
+
+        10 ->
+            Snow
+
+        11 ->
+            Evergreen
 
         _ ->
             Wood
@@ -82,8 +99,17 @@ toInt cellType =
         Desert ->
             7
 
-        Sea ->
+        Glacier ->
             8
+
+        Ice ->
+            9
+
+        Snow ->
+            10
+
+        Evergreen ->
+            11
 
 
 toString : CellType -> String
@@ -94,7 +120,7 @@ toString cellType =
                 '🌳'
 
             Water ->
-                '💧'
+                '🌊'
 
             Fire ->
                 '🔥'
@@ -111,27 +137,31 @@ toString cellType =
             Desert ->
                 '🏜'
 
-            Sea ->
-                '🌊'
+            Glacier ->
+                '🏔'
+
+            Ice ->
+                '❄'
+
+            Snow ->
+                '⛄'
+
+            Evergreen ->
+                '🌲'
 
 
 
+{- Bug ->
+   '🐞'
+-}
 {------------------------
-   Decoder
+   Json
 ------------------------}
 
 
-decoder : Decoder CellType
-decoder =
-    D.int |> D.map fromInt
-
-
-
-{------------------------
-   Encoder
-------------------------}
-
-
-encode : CellType -> Value
-encode =
-    toInt >> E.int
+json : Json CellType
+json =
+    Jsonstore.int
+        |> Jsonstore.map
+            fromInt
+            toInt

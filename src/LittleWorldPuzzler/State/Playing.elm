@@ -1,5 +1,6 @@
-module LittleWorldPuzzler.State.Playing exposing (Model, Msg, init, update, view)
+module LittleWorldPuzzler.State.Playing exposing (Mode(..), Model, Msg, TransitionData, init, update, view)
 
+import Action
 import Element exposing (Element)
 import Framework.Modifier exposing (Modifier(..))
 import Grid.Bordered as Grid
@@ -11,11 +12,14 @@ import LittleWorldPuzzler.Data.Deck as Deck exposing (Selected(..))
 import LittleWorldPuzzler.Data.Entry as Entry exposing (Entry)
 import LittleWorldPuzzler.Data.Game as Game exposing (EndCondition(..), Game)
 import LittleWorldPuzzler.Request as Request exposing (Response(..))
-import LittleWorldPuzzler.State as State exposing (Action(..))
+import LittleWorldPuzzler.State.Finished as FinishedState
+import LittleWorldPuzzler.View.Collection as CollectionView
 import LittleWorldPuzzler.View.Game as GameView
 import LittleWorldPuzzler.View.Header as HeaderView
+import LittleWorldPuzzler.View.PageSelector as PageSelectorView
 import Process
 import Random exposing (Generator, Seed)
+import Set exposing (Set)
 import Task
 import UndoList exposing (UndoList)
 
@@ -26,11 +30,21 @@ import UndoList exposing (UndoList)
 ----------------------
 
 
+type Mode
+    = Normal
+    | Training
+    | Challenge
+
+
 type alias State =
     { game : Game
     , selected : Maybe Selected
     , history : UndoList Game
-    , trainingMode : Bool
+    , mode : Mode
+    , collection : Set String
+    , viewCollection : Bool
+    , viewedCard : Maybe CellType
+    , initialSeed : Seed
     }
 
 
@@ -44,6 +58,16 @@ type Msg
     | CardPlaced
     | Undo
     | Redo
+    | PageChangeRequested
+    | CardSelected CellType
+
+
+type alias TransitionData =
+    { game : Game, seed : Seed, mode : Mode }
+
+
+type alias Action =
+    Action.Action Model Msg FinishedState.TransitionData ()
 
 
 
@@ -52,12 +76,16 @@ type Msg
 ----------------------
 
 
-init : { game : Game, seed : Seed, trainingMode : Bool } -> ( Model, Cmd Msg )
-init { game, seed, trainingMode } =
+init : TransitionData -> ( Model, Cmd Msg )
+init { game, seed, mode } =
     ( ( { game = game
         , selected = Nothing
         , history = UndoList.fresh game
-        , trainingMode = trainingMode
+        , mode = mode
+        , collection = Set.empty
+        , viewCollection = False
+        , viewedCard = Nothing
+        , initialSeed = seed
         }
       , seed
       )
@@ -71,14 +99,14 @@ init { game, seed, trainingMode } =
 ----------------------
 
 
-play : Model -> Action Model Msg { game : Game, history : UndoList Game }
+play : Model -> Action
 play ( { game, history } as state, seed ) =
     let
         seconds : Float
         seconds =
             1000
     in
-    Update
+    Action.updating
         ( ( { state
                 | game = game
                 , selected = Nothing
@@ -90,10 +118,10 @@ play ( { game, history } as state, seed ) =
         )
 
 
-playFirst : Position -> Model -> Action Model Msg { game : Game, history : UndoList Game }
-playFirst position ( { game, history } as state, seed ) =
+playFirst : Position -> Model -> Action
+playFirst position ( { game, history, mode, initialSeed } as state, seed ) =
     Random.step
-        (Deck.playFirst game.deck
+        (Deck.playFirst { shuffle = mode /= Challenge } game.deck
             |> Random.map
                 (\deck ->
                     { state
@@ -108,11 +136,16 @@ playFirst position ( { game, history } as state, seed ) =
                     }
                 )
         )
-        seed
+        (if mode == Challenge then
+            initialSeed
+
+         else
+            seed
+        )
         |> play
 
 
-playSecond : Position -> CellType -> Model -> Action Model Msg { game : Game, history : UndoList Game }
+playSecond : Position -> CellType -> Model -> Action
 playSecond position cellType ( { game } as state, seed ) =
     play
         ( { state
@@ -126,17 +159,17 @@ playSecond position cellType ( { game } as state, seed ) =
         )
 
 
-update : Msg -> Model -> Action Model Msg { game : Game, history : UndoList Game }
-update msg (( { game, history, selected, trainingMode } as state, seed ) as model) =
+update : Msg -> Model -> Action
+update msg (( { game, history, selected, mode, viewCollection, collection } as state, seed ) as model) =
     let
-        defaultCase : Action Model Msg { game : Game, history : UndoList Game }
+        defaultCase : Action
         defaultCase =
-            Update
+            Action.updating
                 ( model, Cmd.none )
     in
     case msg of
         Selected select ->
-            Update
+            Action.updating
                 ( ( { state | selected = Just select }
                   , seed
                   )
@@ -161,25 +194,26 @@ update msg (( { game, history, selected, trainingMode } as state, seed ) as mode
 
         CardPlaced ->
             let
-                newGame : Game
-                newGame =
-                    game |> Game.step
+                ( newGame, newCollection ) =
+                    game |> Game.step collection
 
                 newHistory : UndoList Game
                 newHistory =
                     history |> UndoList.new newGame
             in
-            if (newGame.board |> Grid.emptyPositions |> (==) []) && not trainingMode then
-                Transition
+            if (newGame.board |> Grid.emptyPositions |> (==) []) && mode /= Training then
+                Action.transitioning
                     { game = newGame
                     , history = newHistory
+                    , challenge = mode == Challenge
                     }
 
             else
-                Update
+                Action.updating
                     ( ( { state
                             | game = newGame
                             , history = newHistory
+                            , collection = newCollection
                         }
                       , seed
                       )
@@ -194,7 +228,7 @@ update msg (( { game, history, selected, trainingMode } as state, seed ) as mode
                         |> UndoList.redo
                         |> UndoList.redo
             in
-            Update
+            Action.updating
                 ( ( { state
                         | history = newHistory
                         , game = newHistory |> .present
@@ -212,10 +246,31 @@ update msg (( { game, history, selected, trainingMode } as state, seed ) as mode
                         |> UndoList.undo
                         |> UndoList.undo
             in
-            Update
+            Action.updating
                 ( ( { state
                         | history = newHistory
                         , game = newHistory |> .present
+                    }
+                  , seed
+                  )
+                , Cmd.none
+                )
+
+        PageChangeRequested ->
+            Action.updating
+                ( ( { state
+                        | viewCollection = not viewCollection
+                        , viewedCard = Nothing
+                    }
+                  , seed
+                  )
+                , Cmd.none
+                )
+
+        CardSelected cellType ->
+            Action.updating
+                ( ( { state
+                        | viewedCard = Just cellType
                     }
                   , seed
                   )
@@ -230,28 +285,50 @@ update msg (( { game, history, selected, trainingMode } as state, seed ) as mode
 
 
 view : Float -> msg -> (Msg -> msg) -> Model -> Element msg
-view scale restartMsg msgMapper ( { game, selected, trainingMode }, _ ) =
+view scale restartMsg msgMapper ( { game, selected, mode, viewCollection, collection, viewedCard }, _ ) =
     Element.column
         [ Element.centerY
         , Element.centerX
-        , Element.spacing 5
         ]
-        [ if trainingMode then
-            HeaderView.viewWithUndo scale
-                { restartMsg = restartMsg
-                , previousMsg = msgMapper Undo
-                , nextMsg = msgMapper Redo
-                }
-                game.score
+    <|
+        [ Element.column
+            [ Element.centerY
+            , Element.centerX
+            , Element.spacing 5
+            ]
+            [ if mode == Challenge then
+                HeaderView.viewWithUndo scale
+                    { restartMsg = restartMsg
+                    , previousMsg = msgMapper Undo
+                    , nextMsg = msgMapper Redo
+                    }
+                    game.score
 
-          else
-            HeaderView.view scale restartMsg game.score
-        , GameView.view
-            { scale = scale
-            , selected = selected
-            }
-            { positionSelectedMsg = msgMapper << PositionSelected
-            , selectedMsg = msgMapper << Selected
-            }
-            game
+              else
+                HeaderView.view scale
+                    restartMsg
+                    game.score
+            , if viewCollection then
+                CollectionView.view scale (msgMapper << CardSelected) collection viewedCard
+
+              else
+                GameView.view
+                    { scale = scale
+                    , selected = selected
+                    , sort = mode /= Challenge
+                    }
+                    { positionSelectedMsg = msgMapper << PositionSelected
+                    , selectedMsg = msgMapper << Selected
+                    }
+                    game
+            ]
+        , (if viewCollection then
+            PageSelectorView.viewCollection
+
+           else
+            PageSelectorView.viewGame
+          )
+            scale
+          <|
+            msgMapper PageChangeRequested
         ]
