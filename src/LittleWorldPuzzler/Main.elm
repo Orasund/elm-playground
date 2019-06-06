@@ -114,16 +114,17 @@ update msg model =
                     (\{ scale, portraitMode, seed } ->
                         ReadyState.init seed
                             |> (\( m, c ) ->
-                                    ( Ready
-                                        ( m
-                                        , { scale = scale
-                                          , portraitMode = portraitMode
-                                          }
-                                        )
-                                    , c |> Cmd.map ReadySpecific
+                                    ( ( m
+                                      , { scale = scale
+                                        , portraitMode = portraitMode
+                                        }
+                                      )
+                                    , c
                                     )
                                )
                     )
+                    Ready
+                    ReadySpecific
                 |> Action.apply
 
         ( ReadySpecific readyMsg, Ready ( readyModel, config ) ) ->
@@ -133,11 +134,13 @@ update msg model =
                 |> Action.withTransition
                     (PlayingState.init
                         >> (\( m, c ) ->
-                                ( Playing ( m, config )
-                                , c |> Cmd.map PlayingSpecific
+                                ( ( m, config )
+                                , c
                                 )
                            )
                     )
+                    Playing
+                    PlayingSpecific
                 |> Action.apply
 
         ( PlayingSpecific playingMsg, Playing ( playingModel, config ) ) ->
@@ -147,11 +150,13 @@ update msg model =
                 |> Action.withTransition
                     (FinishedState.init
                         >> (\( m, c ) ->
-                                ( Finished ( m, config )
-                                , c |> Cmd.map FinishedSpecific
+                                ( ( m, config )
+                                , c
                                 )
                            )
                     )
+                    Finished
+                    FinishedSpecific
                 |> Action.withExit (init ())
                 |> Action.apply
 
@@ -163,10 +168,12 @@ update msg model =
                     FinishedSpecific
                 |> Action.withTransition
                     (\m ->
-                        ( Replaying ( m, config )
+                        ( ( m, config )
                         , Cmd.none
                         )
                     )
+                    Replaying
+                    never
                 |> Action.apply
 
         ( ReplayingSpecific replayingMsg, Replaying ( replayingModel, config ) ) ->

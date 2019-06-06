@@ -7,7 +7,7 @@
     "elm-version": "0.19.0",
     "dependencies": {
         "direct": {
-            "Orasund/elm-action": "1.0.0",
+            "Orasund/elm-action": "2.0.0",
             "Orasund/elm-cellautomata": "1.0.1",
             "Orasund/pixelengine": "5.0.0",
             "avh4/elm-color": "1.0.0",
