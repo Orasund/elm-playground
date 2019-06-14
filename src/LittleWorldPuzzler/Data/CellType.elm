@@ -6,8 +6,7 @@ module LittleWorldPuzzler.Data.CellType exposing
     , toString
     )
 
-import Json.Decode as D exposing (Decoder)
-import Json.Encode as E exposing (Value)
+import Json.Encode exposing (Value)
 import Jsonstore exposing (Json)
 
 

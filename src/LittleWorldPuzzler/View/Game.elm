@@ -236,7 +236,7 @@ viewMode scale msg { title, desc } =
 
 
 viewHome : Float -> { normalModeSelectedMsg : msg, trainingModeSelectedMsg : msg, challengeModeSelectedMsg : msg } -> Game -> Element msg
-viewHome scale { normalModeSelectedMsg, trainingModeSelectedMsg, challengeModeSelectedMsg } { board, deck } =
+viewHome scale { normalModeSelectedMsg, challengeModeSelectedMsg } { board, deck } =
     Element.column
         ([ Element.spacing (floor <| 5 * scale)
          , Background.color <| Element.rgb255 242 242 242

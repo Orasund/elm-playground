@@ -1,6 +1,6 @@
 module Main exposing (main)
 
-import Action exposing (Action)
+import Action
 import Browser
 import Browser.Dom as Dom
 import Browser.Events exposing (onResize)

@@ -1,11 +1,8 @@
 module AsteroidMiner.Data.Comet exposing (Comet, new, position, update)
 
 import AsteroidMiner.Data exposing (framesPerComet, size)
-import AsteroidMiner.Tileset as Tileset exposing (tileset)
 import Grid.Position as Position exposing (Coord, Position)
 import Location exposing (Angle(..))
-import PixelEngine.Image as Image exposing (Image)
-import Random exposing (Generator)
 
 
 type alias Comet =
@@ -39,11 +36,10 @@ asteroidCoord cyclesUntilComet =
             Location.fromAngle
                 (Angle <|
                     (*) (2 * pi) <|
-                        Debug.log "angle" <|
-                            (maximalCycles
-                                * (toFloat <| (framesPerComet - cyclesUntilComet) ^ 2)
-                            )
-                                / (toFloat <| framesPerComet ^ 2)
+                        (maximalCycles
+                            * (toFloat <| (framesPerComet - cyclesUntilComet) ^ 2)
+                        )
+                            / (toFloat <| framesPerComet ^ 2)
                 )
                 |> Location.scaleBy scale
     in
@@ -65,6 +61,10 @@ position { life } =
 
 update : Comet -> Comet
 update ({ life } as comet) =
-    { comet
-        | life = life - 1
-    }
+    if life > 0 then
+        { comet
+            | life = life - 1
+        }
+
+    else
+        comet

@@ -7,9 +7,10 @@
     "elm-version": "0.19.0",
     "dependencies": {
         "direct": {
-            "Orasund/elm-action": "2.0.0",
+            "Orasund/elm-action": "2.1.2",
             "Orasund/elm-cellautomata": "1.0.1",
-            "Orasund/pixelengine": "5.0.0",
+            "Orasund/elm-game-essentials": "1.0.0",
+            "Orasund/pixelengine": "6.2.0",
             "avh4/elm-color": "1.0.0",
             "elm/browser": "1.0.1",
             "elm/core": "1.0.2",
@@ -18,12 +19,10 @@
             "elm/json": "1.1.3",
             "elm/random": "1.0.0",
             "elm/time": "1.0.0",
-            "elm-community/random-extra": "3.0.0",
+            "elm-community/random-extra": "3.1.0",
             "elm-community/undo-redo": "3.0.0",
-            "lovasoa/elm-rolling-list": "1.1.4",
             "lucamug/style-framework": "1.0.0",
             "mdgriffith/elm-ui": "1.1.0",
-            "rtfeldman/elm-css": "16.0.0",
             "wernerdegroot/listzipper": "3.1.1"
         },
         "indirect": {
@@ -34,7 +33,9 @@
             "elm/svg": "1.0.1",
             "elm/url": "1.0.0",
             "elm/virtual-dom": "1.0.2",
-            "rtfeldman/elm-hex": "1.0.0"
+            "owanturist/elm-union-find": "1.0.0",
+            "rtfeldman/elm-hex": "1.0.0",
+            "rtfeldman/elm-css": "16.0.1"
         }
     },
     "test-dependencies": {
