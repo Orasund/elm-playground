@@ -77,7 +77,7 @@ apply command pos ( squareType, maybeItem ) map =
                 always <|
                     Ok <|
                         Just <|
-                            ( BuildingSquare { building | sort = sort }
+                            ( BuildingSquare { building | sort = sort, counter = 0 }
                             , maybeItem
                             )
     in
