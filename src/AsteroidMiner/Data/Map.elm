@@ -55,10 +55,10 @@ apply command pos ( squareType, maybeItem ) map =
             Grid.update (pos |> Position.move 1 direction)
                 (\maybeEntry ->
                     case maybeEntry of
-                        Just ( BuildingSquare _, Nothing ) ->
+                        Just ( BuildingSquare b, Nothing ) ->
                             Ok <|
                                 Just <|
-                                    ( BuildingSquare building, maybeItem )
+                                    ( BuildingSquare b, maybeItem )
 
                         _ ->
                             Err ()
@@ -105,17 +105,17 @@ apply command pos ( squareType, maybeItem ) map =
            )
 
 
-update : Command a -> Map a b c -> Map a b c
-update command map =
+update : (Position -> Command a) -> Map a b c -> Map a b c
+update getCommand map =
     map
         |> Grid.foldl
             (\pos maybeSquare ->
                 case maybeSquare of
-                    Just square ->
+                    Just (( BuildingSquare _, _ ) as square) ->
                         Grid.ignoringErrors <|
-                            apply command pos square
+                            apply (getCommand pos) pos square
 
-                    Nothing ->
+                    _ ->
                         identity
             )
             map

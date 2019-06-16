@@ -3,7 +3,7 @@ module AsteroidMiner.Data exposing (fps, framesPerComet, size, spriteSize)
 
 fps : Float
 fps =
-    1 / 4
+    8
 
 
 framesPerComet : Int

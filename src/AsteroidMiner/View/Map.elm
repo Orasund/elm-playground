@@ -1,53 +1,106 @@
 module AsteroidMiner.View.Map exposing (view)
 
-import AsteroidMiner.Data.Building exposing (BuildingType(..))
-import AsteroidMiner.Data.Game exposing (GroundType(..), Map, Square)
+import AsteroidMiner.Data.Building exposing (BeltColor(..), BuildingType(..))
+import AsteroidMiner.Data.Game as Game exposing (GroundType(..), Map, Square)
 import AsteroidMiner.Data.Map exposing (SquareType(..))
+import AsteroidMiner.View.GUI as GUI
 import AsteroidMiner.View.Tileset as Tileset
 import Grid.Bordered as Grid
 import Grid.Position exposing (Position)
 import PixelEngine.Tile as Tile exposing (Tile)
 
 
-viewSquare : { position : Position, onClick : Position -> msg } -> Square -> Tile msg
-viewSquare { position, onClick } ( squareType, maybeItem ) =
-    (case squareType of
-        GroundSquare groundType ->
-            case groundType of
-                Empty ->
-                    Tileset.ground
-                        |> Tile.clickable
-                            (onClick position)
+viewOverlay : Bool -> Tile msg
+viewOverlay bool =
+    case bool of
+        True ->
+            Tileset.valid
 
-                Mountain ->
-                    Tileset.mountain
-                        |> Tile.clickable
-                            (onClick position)
+        False ->
+            Tileset.invalid
 
-                OreGround ->
-                    Tileset.oreGround
 
-        BuildingSquare buildingType ->
-            case buildingType.sort of
-                Mine ->
-                    Tileset.mine
+viewSquare : { position : Position, onClick : Position -> msg, valid : Maybe Bool } -> Square -> Tile msg
+viewSquare { position, onClick, valid } ( squareType, maybeItem ) =
+    let
+        square : Tile msg
+        square =
+            case squareType of
+                GroundSquare groundType ->
+                    case groundType of
+                        Empty ->
+                            Tileset.ground
 
-                ConveyorBelt maybeBeltColor ->
-                    Tileset.conveyorBelt maybeBeltColor
+                        Mountain ->
+                            Tileset.mountain
 
-                Container ->
-                    Tileset.container
-    )
-        |> (case maybeItem of
-                Just _ ->
+                        OreGround ->
+                            Tileset.oreGround
+
+                BuildingSquare buildingType ->
+                    case buildingType.sort of
+                        Mine ->
+                            Tileset.mine
+                        ConveyorBelt Nothing ->
+                            Tileset.conveyorBeltUncolored buildingType.counter
+                        ConveyorBelt (Just color) ->
+                            Tileset.conveyorBelt color
+
+
+                        Container ->
+                            Tileset.container
+
+        item : Maybe (Tile msg)
+        item =
+            case maybeItem of
+                Just i ->
                     Debug.todo "items can't be displayed"
 
                 Nothing ->
-                    identity
+                    Nothing
+    in
+    (case item of
+        Just tile ->
+            Tile.multipleTiles
+                [ square, tile ]
+
+        Nothing ->
+            square
+    )
+        |> (case valid of
+                Just bool ->
+                    \t ->
+                        Tile.multipleTiles [ t, viewOverlay bool ]
+                            |> (if bool then
+                                    Tile.clickable (onClick position)
+
+                                else
+                                    identity
+                               )
+
+                Nothing ->
+                    Tile.clickable (onClick position)
            )
 
 
-view : (Position -> msg) -> Map -> List ( Position, Tile msg )
-view onClick =
-    Grid.map (\pos -> Maybe.map <| viewSquare { position = pos, onClick = onClick })
+view : { onClick : Position -> msg, selected : GUI.Tool } -> Map -> List ( Position, Tile msg )
+view { onClick, selected } map =
+    map
+        |> Grid.map
+            (\pos ->
+                Maybe.map <|
+                    viewSquare
+                        { position = pos
+                        , onClick = onClick
+                        , valid =
+                            if
+                                (selected == GUI.ConveyorBelt)
+                                    || (selected == GUI.Delete)
+                            then
+                                Nothing
+
+                            else
+                                Just <| Game.isValid selected pos map
+                        }
+            )
         >> Grid.toList

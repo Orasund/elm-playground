@@ -1,6 +1,8 @@
 module AsteroidMiner.View.Tileset.Big exposing
     ( container
     , conveyorBelt
+    , delete
+    , mine
     )
 
 import PixelEngine.Image as Image exposing (Image)
@@ -24,6 +26,34 @@ toImage tile =
 defaultImage : Tile msg
 defaultImage =
     Tile.fromPosition ( 4, 4 )
+
+
+delete : { image : Image msg, symobl : Image msg }
+delete =
+    { image =
+        Tile.fromPosition ( 3, 6 )
+            |> toImage
+    , symobl =
+        Tile.multipleTiles
+            [ defaultImage
+            , Tile.fromPosition ( 3, 7 )
+            ]
+            |> toImage
+    }
+
+
+mine : { image : Image msg, symobl : Image msg }
+mine =
+    { image =
+        Tile.fromPosition ( 0, 6 )
+            |> toImage
+    , symobl =
+        Tile.multipleTiles
+            [ defaultImage
+            , Tile.fromPosition ( 0, 7 )
+            ]
+            |> toImage
+    }
 
 
 conveyorBelt : { image : Image msg, symobl : Image msg }

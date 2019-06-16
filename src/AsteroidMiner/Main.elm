@@ -109,7 +109,7 @@ view :
     Model
     -> { title : String, options : Maybe (Options Msg), body : List (Area Msg) }
 view model =
-    { title = "Tic Tac Toe"
+    { title = "Asteroid Miner"
     , options =
         Just
             (Options.default

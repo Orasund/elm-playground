@@ -2,16 +2,17 @@ module AsteroidMiner.Page.Game exposing (Model, Msg(..), areas, init, subscripti
 
 import Action exposing (Action)
 import AsteroidMiner.Data exposing (fps, size, spriteSize)
-import AsteroidMiner.Data.Building exposing (BuildingType(..))
+import AsteroidMiner.Data.Building as Building exposing (BuildingType(..), Command(..))
+import AsteroidMiner.Data.Building.ConveyorBelt as ConveyorBelt
 import AsteroidMiner.Data.Comet as Comet exposing (Comet)
-import AsteroidMiner.Data.Game as Game exposing (Game, GroundType(..), Map)
+import AsteroidMiner.Data.Game as Game exposing (Game, GroundType(..), Item, Map, Square)
 import AsteroidMiner.Data.Map as Map exposing (SquareType(..))
 import AsteroidMiner.Data.Neighborhood as Neighborhood exposing (Neighborhood)
-import AsteroidMiner.View.GUI as GUI exposing (Blueprint)
+import AsteroidMiner.View.GUI as GUI exposing (Tool)
 import AsteroidMiner.View.Map as Map
 import AsteroidMiner.View.Tileset as Tileset exposing (tileset)
 import Color
-import Grid.Bordered as Grid
+import Grid.Bordered as Grid exposing (Error(..))
 import Grid.Position exposing (Position)
 import Location exposing (Angle(..))
 import PixelEngine exposing (Area)
@@ -105,6 +106,16 @@ init oldSeed =
 
 timePassed : Model -> GameAction
 timePassed ({ game } as model) =
+    let
+        getUpdateFunction : BuildingType -> ({ counter : Int, item : Maybe Item } -> Neighborhood (Maybe Square) -> Game.Command)
+        getUpdateFunction sort =
+            case sort of
+                ConveyorBelt maybeColor ->
+                    ConveyorBelt.update maybeColor
+
+                _ ->
+                    always <| always <| Idle
+    in
     Action.updating
         ( { model
             | game =
@@ -112,23 +123,59 @@ timePassed ({ game } as model) =
                     | comet =
                         game.comet
                             |> Comet.update
+                    , map =
+                        game.map
+                            |> Map.update
+                                (\pos ->
+                                    case Neighborhood.fromPosition pos game.map of
+                                        Ok ( Just ( BuildingSquare { counter, sort }, maybeItem ), neigh ) ->
+                                            getUpdateFunction
+                                                sort
+                                                { counter = counter, item = maybeItem }
+                                                neigh
+
+                                        _ ->
+                                            Idle
+                                )
                 }
           }
         , Cmd.none
         )
 
 
-squareClicked : Position -> Model -> GameAction
-squareClicked position ({ game, gui } as model) =
+deleteSqaure : Position -> Model -> GameAction
+deleteSqaure pos ({ game } as model) =
     let
-        sort =
-            case gui.selected of
-                GUI.ConveyorBelt ->
-                    ConveyorBelt Nothing
+        updateFun : Maybe Square -> Result () (Maybe Square)
+        updateFun maybeElem =
+            case maybeElem of
+                Just ( BuildingSquare building, maybeItem ) ->
+                    case building.sort of
+                        Mine ->
+                            Err ()
 
-                GUI.Container ->
-                    Container
+                        _ ->
+                            Ok <| Just <| Game.emptySquare maybeItem
 
+                _ ->
+                    Err ()
+    in
+    Action.updating
+        ( { model
+            | game =
+                { game
+                    | map =
+                        game.map
+                            |> (Grid.ignoringErrors <| Grid.update pos updateFun)
+                }
+          }
+        , Cmd.none
+        )
+
+
+placeSquare : BuildingType -> Position -> Model -> GameAction
+placeSquare sort position ({ game, gui } as model) =
+    let
         mapResult : Maybe Game.Item -> Result () (Maybe Game.SquareType) -> Result () (Maybe Game.Square)
         mapResult maybeItem =
             Result.map <|
@@ -143,73 +190,56 @@ squareClicked position ({ game, gui } as model) =
             Action.updating
                 ( model, Cmd.none )
 
-        emptyGroundCase : Result () (Maybe Game.SquareType)
-        emptyGroundCase =
-            Ok <|
-                Just <|
-                    BuildingSquare
-                        { counter = 0
-                        , sort =
-                            sort
-                        }
+        updateSquare : BuildingType -> Maybe Square -> Result () (Maybe Square)
+        updateSquare b maybeSquare =
+            case maybeSquare of
+                Just ( _, maybeItem ) ->
+                    Ok <|
+                        Just <|
+                            Game.newBuilding maybeItem b
 
-        isConveyorBelt : Maybe Game.Square -> Bool
-        isConveyorBelt maybeSquareType =
-            case maybeSquareType of
-                Just ( BuildingSquare building, _ ) ->
-                    case building.sort of
-                        ConveyorBelt _ ->
-                            True
+                Nothing ->
+                    Err ()
 
-                        _ ->
-                            False
-
-                _ ->
-                    False
-
-        mountainGroundCase : Neighborhood (Maybe Game.Square) -> Result () (Maybe Game.SquareType)
-        mountainGroundCase neigh =
-            if [ neigh.up, neigh.left, neigh.right, neigh.down ] |> List.any isConveyorBelt then
-                Ok <|
-                    Just <|
-                        BuildingSquare
-                            { counter = 0
-                            , sort = Mine
-                            }
+        updateMap : Map -> Result Error Map
+        updateMap map =
+            if Game.isValid gui.selected position map then
+                gui.selected
+                    |> Building.toolToBuilding
+                    |> Maybe.map
+                        (\b -> map |> Grid.update position (updateSquare b))
+                    |> Maybe.withDefault (Err NotSuccessful)
 
             else
-                Err ()
+                Err NotSuccessful
     in
     case game.map |> Neighborhood.fromPosition position of
         Ok ( Just square, neigh ) ->
-            let
-                map =
-                    game.map
-                        |> (Grid.ignoringErrors <|
-                                Grid.update position <|
-                                    always <|
-                                        case square of
-                                            ( GroundSquare Empty, maybeItem ) ->
-                                                emptyGroundCase
-                                                    |> mapResult maybeItem
+            case game.map |> updateMap of
+                Ok m ->
+                    Action.updating
+                        ( { model
+                            | game = { game | map = m }
+                            , gui = gui |> GUI.toDefault
+                          }
+                        , Cmd.none
+                        )
 
-                                            ( GroundSquare Mountain, maybeItem ) ->
-                                                mountainGroundCase neigh
-                                                    |> mapResult maybeItem
-
-                                            _ ->
-                                                Err ()
-                           )
-            in
-            Action.updating
-                ( { model
-                    | game = { game | map = map }
-                  }
-                , Cmd.none
-                )
+                Err _ ->
+                    defaultCase
 
         _ ->
             defaultCase
+
+
+squareClicked : Position -> Model -> GameAction
+squareClicked position ({ gui } as model) =
+    case gui.selected |> Building.toolToBuilding of
+        Just tool ->
+            placeSquare tool position model
+
+        Nothing ->
+            deleteSqaure position model
 
 
 update : Msg -> Model -> GameAction
@@ -274,7 +304,7 @@ areas { game, gui } =
         }
       <|
         List.concat
-            [ Map.view SquareClicked map
+            [ Map.view { onClick = SquareClicked, selected = gui.selected } map
             , [ viewComet comet ]
             ]
     , PixelEngine.imageArea
