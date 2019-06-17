@@ -13,7 +13,10 @@ import UndoList exposing (UndoList)
 
 
 type alias TransitionData =
-    { game : Game, history : UndoList Game, challenge : Bool }
+    { game : Game
+    , history : UndoList Game
+    , challenge : Bool
+    }
 
 
 

@@ -3,6 +3,7 @@ module AsteroidMiner.View.Tileset.Big exposing
     , conveyorBelt
     , delete
     , mine
+    , pickUp
     )
 
 import PixelEngine.Image as Image exposing (Image)
@@ -37,6 +38,20 @@ delete =
         Tile.multipleTiles
             [ defaultImage
             , Tile.fromPosition ( 3, 7 )
+            ]
+            |> toImage
+    }
+
+
+pickUp : { image : Image msg, symobl : Image msg }
+pickUp =
+    { image =
+        Tile.fromPosition ( 2, 6 )
+            |> toImage
+    , symobl =
+        Tile.multipleTiles
+            [ defaultImage
+            , Tile.fromPosition ( 2, 7 )
             ]
             |> toImage
     }

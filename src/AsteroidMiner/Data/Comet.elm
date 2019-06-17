@@ -2,7 +2,7 @@ module AsteroidMiner.Data.Comet exposing (Comet, new, position, update)
 
 import AsteroidMiner.Data exposing (framesPerComet, size)
 import Grid.Position as Position exposing (Coord, Position)
-import Location exposing (Angle(..), Location)
+import Location exposing (Angle(..))
 
 
 type alias Comet =

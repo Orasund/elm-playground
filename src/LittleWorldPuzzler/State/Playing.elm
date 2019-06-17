@@ -9,16 +9,15 @@ import Http exposing (Error(..))
 import LittleWorldPuzzler.Data.Board as Board
 import LittleWorldPuzzler.Data.CellType exposing (CellType(..))
 import LittleWorldPuzzler.Data.Deck as Deck exposing (Selected(..))
-import LittleWorldPuzzler.Data.Entry as Entry exposing (Entry)
 import LittleWorldPuzzler.Data.Game as Game exposing (EndCondition(..), Game)
-import LittleWorldPuzzler.Request as Request exposing (Response(..))
+import LittleWorldPuzzler.Request exposing (Response(..))
 import LittleWorldPuzzler.State.Finished as FinishedState
 import LittleWorldPuzzler.View.Collection as CollectionView
 import LittleWorldPuzzler.View.Game as GameView
 import LittleWorldPuzzler.View.Header as HeaderView
 import LittleWorldPuzzler.View.PageSelector as PageSelectorView
 import Process
-import Random exposing (Generator, Seed)
+import Random exposing (Seed)
 import Set exposing (Set)
 import Task
 import UndoList exposing (UndoList)
@@ -63,7 +62,10 @@ type Msg
 
 
 type alias TransitionData =
-    { game : Game, seed : Seed, mode : Mode }
+    { game : Game
+    , seed : Seed
+    , mode : Mode
+    }
 
 
 type alias Action =
@@ -119,7 +121,7 @@ play ( { game, history } as state, seed ) =
 
 
 playFirst : Position -> Model -> Action
-playFirst position ( { game, history, mode, initialSeed } as state, seed ) =
+playFirst position ( { game, mode, initialSeed } as state, seed ) =
     Random.step
         (Deck.playFirst { shuffle = mode /= Challenge } game.deck
             |> Random.map
@@ -322,13 +324,12 @@ view scale restartMsg msgMapper ( { game, selected, mode, viewCollection, collec
                     }
                     game
             ]
-        , (if viewCollection then
+        , if viewCollection then
             PageSelectorView.viewCollection
 
-           else
+          else
             PageSelectorView.viewGame
-          )
-            scale
-          <|
-            msgMapper PageChangeRequested
+                scale
+            <|
+                msgMapper PageChangeRequested
         ]

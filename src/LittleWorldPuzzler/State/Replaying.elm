@@ -2,13 +2,10 @@ module LittleWorldPuzzler.State.Replaying exposing (Model, Msg, update, view)
 
 import Action
 import Element exposing (Element)
-import Element.Border as Border
-import Element.Font as Font
 import Framework.Modifier exposing (Modifier(..))
 import LittleWorldPuzzler.Data.CellType exposing (CellType(..))
 import LittleWorldPuzzler.Data.Deck exposing (Selected(..))
 import LittleWorldPuzzler.Data.Game exposing (Game)
-import LittleWorldPuzzler.View.Button as Button
 import LittleWorldPuzzler.View.Game as GameView
 import LittleWorldPuzzler.View.Header as HeaderView
 import UndoList exposing (UndoList)

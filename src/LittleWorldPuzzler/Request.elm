@@ -5,7 +5,6 @@ module LittleWorldPuzzler.Request exposing
     )
 
 import Http exposing (Error(..))
-import Json.Decode
 import Json.Encode exposing (Value)
 import Jsonstore
 import LittleWorldPuzzler.Data exposing (devMode, gameVersion)

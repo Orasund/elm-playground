@@ -1,14 +1,15 @@
 module AsteroidMiner.Page.Game exposing (Model, Msg(..), areas, init, subscriptions, update)
 
 import Action exposing (Action)
+import AsteroidMiner.Building as Building exposing (BuildingType(..))
 import AsteroidMiner.Data exposing (fps, size, spriteSize)
-import AsteroidMiner.Data.Building as Building exposing (BuildingType(..), Command(..))
-import AsteroidMiner.Data.Building.ConveyorBelt as ConveyorBelt
 import AsteroidMiner.Data.Comet as Comet exposing (Comet)
-import AsteroidMiner.Data.Game as Game exposing (Game, GroundType(..), Item, Map, Square)
-import AsteroidMiner.Data.Map as Map exposing (SquareType(..))
-import AsteroidMiner.Data.Neighborhood as Neighborhood exposing (Neighborhood)
-import AsteroidMiner.View.GUI as GUI exposing (Tool)
+import AsteroidMiner.Data.Game as Game exposing (Game)
+import AsteroidMiner.Data.Map as Game exposing (GroundType(..), Item(..), Map, Square)
+import AsteroidMiner.Lib.Command as Command exposing (idle)
+import AsteroidMiner.Lib.Map as Map exposing (SquareType(..))
+import AsteroidMiner.Lib.Neighborhood as Neighborhood
+import AsteroidMiner.View.GUI as GUI
 import AsteroidMiner.View.Map as Map
 import AsteroidMiner.View.Tileset as Tileset exposing (tileset)
 import Color
@@ -17,7 +18,7 @@ import Grid.Position exposing (Position)
 import Location exposing (Angle(..))
 import PixelEngine exposing (Area)
 import PixelEngine.Tile exposing (Tile)
-import Random exposing (Generator, Seed)
+import Random exposing (Seed)
 import Time
 
 
@@ -69,9 +70,9 @@ init oldSeed =
         map =
             Grid.fill
                 (\( x, y ) ->
-                    if (x - center) ^ 2 + (y - center) ^ 2 <= 4 ^ 2 then
+                    if (x - center) ^ 2 + (y - center) ^ 2 <= 8 ^ 2 then
                         Just <|
-                            if abs (x + y - center * 2) < 3 then
+                            if abs (x + y - center * 2) < 5 then
                                 ( GroundSquare <| Mountain, Nothing )
 
                             else
@@ -106,16 +107,6 @@ init oldSeed =
 
 timePassed : Model -> GameAction
 timePassed ({ game } as model) =
-    let
-        getUpdateFunction : BuildingType -> ({ counter : Int, item : Maybe Item } -> Neighborhood (Maybe Square) -> Game.Command)
-        getUpdateFunction sort =
-            case sort of
-                ConveyorBelt maybeColor ->
-                    ConveyorBelt.update maybeColor
-
-                _ ->
-                    always <| always <| Idle
-    in
     Action.updating
         ( { model
             | game =
@@ -126,17 +117,36 @@ timePassed ({ game } as model) =
                     , map =
                         game.map
                             |> Map.update
-                                (\pos ->
-                                    case Neighborhood.fromPosition pos game.map of
-                                        Ok ( Just ( BuildingSquare { counter, sort }, maybeItem ), neigh ) ->
-                                            getUpdateFunction
-                                                sort
-                                                { counter = counter, item = maybeItem }
-                                                neigh
+                                { empty = Empty
+                                , update =
+                                    \pos ->
+                                        case Neighborhood.fromPosition pos game.map of
+                                            Ok ( Just ( BuildingSquare { value, sort }, maybeItem ), neigh ) ->
+                                                Game.updateBuilding
+                                                    sort
+                                                    { value = value, item = maybeItem }
+                                                    (neigh
+                                                        |> Neighborhood.map
+                                                            (Maybe.andThen Game.getBuildingType)
+                                                    )
 
-                                        _ ->
-                                            Idle
-                                )
+                                            _ ->
+                                                Command.idle
+                                , canStore =
+                                    \pos ->
+                                        case Neighborhood.fromPosition pos game.map of
+                                            Ok ( Just ( BuildingSquare { sort }, _ ), neigh ) ->
+                                                always <|
+                                                    Game.solveConflict
+                                                        sort
+                                                        (neigh
+                                                            |> Neighborhood.map
+                                                                (Maybe.andThen Game.getBuildingType)
+                                                        )
+
+                                            _ ->
+                                                always <| always <| always <| False
+                                }
                 }
           }
         , Cmd.none
@@ -174,17 +184,8 @@ deleteSqaure pos ({ game } as model) =
 
 
 placeSquare : BuildingType -> Position -> Model -> GameAction
-placeSquare sort position ({ game, gui } as model) =
+placeSquare _ position ({ game, gui } as model) =
     let
-        mapResult : Maybe Game.Item -> Result () (Maybe Game.SquareType) -> Result () (Maybe Game.Square)
-        mapResult maybeItem =
-            Result.map <|
-                Maybe.map <|
-                    \a ->
-                        ( a
-                        , maybeItem
-                        )
-
         defaultCase : GameAction
         defaultCase =
             Action.updating
@@ -193,6 +194,11 @@ placeSquare sort position ({ game, gui } as model) =
         updateSquare : BuildingType -> Maybe Square -> Result () (Maybe Square)
         updateSquare b maybeSquare =
             case maybeSquare of
+                Just ( GroundSquare Mountain, _ ) ->
+                    Ok <|
+                        Just <|
+                            Game.newBuilding (Just Stone) b
+
                 Just ( _, maybeItem ) ->
                     Ok <|
                         Just <|
@@ -214,13 +220,12 @@ placeSquare sort position ({ game, gui } as model) =
                 Err NotSuccessful
     in
     case game.map |> Neighborhood.fromPosition position of
-        Ok ( Just square, neigh ) ->
+        Ok ( Just _, _ ) ->
             case game.map |> updateMap of
                 Ok m ->
                     Action.updating
                         ( { model
                             | game = { game | map = m }
-                            , gui = gui |> GUI.toDefault
                           }
                         , Cmd.none
                         )

@@ -11,6 +11,7 @@ type Tool
     | ConveyorBelt
     | Container
     | Delete
+    | PickUp
 
 
 type alias Model =
@@ -23,7 +24,7 @@ type Msg
 
 init : Model
 init =
-    { selected = ConveyorBelt
+    { selected = PickUp
     }
 
 
@@ -82,6 +83,9 @@ viewBlueprint { selected } blueprint =
 
                 Delete ->
                     Tileset.delete
+
+                PickUp ->
+                    Tileset.pickUp
     in
     if blueprint == selected then
         image
@@ -93,6 +97,6 @@ viewBlueprint { selected } blueprint =
 
 view : Model -> List ( Location, Image Msg )
 view model =
-    [ Mine, ConveyorBelt, Delete, Container ]
+    [ Mine, ConveyorBelt, Container, PickUp, Delete ]
         |> List.map (viewBlueprint model)
         |> viewList

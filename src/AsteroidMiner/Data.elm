@@ -1,9 +1,18 @@
-module AsteroidMiner.Data exposing (fps, framesPerComet, size, spriteSize)
+module AsteroidMiner.Data exposing (fps, framesPerComet, maxValue, size, spriteSize)
 
 
 fps : Float
 fps =
-    8
+    4
+
+
+
+--8
+
+
+maxValue : Int
+maxValue =
+    512
 
 
 framesPerComet : Int

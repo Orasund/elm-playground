@@ -1,9 +1,9 @@
 module AsteroidMiner.Main exposing (main)
 
 import Action exposing (Action)
+import AsteroidMiner.Building exposing (BuildingType(..))
 import AsteroidMiner.Data exposing (fps, size, spriteSize)
-import AsteroidMiner.Data.Building exposing (BuildingType(..))
-import AsteroidMiner.Data.Map exposing (SquareType(..))
+import AsteroidMiner.Lib.Map exposing (SquareType(..))
 import AsteroidMiner.Page.Game as Game
 import Location exposing (Angle(..))
 import PixelEngine exposing (Area, Input(..), PixelEngine, gameWithNoControls)

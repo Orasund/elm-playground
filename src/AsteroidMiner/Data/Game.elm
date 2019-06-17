@@ -1,43 +1,74 @@
-module AsteroidMiner.Data.Game exposing (Command, Game, GroundType(..), Item, Map, Square, SquareType, emptySquare, getBuildingType, getGroundType, isBuildingType, isGroundType, isValid, newBuilding)
+module AsteroidMiner.Data.Game exposing (Game, emptySquare, getBuildingType, getGroundType, isBuildingType, isGroundType, isValid, newBuilding, solveConflict, updateBuilding)
 
-import AsteroidMiner.Data.Building as Building exposing (BuildingType(..))
+import AsteroidMiner.Building as Building exposing (BuildingType(..))
+import AsteroidMiner.Building.ColoredConveyorBelt as ColoredConveyorBelt
+import AsteroidMiner.Building.Container as Container
+import AsteroidMiner.Building.ConveyorBelt as ConveyorBelt
+import AsteroidMiner.Building.Mine as Mine
 import AsteroidMiner.Data.Comet exposing (Comet)
-import AsteroidMiner.Data.Map as Map exposing (SquareType(..))
-import AsteroidMiner.Data.Neighborhood as Neighborhood exposing (Neighborhood)
-import AsteroidMiner.View.GUI as GUI exposing (Tool(..))
+import AsteroidMiner.Data.Map as Map exposing (GroundType(..), Item, Map, Neighborhood, Square)
+import AsteroidMiner.Lib.Map as Map exposing (SquareType(..))
+import AsteroidMiner.Lib.Neighborhood as Neighborhood
+import AsteroidMiner.View.GUI as GUI
 import Grid.Position exposing (Position)
 
 
-type GroundType
-    = Empty
-    | Mountain
-    | OreGround
+type alias Game =
+    { comet : Comet
+    , map : Map
+    }
+
+
+solveConflict : BuildingType -> Neighborhood -> Item -> { item : Item, value : Int } -> Bool
+solveConflict sort neigh =
+    case sort of
+        ColoredConveyorBelt _ _ ->
+            ColoredConveyorBelt.canStore neigh
+
+        ConveyorBelt _ ->
+            ConveyorBelt.canStore neigh
+
+        Mine ->
+            Mine.canStore neigh
+
+        Container ->
+            Container.canStore neigh
+
+
+updateBuilding : BuildingType -> ({ value : Int, item : Maybe Item } -> Neighborhood -> Map.Command)
+updateBuilding sort =
+    case sort of
+        ColoredConveyorBelt color dir ->
+            always <| ColoredConveyorBelt.update color dir
+
+        ConveyorBelt code ->
+            always <| ConveyorBelt.update code
+
+        Mine ->
+            Mine.update
+
+        Container ->
+            always <| Container.update
 
 
 newBuilding : Maybe Item -> BuildingType -> Square
 newBuilding maybeItem buildingType =
-    ( BuildingSquare { counter = 0, sort = buildingType }, maybeItem )
+    let
+        value : Int
+        value =
+            case buildingType of
+                Building.Mine ->
+                    128
+
+                _ ->
+                    0
+    in
+    ( BuildingSquare { value = value, sort = buildingType }, maybeItem )
 
 
 emptySquare : Maybe Item -> Square
 emptySquare maybeItem =
     ( GroundSquare Empty, maybeItem )
-
-
-type alias Command =
-    Building.Command BuildingType
-
-
-type alias Item =
-    Never
-
-
-type alias SquareType =
-    Map.SquareType BuildingType GroundType
-
-
-type alias Square =
-    Map.Square BuildingType GroundType Item
 
 
 getBuildingType : Square -> Maybe BuildingType
@@ -74,35 +105,16 @@ isGroundType groundType =
         >> Maybe.withDefault False
 
 
-type alias Map =
-    Map.Map BuildingType GroundType Item
-
-
-type alias Game =
-    { comet : Comet
-    , map : Map
-    }
-
-
-isValidMinePos : Neighborhood (Maybe Square) -> Bool
+isValidMinePos : Neighborhood.Neighborhood (Maybe Square) -> Bool
 isValidMinePos neigh =
-    let
-        isConveyorBelt : Maybe Square -> Bool
-        isConveyorBelt maybeSquareType =
-            case maybeSquareType of
-                Just ( BuildingSquare building, _ ) ->
-                    case building.sort of
-                        Building.ConveyorBelt _ ->
-                            True
-
-                        _ ->
-                            False
-
-                _ ->
-                    False
-    in
     [ neigh.up, neigh.left, neigh.right, neigh.down ]
-        |> List.any isConveyorBelt
+        |> List.any
+            (Maybe.map
+                (Tuple.first
+                    >> ((/=) <| GroundSquare Mountain)
+                )
+                >> Maybe.withDefault False
+            )
 
 
 isValid : GUI.Tool -> Position -> Map -> Bool
@@ -110,14 +122,14 @@ isValid selected position map =
     case map |> Neighborhood.fromPosition position of
         Ok ( Just square, neigh ) ->
             case square of
-                ( GroundSquare Empty, maybeItem ) ->
+                ( GroundSquare Empty, _ ) ->
                     if selected == GUI.Mine then
                         False
 
                     else
                         True
 
-                ( GroundSquare Mountain, maybeItem ) ->
+                ( GroundSquare Mountain, _ ) ->
                     if selected == GUI.Mine then
                         isValidMinePos neigh
 

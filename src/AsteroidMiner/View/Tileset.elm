@@ -1,21 +1,22 @@
 module AsteroidMiner.View.Tileset exposing
-    ( comet
+    ( coloredConveyorBelt
+    , comet
     , container
     , conveyorBelt
-    , conveyorBeltUncolored
     , ground
-    , invalid
     , mine
     , mountain
     , oreGround
+    , stone
     , tileset
     , valid
     )
 
-import AsteroidMiner.Data.Building exposing (BeltColor(..))
+import AsteroidMiner.Building exposing (BeltColor(..), Code(..))
 import Grid.Direction exposing (Direction(..))
+import Grid.Position as Position exposing (Coord, Position)
 import PixelEngine.Tile as Tile exposing (Tile, Tileset)
-import Grid.Position as Position exposing (Coord,Position)
+
 
 tileset : Tileset
 tileset =
@@ -24,12 +25,6 @@ tileset =
         , spriteWidth = 8
         , spriteHeight = 8
         }
-
-
-invalid : Tile msg
-invalid =
-    Tile.fromPosition ( 2, 2 )
-
 
 valid : Tile msg
 valid =
@@ -65,79 +60,76 @@ mine =
         |> Tile.animated 4
 
 
-conveyorBeltUncolored : Int -> Tile msg
-conveyorBeltUncolored code =
+conveyorBelt : Code -> Tile msg
+conveyorBelt code =
     case code of
-        0 ->
+        Invalid ->
             Tile.fromPosition ( 0, 2 )
 
-        1 ->
+        InputFound ->
             Tile.fromPosition ( 1, 2 )
 
-        2 ->
-            Tile.fromPosition ( 0, 3 )
-
-        3 ->
-            Tile.fromPosition ( 1, 3 )
-
-        4 ->
-            Tile.fromPosition ( 0, 3 )
-
-        5 ->
-            Tile.fromPosition ( 1, 3 )
-
-        6 ->
-            Tile.fromPosition ( 0, 3 )
-
-        7 ->
-            Tile.fromPosition ( 1, 3 )
-
-        8 ->
-            Tile.fromPosition ( 0, 3 )
-
-        9 ->
-            Tile.fromPosition ( 1, 3 )
-
-        _ ->
-            Tile.fromPosition ( 1, 3 )
+        Try Blue ->
+            Tile.fromPosition ( 4, 6 )
+        Try Green ->
+                    Tile.fromPosition ( 5, 6 )
+        Try Red ->
+                    Tile.fromPosition ( 6, 6 )
+        Try Yellow ->
+                    Tile.fromPosition ( 7, 6 )
+        Failed Blue ->
+                    Tile.fromPosition ( 4, 7 )
+        Failed Green ->
+                            Tile.fromPosition ( 5, 7 )
+        Failed Red ->
+                            Tile.fromPosition ( 6, 7 )
+        Failed Yellow ->
+                            Tile.fromPosition ( 7, 7 )
 
 
-conveyorBelt : (BeltColor,Direction) -> Tile msg
-conveyorBelt (color,dir) =
+coloredConveyorBelt : BeltColor -> Direction -> Tile msg
+coloredConveyorBelt color dir =
     let
         getCoords : Coord
         getCoords =
             case dir of
                 Right ->
-                    {x=0,y=0}
+                    { x = 0, y = 0 }
+
                 Down ->
-                    {x=1,y=0}
+                    { x = 1, y = 0 }
+
                 Up ->
-                    {x = 2,y=0}
+                    { x = 2, y = 0 }
+
                 Left ->
-                    {x=3,y=0}
+                    { x = 3, y = 0 }
 
         pos : Position
         pos =
             case color of
-                      Blue ->
-                          ( 0, 4 )
+                Blue ->
+                    ( 0, 4 )
 
-                      Green ->
-                          ( 0, 5 )
+                Green ->
+                    ( 0, 5 )
 
-                      Red ->
-                          ( 0, 6 )
+                Red ->
+                    ( 0, 6 )
 
-                      Yellow ->
-                          ( 0, 7 )
-
+                Yellow ->
+                    ( 0, 7 )
     in
-    pos |> Position.add getCoords
-    |>
-    Tile.fromPosition
+    pos
+        |> Position.add getCoords
+        |> Tile.fromPosition
 
 
 container : Tile msg
 container =
     Tile.fromPosition ( 4, 3 )
+
+
+stone : Tile msg
+stone =
+    Tile.fromPosition ( 2, 0 )

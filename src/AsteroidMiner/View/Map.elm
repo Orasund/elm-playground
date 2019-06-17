@@ -1,23 +1,14 @@
 module AsteroidMiner.View.Map exposing (view)
 
-import AsteroidMiner.Data.Building exposing (BeltColor(..), BuildingType(..))
-import AsteroidMiner.Data.Game as Game exposing (GroundType(..), Map, Square)
-import AsteroidMiner.Data.Map exposing (SquareType(..))
+import AsteroidMiner.Building as Building exposing (BeltColor(..), BuildingType(..))
+import AsteroidMiner.Data.Game as Game
+import AsteroidMiner.Data.Map exposing (GroundType(..), Item(..), Map, Square)
+import AsteroidMiner.Lib.Map exposing (SquareType(..))
 import AsteroidMiner.View.GUI as GUI
 import AsteroidMiner.View.Tileset as Tileset
 import Grid.Bordered as Grid
 import Grid.Position exposing (Position)
 import PixelEngine.Tile as Tile exposing (Tile)
-
-
-viewOverlay : Bool -> Tile msg
-viewOverlay bool =
-    case bool of
-        True ->
-            Tileset.valid
-
-        False ->
-            Tileset.invalid
 
 
 viewSquare : { position : Position, onClick : Position -> msg, valid : Maybe Bool } -> Square -> Tile msg
@@ -41,23 +32,25 @@ viewSquare { position, onClick, valid } ( squareType, maybeItem ) =
                     case buildingType.sort of
                         Mine ->
                             Tileset.mine
-                        ConveyorBelt Nothing ->
-                            Tileset.conveyorBeltUncolored buildingType.counter
-                        ConveyorBelt (Just color) ->
-                            Tileset.conveyorBelt color
 
+                        ConveyorBelt code ->
+                            Tileset.conveyorBelt code
+
+                        ColoredConveyorBelt color direction ->
+                            Tileset.coloredConveyorBelt color direction
 
                         Container ->
                             Tileset.container
 
         item : Maybe (Tile msg)
         item =
-            case maybeItem of
-                Just i ->
-                    Debug.todo "items can't be displayed"
-
-                Nothing ->
-                    Nothing
+            maybeItem
+                |> Maybe.map
+                    (\i ->
+                        case i of
+                            Stone ->
+                                Tileset.stone
+                    )
     in
     (case item of
         Just tile ->
@@ -70,13 +63,12 @@ viewSquare { position, onClick, valid } ( squareType, maybeItem ) =
         |> (case valid of
                 Just bool ->
                     \t ->
-                        Tile.multipleTiles [ t, viewOverlay bool ]
-                            |> (if bool then
-                                    Tile.clickable (onClick position)
+                        if bool then
+                            Tile.multipleTiles [ t, Tileset.valid ]
+                                |> Tile.clickable (onClick position)
 
-                                else
-                                    identity
-                               )
+                        else
+                            t
 
                 Nothing ->
                     Tile.clickable (onClick position)
@@ -93,10 +85,7 @@ view { onClick, selected } map =
                         { position = pos
                         , onClick = onClick
                         , valid =
-                            if
-                                (selected == GUI.ConveyorBelt)
-                                    || (selected == GUI.Delete)
-                            then
+                            if (selected |> Building.toolToBuilding) == Nothing then
                                 Nothing
 
                             else
