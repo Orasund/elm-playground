@@ -140,7 +140,7 @@ updateInvalid { friends, outputs, inputs } =
         ( 1, ( 0, 1 ) ) ->
             nextStage
 
-        ( 0, ( 1, 1 ) ) ->
+        ( _, ( 1, 1 ) ) ->
             lastStage
 
         ( 0, ( 1, 2 ) ) ->
@@ -481,7 +481,7 @@ updateTryColor color enemies { friends, outputs, inputs } =
                     _ ->
                         connect
 
-            ( 0, ( 0, 1 ), 1 ) ->
+            ( 0, ( _, 1 ), 1 ) ->
                 case inputs of
                     ( dir, _ ) :: _ ->
                         dir

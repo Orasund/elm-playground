@@ -8,7 +8,7 @@ fps =
 
 version : String
 version =
-    "v0.1"
+    "v0.2"
 
 
 mineVolume : Int

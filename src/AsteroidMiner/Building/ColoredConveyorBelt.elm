@@ -90,8 +90,11 @@ update color direction neigh =
                     >= 2
             then
                 case ( friends |> List.length, outputs |> List.length, inputs |> List.length ) of
-                    ( _, 1, 1 ) ->
+                    ( 0, 1, 1 ) ->
                         areOpposing outputs inputs
+
+                    ( _, 1, 1 ) ->
+                        True
 
                     ( 2, _, _ ) ->
                         True

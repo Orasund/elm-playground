@@ -125,7 +125,7 @@ viewDesc selected =
                     "PICK UP ITEMS"
 
                 Merger ->
-                    "Merger - Take from Containers"
+                    "Merger - Takes from Containers"
     in
     [ ( ( 0, (toFloat <| 2) * spriteSize ), Image.fromText text font ) ]
 
