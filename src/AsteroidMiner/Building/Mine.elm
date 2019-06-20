@@ -1,7 +1,8 @@
 module AsteroidMiner.Building.Mine exposing (canStore, update)
 
-import AsteroidMiner.Building exposing (BuildingType(..))
-import AsteroidMiner.Data.Map exposing (Command, Item, Neighborhood)
+import AsteroidMiner.Building as Building exposing (BuildingType(..))
+import AsteroidMiner.Data.Item exposing (Item)
+import AsteroidMiner.Data.Map exposing (Command, Neighborhood)
 import AsteroidMiner.Lib.Command as Command
 import AsteroidMiner.Lib.Neighborhood as Neighborhood
 

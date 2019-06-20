@@ -2,10 +2,13 @@ module AsteroidMiner.View.Tileset.Big exposing
     ( container
     , conveyorBelt
     , delete
+    , merger
     , mine
     , pickUp
     )
 
+import AsteroidMiner.Data exposing (spriteSize)
+import AsteroidMiner.View.Tileset as Tileset
 import PixelEngine.Image as Image exposing (Image)
 import PixelEngine.Tile as Tile exposing (Tile, Tileset)
 
@@ -43,18 +46,36 @@ delete =
     }
 
 
-pickUp : { image : Image msg, symobl : Image msg }
-pickUp =
-    { image =
-        Tile.fromPosition ( 2, 6 )
-            |> toImage
-    , symobl =
-        Tile.multipleTiles
-            [ defaultImage
-            , Tile.fromPosition ( 2, 7 )
-            ]
-            |> toImage
-    }
+pickUp : Maybe (Tile msg) -> { image : Image msg, symobl : Image msg }
+pickUp maybeTile =
+    case maybeTile of
+        Just tile ->
+            { image =
+                Image.multipleImages
+                    [ ( ( 0, 0 ), Tile.fromPosition ( 2, 6 ) |> toImage )
+                    , ( ( spriteSize / 2, 2 + spriteSize / 2 )
+                      , Image.fromTile tile Tileset.tileset
+                      )
+                    ]
+            , symobl =
+                Tile.multipleTiles
+                    [ defaultImage
+                    , Tile.fromPosition ( 2, 7 )
+                    ]
+                    |> toImage
+            }
+
+        Nothing ->
+            { image =
+                Tile.fromPosition ( 2, 6 )
+                    |> toImage
+            , symobl =
+                Tile.multipleTiles
+                    [ defaultImage
+                    , Tile.fromPosition ( 2, 7 )
+                    ]
+                    |> toImage
+            }
 
 
 mine : { image : Image msg, symobl : Image msg }
@@ -94,6 +115,20 @@ container =
         Tile.multipleTiles
             [ defaultImage
             , Tile.fromPosition ( 1, 5 )
+            ]
+            |> toImage
+    }
+
+
+merger : { image : Image msg, symobl : Image msg }
+merger =
+    { image =
+        Tile.fromPosition ( 2, 4 )
+            |> toImage
+    , symobl =
+        Tile.multipleTiles
+            [ defaultImage
+            , Tile.fromPosition ( 2, 5 )
             ]
             |> toImage
     }

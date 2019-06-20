@@ -1,6 +1,6 @@
-module AsteroidMiner.Building exposing (BeltColor(..), Building, BuildingType(..), Code(..), isColoredConveyorBelt, isConveyorBelt, isConveyorBeltColored, isInput, isOutput, toolToBuilding)
+module AsteroidMiner.Building exposing (BeltColor(..), Building, BuildingType(..), Code(..), Volume(..), canBreak, isColoredConveyorBelt, isConveyorBelt, isConveyorBeltColored, isInput, isOutput)
 
-import AsteroidMiner.View.GUI as GUI exposing (Tool)
+import AsteroidMiner.View as View exposing (ToolSelection(..))
 import Grid.Direction exposing (Direction)
 
 
@@ -17,6 +17,13 @@ type BeltColor
     | Yellow
 
 
+type Volume
+    = Empty
+    | HalfEmpty
+    | HalfFull
+    | Full
+
+
 type Code
     = Invalid
     | InputFound
@@ -28,13 +35,17 @@ type BuildingType
     = Mine
     | ConveyorBelt Code
     | ColoredConveyorBelt BeltColor Direction
-    | Container
+    | Container Volume
+    | Merger
 
 
 isOutput : BuildingType -> Bool
 isOutput sort =
     case sort of
         Mine ->
+            True
+
+        Merger ->
             True
 
         _ ->
@@ -44,30 +55,27 @@ isOutput sort =
 isInput : BuildingType -> Bool
 isInput sort =
     case sort of
-        Container ->
+        Container _ ->
             True
 
         _ ->
             False
 
 
-toolToBuilding : Tool -> Maybe BuildingType
-toolToBuilding selected =
-    case selected of
-        GUI.Delete ->
-            Nothing
+canBreak : BuildingType -> Bool
+canBreak sort =
+    case sort of
+        Container Empty ->
+            True
 
-        GUI.PickUp ->
-            Nothing
+        Container _ ->
+            False
 
-        GUI.Mine ->
-            Just Mine
+        Mine ->
+            False
 
-        GUI.ConveyorBelt ->
-            Just <| ConveyorBelt Invalid
-
-        GUI.Container ->
-            Just <| Container
+        _ ->
+            True
 
 
 isConveyorBelt : BuildingType -> Bool

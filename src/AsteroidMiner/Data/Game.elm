@@ -1,22 +1,61 @@
-module AsteroidMiner.Data.Game exposing (Game, emptySquare, getBuildingType, getGroundType, isBuildingType, isGroundType, isValid, newBuilding, solveConflict, updateBuilding)
+module AsteroidMiner.Data.Game exposing (Game, emptySquare, getBuildingType, getGroundType, isBuildingType, isGroundType, isValid, newBuilding, solveConflict, takeInventoryOfMap, updateBuilding)
 
-import AsteroidMiner.Building as Building exposing (BuildingType(..))
+import AsteroidMiner.Building as Building exposing (BuildingType(..), Volume(..))
 import AsteroidMiner.Building.ColoredConveyorBelt as ColoredConveyorBelt
 import AsteroidMiner.Building.Container as Container
 import AsteroidMiner.Building.ConveyorBelt as ConveyorBelt
+import AsteroidMiner.Building.Merger as Merger
 import AsteroidMiner.Building.Mine as Mine
+import AsteroidMiner.Data exposing (mineVolume)
 import AsteroidMiner.Data.Comet exposing (Comet)
-import AsteroidMiner.Data.Map as Map exposing (GroundType(..), Item, Map, Neighborhood, Square)
+import AsteroidMiner.Data.Item as Item exposing (Item)
+import AsteroidMiner.Data.Map as Map exposing (GroundType(..), Map, Neighborhood, Square)
 import AsteroidMiner.Lib.Map as Map exposing (SquareType(..))
 import AsteroidMiner.Lib.Neighborhood as Neighborhood
-import AsteroidMiner.View.GUI as GUI
+import AsteroidMiner.View as View exposing (ToolSelection)
+import Dict
+import Grid.Bordered as Grid
 import Grid.Position exposing (Position)
 
 
 type alias Game =
     { comet : Comet
     , map : Map
+    , bag : Maybe Item
     }
+
+
+takeInventoryOfMap : Map -> List ( Item, Int )
+takeInventoryOfMap =
+    Grid.values
+        >> List.foldl
+            (\square ->
+                case square of
+                    ( BuildingSquare { sort, value }, Just item ) ->
+                        case sort of
+                            Container Empty ->
+                                identity
+
+                            Container _ ->
+                                Dict.update (item |> Item.toInt)
+                                    (\maybeInt ->
+                                        case maybeInt of
+                                            Just int ->
+                                                Just (int + 1 + value)
+
+                                            Nothing ->
+                                                Just (1 + value)
+                                    )
+
+                            _ ->
+                                identity
+
+                    _ ->
+                        identity
+            )
+            Dict.empty
+        >> Dict.toList
+        >> List.map (Tuple.mapFirst Item.fromInt)
 
 
 solveConflict : BuildingType -> Neighborhood -> Item -> { item : Item, value : Int } -> Bool
@@ -31,8 +70,11 @@ solveConflict sort neigh =
         Mine ->
             Mine.canStore neigh
 
-        Container ->
+        Container _ ->
             Container.canStore neigh
+
+        Merger ->
+            Merger.canStore neigh
 
 
 updateBuilding : BuildingType -> ({ value : Int, item : Maybe Item } -> Neighborhood -> Map.Command)
@@ -47,8 +89,11 @@ updateBuilding sort =
         Mine ->
             Mine.update
 
-        Container ->
-            always <| Container.update
+        Container bool ->
+            Container.update bool
+
+        Merger ->
+            always <| Merger.update
 
 
 newBuilding : Maybe Item -> BuildingType -> Square
@@ -58,7 +103,7 @@ newBuilding maybeItem buildingType =
         value =
             case buildingType of
                 Building.Mine ->
-                    128
+                    mineVolume
 
                 _ ->
                     0
@@ -68,7 +113,7 @@ newBuilding maybeItem buildingType =
 
 emptySquare : Maybe Item -> Square
 emptySquare maybeItem =
-    ( GroundSquare Empty, maybeItem )
+    ( GroundSquare Dirt, maybeItem )
 
 
 getBuildingType : Square -> Maybe BuildingType
@@ -117,26 +162,46 @@ isValidMinePos neigh =
             )
 
 
-isValid : GUI.Tool -> Position -> Map -> Bool
+isValid : ToolSelection -> Position -> Map -> Bool
 isValid selected position map =
     case map |> Neighborhood.fromPosition position of
         Ok ( Just square, neigh ) ->
-            case square of
-                ( GroundSquare Empty, _ ) ->
-                    if selected == GUI.Mine then
-                        False
+            case ( selected, square ) of
+                ( View.Delete, ( GroundSquare _, _ ) ) ->
+                    False
+
+                ( View.Bag Nothing, ( GroundSquare _, Just _ ) ) ->
+                    True
+
+                ( View.Bag Nothing, ( GroundSquare _, Nothing ) ) ->
+                    False
+
+                ( View.Bag (Just _), ( GroundSquare _, _ ) ) ->
+                    False
+
+                ( View.Mine, ( GroundSquare Dirt, _ ) ) ->
+                    False
+
+                ( _, ( GroundSquare Dirt, _ ) ) ->
+                    True
+
+                ( View.Mine, ( GroundSquare Mountain, _ ) ) ->
+                    neigh |> isValidMinePos
+
+                ( _, ( GroundSquare Mountain, _ ) ) ->
+                    False
+
+                ( View.Delete, ( BuildingSquare { sort }, _ ) ) ->
+                    sort |> Building.canBreak
+
+                ( View.Bag (Just a), ( BuildingSquare { sort, value }, Just b ) ) ->
+                    if solveConflict sort (neigh |> Neighborhood.map (Maybe.andThen getBuildingType)) a { item = b, value = value } then
+                        sort |> Building.isInput
 
                     else
-                        True
-
-                ( GroundSquare Mountain, _ ) ->
-                    if selected == GUI.Mine then
-                        isValidMinePos neigh
-
-                    else
                         False
 
-                _ ->
+                ( _, _ ) ->
                     False
 
         _ ->

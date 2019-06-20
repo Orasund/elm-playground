@@ -1,7 +1,8 @@
 module AsteroidMiner.Building.ColoredConveyorBelt exposing (canStore, update)
 
 import AsteroidMiner.Building as Building exposing (BeltColor, BuildingType(..), Code(..))
-import AsteroidMiner.Data.Map exposing (Command, Item, Neighborhood)
+import AsteroidMiner.Data.Item exposing (Item)
+import AsteroidMiner.Data.Map exposing (Command, Neighborhood)
 import AsteroidMiner.Lib.Command as Command
 import AsteroidMiner.Lib.Neighborhood as Neighborhood
 import Grid.Direction as Direction exposing (Direction(..))

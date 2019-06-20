@@ -62,7 +62,7 @@ send pos maybeItem { lookUp, canStore } ({ value } as building) direction m =
                     (always <|
                         Ok <|
                             Just <|
-                                ( BuildingSquare { b | value = value + 1 }, Just newC )
+                                ( BuildingSquare { b | value = b.value + 1 }, Just newC )
                     )
 
             else
@@ -122,7 +122,7 @@ apply command pos ( squareType, maybeItem ) ({ empty } as config) =
                 always <|
                     Ok <|
                         Just <|
-                            ( BuildingSquare { building | sort = sort, value = 0 }
+                            ( BuildingSquare { building | sort = sort }
                             , maybeItem
                             )
 

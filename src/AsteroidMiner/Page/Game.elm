@@ -1,14 +1,16 @@
 module AsteroidMiner.Page.Game exposing (Model, Msg(..), areas, init, subscriptions, update)
 
 import Action exposing (Action)
-import AsteroidMiner.Building as Building exposing (BuildingType(..))
+import AsteroidMiner.Building as Building exposing (BuildingType(..), Code(..), Volume(..))
 import AsteroidMiner.Data exposing (fps, size, spriteSize)
 import AsteroidMiner.Data.Comet as Comet exposing (Comet)
 import AsteroidMiner.Data.Game as Game exposing (Game)
-import AsteroidMiner.Data.Map as Game exposing (GroundType(..), Item(..), Map, Square)
+import AsteroidMiner.Data.Item exposing (Item(..))
+import AsteroidMiner.Data.Map as Game exposing (GroundType(..), Map, Square)
 import AsteroidMiner.Lib.Command as Command exposing (idle)
 import AsteroidMiner.Lib.Map as Map exposing (SquareType(..))
 import AsteroidMiner.Lib.Neighborhood as Neighborhood
+import AsteroidMiner.View as View exposing (ToolSelection(..))
 import AsteroidMiner.View.GUI as GUI
 import AsteroidMiner.View.Map as Map
 import AsteroidMiner.View.Tileset as Tileset exposing (tileset)
@@ -72,11 +74,11 @@ init oldSeed =
                 (\( x, y ) ->
                     if (x - center) ^ 2 + (y - center) ^ 2 <= 8 ^ 2 then
                         Just <|
-                            if abs (x + y - center * 2) < 5 then
+                            if (x + 1 - center) ^ 2 + (y - 1 - center) ^ 2 <= 6 ^ 2 then
                                 ( GroundSquare <| Mountain, Nothing )
 
                             else
-                                ( GroundSquare <| Empty, Nothing )
+                                ( GroundSquare <| Dirt, Nothing )
 
                     else
                         Nothing
@@ -89,6 +91,7 @@ init oldSeed =
         game =
             { comet = comet
             , map = map
+            , bag = Nothing
             }
     in
     ( { game = game
@@ -117,7 +120,7 @@ timePassed ({ game } as model) =
                     , map =
                         game.map
                             |> Map.update
-                                { empty = Empty
+                                { empty = Dirt
                                 , update =
                                     \pos ->
                                         case Neighborhood.fromPosition pos game.map of
@@ -160,12 +163,11 @@ deleteSqaure pos ({ game } as model) =
         updateFun maybeElem =
             case maybeElem of
                 Just ( BuildingSquare building, maybeItem ) ->
-                    case building.sort of
-                        Mine ->
-                            Err ()
+                    if building.sort |> Building.canBreak then
+                        Ok <| Just <| Game.emptySquare maybeItem
 
-                        _ ->
-                            Ok <| Just <| Game.emptySquare maybeItem
+                    else
+                        Err ()
 
                 _ ->
                     Err ()
@@ -184,7 +186,7 @@ deleteSqaure pos ({ game } as model) =
 
 
 placeSquare : BuildingType -> Position -> Model -> GameAction
-placeSquare _ position ({ game, gui } as model) =
+placeSquare building position ({ game } as model) =
     let
         defaultCase : GameAction
         defaultCase =
@@ -206,22 +208,10 @@ placeSquare _ position ({ game, gui } as model) =
 
                 Nothing ->
                     Err ()
-
-        updateMap : Map -> Result Error Map
-        updateMap map =
-            if Game.isValid gui.selected position map then
-                gui.selected
-                    |> Building.toolToBuilding
-                    |> Maybe.map
-                        (\b -> map |> Grid.update position (updateSquare b))
-                    |> Maybe.withDefault (Err NotSuccessful)
-
-            else
-                Err NotSuccessful
     in
     case game.map |> Neighborhood.fromPosition position of
         Ok ( Just _, _ ) ->
-            case game.map |> updateMap of
+            case game.map |> Grid.update position (updateSquare building) of
                 Ok m ->
                     Action.updating
                         ( { model
@@ -237,14 +227,112 @@ placeSquare _ position ({ game, gui } as model) =
             defaultCase
 
 
+pickUpSquare : Position -> Model -> GameAction
+pickUpSquare position ({ gui, game } as model) =
+    let
+        newModel : Model
+        newModel =
+            case
+                game.map
+                    |> Grid.get position
+            of
+                Ok (Just ( square, Just item )) ->
+                    { model
+                        | game =
+                            { game
+                                | bag = Just item
+                                , map =
+                                    game.map
+                                        |> Grid.ignoringErrors
+                                            (Grid.update position
+                                                (always <|
+                                                    Ok <|
+                                                        Just <|
+                                                            ( square, Nothing )
+                                                )
+                                            )
+                            }
+                        , gui = gui |> GUI.select (Bag <| Just <| item)
+                    }
+
+                _ ->
+                    model
+    in
+    Action.updating
+        ( newModel
+        , Cmd.none
+        )
+
+
+insertItem : Item -> Position -> Model -> GameAction
+insertItem item position ({ gui, game } as model) =
+    let
+        newModel : Model
+        newModel =
+            case
+                game.map
+                    |> Grid.get position
+            of
+                Ok (Just ( BuildingSquare ({ value } as b), Just i )) ->
+                    if i == item then
+                        { model
+                            | game =
+                                { game
+                                    | bag = Nothing
+                                    , map =
+                                        game.map
+                                            |> Grid.ignoringErrors
+                                                (Grid.update position
+                                                    (always <|
+                                                        Ok <|
+                                                            Just <|
+                                                                ( BuildingSquare { b | value = b.value + 1 }, Just i )
+                                                    )
+                                                )
+                                }
+                            , gui = gui |> GUI.select (Bag <| Nothing)
+                        }
+
+                    else
+                        model
+
+                _ ->
+                    model
+    in
+    Action.updating
+        ( newModel
+        , Cmd.none
+        )
+
+
 squareClicked : Position -> Model -> GameAction
 squareClicked position ({ gui } as model) =
-    case gui.selected |> Building.toolToBuilding of
-        Just tool ->
+    let
+        build : BuildingType -> GameAction
+        build tool =
             placeSquare tool position model
-
-        Nothing ->
+    in
+    case gui.selected of
+        View.Delete ->
             deleteSqaure position model
+
+        View.Bag Nothing ->
+            pickUpSquare position model
+
+        View.Bag (Just item) ->
+            insertItem item position model
+
+        View.Mine ->
+            Building.Mine |> build
+
+        View.ConveyorBelt ->
+            Building.ConveyorBelt Invalid |> build
+
+        View.Container ->
+            Building.Container Empty |> build
+
+        View.Merger ->
+            Building.Merger |> build
 
 
 update : Msg -> Model -> GameAction
@@ -294,7 +382,7 @@ viewComet comet =
 areas : Model -> List (Area Msg)
 areas { game, gui } =
     let
-        { map, comet } =
+        { map, comet, bag } =
             game
     in
     [ PixelEngine.tiledArea
@@ -310,7 +398,8 @@ areas { game, gui } =
       <|
         List.concat
             [ Map.view { onClick = SquareClicked, selected = gui.selected } map
-            , [ viewComet comet ]
+
+            --, [ viewComet comet ]
             ]
     , PixelEngine.imageArea
         { height = 3 * spriteSize
@@ -318,6 +407,6 @@ areas { game, gui } =
             PixelEngine.colorBackground <|
                 Color.rgb255 20 12 28
         }
-        (GUI.view gui)
+        (GUI.view bag (map |> Game.takeInventoryOfMap) gui)
         |> PixelEngine.mapArea GuiSpecific
     ]

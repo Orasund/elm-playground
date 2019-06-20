@@ -3,7 +3,10 @@ module AsteroidMiner.View.Tileset exposing
     , comet
     , container
     , conveyorBelt
+    , font
     , ground
+    , itemBackground
+    , merger
     , mine
     , mountain
     , oreGround
@@ -12,10 +15,19 @@ module AsteroidMiner.View.Tileset exposing
     , valid
     )
 
-import AsteroidMiner.Building exposing (BeltColor(..), Code(..))
+import AsteroidMiner.Building exposing (BeltColor(..), Code(..), Volume(..))
 import Grid.Direction exposing (Direction(..))
 import Grid.Position as Position exposing (Coord, Position)
 import PixelEngine.Tile as Tile exposing (Tile, Tileset)
+
+
+font : Tileset
+font =
+    Tile.tileset
+        { source = "Expire8x8.png"
+        , spriteWidth = 8
+        , spriteHeight = 8
+        }
 
 
 tileset : Tileset
@@ -25,6 +37,7 @@ tileset =
         , spriteWidth = 8
         , spriteHeight = 8
         }
+
 
 valid : Tile msg
 valid =
@@ -71,20 +84,27 @@ conveyorBelt code =
 
         Try Blue ->
             Tile.fromPosition ( 4, 6 )
+
         Try Green ->
-                    Tile.fromPosition ( 5, 6 )
+            Tile.fromPosition ( 5, 6 )
+
         Try Red ->
-                    Tile.fromPosition ( 6, 6 )
+            Tile.fromPosition ( 6, 6 )
+
         Try Yellow ->
-                    Tile.fromPosition ( 7, 6 )
+            Tile.fromPosition ( 7, 6 )
+
         Failed Blue ->
-                    Tile.fromPosition ( 4, 7 )
+            Tile.fromPosition ( 4, 7 )
+
         Failed Green ->
-                            Tile.fromPosition ( 5, 7 )
+            Tile.fromPosition ( 5, 7 )
+
         Failed Red ->
-                            Tile.fromPosition ( 6, 7 )
+            Tile.fromPosition ( 6, 7 )
+
         Failed Yellow ->
-                            Tile.fromPosition ( 7, 7 )
+            Tile.fromPosition ( 7, 7 )
 
 
 coloredConveyorBelt : BeltColor -> Direction -> Tile msg
@@ -125,9 +145,31 @@ coloredConveyorBelt color dir =
         |> Tile.fromPosition
 
 
-container : Tile msg
-container =
-    Tile.fromPosition ( 4, 3 )
+container : Volume -> Tile msg
+container volume =
+    case volume of
+        Empty ->
+            Tile.fromPosition ( 0, 3 )
+
+        HalfEmpty ->
+            Tile.fromPosition ( 1, 3 )
+
+        HalfFull ->
+            Tile.fromPosition ( 2, 3 )
+
+        Full ->
+            Tile.fromPosition ( 3, 3 )
+
+
+merger : Tile msg
+merger =
+    Tile.fromPosition ( 4, 0 )
+        |> Tile.animated 4
+
+
+itemBackground : Tile msg
+itemBackground =
+    Tile.fromPosition ( 2, 2 )
 
 
 stone : Tile msg

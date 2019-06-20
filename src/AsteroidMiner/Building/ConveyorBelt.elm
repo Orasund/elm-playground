@@ -1,7 +1,8 @@
 module AsteroidMiner.Building.ConveyorBelt exposing (canStore, update)
 
 import AsteroidMiner.Building as Building exposing (BeltColor(..), BuildingType(..), Code(..))
-import AsteroidMiner.Data.Map exposing (Command, Item, Neighborhood)
+import AsteroidMiner.Data.Item exposing (Item)
+import AsteroidMiner.Data.Map exposing (Command, Neighborhood)
 import AsteroidMiner.Lib.Command exposing (idle, send, transition)
 import AsteroidMiner.Lib.Map exposing (SquareType(..))
 import AsteroidMiner.Lib.Neighborhood as Neighborhood
@@ -142,6 +143,9 @@ updateInvalid { friends, outputs, inputs } =
         ( 0, ( 1, 1 ) ) ->
             lastStage
 
+        ( 0, ( 1, 2 ) ) ->
+            lastStage
+
         _ ->
             defaultCase
 
@@ -249,13 +253,9 @@ updateFailedColor color enemies { friends, outputs, inputs } =
         defaultCase =
             idle
 
-        nextStage : Command
-        nextStage =
-            transition (ConveyorBelt <| Try (color |> nextColor))
-
-        skipStage : Command
-        skipStage =
-            transition (ConveyorBelt <| Try (color |> nextColor |> nextColor))
+        nextStage : BeltColor -> Command
+        nextStage c =
+            transition (ConveyorBelt <| Try c)
 
         failedStage : Command
         failedStage =
@@ -272,7 +272,7 @@ updateFailedColor color enemies { friends, outputs, inputs } =
                             >> Maybe.withDefault False
                         )
             then
-                nextStage
+                nextStage (color |> nextColor)
 
             else if
                 friends
@@ -283,7 +283,18 @@ updateFailedColor color enemies { friends, outputs, inputs } =
                             >> Maybe.withDefault False
                         )
             then
-                skipStage
+                nextStage (color |> nextColor |> nextColor)
+
+            else if
+                friends
+                    |> List.any
+                        (Tuple.second
+                            >> Maybe.map
+                                ((==) (ConveyorBelt <| Try (color |> prevColor)))
+                            >> Maybe.withDefault False
+                        )
+            then
+                nextStage (color |> prevColor)
 
             else if
                 friends
@@ -309,10 +320,10 @@ updateFailedColor color enemies { friends, outputs, inputs } =
     in
     case ( friends |> List.length, ( outputs |> List.length, inputs |> List.length ), enemies |> List.length ) of
         ( 1, ( 0, 1 ), 0 ) ->
-            nextStage
+            nextStage (color |> nextColor)
 
-        ( 0, ( 1, 1 ), _ ) ->
-            nextStage
+        ( _, ( 1, 1 ), _ ) ->
+            nextStage (color |> nextColor)
 
         ( _, _, 1 ) ->
             failedStage
@@ -387,21 +398,37 @@ updateTryColor color enemies { friends, outputs, inputs } =
 
         create : Command
         create =
-            case ( getDirection inputs, getDirection outputs ) of
-                ( Just Up, Just Down ) ->
-                    nextStage Up
+            inputs
+                |> List.foldl
+                    (\i maybe ->
+                        outputs
+                            |> List.foldl
+                                (\o m ->
+                                    if m == Nothing then
+                                        case ( i |> Tuple.first, o |> Tuple.first ) of
+                                            ( Up, Down ) ->
+                                                Just Up
 
-                ( Just Down, Just Up ) ->
-                    nextStage Down
+                                            ( Down, Up ) ->
+                                                Just Down
 
-                ( Just Left, Just Right ) ->
-                    nextStage Left
+                                            ( Left, Right ) ->
+                                                Just Left
 
-                ( Just Right, Just Left ) ->
-                    nextStage Right
+                                            ( Right, Left ) ->
+                                                Just Right
 
-                _ ->
-                    connect
+                                            _ ->
+                                                Nothing
+
+                                    else
+                                        m
+                                )
+                                maybe
+                    )
+                    Nothing
+                |> Maybe.map nextStage
+                |> Maybe.withDefault connect
     in
     if
         (friends |> List.length)
@@ -463,7 +490,10 @@ updateTryColor color enemies { friends, outputs, inputs } =
                     _ ->
                         connect
 
-            ( _, ( 1, 1 ), 0 ) ->
+            ( _, ( 1, _ ), 0 ) ->
+                create
+
+            ( _, ( _, 1 ), 0 ) ->
                 create
 
             ( _, ( 1, 1 ), _ ) ->
