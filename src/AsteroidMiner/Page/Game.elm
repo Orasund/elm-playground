@@ -109,48 +109,53 @@ init oldSeed =
 
 
 timePassed : Model -> GameAction
-timePassed ({ game } as model) =
+timePassed ({ game, seed } as model) =
+    let
+        ( ( comet, map ), newSeed ) =
+            Random.step (game.comet |> Comet.update game.map) seed
+
+        updateMap : Map -> Map
+        updateMap =
+            Map.update
+                { empty = Dirt
+                , update =
+                    \pos ->
+                        case Neighborhood.fromPosition pos game.map of
+                            Ok ( Just ( BuildingSquare { value, sort }, maybeItem ), neigh ) ->
+                                Game.updateBuilding
+                                    sort
+                                    { value = value, item = maybeItem }
+                                    (neigh
+                                        |> Neighborhood.map
+                                            (Maybe.andThen Game.getBuildingType)
+                                    )
+
+                            _ ->
+                                Command.idle
+                , canStore =
+                    \pos ->
+                        case Neighborhood.fromPosition pos game.map of
+                            Ok ( Just ( BuildingSquare { sort }, _ ), neigh ) ->
+                                always <|
+                                    Game.solveConflict
+                                        sort
+                                        (neigh
+                                            |> Neighborhood.map
+                                                (Maybe.andThen Game.getBuildingType)
+                                        )
+
+                            _ ->
+                                always <| always <| always <| False
+                }
+    in
     Action.updating
         ( { model
             | game =
                 { game
-                    | comet =
-                        game.comet
-                            |> Comet.update
-                    , map =
-                        game.map
-                            |> Map.update
-                                { empty = Dirt
-                                , update =
-                                    \pos ->
-                                        case Neighborhood.fromPosition pos game.map of
-                                            Ok ( Just ( BuildingSquare { value, sort }, maybeItem ), neigh ) ->
-                                                Game.updateBuilding
-                                                    sort
-                                                    { value = value, item = maybeItem }
-                                                    (neigh
-                                                        |> Neighborhood.map
-                                                            (Maybe.andThen Game.getBuildingType)
-                                                    )
-
-                                            _ ->
-                                                Command.idle
-                                , canStore =
-                                    \pos ->
-                                        case Neighborhood.fromPosition pos game.map of
-                                            Ok ( Just ( BuildingSquare { sort }, _ ), neigh ) ->
-                                                always <|
-                                                    Game.solveConflict
-                                                        sort
-                                                        (neigh
-                                                            |> Neighborhood.map
-                                                                (Maybe.andThen Game.getBuildingType)
-                                                        )
-
-                                            _ ->
-                                                always <| always <| always <| False
-                                }
+                    | comet = comet
+                    , map = updateMap map
                 }
+            , seed = newSeed
           }
         , Cmd.none
         )
@@ -306,11 +311,26 @@ insertItem item position ({ gui, game } as model) =
 
 
 squareClicked : Position -> Model -> GameAction
-squareClicked position ({ gui } as model) =
+squareClicked position ({ gui, game } as model) =
     let
         build : BuildingType -> GameAction
         build tool =
             placeSquare tool position model
+
+        placeFloor : GameAction
+        placeFloor =
+            Action.updating
+                ( { model
+                    | game =
+                        { game
+                            | map =
+                                game.map
+                                    |> Grid.ignoringErrors
+                                        (Grid.insert position ( GroundSquare Dirt, Nothing ))
+                        }
+                  }
+                , Cmd.none
+                )
     in
     case gui.selected of
         View.Delete ->
@@ -333,6 +353,9 @@ squareClicked position ({ gui } as model) =
 
         View.Merger ->
             Building.Merger |> build
+
+        View.Floor ->
+            placeFloor
 
 
 update : Msg -> Model -> GameAction
@@ -398,8 +421,7 @@ areas { game, gui } =
       <|
         List.concat
             [ Map.view { onClick = SquareClicked, selected = gui.selected } map
-
-            --, [ viewComet comet ]
+            , [ viewComet comet ]
             ]
     , PixelEngine.imageArea
         { height = 3 * spriteSize

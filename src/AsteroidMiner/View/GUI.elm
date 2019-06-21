@@ -94,6 +94,9 @@ viewBlueprint selected blueprint =
 
                 Merger ->
                     Tileset.merger
+
+                Floor ->
+                    Tileset.floor
     in
     if blueprint == selected then
         image
@@ -126,6 +129,9 @@ viewDesc selected =
 
                 Merger ->
                     "Merger - Takes from Containers"
+
+                Floor ->
+                    "Floor - Covers up Holes."
     in
     [ ( ( 0, (toFloat <| 2) * spriteSize ), Image.fromText text font ) ]
 
@@ -138,7 +144,7 @@ viewVersion v =
 view : Maybe Item -> List ( Item, Int ) -> Model -> List ( Location, Image Msg )
 view bag inventory ({ selected } as model) =
     List.concat
-        [ [ Mine, ConveyorBelt, Container, Bag bag, Delete, Merger ]
+        [ [ Mine, ConveyorBelt, Container, Bag bag, Delete, Merger, Floor ]
             |> List.map (viewBlueprint selected)
             |> viewList
         , viewDesc selected

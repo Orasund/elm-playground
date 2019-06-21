@@ -85,15 +85,21 @@ view : { onClick : Position -> msg, selected : ToolSelection } -> Map -> List ( 
 view { onClick, selected } map =
     map
         |> Grid.map
-            (\pos ->
-                Maybe.map <|
-                    viewSquare
-                        { position = pos
-                        , onClick = onClick
-                        , valid =
-                            case selected of
-                                _ ->
-                                    Just <| Game.isValid selected pos map
-                        }
+            (\pos maybeSquare ->
+                case ( maybeSquare, Game.isValid selected pos map ) of
+                    ( Just square, valid ) ->
+                        square
+                            |> viewSquare
+                                { position = pos
+                                , onClick = onClick
+                                , valid = Just valid
+                                }
+                            |> Just
+
+                    ( Nothing, True ) ->
+                        Just (Tileset.valid |> Tile.clickable (onClick pos))
+
+                    _ ->
+                        Nothing
             )
         >> Grid.toList

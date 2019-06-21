@@ -11,6 +11,11 @@ version =
     "v0.2"
 
 
+floorCosts : Int
+floorCosts =
+    512
+
+
 mineVolume : Int
 mineVolume =
     128

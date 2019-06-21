@@ -2,6 +2,7 @@ module AsteroidMiner.View.Tileset.Big exposing
     ( container
     , conveyorBelt
     , delete
+    , floor
     , merger
     , mine
     , pickUp
@@ -129,6 +130,20 @@ merger =
         Tile.multipleTiles
             [ defaultImage
             , Tile.fromPosition ( 2, 5 )
+            ]
+            |> toImage
+    }
+
+
+floor : { image : Image msg, symobl : Image msg }
+floor =
+    { image =
+        Tile.fromPosition ( 1, 6 )
+            |> toImage
+    , symobl =
+        Tile.multipleTiles
+            [ defaultImage
+            , Tile.fromPosition ( 1, 7 )
             ]
             |> toImage
     }

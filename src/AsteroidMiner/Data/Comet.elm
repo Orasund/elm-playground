@@ -1,8 +1,11 @@
 module AsteroidMiner.Data.Comet exposing (Comet, new, position, update)
 
 import AsteroidMiner.Data exposing (framesPerComet, size)
+import AsteroidMiner.Data.Map exposing (Map)
+import Grid.Bordered as Grid
 import Grid.Position as Position exposing (Coord, Position)
 import Location exposing (Angle(..))
+import Random exposing (Generator)
 
 
 type alias Comet =
@@ -21,8 +24,8 @@ new angle =
 {-| Conchosprial
 <https://en.wikipedia.org/wiki/Conchospiral>
 -}
-asteroidCoord : Int -> Coord
-asteroidCoord cyclesUntilComet =
+asteroidCoord : Int -> Angle -> Coord
+asteroidCoord cyclesUntilComet (Angle offset) =
     let
         t : Float
         t =
@@ -30,7 +33,7 @@ asteroidCoord cyclesUntilComet =
 
         maximalCycles : Float
         maximalCycles =
-            1
+            2
 
         --16
         maximalRadius : Float
@@ -45,7 +48,7 @@ asteroidCoord cyclesUntilComet =
         --Slope
         c : Float
         c =
-            10
+            1
 
         --opening Angle
         --we need angle = logBase mu (c*framesPerComet)= 2*pi*maximalCycles
@@ -63,7 +66,7 @@ asteroidCoord cyclesUntilComet =
 
         angle : Float
         angle =
-            logBase mu (c * t)
+            offset + logBase mu (c * t)
 
         ( x, y ) =
             fromPolar ( radius, angle )
@@ -104,22 +107,58 @@ asteroidCoord cyclesUntilComet =
 
 
 position : Comet -> Position
-position { life } =
+position { offset, life } =
     let
         center : Int
         center =
             size // 2
     in
     ( center, center )
-        |> Position.add (asteroidCoord life)
+        |> Position.add (asteroidCoord life offset)
 
 
-update : Comet -> Comet
-update ({ life } as comet) =
-    if life > 1 then
-        { comet
-            | life = life - 1
-        }
+update : Map -> Comet -> Generator ( Comet, Map )
+update map ({ life } as comet) =
+    let
+        ( x, y ) =
+            comet |> position
 
-    else
-        comet
+        defaultCase : Generator ( Comet, Map )
+        defaultCase =
+            Random.constant
+                ( if life > 1 then
+                    { comet
+                        | life = life - 1
+                    }
+
+                  else
+                    comet
+                , map
+                )
+
+        impactCase : Generator ( Comet, Map )
+        impactCase =
+            map
+                |> Grid.remove ( x, y )
+                |> Result.andThen (Grid.remove ( x + 1, y ))
+                |> Result.andThen (Grid.remove ( x - 1, y ))
+                |> Result.andThen (Grid.remove ( x, y + 1 ))
+                |> Result.andThen (Grid.remove ( x, y - 1 ))
+                |> Result.map
+                    (\m ->
+                        Random.map
+                            (\float ->
+                                ( new (Angle float)
+                                , m
+                                )
+                            )
+                            (Random.float 0 (2 * pi))
+                    )
+                |> Result.withDefault defaultCase
+    in
+    case map |> Grid.get ( x, y ) of
+        Ok (Just _) ->
+            impactCase
+
+        _ ->
+            defaultCase

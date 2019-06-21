@@ -1,5 +1,6 @@
 module AsteroidMiner.View.Tileset exposing
-    ( coloredConveyorBelt
+    ( background
+    , coloredConveyorBelt
     , comet
     , container
     , conveyorBelt
@@ -37,6 +38,11 @@ tileset =
         , spriteWidth = 8
         , spriteHeight = 8
         }
+
+
+background : Tile msg
+background =
+    Tile.fromPosition ( 0, 0 )
 
 
 valid : Tile msg

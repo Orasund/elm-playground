@@ -167,6 +167,9 @@ isValid selected position map =
     case map |> Neighborhood.fromPosition position of
         Ok ( Just square, neigh ) ->
             case ( selected, square ) of
+                ( View.Floor, _ ) ->
+                    False
+
                 ( View.Delete, ( GroundSquare _, _ ) ) ->
                     False
 
@@ -203,6 +206,13 @@ isValid selected position map =
 
                 ( _, _ ) ->
                     False
+
+        Ok ( Nothing, neigh ) ->
+            (selected == View.Floor)
+                && (neigh
+                        |> Neighborhood.toList
+                        |> List.any (Tuple.second >> (/=) Nothing)
+                   )
 
         _ ->
             False
