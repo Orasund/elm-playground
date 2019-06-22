@@ -1,6 +1,6 @@
 module AsteroidMiner.View.GUI exposing (Model, Msg, init, select, toDefault, update, view)
 
-import AsteroidMiner.Data exposing (maxValue, mineVolume, size, spriteSize, version)
+import AsteroidMiner.Data exposing (floorCosts, maxValue, mineVolume, size, spriteSize, version)
 import AsteroidMiner.Data.Item exposing (Item)
 import AsteroidMiner.View exposing (ToolSelection(..))
 import AsteroidMiner.View.Inventory as Inventory
@@ -113,7 +113,7 @@ viewDesc selected =
         text =
             case selected of
                 Mine ->
-                    "Mine - Mines " ++ String.fromInt mineVolume ++ " ores."
+                    "Mine - Mines " ++ String.fromInt mineVolume ++ " stones"
 
                 ConveyorBelt ->
                     "Conveyor Belt - Transports Items"
@@ -131,7 +131,7 @@ viewDesc selected =
                     "Merger - Takes from Containers"
 
                 Floor ->
-                    "Floor - Covers up Holes."
+                    "Floor - Costs " ++ String.fromInt floorCosts ++ " stones"
     in
     [ ( ( 0, (toFloat <| 2) * spriteSize ), Image.fromText text font ) ]
 
@@ -144,7 +144,14 @@ viewVersion v =
 view : Maybe Item -> List ( Item, Int ) -> Model -> List ( Location, Image Msg )
 view bag inventory ({ selected } as model) =
     List.concat
-        [ [ Mine, ConveyorBelt, Container, Bag bag, Delete, Merger, Floor ]
+        [ [ Mine
+          , ConveyorBelt
+          , Container
+          , Bag bag
+          , Delete
+          , Merger
+          , Floor
+          ]
             |> List.map (viewBlueprint selected)
             |> viewList
         , viewDesc selected

@@ -140,19 +140,20 @@ update map ({ life } as comet) =
         impactCase =
             map
                 |> Grid.remove ( x, y )
-                |> Result.andThen (Grid.remove ( x + 1, y ))
-                |> Result.andThen (Grid.remove ( x - 1, y ))
-                |> Result.andThen (Grid.remove ( x, y + 1 ))
-                |> Result.andThen (Grid.remove ( x, y - 1 ))
                 |> Result.map
-                    (\m ->
-                        Random.map
-                            (\float ->
-                                ( new (Angle float)
-                                , m
-                                )
-                            )
-                            (Random.float 0 (2 * pi))
+                    (Grid.ignoringErrors (Grid.remove ( x + 1, y ))
+                        >> Grid.ignoringErrors (Grid.remove ( x - 1, y ))
+                        >> Grid.ignoringErrors (Grid.remove ( x, y + 1 ))
+                        >> Grid.ignoringErrors (Grid.remove ( x, y - 1 ))
+                        >> (\m ->
+                                Random.map
+                                    (\float ->
+                                        ( new (Angle float)
+                                        , m
+                                        )
+                                    )
+                                    (Random.float 0 (2 * pi))
+                           )
                     )
                 |> Result.withDefault defaultCase
     in

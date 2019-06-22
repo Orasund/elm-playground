@@ -19,39 +19,47 @@ viewAmount { amount, i } =
     let
         base10 : Int
         base10 =
-            amount |> toFloat |> logBase 10 |> floor
+            amount |> abs |> toFloat |> logBase 10 |> floor
 
         loc : Int -> Location
         loc offset =
             ( spriteSize * (toFloat <| size - offset - 2), i |> toFloat )
 
-        ( location, text ) =
-            if base10 < 3 then
-                ( loc base10, amount |> String.fromInt )
-
-            else if base10 < 6 then
-                ( loc <| base10 - 3 + 1, (amount // 10 ^ 3 |> String.fromInt) ++ "k" )
-
-            else if base10 < 9 then
-                ( loc <| base10 - 6 + 1, (amount // 10 ^ 6 |> String.fromInt) ++ "M" )
-
-            else if base10 < 12 then
-                ( loc <| base10 - 9 + 1, (amount // 10 ^ 9 |> String.fromInt) ++ "G" )
-
-            else if base10 < 15 then
-                ( loc <| base10 - 12 + 1, (amount // 10 ^ 12 |> String.fromInt) ++ "T" )
-
-            else if base10 < 18 then
-                ( loc <| base10 - 15 + 1, (amount // 10 ^ 15 |> String.fromInt) ++ "P" )
-
-            else if base10 < 21 then
-                ( loc <| base10 - 18 + 1, (amount // 10 ^ 18 |> String.fromInt) ++ "E" )
-
-            else if base10 < 24 then
-                ( loc <| base10 - 21 + 1, (amount // 10 ^ 21 |> String.fromInt) ++ "Z" )
+        sign : Int
+        sign =
+            if amount < 0 then
+                1
 
             else
-                ( loc <| base10 - 24 + 1, (amount // 10 ^ 24 |> String.fromInt) ++ "Y" )
+                0
+
+        ( location, text ) =
+            if base10 < 3 then
+                ( loc <| base10 + sign, amount |> String.fromInt )
+
+            else if base10 < 6 then
+                ( loc <| base10 - 3 + 1 + sign, (amount // 10 ^ 3 |> String.fromInt) ++ "k" )
+
+            else if base10 < 9 then
+                ( loc <| base10 - 6 + 1 + sign, (amount // 10 ^ 6 |> String.fromInt) ++ "M" )
+
+            else if base10 < 12 then
+                ( loc <| base10 - 9 + 1 + sign, (amount // 10 ^ 9 |> String.fromInt) ++ "G" )
+
+            else if base10 < 15 then
+                ( loc <| base10 - 12 + 1 + sign, (amount // 10 ^ 12 |> String.fromInt) ++ "T" )
+
+            else if base10 < 18 then
+                ( loc <| base10 - 15 + 1 + sign, (amount // 10 ^ 15 |> String.fromInt) ++ "P" )
+
+            else if base10 < 21 then
+                ( loc <| base10 - 18 + 1 + sign, (amount // 10 ^ 18 |> String.fromInt) ++ "E" )
+
+            else if base10 < 24 then
+                ( loc <| base10 - 21 + 1 + sign, (amount // 10 ^ 21 |> String.fromInt) ++ "Z" )
+
+            else
+                ( loc <| base10 - 24 + 1 + sign, (amount // 10 ^ 24 |> String.fromInt) ++ "Y" )
     in
     ( location
     , Image.fromText text Tileset.font

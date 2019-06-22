@@ -2,10 +2,10 @@ module AsteroidMiner.Page.Game exposing (Model, Msg(..), areas, init, subscripti
 
 import Action exposing (Action)
 import AsteroidMiner.Building as Building exposing (BuildingType(..), Code(..), Volume(..))
-import AsteroidMiner.Data exposing (fps, size, spriteSize)
+import AsteroidMiner.Data exposing (floorCosts, fps, size, spriteSize)
 import AsteroidMiner.Data.Comet as Comet exposing (Comet)
 import AsteroidMiner.Data.Game as Game exposing (Game)
-import AsteroidMiner.Data.Item exposing (Item(..))
+import AsteroidMiner.Data.Item as Item exposing (Item(..))
 import AsteroidMiner.Data.Map as Game exposing (GroundType(..), Map, Square)
 import AsteroidMiner.Lib.Command as Command exposing (idle)
 import AsteroidMiner.Lib.Map as Map exposing (SquareType(..))
@@ -15,6 +15,7 @@ import AsteroidMiner.View.GUI as GUI
 import AsteroidMiner.View.Map as Map
 import AsteroidMiner.View.Tileset as Tileset exposing (tileset)
 import Color
+import Dict
 import Grid.Bordered as Grid exposing (Error(..))
 import Grid.Position exposing (Position)
 import Location exposing (Angle(..))
@@ -92,6 +93,7 @@ init oldSeed =
             { comet = comet
             , map = map
             , bag = Nothing
+            , debts = Dict.empty
             }
     in
     ( { game = game
@@ -327,6 +329,13 @@ squareClicked position ({ gui, game } as model) =
                                 game.map
                                     |> Grid.ignoringErrors
                                         (Grid.insert position ( GroundSquare Dirt, Nothing ))
+                            , debts =
+                                game.debts
+                                    |> Dict.update (Stone |> Item.toInt)
+                                        (Maybe.map ((+) floorCosts)
+                                            >> Maybe.withDefault floorCosts
+                                            >> Just
+                                        )
                         }
                   }
                 , Cmd.none
@@ -405,8 +414,12 @@ viewComet comet =
 areas : Model -> List (Area Msg)
 areas { game, gui } =
     let
-        { map, comet, bag } =
+        { map, comet, bag, debts } =
             game
+
+        inventory : List ( Item, Int )
+        inventory =
+            map |> Game.takeInventoryOfMap debts
     in
     [ PixelEngine.tiledArea
         { rows = size - 3
@@ -420,7 +433,7 @@ areas { game, gui } =
         }
       <|
         List.concat
-            [ Map.view { onClick = SquareClicked, selected = gui.selected } map
+            [ Map.view { onClick = SquareClicked, selected = gui.selected, inventory = inventory } map
             , [ viewComet comet ]
             ]
     , PixelEngine.imageArea
@@ -429,6 +442,6 @@ areas { game, gui } =
             PixelEngine.colorBackground <|
                 Color.rgb255 20 12 28
         }
-        (GUI.view bag (map |> Game.takeInventoryOfMap) gui)
+        (GUI.view bag inventory gui)
         |> PixelEngine.mapArea GuiSpecific
     ]

@@ -1,4 +1,4 @@
-module AsteroidMiner.Data exposing (fps, framesPerComet, maxValue, mineVolume, size, spriteSize, version)
+module AsteroidMiner.Data exposing (floorCosts, fps, framesPerComet, maxValue, mineVolume, size, spriteSize, version)
 
 
 fps : Float

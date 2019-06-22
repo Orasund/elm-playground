@@ -13,7 +13,7 @@ import AsteroidMiner.Data.Map as Map exposing (GroundType(..), Map, Neighborhood
 import AsteroidMiner.Lib.Map as Map exposing (SquareType(..))
 import AsteroidMiner.Lib.Neighborhood as Neighborhood
 import AsteroidMiner.View as View exposing (ToolSelection)
-import Dict
+import Dict exposing (Dict)
 import Grid.Bordered as Grid
 import Grid.Position exposing (Position)
 
@@ -22,11 +22,12 @@ type alias Game =
     { comet : Comet
     , map : Map
     , bag : Maybe Item
+    , debts : Dict Int Int
     }
 
 
-takeInventoryOfMap : Map -> List ( Item, Int )
-takeInventoryOfMap =
+takeInventoryOfMap : Dict Int Int -> Map -> List ( Item, Int )
+takeInventoryOfMap dict =
     Grid.values
         >> List.foldl
             (\square ->
@@ -54,6 +55,16 @@ takeInventoryOfMap =
                         identity
             )
             Dict.empty
+        >> (\d ->
+                Dict.merge Dict.insert
+                    (\pos a b ->
+                        Dict.insert pos (Debug.log "balance" (a - b))
+                    )
+                    (\pos a -> Dict.insert pos -a)
+                    d
+                    dict
+                    Dict.empty
+           )
         >> Dict.toList
         >> List.map (Tuple.mapFirst Item.fromInt)
 
