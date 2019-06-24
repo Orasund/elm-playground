@@ -8,7 +8,7 @@ fps =
 
 version : String
 version =
-    "v0.2"
+    "v0.3"
 
 
 floorCosts : Int

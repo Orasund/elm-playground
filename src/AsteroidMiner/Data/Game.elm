@@ -26,7 +26,7 @@ type alias Game =
     }
 
 
-takeInventoryOfMap : Dict Int Int -> Map -> List ( Item, Int )
+takeInventoryOfMap : Dict Int Int -> Map -> Dict Int Int
 takeInventoryOfMap dict =
     Grid.values
         >> List.foldl
@@ -65,8 +65,6 @@ takeInventoryOfMap dict =
                     dict
                     Dict.empty
            )
-        >> Dict.toList
-        >> List.map (Tuple.mapFirst Item.fromInt)
 
 
 solveConflict : BuildingType -> Neighborhood -> Item -> { item : Item, value : Int } -> Bool

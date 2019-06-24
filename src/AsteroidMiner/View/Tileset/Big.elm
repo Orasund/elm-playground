@@ -3,9 +3,11 @@ module AsteroidMiner.View.Tileset.Big exposing
     , conveyorBelt
     , delete
     , floor
+    , gameMenuButton
     , merger
     , mine
     , pickUp
+    , tutorialMenuButton
     )
 
 import AsteroidMiner.Data exposing (spriteSize)
@@ -147,3 +149,21 @@ floor =
             ]
             |> toImage
     }
+
+
+gameMenuButton : Image msg
+gameMenuButton =
+    Tile.multipleTiles
+        [ defaultImage
+        , Tile.fromPosition ( 4, 5 )
+        ]
+        |> toImage
+
+
+tutorialMenuButton : Image msg
+tutorialMenuButton =
+    Tile.multipleTiles
+        [ defaultImage
+        , Tile.fromPosition ( 5, 5 )
+        ]
+        |> toImage

@@ -15,7 +15,7 @@ import AsteroidMiner.View.GUI as GUI
 import AsteroidMiner.View.Map as Map
 import AsteroidMiner.View.Tileset as Tileset exposing (tileset)
 import Color
-import Dict
+import Dict exposing (Dict)
 import Grid.Bordered as Grid exposing (Error(..))
 import Grid.Position exposing (Position)
 import Location exposing (Angle(..))
@@ -35,6 +35,7 @@ type alias Model =
     { game : Game
     , seed : Seed
     , gui : GUI.Model
+    , inventory : Dict Int Int
     }
 
 
@@ -99,6 +100,7 @@ init oldSeed =
     ( { game = game
       , seed = seed
       , gui = GUI.init
+      , inventory = Dict.empty
       }
     , Cmd.none
     )
@@ -149,15 +151,19 @@ timePassed ({ game, seed } as model) =
                             _ ->
                                 always <| always <| always <| False
                 }
+
+        newGame : Game
+        newGame =
+            { game
+                | comet = comet
+                , map = updateMap map
+            }
     in
     Action.updating
         ( { model
-            | game =
-                { game
-                    | comet = comet
-                    , map = updateMap map
-                }
+            | game = newGame
             , seed = newSeed
+            , inventory = newGame.map |> Game.takeInventoryOfMap game.debts
           }
         , Cmd.none
         )
@@ -412,14 +418,15 @@ viewComet comet =
 
 
 areas : Model -> List (Area Msg)
-areas { game, gui } =
+areas ({ game, gui } as model) =
     let
         { map, comet, bag, debts } =
             game
 
-        inventory : List ( Item, Int )
         inventory =
-            map |> Game.takeInventoryOfMap debts
+            model.inventory
+                |> Dict.toList
+                |> List.map (Tuple.mapFirst Item.fromInt)
     in
     [ PixelEngine.tiledArea
         { rows = size - 3
@@ -433,7 +440,12 @@ areas { game, gui } =
         }
       <|
         List.concat
-            [ Map.view { onClick = SquareClicked, selected = gui.selected, inventory = inventory } map
+            [ Map.view
+                { onClick = SquareClicked
+                , selected = gui.selected
+                , inventory = inventory
+                }
+                map
             , [ viewComet comet ]
             ]
     , PixelEngine.imageArea

@@ -4,7 +4,10 @@ import Action exposing (Action)
 import AsteroidMiner.Building exposing (BuildingType(..))
 import AsteroidMiner.Data exposing (fps, size, spriteSize)
 import AsteroidMiner.Lib.Map exposing (SquareType(..))
+import AsteroidMiner.Page as Page exposing (GameMode(..))
 import AsteroidMiner.Page.Game as Game
+import AsteroidMiner.Page.Menu as Menu
+import AsteroidMiner.Page.Tutorial as Tutorial
 import Location exposing (Angle(..))
 import PixelEngine exposing (Area, Input(..), PixelEngine, gameWithNoControls)
 import PixelEngine.Options as Options exposing (Options)
@@ -19,7 +22,9 @@ import Random exposing (Seed)
 
 type Model
     = Loading
+    | Menu Menu.Model
     | Game Game.Model
+    | Tutorial Tutorial.Model
 
 
 type LoadingMsg
@@ -28,6 +33,8 @@ type LoadingMsg
 
 type Msg
     = GameSpecific Game.Msg
+    | TutorialSpecific Tutorial.Msg
+    | MenuSpecific Menu.Msg
     | LoadingSpecific LoadingMsg
 
 
@@ -67,7 +74,29 @@ update msg model =
         ( LoadingSpecific loadingMsg, Loading ) ->
             updateLoading loadingMsg
                 |> Action.config
-                |> Action.withTransition Game.init Game never
+                |> Action.withTransition Menu.init Menu never
+                |> Action.apply
+
+        ( MenuSpecific menuMsg, Menu menuModel ) ->
+            Menu.update menuMsg menuModel
+                |> Action.config
+                |> Action.withCustomTransition
+                    (\data ->
+                        case data of
+                            Page.Game seed ->
+                                let
+                                    ( m, _ ) =
+                                        Game.init seed
+                                in
+                                ( Game m, Cmd.none )
+
+                            Page.Tutorial seed ->
+                                let
+                                    ( m, _ ) =
+                                        Tutorial.init 1 seed
+                                in
+                                ( Tutorial m, Cmd.none )
+                    )
                 |> Action.apply
 
         ( GameSpecific gameMsg, Game gameModel ) ->
@@ -75,6 +104,13 @@ update msg model =
                 |> Action.config
                 |> Action.withExit (init ())
                 |> Action.withUpdate Game never
+                |> Action.apply
+
+        ( TutorialSpecific tutorialMsg, Tutorial tutorialModel ) ->
+            Tutorial.update tutorialMsg tutorialModel
+                |> Action.config
+                |> Action.withExit (init ())
+                |> Action.withUpdate Tutorial never
                 |> Action.apply
 
         _ ->
@@ -93,10 +129,18 @@ subscriptions model =
         Loading ->
             Sub.none
 
+        Menu menuModel ->
+            Sub.none
+
         Game gameModel ->
             gameModel
                 |> Game.subscriptions
                 |> Sub.map GameSpecific
+
+        Tutorial tutorialModel ->
+            tutorialModel
+                |> Tutorial.subscriptions
+                |> Sub.map TutorialSpecific
 
 
 
@@ -120,9 +164,17 @@ view model =
             Loading ->
                 []
 
+            Menu menuModel ->
+                Menu.areas menuModel
+                    |> List.map (PixelEngine.mapArea MenuSpecific)
+
             Game gameModel ->
                 Game.areas gameModel
                     |> List.map (PixelEngine.mapArea GameSpecific)
+
+            Tutorial tutorialModel ->
+                Tutorial.areas tutorialModel
+                    |> List.map (PixelEngine.mapArea TutorialSpecific)
     }
 
 
