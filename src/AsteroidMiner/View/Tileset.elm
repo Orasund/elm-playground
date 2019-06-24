@@ -11,6 +11,7 @@ module AsteroidMiner.View.Tileset exposing
     , mine
     , mountain
     , oreGround
+    , sorter
     , stone
     , tileset
     , valid
@@ -170,6 +171,12 @@ container volume =
 merger : Tile msg
 merger =
     Tile.fromPosition ( 4, 0 )
+        |> Tile.animated 4
+
+
+sorter : Tile msg
+sorter =
+    Tile.fromPosition ( 4, 1 )
         |> Tile.animated 4
 
 

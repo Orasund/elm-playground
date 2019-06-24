@@ -8,6 +8,7 @@ type ToolSelection
     | ConveyorBelt
     | Container
     | Merger
+    | Sorter
     | Floor
     | Delete
     | Bag (Maybe Item)

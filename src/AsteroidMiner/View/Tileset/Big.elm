@@ -7,6 +7,7 @@ module AsteroidMiner.View.Tileset.Big exposing
     , merger
     , mine
     , pickUp
+    , sorter
     , tutorialMenuButton
     )
 
@@ -132,6 +133,20 @@ merger =
         Tile.multipleTiles
             [ defaultImage
             , Tile.fromPosition ( 2, 5 )
+            ]
+            |> toImage
+    }
+
+
+sorter : { image : Image msg, symobl : Image msg }
+sorter =
+    { image =
+        Tile.fromPosition ( 3, 4 )
+            |> toImage
+    , symobl =
+        Tile.multipleTiles
+            [ defaultImage
+            , Tile.fromPosition ( 3, 5 )
             ]
             |> toImage
     }

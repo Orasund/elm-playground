@@ -37,6 +37,7 @@ type BuildingType
     | ColoredConveyorBelt BeltColor Direction
     | Container Volume
     | Merger
+    | Sorter
 
 
 isOutput : BuildingType -> Bool
@@ -56,6 +57,9 @@ isInput : BuildingType -> Bool
 isInput sort =
     case sort of
         Container _ ->
+            True
+
+        Sorter ->
             True
 
         _ ->

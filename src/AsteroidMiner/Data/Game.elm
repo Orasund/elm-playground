@@ -6,6 +6,7 @@ import AsteroidMiner.Building.Container as Container
 import AsteroidMiner.Building.ConveyorBelt as ConveyorBelt
 import AsteroidMiner.Building.Merger as Merger
 import AsteroidMiner.Building.Mine as Mine
+import AsteroidMiner.Building.Sorter as Sorter
 import AsteroidMiner.Data exposing (mineVolume)
 import AsteroidMiner.Data.Comet exposing (Comet)
 import AsteroidMiner.Data.Item as Item exposing (Item)
@@ -85,6 +86,9 @@ solveConflict sort neigh =
         Merger ->
             Merger.canStore neigh
 
+        Sorter ->
+            Sorter.canStore neigh
+
 
 updateBuilding : BuildingType -> ({ value : Int, item : Maybe Item } -> Neighborhood -> Map.Command)
 updateBuilding sort =
@@ -103,6 +107,9 @@ updateBuilding sort =
 
         Merger ->
             always <| Merger.update
+
+        Sorter ->
+            always <| Sorter.update
 
 
 newBuilding : Maybe Item -> BuildingType -> Square

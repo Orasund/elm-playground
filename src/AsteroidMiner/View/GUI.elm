@@ -60,8 +60,7 @@ viewList list =
         |> List.indexedMap
             (\i image ->
                 ( ( center
-                        - spriteSize
-                        - (length * spriteSize / 2)
+                        - (length * spriteSize)
                         + (toFloat i * spriteSize * 2)
                   , 0
                   )
@@ -94,6 +93,9 @@ viewBlueprint selected blueprint =
 
                 Merger ->
                     Tileset.merger
+
+                Sorter ->
+                    Tileset.sorter
 
                 Floor ->
                     Tileset.floor
@@ -130,31 +132,31 @@ viewDesc selected =
                 Merger ->
                     "Merger - Takes from Containers"
 
+                Sorter ->
+                    "Sorter - Sorts into Containers"
+
                 Floor ->
                     "Floor - Costs " ++ String.fromInt floorCosts ++ " stones"
     in
     [ ( ( 0, (toFloat <| 2) * spriteSize ), Image.fromText text font ) ]
 
-
-viewVersion : String -> List ( Location, Image Msg )
-viewVersion v =
-    [ ( ( 0, 0 ), Image.fromText v font ) ]
-
-
 view : Maybe Item -> List ( Item, Int ) -> Model -> List ( Location, Image Msg )
 view bag inventory ({ selected } as model) =
     List.concat
-        [ [ Mine
+        [ [ Bag bag
+          , Mine
           , ConveyorBelt
           , Container
-          , Bag bag
-          , Delete
           , Merger
-          , Floor
+                              , Sorter
+                    , Floor
+          , Delete
+
+
+
           ]
             |> List.map (viewBlueprint selected)
             |> viewList
         , viewDesc selected
         , Inventory.view inventory
-        , viewVersion version
         ]

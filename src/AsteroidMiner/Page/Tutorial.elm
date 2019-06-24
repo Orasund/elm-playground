@@ -28,7 +28,7 @@ type alias TutorialAction =
 
 maxTutorial : Int
 maxTutorial =
-    3
+    4
 
 
 tutorial : Int -> Game -> Game
@@ -78,7 +78,7 @@ tutorial num game =
             , ( ( 23, 12 ), Container Empty |> Game.newBuilding Nothing )
             ]
 
-        _ ->
+        3 ->
             [ ( ( 20, 14 ), Mine |> Game.newBuilding (Just Stone) )
             , ( ( 21, 14 ), ConveyorBelt Invalid |> Game.newBuilding Nothing )
             , ( ( 22, 14 ), Container Empty |> Game.newBuilding Nothing )
@@ -107,6 +107,9 @@ tutorial num game =
             , ( ( 20, 12 ), Container Empty |> Game.newBuilding Nothing )
             , ( ( 22, 12 ), ConveyorBelt Invalid |> Game.newBuilding Nothing )
             ]
+
+        _ ->
+            []
     )
         |> List.foldl
             (\( pos, building ) ->
@@ -150,7 +153,7 @@ update msg ({ num, content } as model) =
                 inventory
                     |> Dict.get (Stone |> Item.toInt)
                     |> Maybe.withDefault 0
-                    |> (\stone -> stone >= 64 * num)
+                    |> (\stone -> stone >= 256)
             then
                 if num == maxTutorial then
                     Action.exiting

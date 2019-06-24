@@ -369,6 +369,9 @@ squareClicked position ({ gui, game } as model) =
         View.Merger ->
             Building.Merger |> build
 
+        View.Sorter ->
+            Building.Sorter |> build
+
         View.Floor ->
             placeFloor
 

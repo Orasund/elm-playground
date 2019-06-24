@@ -43,6 +43,9 @@ viewSquareType squareType =
                 Building.Merger ->
                     Tileset.merger
 
+                Building.Sorter ->
+                    Tileset.sorter
+
 
 viewItem : Item -> Tile msg
 viewItem item =

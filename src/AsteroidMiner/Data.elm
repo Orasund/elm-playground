@@ -8,7 +8,7 @@ fps =
 
 version : String
 version =
-    "v0.3"
+    "v0.4"
 
 
 floorCosts : Int
@@ -31,7 +31,7 @@ framesPerComet =
     let
         secondsPerComet : Float
         secondsPerComet =
-            10 * 60
+            5 * 60
     in
     round <| secondsPerComet * fps
 

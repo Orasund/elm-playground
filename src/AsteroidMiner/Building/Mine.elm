@@ -29,7 +29,8 @@ update { value } neigh =
 
                             else
                                 Nothing
-
+                        Just Sorter ->
+                            Just <| Command.send dir
                         _ ->
                             Nothing
                 )

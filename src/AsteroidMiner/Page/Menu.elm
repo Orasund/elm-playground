@@ -1,7 +1,7 @@
 module AsteroidMiner.Page.Menu exposing (Model, Msg(..), areas, init, update)
 
 import Action exposing (Action)
-import AsteroidMiner.Data exposing (size, spriteSize)
+import AsteroidMiner.Data exposing (size, spriteSize, version)
 import AsteroidMiner.Page exposing (GameMode(..))
 import AsteroidMiner.View.Tileset exposing (font)
 import AsteroidMiner.View.Tileset.Big as Tileset
@@ -66,6 +66,9 @@ areas model =
           )
         , ( ( spriteSize * 18, spriteSize * 23.5 )
           , Image.fromText "Tutorial" font |> Image.clickable TutorialStarted
+          )
+        , ( (0,0)
+          , Image.fromText version font
           )
         ]
     ]
