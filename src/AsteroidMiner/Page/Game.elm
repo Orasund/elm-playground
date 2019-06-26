@@ -1,7 +1,7 @@
 module AsteroidMiner.Page.Game exposing (Model, Msg, areas, init, subscriptions, update)
 
 import Action exposing (Action)
-import AsteroidMiner.Data exposing (size)
+import AsteroidMiner.Data exposing (size, winAt)
 import AsteroidMiner.Data.Map as Map exposing (GroundType(..), Map)
 import AsteroidMiner.Lib.Map exposing (SquareType(..))
 import AsteroidMiner.View.RunningGame as RunningGame exposing (Status(..))
@@ -20,7 +20,7 @@ type alias GameAction =
 
 init : Seed -> ( Model, Cmd msg )
 init seed =
-    ( RunningGame.init { map = Map.init, seed = seed, winCondition = 4000 }, Cmd.none )
+    ( RunningGame.init { map = Map.init, seed = seed, winCondition = winAt }, Cmd.none )
 
 
 type alias Msg =

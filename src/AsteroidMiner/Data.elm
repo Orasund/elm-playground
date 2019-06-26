@@ -1,4 +1,4 @@
-module AsteroidMiner.Data exposing (floorCosts, fps, framesPerComet, maxValue, mineVolume, size, spriteSize, version)
+module AsteroidMiner.Data exposing (floorCosts, fps, framesPerComet, maxValue, mineVolume, size, spriteSize, version, winAt)
 
 
 fps : Float
@@ -11,6 +11,11 @@ version =
     "v0.5"
 
 
+winAt : Int
+winAt =
+    4000
+
+
 floorCosts : Int
 floorCosts =
     500
@@ -18,7 +23,7 @@ floorCosts =
 
 mineVolume : Int
 mineVolume =
-    10--100
+    100
 
 
 maxValue : Int

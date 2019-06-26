@@ -9794,7 +9794,7 @@ var author$project$AsteroidMiner$Main$TutorialSpecific = function (a) {
 	return {$: 'TutorialSpecific', a: a};
 };
 var author$project$AsteroidMiner$Data$fps = 2;
-var author$project$AsteroidMiner$Page$Game$TimePassed = {$: 'TimePassed'};
+var author$project$AsteroidMiner$View$RunningGame$TimePassed = {$: 'TimePassed'};
 var elm$core$Basics$always = F2(
 	function (a, _n0) {
 		return a;
@@ -9994,16 +9994,17 @@ var elm$time$Time$every = F2(
 		return elm$time$Time$subscription(
 			A2(elm$time$Time$Every, interval, tagger));
 	});
-var author$project$AsteroidMiner$Page$Game$subscriptions = function (_n0) {
+var author$project$AsteroidMiner$View$RunningGame$subscriptions = function (_n0) {
 	var second = 1000;
 	return A2(
 		elm$time$Time$every,
 		second / author$project$AsteroidMiner$Data$fps,
-		elm$core$Basics$always(author$project$AsteroidMiner$Page$Game$TimePassed));
+		elm$core$Basics$always(author$project$AsteroidMiner$View$RunningGame$TimePassed));
 };
+var author$project$AsteroidMiner$Page$Game$subscriptions = author$project$AsteroidMiner$View$RunningGame$subscriptions;
 var author$project$AsteroidMiner$Page$Tutorial$subscriptions = function (_n0) {
 	var content = _n0.content;
-	return author$project$AsteroidMiner$Page$Game$subscriptions(content);
+	return author$project$AsteroidMiner$View$RunningGame$subscriptions(content);
 };
 var elm$core$Platform$Sub$none = elm$core$Platform$Sub$batch(_List_Nil);
 var author$project$AsteroidMiner$Main$subscriptions = function (model) {
@@ -10011,7 +10012,6 @@ var author$project$AsteroidMiner$Main$subscriptions = function (model) {
 		case 'Loading':
 			return elm$core$Platform$Sub$none;
 		case 'Menu':
-			var menuModel = model.a;
 			return elm$core$Platform$Sub$none;
 		case 'Game':
 			var gameModel = model.a;
@@ -10134,6 +10134,7 @@ var author$project$AsteroidMiner$Main$updateLoading = function (msg) {
 	var seed = msg.a;
 	return Orasund$elm_action$Action$transitioning(seed);
 };
+var author$project$AsteroidMiner$Data$winAt = 4000;
 var Orasund$elm_game_essentials$Grid$Bordered$Grid = function (a) {
 	return {$: 'Grid', a: a};
 };
@@ -10246,6 +10247,31 @@ var Orasund$elm_game_essentials$Grid$Bordered$fill = F2(
 			},
 			Orasund$elm_game_essentials$Grid$Bordered$empty(config));
 	});
+var author$project$AsteroidMiner$Data$Map$Dirt = {$: 'Dirt'};
+var author$project$AsteroidMiner$Data$Map$Mountain = {$: 'Mountain'};
+var author$project$AsteroidMiner$Lib$Map$GroundSquare = function (a) {
+	return {$: 'GroundSquare', a: a};
+};
+var author$project$AsteroidMiner$Data$Map$init = function () {
+	var center = (author$project$AsteroidMiner$Data$size / 2) | 0;
+	return A2(
+		Orasund$elm_game_essentials$Grid$Bordered$fill,
+		function (_n0) {
+			var x = _n0.a;
+			var y = _n0.b;
+			return (_Utils_cmp(
+				A2(elm$core$Basics$pow, x - center, 2) + A2(elm$core$Basics$pow, y - center, 2),
+				A2(elm$core$Basics$pow, 8, 2)) < 1) ? elm$core$Maybe$Just(
+				(_Utils_cmp(
+					A2(elm$core$Basics$pow, (x + 1) - center, 2) + A2(elm$core$Basics$pow, (y - 1) - center, 2),
+					A2(elm$core$Basics$pow, 6, 2)) < 1) ? _Utils_Tuple2(
+					author$project$AsteroidMiner$Lib$Map$GroundSquare(author$project$AsteroidMiner$Data$Map$Mountain),
+					elm$core$Maybe$Nothing) : _Utils_Tuple2(
+					author$project$AsteroidMiner$Lib$Map$GroundSquare(author$project$AsteroidMiner$Data$Map$Dirt),
+					elm$core$Maybe$Nothing)) : elm$core$Maybe$Nothing;
+		},
+		{columns: author$project$AsteroidMiner$Data$size, rows: author$project$AsteroidMiner$Data$size});
+}();
 var Orasund$elm_game_essentials$Location$Angle = function (a) {
 	return {$: 'Angle', a: a};
 };
@@ -10256,17 +10282,13 @@ var author$project$AsteroidMiner$Data$framesPerComet = function () {
 var author$project$AsteroidMiner$Data$Comet$new = function (angle) {
 	return {life: author$project$AsteroidMiner$Data$framesPerComet, offset: angle};
 };
-var author$project$AsteroidMiner$Data$Map$Dirt = {$: 'Dirt'};
-var author$project$AsteroidMiner$Data$Map$Mountain = {$: 'Mountain'};
-var author$project$AsteroidMiner$Lib$Map$GroundSquare = function (a) {
-	return {$: 'GroundSquare', a: a};
-};
 var author$project$AsteroidMiner$View$Bag = function (a) {
 	return {$: 'Bag', a: a};
 };
 var author$project$AsteroidMiner$View$GUI$init = {
 	selected: author$project$AsteroidMiner$View$Bag(elm$core$Maybe$Nothing)
 };
+var author$project$AsteroidMiner$View$RunningGame$Running = {$: 'Running'};
 var elm$core$Basics$pi = _Basics_pi;
 var elm$core$Basics$abs = function (n) {
 	return (n < 0) ? (-n) : n;
@@ -10288,46 +10310,46 @@ var elm$random$Random$float = F2(
 					elm$random$Random$next(seed1));
 			});
 	});
-var author$project$AsteroidMiner$Page$Game$init = function (oldSeed) {
-	var center = (author$project$AsteroidMiner$Data$size / 2) | 0;
-	var map = A2(
-		Orasund$elm_game_essentials$Grid$Bordered$fill,
-		function (_n1) {
-			var x = _n1.a;
-			var y = _n1.b;
-			return (_Utils_cmp(
-				A2(elm$core$Basics$pow, x - center, 2) + A2(elm$core$Basics$pow, y - center, 2),
-				A2(elm$core$Basics$pow, 8, 2)) < 1) ? elm$core$Maybe$Just(
-				(_Utils_cmp(
-					A2(elm$core$Basics$pow, (x + 1) - center, 2) + A2(elm$core$Basics$pow, (y - 1) - center, 2),
-					A2(elm$core$Basics$pow, 6, 2)) < 1) ? _Utils_Tuple2(
-					author$project$AsteroidMiner$Lib$Map$GroundSquare(author$project$AsteroidMiner$Data$Map$Mountain),
-					elm$core$Maybe$Nothing) : _Utils_Tuple2(
-					author$project$AsteroidMiner$Lib$Map$GroundSquare(author$project$AsteroidMiner$Data$Map$Dirt),
-					elm$core$Maybe$Nothing)) : elm$core$Maybe$Nothing;
-		},
-		{columns: author$project$AsteroidMiner$Data$size, rows: author$project$AsteroidMiner$Data$size});
-	var _n0 = A2(
+var author$project$AsteroidMiner$View$RunningGame$init = function (_n0) {
+	var winCondition = _n0.winCondition;
+	var map = _n0.map;
+	var seed = _n0.seed;
+	var _n1 = A2(
 		elm$random$Random$step,
 		A2(
 			elm$random$Random$map,
 			Orasund$elm_game_essentials$Location$Angle,
 			A2(elm$random$Random$float, 0, 2 * elm$core$Basics$pi)),
-		oldSeed);
-	var angle = _n0.a;
-	var seed = _n0.b;
+		seed);
+	var angle = _n1.a;
+	var newSeed = _n1.b;
 	var comet = author$project$AsteroidMiner$Data$Comet$new(angle);
 	var game = {bag: elm$core$Maybe$Nothing, comet: comet, debts: elm$core$Dict$empty, map: map};
+	return {game: game, gui: author$project$AsteroidMiner$View$GUI$init, inventory: elm$core$Dict$empty, seed: newSeed, status: author$project$AsteroidMiner$View$RunningGame$Running, winCondition: winCondition};
+};
+var author$project$AsteroidMiner$Page$Game$init = function (seed) {
 	return _Utils_Tuple2(
-		{game: game, gui: author$project$AsteroidMiner$View$GUI$init, inventory: elm$core$Dict$empty, seed: seed},
+		author$project$AsteroidMiner$View$RunningGame$init(
+			{map: author$project$AsteroidMiner$Data$Map$init, seed: seed, winCondition: author$project$AsteroidMiner$Data$winAt}),
 		elm$core$Platform$Cmd$none);
 };
+var Orasund$elm_action$Action$Exit = function (a) {
+	return {$: 'Exit', a: a};
+};
+var Orasund$elm_action$Action$exiting = Orasund$elm_action$Action$Exit(_Utils_Tuple0);
 var Orasund$elm_action$Action$Update = function (a) {
 	return {$: 'Update', a: a};
 };
 var Orasund$elm_action$Action$updating = function (tuple) {
 	return Orasund$elm_action$Action$Update(tuple);
 };
+var author$project$AsteroidMiner$View$GUI$update = F2(
+	function (msg, model) {
+		var blueprint = msg.a;
+		return _Utils_update(
+			model,
+			{selected: blueprint});
+	});
 var Orasund$elm_game_essentials$Grid$Bordered$ignoringErrors = F2(
 	function (fun, grid) {
 		var _n0 = fun(grid);
@@ -10349,7 +10371,7 @@ var author$project$AsteroidMiner$Building$Invalid = {$: 'Invalid'};
 var author$project$AsteroidMiner$Building$Merger = {$: 'Merger'};
 var author$project$AsteroidMiner$Building$Mine = {$: 'Mine'};
 var author$project$AsteroidMiner$Building$Sorter = {$: 'Sorter'};
-var author$project$AsteroidMiner$Data$floorCosts = 512;
+var author$project$AsteroidMiner$Data$floorCosts = 500;
 var author$project$AsteroidMiner$Data$Item$Stone = {$: 'Stone'};
 var author$project$AsteroidMiner$Data$Item$toInt = function (item) {
 	return 1;
@@ -10763,7 +10785,7 @@ var author$project$AsteroidMiner$Data$Game$emptySquare = function (maybeItem) {
 		author$project$AsteroidMiner$Lib$Map$GroundSquare(author$project$AsteroidMiner$Data$Map$Dirt),
 		maybeItem);
 };
-var author$project$AsteroidMiner$Page$Game$deleteSqaure = F2(
+var author$project$AsteroidMiner$View$RunningGame$deleteSqaure = F2(
 	function (pos, model) {
 		var game = model.game;
 		var updateFun = function (maybeElem) {
@@ -10778,22 +10800,19 @@ var author$project$AsteroidMiner$Page$Game$deleteSqaure = F2(
 				return elm$core$Result$Err(_Utils_Tuple0);
 			}
 		};
-		return Orasund$elm_action$Action$updating(
-			_Utils_Tuple2(
-				_Utils_update(
-					model,
+		return _Utils_update(
+			model,
+			{
+				game: _Utils_update(
+					game,
 					{
-						game: _Utils_update(
-							game,
-							{
-								map: A3(
-									elm$core$Basics$apL,
-									Orasund$elm_game_essentials$Grid$Bordered$ignoringErrors,
-									A2(Orasund$elm_game_essentials$Grid$Bordered$update, pos, updateFun),
-									game.map)
-							})
-					}),
-				elm$core$Platform$Cmd$none));
+						map: A3(
+							elm$core$Basics$apL,
+							Orasund$elm_game_essentials$Grid$Bordered$ignoringErrors,
+							A2(Orasund$elm_game_essentials$Grid$Bordered$update, pos, updateFun),
+							game.map)
+					})
+			});
 	});
 var Orasund$elm_game_essentials$Grid$Bordered$get = F2(
 	function (pos, grid) {
@@ -10810,7 +10829,7 @@ var author$project$AsteroidMiner$View$GUI$select = F2(
 			model,
 			{selected: tool});
 	});
-var author$project$AsteroidMiner$Page$Game$insertItem = F3(
+var author$project$AsteroidMiner$View$RunningGame$insertItem = F3(
 	function (item, position, model) {
 		var gui = model.gui;
 		var game = model.game;
@@ -10819,7 +10838,6 @@ var author$project$AsteroidMiner$Page$Game$insertItem = F3(
 			if ((((_n0.$ === 'Ok') && (_n0.a.$ === 'Just')) && (_n0.a.a.a.$ === 'BuildingSquare')) && (_n0.a.a.b.$ === 'Just')) {
 				var _n1 = _n0.a.a;
 				var b = _n1.a.a;
-				var value = b.value;
 				var i = _n1.b.a;
 				return _Utils_eq(i, item) ? _Utils_update(
 					model,
@@ -10853,10 +10871,9 @@ var author$project$AsteroidMiner$Page$Game$insertItem = F3(
 				return model;
 			}
 		}();
-		return Orasund$elm_action$Action$updating(
-			_Utils_Tuple2(newModel, elm$core$Platform$Cmd$none));
+		return newModel;
 	});
-var author$project$AsteroidMiner$Page$Game$pickUpSquare = F2(
+var author$project$AsteroidMiner$View$RunningGame$pickUpSquare = F2(
 	function (position, model) {
 		var gui = model.gui;
 		var game = model.game;
@@ -10894,10 +10911,9 @@ var author$project$AsteroidMiner$Page$Game$pickUpSquare = F2(
 				return model;
 			}
 		}();
-		return Orasund$elm_action$Action$updating(
-			_Utils_Tuple2(newModel, elm$core$Platform$Cmd$none));
+		return newModel;
 	});
-var author$project$AsteroidMiner$Data$mineVolume = 128;
+var author$project$AsteroidMiner$Data$mineVolume = 100;
 var author$project$AsteroidMiner$Data$Game$newBuilding = F2(
 	function (maybeItem, buildingType) {
 		var value = function () {
@@ -10991,7 +11007,7 @@ var author$project$AsteroidMiner$Lib$Neighborhood$fromPosition = F2(
 			},
 			A2(Orasund$elm_game_essentials$Grid$Bordered$get, pos, grid));
 	});
-var author$project$AsteroidMiner$Page$Game$placeSquare = F3(
+var author$project$AsteroidMiner$View$RunningGame$placeSquare = F3(
 	function (building, position, model) {
 		var game = model.game;
 		var updateSquare = F2(
@@ -11017,8 +11033,7 @@ var author$project$AsteroidMiner$Page$Game$placeSquare = F3(
 					return elm$core$Result$Err(_Utils_Tuple0);
 				}
 			});
-		var defaultCase = Orasund$elm_action$Action$updating(
-			_Utils_Tuple2(model, elm$core$Platform$Cmd$none));
+		var defaultCase = model;
 		var _n0 = A2(author$project$AsteroidMiner$Lib$Neighborhood$fromPosition, position, game.map);
 		if ((_n0.$ === 'Ok') && (_n0.a.a.$ === 'Just')) {
 			var _n1 = _n0.a;
@@ -11029,16 +11044,13 @@ var author$project$AsteroidMiner$Page$Game$placeSquare = F3(
 				game.map);
 			if (_n2.$ === 'Ok') {
 				var m = _n2.a;
-				return Orasund$elm_action$Action$updating(
-					_Utils_Tuple2(
-						_Utils_update(
-							model,
-							{
-								game: _Utils_update(
-									game,
-									{map: m})
-							}),
-						elm$core$Platform$Cmd$none));
+				return _Utils_update(
+					model,
+					{
+						game: _Utils_update(
+							game,
+							{map: m})
+					});
 			} else {
 				return defaultCase;
 			}
@@ -11057,56 +11069,53 @@ var elm$core$Dict$update = F3(
 			return A2(elm$core$Dict$remove, targetKey, dictionary);
 		}
 	});
-var author$project$AsteroidMiner$Page$Game$squareClicked = F2(
+var author$project$AsteroidMiner$View$RunningGame$squareClicked = F2(
 	function (position, model) {
 		var gui = model.gui;
 		var game = model.game;
-		var placeFloor = Orasund$elm_action$Action$updating(
-			_Utils_Tuple2(
-				_Utils_update(
-					model,
+		var placeFloor = _Utils_update(
+			model,
+			{
+				game: _Utils_update(
+					game,
 					{
-						game: _Utils_update(
-							game,
-							{
-								debts: A3(
-									elm$core$Dict$update,
-									author$project$AsteroidMiner$Data$Item$toInt(author$project$AsteroidMiner$Data$Item$Stone),
-									A2(
-										elm$core$Basics$composeR,
-										elm$core$Maybe$map(
-											elm$core$Basics$add(author$project$AsteroidMiner$Data$floorCosts)),
-										A2(
-											elm$core$Basics$composeR,
-											elm$core$Maybe$withDefault(author$project$AsteroidMiner$Data$floorCosts),
-											elm$core$Maybe$Just)),
-									game.debts),
-								map: A2(
-									Orasund$elm_game_essentials$Grid$Bordered$ignoringErrors,
-									A2(
-										Orasund$elm_game_essentials$Grid$Bordered$insert,
-										position,
-										_Utils_Tuple2(
-											author$project$AsteroidMiner$Lib$Map$GroundSquare(author$project$AsteroidMiner$Data$Map$Dirt),
-											elm$core$Maybe$Nothing)),
-									game.map)
-							})
-					}),
-				elm$core$Platform$Cmd$none));
+						debts: A3(
+							elm$core$Dict$update,
+							author$project$AsteroidMiner$Data$Item$toInt(author$project$AsteroidMiner$Data$Item$Stone),
+							A2(
+								elm$core$Basics$composeR,
+								elm$core$Maybe$map(
+									elm$core$Basics$add(author$project$AsteroidMiner$Data$floorCosts)),
+								A2(
+									elm$core$Basics$composeR,
+									elm$core$Maybe$withDefault(author$project$AsteroidMiner$Data$floorCosts),
+									elm$core$Maybe$Just)),
+							game.debts),
+						map: A2(
+							Orasund$elm_game_essentials$Grid$Bordered$ignoringErrors,
+							A2(
+								Orasund$elm_game_essentials$Grid$Bordered$insert,
+								position,
+								_Utils_Tuple2(
+									author$project$AsteroidMiner$Lib$Map$GroundSquare(author$project$AsteroidMiner$Data$Map$Dirt),
+									elm$core$Maybe$Nothing)),
+							game.map)
+					})
+			});
 		var build = function (tool) {
-			return A3(author$project$AsteroidMiner$Page$Game$placeSquare, tool, position, model);
+			return A3(author$project$AsteroidMiner$View$RunningGame$placeSquare, tool, position, model);
 		};
 		var _n0 = gui.selected;
 		switch (_n0.$) {
 			case 'Delete':
-				return A2(author$project$AsteroidMiner$Page$Game$deleteSqaure, position, model);
+				return A2(author$project$AsteroidMiner$View$RunningGame$deleteSqaure, position, model);
 			case 'Bag':
 				if (_n0.a.$ === 'Nothing') {
 					var _n1 = _n0.a;
-					return A2(author$project$AsteroidMiner$Page$Game$pickUpSquare, position, model);
+					return A2(author$project$AsteroidMiner$View$RunningGame$pickUpSquare, position, model);
 				} else {
 					var item = _n0.a.a;
-					return A3(author$project$AsteroidMiner$Page$Game$insertItem, item, position, model);
+					return A3(author$project$AsteroidMiner$View$RunningGame$insertItem, item, position, model);
 				}
 			case 'Mine':
 				return build(author$project$AsteroidMiner$Building$Mine);
@@ -11265,7 +11274,7 @@ var author$project$AsteroidMiner$Building$ColoredConveyorBelt$canStore = F3(
 	function (_n0, _n1, _n2) {
 		return false;
 	});
-var author$project$AsteroidMiner$Data$maxValue = 512;
+var author$project$AsteroidMiner$Data$maxValue = 250;
 var author$project$AsteroidMiner$Building$Container$canStore = F3(
 	function (_n0, input, _n1) {
 		var value = _n1.value;
@@ -11277,9 +11286,7 @@ var author$project$AsteroidMiner$Building$ConveyorBelt$canStore = F3(
 		return false;
 	});
 var author$project$AsteroidMiner$Building$Merger$canStore = F3(
-	function (_n0, input, _n1) {
-		var value = _n1.value;
-		var item = _n1.item;
+	function (_n0, _n1, _n2) {
 		return false;
 	});
 var author$project$AsteroidMiner$Building$Mine$canStore = F3(
@@ -11287,9 +11294,7 @@ var author$project$AsteroidMiner$Building$Mine$canStore = F3(
 		return false;
 	});
 var author$project$AsteroidMiner$Building$Sorter$canStore = F3(
-	function (_n0, input, _n1) {
-		var value = _n1.value;
-		var item = _n1.item;
+	function (_n0, _n1, _n2) {
 		return false;
 	});
 var author$project$AsteroidMiner$Data$Game$solveConflict = F2(
@@ -11323,7 +11328,6 @@ var Orasund$elm_game_essentials$Grid$Bordered$values = function (_n0) {
 	var dict = _n0.a.dict;
 	return elm$core$Dict$values(dict);
 };
-var elm$core$Debug$log = _Debug_log;
 var author$project$AsteroidMiner$Data$Game$takeInventoryOfMap = function (dict) {
 	return A2(
 		elm$core$Basics$composeR,
@@ -11368,10 +11372,7 @@ var author$project$AsteroidMiner$Data$Game$takeInventoryOfMap = function (dict) 
 					elm$core$Dict$insert,
 					F3(
 						function (pos, a, b) {
-							return A2(
-								elm$core$Dict$insert,
-								pos,
-								A2(elm$core$Debug$log, 'balance', a - b));
+							return A2(elm$core$Dict$insert, pos, a - b);
 						}),
 					F2(
 						function (pos, a) {
@@ -11486,19 +11487,15 @@ var author$project$AsteroidMiner$Building$ColoredConveyorBelt$areOpposing = F2(
 var author$project$AsteroidMiner$Lib$Command$Command = function (a) {
 	return {$: 'Command', a: a};
 };
+var author$project$AsteroidMiner$Lib$Command$Destroy = {$: 'Destroy'};
+var author$project$AsteroidMiner$Lib$Command$destroy = author$project$AsteroidMiner$Lib$Command$Command(
+	elm$core$List$singleton(author$project$AsteroidMiner$Lib$Command$Destroy));
 var author$project$AsteroidMiner$Lib$Command$Send = function (a) {
 	return {$: 'Send', a: a};
 };
 var author$project$AsteroidMiner$Lib$Command$send = A2(
 	elm$core$Basics$composeR,
 	author$project$AsteroidMiner$Lib$Command$Send,
-	A2(elm$core$Basics$composeR, elm$core$List$singleton, author$project$AsteroidMiner$Lib$Command$Command));
-var author$project$AsteroidMiner$Lib$Command$Transition = function (a) {
-	return {$: 'Transition', a: a};
-};
-var author$project$AsteroidMiner$Lib$Command$transition = A2(
-	elm$core$Basics$composeR,
-	author$project$AsteroidMiner$Lib$Command$Transition,
 	A2(elm$core$Basics$composeR, elm$core$List$singleton, author$project$AsteroidMiner$Lib$Command$Command));
 var author$project$AsteroidMiner$Lib$Neighborhood$toList = function (_n0) {
 	var up = _n0.up;
@@ -11528,8 +11525,7 @@ var author$project$AsteroidMiner$Lib$Neighborhood$filter = function (fun) {
 };
 var author$project$AsteroidMiner$Building$ColoredConveyorBelt$update = F3(
 	function (color, direction, neigh) {
-		var resetCase = author$project$AsteroidMiner$Lib$Command$transition(
-			author$project$AsteroidMiner$Building$ConveyorBelt(author$project$AsteroidMiner$Building$Invalid));
+		var resetCase = author$project$AsteroidMiner$Lib$Command$destroy;
 		var outputs = A2(author$project$AsteroidMiner$Lib$Neighborhood$filter, author$project$AsteroidMiner$Building$isOutput, neigh);
 		var inputs = A2(author$project$AsteroidMiner$Lib$Neighborhood$filter, author$project$AsteroidMiner$Building$isInput, neigh);
 		var friends = elm$core$List$concat(
@@ -11654,10 +11650,16 @@ var author$project$AsteroidMiner$Lib$Command$batch = A2(
 		_List_Nil),
 	author$project$AsteroidMiner$Lib$Command$Command);
 var author$project$AsteroidMiner$Lib$Command$idle = author$project$AsteroidMiner$Lib$Command$Command(_List_Nil);
+var author$project$AsteroidMiner$Lib$Command$Transition = function (a) {
+	return {$: 'Transition', a: a};
+};
+var author$project$AsteroidMiner$Lib$Command$transition = A2(
+	elm$core$Basics$composeR,
+	author$project$AsteroidMiner$Lib$Command$Transition,
+	A2(elm$core$Basics$composeR, elm$core$List$singleton, author$project$AsteroidMiner$Lib$Command$Command));
 var author$project$AsteroidMiner$Building$Container$update = F3(
 	function (volume, _n0, neigh) {
 		var value = _n0.value;
-		var item = _n0.item;
 		var transition = function (v) {
 			return _Utils_eq(volume, v) ? author$project$AsteroidMiner$Lib$Command$idle : author$project$AsteroidMiner$Lib$Command$transition(
 				author$project$AsteroidMiner$Building$Container(v));
@@ -11712,8 +11714,6 @@ var author$project$AsteroidMiner$Building$ConveyorBelt$updateFailedColor = F3(
 		var friends = _n0.friends;
 		var outputs = _n0.outputs;
 		var inputs = _n0.inputs;
-		var resetCase = author$project$AsteroidMiner$Lib$Command$transition(
-			author$project$AsteroidMiner$Building$ConveyorBelt(author$project$AsteroidMiner$Building$Invalid));
 		var nextStage = function (c) {
 			return author$project$AsteroidMiner$Lib$Command$transition(
 				author$project$AsteroidMiner$Building$ConveyorBelt(
@@ -11905,10 +11905,6 @@ var author$project$AsteroidMiner$Building$ConveyorBelt$updateInputFound = functi
 	var nextStage = author$project$AsteroidMiner$Lib$Command$transition(
 		author$project$AsteroidMiner$Building$ConveyorBelt(
 			author$project$AsteroidMiner$Building$Failed(author$project$AsteroidMiner$Building$Yellow)));
-	var getDirection = A2(
-		elm$core$Basics$composeR,
-		elm$core$List$head,
-		elm$core$Maybe$map(elm$core$Tuple$first));
 	var defaultCase = author$project$AsteroidMiner$Lib$Command$idle;
 	var initiate = function () {
 		var _n6 = elm$core$List$head(friends);
@@ -12115,10 +12111,6 @@ var author$project$AsteroidMiner$Building$ConveyorBelt$updateTryColor = F3(
 			return author$project$AsteroidMiner$Lib$Command$transition(
 				A2(author$project$AsteroidMiner$Building$ColoredConveyorBelt, color, dir));
 		};
-		var getDirection = A2(
-			elm$core$Basics$composeR,
-			elm$core$List$head,
-			elm$core$Maybe$map(elm$core$Tuple$first));
 		var failedStage = author$project$AsteroidMiner$Lib$Command$transition(
 			author$project$AsteroidMiner$Building$ConveyorBelt(
 				author$project$AsteroidMiner$Building$Failed(color)));
@@ -12175,41 +12167,41 @@ var author$project$AsteroidMiner$Building$ConveyorBelt$updateTryColor = F3(
 								F2(
 									function (o, m) {
 										if (_Utils_eq(m, elm$core$Maybe$Nothing)) {
-											var _n21 = _Utils_Tuple2(i.a, o.a);
-											_n21$4:
+											var _n23 = _Utils_Tuple2(i.a, o.a);
+											_n23$4:
 											while (true) {
-												switch (_n21.a.$) {
+												switch (_n23.a.$) {
 													case 'Up':
-														if (_n21.b.$ === 'Down') {
-															var _n22 = _n21.a;
-															var _n23 = _n21.b;
+														if (_n23.b.$ === 'Down') {
+															var _n24 = _n23.a;
+															var _n25 = _n23.b;
 															return elm$core$Maybe$Just(Orasund$elm_game_essentials$Grid$Direction$Up);
 														} else {
-															break _n21$4;
+															break _n23$4;
 														}
 													case 'Down':
-														if (_n21.b.$ === 'Up') {
-															var _n24 = _n21.a;
-															var _n25 = _n21.b;
+														if (_n23.b.$ === 'Up') {
+															var _n26 = _n23.a;
+															var _n27 = _n23.b;
 															return elm$core$Maybe$Just(Orasund$elm_game_essentials$Grid$Direction$Down);
 														} else {
-															break _n21$4;
+															break _n23$4;
 														}
 													case 'Left':
-														if (_n21.b.$ === 'Right') {
-															var _n26 = _n21.a;
-															var _n27 = _n21.b;
+														if (_n23.b.$ === 'Right') {
+															var _n28 = _n23.a;
+															var _n29 = _n23.b;
 															return elm$core$Maybe$Just(Orasund$elm_game_essentials$Grid$Direction$Left);
 														} else {
-															break _n21$4;
+															break _n23$4;
 														}
 													default:
-														if (_n21.b.$ === 'Left') {
-															var _n28 = _n21.a;
-															var _n29 = _n21.b;
+														if (_n23.b.$ === 'Left') {
+															var _n30 = _n23.a;
+															var _n31 = _n23.b;
 															return elm$core$Maybe$Just(Orasund$elm_game_essentials$Grid$Direction$Right);
 														} else {
-															break _n21$4;
+															break _n23$4;
 														}
 												}
 											}
@@ -12234,13 +12226,13 @@ var author$project$AsteroidMiner$Building$ConveyorBelt$updateTryColor = F3(
 			while (true) {
 				_n1$2:
 				while (true) {
-					_n1$7:
+					_n1$8:
 					while (true) {
-						_n1$8:
+						_n1$9:
 						while (true) {
-							_n1$9:
+							_n1$10:
 							while (true) {
-								_n1$10:
+								_n1$11:
 								while (true) {
 									switch (_n1.c) {
 										case 1:
@@ -12255,38 +12247,55 @@ var author$project$AsteroidMiner$Building$ConveyorBelt$updateTryColor = F3(
 														return connect;
 													}
 												case 0:
-													switch (_n1.b.b) {
+													switch (_n1.b.a) {
 														case 0:
-															if (_n1.b.a === 1) {
-																var _n12 = _n1.b;
-																if (outputs.b) {
-																	var _n14 = outputs.a;
-																	var dir = _n14.a;
-																	return nextStage(
-																		Orasund$elm_game_essentials$Grid$Direction$flip(dir));
+															if (_n1.b.b === 1) {
+																var _n15 = _n1.b;
+																if (inputs.b) {
+																	var _n17 = inputs.a;
+																	var dir = _n17.a;
+																	return nextStage(dir);
 																} else {
 																	return connect;
 																}
 															} else {
-																break _n1$10;
+																break _n1$11;
 															}
 														case 1:
-															var _n15 = _n1.b;
-															if (inputs.b) {
-																var _n17 = inputs.a;
-																var dir = _n17.a;
-																return nextStage(dir);
-															} else {
-																return connect;
+															switch (_n1.b.b) {
+																case 0:
+																	var _n12 = _n1.b;
+																	if (outputs.b) {
+																		var _n14 = outputs.a;
+																		var dir = _n14.a;
+																		return nextStage(
+																			Orasund$elm_game_essentials$Grid$Direction$flip(dir));
+																	} else {
+																		return connect;
+																	}
+																case 1:
+																	var _n18 = _n1.b;
+																	var _n19 = _Utils_Tuple2(
+																		elm$core$List$head(enemies),
+																		elm$core$List$head(inputs));
+																	if ((_n19.a.$ === 'Just') && (_n19.b.$ === 'Just')) {
+																		var enemy = _n19.a.a;
+																		var input = _n19.b.a;
+																		return A2(author$project$AsteroidMiner$Building$ConveyorBelt$areOpposing, enemy, input) ? nextStage(input.a) : failedStage;
+																	} else {
+																		return connect;
+																	}
+																default:
+																	break _n1$11;
 															}
 														default:
-															break _n1$10;
+															break _n1$11;
 													}
 												default:
 													if ((_n1.b.a === 1) && (_n1.b.b === 1)) {
-														break _n1$9;
-													} else {
 														break _n1$10;
+													} else {
+														break _n1$11;
 													}
 											}
 										case 0:
@@ -12307,9 +12316,9 @@ var author$project$AsteroidMiner$Building$ConveyorBelt$updateTryColor = F3(
 															}
 														default:
 															if (_n1.b.a === 1) {
-																break _n1$7;
+																break _n1$8;
 															} else {
-																break _n1$10;
+																break _n1$11;
 															}
 													}
 												case 1:
@@ -12322,19 +12331,19 @@ var author$project$AsteroidMiner$Building$ConveyorBelt$updateTryColor = F3(
 																	var _n8 = _n1.b;
 																	return connect;
 																default:
-																	break _n1$8;
+																	break _n1$9;
 															}
 														case 1:
 															if (_n1.a === 2) {
 																break _n1$0;
 															} else {
-																break _n1$7;
+																break _n1$8;
 															}
 														default:
 															if (_n1.a === 2) {
 																break _n1$0;
 															} else {
-																break _n1$8;
+																break _n1$9;
 															}
 													}
 												default:
@@ -12342,29 +12351,29 @@ var author$project$AsteroidMiner$Building$ConveyorBelt$updateTryColor = F3(
 														break _n1$0;
 													} else {
 														if (_n1.b.a === 1) {
-															break _n1$7;
+															break _n1$8;
 														} else {
-															break _n1$10;
+															break _n1$11;
 														}
 													}
 											}
 										default:
 											if ((_n1.b.a === 1) && (_n1.b.b === 1)) {
-												break _n1$9;
-											} else {
 												break _n1$10;
+											} else {
+												break _n1$11;
 											}
 									}
 								}
 								return connect;
 							}
-							var _n20 = _n1.b;
+							var _n22 = _n1.b;
 							return failedStage;
 						}
-						var _n19 = _n1.b;
+						var _n21 = _n1.b;
 						return create;
 					}
-					var _n18 = _n1.b;
+					var _n20 = _n1.b;
 					return create;
 				}
 				var _n4 = _n1.b;
@@ -12459,9 +12468,6 @@ var author$project$AsteroidMiner$Building$Merger$update = function (neigh) {
 			},
 			author$project$AsteroidMiner$Lib$Neighborhood$toList(neigh)));
 };
-var author$project$AsteroidMiner$Lib$Command$Destroy = {$: 'Destroy'};
-var author$project$AsteroidMiner$Lib$Command$destroy = author$project$AsteroidMiner$Lib$Command$Command(
-	elm$core$List$singleton(author$project$AsteroidMiner$Lib$Command$Destroy));
 var author$project$AsteroidMiner$Building$Mine$update = F2(
 	function (_n0, neigh) {
 		var value = _n0.value;
@@ -12547,78 +12553,98 @@ var author$project$AsteroidMiner$Data$Game$updateBuilding = function (sort) {
 			return elm$core$Basics$always(author$project$AsteroidMiner$Building$Sorter$update);
 	}
 };
+var elm$core$Result$toMaybe = function (result) {
+	if (result.$ === 'Ok') {
+		var v = result.a;
+		return elm$core$Maybe$Just(v);
+	} else {
+		return elm$core$Maybe$Nothing;
+	}
+};
 var author$project$AsteroidMiner$Lib$Command$apply = F3(
 	function (fun, _n0, b) {
 		var command = _n0.a;
-		return A3(
-			elm$core$List$foldl,
-			F2(
-				function (c, map) {
-					return A2(
-						elm$core$Result$withDefault,
-						map,
-						function () {
-							switch (c.$) {
-								case 'Store':
-									return fun.store;
-								case 'Send':
-									var direction = c.a;
-									return fun.send(direction);
-								case 'Transition':
-									var sort = c.a;
-									return fun.transition(sort);
-								case 'Create':
-									var item = c.a;
-									return fun.create(item);
-								default:
-									return fun.destroy;
-							}
-						}()(map));
-				}),
+		return A2(
+			elm$core$Maybe$withDefault,
 			b,
-			command);
+			elm$core$List$head(
+				A2(
+					elm$core$List$filterMap,
+					function (c) {
+						return elm$core$Result$toMaybe(
+							function () {
+								switch (c.$) {
+									case 'Store':
+										return fun.store;
+									case 'Send':
+										var direction = c.a;
+										return fun.send(direction);
+									case 'Transition':
+										var sort = c.a;
+										return fun.transition(sort);
+									case 'Create':
+										var item = c.a;
+										return fun.create(item);
+									default:
+										return fun.destroy;
+								}
+							}()(b));
+					},
+					command)));
 	});
 var author$project$AsteroidMiner$Lib$Map$send = F6(
-	function (pos, maybeItem, _n0, building, direction, m) {
+	function (pos, building, maybeItem, _n0, direction, m) {
+		var value = building.value;
 		var lookUp = _n0.lookUp;
 		var canStore = _n0.canStore;
-		var value = building.value;
 		var neighborPos = A3(Orasund$elm_game_essentials$Grid$Position$move, 1, direction, pos);
-		var solveConflict = F2(
-			function (b, _n7) {
-				var newC = _n7.newC;
-				var oldC = _n7.oldC;
-				return A4(
-					canStore,
-					neighborPos,
-					b.sort,
-					newC,
-					{item: oldC, value: b.value}) ? A2(
-					Orasund$elm_game_essentials$Grid$Bordered$update,
-					neighborPos,
-					elm$core$Basics$always(
-						elm$core$Result$Ok(
+		var solveConflict = function (_n12) {
+			var newC = _n12.newC;
+			var oldC = _n12.oldC;
+			return A2(
+				Orasund$elm_game_essentials$Grid$Bordered$update,
+				neighborPos,
+				function (maybeSquare) {
+					if (((maybeSquare.$ === 'Just') && (maybeSquare.a.a.$ === 'BuildingSquare')) && (maybeSquare.a.b.$ === 'Just')) {
+						var _n11 = maybeSquare.a;
+						var b = _n11.a.a;
+						return A4(
+							canStore,
+							neighborPos,
+							b.sort,
+							newC,
+							{item: oldC, value: b.value}) ? elm$core$Result$Ok(
 							elm$core$Maybe$Just(
 								_Utils_Tuple2(
 									author$project$AsteroidMiner$Lib$Map$BuildingSquare(
 										_Utils_update(
 											b,
 											{value: b.value + 1})),
-									elm$core$Maybe$Just(newC)))))) : elm$core$Basics$always(
-					elm$core$Result$Err(Orasund$elm_game_essentials$Grid$Bordered$NotSuccessful));
-			});
-		var updateNeighbor = F2(
-			function (b, maybeC) {
-				return A2(
-					Orasund$elm_game_essentials$Grid$Bordered$update,
-					neighborPos,
-					elm$core$Basics$always(
-						elm$core$Result$Ok(
+									elm$core$Maybe$Just(newC)))) : elm$core$Result$Err(_Utils_Tuple0);
+					} else {
+						return elm$core$Result$Err(_Utils_Tuple0);
+					}
+				});
+		};
+		var updateNeighbor = function (maybeC) {
+			return A2(
+				Orasund$elm_game_essentials$Grid$Bordered$update,
+				neighborPos,
+				function (maybeSquare) {
+					if (((maybeSquare.$ === 'Just') && (maybeSquare.a.a.$ === 'BuildingSquare')) && (maybeSquare.a.b.$ === 'Nothing')) {
+						var _n8 = maybeSquare.a;
+						var b = _n8.a.a;
+						var _n9 = _n8.b;
+						return elm$core$Result$Ok(
 							elm$core$Maybe$Just(
 								_Utils_Tuple2(
 									author$project$AsteroidMiner$Lib$Map$BuildingSquare(b),
-									maybeC)))));
-			});
+									maybeC)));
+					} else {
+						return elm$core$Result$Err(_Utils_Tuple0);
+					}
+				});
+		};
 		if (maybeItem.$ === 'Nothing') {
 			return elm$core$Result$Err(Orasund$elm_game_essentials$Grid$Bordered$NotSuccessful);
 		} else {
@@ -12631,7 +12657,7 @@ var author$project$AsteroidMiner$Lib$Map$send = F6(
 					elm$core$Basics$always(
 						function () {
 							var _n6 = _Utils_Tuple2(building.sort, maybeItem);
-							return ((value > 0) && (!_Utils_eq(maybeItem, elm$core$Maybe$Nothing))) ? elm$core$Result$Ok(
+							return (value > 1) ? elm$core$Result$Ok(
 								elm$core$Maybe$Just(
 									_Utils_Tuple2(
 										author$project$AsteroidMiner$Lib$Map$BuildingSquare(
@@ -12641,7 +12667,10 @@ var author$project$AsteroidMiner$Lib$Map$send = F6(
 										maybeItem))) : elm$core$Result$Ok(
 								elm$core$Maybe$Just(
 									_Utils_Tuple2(
-										author$project$AsteroidMiner$Lib$Map$BuildingSquare(building),
+										author$project$AsteroidMiner$Lib$Map$BuildingSquare(
+											_Utils_update(
+												building,
+												{value: 0})),
 										elm$core$Maybe$Nothing)));
 						}())),
 				A2(
@@ -12651,16 +12680,12 @@ var author$project$AsteroidMiner$Lib$Map$send = F6(
 							if ((maybeEntry.$ === 'Just') && (maybeEntry.a.a.$ === 'BuildingSquare')) {
 								if (maybeEntry.a.b.$ === 'Nothing') {
 									var _n3 = maybeEntry.a;
-									var b = _n3.a.a;
 									var _n4 = _n3.b;
-									return A2(updateNeighbor, b, maybeItem);
+									return updateNeighbor(maybeItem);
 								} else {
 									var _n5 = maybeEntry.a;
-									var b = _n5.a.a;
 									var i = _n5.b.a;
-									return A2(
-										solveConflict,
-										b,
+									return solveConflict(
 										{newC: item, oldC: i});
 								}
 							} else {
@@ -12673,9 +12698,16 @@ var author$project$AsteroidMiner$Lib$Map$send = F6(
 		}
 	});
 var author$project$AsteroidMiner$Lib$Map$store = F3(
-	function (pos, maybeItem, building) {
+	function (pos, building, m) {
 		var value = building.value;
-		return A2(
+		var maybeItem = A2(
+			elm$core$Maybe$andThen,
+			elm$core$Tuple$second,
+			A2(
+				elm$core$Result$withDefault,
+				elm$core$Maybe$Nothing,
+				A2(Orasund$elm_game_essentials$Grid$Bordered$get, pos, m)));
+		return A3(
 			Orasund$elm_game_essentials$Grid$Bordered$update,
 			pos,
 			elm$core$Basics$always(
@@ -12686,7 +12718,8 @@ var author$project$AsteroidMiner$Lib$Map$store = F3(
 								_Utils_update(
 									building,
 									{value: value + 1})),
-							elm$core$Maybe$Nothing))) : elm$core$Result$Err(_Utils_Tuple0)));
+							elm$core$Maybe$Nothing))) : elm$core$Result$Err(_Utils_Tuple0)),
+			m);
 	});
 var author$project$AsteroidMiner$Lib$Map$apply = F4(
 	function (command, pos, _n0, config) {
@@ -12698,26 +12731,40 @@ var author$project$AsteroidMiner$Lib$Map$apply = F4(
 				return A2(
 					Orasund$elm_game_essentials$Grid$Bordered$update,
 					pos,
-					elm$core$Basics$always(
-						elm$core$Result$Ok(
-							elm$core$Maybe$Just(
-								_Utils_Tuple2(
-									author$project$AsteroidMiner$Lib$Map$BuildingSquare(
-										_Utils_update(
-											building,
-											{sort: sort})),
-									maybeItem)))));
+					function (maybeSquare) {
+						if ((maybeSquare.$ === 'Just') && (maybeSquare.a.a.$ === 'BuildingSquare')) {
+							var _n6 = maybeSquare.a;
+							var mI = _n6.b;
+							return elm$core$Result$Ok(
+								elm$core$Maybe$Just(
+									_Utils_Tuple2(
+										author$project$AsteroidMiner$Lib$Map$BuildingSquare(
+											_Utils_update(
+												building,
+												{sort: sort})),
+										mI)));
+						} else {
+							return elm$core$Result$Err(_Utils_Tuple0);
+						}
+					});
 			});
-		var destroy = function (_n2) {
+		var destroy = function (_n4) {
 			return A2(
 				Orasund$elm_game_essentials$Grid$Bordered$update,
 				pos,
-				elm$core$Basics$always(
-					elm$core$Result$Ok(
-						elm$core$Maybe$Just(
-							_Utils_Tuple2(
-								author$project$AsteroidMiner$Lib$Map$GroundSquare(empty),
-								maybeItem)))));
+				function (maybeSquare) {
+					if ((maybeSquare.$ === 'Just') && (maybeSquare.a.a.$ === 'BuildingSquare')) {
+						var _n3 = maybeSquare.a;
+						var mI = _n3.b;
+						return elm$core$Result$Ok(
+							elm$core$Maybe$Just(
+								_Utils_Tuple2(
+									author$project$AsteroidMiner$Lib$Map$GroundSquare(empty),
+									mI)));
+					} else {
+						return elm$core$Result$Err(_Utils_Tuple0);
+					}
+				});
 		};
 		var create = F2(
 			function (building, item) {
@@ -12743,8 +12790,8 @@ var author$project$AsteroidMiner$Lib$Map$apply = F4(
 				{
 					create: create(building),
 					destroy: destroy(building),
-					send: A4(author$project$AsteroidMiner$Lib$Map$send, pos, maybeItem, config, building),
-					store: A3(author$project$AsteroidMiner$Lib$Map$store, pos, maybeItem, building),
+					send: A4(author$project$AsteroidMiner$Lib$Map$send, pos, building, maybeItem, config),
+					store: A2(author$project$AsteroidMiner$Lib$Map$store, pos, building),
 					transition: transition(building)
 				},
 				command);
@@ -12784,10 +12831,21 @@ var author$project$AsteroidMiner$Lib$Neighborhood$map = F2(
 			up: fun(up)
 		};
 	});
-var author$project$AsteroidMiner$Page$Game$timePassed = function (model) {
+var author$project$AsteroidMiner$View$RunningGame$Won = {$: 'Won'};
+var author$project$AsteroidMiner$View$RunningGame$timePassed = function (model) {
 	var game = model.game;
 	var seed = model.seed;
-	var updateMap = author$project$AsteroidMiner$Lib$Map$update(
+	var winCondition = model.winCondition;
+	var _n0 = A2(
+		elm$random$Random$step,
+		A2(author$project$AsteroidMiner$Data$Comet$update, game.map, game.comet),
+		seed);
+	var _n1 = _n0.a;
+	var comet = _n1.a;
+	var map = _n1.b;
+	var newSeed = _n0.b;
+	var newMap = A2(
+		author$project$AsteroidMiner$Lib$Map$update,
 		{
 			canStore: function (pos) {
 				var _n2 = A2(author$project$AsteroidMiner$Lib$Neighborhood$fromPosition, pos, game.map);
@@ -12832,60 +12890,58 @@ var author$project$AsteroidMiner$Page$Game$timePassed = function (model) {
 					return author$project$AsteroidMiner$Lib$Command$idle;
 				}
 			}
-		});
-	var _n0 = A2(
-		elm$random$Random$step,
-		A2(author$project$AsteroidMiner$Data$Comet$update, game.map, game.comet),
-		seed);
-	var _n1 = _n0.a;
-	var comet = _n1.a;
-	var map = _n1.b;
-	var newSeed = _n0.b;
+		},
+		map);
+	var inventory = A2(author$project$AsteroidMiner$Data$Game$takeInventoryOfMap, game.debts, newMap);
+	var status = function (stone) {
+		return _Utils_cmp(stone, winCondition) > -1;
+	}(
+		A2(
+			elm$core$Maybe$withDefault,
+			0,
+			A2(
+				elm$core$Dict$get,
+				author$project$AsteroidMiner$Data$Item$toInt(author$project$AsteroidMiner$Data$Item$Stone),
+				inventory))) ? author$project$AsteroidMiner$View$RunningGame$Won : author$project$AsteroidMiner$View$RunningGame$Running;
 	var newGame = _Utils_update(
 		game,
-		{
-			comet: comet,
-			map: updateMap(map)
-		});
-	return Orasund$elm_action$Action$updating(
-		_Utils_Tuple2(
-			_Utils_update(
-				model,
-				{
-					game: newGame,
-					inventory: A2(author$project$AsteroidMiner$Data$Game$takeInventoryOfMap, game.debts, newGame.map),
-					seed: newSeed
-				}),
-			elm$core$Platform$Cmd$none));
+		{comet: comet, map: newMap});
+	return _Utils_update(
+		model,
+		{game: newGame, inventory: inventory, seed: newSeed, status: status});
 };
-var author$project$AsteroidMiner$View$GUI$update = F2(
-	function (msg, model) {
-		var blueprint = msg.a;
-		return _Utils_update(
-			model,
-			{selected: blueprint});
-	});
-var author$project$AsteroidMiner$Page$Game$update = function (msg) {
+var author$project$AsteroidMiner$View$RunningGame$update = function (msg) {
 	switch (msg.$) {
 		case 'TimePassed':
-			return author$project$AsteroidMiner$Page$Game$timePassed;
+			return author$project$AsteroidMiner$View$RunningGame$timePassed;
 		case 'SquareClicked':
 			var position = msg.a;
-			return author$project$AsteroidMiner$Page$Game$squareClicked(position);
+			return author$project$AsteroidMiner$View$RunningGame$squareClicked(position);
 		default:
 			var guiMsg = msg.a;
 			return function (model) {
 				var gui = model.gui;
-				return Orasund$elm_action$Action$updating(
-					_Utils_Tuple2(
-						_Utils_update(
-							model,
-							{
-								gui: A2(author$project$AsteroidMiner$View$GUI$update, guiMsg, gui)
-							}),
-						elm$core$Platform$Cmd$none));
+				return _Utils_update(
+					model,
+					{
+						gui: A2(author$project$AsteroidMiner$View$GUI$update, guiMsg, gui)
+					});
 			};
 	}
+};
+var author$project$AsteroidMiner$Page$Game$update = function (msg) {
+	return A2(
+		elm$core$Basics$composeR,
+		author$project$AsteroidMiner$View$RunningGame$update(msg),
+		function (model) {
+			var _n0 = model.status;
+			if (_n0.$ === 'Running') {
+				return Orasund$elm_action$Action$updating(
+					_Utils_Tuple2(model, elm$core$Platform$Cmd$none));
+			} else {
+				return Orasund$elm_action$Action$exiting;
+			}
+		});
 };
 var author$project$AsteroidMiner$Page$Menu$init = function (seed) {
 	return _Utils_Tuple2(seed, elm$core$Platform$Cmd$none);
@@ -12907,364 +12963,410 @@ var author$project$AsteroidMiner$Page$Menu$update = F2(
 		}
 	});
 var author$project$AsteroidMiner$Page$Tutorial$tutorial = F2(
-	function (num, game) {
-		return function (map) {
-			return _Utils_update(
-				game,
-				{map: map});
-		}(
-			A3(
-				elm$core$List$foldl,
-				function (_n1) {
-					var pos = _n1.a;
-					var building = _n1.b;
-					return Orasund$elm_game_essentials$Grid$Bordered$ignoringErrors(
-						A2(
-							Orasund$elm_game_essentials$Grid$Bordered$update,
-							pos,
-							elm$core$Basics$always(
-								elm$core$Result$Ok(
-									elm$core$Maybe$Just(building)))));
-				},
-				game.map,
-				function () {
-					switch (num) {
-						case 1:
-							return _List_fromArray(
-								[
-									_Utils_Tuple2(
-									_Utils_Tuple2(20, 20),
-									A2(
-										author$project$AsteroidMiner$Data$Game$newBuilding,
-										elm$core$Maybe$Just(author$project$AsteroidMiner$Data$Item$Stone),
-										author$project$AsteroidMiner$Building$Mine)),
-									_Utils_Tuple2(
-									_Utils_Tuple2(22, 20),
-									A2(
-										author$project$AsteroidMiner$Data$Game$newBuilding,
-										elm$core$Maybe$Nothing,
-										author$project$AsteroidMiner$Building$Container(author$project$AsteroidMiner$Building$Empty))),
-									_Utils_Tuple2(
-									_Utils_Tuple2(21, 18),
-									A2(
-										author$project$AsteroidMiner$Data$Game$newBuilding,
-										elm$core$Maybe$Nothing,
-										author$project$AsteroidMiner$Building$ConveyorBelt(author$project$AsteroidMiner$Building$Invalid))),
-									_Utils_Tuple2(
-									_Utils_Tuple2(22, 18),
-									A2(
-										author$project$AsteroidMiner$Data$Game$newBuilding,
-										elm$core$Maybe$Nothing,
-										author$project$AsteroidMiner$Building$Container(author$project$AsteroidMiner$Building$Empty))),
-									_Utils_Tuple2(
-									_Utils_Tuple2(21, 16),
-									A2(
-										author$project$AsteroidMiner$Data$Game$newBuilding,
-										elm$core$Maybe$Nothing,
-										author$project$AsteroidMiner$Building$ConveyorBelt(author$project$AsteroidMiner$Building$Invalid))),
-									_Utils_Tuple2(
-									_Utils_Tuple2(20, 16),
-									A2(
-										author$project$AsteroidMiner$Data$Game$newBuilding,
-										elm$core$Maybe$Just(author$project$AsteroidMiner$Data$Item$Stone),
-										author$project$AsteroidMiner$Building$Mine)),
-									_Utils_Tuple2(
-									_Utils_Tuple2(20, 14),
-									A2(
-										author$project$AsteroidMiner$Data$Game$newBuilding,
-										elm$core$Maybe$Just(author$project$AsteroidMiner$Data$Item$Stone),
-										author$project$AsteroidMiner$Building$Mine)),
-									_Utils_Tuple2(
-									_Utils_Tuple2(21, 14),
-									A2(
-										author$project$AsteroidMiner$Data$Game$newBuilding,
-										elm$core$Maybe$Nothing,
-										author$project$AsteroidMiner$Building$ConveyorBelt(author$project$AsteroidMiner$Building$Invalid))),
-									_Utils_Tuple2(
-									_Utils_Tuple2(22, 14),
-									A2(
-										author$project$AsteroidMiner$Data$Game$newBuilding,
-										elm$core$Maybe$Nothing,
-										author$project$AsteroidMiner$Building$Container(author$project$AsteroidMiner$Building$Empty)))
-								]);
-						case 2:
-							return _List_fromArray(
-								[
-									_Utils_Tuple2(
-									_Utils_Tuple2(20, 16),
-									A2(
-										author$project$AsteroidMiner$Data$Game$newBuilding,
-										elm$core$Maybe$Just(author$project$AsteroidMiner$Data$Item$Stone),
-										author$project$AsteroidMiner$Building$Mine)),
-									_Utils_Tuple2(
-									_Utils_Tuple2(21, 16),
-									A2(
-										author$project$AsteroidMiner$Data$Game$newBuilding,
-										elm$core$Maybe$Nothing,
-										author$project$AsteroidMiner$Building$ConveyorBelt(author$project$AsteroidMiner$Building$Invalid))),
-									_Utils_Tuple2(
-									_Utils_Tuple2(22, 16),
-									A2(
-										author$project$AsteroidMiner$Data$Game$newBuilding,
-										elm$core$Maybe$Nothing,
-										author$project$AsteroidMiner$Building$ConveyorBelt(author$project$AsteroidMiner$Building$Invalid))),
-									_Utils_Tuple2(
-									_Utils_Tuple2(23, 16),
-									A2(
-										author$project$AsteroidMiner$Data$Game$newBuilding,
-										elm$core$Maybe$Nothing,
-										author$project$AsteroidMiner$Building$Container(author$project$AsteroidMiner$Building$Empty))),
-									_Utils_Tuple2(
-									_Utils_Tuple2(20, 15),
-									A2(
-										author$project$AsteroidMiner$Data$Game$newBuilding,
-										elm$core$Maybe$Just(author$project$AsteroidMiner$Data$Item$Stone),
-										author$project$AsteroidMiner$Building$Mine)),
-									_Utils_Tuple2(
-									_Utils_Tuple2(23, 15),
-									A2(
-										author$project$AsteroidMiner$Data$Game$newBuilding,
-										elm$core$Maybe$Nothing,
-										author$project$AsteroidMiner$Building$Container(author$project$AsteroidMiner$Building$Empty))),
-									_Utils_Tuple2(
-									_Utils_Tuple2(20, 14),
-									A2(
-										author$project$AsteroidMiner$Data$Game$newBuilding,
-										elm$core$Maybe$Just(author$project$AsteroidMiner$Data$Item$Stone),
-										author$project$AsteroidMiner$Building$Mine)),
-									_Utils_Tuple2(
-									_Utils_Tuple2(23, 14),
-									A2(
-										author$project$AsteroidMiner$Data$Game$newBuilding,
-										elm$core$Maybe$Nothing,
-										author$project$AsteroidMiner$Building$Container(author$project$AsteroidMiner$Building$Empty))),
-									_Utils_Tuple2(
-									_Utils_Tuple2(19, 13),
-									A2(
-										author$project$AsteroidMiner$Data$Game$newBuilding,
-										elm$core$Maybe$Just(author$project$AsteroidMiner$Data$Item$Stone),
-										author$project$AsteroidMiner$Building$Mine)),
-									_Utils_Tuple2(
-									_Utils_Tuple2(20, 13),
-									A2(
-										author$project$AsteroidMiner$Data$Game$newBuilding,
-										elm$core$Maybe$Nothing,
-										author$project$AsteroidMiner$Building$ConveyorBelt(author$project$AsteroidMiner$Building$Invalid))),
-									_Utils_Tuple2(
-									_Utils_Tuple2(21, 13),
-									A2(
-										author$project$AsteroidMiner$Data$Game$newBuilding,
-										elm$core$Maybe$Nothing,
-										author$project$AsteroidMiner$Building$ConveyorBelt(author$project$AsteroidMiner$Building$Invalid))),
-									_Utils_Tuple2(
-									_Utils_Tuple2(22, 13),
-									A2(
-										author$project$AsteroidMiner$Data$Game$newBuilding,
-										elm$core$Maybe$Nothing,
-										author$project$AsteroidMiner$Building$ConveyorBelt(author$project$AsteroidMiner$Building$Invalid))),
-									_Utils_Tuple2(
-									_Utils_Tuple2(23, 13),
-									A2(
-										author$project$AsteroidMiner$Data$Game$newBuilding,
-										elm$core$Maybe$Nothing,
-										author$project$AsteroidMiner$Building$Container(author$project$AsteroidMiner$Building$Empty))),
-									_Utils_Tuple2(
-									_Utils_Tuple2(18, 12),
-									A2(
-										author$project$AsteroidMiner$Data$Game$newBuilding,
-										elm$core$Maybe$Just(author$project$AsteroidMiner$Data$Item$Stone),
-										author$project$AsteroidMiner$Building$Mine)),
-									_Utils_Tuple2(
-									_Utils_Tuple2(23, 12),
-									A2(
-										author$project$AsteroidMiner$Data$Game$newBuilding,
-										elm$core$Maybe$Nothing,
-										author$project$AsteroidMiner$Building$Container(author$project$AsteroidMiner$Building$Empty)))
-								]);
-						case 3:
-							return _List_fromArray(
-								[
-									_Utils_Tuple2(
-									_Utils_Tuple2(20, 14),
-									A2(
-										author$project$AsteroidMiner$Data$Game$newBuilding,
-										elm$core$Maybe$Just(author$project$AsteroidMiner$Data$Item$Stone),
-										author$project$AsteroidMiner$Building$Mine)),
-									_Utils_Tuple2(
-									_Utils_Tuple2(21, 14),
-									A2(
-										author$project$AsteroidMiner$Data$Game$newBuilding,
-										elm$core$Maybe$Nothing,
-										author$project$AsteroidMiner$Building$ConveyorBelt(author$project$AsteroidMiner$Building$Invalid))),
-									_Utils_Tuple2(
-									_Utils_Tuple2(22, 14),
-									A2(
-										author$project$AsteroidMiner$Data$Game$newBuilding,
-										elm$core$Maybe$Nothing,
-										author$project$AsteroidMiner$Building$Container(author$project$AsteroidMiner$Building$Empty))),
-									_Utils_Tuple2(
-									_Utils_Tuple2(23, 14),
-									A2(author$project$AsteroidMiner$Data$Game$newBuilding, elm$core$Maybe$Nothing, author$project$AsteroidMiner$Building$Merger)),
-									_Utils_Tuple2(
-									_Utils_Tuple2(23, 12),
-									A2(
-										author$project$AsteroidMiner$Data$Game$newBuilding,
-										elm$core$Maybe$Nothing,
-										author$project$AsteroidMiner$Building$Container(author$project$AsteroidMiner$Building$Empty))),
-									_Utils_Tuple2(
-									_Utils_Tuple2(20, 16),
-									A2(
-										author$project$AsteroidMiner$Data$Game$newBuilding,
-										elm$core$Maybe$Just(author$project$AsteroidMiner$Data$Item$Stone),
-										author$project$AsteroidMiner$Building$Mine)),
-									_Utils_Tuple2(
-									_Utils_Tuple2(21, 16),
-									A2(
-										author$project$AsteroidMiner$Data$Game$newBuilding,
-										elm$core$Maybe$Nothing,
-										author$project$AsteroidMiner$Building$ConveyorBelt(author$project$AsteroidMiner$Building$Invalid))),
-									_Utils_Tuple2(
-									_Utils_Tuple2(22, 16),
-									A2(
-										author$project$AsteroidMiner$Data$Game$newBuilding,
-										elm$core$Maybe$Nothing,
-										author$project$AsteroidMiner$Building$Container(author$project$AsteroidMiner$Building$Empty))),
-									_Utils_Tuple2(
-									_Utils_Tuple2(23, 16),
-									A2(author$project$AsteroidMiner$Data$Game$newBuilding, elm$core$Maybe$Nothing, author$project$AsteroidMiner$Building$Merger)),
-									_Utils_Tuple2(
-									_Utils_Tuple2(23, 17),
-									A2(
-										author$project$AsteroidMiner$Data$Game$newBuilding,
-										elm$core$Maybe$Nothing,
-										author$project$AsteroidMiner$Building$ConveyorBelt(author$project$AsteroidMiner$Building$Invalid))),
-									_Utils_Tuple2(
-									_Utils_Tuple2(23, 18),
-									A2(
-										author$project$AsteroidMiner$Data$Game$newBuilding,
-										elm$core$Maybe$Nothing,
-										author$project$AsteroidMiner$Building$Container(author$project$AsteroidMiner$Building$Empty))),
-									_Utils_Tuple2(
-									_Utils_Tuple2(19, 20),
-									A2(
-										author$project$AsteroidMiner$Data$Game$newBuilding,
-										elm$core$Maybe$Just(author$project$AsteroidMiner$Data$Item$Stone),
-										author$project$AsteroidMiner$Building$Mine)),
-									_Utils_Tuple2(
-									_Utils_Tuple2(20, 20),
-									A2(
-										author$project$AsteroidMiner$Data$Game$newBuilding,
-										elm$core$Maybe$Nothing,
-										author$project$AsteroidMiner$Building$ConveyorBelt(author$project$AsteroidMiner$Building$Invalid))),
-									_Utils_Tuple2(
-									_Utils_Tuple2(21, 20),
-									A2(
-										author$project$AsteroidMiner$Data$Game$newBuilding,
-										elm$core$Maybe$Nothing,
-										author$project$AsteroidMiner$Building$Container(author$project$AsteroidMiner$Building$Empty))),
-									_Utils_Tuple2(
-									_Utils_Tuple2(22, 20),
-									A2(author$project$AsteroidMiner$Data$Game$newBuilding, elm$core$Maybe$Nothing, author$project$AsteroidMiner$Building$Merger)),
-									_Utils_Tuple2(
-									_Utils_Tuple2(22, 19),
-									A2(
-										author$project$AsteroidMiner$Data$Game$newBuilding,
-										elm$core$Maybe$Nothing,
-										author$project$AsteroidMiner$Building$ConveyorBelt(author$project$AsteroidMiner$Building$Invalid))),
-									_Utils_Tuple2(
-									_Utils_Tuple2(22, 18),
-									A2(
-										author$project$AsteroidMiner$Data$Game$newBuilding,
-										elm$core$Maybe$Nothing,
-										author$project$AsteroidMiner$Building$ConveyorBelt(author$project$AsteroidMiner$Building$Invalid))),
-									_Utils_Tuple2(
-									_Utils_Tuple2(18, 12),
-									A2(
-										author$project$AsteroidMiner$Data$Game$newBuilding,
-										elm$core$Maybe$Just(author$project$AsteroidMiner$Data$Item$Stone),
-										author$project$AsteroidMiner$Building$Mine)),
-									_Utils_Tuple2(
-									_Utils_Tuple2(19, 12),
-									A2(
-										author$project$AsteroidMiner$Data$Game$newBuilding,
-										elm$core$Maybe$Just(author$project$AsteroidMiner$Data$Item$Stone),
-										author$project$AsteroidMiner$Building$ConveyorBelt(author$project$AsteroidMiner$Building$Invalid))),
-									_Utils_Tuple2(
-									_Utils_Tuple2(20, 12),
-									A2(
-										author$project$AsteroidMiner$Data$Game$newBuilding,
-										elm$core$Maybe$Nothing,
-										author$project$AsteroidMiner$Building$Container(author$project$AsteroidMiner$Building$Empty))),
-									_Utils_Tuple2(
-									_Utils_Tuple2(22, 12),
-									A2(
-										author$project$AsteroidMiner$Data$Game$newBuilding,
-										elm$core$Maybe$Nothing,
-										author$project$AsteroidMiner$Building$ConveyorBelt(author$project$AsteroidMiner$Building$Invalid)))
-								]);
-						default:
-							return _List_Nil;
-					}
-				}()));
+	function (num, map) {
+		return A3(
+			elm$core$List$foldl,
+			function (_n1) {
+				var pos = _n1.a;
+				var building = _n1.b;
+				return Orasund$elm_game_essentials$Grid$Bordered$ignoringErrors(
+					A2(
+						Orasund$elm_game_essentials$Grid$Bordered$update,
+						pos,
+						elm$core$Basics$always(
+							elm$core$Result$Ok(
+								elm$core$Maybe$Just(building)))));
+			},
+			map,
+			function () {
+				switch (num) {
+					case 1:
+						return _List_fromArray(
+							[
+								_Utils_Tuple2(
+								_Utils_Tuple2(20, 20),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Just(author$project$AsteroidMiner$Data$Item$Stone),
+									author$project$AsteroidMiner$Building$Mine)),
+								_Utils_Tuple2(
+								_Utils_Tuple2(22, 20),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Nothing,
+									author$project$AsteroidMiner$Building$Container(author$project$AsteroidMiner$Building$Empty))),
+								_Utils_Tuple2(
+								_Utils_Tuple2(21, 18),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Nothing,
+									author$project$AsteroidMiner$Building$ConveyorBelt(author$project$AsteroidMiner$Building$Invalid))),
+								_Utils_Tuple2(
+								_Utils_Tuple2(22, 18),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Nothing,
+									author$project$AsteroidMiner$Building$Container(author$project$AsteroidMiner$Building$Empty))),
+								_Utils_Tuple2(
+								_Utils_Tuple2(21, 16),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Nothing,
+									author$project$AsteroidMiner$Building$ConveyorBelt(author$project$AsteroidMiner$Building$Invalid))),
+								_Utils_Tuple2(
+								_Utils_Tuple2(20, 16),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Just(author$project$AsteroidMiner$Data$Item$Stone),
+									author$project$AsteroidMiner$Building$Mine)),
+								_Utils_Tuple2(
+								_Utils_Tuple2(20, 14),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Just(author$project$AsteroidMiner$Data$Item$Stone),
+									author$project$AsteroidMiner$Building$Mine)),
+								_Utils_Tuple2(
+								_Utils_Tuple2(21, 14),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Nothing,
+									author$project$AsteroidMiner$Building$ConveyorBelt(author$project$AsteroidMiner$Building$Invalid))),
+								_Utils_Tuple2(
+								_Utils_Tuple2(22, 14),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Nothing,
+									author$project$AsteroidMiner$Building$Container(author$project$AsteroidMiner$Building$Empty)))
+							]);
+					case 2:
+						return _List_fromArray(
+							[
+								_Utils_Tuple2(
+								_Utils_Tuple2(20, 16),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Just(author$project$AsteroidMiner$Data$Item$Stone),
+									author$project$AsteroidMiner$Building$Mine)),
+								_Utils_Tuple2(
+								_Utils_Tuple2(21, 16),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Nothing,
+									author$project$AsteroidMiner$Building$ConveyorBelt(author$project$AsteroidMiner$Building$Invalid))),
+								_Utils_Tuple2(
+								_Utils_Tuple2(22, 16),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Nothing,
+									author$project$AsteroidMiner$Building$ConveyorBelt(author$project$AsteroidMiner$Building$Invalid))),
+								_Utils_Tuple2(
+								_Utils_Tuple2(23, 16),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Nothing,
+									author$project$AsteroidMiner$Building$Container(author$project$AsteroidMiner$Building$Empty))),
+								_Utils_Tuple2(
+								_Utils_Tuple2(20, 15),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Just(author$project$AsteroidMiner$Data$Item$Stone),
+									author$project$AsteroidMiner$Building$Mine)),
+								_Utils_Tuple2(
+								_Utils_Tuple2(23, 15),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Nothing,
+									author$project$AsteroidMiner$Building$Container(author$project$AsteroidMiner$Building$Empty))),
+								_Utils_Tuple2(
+								_Utils_Tuple2(20, 14),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Just(author$project$AsteroidMiner$Data$Item$Stone),
+									author$project$AsteroidMiner$Building$Mine)),
+								_Utils_Tuple2(
+								_Utils_Tuple2(23, 14),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Nothing,
+									author$project$AsteroidMiner$Building$Container(author$project$AsteroidMiner$Building$Empty))),
+								_Utils_Tuple2(
+								_Utils_Tuple2(19, 13),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Just(author$project$AsteroidMiner$Data$Item$Stone),
+									author$project$AsteroidMiner$Building$Mine)),
+								_Utils_Tuple2(
+								_Utils_Tuple2(20, 13),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Nothing,
+									author$project$AsteroidMiner$Building$ConveyorBelt(author$project$AsteroidMiner$Building$Invalid))),
+								_Utils_Tuple2(
+								_Utils_Tuple2(21, 13),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Nothing,
+									author$project$AsteroidMiner$Building$ConveyorBelt(author$project$AsteroidMiner$Building$Invalid))),
+								_Utils_Tuple2(
+								_Utils_Tuple2(22, 13),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Nothing,
+									author$project$AsteroidMiner$Building$ConveyorBelt(author$project$AsteroidMiner$Building$Invalid))),
+								_Utils_Tuple2(
+								_Utils_Tuple2(23, 13),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Nothing,
+									author$project$AsteroidMiner$Building$Container(author$project$AsteroidMiner$Building$Empty))),
+								_Utils_Tuple2(
+								_Utils_Tuple2(18, 12),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Just(author$project$AsteroidMiner$Data$Item$Stone),
+									author$project$AsteroidMiner$Building$Mine)),
+								_Utils_Tuple2(
+								_Utils_Tuple2(23, 12),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Nothing,
+									author$project$AsteroidMiner$Building$Container(author$project$AsteroidMiner$Building$Empty)))
+							]);
+					case 3:
+						return _List_fromArray(
+							[
+								_Utils_Tuple2(
+								_Utils_Tuple2(20, 14),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Just(author$project$AsteroidMiner$Data$Item$Stone),
+									author$project$AsteroidMiner$Building$Mine)),
+								_Utils_Tuple2(
+								_Utils_Tuple2(21, 14),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Nothing,
+									author$project$AsteroidMiner$Building$ConveyorBelt(author$project$AsteroidMiner$Building$Invalid))),
+								_Utils_Tuple2(
+								_Utils_Tuple2(22, 14),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Nothing,
+									author$project$AsteroidMiner$Building$Container(author$project$AsteroidMiner$Building$Empty))),
+								_Utils_Tuple2(
+								_Utils_Tuple2(23, 14),
+								A2(author$project$AsteroidMiner$Data$Game$newBuilding, elm$core$Maybe$Nothing, author$project$AsteroidMiner$Building$Merger)),
+								_Utils_Tuple2(
+								_Utils_Tuple2(23, 12),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Nothing,
+									author$project$AsteroidMiner$Building$Container(author$project$AsteroidMiner$Building$Empty))),
+								_Utils_Tuple2(
+								_Utils_Tuple2(20, 16),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Just(author$project$AsteroidMiner$Data$Item$Stone),
+									author$project$AsteroidMiner$Building$Mine)),
+								_Utils_Tuple2(
+								_Utils_Tuple2(21, 16),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Nothing,
+									author$project$AsteroidMiner$Building$ConveyorBelt(author$project$AsteroidMiner$Building$Invalid))),
+								_Utils_Tuple2(
+								_Utils_Tuple2(22, 16),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Nothing,
+									author$project$AsteroidMiner$Building$Container(author$project$AsteroidMiner$Building$Empty))),
+								_Utils_Tuple2(
+								_Utils_Tuple2(23, 16),
+								A2(author$project$AsteroidMiner$Data$Game$newBuilding, elm$core$Maybe$Nothing, author$project$AsteroidMiner$Building$Merger)),
+								_Utils_Tuple2(
+								_Utils_Tuple2(23, 17),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Nothing,
+									author$project$AsteroidMiner$Building$ConveyorBelt(author$project$AsteroidMiner$Building$Invalid))),
+								_Utils_Tuple2(
+								_Utils_Tuple2(23, 18),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Nothing,
+									author$project$AsteroidMiner$Building$Container(author$project$AsteroidMiner$Building$Empty))),
+								_Utils_Tuple2(
+								_Utils_Tuple2(19, 20),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Just(author$project$AsteroidMiner$Data$Item$Stone),
+									author$project$AsteroidMiner$Building$Mine)),
+								_Utils_Tuple2(
+								_Utils_Tuple2(20, 20),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Nothing,
+									author$project$AsteroidMiner$Building$ConveyorBelt(author$project$AsteroidMiner$Building$Invalid))),
+								_Utils_Tuple2(
+								_Utils_Tuple2(21, 20),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Nothing,
+									author$project$AsteroidMiner$Building$Container(author$project$AsteroidMiner$Building$Empty))),
+								_Utils_Tuple2(
+								_Utils_Tuple2(22, 20),
+								A2(author$project$AsteroidMiner$Data$Game$newBuilding, elm$core$Maybe$Nothing, author$project$AsteroidMiner$Building$Merger)),
+								_Utils_Tuple2(
+								_Utils_Tuple2(22, 19),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Nothing,
+									author$project$AsteroidMiner$Building$ConveyorBelt(author$project$AsteroidMiner$Building$Invalid))),
+								_Utils_Tuple2(
+								_Utils_Tuple2(22, 18),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Nothing,
+									author$project$AsteroidMiner$Building$ConveyorBelt(author$project$AsteroidMiner$Building$Invalid))),
+								_Utils_Tuple2(
+								_Utils_Tuple2(18, 12),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Just(author$project$AsteroidMiner$Data$Item$Stone),
+									author$project$AsteroidMiner$Building$Mine)),
+								_Utils_Tuple2(
+								_Utils_Tuple2(19, 12),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Nothing,
+									author$project$AsteroidMiner$Building$ConveyorBelt(author$project$AsteroidMiner$Building$Invalid))),
+								_Utils_Tuple2(
+								_Utils_Tuple2(20, 12),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Nothing,
+									author$project$AsteroidMiner$Building$Container(author$project$AsteroidMiner$Building$Empty))),
+								_Utils_Tuple2(
+								_Utils_Tuple2(22, 12),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Nothing,
+									author$project$AsteroidMiner$Building$ConveyorBelt(author$project$AsteroidMiner$Building$Invalid)))
+							]);
+					case 4:
+						return _List_fromArray(
+							[
+								_Utils_Tuple2(
+								_Utils_Tuple2(18, 12),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Just(author$project$AsteroidMiner$Data$Item$Stone),
+									author$project$AsteroidMiner$Building$Mine)),
+								_Utils_Tuple2(
+								_Utils_Tuple2(19, 13),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Just(author$project$AsteroidMiner$Data$Item$Stone),
+									author$project$AsteroidMiner$Building$Mine)),
+								_Utils_Tuple2(
+								_Utils_Tuple2(20, 12),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Nothing,
+									author$project$AsteroidMiner$Building$Container(author$project$AsteroidMiner$Building$Empty))),
+								_Utils_Tuple2(
+								_Utils_Tuple2(20, 15),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Just(author$project$AsteroidMiner$Data$Item$Stone),
+									author$project$AsteroidMiner$Building$Mine)),
+								_Utils_Tuple2(
+								_Utils_Tuple2(21, 15),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Nothing,
+									author$project$AsteroidMiner$Building$ConveyorBelt(author$project$AsteroidMiner$Building$Invalid))),
+								_Utils_Tuple2(
+								_Utils_Tuple2(23, 15),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Nothing,
+									author$project$AsteroidMiner$Building$Container(author$project$AsteroidMiner$Building$Empty))),
+								_Utils_Tuple2(
+								_Utils_Tuple2(22, 14),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Nothing,
+									author$project$AsteroidMiner$Building$Container(author$project$AsteroidMiner$Building$Empty))),
+								_Utils_Tuple2(
+								_Utils_Tuple2(20, 20),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Just(author$project$AsteroidMiner$Data$Item$Stone),
+									author$project$AsteroidMiner$Building$Mine)),
+								_Utils_Tuple2(
+								_Utils_Tuple2(19, 21),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Just(author$project$AsteroidMiner$Data$Item$Stone),
+									author$project$AsteroidMiner$Building$Mine)),
+								_Utils_Tuple2(
+								_Utils_Tuple2(20, 21),
+								A2(author$project$AsteroidMiner$Data$Game$newBuilding, elm$core$Maybe$Nothing, author$project$AsteroidMiner$Building$Sorter)),
+								_Utils_Tuple2(
+								_Utils_Tuple2(21, 21),
+								A2(
+									author$project$AsteroidMiner$Data$Game$newBuilding,
+									elm$core$Maybe$Nothing,
+									author$project$AsteroidMiner$Building$Container(author$project$AsteroidMiner$Building$Empty)))
+							]);
+					default:
+						return _List_Nil;
+				}
+			}());
 	});
 var author$project$AsteroidMiner$Page$Tutorial$init = F2(
 	function (num, seed) {
-		var _n0 = author$project$AsteroidMiner$Page$Game$init(seed);
-		var content = _n0.a;
-		var cmd = _n0.b;
-		return _Utils_Tuple2(
+		var content = author$project$AsteroidMiner$View$RunningGame$init(
 			{
-				content: _Utils_update(
-					content,
-					{
-						game: A2(author$project$AsteroidMiner$Page$Tutorial$tutorial, num, content.game)
-					}),
-				num: num
-			},
-			cmd);
+				map: A2(author$project$AsteroidMiner$Page$Tutorial$tutorial, num, author$project$AsteroidMiner$Data$Map$init),
+				seed: seed,
+				winCondition: function () {
+					switch (num) {
+						case 1:
+							return 80;
+						case 2:
+							return 100;
+						case 3:
+							return 80;
+						default:
+							return 80;
+					}
+				}()
+			});
+		return _Utils_Tuple2(
+			{content: content, num: num},
+			elm$core$Platform$Cmd$none);
 	});
-var Orasund$elm_action$Action$Exit = function (a) {
-	return {$: 'Exit', a: a};
-};
-var Orasund$elm_action$Action$exiting = Orasund$elm_action$Action$Exit(_Utils_Tuple0);
 var author$project$AsteroidMiner$Page$Tutorial$maxTutorial = 4;
 var author$project$AsteroidMiner$Page$Tutorial$update = F2(
 	function (msg, model) {
 		var num = model.num;
-		var content = model.content;
-		var _n0 = Orasund$elm_action$Action$apply(
-			A2(
-				Orasund$elm_action$Action$withExit,
-				_Utils_Tuple2(elm$core$Maybe$Nothing, elm$core$Platform$Cmd$none),
-				A3(
-					Orasund$elm_action$Action$withUpdate,
-					elm$core$Maybe$Just,
-					elm$core$Basics$never,
-					Orasund$elm_action$Action$config(
-						A2(author$project$AsteroidMiner$Page$Game$update, msg, content)))));
-		var maybeModel = _n0.a;
-		var cmd = _n0.b;
-		if (maybeModel.$ === 'Just') {
-			var c = maybeModel.a;
-			var inventory = c.inventory;
-			return function (stone) {
-				return stone >= 256;
-			}(
-				A2(
-					elm$core$Maybe$withDefault,
-					0,
-					A2(
-						elm$core$Dict$get,
-						author$project$AsteroidMiner$Data$Item$toInt(author$project$AsteroidMiner$Data$Item$Stone),
-						inventory))) ? (_Utils_eq(num, author$project$AsteroidMiner$Page$Tutorial$maxTutorial) ? Orasund$elm_action$Action$exiting : Orasund$elm_action$Action$updating(
-				A2(author$project$AsteroidMiner$Page$Tutorial$init, num + 1, content.seed))) : Orasund$elm_action$Action$updating(
-				_Utils_Tuple2(
-					_Utils_update(
-						model,
-						{content: c}),
-					cmd));
-		} else {
-			return Orasund$elm_action$Action$exiting;
+		var content = A2(author$project$AsteroidMiner$View$RunningGame$update, msg, model.content);
+		var _n0 = content.status;
+		switch (_n0.$) {
+			case 'Running':
+				return Orasund$elm_action$Action$updating(
+					_Utils_Tuple2(
+						_Utils_update(
+							model,
+							{content: content}),
+						elm$core$Platform$Cmd$none));
+			case 'Won':
+				return _Utils_eq(num, author$project$AsteroidMiner$Page$Tutorial$maxTutorial) ? Orasund$elm_action$Action$exiting : Orasund$elm_action$Action$updating(
+					A2(author$project$AsteroidMiner$Page$Tutorial$init, num + 1, content.seed));
+			default:
+				return Orasund$elm_action$Action$exiting;
 		}
 	});
 var author$project$AsteroidMiner$Main$update = F2(
@@ -13479,68 +13581,6 @@ var Orasund$pixelengine$PixelEngine$tiledArea = F2(
 var author$project$AsteroidMiner$Data$Item$fromInt = function (_int) {
 	return author$project$AsteroidMiner$Data$Item$Stone;
 };
-var author$project$AsteroidMiner$Page$Game$GuiSpecific = function (a) {
-	return {$: 'GuiSpecific', a: a};
-};
-var author$project$AsteroidMiner$Page$Game$SquareClicked = function (a) {
-	return {$: 'SquareClicked', a: a};
-};
-var Orasund$pixelengine$PixelEngine$Tile$animated = F2(
-	function (steps, t) {
-		var info = t.info;
-		return _Utils_update(
-			t,
-			{
-				info: function () {
-					if (!info.b) {
-						return _List_Nil;
-					} else {
-						var head = info.a;
-						var tail = info.b;
-						return A2(
-							elm$core$List$cons,
-							_Utils_update(
-								head,
-								{
-									steps: (steps > 1) ? steps : 1
-								}),
-							tail);
-					}
-				}()
-			});
-	});
-var Orasund$pixelengine$PixelEngine$Tile$fromPosition = function (_n0) {
-	var left = _n0.a;
-	var top = _n0.b;
-	return {
-		customAttributes: _List_Nil,
-		info: elm$core$List$singleton(
-			{left: left, steps: 0, top: top}),
-		uniqueId: elm$core$Maybe$Nothing
-	};
-};
-var Orasund$pixelengine$PixelEngine$Tile$movable = F2(
-	function (id, t) {
-		return _Utils_update(
-			t,
-			{
-				uniqueId: elm$core$Maybe$Just(
-					_Utils_Tuple2(id, true))
-			});
-	});
-var author$project$AsteroidMiner$View$Tileset$comet = A2(
-	Orasund$pixelengine$PixelEngine$Tile$movable,
-	'comet',
-	A2(
-		Orasund$pixelengine$PixelEngine$Tile$animated,
-		4,
-		Orasund$pixelengine$PixelEngine$Tile$fromPosition(
-			_Utils_Tuple2(4, 4))));
-var author$project$AsteroidMiner$Page$Game$viewComet = function (comet) {
-	return _Utils_Tuple2(
-		author$project$AsteroidMiner$Data$Comet$position(comet),
-		author$project$AsteroidMiner$View$Tileset$comet);
-};
 var author$project$AsteroidMiner$View$Container = {$: 'Container'};
 var author$project$AsteroidMiner$View$ConveyorBelt = {$: 'ConveyorBelt'};
 var author$project$AsteroidMiner$View$Delete = {$: 'Delete'};
@@ -13587,27 +13627,21 @@ var Orasund$pixelengine$PixelEngine$Image$clickable = function (msg) {
 var author$project$AsteroidMiner$View$GUI$ItemSelected = function (a) {
 	return {$: 'ItemSelected', a: a};
 };
+var Orasund$pixelengine$PixelEngine$Tile$fromPosition = function (_n0) {
+	var left = _n0.a;
+	var top = _n0.b;
+	return {
+		customAttributes: _List_Nil,
+		info: elm$core$List$singleton(
+			{left: left, steps: 0, top: top}),
+		uniqueId: elm$core$Maybe$Nothing
+	};
+};
 var author$project$AsteroidMiner$View$Tileset$stone = Orasund$pixelengine$PixelEngine$Tile$fromPosition(
-	_Utils_Tuple2(2, 0));
+	_Utils_Tuple2(3, 2));
 var author$project$AsteroidMiner$View$Map$viewItem = function (item) {
 	return author$project$AsteroidMiner$View$Tileset$stone;
 };
-var Orasund$pixelengine$PixelEngine$Tile$multipleTiles = A2(
-	elm$core$List$foldl,
-	F2(
-		function (_n0, tile) {
-			var info = _n0.info;
-			var customAttributes = _n0.customAttributes;
-			return _Utils_update(
-				tile,
-				{
-					customAttributes: A2(elm$core$List$append, tile.customAttributes, customAttributes),
-					info: A2(elm$core$List$append, tile.info, info)
-				});
-		}),
-	{customAttributes: _List_Nil, info: _List_Nil, uniqueId: elm$core$Maybe$Nothing});
-var author$project$AsteroidMiner$View$Tileset$Big$defaultImage = Orasund$pixelengine$PixelEngine$Tile$fromPosition(
-	_Utils_Tuple2(4, 4));
 var Orasund$pixelengine$PixelEngine$Graphics$Data$Element$SingleSource = function (a) {
 	return {$: 'SingleSource', a: a};
 };
@@ -13677,144 +13711,152 @@ var Orasund$pixelengine$PixelEngine$Image$fromTile = F2(
 				info));
 	});
 var Orasund$pixelengine$PixelEngine$Tile$tileset = elm$core$Basics$identity;
+var author$project$AsteroidMiner$View$Tileset$tileset = Orasund$pixelengine$PixelEngine$Tile$tileset(
+	{source: 'tileset.png', spriteHeight: 8, spriteWidth: 8});
 var author$project$AsteroidMiner$View$Tileset$Big$tileset = Orasund$pixelengine$PixelEngine$Tile$tileset(
 	{source: 'tileset.png', spriteHeight: 16, spriteWidth: 16});
 var author$project$AsteroidMiner$View$Tileset$Big$toImage = function (tile) {
 	return A2(Orasund$pixelengine$PixelEngine$Image$fromTile, tile, author$project$AsteroidMiner$View$Tileset$Big$tileset);
 };
+var author$project$AsteroidMiner$View$Tileset$Big$greenButton = function (symbol) {
+	return Orasund$pixelengine$PixelEngine$Image$multipleImages(
+		_List_fromArray(
+			[
+				_Utils_Tuple2(
+				_Utils_Tuple2(0, 0),
+				author$project$AsteroidMiner$View$Tileset$Big$toImage(
+					Orasund$pixelengine$PixelEngine$Tile$fromPosition(
+						_Utils_Tuple2(3, 4)))),
+				_Utils_Tuple2(
+				_Utils_Tuple2(author$project$AsteroidMiner$Data$spriteSize / 2, author$project$AsteroidMiner$Data$spriteSize / 2),
+				A2(Orasund$pixelengine$PixelEngine$Image$fromTile, symbol, author$project$AsteroidMiner$View$Tileset$tileset))
+			]));
+};
 var author$project$AsteroidMiner$View$Tileset$Big$container = {
 	image: author$project$AsteroidMiner$View$Tileset$Big$toImage(
 		Orasund$pixelengine$PixelEngine$Tile$fromPosition(
-			_Utils_Tuple2(1, 4))),
-	symobl: author$project$AsteroidMiner$View$Tileset$Big$toImage(
-		Orasund$pixelengine$PixelEngine$Tile$multipleTiles(
-			_List_fromArray(
-				[
-					author$project$AsteroidMiner$View$Tileset$Big$defaultImage,
+			_Utils_Tuple2(5, 0))),
+	symobl: author$project$AsteroidMiner$View$Tileset$Big$greenButton(
+		Orasund$pixelengine$PixelEngine$Tile$fromPosition(
+			_Utils_Tuple2(9, 8)))
+};
+var author$project$AsteroidMiner$View$Tileset$Big$defaultButton = function (symbol) {
+	return Orasund$pixelengine$PixelEngine$Image$multipleImages(
+		_List_fromArray(
+			[
+				_Utils_Tuple2(
+				_Utils_Tuple2(0, 0),
+				author$project$AsteroidMiner$View$Tileset$Big$toImage(
 					Orasund$pixelengine$PixelEngine$Tile$fromPosition(
-					_Utils_Tuple2(1, 5))
-				])))
+						_Utils_Tuple2(0, 4)))),
+				_Utils_Tuple2(
+				_Utils_Tuple2(author$project$AsteroidMiner$Data$spriteSize / 2, author$project$AsteroidMiner$Data$spriteSize / 2),
+				A2(Orasund$pixelengine$PixelEngine$Image$fromTile, symbol, author$project$AsteroidMiner$View$Tileset$tileset))
+			]));
 };
 var author$project$AsteroidMiner$View$Tileset$Big$conveyorBelt = {
 	image: author$project$AsteroidMiner$View$Tileset$Big$toImage(
 		Orasund$pixelengine$PixelEngine$Tile$fromPosition(
-			_Utils_Tuple2(0, 4))),
-	symobl: author$project$AsteroidMiner$View$Tileset$Big$toImage(
-		Orasund$pixelengine$PixelEngine$Tile$multipleTiles(
-			_List_fromArray(
-				[
-					author$project$AsteroidMiner$View$Tileset$Big$defaultImage,
+			_Utils_Tuple2(4, 0))),
+	symobl: author$project$AsteroidMiner$View$Tileset$Big$defaultButton(
+		Orasund$pixelengine$PixelEngine$Tile$fromPosition(
+			_Utils_Tuple2(8, 8)))
+};
+var author$project$AsteroidMiner$View$Tileset$Big$blackButton = function (symbol) {
+	return Orasund$pixelengine$PixelEngine$Image$multipleImages(
+		_List_fromArray(
+			[
+				_Utils_Tuple2(
+				_Utils_Tuple2(0, 0),
+				author$project$AsteroidMiner$View$Tileset$Big$toImage(
 					Orasund$pixelengine$PixelEngine$Tile$fromPosition(
-					_Utils_Tuple2(0, 5))
-				])))
+						_Utils_Tuple2(1, 4)))),
+				_Utils_Tuple2(
+				_Utils_Tuple2(author$project$AsteroidMiner$Data$spriteSize / 2, author$project$AsteroidMiner$Data$spriteSize / 2),
+				A2(Orasund$pixelengine$PixelEngine$Image$fromTile, symbol, author$project$AsteroidMiner$View$Tileset$tileset))
+			]));
 };
 var author$project$AsteroidMiner$View$Tileset$Big$delete = {
 	image: author$project$AsteroidMiner$View$Tileset$Big$toImage(
 		Orasund$pixelengine$PixelEngine$Tile$fromPosition(
-			_Utils_Tuple2(3, 6))),
-	symobl: author$project$AsteroidMiner$View$Tileset$Big$toImage(
-		Orasund$pixelengine$PixelEngine$Tile$multipleTiles(
-			_List_fromArray(
-				[
-					author$project$AsteroidMiner$View$Tileset$Big$defaultImage,
-					Orasund$pixelengine$PixelEngine$Tile$fromPosition(
-					_Utils_Tuple2(3, 7))
-				])))
+			_Utils_Tuple2(7, 1))),
+	symobl: author$project$AsteroidMiner$View$Tileset$Big$blackButton(
+		Orasund$pixelengine$PixelEngine$Tile$fromPosition(
+			_Utils_Tuple2(11, 9)))
 };
 var author$project$AsteroidMiner$View$Tileset$Big$floor = {
 	image: author$project$AsteroidMiner$View$Tileset$Big$toImage(
 		Orasund$pixelengine$PixelEngine$Tile$fromPosition(
-			_Utils_Tuple2(1, 6))),
-	symobl: author$project$AsteroidMiner$View$Tileset$Big$toImage(
-		Orasund$pixelengine$PixelEngine$Tile$multipleTiles(
-			_List_fromArray(
-				[
-					author$project$AsteroidMiner$View$Tileset$Big$defaultImage,
+			_Utils_Tuple2(5, 1))),
+	symobl: author$project$AsteroidMiner$View$Tileset$Big$defaultButton(
+		Orasund$pixelengine$PixelEngine$Tile$fromPosition(
+			_Utils_Tuple2(9, 9)))
+};
+var author$project$AsteroidMiner$View$Tileset$Big$blueButton = function (symbol) {
+	return Orasund$pixelengine$PixelEngine$Image$multipleImages(
+		_List_fromArray(
+			[
+				_Utils_Tuple2(
+				_Utils_Tuple2(0, 0),
+				author$project$AsteroidMiner$View$Tileset$Big$toImage(
 					Orasund$pixelengine$PixelEngine$Tile$fromPosition(
-					_Utils_Tuple2(1, 7))
-				])))
+						_Utils_Tuple2(2, 4)))),
+				_Utils_Tuple2(
+				_Utils_Tuple2(author$project$AsteroidMiner$Data$spriteSize / 2, author$project$AsteroidMiner$Data$spriteSize / 2),
+				A2(Orasund$pixelengine$PixelEngine$Image$fromTile, symbol, author$project$AsteroidMiner$View$Tileset$tileset))
+			]));
 };
 var author$project$AsteroidMiner$View$Tileset$Big$merger = {
 	image: author$project$AsteroidMiner$View$Tileset$Big$toImage(
 		Orasund$pixelengine$PixelEngine$Tile$fromPosition(
-			_Utils_Tuple2(2, 4))),
-	symobl: author$project$AsteroidMiner$View$Tileset$Big$toImage(
-		Orasund$pixelengine$PixelEngine$Tile$multipleTiles(
-			_List_fromArray(
-				[
-					author$project$AsteroidMiner$View$Tileset$Big$defaultImage,
-					Orasund$pixelengine$PixelEngine$Tile$fromPosition(
-					_Utils_Tuple2(2, 5))
-				])))
+			_Utils_Tuple2(6, 0))),
+	symobl: author$project$AsteroidMiner$View$Tileset$Big$blueButton(
+		Orasund$pixelengine$PixelEngine$Tile$fromPosition(
+			_Utils_Tuple2(10, 8)))
 };
 var author$project$AsteroidMiner$View$Tileset$Big$mine = {
 	image: author$project$AsteroidMiner$View$Tileset$Big$toImage(
 		Orasund$pixelengine$PixelEngine$Tile$fromPosition(
-			_Utils_Tuple2(0, 6))),
-	symobl: author$project$AsteroidMiner$View$Tileset$Big$toImage(
-		Orasund$pixelengine$PixelEngine$Tile$multipleTiles(
-			_List_fromArray(
-				[
-					author$project$AsteroidMiner$View$Tileset$Big$defaultImage,
-					Orasund$pixelengine$PixelEngine$Tile$fromPosition(
-					_Utils_Tuple2(0, 7))
-				])))
+			_Utils_Tuple2(4, 1))),
+	symobl: author$project$AsteroidMiner$View$Tileset$Big$blueButton(
+		Orasund$pixelengine$PixelEngine$Tile$fromPosition(
+			_Utils_Tuple2(8, 9)))
 };
-var author$project$AsteroidMiner$View$Tileset$tileset = Orasund$pixelengine$PixelEngine$Tile$tileset(
-	{source: 'tileset.png', spriteHeight: 8, spriteWidth: 8});
 var author$project$AsteroidMiner$View$Tileset$Big$pickUp = function (maybeTile) {
-	if (maybeTile.$ === 'Just') {
-		var tile = maybeTile.a;
-		return {
-			image: Orasund$pixelengine$PixelEngine$Image$multipleImages(
-				_List_fromArray(
-					[
-						_Utils_Tuple2(
-						_Utils_Tuple2(0, 0),
-						author$project$AsteroidMiner$View$Tileset$Big$toImage(
-							Orasund$pixelengine$PixelEngine$Tile$fromPosition(
-								_Utils_Tuple2(2, 6)))),
-						_Utils_Tuple2(
-						_Utils_Tuple2(author$project$AsteroidMiner$Data$spriteSize / 2, 2 + (author$project$AsteroidMiner$Data$spriteSize / 2)),
-						A2(Orasund$pixelengine$PixelEngine$Image$fromTile, tile, author$project$AsteroidMiner$View$Tileset$tileset))
-					])),
-			symobl: author$project$AsteroidMiner$View$Tileset$Big$toImage(
-				Orasund$pixelengine$PixelEngine$Tile$multipleTiles(
+	return {
+		image: function () {
+			if (maybeTile.$ === 'Just') {
+				var tile = maybeTile.a;
+				return Orasund$pixelengine$PixelEngine$Image$multipleImages(
 					_List_fromArray(
 						[
-							author$project$AsteroidMiner$View$Tileset$Big$defaultImage,
-							Orasund$pixelengine$PixelEngine$Tile$fromPosition(
-							_Utils_Tuple2(2, 7))
-						])))
-		};
-	} else {
-		return {
-			image: author$project$AsteroidMiner$View$Tileset$Big$toImage(
-				Orasund$pixelengine$PixelEngine$Tile$fromPosition(
-					_Utils_Tuple2(2, 6))),
-			symobl: author$project$AsteroidMiner$View$Tileset$Big$toImage(
-				Orasund$pixelengine$PixelEngine$Tile$multipleTiles(
-					_List_fromArray(
-						[
-							author$project$AsteroidMiner$View$Tileset$Big$defaultImage,
-							Orasund$pixelengine$PixelEngine$Tile$fromPosition(
-							_Utils_Tuple2(2, 7))
-						])))
-		};
-	}
+							_Utils_Tuple2(
+							_Utils_Tuple2(0, 0),
+							author$project$AsteroidMiner$View$Tileset$Big$toImage(
+								Orasund$pixelengine$PixelEngine$Tile$fromPosition(
+									_Utils_Tuple2(6, 1)))),
+							_Utils_Tuple2(
+							_Utils_Tuple2(author$project$AsteroidMiner$Data$spriteSize / 2, 2 + (author$project$AsteroidMiner$Data$spriteSize / 2)),
+							A2(Orasund$pixelengine$PixelEngine$Image$fromTile, tile, author$project$AsteroidMiner$View$Tileset$tileset))
+						]));
+			} else {
+				return author$project$AsteroidMiner$View$Tileset$Big$toImage(
+					Orasund$pixelengine$PixelEngine$Tile$fromPosition(
+						_Utils_Tuple2(6, 1)));
+			}
+		}(),
+		symobl: author$project$AsteroidMiner$View$Tileset$Big$blackButton(
+			Orasund$pixelengine$PixelEngine$Tile$fromPosition(
+				_Utils_Tuple2(10, 9)))
+	};
 };
 var author$project$AsteroidMiner$View$Tileset$Big$sorter = {
 	image: author$project$AsteroidMiner$View$Tileset$Big$toImage(
 		Orasund$pixelengine$PixelEngine$Tile$fromPosition(
-			_Utils_Tuple2(3, 4))),
-	symobl: author$project$AsteroidMiner$View$Tileset$Big$toImage(
-		Orasund$pixelengine$PixelEngine$Tile$multipleTiles(
-			_List_fromArray(
-				[
-					author$project$AsteroidMiner$View$Tileset$Big$defaultImage,
-					Orasund$pixelengine$PixelEngine$Tile$fromPosition(
-					_Utils_Tuple2(3, 5))
-				])))
+			_Utils_Tuple2(7, 0))),
+	symobl: author$project$AsteroidMiner$View$Tileset$Big$greenButton(
+		Orasund$pixelengine$PixelEngine$Tile$fromPosition(
+			_Utils_Tuple2(11, 8)))
 };
 var author$project$AsteroidMiner$View$GUI$viewBlueprint = F2(
 	function (selected, blueprint) {
@@ -14124,6 +14166,20 @@ var author$project$AsteroidMiner$View$GUI$viewList = function (list) {
 			}),
 		list);
 };
+var Orasund$pixelengine$PixelEngine$Tile$multipleTiles = A2(
+	elm$core$List$foldl,
+	F2(
+		function (_n0, tile) {
+			var info = _n0.info;
+			var customAttributes = _n0.customAttributes;
+			return _Utils_update(
+				tile,
+				{
+					customAttributes: A2(elm$core$List$append, tile.customAttributes, customAttributes),
+					info: A2(elm$core$List$append, tile.info, info)
+				});
+		}),
+	{customAttributes: _List_Nil, info: _List_Nil, uniqueId: elm$core$Maybe$Nothing});
 var author$project$AsteroidMiner$View$Inventory$viewAmount = function (_n0) {
 	var amount = _n0.amount;
 	var i = _n0.i;
@@ -14197,8 +14253,8 @@ var author$project$AsteroidMiner$View$Inventory$view = A2(
 	elm$core$List$indexedMap(author$project$AsteroidMiner$View$Inventory$viewStock),
 	elm$core$List$concat);
 var author$project$AsteroidMiner$View$GUI$view = F3(
-	function (bag, inventory, model) {
-		var selected = model.selected;
+	function (bag, inventory, _n0) {
+		var selected = _n0.selected;
 		return elm$core$List$concat(
 			_List_fromArray(
 				[
@@ -14411,16 +14467,16 @@ var author$project$AsteroidMiner$View$Tileset$container = function (volume) {
 	switch (volume.$) {
 		case 'Empty':
 			return Orasund$pixelengine$PixelEngine$Tile$fromPosition(
-				_Utils_Tuple2(0, 3));
+				_Utils_Tuple2(2, 0));
 		case 'HalfEmpty':
 			return Orasund$pixelengine$PixelEngine$Tile$fromPosition(
-				_Utils_Tuple2(1, 3));
+				_Utils_Tuple2(3, 0));
 		case 'HalfFull':
 			return Orasund$pixelengine$PixelEngine$Tile$fromPosition(
-				_Utils_Tuple2(2, 3));
+				_Utils_Tuple2(2, 1));
 		default:
 			return Orasund$pixelengine$PixelEngine$Tile$fromPosition(
-				_Utils_Tuple2(3, 3));
+				_Utils_Tuple2(3, 1));
 	}
 };
 var author$project$AsteroidMiner$View$Tileset$conveyorBelt = function (code) {
@@ -14473,6 +14529,30 @@ var author$project$AsteroidMiner$View$Tileset$conveyorBelt = function (code) {
 };
 var author$project$AsteroidMiner$View$Tileset$ground = Orasund$pixelengine$PixelEngine$Tile$fromPosition(
 	_Utils_Tuple2(1, 0));
+var Orasund$pixelengine$PixelEngine$Tile$animated = F2(
+	function (steps, t) {
+		var info = t.info;
+		return _Utils_update(
+			t,
+			{
+				info: function () {
+					if (!info.b) {
+						return _List_Nil;
+					} else {
+						var head = info.a;
+						var tail = info.b;
+						return A2(
+							elm$core$List$cons,
+							_Utils_update(
+								head,
+								{
+									steps: (steps > 1) ? steps : 1
+								}),
+							tail);
+					}
+				}()
+			});
+	});
 var author$project$AsteroidMiner$View$Tileset$merger = A2(
 	Orasund$pixelengine$PixelEngine$Tile$animated,
 	4,
@@ -14609,6 +14689,34 @@ var author$project$AsteroidMiner$View$Map$view = F2(
 			Orasund$elm_game_essentials$Grid$Bordered$toList,
 			map);
 	});
+var author$project$AsteroidMiner$View$RunningGame$GuiSpecific = function (a) {
+	return {$: 'GuiSpecific', a: a};
+};
+var author$project$AsteroidMiner$View$RunningGame$SquareClicked = function (a) {
+	return {$: 'SquareClicked', a: a};
+};
+var Orasund$pixelengine$PixelEngine$Tile$movable = F2(
+	function (id, t) {
+		return _Utils_update(
+			t,
+			{
+				uniqueId: elm$core$Maybe$Just(
+					_Utils_Tuple2(id, true))
+			});
+	});
+var author$project$AsteroidMiner$View$Tileset$comet = A2(
+	Orasund$pixelengine$PixelEngine$Tile$movable,
+	'comet',
+	A2(
+		Orasund$pixelengine$PixelEngine$Tile$animated,
+		4,
+		Orasund$pixelengine$PixelEngine$Tile$fromPosition(
+			_Utils_Tuple2(4, 4))));
+var author$project$AsteroidMiner$View$RunningGame$viewComet = function (comet) {
+	return _Utils_Tuple2(
+		author$project$AsteroidMiner$Data$Comet$position(comet),
+		author$project$AsteroidMiner$View$Tileset$comet);
+};
 var avh4$elm_color$Color$RgbaSpace = F4(
 	function (a, b, c, d) {
 		return {$: 'RgbaSpace', a: a, b: b, c: c, d: d};
@@ -14633,73 +14741,65 @@ var elm$core$Tuple$mapFirst = F2(
 			func(x),
 			y);
 	});
-var author$project$AsteroidMiner$Page$Game$areas = function (model) {
-	var game = model.game;
-	var gui = model.gui;
-	var inventory = A2(
-		elm$core$List$map,
-		elm$core$Tuple$mapFirst(author$project$AsteroidMiner$Data$Item$fromInt),
-		elm$core$Dict$toList(model.inventory));
-	var _n0 = game;
-	var map = _n0.map;
-	var comet = _n0.comet;
-	var bag = _n0.bag;
-	var debts = _n0.debts;
-	return _List_fromArray(
-		[
-			A2(
-			Orasund$pixelengine$PixelEngine$tiledArea,
-			{
-				background: Orasund$pixelengine$PixelEngine$imageBackground(
-					{height: author$project$AsteroidMiner$Data$spriteSize, source: 'background.png', width: author$project$AsteroidMiner$Data$spriteSize}),
-				rows: author$project$AsteroidMiner$Data$size - 3,
-				tileset: author$project$AsteroidMiner$View$Tileset$tileset
-			},
-			elm$core$List$concat(
-				_List_fromArray(
-					[
-						A2(
-						author$project$AsteroidMiner$View$Map$view,
-						{inventory: inventory, onClick: author$project$AsteroidMiner$Page$Game$SquareClicked, selected: gui.selected},
-						map),
-						_List_fromArray(
-						[
-							author$project$AsteroidMiner$Page$Game$viewComet(comet)
-						])
-					]))),
-			A2(
-			Orasund$pixelengine$PixelEngine$mapArea,
-			author$project$AsteroidMiner$Page$Game$GuiSpecific,
-			A2(
-				Orasund$pixelengine$PixelEngine$imageArea,
+var author$project$AsteroidMiner$View$RunningGame$areas = F2(
+	function (content, model) {
+		var game = model.game;
+		var gui = model.gui;
+		var inventory = A2(
+			elm$core$List$map,
+			elm$core$Tuple$mapFirst(author$project$AsteroidMiner$Data$Item$fromInt),
+			elm$core$Dict$toList(model.inventory));
+		var _n0 = game;
+		var map = _n0.map;
+		var comet = _n0.comet;
+		var bag = _n0.bag;
+		return _List_fromArray(
+			[
+				A2(
+				Orasund$pixelengine$PixelEngine$tiledArea,
 				{
-					background: Orasund$pixelengine$PixelEngine$colorBackground(
-						A3(avh4$elm_color$Color$rgb255, 20, 12, 28)),
-					height: 3 * author$project$AsteroidMiner$Data$spriteSize
+					background: Orasund$pixelengine$PixelEngine$imageBackground(
+						{height: author$project$AsteroidMiner$Data$spriteSize, source: 'background.png', width: author$project$AsteroidMiner$Data$spriteSize}),
+					rows: author$project$AsteroidMiner$Data$size - 3,
+					tileset: author$project$AsteroidMiner$View$Tileset$tileset
 				},
-				A3(author$project$AsteroidMiner$View$GUI$view, bag, inventory, gui)))
-		]);
-};
-var author$project$AsteroidMiner$Data$version = 'v0.4';
+				elm$core$List$concat(
+					_List_fromArray(
+						[
+							A2(
+							author$project$AsteroidMiner$View$Map$view,
+							{inventory: inventory, onClick: author$project$AsteroidMiner$View$RunningGame$SquareClicked, selected: gui.selected},
+							map),
+							_List_fromArray(
+							[
+								author$project$AsteroidMiner$View$RunningGame$viewComet(comet)
+							]),
+							content
+						]))),
+				A2(
+				Orasund$pixelengine$PixelEngine$mapArea,
+				author$project$AsteroidMiner$View$RunningGame$GuiSpecific,
+				A2(
+					Orasund$pixelengine$PixelEngine$imageArea,
+					{
+						background: Orasund$pixelengine$PixelEngine$colorBackground(
+							A3(avh4$elm_color$Color$rgb255, 20, 12, 28)),
+						height: 3 * author$project$AsteroidMiner$Data$spriteSize
+					},
+					A3(author$project$AsteroidMiner$View$GUI$view, bag, inventory, gui)))
+			]);
+	});
+var author$project$AsteroidMiner$Page$Game$areas = author$project$AsteroidMiner$View$RunningGame$areas(_List_Nil);
+var author$project$AsteroidMiner$Data$version = 'v0.5';
 var author$project$AsteroidMiner$Page$Menu$GameStarted = {$: 'GameStarted'};
 var author$project$AsteroidMiner$Page$Menu$TutorialStarted = {$: 'TutorialStarted'};
-var author$project$AsteroidMiner$View$Tileset$Big$gameMenuButton = author$project$AsteroidMiner$View$Tileset$Big$toImage(
-	Orasund$pixelengine$PixelEngine$Tile$multipleTiles(
-		_List_fromArray(
-			[
-				author$project$AsteroidMiner$View$Tileset$Big$defaultImage,
-				Orasund$pixelengine$PixelEngine$Tile$fromPosition(
-				_Utils_Tuple2(4, 5))
-			])));
-var author$project$AsteroidMiner$View$Tileset$Big$tutorialMenuButton = author$project$AsteroidMiner$View$Tileset$Big$toImage(
-	Orasund$pixelengine$PixelEngine$Tile$multipleTiles(
-		_List_fromArray(
-			[
-				author$project$AsteroidMiner$View$Tileset$Big$defaultImage,
-				Orasund$pixelengine$PixelEngine$Tile$fromPosition(
-				_Utils_Tuple2(5, 5))
-			])));
-var author$project$AsteroidMiner$Page$Menu$areas = function (model) {
+var author$project$AsteroidMiner$View$Tileset$Big$gameMenuButton = author$project$AsteroidMiner$View$Tileset$Big$defaultButton(
+	Orasund$pixelengine$PixelEngine$Tile$fromPosition(
+		_Utils_Tuple2(12, 8)));
+var author$project$AsteroidMiner$View$Tileset$Big$tutorialMenuButton = author$project$AsteroidMiner$View$Tileset$Big$defaultButton(
+	Orasund$pixelengine$PixelEngine$Tile$fromPosition(
+		_Utils_Tuple2(13, 8)));
+var author$project$AsteroidMiner$Page$Menu$areas = function (_n0) {
 	return _List_fromArray(
 		[
 			A2(
@@ -14746,8 +14846,197 @@ var author$project$AsteroidMiner$Page$Menu$areas = function (model) {
 		]);
 };
 var author$project$AsteroidMiner$Page$Tutorial$areas = function (_n0) {
+	var num = _n0.num;
 	var content = _n0.content;
-	return author$project$AsteroidMiner$Page$Game$areas(content);
+	var text = F2(
+		function (t, _n2) {
+			var x = _n2.a;
+			var y = _n2.b;
+			return A2(
+				elm$core$List$indexedMap,
+				F2(
+					function (i, letter) {
+						return _Utils_Tuple2(
+							_Utils_Tuple2(x + i, y),
+							letter);
+					}),
+				A2(
+					Orasund$pixelengine$PixelEngine$Tile$fromText,
+					_Utils_Tuple2(0, 10),
+					t));
+		});
+	return A2(
+		author$project$AsteroidMiner$View$RunningGame$areas,
+		function () {
+			switch (num) {
+				case 1:
+					return elm$core$List$concat(
+						_List_fromArray(
+							[
+								A2(
+								text,
+								'Mine>',
+								_Utils_Tuple2(15, 14)),
+								A2(
+								text,
+								'Conveyor',
+								_Utils_Tuple2(18, 11)),
+								A2(
+								text,
+								'Belt',
+								_Utils_Tuple2(18, 12)),
+								A2(
+								text,
+								'v',
+								_Utils_Tuple2(21, 13)),
+								A2(
+								text,
+								'container',
+								_Utils_Tuple2(23, 13)),
+								A2(
+								text,
+								'<',
+								_Utils_Tuple2(23, 14)),
+								A2(
+								text,
+								'<add',
+								_Utils_Tuple2(23, 16)),
+								A2(
+								text,
+								'add>',
+								_Utils_Tuple2(16, 18)),
+								A2(
+								text,
+								'^add',
+								_Utils_Tuple2(21, 21))
+							]));
+				case 2:
+					return elm$core$List$concat(
+						_List_fromArray(
+							[
+								A2(
+								text,
+								'touching belts',
+								_Utils_Tuple2(5, 1)),
+								A2(
+								text,
+								'have different colors',
+								_Utils_Tuple2(5, 2)),
+								A2(
+								text,
+								'1.add',
+								_Utils_Tuple2(19, 10)),
+								A2(
+								text,
+								'v',
+								_Utils_Tuple2(19, 11)),
+								A2(
+								text,
+								'2.add>',
+								_Utils_Tuple2(14, 14)),
+								A2(
+								text,
+								'3.wait',
+								_Utils_Tuple2(14, 15)),
+								A2(
+								text,
+								'<4.add',
+								_Utils_Tuple2(24, 15))
+							]));
+				case 3:
+					return elm$core$List$concat(
+						_List_fromArray(
+							[
+								A2(
+								text,
+								'Merger takes items',
+								_Utils_Tuple2(5, 1)),
+								A2(
+								text,
+								'from containers and',
+								_Utils_Tuple2(5, 2)),
+								A2(
+								text,
+								'puts them on a belt',
+								_Utils_Tuple2(5, 3)),
+								A2(
+								text,
+								'<Merger',
+								_Utils_Tuple2(24, 16)),
+								A2(
+								text,
+								'add',
+								_Utils_Tuple2(16, 9)),
+								A2(
+								text,
+								'Merger',
+								_Utils_Tuple2(16, 10)),
+								A2(
+								text,
+								'v',
+								_Utils_Tuple2(21, 11)),
+								A2(
+								text,
+								'<add',
+								_Utils_Tuple2(24, 13)),
+								A2(
+								text,
+								'Belt',
+								_Utils_Tuple2(25, 14))
+							]));
+				case 4:
+					return elm$core$List$concat(
+						_List_fromArray(
+							[
+								A2(
+								text,
+								'Sorter takes items',
+								_Utils_Tuple2(5, 1)),
+								A2(
+								text,
+								'from a Belt or a Mine',
+								_Utils_Tuple2(5, 2)),
+								A2(
+								text,
+								'and put it into contaiers',
+								_Utils_Tuple2(5, 3)),
+								A2(
+								text,
+								'add',
+								_Utils_Tuple2(19, 10)),
+								A2(
+								text,
+								'v',
+								_Utils_Tuple2(19, 11)),
+								A2(
+								text,
+								'^add',
+								_Utils_Tuple2(22, 16)),
+								A2(
+								text,
+								'^',
+								_Utils_Tuple2(21, 22)),
+								A2(
+								text,
+								'Sorter',
+								_Utils_Tuple2(21, 23))
+							]));
+				default:
+					return A2(
+						elm$core$List$indexedMap,
+						F2(
+							function (i, letter) {
+								return _Utils_Tuple2(
+									_Utils_Tuple2(0 + i, 0),
+									letter);
+							}),
+						A2(
+							Orasund$pixelengine$PixelEngine$Tile$fromText,
+							_Utils_Tuple2(0, 10),
+							'test'));
+			}
+		}(),
+		content);
 };
 var author$project$AsteroidMiner$Main$view = function (model) {
 	return {

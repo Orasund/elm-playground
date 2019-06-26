@@ -56,8 +56,8 @@ send pos ({ value } as building) maybeItem { lookUp, canStore } direction m =
         neighborPos =
             pos |> Position.move 1 direction
 
-        updateNeighbor : Building a -> Maybe c -> Map a b c -> Result Error (Map a b c)
-        updateNeighbor _ maybeC =
+        updateNeighbor : Maybe c -> Map a b c -> Result Error (Map a b c)
+        updateNeighbor maybeC =
             Grid.update neighborPos
                 (\maybeSquare ->
                     case maybeSquare of
@@ -70,18 +70,23 @@ send pos ({ value } as building) maybeItem { lookUp, canStore } direction m =
                             Err ()
                 )
 
-        solveConflict : Building a -> { newC : c, oldC : c } -> Map a b c -> Result Error (Map a b c)
-        solveConflict b { newC, oldC } =
-            if canStore neighborPos b.sort newC { value = b.value, item = oldC } then
-                Grid.update neighborPos
-                    (always <|
-                        Ok <|
-                            Just <|
-                                ( BuildingSquare { b | value = b.value + 1 }, Just newC )
-                    )
+        solveConflict : { newC : c, oldC : c } -> Map a b c -> Result Error (Map a b c)
+        solveConflict { newC, oldC } =
+            Grid.update neighborPos
+                (\maybeSquare ->
+                    case maybeSquare of
+                        Just ( BuildingSquare b, Just _ ) ->
+                            if canStore neighborPos b.sort newC { value = b.value, item = oldC } then
+                                Ok <|
+                                    Just <|
+                                        ( BuildingSquare { b | value = b.value + 1 }, Just newC )
 
-            else
-                always <| Err NotSuccessful
+                            else
+                                Err ()
+
+                        _ ->
+                            Err ()
+                )
     in
     case maybeItem of
         Nothing ->
@@ -94,11 +99,11 @@ send pos ({ value } as building) maybeItem { lookUp, canStore } direction m =
                     (\maybeEntry ->
                         m
                             |> (case maybeEntry of
-                                    Just ( BuildingSquare b, Nothing ) ->
-                                        updateNeighbor b maybeItem
+                                    Just ( BuildingSquare _, Nothing ) ->
+                                        updateNeighbor maybeItem
 
-                                    Just ( BuildingSquare b, Just i ) ->
-                                        solveConflict b { newC = item, oldC = i }
+                                    Just ( BuildingSquare _, Just i ) ->
+                                        solveConflict { newC = item, oldC = i }
 
                                     _ ->
                                         always <| Err NotSuccessful
@@ -111,7 +116,7 @@ send pos ({ value } as building) maybeItem { lookUp, canStore } direction m =
                                 _ =
                                     ( building.sort, maybeItem )
                             in
-                            if value > 0 then
+                            if value > 1 then
                                 Ok <|
                                     Just <|
                                         ( BuildingSquare { building | value = value - 1 }
@@ -121,7 +126,7 @@ send pos ({ value } as building) maybeItem { lookUp, canStore } direction m =
                             else
                                 Ok <|
                                     Just <|
-                                        ( BuildingSquare building, Nothing )
+                                        ( BuildingSquare { building | value = 0 }, Nothing )
                     )
 
 
@@ -131,12 +136,17 @@ apply command pos ( squareType, maybeItem ) ({ empty } as config) =
         transition : Building a -> a -> Map a b c -> Result Error (Map a b c)
         transition building sort =
             Grid.update pos <|
-                always <|
-                    Ok <|
-                        Just <|
-                            ( BuildingSquare { building | sort = sort }
-                            , maybeItem
-                            )
+                \maybeSquare ->
+                    case maybeSquare of
+                        Just ( BuildingSquare _, mI ) ->
+                            Ok <|
+                                Just <|
+                                    ( BuildingSquare { building | sort = sort }
+                                    , mI
+                                    )
+
+                        _ ->
+                            Err ()
 
         create : Building a -> c -> Map a b c -> Result Error (Map a b c)
         create building item =
@@ -151,12 +161,17 @@ apply command pos ( squareType, maybeItem ) ({ empty } as config) =
         destroy : Building a -> Map a b c -> Result Error (Map a b c)
         destroy _ =
             Grid.update pos <|
-                always <|
-                    Ok <|
-                        Just <|
-                            ( GroundSquare empty
-                            , maybeItem
-                            )
+                \maybeSquare ->
+                    case maybeSquare of
+                        Just ( BuildingSquare _, mI ) ->
+                            Ok <|
+                                Just <|
+                                    ( GroundSquare empty
+                                    , mI
+                                    )
+
+                        _ ->
+                            Err ()
     in
     case squareType of
         GroundSquare _ ->

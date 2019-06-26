@@ -10,7 +10,7 @@ import AsteroidMiner.Lib.Neighborhood as Neighborhood
 
 canStore : Neighborhood -> Item -> { value : Int, item : Item } -> Bool
 canStore _ input { value, item } =
-    (input == item) && (value < maxValue)
+    (input == item) && ((value) < maxValue)
 
 
 update : Volume -> { value : Int, item : Maybe Item } -> Neighborhood -> Command
