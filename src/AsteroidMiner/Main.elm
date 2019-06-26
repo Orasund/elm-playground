@@ -129,7 +129,7 @@ subscriptions model =
         Loading ->
             Sub.none
 
-        Menu menuModel ->
+        Menu _ ->
             Sub.none
 
         Game gameModel ->

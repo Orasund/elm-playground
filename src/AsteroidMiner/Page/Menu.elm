@@ -41,7 +41,7 @@ update msg model =
 
 
 areas : Model -> List (Area Msg)
-areas model =
+areas _ =
     [ PixelEngine.imageArea
         { height = (toFloat <| size) * spriteSize
         , background =
@@ -67,7 +67,7 @@ areas model =
         , ( ( spriteSize * 18, spriteSize * 23.5 )
           , Image.fromText "Tutorial" font |> Image.clickable TutorialStarted
           )
-        , ( (0,0)
+        , ( ( 0, 0 )
           , Image.fromText version font
           )
         ]

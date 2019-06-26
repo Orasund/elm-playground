@@ -1,6 +1,6 @@
 module AsteroidMiner.Building.Mine exposing (canStore, update)
 
-import AsteroidMiner.Building as Building exposing (BuildingType(..))
+import AsteroidMiner.Building exposing (BuildingType(..))
 import AsteroidMiner.Data.Item exposing (Item)
 import AsteroidMiner.Data.Map exposing (Command, Neighborhood)
 import AsteroidMiner.Lib.Command as Command
@@ -29,8 +29,10 @@ update { value } neigh =
 
                             else
                                 Nothing
+
                         Just Sorter ->
                             Just <| Command.send dir
+
                         _ ->
                             Nothing
                 )

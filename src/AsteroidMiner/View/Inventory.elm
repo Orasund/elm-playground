@@ -9,11 +9,6 @@ import PixelEngine.Image as Image exposing (Image)
 import PixelEngine.Tile as Tile
 
 
-calcOffset : Int -> Int
-calcOffset =
-    toFloat >> logBase 10 >> floor
-
-
 viewAmount : { amount : Int, i : Int } -> ( Location, Image msg )
 viewAmount { amount, i } =
     let

@@ -3,7 +3,7 @@ module AsteroidMiner.View.Map exposing (view, viewItem, viewSquareType)
 import AsteroidMiner.Building as Building exposing (BeltColor(..), BuildingType(..))
 import AsteroidMiner.Data.Game as Game
 import AsteroidMiner.Data.Item exposing (Item(..))
-import AsteroidMiner.Data.Map as Map exposing (GroundType(..), Map, Square, SquareType)
+import AsteroidMiner.Data.Map as Map exposing (GroundType(..), Map, Square)
 import AsteroidMiner.Lib.Map exposing (SquareType(..))
 import AsteroidMiner.View exposing (ToolSelection(..))
 import AsteroidMiner.View.Tileset as Tileset

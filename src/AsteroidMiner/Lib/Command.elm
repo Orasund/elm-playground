@@ -77,9 +77,9 @@ apply :
     -> a
 apply fun (Command command) b =
     command
-        |> List.foldl
-            (\c map ->
-                map
+        |> List.filterMap
+            (\c ->
+                b
                     |> (case c of
                             Store ->
                                 fun.store
@@ -96,6 +96,7 @@ apply fun (Command command) b =
                             Destroy ->
                                 fun.destroy
                        )
-                    |> Result.withDefault map
+                    |> Result.toMaybe
             )
-            b
+        |> List.head
+        |> Maybe.withDefault b

@@ -1,6 +1,6 @@
 module AsteroidMiner.Building exposing (BeltColor(..), Building, BuildingType(..), Code(..), Volume(..), canBreak, isColoredConveyorBelt, isConveyorBelt, isConveyorBeltColored, isInput, isOutput)
 
-import AsteroidMiner.View as View exposing (ToolSelection(..))
+import AsteroidMiner.View exposing (ToolSelection(..))
 import Grid.Direction exposing (Direction)
 
 

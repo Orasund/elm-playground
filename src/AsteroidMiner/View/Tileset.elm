@@ -156,16 +156,16 @@ container : Volume -> Tile msg
 container volume =
     case volume of
         Empty ->
-            Tile.fromPosition ( 0, 3 )
+            Tile.fromPosition ( 2, 0 )
 
         HalfEmpty ->
-            Tile.fromPosition ( 1, 3 )
+            Tile.fromPosition ( 3, 0 )
 
         HalfFull ->
-            Tile.fromPosition ( 2, 3 )
+            Tile.fromPosition ( 2, 1 )
 
         Full ->
-            Tile.fromPosition ( 3, 3 )
+            Tile.fromPosition ( 3, 1 )
 
 
 merger : Tile msg
@@ -187,4 +187,4 @@ itemBackground =
 
 stone : Tile msg
 stone =
-    Tile.fromPosition ( 2, 0 )
+    Tile.fromPosition ( 3, 2 )

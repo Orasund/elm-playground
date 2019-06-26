@@ -14,7 +14,7 @@ canStore _ input { value, item } =
 
 
 update : Volume -> { value : Int, item : Maybe Item } -> Neighborhood -> Command
-update volume { value, item } neigh =
+update volume { value } neigh =
     let
         transition : Volume -> Command
         transition v =

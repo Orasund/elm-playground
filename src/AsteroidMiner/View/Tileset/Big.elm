@@ -31,154 +31,143 @@ toImage tile =
     Image.fromTile tile tileset
 
 
-defaultImage : Tile msg
-defaultImage =
-    Tile.fromPosition ( 4, 4 )
+defaultButton : Tile msg -> Image msg
+defaultButton symbol =
+    Image.multipleImages
+        [ ( ( 0, 0 ), Tile.fromPosition ( 0, 4 ) |> toImage )
+        , ( ( spriteSize / 2, spriteSize / 2 ), Image.fromTile symbol Tileset.tileset )
+        ]
+
+
+blackButton : Tile msg -> Image msg
+blackButton symbol =
+    Image.multipleImages
+        [ ( ( 0, 0 ), Tile.fromPosition ( 1, 4 ) |> toImage )
+        , ( ( spriteSize / 2, spriteSize / 2 ), Image.fromTile symbol Tileset.tileset )
+        ]
+
+
+blueButton : Tile msg -> Image msg
+blueButton symbol =
+    Image.multipleImages
+        [ ( ( 0, 0 ), Tile.fromPosition ( 2, 4 ) |> toImage )
+        , ( ( spriteSize / 2, spriteSize / 2 ), Image.fromTile symbol Tileset.tileset )
+        ]
+
+
+greenButton : Tile msg -> Image msg
+greenButton symbol =
+    Image.multipleImages
+        [ ( ( 0, 0 ), Tile.fromPosition ( 3, 4 ) |> toImage )
+        , ( ( spriteSize / 2, spriteSize / 2 ), Image.fromTile symbol Tileset.tileset )
+        ]
 
 
 delete : { image : Image msg, symobl : Image msg }
 delete =
     { image =
-        Tile.fromPosition ( 3, 6 )
+        Tile.fromPosition ( 7, 1 )
             |> toImage
     , symobl =
-        Tile.multipleTiles
-            [ defaultImage
-            , Tile.fromPosition ( 3, 7 )
-            ]
-            |> toImage
+        Tile.fromPosition ( 11, 9 )
+            |> blackButton
     }
 
 
 pickUp : Maybe (Tile msg) -> { image : Image msg, symobl : Image msg }
 pickUp maybeTile =
-    case maybeTile of
-        Just tile ->
-            { image =
+    { image =
+        case maybeTile of
+            Just tile ->
                 Image.multipleImages
-                    [ ( ( 0, 0 ), Tile.fromPosition ( 2, 6 ) |> toImage )
+                    [ ( ( 0, 0 ), Tile.fromPosition ( 6, 1 ) |> toImage )
                     , ( ( spriteSize / 2, 2 + spriteSize / 2 )
                       , Image.fromTile tile Tileset.tileset
                       )
                     ]
-            , symobl =
-                Tile.multipleTiles
-                    [ defaultImage
-                    , Tile.fromPosition ( 2, 7 )
-                    ]
-                    |> toImage
-            }
 
-        Nothing ->
-            { image =
-                Tile.fromPosition ( 2, 6 )
+            Nothing ->
+                Tile.fromPosition ( 6, 1 )
                     |> toImage
-            , symobl =
-                Tile.multipleTiles
-                    [ defaultImage
-                    , Tile.fromPosition ( 2, 7 )
-                    ]
-                    |> toImage
-            }
+    , symobl =
+        Tile.fromPosition ( 10, 9 )
+            |> blackButton
+    }
 
 
 mine : { image : Image msg, symobl : Image msg }
 mine =
     { image =
-        Tile.fromPosition ( 0, 6 )
+        Tile.fromPosition ( 4, 1 )
             |> toImage
     , symobl =
-        Tile.multipleTiles
-            [ defaultImage
-            , Tile.fromPosition ( 0, 7 )
-            ]
-            |> toImage
+        Tile.fromPosition ( 8, 9 )
+            |> blueButton
     }
 
 
 conveyorBelt : { image : Image msg, symobl : Image msg }
 conveyorBelt =
     { image =
-        Tile.fromPosition ( 0, 4 )
+        Tile.fromPosition ( 4, 0 )
             |> toImage
     , symobl =
-        Tile.multipleTiles
-            [ defaultImage
-            , Tile.fromPosition ( 0, 5 )
-            ]
-            |> toImage
+        Tile.fromPosition ( 8, 8 )
+            |> defaultButton
     }
 
 
 container : { image : Image msg, symobl : Image msg }
 container =
     { image =
-        Tile.fromPosition ( 1, 4 )
+        Tile.fromPosition ( 5, 0 )
             |> toImage
     , symobl =
-        Tile.multipleTiles
-            [ defaultImage
-            , Tile.fromPosition ( 1, 5 )
-            ]
-            |> toImage
+        Tile.fromPosition ( 9, 8 )
+            |> greenButton
     }
 
 
 merger : { image : Image msg, symobl : Image msg }
 merger =
     { image =
-        Tile.fromPosition ( 2, 4 )
+        Tile.fromPosition ( 6, 0 )
             |> toImage
     , symobl =
-        Tile.multipleTiles
-            [ defaultImage
-            , Tile.fromPosition ( 2, 5 )
-            ]
-            |> toImage
+        Tile.fromPosition ( 10, 8 )
+            |> blueButton
     }
 
 
 sorter : { image : Image msg, symobl : Image msg }
 sorter =
     { image =
-        Tile.fromPosition ( 3, 4 )
+        Tile.fromPosition ( 7, 0 )
             |> toImage
     , symobl =
-        Tile.multipleTiles
-            [ defaultImage
-            , Tile.fromPosition ( 3, 5 )
-            ]
-            |> toImage
+        Tile.fromPosition ( 11, 8 )
+            |> greenButton
     }
 
 
 floor : { image : Image msg, symobl : Image msg }
 floor =
     { image =
-        Tile.fromPosition ( 1, 6 )
+        Tile.fromPosition ( 5, 1 )
             |> toImage
     , symobl =
-        Tile.multipleTiles
-            [ defaultImage
-            , Tile.fromPosition ( 1, 7 )
-            ]
-            |> toImage
+        Tile.fromPosition ( 9, 9 )
+            |> defaultButton
     }
 
 
 gameMenuButton : Image msg
 gameMenuButton =
-    Tile.multipleTiles
-        [ defaultImage
-        , Tile.fromPosition ( 4, 5 )
-        ]
-        |> toImage
+    Tile.fromPosition ( 12, 8 )
+        |> defaultButton
 
 
 tutorialMenuButton : Image msg
 tutorialMenuButton =
-    Tile.multipleTiles
-        [ defaultImage
-        , Tile.fromPosition ( 5, 5 )
-        ]
-        |> toImage
+    Tile.fromPosition ( 13, 8 )
+        |> defaultButton

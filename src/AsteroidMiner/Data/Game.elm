@@ -59,7 +59,7 @@ takeInventoryOfMap dict =
         >> (\d ->
                 Dict.merge Dict.insert
                     (\pos a b ->
-                        Dict.insert pos (Debug.log "balance" (a - b))
+                        Dict.insert pos <| (a - b)
                     )
                     (\pos a -> Dict.insert pos -a)
                     d

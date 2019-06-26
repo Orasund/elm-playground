@@ -21,38 +21,53 @@ type alias Map a b c =
     Grid (Square a b c)
 
 
-store : Position -> Maybe c -> Building a -> Map a b c -> Result Error (Map a b c)
-store pos maybeItem ({ value } as building) =
-    Grid.update pos <|
-        always <|
-            if
-                (value < maxValue)
-                    && (maybeItem /= Nothing)
-            then
-                Ok <|
-                    Just <|
-                        ( BuildingSquare { building | value = value + 1 }
-                        , Nothing
-                        )
+store : Position -> Building a -> Map a b c -> Result Error (Map a b c)
+store pos ({ value } as building) m =
+    let
+        maybeItem : Maybe c
+        maybeItem =
+            m
+                |> Grid.get pos
+                |> Result.withDefault Nothing
+                |> Maybe.andThen Tuple.second
+    in
+    m
+        |> Grid.update pos
+            (always <|
+                if
+                    (value < maxValue)
+                        && (maybeItem /= Nothing)
+                then
+                    Ok <|
+                        Just <|
+                            ( BuildingSquare { building | value = value + 1 }
+                            , Nothing
+                            )
 
-            else
-                Err ()
+                else
+                    Err ()
+            )
 
 
-send : Position -> Maybe c -> { empty : b, lookUp : Map a b c, canStore : Position -> a -> c -> { value : Int, item : c } -> Bool } -> Building a -> Direction -> Map a b c -> Result Error (Map a b c)
-send pos maybeItem { lookUp, canStore } ({ value } as building) direction m =
+send : Position -> Building a -> Maybe c -> { empty : b, lookUp : Map a b c, canStore : Position -> a -> c -> { value : Int, item : c } -> Bool } -> Direction -> Map a b c -> Result Error (Map a b c)
+send pos ({ value } as building) maybeItem { lookUp, canStore } direction m =
     let
         neighborPos : Position
         neighborPos =
             pos |> Position.move 1 direction
 
         updateNeighbor : Building a -> Maybe c -> Map a b c -> Result Error (Map a b c)
-        updateNeighbor b maybeC =
+        updateNeighbor _ maybeC =
             Grid.update neighborPos
-                (always <|
-                    Ok <|
-                        Just <|
-                            ( BuildingSquare b, maybeC )
+                (\maybeSquare ->
+                    case maybeSquare of
+                        Just ( BuildingSquare b, Nothing ) ->
+                            Ok <|
+                                Just <|
+                                    ( BuildingSquare b, maybeC )
+
+                        _ ->
+                            Err ()
                 )
 
         solveConflict : Building a -> { newC : c, oldC : c } -> Map a b c -> Result Error (Map a b c)
@@ -96,10 +111,7 @@ send pos maybeItem { lookUp, canStore } ({ value } as building) direction m =
                                 _ =
                                     ( building.sort, maybeItem )
                             in
-                            if
-                                (value > 0)
-                                    && (maybeItem /= Nothing)
-                            then
+                            if value > 0 then
                                 Ok <|
                                     Just <|
                                         ( BuildingSquare { building | value = value - 1 }
@@ -153,8 +165,8 @@ apply command pos ( squareType, maybeItem ) ({ empty } as config) =
         BuildingSquare building ->
             command
                 |> Command.apply
-                    { store = store pos maybeItem building
-                    , send = send pos maybeItem config building
+                    { store = store pos building
+                    , send = send pos building maybeItem config
                     , transition = transition building
                     , create = create building
                     , destroy = destroy building

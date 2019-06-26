@@ -45,7 +45,7 @@ update color direction neigh =
     let
         resetCase : Command
         resetCase =
-            Command.transition <| ConveyorBelt Invalid
+            Command.destroy
 
         friends : List ( Direction, Maybe BuildingType )
         friends =

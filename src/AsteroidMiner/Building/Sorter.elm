@@ -8,7 +8,7 @@ import AsteroidMiner.Lib.Neighborhood as Neighborhood
 
 
 canStore : Neighborhood -> Item -> { value : Int, item : Item } -> Bool
-canStore _ input { value, item } =
+canStore _ _ _ =
     False
 
 

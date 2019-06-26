@@ -3,7 +3,7 @@ module AsteroidMiner.Building.ConveyorBelt exposing (canStore, update)
 import AsteroidMiner.Building as Building exposing (BeltColor(..), BuildingType(..), Code(..))
 import AsteroidMiner.Data.Item exposing (Item)
 import AsteroidMiner.Data.Map exposing (Command, Neighborhood)
-import AsteroidMiner.Lib.Command exposing (idle, send, transition)
+import AsteroidMiner.Lib.Command exposing (idle, transition)
 import AsteroidMiner.Lib.Map exposing (SquareType(..))
 import AsteroidMiner.Lib.Neighborhood as Neighborhood
 import Grid.Direction as Direction exposing (Direction(..))
@@ -200,10 +200,6 @@ updateInputFound { friends, outputs, inputs } =
             else
                 resetCase
 
-        getDirection : List ( Direction, a ) -> Maybe Direction
-        getDirection =
-            List.head >> Maybe.map Tuple.first
-
         initiate : Command
         initiate =
             case friends |> List.head of
@@ -245,10 +241,6 @@ updateFailedColor :
     -> Command
 updateFailedColor color enemies { friends, outputs, inputs } =
     let
-        resetCase : Command
-        resetCase =
-            transition (ConveyorBelt Invalid)
-
         defaultCase : Command
         defaultCase =
             idle
@@ -392,10 +384,6 @@ updateTryColor color enemies { friends, outputs, inputs } =
             else
                 resetCase
 
-        getDirection : List ( Direction, a ) -> Maybe Direction
-        getDirection =
-            List.head >> Maybe.map Tuple.first
-
         create : Command
         create =
             inputs
@@ -481,11 +469,25 @@ updateTryColor color enemies { friends, outputs, inputs } =
                     _ ->
                         connect
 
-            ( 0, ( _, 1 ), 1 ) ->
+            ( 0, ( 0, 1 ), 1 ) ->
                 case inputs of
                     ( dir, _ ) :: _ ->
                         dir
                             |> nextStage
+
+                    _ ->
+                        connect
+
+            ( 0, ( 1, 1 ), 1 ) ->
+                case ( enemies |> List.head, inputs |> List.head ) of
+                    ( Just enemy, Just input ) ->
+                        if areOpposing enemy input then
+                            input
+                                |> Tuple.first
+                                |> nextStage
+
+                        else
+                            failedStage
 
                     _ ->
                         connect

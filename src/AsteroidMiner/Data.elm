@@ -8,22 +8,22 @@ fps =
 
 version : String
 version =
-    "v0.4"
+    "v0.5"
 
 
 floorCosts : Int
 floorCosts =
-    512
+    500
 
 
 mineVolume : Int
 mineVolume =
-    128
+    10--100
 
 
 maxValue : Int
 maxValue =
-    512
+    250
 
 
 framesPerComet : Int
