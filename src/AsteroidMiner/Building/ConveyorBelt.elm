@@ -146,6 +146,18 @@ updateInvalid { friends, outputs, inputs } =
         ( 0, ( 1, 2 ) ) ->
             lastStage
 
+        ( 0, ( 2, 1 ) ) ->
+            lastStage
+
+        ( 0, ( 2, 2 ) ) ->
+            lastStage
+
+        ( 1, ( _, _ ) ) ->
+            transition Sorter
+
+        ( 0, ( 1, 3 ) ) ->
+            transition Sorter
+
         _ ->
             defaultCase
 
@@ -225,6 +237,12 @@ updateInputFound { friends, outputs, inputs } =
 
         ( 1, ( 0, 1 ) ) ->
             connect
+
+        ( 1, ( 1, 1 ) ) ->
+            connect
+
+        ( 1, ( _, _ ) ) ->
+            transition Sorter
 
         _ ->
             resetCase
@@ -416,7 +434,7 @@ updateTryColor color enemies { friends, outputs, inputs } =
                     )
                     Nothing
                 |> Maybe.map nextStage
-                |> Maybe.withDefault connect
+                |> Maybe.withDefault (transition Sorter)
     in
     if
         (friends |> List.length)
@@ -498,8 +516,14 @@ updateTryColor color enemies { friends, outputs, inputs } =
             ( _, ( _, 1 ), 0 ) ->
                 create
 
-            ( _, ( 1, 1 ), _ ) ->
-                failedStage
+            ( 0, ( 2, 0 ), _ ) ->
+                connect
+
+            ( 0, ( 1, 1 ), _ ) ->
+                transition Sorter
+
+            ( 0, ( _, _ ), _ ) ->
+                transition Sorter
 
             _ ->
                 connect

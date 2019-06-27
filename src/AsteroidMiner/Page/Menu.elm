@@ -1,4 +1,4 @@
-module AsteroidMiner.Page.Menu exposing (Model, Msg(..), areas, init, update)
+module AsteroidMiner.Page.Menu exposing (Model, Msg(..), init, update, view)
 
 import Action exposing (Action)
 import AsteroidMiner.Data exposing (size, spriteSize, version)
@@ -8,6 +8,7 @@ import AsteroidMiner.View.Tileset.Big as Tileset
 import Color
 import PixelEngine exposing (Area)
 import PixelEngine.Image as Image
+import PixelEngine.Options exposing (Options)
 import PixelEngine.Tile as Tile
 import Random exposing (Seed)
 
@@ -72,3 +73,13 @@ areas _ =
           )
         ]
     ]
+
+
+view :
+    Options msg
+    -> Model
+    -> { options : Options msg, body : List (Area Msg) }
+view options model =
+    { options = options
+    , body = model |> areas
+    }

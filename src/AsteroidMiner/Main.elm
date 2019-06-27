@@ -153,28 +153,36 @@ view :
     Model
     -> { title : String, options : Maybe (Options Msg), body : List (Area Msg) }
 view model =
-    { title = "Asteroid Miner"
-    , options =
-        Just
-            (Options.default
+    let
+        defaultOptions : Options msg
+        defaultOptions =
+            Options.default
                 |> Options.withMovementSpeed (1 / fps)
-            )
-    , body =
-        case model of
-            Loading ->
-                []
 
-            Menu menuModel ->
-                Menu.areas menuModel
-                    |> List.map (PixelEngine.mapArea MenuSpecific)
+        map : (a -> Msg) -> { options : Options msg, body : List (Area a) } -> { options : Options msg, body : List (Area Msg) }
+        map mapper o =
+            { options = o.options
+            , body = o.body |> List.map (PixelEngine.mapArea mapper)
+            }
 
-            Game gameModel ->
-                Game.areas gameModel
-                    |> List.map (PixelEngine.mapArea GameSpecific)
+        { options, body } =
+            case model of
+                Loading ->
+                    { options = defaultOptions, body = [] }
 
-            Tutorial tutorialModel ->
-                Tutorial.areas tutorialModel
-                    |> List.map (PixelEngine.mapArea TutorialSpecific)
+                Menu menuModel ->
+                    Menu.view defaultOptions menuModel
+                        |> map MenuSpecific
+
+                Game gameModel ->
+                    Game.view GameSpecific defaultOptions gameModel
+
+                Tutorial tutorialModel ->
+                    Tutorial.view TutorialSpecific defaultOptions tutorialModel
+    in
+    { title = "Asteroid Miner"
+    , options = Just options
+    , body = body
     }
 
 

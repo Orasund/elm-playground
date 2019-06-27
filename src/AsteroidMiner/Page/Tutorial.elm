@@ -1,16 +1,21 @@
-module AsteroidMiner.Page.Tutorial exposing (Model, Msg, areas, init, subscriptions, update)
+module AsteroidMiner.Page.Tutorial exposing (Model, Msg, init, subscriptions, update, view)
 
 import Action exposing (Action)
 import AsteroidMiner.Building exposing (BuildingType(..), Code(..), Volume(..))
+import AsteroidMiner.Data exposing (size, spriteSize)
 import AsteroidMiner.Data.Game as Game exposing (Game)
 import AsteroidMiner.Data.Item as Item exposing (Item(..))
 import AsteroidMiner.Data.Map as Map exposing (Map)
 import AsteroidMiner.Lib.Map exposing (SquareType(..))
 import AsteroidMiner.View.RunningGame as RunningGame exposing (Status(..))
+import AsteroidMiner.View.Tileset as Tileset
+import Color
 import Dict
 import Grid.Bordered as Grid
 import Grid.Position exposing (Position)
 import PixelEngine exposing (Area)
+import PixelEngine.Image as Image
+import PixelEngine.Options as Options exposing (Options, Transition)
 import PixelEngine.Tile as Tile exposing (Tile)
 import Random exposing (Seed)
 
@@ -21,8 +26,10 @@ type alias Model =
     }
 
 
-type alias Msg =
-    RunningGame.Msg
+type Msg
+    = Next
+    | Exit
+    | GameSpecific RunningGame.Msg
 
 
 type alias TutorialAction =
@@ -150,16 +157,16 @@ init num seed =
                 , winCondition =
                     case num of
                         1 ->
-                            80
+                            60
 
                         2 ->
-                            100
+                            80
 
                         3 ->
-                            80
+                            60
 
                         _ ->
-                            80
+                            60
                 }
     in
     ( { num = num
@@ -171,121 +178,194 @@ init num seed =
 
 update : Msg -> Model -> TutorialAction
 update msg ({ num } as model) =
-    let
-        content : RunningGame.Model
-        content =
-            RunningGame.update msg model.content
-    in
-    case content.status of
-        Running ->
-            Action.updating ( { model | content = content }, Cmd.none )
-
-        Won ->
+    case msg of
+        Next ->
             if num == maxTutorial then
                 Action.exiting
 
             else
                 Action.updating <|
-                    init (num + 1) content.seed
+                    init (num + 1) model.content.seed
 
-        Lost ->
+        Exit ->
             Action.exiting
+
+        GameSpecific gameMsg ->
+            case model.content.status of
+                Running ->
+                    let
+                        content : RunningGame.Model
+                        content =
+                            RunningGame.update gameMsg model.content
+                    in
+                    Action.updating ( { model | content = content }, Cmd.none )
+
+                _ ->
+                    Action.updating ( model, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
 subscriptions { content } =
-    content |> RunningGame.subscriptions
+    content |> RunningGame.subscriptions |> Sub.map GameSpecific
 
 
 areas : Model -> List (Area Msg)
 areas { num, content } =
-    let
-        text : String -> Position -> List ( Position, Tile msg )
-        text t ( x, y ) =
-            Tile.fromText ( 0, 10 ) t
-                |> List.indexedMap
-                    (\i letter ->
-                        ( ( x + i, y ), letter )
-                    )
-    in
-    content
-        |> RunningGame.areas
-            (case num of
-                1 ->
-                    List.concat
-                        [ ( 15, 14 ) |> text "Mine>"
-                        , ( 18, 11 ) |> text "Conveyor"
-                        , ( 18, 12 ) |> text "Belt"
-                        , ( 21, 13 ) |> text "v"
-                        , ( 23, 13 ) |> text "container"
-                        , ( 23, 14 ) |> text "<"
+    case content.status of
+        Won ->
+            [ PixelEngine.imageArea
+                { height = (toFloat <| size) * spriteSize
+                , background =
+                    PixelEngine.colorBackground <|
+                        Color.rgb255 218 212 94
+                }
+                [ ( ( (toFloat <| (size // 2) - 4) * spriteSize, (toFloat <| size // 2) * spriteSize )
+                  , Image.fromText "Game Won" Tileset.font
+                        |> Image.clickable Next
+                  )
+                ]
+            ]
 
-                        --
-                        , ( 23, 16 ) |> text "<add"
+        Lost ->
+            [ PixelEngine.imageArea
+                { height = (toFloat <| size) * spriteSize
+                , background =
+                    PixelEngine.colorBackground <|
+                        Color.rgb255 20 12 28
+                }
+                [ ( ( (toFloat <| (size // 2) - 4) * spriteSize, (toFloat <| size // 2) * spriteSize )
+                  , Image.fromText "Game Lost" Tileset.font
+                        |> Image.clickable Exit
+                  )
+                ]
+            ]
 
-                        --
-                        , ( 16, 18 ) |> text "add>"
-
-                        --
-                        , ( 21, 21 ) |> text "^add"
-                        ]
-
-                2 ->
-                    List.concat
-                        [ ( 5, 1 ) |> text "touching belts"
-                        , ( 5, 2 ) |> text "have different colors"
-
-                        --
-                        , ( 19, 10 ) |> text "1.add"
-                        , ( 19, 11 ) |> text "v"
-
-                        --
-                        , ( 14, 14 ) |> text "2.add>"
-                        , ( 14, 15 ) |> text "3.wait"
-
-                        --
-                        , ( 24, 15 ) |> text "<4.add"
-                        ]
-
-                3 ->
-                    List.concat
-                        [ ( 5, 1 ) |> text "Merger takes items"
-                        , ( 5, 2 ) |> text "from containers and"
-                        , ( 5, 3 ) |> text "puts them on a belt"
-
-                        --
-                        , ( 24, 16 ) |> text "<Merger"
-
-                        --
-                        , ( 16, 9 ) |> text "add"
-                        , ( 16, 10 ) |> text "Merger"
-                        , ( 21, 11 ) |> text "v"
-
-                        --
-                        , ( 24, 13 ) |> text "<add"
-                        , ( 25, 14 ) |> text "Belt"
-                        ]
-
-                4 ->
-                    List.concat
-                        [ ( 5, 1 ) |> text "Sorter takes items"
-                        , ( 5, 2 ) |> text "from a Belt or a Mine"
-                        , ( 5, 3 ) |> text "and put it into contaiers"
-
-                        --
-                        , ( 19, 10 ) |> text "add"
-                        , ( 19, 11 ) |> text "v"
-
-                        --
-                        , ( 22, 16 ) |> text "^add"
-                        , ( 21, 22 ) |> text "^"
-                        , ( 21, 23 ) |> text "Sorter"
-                        ]
-
-                _ ->
-                    Tile.fromText ( 0, 10 ) "test"
+        Running ->
+            let
+                text : String -> Position -> List ( Position, Tile msg )
+                text t ( x, y ) =
+                    Tile.fromText ( 0, 10 ) t
                         |> List.indexedMap
                             (\i letter ->
-                                ( ( 0 + i, 0 ), letter )
+                                ( ( x + i, y ), letter )
                             )
-            )
+            in
+            content
+                |> RunningGame.areas
+                    (case num of
+                        1 ->
+                            List.concat
+                                [ ( 15, 14 ) |> text "Mine>"
+                                , ( 18, 11 ) |> text "Conveyor"
+                                , ( 18, 12 ) |> text "Belt"
+                                , ( 21, 13 ) |> text "v"
+                                , ( 23, 13 ) |> text "container"
+                                , ( 23, 14 ) |> text "<"
+
+                                --
+                                , ( 23, 16 ) |> text "<add"
+
+                                --
+                                , ( 16, 18 ) |> text "add>"
+
+                                --
+                                , ( 21, 21 ) |> text "^add"
+                                ]
+
+                        2 ->
+                            List.concat
+                                [ ( 5, 1 ) |> text "touching belts"
+                                , ( 5, 2 ) |> text "have different colors"
+
+                                --
+                                , ( 19, 10 ) |> text "1.add"
+                                , ( 19, 11 ) |> text "v"
+
+                                --
+                                , ( 14, 14 ) |> text "2.add>"
+                                , ( 14, 15 ) |> text "3.wait"
+
+                                --
+                                , ( 24, 15 ) |> text "<4.add"
+                                ]
+
+                        3 ->
+                            List.concat
+                                [ ( 5, 1 ) |> text "Merger takes items"
+                                , ( 5, 2 ) |> text "from containers and"
+                                , ( 5, 3 ) |> text "puts them on a belt"
+
+                                --
+                                , ( 24, 16 ) |> text "<Merger"
+
+                                --
+                                , ( 16, 9 ) |> text "add"
+                                , ( 16, 10 ) |> text "Merger"
+                                , ( 21, 11 ) |> text "v"
+
+                                --
+                                , ( 24, 13 ) |> text "<add"
+                                , ( 25, 14 ) |> text "Belt"
+                                ]
+
+                        4 ->
+                            List.concat
+                                [ ( 5, 1 ) |> text "Sorter takes items"
+                                , ( 5, 2 ) |> text "from a Belt or a Mine"
+                                , ( 5, 3 ) |> text "and put it into contaiers"
+
+                                --
+                                , ( 19, 10 ) |> text "add"
+                                , ( 19, 11 ) |> text "v"
+
+                                --
+                                , ( 22, 16 ) |> text "^add"
+                                , ( 21, 22 ) |> text "^"
+                                , ( 21, 23 ) |> text "Sorter"
+                                ]
+
+                        _ ->
+                            Tile.fromText ( 0, 10 ) "test"
+                                |> List.indexedMap
+                                    (\i letter ->
+                                        ( ( 0 + i, 0 ), letter )
+                                    )
+                    )
+                |> List.map (PixelEngine.mapArea GameSpecific)
+
+
+view :
+    (Msg -> msg)
+    -> Options msg
+    -> Model
+    -> { options : Options msg, body : List (Area msg) }
+view mapper options ({ content } as model) =
+    let
+        transition : Transition
+        transition =
+            Options.transition
+                "win_transition"
+                { start = "opacity:1;filter: blur(0px);"
+                , keyFrames =
+                    [ Just "opacity:1;filter: blur(0px);"
+                    , Nothing
+                    ]
+                , end = "opacity:0;filter: blur(5px);"
+                }
+    in
+    { options =
+        options
+            |> (case content.status of
+                    Running ->
+                        identity
+
+                    _ ->
+                        Options.withTransitionFrom
+                            (content
+                                |> RunningGame.areas []
+                                |> List.map (PixelEngine.mapArea (GameSpecific >> mapper))
+                            )
+                            transition
+               )
+    , body = model |> areas |> List.map (PixelEngine.mapArea mapper)
+    }
