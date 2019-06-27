@@ -115,13 +115,13 @@ viewDesc selected =
         text =
             case selected of
                 Mine ->
-                    "Mine - Mines " ++ String.fromInt mineVolume ++ " stones"
+                    "Mine - Mines " ++ String.fromInt mineVolume ++ " items"
 
                 ConveyorBelt ->
-                    "Conveyor Belt - Transports Items"
+                    "Conveyor Belt - Transports items"
 
                 Container ->
-                    "Container - Stores " ++ String.fromInt maxValue ++ " Items"
+                    "Container - Stores " ++ String.fromInt maxValue ++ " items"
 
                 Delete ->
                     "DELETE BUILDINGS"
@@ -130,18 +130,18 @@ viewDesc selected =
                     "PICK UP ITEMS"
 
                 Merger ->
-                    "Merger - Takes from Containers"
+                    "Merger - Takes from containers"
 
                 Sorter ->
-                    "Sorter - Sorts into Containers"
+                    "Sorter - Sorts into containers"
 
                 Floor ->
-                    "Floor - Costs " ++ String.fromInt floorCosts ++ " stones"
+                    "Floor - Costs " ++ String.fromInt floorCosts ++ " items"
     in
     [ ( ( 0, (toFloat <| 2) * spriteSize ), Image.fromText text font ) ]
 
 
-view : Maybe Item -> List ( Item, Int ) -> Model -> List ( Location, Image Msg )
+view : Maybe Item -> Int -> Model -> List ( Location, Image Msg )
 view bag inventory { selected } =
     List.concat
         [ [ Bag bag

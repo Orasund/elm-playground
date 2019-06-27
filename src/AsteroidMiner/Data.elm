@@ -8,7 +8,7 @@ fps =
 
 version : String
 version =
-    "v0.6"
+    "v1.0"
 
 
 winAt : Int

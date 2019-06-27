@@ -41,7 +41,7 @@ type alias Model =
     { game : Game
     , seed : Seed
     , gui : GUI.Model
-    , inventory : Dict Int Int
+    , inventory : Int
     , status : Status
     , winCondition : Int
     }
@@ -75,13 +75,13 @@ init { winCondition, map, seed } =
             { comet = comet
             , map = map
             , bag = Nothing
-            , debts = Dict.empty
+            , debts = 0
             }
     in
     { game = game
     , seed = newSeed
     , gui = GUI.init
-    , inventory = Dict.empty
+    , inventory = 0
     , status = Running
     , winCondition = winCondition
     }
@@ -134,18 +134,13 @@ timePassed ({ game, seed, winCondition } as model) =
                                     always <| always <| always <| False
                     }
 
-        inventory : Dict Int Int
+        inventory : Int
         inventory =
             newMap |> Game.takeInventoryOfMap game.debts
 
         status : Status
         status =
-            if
-                inventory
-                    |> Dict.get (Stone |> Item.toInt)
-                    |> Maybe.withDefault 0
-                    |> (\stone -> stone >= winCondition)
-            then
+            if inventory >= winCondition then
                 Won
 
             else
@@ -319,12 +314,7 @@ squareClicked position ({ gui, game } as model) =
                                 |> Grid.ignoringErrors
                                     (Grid.insert position ( GroundSquare Dirt, Nothing ))
                         , debts =
-                            game.debts
-                                |> Dict.update (Stone |> Item.toInt)
-                                    (Maybe.map ((+) floorCosts)
-                                        >> Maybe.withDefault floorCosts
-                                        >> Just
-                                    )
+                            game.debts + floorCosts
                     }
             }
     in
@@ -399,15 +389,10 @@ viewComet comet =
 
 
 areas : List ( Position, Tile Msg ) -> Model -> List (Area Msg)
-areas content ({ game, gui } as model) =
+areas content ({ game, gui, inventory } as model) =
     let
         { map, comet, bag } =
             game
-
-        inventory =
-            model.inventory
-                |> Dict.toList
-                |> List.map (Tuple.mapFirst Item.fromInt)
     in
     [ PixelEngine.tiledArea
         { rows = size - 3

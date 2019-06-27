@@ -311,8 +311,8 @@ areas { num, content } =
                         4 ->
                             List.concat
                                 [ ( 5, 1 ) |> text "Sorter takes items"
-                                , ( 5, 2 ) |> text "from a Belt or a Mine"
-                                , ( 5, 3 ) |> text "and put it into contaiers"
+                                , ( 5, 2 ) |> text "from a Belt or a Mine and"
+                                , ( 5, 3 ) |> text "puts them into containers"
 
                                 --
                                 , ( 19, 10 ) |> text "add"

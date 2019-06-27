@@ -1,7 +1,7 @@
-module AsteroidMiner.View.Inventory exposing (view, viewStock)
+module AsteroidMiner.View.Inventory exposing (view)
 
 import AsteroidMiner.Data exposing (size, spriteSize)
-import AsteroidMiner.Data.Item exposing (Item)
+import AsteroidMiner.Data.Item exposing (Item(..))
 import AsteroidMiner.View.Map as Map
 import AsteroidMiner.View.Tileset as Tileset
 import Location exposing (Location)
@@ -61,16 +61,18 @@ viewAmount { amount, i } =
     )
 
 
-viewStock : Int -> ( Item, Int ) -> List ( Location, Image msg )
-viewStock i ( item, amount ) =
-    [ ( ( spriteSize * (toFloat <| size - 1), i |> toFloat )
-      , Tileset.tileset |> Image.fromTile (Tile.multipleTiles [ Tileset.itemBackground, Map.viewItem item ])
-      )
-    , viewAmount { amount = amount, i = i }
-    ]
+view : Int -> List ( Location, Image msg )
+view amount =
+    if amount > 0 then
+        [ ( ( spriteSize * (toFloat <| size - 1), 0 )
+          , Tileset.tileset
+                |> Image.fromTile
+                    (Tile.multipleTiles
+                        [ Tileset.itemBackground, Map.viewItem Stone ]
+                    )
+          )
+        , viewAmount { amount = amount, i = 0 }
+        ]
 
-
-view : List ( Item, Int ) -> List ( Location, Image msg )
-view =
-    List.indexedMap viewStock
-        >> List.concat
+    else
+        []

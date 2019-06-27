@@ -23,31 +23,23 @@ type alias Game =
     { comet : Comet
     , map : Map
     , bag : Maybe Item
-    , debts : Dict Int Int
+    , debts : Int
     }
 
 
-takeInventoryOfMap : Dict Int Int -> Map -> Dict Int Int
-takeInventoryOfMap dict =
+takeInventoryOfMap : Int -> Map -> Int
+takeInventoryOfMap debts =
     Grid.values
         >> List.foldl
             (\square ->
                 case square of
-                    ( BuildingSquare { sort, value }, Just item ) ->
+                    ( BuildingSquare { sort, value }, Just _ ) ->
                         case sort of
                             Container Empty ->
                                 identity
 
                             Container _ ->
-                                Dict.update (item |> Item.toInt)
-                                    (\maybeInt ->
-                                        case maybeInt of
-                                            Just int ->
-                                                Just (int + 1 + value)
-
-                                            Nothing ->
-                                                Just (1 + value)
-                                    )
+                                (+) (1 + value)
 
                             _ ->
                                 identity
@@ -55,17 +47,7 @@ takeInventoryOfMap dict =
                     _ ->
                         identity
             )
-            Dict.empty
-        >> (\d ->
-                Dict.merge Dict.insert
-                    (\pos a b ->
-                        Dict.insert pos <| (a - b)
-                    )
-                    (\pos a -> Dict.insert pos -a)
-                    d
-                    dict
-                    Dict.empty
-           )
+            -debts
 
 
 solveConflict : BuildingType -> Neighborhood -> Item -> { item : Item, value : Int } -> Bool

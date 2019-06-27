@@ -84,7 +84,7 @@ viewSquare { position, onClick, valid } ( squareType, maybeItem ) =
            )
 
 
-view : { onClick : Position -> msg, selected : ToolSelection, inventory : List ( Item, Int ) } -> Map -> List ( Position, Tile msg )
+view : { onClick : Position -> msg, selected : ToolSelection, inventory : Int } -> Map -> List ( Position, Tile msg )
 view { onClick, selected } map =
     map
         |> Grid.map
