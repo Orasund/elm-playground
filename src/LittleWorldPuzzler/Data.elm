@@ -8,7 +8,7 @@ gameVersion =
 
 devMode : Bool
 devMode =
-    False
+    True
 
 
 updateName : String

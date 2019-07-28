@@ -324,12 +324,13 @@ view scale restartMsg msgMapper ( { game, selected, mode, viewCollection, collec
                     }
                     game
             ]
-        , if viewCollection then
+        , (if viewCollection then
             PageSelectorView.viewCollection
 
-          else
+           else
             PageSelectorView.viewGame
-                scale
-            <|
-                msgMapper PageChangeRequested
+          )
+            scale
+          <|
+            msgMapper PageChangeRequested
         ]

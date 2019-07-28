@@ -1,7 +1,7 @@
 module LittleWorldPuzzler.View.Deck exposing (view, viewOne)
 
+import Card
 import Element exposing (Attribute, Element)
-import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import LittleWorldPuzzler.Data.CellType as CellType exposing (CellType(..))
@@ -13,57 +13,13 @@ import LittleWorldPuzzler.View.Rule as RuleView
 viewInactiveCard : Float -> Element msg -> Element msg
 viewInactiveCard scale content =
     Element.el
-        [ Element.width <| Element.px <| floor <| 120 * scale
+        [ Element.width <| Element.px <| floor <| (120) * scale
         , Element.height <| Element.px <| floor <| 176 * scale
         , Element.alignTop
         , Element.padding <| floor <| 5 * scale
         ]
     <|
         content
-
-
-viewSelectable : Float -> Selected -> Maybe (Selected -> msg) -> Element msg -> Element msg
-viewSelectable scale selected maybeMsg content =
-    Button.view
-        [ Element.width <| Element.px <| floor <| 120 * scale
-        , Element.height <| Element.px <| floor <| 176 * scale
-        , Element.alignBottom
-        , Border.shadow
-            { blur = 10
-            , color = Element.rgba 0 0 0 0.05
-            , offset = ( 0, 2 )
-            , size = 1 * scale
-            }
-        , Border.rounded <| floor <| 4 * scale
-        , Element.padding <| floor <| 5 * scale
-        ]
-    <|
-        { onPress = maybeMsg |> Maybe.map (\fun -> fun selected)
-        , label = content
-        }
-
-
-viewSelected : Float -> Element msg -> Element msg
-viewSelected scale content =
-    Element.el
-        [ Element.width <| Element.px <| floor <| 120 * scale
-        , Element.height <| Element.px <| floor <| 176 * scale
-        , Element.alignTop
-        , Border.shadow
-            { blur = 10
-            , color = Element.rgba 0 0 0 0.05
-            , offset = ( 0, 2 )
-            , size = 1 * scale
-            }
-        , Border.width 1
-        , Border.color <| Element.rgba255 219 219 219 1
-        , Border.rounded <| floor <| 4 * scale
-        , Element.padding <| floor <| 5 * scale
-        , Background.color <| Element.rgb255 255 255 255
-        ]
-    <|
-        content
-
 
 viewCardList : Float -> { sort : Bool } -> List CellType -> Element msg
 viewCardList scale { sort } =
@@ -120,8 +76,18 @@ viewOne scale maybeCellType =
     <|
         case maybeCellType of
             Just cellType ->
-                viewSelected scale <|
-                    viewContent scale cellType
+                Card.hand []
+                { width =100*scale
+                , dimensions = (120,176)
+                , scale = scale
+                , cards = List.singleton<|
+                        Card.card
+                            {attributes =  []
+                            , content=viewContent scale cellType
+                            , onPress=Nothing
+                            , selected = True
+                            }
+                }
 
             Nothing ->
                 Element.el
@@ -158,29 +124,34 @@ view scale sort maybeSelectedMsg maybeSelected deck =
                         |> Maybe.withDefault []
                     )
                 ]
-        , (if maybeSelected == Just First then
-            viewSelected scale
+        , Card.hand [Element.centerX
+    , Element.height <| Element.px <| floor <| 200 * scale]
+            { width = 250*scale
+            , dimensions = (120,176)
+            , scale = scale
+            , cards = List.concat 
+            [ [Card.card
+                { attributes = []
+                , content=viewContent scale <|
+                    Deck.first deck
+                , onPress=maybeSelectedMsg |> Maybe.map (\fun -> fun First)
+                , selected= maybeSelected == Just First
+                }]
+            , case deck |> Deck.second of
+                Just cellType ->
+                    [Card.card
 
-           else
-            viewSelectable scale First maybeSelectedMsg
-          )
-          <|
-            viewContent scale <|
-                Deck.first deck
-        , case deck |> Deck.second of
-            Just cellType ->
-                (if maybeSelected == Just Second then
-                    viewSelected scale
-
-                 else
-                    viewSelectable scale Second maybeSelectedMsg
-                )
-                <|
-                    viewContent scale cellType
-
-            Nothing ->
-                viewInactiveCard scale <|
-                    Element.text ""
+                        { attributes = []
+                        , content=viewContent scale cellType
+                        , onPress=maybeSelectedMsg |> Maybe.map (\fun -> fun Second)
+                        , selected= maybeSelected == Just Second
+                        }
+                    ]
+                Nothing ->
+                    []
+            ]
+            }
+            
         , viewInactiveCard scale <|
             Element.column
                 [ Element.spacing <| floor <| 10 * scale
