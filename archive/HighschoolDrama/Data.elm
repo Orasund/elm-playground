@@ -1,7 +1,6 @@
 module HighschoolDrama.Data exposing (Groups(..), Options, Orientation(..), Sex(..))
 
 import Random exposing (Seed)
-import Set exposing (Set)
 
 
 type Groups

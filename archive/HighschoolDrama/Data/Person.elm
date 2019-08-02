@@ -1,5 +1,6 @@
-module HighschoolDrama.Data.Person exposing (Person)
+module HighschoolDrama.Data.Person exposing (Person, chooseName, npc, player)
 
+import HighschoolDrama.Data exposing (Orientation(..), Sex(..))
 import Random exposing (Generator)
 
 
@@ -120,7 +121,7 @@ neutralName =
     ]
 
 
-chooseName : Maybe Sex -> Generator Name
+chooseName : Maybe Sex -> Generator String
 chooseName maybeSex =
     Random.uniform "👨\u{200D}\u{1F9B2}" <|
         List.concat
@@ -138,6 +139,10 @@ chooseName maybeSex =
 
 
 npc : { includeSex : Bool } -> Generator Person
-npc { includeSex } =
-    { name = chooseName
-    }
+npc _ =
+    Debug.todo "write npc generator"
+
+
+player : Maybe Sex -> Person
+player _ =
+    Debug.todo "write person constructor"

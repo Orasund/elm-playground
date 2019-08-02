@@ -26,7 +26,7 @@ type Msg
 
 
 type alias Action =
-    Action.Action Model Never Options Never
+    Action.Action Model Never Options (Maybe Sex)
 
 
 init : Seed -> ( Model, Cmd Msg )
@@ -39,7 +39,7 @@ init seed =
 
 
 submitForm : Model -> Maybe Options
-submitForm ({ seed, groupsForm } as model) =
+submitForm ({ seed, groupsForm } ) =
     case groupsForm of
         BoysAndGirls ( boys, girls ) sex ->
             Just
@@ -69,6 +69,7 @@ update msg model =
     case msg of
         SelectSex maybeSex ->
             Action.transitioning maybeSex
+                |> Debug.todo "translate to Options"
 
         StartGame ->
             model
@@ -78,7 +79,7 @@ update msg model =
 
 
 view : Model -> List (Html Msg)
-view ({groupsForm} as model) =
+view { groupsForm } =
     List.singleton <|
         Element.layout [] <|
             Element.column [ Element.centerX ] <|
@@ -95,6 +96,7 @@ view ({groupsForm} as model) =
                 , case groupsForm of
                     Choosing ->
                         Element.text "Choose one of the above to see advanced options"
-                    BoysAndGirls ->
-                        
+
+                    _ ->
+                        Element.text "TODO"
                 ]

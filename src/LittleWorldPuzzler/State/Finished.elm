@@ -4,7 +4,7 @@ import Action
 import Element exposing (Element)
 import Http exposing (Error(..))
 import LittleWorldPuzzler.Data.Entry as Entry exposing (Entry)
-import LittleWorldPuzzler.Data.Game as Game exposing (EndCondition(..), Game)
+import LittleWorldPuzzler.Data.Game exposing (EndCondition(..), Game)
 import LittleWorldPuzzler.Request as Request exposing (Response(..))
 import LittleWorldPuzzler.View.Game as GameView
 import LittleWorldPuzzler.View.Header as HeaderView

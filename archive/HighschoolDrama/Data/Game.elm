@@ -1,7 +1,7 @@
-module HighschoolDrama.Data.Game exposing (Game)
+module HighschoolDrama.Data.Game exposing (Game, init)
 
-import HighschoolDrama.Data exposing (Options, Person, Sex)
-import HighschoolDrama.Data.Person exposing (Person)
+import HighschoolDrama.Data exposing (Options)
+import HighschoolDrama.Data.Person as Person exposing (Person)
 import Random exposing (Seed)
 import Set exposing (Set)
 
