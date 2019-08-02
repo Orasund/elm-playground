@@ -13,6 +13,7 @@ type alias Game =
     , health : Int
     , super : Bool
     , board : Board
+    , level : Int
     }
 
 
@@ -113,14 +114,14 @@ updateBehaviour pos square ({ player, health, board, super } as game) =
 
 
 update : Game -> Game
-update ({ player, super } as game) =
+update ({ player, super, level } as game) =
     let
         activatedBoard : Board
         activatedBoard =
             game.board
                 |> (game.board
                         |> Grid.get player
-                        |> Maybe.map Behaviour.activate
+                        |> Maybe.map (Behaviour.activate level)
                         |> Maybe.withDefault identity
                    )
 
@@ -143,7 +144,7 @@ update ({ player, super } as game) =
                                 updatedGame.board
                                     |> Grid.get player
                                     |> Maybe.map
-                                        (\s -> Behaviour.consumable super |> List.member s)
+                                        (\s -> Behaviour.consumable level super |> List.member s)
                                     |> Maybe.withDefault False
                             then
                                 Grid.remove player

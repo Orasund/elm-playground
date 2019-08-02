@@ -5,7 +5,7 @@ import Grid.Position exposing (Position)
 
 initialLevel : Int
 initialLevel =
-    0
+    1
 
 
 initialHealth : Int

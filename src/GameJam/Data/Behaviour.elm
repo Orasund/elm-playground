@@ -1,18 +1,17 @@
 module GameJam.Data.Behaviour exposing (activate, consumable, removeToWin)
 
-import GameJam.Data.Board as Board exposing (Board)
+import GameJam.Data.Board exposing (Board)
 import GameJam.Data.Square as Square exposing (Square(..))
-import Grid exposing (Grid)
-import Grid.Position as Position exposing (Position)
+import Grid
 
 
-removeToWin : List Square
-removeToWin =
+removeToWin : Int -> List Square
+removeToWin _ =
     [ Enemy, InactiveEnemy, OpenDoor, LookedDoor ]
 
 
-consumable : Bool -> List Square
-consumable super =
+consumable : Int -> Bool -> List Square
+consumable _ super =
     [ Health, OpenDoor ]
         ++ (if super then
                 [ Enemy ]
@@ -22,8 +21,8 @@ consumable super =
            )
 
 
-activate : Square -> Board -> Board
-activate square =
+activate : Int -> Square -> Board -> Board
+activate _ square =
     case square of
         Swap ->
             ifThenSwap <|

@@ -37,13 +37,13 @@ level lv =
         m : Maybe Square
         m =
             Just Lava
-    
+
         s : Maybe Square
         s =
             Just Swap
     in
     case lv of
-        0 ->
+        1 ->
             [ [ w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w ]
             , [ w, o, o, o, o, o, o, o, m, o, o, o, o, o, o, w ]
             , [ w, o, o, o, o, o, o, o, m, o, o, o, o, o, o, w ]
@@ -62,7 +62,7 @@ level lv =
             , [ w, w, w, w, w, w, w, w, w, w, w, w, w, w, w, w ]
             ]
 
-        1 ->
+        2 ->
             [ [ w, w, w, w, w, w, w, d, w, w, w, w, w, w, w, w ]
             , [ w, o, o, o, o, o, w, s, w, o, o, o, o, o, o, w ]
             , [ w, o, o, o, o, o, w, l, w, o, o, o, o, o, o, w ]
@@ -82,7 +82,7 @@ level lv =
             ]
 
         _ ->
-            level 0
+            level 1
 
 
 fixed : List ( Int, Square )

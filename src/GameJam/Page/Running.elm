@@ -14,6 +14,8 @@ import Grid
 import Grid.Direction exposing (Direction)
 import Grid.Position as Position exposing (Position)
 import PixelEngine exposing (Area)
+import PixelEngine.Image as Image
+import PixelEngine.Tile as Tile
 import Random exposing (Seed)
 
 
@@ -21,7 +23,6 @@ type alias Model =
     { game : Game
     , won : Bool
     , seed : Seed
-    , level : Int
     }
 
 
@@ -43,25 +44,25 @@ init ( s, level ) =
                     , health = initialHealth
                     , player = initialPlayer
                     , super = False
+                    , level = level
                     }
                 , seed = seed
                 , won = False
-                , level = level
                 }
            )
 
 
 update : Msg -> Model -> Action
-update msg ({ game, seed, won,level } as model) =
+update msg ({ game, seed, won } as model) =
     let
-        { player, health } =
+        { player, health, level } =
             game
     in
     case msg of
         Move dir ->
             if won then
                 Action.updating
-                    ( init ( seed, level+1 ), Cmd.none )
+                    ( init ( seed, level + 1 ), Cmd.none )
 
             else if health <= 0 then
                 Action.exiting
@@ -97,7 +98,7 @@ update msg ({ game, seed, won,level } as model) =
                         , won =
                             newGame.board
                                 |> Grid.filter
-                                    (\_ s -> Behaviour.removeToWin |> List.member s)
+                                    (\_ s -> Behaviour.removeToWin level |> List.member s)
                                 |> Grid.isEmpty
                       }
                     , Cmd.none
@@ -107,7 +108,7 @@ update msg ({ game, seed, won,level } as model) =
 view : Model -> List (Area Msg)
 view { game, won } =
     let
-        { health, board, player, super } =
+        { health, board, player, super, level } =
             game
     in
     [ PixelEngine.tiledArea
@@ -148,5 +149,14 @@ view { game, won } =
         --gray
         }
       <|
-        Health.view health
+        [ ( ( 0, 0 )
+          , Image.fromTextWithSpacing -3 ("Lv." ++ String.fromInt level) <|
+                Tile.tileset
+                    { source = "Expire8x8.png"
+                    , spriteWidth = 8
+                    , spriteHeight = 8
+                    }
+          )
+        ]
+            ++ Health.view health
     ]
