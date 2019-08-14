@@ -36,7 +36,7 @@ questionDecoder =
                 Err [ QuestionTooShort ]
 
             else
-                Ok input
+                Ok <| String.replace "?" "" <| input
         )
 
 
@@ -53,12 +53,12 @@ type Msg
 
 init : String -> Model
 init question =
-    { question = question
+    { question = question ++ "?"
     , errors = []
     , answer = if question == "" then
           Nothing
         else
-          Just <| Answer.fromQuestion <| question
+          Just <| Answer.fromQuestion <| question 
     }
 
 
@@ -87,9 +87,10 @@ viewError error =
         , Border.rounded <| 10
         , Background.color <| Element.black
         , Font.color <| Element.white
+        , Element.padding <| 10
         ]
     <|
-        Element.text <|
+        Element.paragraph [] <| List.singleton <| Element.text <|
             case error of
                 QuestionTooShort ->
                     "The question needs to be at least "
@@ -116,7 +117,8 @@ onEnter msg =
 
 view : Model -> Element Msg
 view { question, errors,answer } =
-    Element.column [ Element.centerX,Element.spacing 20 ] <|
+    Element.column [ Element.centerX,Element.width <| Element.fill
+      ,Element.spacing 20 ] <|
         [ Element.section "Oracle of the fourth dimension"
         , Input.text
             [ Element.width <| Element.fill
@@ -141,9 +143,17 @@ view { question, errors,answer } =
 
                 Just a ->
                     [ Element.text "The oracle has answered:"
-                    , Element.column [Element.centerX]<|
-                      [ Element.subsection <| Answer.name <| a
+                    , Element.column [Element.centerX
+                      , Element.spacing 10, Element.width <| Element.px <| 300]<|
+                      let
+                        {name,desc} =Answer.desc <| a
+                      in
+                      [ Element.subsection <| name
                       , a |> Answer.view |> Element.html |> Element.el [Element.centerX]
+                      , Element.paragraph [Font.center] <|
+                        List.singleton <|
+                          Element.text <|
+                            desc
                       ]
                     
                     ]

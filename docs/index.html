@@ -4801,13 +4801,14 @@ var author$project$Singularis$Data$Answer$fromQuestion = A2(
 				elm$core$Basics$composeR,
 				elm$core$Basics$modBy(42),
 				author$project$Singularis$Data$Answer$intToArkana))));
+var elm$core$Basics$append = _Utils_append;
 var elm$core$Basics$eq = _Utils_equal;
 var author$project$Singularis$Page$Oracle$init = function (question) {
 	return {
 		answer: (question === '') ? elm$core$Maybe$Nothing : elm$core$Maybe$Just(
 			author$project$Singularis$Data$Answer$fromQuestion(question)),
 		errors: _List_Nil,
-		question: question
+		question: question + '?'
 	};
 };
 var elm$core$Basics$always = F2(
@@ -5652,7 +5653,6 @@ var elm$json$Json$Decode$OneOf = function (a) {
 	return {$: 'OneOf', a: a};
 };
 var elm$core$Basics$and = _Basics_and;
-var elm$core$Basics$append = _Utils_append;
 var elm$core$Basics$or = _Basics_or;
 var elm$core$Char$isLower = function (_char) {
 	var code = elm$core$Char$toCode(_char);
@@ -5874,13 +5874,21 @@ var arowM$elm_form_decoder$Form$Decoder$custom = arowM$elm_form_decoder$Form$Dec
 var author$project$Singularis$Data$questionMinLength = 20;
 var author$project$Singularis$Page$Oracle$QuestionTooShort = {$: 'QuestionTooShort'};
 var elm$core$String$length = _String_length;
+var elm$core$String$replace = F3(
+	function (before, after, string) {
+		return A2(
+			elm$core$String$join,
+			after,
+			A2(elm$core$String$split, before, string));
+	});
 var author$project$Singularis$Page$Oracle$questionDecoder = arowM$elm_form_decoder$Form$Decoder$custom(
 	function (input) {
 		return (_Utils_cmp(
 			author$project$Singularis$Data$questionMinLength,
 			elm$core$String$length(input)) > 0) ? elm$core$Result$Err(
 			_List_fromArray(
-				[author$project$Singularis$Page$Oracle$QuestionTooShort])) : elm$core$Result$Ok(input);
+				[author$project$Singularis$Page$Oracle$QuestionTooShort])) : elm$core$Result$Ok(
+			A3(elm$core$String$replace, '?', '', input));
 	});
 var elm$browser$Browser$External = function (a) {
 	return {$: 'External', a: a};
@@ -12028,59 +12036,112 @@ var author$project$Singularis$Page$Home$view = A2(
 					author$project$Singularis$View$Polygon$view(6))
 				]))
 		]));
-var author$project$Singularis$Data$Answer$name = function (_n0) {
+var author$project$Singularis$Data$Answer$desc = function (_n0) {
 	var nr = _n0.nr;
 	var flipped = _n0.flipped;
 	var title = function () {
-		var _n1 = nr + 1;
-		switch (_n1) {
-			case 1:
-				return 'Will';
-			case 2:
-				return 'Passion';
-			case 3:
-				return 'Action';
-			case 4:
-				return 'Realisation';
-			case 5:
-				return 'Inspriation';
-			case 6:
-				return 'Love';
-			case 7:
-				return 'Victory';
-			case 8:
-				return 'Balance';
-			case 9:
-				return 'Wisdom';
-			case 10:
-				return 'Fortune';
-			case 11:
-				return 'Strength';
-			case 12:
-				return 'Sacrifice';
-			case 13:
-				return 'Transformation';
-			case 14:
-				return 'Initiative';
-			case 15:
-				return 'Fate';
-			case 16:
-				return 'Decision';
-			case 17:
-				return 'Hope';
-			case 18:
-				return 'Illusion';
-			case 19:
-				return 'Happiness';
-			case 20:
-				return 'Restart';
-			case 21:
-				return 'Reward';
-			default:
-				return 'Error';
+		if (flipped) {
+			var _n1 = nr + 1;
+			switch (_n1) {
+				case 1:
+					return {desc: 'Contentment, ease, relief, happiness, compassion, empathy, help, aid, relief, distress, convenience, benefit, inessential', name: 'Comfort'};
+				case 2:
+					return {desc: 'Coherence, clear-headedness, purpose, sanity, focus, thought, responsibility, validity, ideology, reason, mind, charity', name: 'Rationality'};
+				case 3:
+					return {desc: 'Tolerance, sufferance, diligence, application, kindness, affection, control, calmness, humility, calmness, sensitivity', name: 'Patience'};
+				case 4:
+					return {desc: 'Creativity, invention, originality, attention, curiosity, fascination, idea, inspiration, initiative, vision, innovation', name: 'Imagination'};
+				case 5:
+					return {desc: 'Continuation, durability, sufferance, tolerance, fortitude, resolution, maintenance, assurance, balance, hope, faith, charity', name: 'Endurance'};
+				case 6:
+					return {desc: 'Rift, division, disconnection, disconnect, difference, isolation, distance, conflict, termination, banishment, agreement', name: 'Separation'};
+				case 7:
+					return {desc: 'Bold, reckless, dangerous, risky, rash, hasty, impulsive, resourceful, ambitious, eager, romantic, idealist, ruthless', name: 'Adventurous'};
+				case 8:
+					return {desc: 'Authority, management, mastery, balance, skillfulness, calmness, influence, care, protection, discipline, restriction', name: 'Control'};
+				case 9:
+					return {desc: 'Kind, tolerant, understanding, decadent, luxurious, relaxed, carefree, easy-going, flexible, loving, passionate, shameless', name: 'Indulgent'};
+				case 10:
+					return {desc: 'Prospect, chance, circumstance, belief, hope, faith, chance, appointment, freedom, authority, choice, possibility, capability', name: 'Opportunity'};
+				case 11:
+					return {desc: 'Liveliness, nimbleness, cleverness, mastery, capability, mobility, charm, gracefulness, elegance, alertness, cautiousness', name: 'Agility'};
+				case 12:
+					return {desc: 'Security, safety, strength, care, supervision, guard, preservation, support, love, alliance, health, well-being, freedom', name: 'Protection'};
+				case 13:
+					return {desc: 'Purification, filtering, grace, polish, politeness, improvement, advancement, enhancement, rise, subtlety, change, adjustment', name: 'Refinement'};
+				case 14:
+					return {desc: 'Endurance, energy, resistance, strength, force, activity, determination, strength of character, morality, drive, backbone', name: 'Stamina'};
+				case 15:
+					return {desc: 'Advice, direction, help, support, assistance, instruction, information, leadership, control, supervision, protection, trust', name: 'Guidance'};
+				case 16:
+					return {desc: 'Amazement, confusion, suddenness, fortune, sensation, ambush, development, revelation, disturbance, approval, puzzlement', name: 'Surprise'};
+				case 17:
+					return {desc: 'Confidence, faith, belief, responsibility, influence, authority, protection, commitment, optimism, investment, domination', name: 'Trust'};
+				case 18:
+					return {desc: 'Delusion, misconception, dream, misbelief, appearance, impression, mistake, misinterpretation, bluffing, falsehood, desire', name: 'Illusion'};
+				case 19:
+					return {desc: 'Commitment, love, loyalty, faithfulness, spirituality, kindness, addiction, assistance, support, alliance, focus, motivation', name: 'Devotion'};
+				case 20:
+					return {desc: 'Attention, importance, intention, emphasis, sharpness, purpose, innocent, awareness, observation, recognition, attraction', name: 'Focus'};
+				case 21:
+					return {desc: 'Intention, ambition, initiative, motivation, purpose, focus, occasion, optimism, possibility, achievement, destination', name: 'Goal'};
+				default:
+					return {desc: '', name: 'Error'};
+			}
+		} else {
+			var _n2 = nr + 1;
+			switch (_n2) {
+				case 1:
+					return {desc: 'Determination, drive, resolution, desire, decision, intention, desire, preference, agreeableness, choice, consciousness', name: 'Will'};
+				case 2:
+					return {desc: 'Animation, determination, dedication, devotion, drive, ambition, enthusiasm, distraction, compulsion, desire, enchantment', name: 'Passion'};
+				case 3:
+					return {desc: 'Execution, performance, movement, accomplishment, activity, work, effort, impact, consequence, aftermath, excitement, energy', name: 'Action'};
+				case 4:
+					return {desc: 'Awareness, understanding, consciousness, recognition, accomplishment, achievement, awakening, manifestation, discovery', name: 'Realisation'};
+				case 5:
+					return {desc: 'Motivation, revelation, creativeness, genius, cleverness, breakthrough, imagination, influence, understanding, appreciation', name: 'Inspiration'};
+				case 6:
+					return {desc: 'Affection, devotion, friendship, attachment, respect, fascination, obsession, preference, commitment, compassion, romance', name: 'Love'};
+				case 7:
+					return {desc: 'Success, accomplishment, mastery, mastery, power, control, comfort, fortune, opportunity, comeback, domination, defeating', name: 'Victory'};
+				case 8:
+					return {desc: 'Stability, harmony, difference, counterbalance, counteraction, neutrality, calmness, progression, mastery, compromise', name: 'Balance'};
+				case 9:
+					return {desc: 'Intelligence, insight, understanding, enlightenment, benefit, rationality, traditions, suitability, usefulness, sensibility', name: 'Wisdom'};
+				case 10:
+					return {desc: 'Wealth, circumstance, destiny, accident, luck, future, success, creativity, capability, ambition, prediction, accomplishment', name: 'Fortune'};
+				case 11:
+					return {desc: 'Sturdiness, power, toughness, energy, effectiveness, determination, persistence, robustness, influence, control, force', name: 'Strength'};
+				case 12:
+					return {desc: 'Offer, contribute, commit, quit, rejection, consequence, accident, defeat, clearance, approach, peace offering, expense', name: 'Sacrifice'};
+				case 13:
+					return {desc: 'Evolution, change, progress, development, compromise, settlement, adjustment, polarity, reordering, renewal, regeneration', name: 'Transformation'};
+				case 14:
+					return {desc: 'Ambition, energy, ambition, ability, improvement, commitment, determination, understanding, purpose, control, creativity', name: 'Initiative'};
+				case 15:
+					return {desc: 'Destiny, fortune, development, mortality, chances, future, consequences, purpose, conclusion, luck, outcome, principles', name: 'Fate'};
+				case 16:
+					return {desc: 'Choice, option, commitment, conclusion, determination, purposefulness, outcome, intention, exploration, agreement, deal', name: 'Decision'};
+				case 17:
+					return {desc: 'Belief, desire, faith, ambition, intention, determination, understanding, cheerfulness, potential, confidence, morality', name: 'Hope'};
+				case 18:
+					return {desc: 'Understanding, awareness, vision, knowledge, intelligence, observation, sharpness, principles, inspiration', name: 'Insight'};
+				case 19:
+					return {desc: 'Pleasure, satisfaction, ecstasy, optimism, suitability, health, help, opportunity, profit, occasion, progress, success', name: 'Happiness'};
+				case 20:
+					return {desc: 'Continue, regenerate, reestablish, restore, increase, improve, regeneration, renewal, embrace, accept, initiate, prepare', name: 'Restart'};
+				case 21:
+					return {desc: 'Compensation, compensation, motivation, distinction, improvement, kindness, contribution, fortune, wealth, comfort, luck', name: 'Reward'};
+				default:
+					return {desc: '', name: 'Error'};
+			}
 		}
 	}();
-	return '#' + (elm$core$String$fromInt(nr + 1) + (' ' + (title + (flipped ? ' (inverted)' : ''))));
+	return {
+		desc: title.desc,
+		name: '#' + (elm$core$String$fromInt(nr + 1) + ((flipped ? '*' : '') + (' ' + title.name)))
+	};
 };
 var author$project$Singularis$Page$Oracle$QuestionAsked = {$: 'QuestionAsked'};
 var author$project$Singularis$Page$Oracle$QuestionEntered = function (a) {
@@ -12133,6 +12194,67 @@ var author$project$Singularis$View$Element$black = mdgriffith$elm_ui$Element$fro
 var avh4$elm_color$Color$white = A4(avh4$elm_color$Color$RgbaSpace, 255 / 255, 255 / 255, 255 / 255, 1.0);
 var author$project$Singularis$View$Element$white = mdgriffith$elm_ui$Element$fromRgb(
 	avh4$elm_color$Color$toRgba(avh4$elm_color$Color$white));
+var elm$core$List$singleton = function (value) {
+	return _List_fromArray(
+		[value]);
+};
+var mdgriffith$elm_ui$Internal$Flag$padding = mdgriffith$elm_ui$Internal$Flag$flag(2);
+var mdgriffith$elm_ui$Internal$Model$PaddingStyle = F5(
+	function (a, b, c, d, e) {
+		return {$: 'PaddingStyle', a: a, b: b, c: c, d: d, e: e};
+	});
+var mdgriffith$elm_ui$Element$padding = function (x) {
+	return A2(
+		mdgriffith$elm_ui$Internal$Model$StyleClass,
+		mdgriffith$elm_ui$Internal$Flag$padding,
+		A5(
+			mdgriffith$elm_ui$Internal$Model$PaddingStyle,
+			'p-' + elm$core$String$fromInt(x),
+			x,
+			x,
+			x,
+			x));
+};
+var mdgriffith$elm_ui$Internal$Model$SpacingStyle = F3(
+	function (a, b, c) {
+		return {$: 'SpacingStyle', a: a, b: b, c: c};
+	});
+var mdgriffith$elm_ui$Internal$Model$spacingName = F2(
+	function (x, y) {
+		return 'spacing-' + (elm$core$String$fromInt(x) + ('-' + elm$core$String$fromInt(y)));
+	});
+var mdgriffith$elm_ui$Element$spacing = function (x) {
+	return A2(
+		mdgriffith$elm_ui$Internal$Model$StyleClass,
+		mdgriffith$elm_ui$Internal$Flag$spacing,
+		A3(
+			mdgriffith$elm_ui$Internal$Model$SpacingStyle,
+			A2(mdgriffith$elm_ui$Internal$Model$spacingName, x, x),
+			x,
+			x));
+};
+var mdgriffith$elm_ui$Internal$Model$Describe = function (a) {
+	return {$: 'Describe', a: a};
+};
+var mdgriffith$elm_ui$Internal$Model$Paragraph = {$: 'Paragraph'};
+var mdgriffith$elm_ui$Element$paragraph = F2(
+	function (attrs, children) {
+		return A4(
+			mdgriffith$elm_ui$Internal$Model$element,
+			mdgriffith$elm_ui$Internal$Model$asParagraph,
+			mdgriffith$elm_ui$Internal$Model$div,
+			A2(
+				elm$core$List$cons,
+				mdgriffith$elm_ui$Internal$Model$Describe(mdgriffith$elm_ui$Internal$Model$Paragraph),
+				A2(
+					elm$core$List$cons,
+					mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill),
+					A2(
+						elm$core$List$cons,
+						mdgriffith$elm_ui$Element$spacing(5),
+						attrs))),
+			mdgriffith$elm_ui$Internal$Model$Unkeyed(children));
+	});
 var mdgriffith$elm_ui$Internal$Flag$bgColor = mdgriffith$elm_ui$Internal$Flag$flag(8);
 var mdgriffith$elm_ui$Internal$Model$Colored = F3(
 	function (a, b, c) {
@@ -12185,10 +12307,15 @@ var author$project$Singularis$Page$Oracle$viewError = function (error) {
 				mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill),
 				mdgriffith$elm_ui$Element$Border$rounded(10),
 				mdgriffith$elm_ui$Element$Background$color(author$project$Singularis$View$Element$black),
-				mdgriffith$elm_ui$Element$Font$color(author$project$Singularis$View$Element$white)
+				mdgriffith$elm_ui$Element$Font$color(author$project$Singularis$View$Element$white),
+				mdgriffith$elm_ui$Element$padding(10)
 			]),
-		mdgriffith$elm_ui$Element$text(
-			'The question needs to be at least ' + (elm$core$String$fromInt(author$project$Singularis$Data$questionMinLength) + ' characters long. Longer questions are generally better.')));
+		A2(
+			mdgriffith$elm_ui$Element$paragraph,
+			_List_Nil,
+			elm$core$List$singleton(
+				mdgriffith$elm_ui$Element$text(
+					'The question needs to be at least ' + (elm$core$String$fromInt(author$project$Singularis$Data$questionMinLength) + ' characters long. Longer questions are generally better.')))));
 };
 var author$project$Singularis$Data$Answer$Double = {$: 'Double'};
 var author$project$Singularis$Data$Answer$DoubleAndVertical = {$: 'DoubleAndVertical'};
@@ -12356,10 +12483,6 @@ var author$project$Singularis$View$Answer$p2 = author$project$Singularis$View$An
 var author$project$Singularis$View$Answer$p3 = author$project$Singularis$View$Answer$getPoint(3);
 var author$project$Singularis$View$Answer$p4 = author$project$Singularis$View$Answer$getPoint(4);
 var author$project$Singularis$View$Answer$p5 = author$project$Singularis$View$Answer$getPoint(5);
-var elm$core$List$singleton = function (value) {
-	return _List_fromArray(
-		[value]);
-};
 var ianmackenzie$elm_geometry$Geometry$Types$LineSegment2d = function (a) {
 	return {$: 'LineSegment2d', a: a};
 };
@@ -12597,24 +12720,12 @@ var author$project$Singularis$View$Answer$view = A2(
 	});
 var author$project$Singularis$View$Element$section = author$project$Singularis$View$Element$heading(45);
 var author$project$Singularis$View$Element$subsection = author$project$Singularis$View$Element$heading(30);
-var mdgriffith$elm_ui$Internal$Model$SpacingStyle = F3(
-	function (a, b, c) {
-		return {$: 'SpacingStyle', a: a, b: b, c: c};
-	});
-var mdgriffith$elm_ui$Internal$Model$spacingName = F2(
-	function (x, y) {
-		return 'spacing-' + (elm$core$String$fromInt(x) + ('-' + elm$core$String$fromInt(y)));
-	});
-var mdgriffith$elm_ui$Element$spacing = function (x) {
-	return A2(
-		mdgriffith$elm_ui$Internal$Model$StyleClass,
-		mdgriffith$elm_ui$Internal$Flag$spacing,
-		A3(
-			mdgriffith$elm_ui$Internal$Model$SpacingStyle,
-			A2(mdgriffith$elm_ui$Internal$Model$spacingName, x, x),
-			x,
-			x));
+var mdgriffith$elm_ui$Internal$Model$Px = function (a) {
+	return {$: 'Px', a: a};
 };
+var mdgriffith$elm_ui$Element$px = mdgriffith$elm_ui$Internal$Model$Px;
+var mdgriffith$elm_ui$Internal$Flag$fontAlignment = mdgriffith$elm_ui$Internal$Flag$flag(12);
+var mdgriffith$elm_ui$Element$Font$center = A2(mdgriffith$elm_ui$Internal$Model$Class, mdgriffith$elm_ui$Internal$Flag$fontAlignment, mdgriffith$elm_ui$Internal$Style$classes.textCenter);
 var mdgriffith$elm_ui$Element$Input$Above = {$: 'Above'};
 var mdgriffith$elm_ui$Element$Input$Label = F3(
 	function (a, b, c) {
@@ -12685,11 +12796,6 @@ var mdgriffith$elm_ui$Internal$Model$Nearby = F2(
 var mdgriffith$elm_ui$Element$inFront = function (element) {
 	return A2(mdgriffith$elm_ui$Internal$Model$Nearby, mdgriffith$elm_ui$Internal$Model$InFront, element);
 };
-var mdgriffith$elm_ui$Internal$Flag$padding = mdgriffith$elm_ui$Internal$Flag$flag(2);
-var mdgriffith$elm_ui$Internal$Model$PaddingStyle = F5(
-	function (a, b, c, d, e) {
-		return {$: 'PaddingStyle', a: a, b: b, c: c, d: d, e: e};
-	});
 var mdgriffith$elm_ui$Internal$Model$paddingName = F4(
 	function (top, right, bottom, left) {
 		return 'pad-' + (elm$core$String$fromInt(top) + ('-' + (elm$core$String$fromInt(right) + ('-' + (elm$core$String$fromInt(bottom) + ('-' + elm$core$String$fromInt(left)))))));
@@ -12872,9 +12978,6 @@ var mdgriffith$elm_ui$Element$Input$hasFocusStyle = function (attr) {
 var mdgriffith$elm_ui$Internal$Model$NoAttribute = {$: 'NoAttribute'};
 var mdgriffith$elm_ui$Element$Input$focusDefault = function (attrs) {
 	return A2(elm$core$List$any, mdgriffith$elm_ui$Element$Input$hasFocusStyle, attrs) ? mdgriffith$elm_ui$Internal$Model$NoAttribute : mdgriffith$elm_ui$Internal$Model$htmlClass('focusable');
-};
-var mdgriffith$elm_ui$Internal$Model$Describe = function (a) {
-	return {$: 'Describe', a: a};
 };
 var mdgriffith$elm_ui$Internal$Model$Label = function (a) {
 	return {$: 'Label', a: a};
@@ -13426,6 +13529,7 @@ var author$project$Singularis$Page$Oracle$view = function (_n0) {
 		_List_fromArray(
 			[
 				mdgriffith$elm_ui$Element$centerX,
+				mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill),
 				mdgriffith$elm_ui$Element$spacing(20)
 			]),
 		_Utils_ap(
@@ -13463,18 +13567,33 @@ var author$project$Singularis$Page$Oracle$view = function (_n0) {
 								A2(
 								mdgriffith$elm_ui$Element$column,
 								_List_fromArray(
-									[mdgriffith$elm_ui$Element$centerX]),
-								_List_fromArray(
 									[
-										author$project$Singularis$View$Element$subsection(
-										author$project$Singularis$Data$Answer$name(a)),
-										A2(
-										mdgriffith$elm_ui$Element$el,
-										_List_fromArray(
-											[mdgriffith$elm_ui$Element$centerX]),
-										mdgriffith$elm_ui$Element$html(
-											author$project$Singularis$View$Answer$view(a)))
-									]))
+										mdgriffith$elm_ui$Element$centerX,
+										mdgriffith$elm_ui$Element$spacing(10),
+										mdgriffith$elm_ui$Element$width(
+										mdgriffith$elm_ui$Element$px(300))
+									]),
+								function () {
+									var _n2 = author$project$Singularis$Data$Answer$desc(a);
+									var name = _n2.name;
+									var desc = _n2.desc;
+									return _List_fromArray(
+										[
+											author$project$Singularis$View$Element$subsection(name),
+											A2(
+											mdgriffith$elm_ui$Element$el,
+											_List_fromArray(
+												[mdgriffith$elm_ui$Element$centerX]),
+											mdgriffith$elm_ui$Element$html(
+												author$project$Singularis$View$Answer$view(a))),
+											A2(
+											mdgriffith$elm_ui$Element$paragraph,
+											_List_fromArray(
+												[mdgriffith$elm_ui$Element$Font$center]),
+											elm$core$List$singleton(
+												mdgriffith$elm_ui$Element$text(desc)))
+										]);
+								}())
 							]);
 					}
 				}())));
@@ -13517,22 +13636,6 @@ var mdgriffith$elm_ui$Element$link = F2(
 				_List_fromArray(
 					[label])));
 	});
-var mdgriffith$elm_ui$Element$padding = function (x) {
-	return A2(
-		mdgriffith$elm_ui$Internal$Model$StyleClass,
-		mdgriffith$elm_ui$Internal$Flag$padding,
-		A5(
-			mdgriffith$elm_ui$Internal$Model$PaddingStyle,
-			'p-' + elm$core$String$fromInt(x),
-			x,
-			x,
-			x,
-			x));
-};
-var mdgriffith$elm_ui$Internal$Model$Px = function (a) {
-	return {$: 'Px', a: a};
-};
-var mdgriffith$elm_ui$Element$px = mdgriffith$elm_ui$Internal$Model$Px;
 var author$project$Singularis$View$Element$menu = A2(
 	elm$core$Basics$composeR,
 	elm$core$List$map(
