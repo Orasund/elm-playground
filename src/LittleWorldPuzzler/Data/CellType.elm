@@ -23,11 +23,6 @@ type CellType
     | Evergreen
 
 
-old_List : List CellType
-old_List =
-    [ Desert, Fire, Glacier, Volcano, Stone, Ice, Fog, Water, Wood ]
-
-
 list : List CellType
 list =
     [ Snow, Desert, Fire, Glacier, Volcano, Stone, Evergreen, Ice, Fog, Water, Wood ]

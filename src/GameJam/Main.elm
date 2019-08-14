@@ -1,6 +1,7 @@
 module GameJam exposing (main)
 
 import Action
+import Game exposing (Game)
 import GameJam.Data exposing (initialLevel, screenWidth)
 import GameJam.Page.Running as Running
 import Grid.Direction exposing (Direction(..))
@@ -49,7 +50,7 @@ update msg model =
 ------------------------}
 
 
-subscriptions : Model -> Sub Msg
+subscriptions : Model -> Sub Running.Msg
 subscriptions _ =
     Sub.none
 
@@ -60,20 +61,20 @@ subscriptions _ =
 ------------------------}
 
 
-controls : Input -> Maybe Msg
+controls : Input -> Maybe Running.Msg
 controls input =
     case input of
         InputUp ->
-            Just <| RunningSpecific <| Running.Move Up
+            Just <| Running.Move Up
 
         InputDown ->
-            Just <| RunningSpecific <| Running.Move Down
+            Just <| Running.Move Down
 
         InputLeft ->
-            Just <| RunningSpecific <| Running.Move Left
+            Just <| Running.Move Left
 
         InputRight ->
-            Just <| RunningSpecific <| Running.Move Right
+            Just <| Running.Move Right
 
         _ ->
             Nothing
@@ -111,19 +112,19 @@ view :
     Model
     -> { title : String, options : Maybe (Options Msg), body : List (Area Msg) }
 view model =
-    { title = "GMTK Game Jam 2019"
+    { title = "One Switch"
     , options = Just options
     , body = areas model
     }
 
 
-main : PixelEngine () Model Msg
+main : Game Running.Model Running.Msg
 main =
-    game
-        { init = init
-        , update = update
+    Game.main
+        { init = Running.init
+        , update = Running.update
         , subscriptions = subscriptions
-        , view = view
+        , view = Running.view
         , controls = controls
         , width = screenWidth
         }

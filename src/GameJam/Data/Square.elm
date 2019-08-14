@@ -49,10 +49,10 @@ swap square =
             Key
 
         PowerDown ->
-            PowerUp
+            PowerDown
 
         PowerUp ->
-            PowerDown
+            PowerUp
 
         Swap ->
             Swap

@@ -4,7 +4,7 @@ import Action
 import Color
 import GameJam.Data exposing (boardSize, initialHealth, initialPlayer, spriteSize)
 import GameJam.Data.Behaviour as Behaviour
-import GameJam.Data.Board as Board exposing (Board)
+import GameJam.Data.Board as Board
 import GameJam.Data.Game as Game exposing (Game)
 import GameJam.Data.Square as Square exposing (Square(..))
 import GameJam.View as View
@@ -12,7 +12,7 @@ import GameJam.View.Health as Health
 import GameJam.View.Square as Square
 import Grid
 import Grid.Direction exposing (Direction)
-import Grid.Position as Position exposing (Position)
+import Grid.Position as Position
 import PixelEngine exposing (Area)
 import PixelEngine.Image as Image
 import PixelEngine.Tile as Tile
@@ -65,7 +65,8 @@ update msg ({ game, seed, won } as model) =
                     ( init ( seed, level + 1 ), Cmd.none )
 
             else if health <= 0 then
-                Action.exiting
+                Action.updating
+                    ( init ( seed, level ), Cmd.none )
 
             else
                 let

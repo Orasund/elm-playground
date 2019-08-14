@@ -7,14 +7,14 @@ import Grid
 
 removeToWin : Int -> List Square
 removeToWin _ =
-    [ Enemy, InactiveEnemy, OpenDoor, LookedDoor ]
+    [ Enemy, InactiveEnemy ]
 
 
 consumable : Int -> Bool -> List Square
 consumable _ super =
     [ Health, OpenDoor ]
         ++ (if super then
-                [ Enemy ]
+                [ InactiveEnemy ]
 
             else
                 []
@@ -47,7 +47,7 @@ activate _ square =
 ifThenSwap : (Square -> Bool) -> Board -> Board
 ifThenSwap fun =
     Grid.map
-        (\position ->
+        (always <|
             Maybe.map
                 (\square ->
                     if square |> fun then

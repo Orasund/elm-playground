@@ -1,10 +1,9 @@
 module GameJam.Data.Game exposing (Game, update, updateBehaviour)
 
 import GameJam.Data.Behaviour as Behaviour
-import GameJam.Data.Board as Board exposing (Board)
-import GameJam.Data.Square as Square exposing (Square(..))
+import GameJam.Data.Board exposing (Board)
+import GameJam.Data.Square exposing (Square(..))
 import Grid
-import Grid.Direction exposing (Direction)
 import Grid.Position as Position exposing (Position)
 
 
