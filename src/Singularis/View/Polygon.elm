@@ -13,12 +13,12 @@ import TypedSvg.Types as Types
 import Vector2d exposing (Vector2d)
 
 
-view : Int -> Html msg
-view n =
+view : Float -> Int -> Html msg
+view scale n =
     let
         size : Float
         size =
-            svgSize
+            svgSize * scale
     in
     Svg.svg
         [ Attributes.width <| Types.px <| size
@@ -33,7 +33,7 @@ view n =
         ]
 
 
-{-| Creates a regular polygon with radius 1 around a origin point.
+{-| Creates a regular polygon around a origin point.
 -}
 regular : { n : Int, scale : Float, standing : Bool } -> ( Float, Float ) -> Polygon2d
 regular { n, scale, standing } ( x, y ) =

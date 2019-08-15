@@ -1,9 +1,10 @@
-module Singularis.View.Element exposing (black, menu,subsection, section, title, white)
+module Singularis.View.Element exposing (black, menu, section, slider, subsection, title, white)
 
 import Color
 import Element exposing (Color, Element)
 import Element.Background as Background
 import Element.Font as Font exposing (Font)
+import Element.Input as Input
 import Element.Region as Region
 import Singularis.View as View exposing (maxScreenWidth)
 
@@ -26,23 +27,31 @@ white =
     Element.fromRgb <| Color.toRgba <| Color.white
 
 
-menu : List {name:String, url:String} -> Element msg
-menu =
-    List.map (\{name, url} -> 
-        Element.link [] <|
-            {url = url
-            ,label = Element.text <| name}
-    )
+menu : Float -> List { name : String, url : String } -> Element msg
+menu scale =
+    List.map
+        (\{ name, url } ->
+            Element.link
+                [ Font.family <|
+                    [ comfortaaFont
+                    , Font.sansSerif
+                    ]
+                ]
+            <|
+                { url = url
+                , label = Element.text <| name
+                }
+        )
         >> Element.row
-            [ Element.width <| Element.px <| maxScreenWidth
+            [ Element.width <| Element.px <| round <| (*) scale <| maxScreenWidth
             , Element.centerX
-            , Element.spacing 20
+            , Element.spacing <| round <| (*) scale <| 20
             ]
         >> Element.el
             [ Background.color <| black
             , Font.color <| white
             , Element.width <| Element.fill
-            , Element.padding 10
+            , Element.padding <| round <| (*) scale <| 10
             ]
 
 
@@ -54,21 +63,53 @@ heading size text =
             [ comfortaaFont
             , Font.sansSerif
             ]
-            , Element.centerX
+        , Element.centerX
         ]
     <|
         Element.text text
 
 
-title : String -> Element msg
-title =
-    heading 90
+slider : Float -> { onChange : Float -> msg, label : String, min : Float, max : Float, value : Float } -> Element msg
+slider scale { onChange, label, min, max, value } =
+    Element.row [ Element.width <| Element.fill, Element.spacing <| round <| (*) scale <| 10 ] <|
+        [ Element.text <| label
+        , Input.slider
+            [ Element.behindContent <|
+                Element.el
+                    [ Element.width Element.fill
+                    , Element.height (Element.px 2)
+                    , Element.centerY
+                    , Background.color black
+                    ]
+                <|
+                    Element.none
+            , Element.width <| Element.fill
+            ]
+            { onChange = onChange
+            , label =
+                Input.labelLeft [] <|
+                    Element.text <|String.fromFloat <|
+                        (toFloat <| truncate <| 10 * value)
+                            / 10
+            , min = min
+            , max = max
+            , value = value
+            , thumb = Input.defaultThumb
+            , step = Nothing
+            }
+        ]
 
 
-section : String -> Element msg
-section =
-    heading 45
+title : Float -> String -> Element msg
+title scale =
+    heading <| round <| (*) scale <| 90
 
-subsection : String -> Element msg
-subsection =
-    heading 30
+
+section : Float -> String -> Element msg
+section scale =
+    heading <| round <| (*) scale <| 45
+
+
+subsection : Float -> String -> Element msg
+subsection scale =
+    heading <| round <| (*) scale <| 30
