@@ -7,7 +7,8 @@ import Element.Font as Font exposing (Font)
 import Element.Input as Input
 import Element.Region as Region
 import Singularis.View as View exposing (maxScreenWidth)
-
+import Markdown.Inline as Inline exposing (Inline)
+import Markdown.Block as Block exposing (Block)
 
 comfortaaFont : Font
 comfortaaFont =
@@ -113,3 +114,117 @@ section scale =
 subsection : Float -> String -> Element msg
 subsection scale =
     heading <| round <| (*) scale <| 30
+
+fromInlineMarkdown : Inline i -> Element msg
+fromInlineMarkdown inline =
+    case inline of
+        Text str ->
+            Element.text str
+
+        HardLineBreak ->
+            Element.el [Element.width Element.fill] <|
+                Element.none
+
+        CodeInline codeStr ->
+            Element.paragraph
+                [ Font.family
+                    [Font.monospace]
+                ] <|
+                    Element.text codeStr
+
+        Link url maybeTitle inlines ->
+                    Element.link
+                        (maybeTitle
+                            |> Maybe.map (Region.description>>List.singleton)
+                            |> Maybe.withDefault []
+                        )
+                        {url = url
+                        ,label = fromInlineMarkdown inline
+                        }
+
+        Image url maybeTitle _ ->
+                Element.image []
+                <| { src : url
+                    , description : maybeTitle |> Maybe.withDefault ""
+                    }
+
+        HtmlInline _ _ inlines ->
+            fromInlineMarkdown inline
+
+        Emphasis length inlines ->
+            case length of
+                1 ->
+                    Element.el[Font.italic]<|
+                        fromInlineMarkdown inline
+
+                2 ->
+                    Element.el[Font.bold]<|
+                        fromInlineMarkdown inline
+
+                _ ->
+                    fromInlineMarkdown inline
+
+        Custom _ inlines ->
+            fromInlineMarkdown inline
+
+fromMarkdown : Float -> Block b i -> List (Html msg)
+fromMarkdown scale block =
+    case block of
+        BlankLine _ ->
+            []
+
+        Heading _ level inlines ->
+                    case level of
+                        1 ->
+                            title scale <| Inline.extractText inlines
+
+                        2 ->
+                            section scale <| (Inline.extractText inlines)
+
+                        3 ->
+                            subsection scale  <| (Inline.extractText inlines)
+
+                        _ ->
+                            fromInlineMarkdown inlines
+
+        ThematicBreak ->
+            Element.el [Element.width Element.fill] <| Element.none
+
+        Paragraph _ inlines ->
+            Element.paragraph [] <|
+                
+                (List.map fromInlineMarkdown inlines)
+
+        CodeBlock _ codeStr ->
+            Element.paragraph [Font.family <| List.singleton Font.monospace] <|
+                Element.text codeStr
+
+        BlockQuote blocks ->
+            Element.paragraph [Font.italic] <|
+                fromMarkdown blocks
+
+        List model items ->
+            List.map
+                (List.map Block.blockToHtml
+                    >> List.concat
+                    >> Html.li []
+                )
+                items
+                |> (case model.type_ of
+                        Ordered startInt ->
+                            if startInt == 1 then
+                                Html.ol []
+                            else
+                                Html.ol [ start startInt ]
+
+                        Unordered ->
+                            Html.ul []
+                   )
+                |> (\a -> (::) a [])
+                |> Element.html
+
+        PlainInlines inlines ->
+            fromInlineMarkdown inlines
+
+        Custom customBlock blocks ->
+            fromMarkdown blocks
