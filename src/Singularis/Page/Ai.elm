@@ -178,4 +178,8 @@ view scale { seed, time, symmetry, information, base, infoPerSec, energy, lastCi
             , max = 2 ^ 6
             , value = toFloat <| energy
             }
+        , Element.paragraph [] <|
+          [ Element.text <| "symmetry denotes how much data can be processed. A Intelligence can overfit, meaning to much data is feed to fast. in that case the remaining data will increase (instead of decresing). Notes allow for better processing power."
+
+          ]
         ]
