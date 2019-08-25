@@ -244,27 +244,47 @@ fromMarkdown scale customs block =
                 |> Element.paragraph [ Font.italic ]
 
         List model items ->
-            List.map
-                (List.map Block.toHtml
-                    >> List.concat
-                    >> Html.li []
-                )
-                items
-                |> (case model.type_ of
-                        Ordered startInt ->
-                            if startInt == 1 then
-                                Html.ol []
+            items
+                |> List.map
+                    (\item ->
+                        [ Element.el
+                            [ Element.width <| Element.px <| 50
+                            , Element.height <| Element.fill
+                            , Element.alignRight
+                            , Element.alignTop
+                            , Font.size 40
+                            ]
+                          <|
+                            Element.text "•"
+                        , item
+                            |> List.map (fromMarkdown scale customs)
+                            |> Element.row [ Element.width <| Element.fill ]
+                        ]
+                            |> Element.row []
+                    )
+                |> Element.column [Element.spacing 10]
 
-                            else
-                                Html.ol [ Attributes.start startInt ]
+        {- List.map
+           (List.map Block.toHtml
+               >> List.concat
+               >> Html.li []
+           )
+           items
+           |> (case model.type_ of
+                   Ordered startInt ->
+                       if startInt == 1 then
+                           Html.ol []
 
-                        Unordered ->
-                            Html.ul []
-                   )
-                |> (\a -> (::) a [])
-                |> List.map Element.html
-                |> Element.column []
+                       else
+                           Html.ol [ Attributes.start startInt ]
 
+                   Unordered ->
+                       Html.ul []
+              )
+           |> (\a -> (::) a [])
+           |> List.map Element.html
+           |> Element.column []
+        -}
         PlainInlines inlines ->
             inlines
                 |> List.map fromInlineMarkdown

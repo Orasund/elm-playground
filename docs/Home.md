@@ -9,13 +9,13 @@ elements
 Everything in our general understanding of the world consists of three essential
 building blocks:
 
-* Matter is all around us. Matter is everything that we can notice using our
-    five senses: Sight, Smell, Taste, Touch, Sound
-* Spirit is the main essence of life. It’s in every living creature and every
-    living plant on the planet. The presence of spirits can only be noticed
-    intuitively.
-* Knowledge is used to create order from chaos. Every object contains it and
-    some beings,like humans, can also process it.
+* **Matter** is all around us. Matter is everything that we can notice using our
+  five senses: Sight, Smell, Taste, Touch, Sound
+* **Spirit** is the main essence of life. It’s in every living creature and every
+  living plant on the planet. The presence of spirits can only be noticed
+  intuitively.
+* **Knowledge** is used to create order from chaos. Every object contains it and
+  some beings,like humans, can also process it.
 
 None of these elements occurs alone in nature. Matter  most often comes with
 Knowledge, spirits with matter and knowledge with spirits.

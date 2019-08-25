@@ -303,10 +303,12 @@ view model =
                                 ]
                             , Element.el
                                 [ Element.width <|
-                                    Element.px <|
-                                        round <|
-                                            (*) config.scale <|
-                                                maxScreenWidth
+                                    (Element.fill
+                                        |> Element.maximum (round <|
+                                             maxScreenWidth)
+                                        |> Element.minimum 100
+                                    )
+                                        
                                 , Element.centerX
                                 , Element.padding <|
                                     round <|
