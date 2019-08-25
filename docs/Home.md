@@ -1,4 +1,10 @@
+# Occultus Singularis
+
 ## Elements of existence
+
+```
+elements
+```
 
 Everything in our general understanding of the world consists of three essential
 building blocks:

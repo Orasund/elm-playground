@@ -16,7 +16,7 @@ import Singularis.View as View exposing (maxScreenWidth)
 import Singularis.View.Answer as Answer
 import Singularis.View.Element as Element
 import Time exposing (Posix)
-
+import Dict exposing (Dict)
 
 type alias Question =
     String
@@ -131,59 +131,62 @@ onEnter msg =
         )
 
 
-view : Float -> Model -> Element Msg
+view : Float -> Model -> Dict String (Element Msg)
 view scale { question, errors, answer } =
-    Element.column
-        [ Element.centerX
-        , Element.width <| Element.fill
-        , Element.spacing 20
-        ]
-    <|
-        [ Element.section scale <| "Oracle of the fourth dimension"
-        , Input.text
-            [ Element.width <| Element.fill
-            , Element.centerX
-            , onEnter QuestionAsked
-            ]
-          <|
-            { onChange = QuestionEntered
-            , text = question
-            , placeholder = Nothing
-            , label =
-                Input.labelAbove [] <|
-                    Element.text "Ask your question:"
-            }
-        ]
-            ++ (errors
-                    |> List.map viewError
-               )
-            ++ (case answer of
-                    Nothing ->
-                        []
+    Dict.fromList <|
+        [ ( "game"
+          , Element.column
+                [ Element.centerX
+                , Element.width <| Element.fill
+                , Element.spacing 20
+                ]
+            <|
+                [ Input.text
+                    [ Element.width <| Element.fill
+                    , Element.centerX
+                    , onEnter QuestionAsked
+                    ]
+                  <|
+                    { onChange = QuestionEntered
+                    , text = question
+                    , placeholder = Nothing
+                    , label =
+                        Input.labelAbove [] <|
+                            Element.text "Ask your question:"
+                    }
+                ]
+                    ++ (errors
+                            |> List.map viewError
+                       )
+                    ++ (case answer of
+                            Nothing ->
+                                []
 
-                    Just a ->
-                        [ Element.text "The oracle has answered:"
-                        , Element.column
-                            [ Element.centerX
-                            , Element.spacing <| round <| (*) scale <| 10
-                            , Element.width <|
-                                Element.px <|
-                                    (round <| (*) scale <| 300)
-                            ]
-                          <|
-                            let
-                                { name, desc } =
-                                    Answer.desc <| a
-                            in
-                            [ Element.subsection scale <| name
-                            , a
-                                |> Answer.view
-                                |> Element.html
-                                |> Element.el [ Element.centerX ]
-                            , Element.paragraph [ Font.center ] <|
-                                List.singleton <|
-                                    Element.text <|
-                                        desc
-                            ]
-                        ]
-               )
+                            Just a ->
+                                [ Element.text "The oracle has answered:"
+                                , Element.column
+                                    [ Element.centerX
+                                    , Element.spacing <| round <| (*) scale <| 10
+                                    , Element.width <|
+                                        Element.px <|
+                                            (round <| (*) scale <| 300)
+                                    ]
+                                  <|
+                                    let
+                                        { name, desc } =
+                                            Answer.desc <| a
+                                    in
+                                    [ Element.subsection scale <| name
+                                    , a
+                                        |> Answer.view
+                                        |> Element.html
+                                        |> Element.el [ Element.centerX ]
+                                    , Element.paragraph [ Font.center ] <|
+                                        List.singleton <|
+                                            Element.text <|
+                                                desc
+                                    ]
+                                ]
+                       )
+          )
+        ]

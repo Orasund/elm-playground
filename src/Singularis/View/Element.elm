@@ -4,6 +4,7 @@ module Singularis.View.Element exposing
     , menu
     , section
     , slider
+    , spectralFont
     , subsection
     , title
     , white
@@ -20,13 +21,21 @@ import Html.Attributes as Attributes
 import Markdown.Block as Block exposing (Block(..), ListType(..))
 import Markdown.Inline as Inline exposing (Inline(..))
 import Singularis.View as View exposing (maxScreenWidth)
-
+import Dict exposing (Dict)
 
 comfortaaFont : Font
 comfortaaFont =
     Font.external
         { name = "Comfortaa"
         , url = "https://fonts.googleapis.com/css?family=Comfortaa&display=swap"
+        }
+
+
+spectralFont : Font
+spectralFont =
+    Font.external
+        { name = "Spectral"
+        , url = "https://fonts.googleapis.com/css?family=Spectral&display=swap"
         }
 
 
@@ -184,8 +193,8 @@ fromInlineMarkdown inline =
             fromInlineMarkdown inline
 
 
-fromMarkdown : Float -> Block b i -> Element msg
-fromMarkdown scale block =
+fromMarkdown : Float -> Dict String (Element msg) -> Block b i -> Element msg
+fromMarkdown scale customs block =
     case block of
         BlankLine _ ->
             Element.none
@@ -214,13 +223,22 @@ fromMarkdown scale block =
                 List.map fromInlineMarkdown inlines
 
         CodeBlock _ codeStr ->
-            Element.paragraph [ Font.family <| List.singleton Font.monospace ] <|
-                List.singleton <|
-                    Element.text codeStr
+            case customs |> Dict.get codeStr of
+                Just element ->
+                    element
+
+                Nothing ->
+                    Element.paragraph
+                        [ Background.color <| black
+                        , Font.family <| List.singleton Font.monospace
+                        ]
+                    <|
+                        List.singleton <|
+                            Element.text codeStr
 
         BlockQuote blocks ->
             blocks
-                |> List.map (fromMarkdown scale)
+                |> List.map (fromMarkdown scale customs)
                 |> Element.paragraph [ Font.italic ]
 
         List model items ->
@@ -252,5 +270,5 @@ fromMarkdown scale block =
 
         Block.Custom customBlock blocks ->
             blocks
-                |> List.map (fromMarkdown scale)
+                |> List.map (fromMarkdown scale customs)
                 |> Element.column []

@@ -1,5 +1,6 @@
 module Singularis.Page.Ai exposing (Model, Msg, init, subscriptions, update, view)
 
+import Dict exposing (Dict)
 import Element exposing (Element)
 import Element.Background as Background
 import Element.Input as Input
@@ -122,64 +123,68 @@ subscriptions _ =
         ]
 
 
-view : Float -> Model -> Element Msg
+view : Float -> Model -> Dict String (Element Msg)
 view scale { seed, time, symmetry, information, base, infoPerSec, energy, lastCicleSym, lastCicleInfo } =
-    Element.column [ Element.centerX, Element.width <| Element.fill ] <|
-        [ Element.section scale <| "Artifical Singularity"
-        , Element.row
-            [ Element.centerX
-            , Element.width <| Element.fill
-            , Element.spaceEvenly
-            ]
-          <|
-            [ Element.column [] <|
-                [ Element.subsection scale <| "Remaining"
-                , Element.section scale <| String.fromInt <| maxInformation - information
+    Dict.fromList <|
+        [ ( "game"
+          , Element.column [ Element.centerX, Element.width <| Element.fill ] <|
+                [ Element.row
+                    [ Element.centerX
+                    , Element.width <| Element.fill
+                    , Element.spaceEvenly
+                    ]
+                  <|
+                    [ Element.column [] <|
+                        [ Element.subsection scale <| "Remaining"
+                        , Element.section scale <|
+                            String.fromInt <|
+                                maxInformation
+                                    - information
+                        ]
+                    , Element.el [] <|
+                        Element.html <|
+                            Ai.view scale
+                                { time = time
+                                , seed = seed
+                                , symmetry = lastCicleSym
+                                , base = base
+                                }
+                            <|
+                                lastCicleInfo
+                    , Element.column [] <|
+                        [ Element.subsection scale <| "Symmetry"
+                        , Element.section scale <|
+                            (String.fromInt <| round <| (*) 100 <| symmetry)
+                                ++ "%"
+                        ]
+                    ]
+                , Input.radioRow
+                    [ Element.spaceEvenly
+                    , Element.width <| Element.fill
+                    ]
+                    { onChange = BaseChanged
+                    , options =
+                        [ Input.option 3 <| Element.text <| "Spirit"
+                        , Input.option 4 <| Element.text <| "Matter"
+                        , Input.option 6 <| Element.text <| "Knowledge"
+                        ]
+                    , selected = Just base
+                    , label = Input.labelLeft [] <| Element.text <| "Base "
+                    }
+                , Element.slider scale
+                    { onChange = round >> InfoPerSecChanged
+                    , label = "Data Per Sec"
+                    , min = 0
+                    , max = 2 ^ 4
+                    , value = toFloat <| infoPerSec
+                    }
+                , Element.slider scale
+                    { onChange = round >> EnergyChanged
+                    , label = "Nodes"
+                    , min = 0
+                    , max = 2 ^ 6
+                    , value = toFloat <| energy
+                    }
                 ]
-            , Element.el [] <|
-                Element.html <|
-                    Ai.view scale
-                        { time = time
-                        , seed = seed
-                        , symmetry = lastCicleSym
-                        , base = base
-                        }
-                    <|
-                        lastCicleInfo
-            , Element.column [] <|
-                [ Element.subsection scale <| "Symmetry"
-                , Element.section scale <| (String.fromInt <| round <| (*) 100 <| symmetry) ++ "%"
-                ]
-            ]
-        , Input.radioRow
-            [ Element.spaceEvenly
-            , Element.width <| Element.fill
-            ]
-            { onChange = BaseChanged
-            , options =
-                [ Input.option 3 <| Element.text <| "Spirit"
-                , Input.option 4 <| Element.text <| "Matter"
-                , Input.option 6 <| Element.text <| "Knowledge"
-                ]
-            , selected = Just base
-            , label = Input.labelLeft [] <| Element.text <| "Base "
-            }
-        , Element.slider scale
-            { onChange = round >> InfoPerSecChanged
-            , label = "Data Per Sec"
-            , min = 0
-            , max = 2 ^ 4
-            , value = toFloat <| infoPerSec
-            }
-        , Element.slider scale
-            { onChange = round >> EnergyChanged
-            , label = "Nodes"
-            , min = 0
-            , max = 2 ^ 6
-            , value = toFloat <| energy
-            }
-        , Element.paragraph [] <|
-          [ Element.text <| "symmetry denotes how much data can be processed. A Intelligence can overfit, meaning to much data is feed to fast. in that case the remaining data will increase (instead of decresing). Nodes allow for better processing power."
-
-          ]
+          )
         ]

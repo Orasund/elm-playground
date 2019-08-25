@@ -5,6 +5,7 @@ import Browser.Dom as Dom exposing (Viewport)
 import Browser.Events as BrowserEvents
 import Browser.Navigation as Navigation exposing (Key)
 import Color
+import Dict exposing (Dict)
 import Element
 import Element.Font as Font
 import Geometry.Svg as Svg
@@ -243,7 +244,7 @@ update msg model =
                         }
                     , Cmd.none
                     )
-                
+
                 ( FileChanged text, _ ) ->
                     ( Done
                         { state
@@ -313,24 +314,35 @@ view model =
                                             10
                                 ]
                               <|
-                                Element.column [] <|
-                                    (config.text
-                                        |> Block.parse Nothing
-                                        |> List.map (Element.fromMarkdown config.scale)
-                                        |> (::)
-                                            (case route of
-                                                Home ->
-                                                    Home.view config.scale
+                                Element.column
+                                    [ Element.spacing 10
+                                    , Font.family <|
+                                        [ Element.spectralFont
+                                        , Font.serif
+                                        ]
+                                    ]
+                                <|
+                                    List.concat
+                                        [ config.text
+                                            |> Block.parse Nothing
+                                            |> List.map
+                                                (Element.fromMarkdown config.scale
+                                                    (case route of
+                                                        Home ->
+                                                            Home.view config.scale
 
-                                                Ai aiModel ->
-                                                    Ai.view config.scale aiModel
-                                                        |> Element.map AiSpecific
+                                                        Ai aiModel ->
+                                                            Ai.view config.scale aiModel
+                                                                |> Dict.map
+                                                                    (\_ -> Element.map AiSpecific)
 
-                                                Oracle oracleModel ->
-                                                    Oracle.view config.scale oracleModel
-                                                        |> Element.map OracleSpecific
-                                            )
-                                    )
+                                                        Oracle oracleModel ->
+                                                            Oracle.view config.scale oracleModel
+                                                                |> Dict.map
+                                                                    (\_ -> Element.map OracleSpecific)
+                                                    )
+                                                )
+                                        ]
                             ]
     }
 

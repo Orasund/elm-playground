@@ -6,3 +6,11 @@ Some religions call it enlightenment and try to achieve it by feeding a human wi
 A more modern approach used by computer scientists is using a computer and trying to give it a spirit.
 
 A third (and not very explored) method is trying to give a higher intelligence some physical form. Such an approach would mostly be used by alchemists or shamans.
+
+## Artifical Singularity
+
+```
+game
+```
+
+symmetry denotes how much data can be processed. A Intelligence can overfit, meaning to much data is feed to fast. in that case the remaining data will increase (instead of decresing). Nodes allow for better processing power.

@@ -14486,25 +14486,6 @@ var author$project$Singularis$View$Element$subsection = function (scale) {
 };
 var mdgriffith$elm_ui$Internal$Model$unstyled = A2(elm$core$Basics$composeL, mdgriffith$elm_ui$Internal$Model$Unstyled, elm$core$Basics$always);
 var mdgriffith$elm_ui$Element$html = mdgriffith$elm_ui$Internal$Model$unstyled;
-var mdgriffith$elm_ui$Internal$Model$Paragraph = {$: 'Paragraph'};
-var mdgriffith$elm_ui$Element$paragraph = F2(
-	function (attrs, children) {
-		return A4(
-			mdgriffith$elm_ui$Internal$Model$element,
-			mdgriffith$elm_ui$Internal$Model$asParagraph,
-			mdgriffith$elm_ui$Internal$Model$div,
-			A2(
-				elm$core$List$cons,
-				mdgriffith$elm_ui$Internal$Model$Describe(mdgriffith$elm_ui$Internal$Model$Paragraph),
-				A2(
-					elm$core$List$cons,
-					mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill),
-					A2(
-						elm$core$List$cons,
-						mdgriffith$elm_ui$Element$spacing(5),
-						attrs))),
-			mdgriffith$elm_ui$Internal$Model$Unkeyed(children));
-	});
 var mdgriffith$elm_ui$Element$spaceEvenly = A2(mdgriffith$elm_ui$Internal$Model$Class, mdgriffith$elm_ui$Internal$Flag$spacing, mdgriffith$elm_ui$Internal$Style$classes.spaceEvenly);
 var mdgriffith$elm_ui$Element$Input$Option = F2(
 	function (a, b) {
@@ -14947,122 +14928,116 @@ var author$project$Singularis$Page$Ai$view = F2(
 		var energy = _n0.energy;
 		var lastCicleSym = _n0.lastCicleSym;
 		var lastCicleInfo = _n0.lastCicleInfo;
-		return A2(
-			mdgriffith$elm_ui$Element$column,
+		return elm$core$Dict$fromList(
 			_List_fromArray(
 				[
-					mdgriffith$elm_ui$Element$centerX,
-					mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill)
-				]),
-			_List_fromArray(
-				[
-					A2(author$project$Singularis$View$Element$section, scale, 'Artifical Singularity'),
+					_Utils_Tuple2(
+					'game',
 					A2(
-					mdgriffith$elm_ui$Element$row,
-					_List_fromArray(
-						[
-							mdgriffith$elm_ui$Element$centerX,
-							mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill),
-							mdgriffith$elm_ui$Element$spaceEvenly
-						]),
-					_List_fromArray(
-						[
-							A2(
-							mdgriffith$elm_ui$Element$column,
-							_List_Nil,
-							_List_fromArray(
-								[
-									A2(author$project$Singularis$View$Element$subsection, scale, 'Remaining'),
-									A2(
-									author$project$Singularis$View$Element$section,
-									scale,
-									elm$core$String$fromInt(author$project$Singularis$Data$maxInformation - information))
-								])),
-							A2(
-							mdgriffith$elm_ui$Element$el,
-							_List_Nil,
-							mdgriffith$elm_ui$Element$html(
-								A3(
-									author$project$Singularis$View$Ai$view,
-									scale,
-									{base: base, seed: seed, symmetry: lastCicleSym, time: time},
-									lastCicleInfo))),
-							A2(
-							mdgriffith$elm_ui$Element$column,
-							_List_Nil,
-							_List_fromArray(
-								[
-									A2(author$project$Singularis$View$Element$subsection, scale, 'Symmetry'),
-									A2(
-									author$project$Singularis$View$Element$section,
-									scale,
-									elm$core$String$fromInt(
-										elm$core$Basics$round(100 * symmetry)) + '%')
-								]))
-						])),
-					A2(
-					mdgriffith$elm_ui$Element$Input$radioRow,
-					_List_fromArray(
-						[
-							mdgriffith$elm_ui$Element$spaceEvenly,
-							mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill)
-						]),
-					{
-						label: A2(
-							mdgriffith$elm_ui$Element$Input$labelLeft,
-							_List_Nil,
-							mdgriffith$elm_ui$Element$text('Base ')),
-						onChange: author$project$Singularis$Page$Ai$BaseChanged,
-						options: _List_fromArray(
+						mdgriffith$elm_ui$Element$column,
+						_List_fromArray(
+							[
+								mdgriffith$elm_ui$Element$centerX,
+								mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill)
+							]),
+						_List_fromArray(
 							[
 								A2(
-								mdgriffith$elm_ui$Element$Input$option,
-								3,
-								mdgriffith$elm_ui$Element$text('Spirit')),
+								mdgriffith$elm_ui$Element$row,
+								_List_fromArray(
+									[
+										mdgriffith$elm_ui$Element$centerX,
+										mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill),
+										mdgriffith$elm_ui$Element$spaceEvenly
+									]),
+								_List_fromArray(
+									[
+										A2(
+										mdgriffith$elm_ui$Element$column,
+										_List_Nil,
+										_List_fromArray(
+											[
+												A2(author$project$Singularis$View$Element$subsection, scale, 'Remaining'),
+												A2(
+												author$project$Singularis$View$Element$section,
+												scale,
+												elm$core$String$fromInt(author$project$Singularis$Data$maxInformation - information))
+											])),
+										A2(
+										mdgriffith$elm_ui$Element$el,
+										_List_Nil,
+										mdgriffith$elm_ui$Element$html(
+											A3(
+												author$project$Singularis$View$Ai$view,
+												scale,
+												{base: base, seed: seed, symmetry: lastCicleSym, time: time},
+												lastCicleInfo))),
+										A2(
+										mdgriffith$elm_ui$Element$column,
+										_List_Nil,
+										_List_fromArray(
+											[
+												A2(author$project$Singularis$View$Element$subsection, scale, 'Symmetry'),
+												A2(
+												author$project$Singularis$View$Element$section,
+												scale,
+												elm$core$String$fromInt(
+													elm$core$Basics$round(100 * symmetry)) + '%')
+											]))
+									])),
 								A2(
-								mdgriffith$elm_ui$Element$Input$option,
-								4,
-								mdgriffith$elm_ui$Element$text('Matter')),
+								mdgriffith$elm_ui$Element$Input$radioRow,
+								_List_fromArray(
+									[
+										mdgriffith$elm_ui$Element$spaceEvenly,
+										mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill)
+									]),
+								{
+									label: A2(
+										mdgriffith$elm_ui$Element$Input$labelLeft,
+										_List_Nil,
+										mdgriffith$elm_ui$Element$text('Base ')),
+									onChange: author$project$Singularis$Page$Ai$BaseChanged,
+									options: _List_fromArray(
+										[
+											A2(
+											mdgriffith$elm_ui$Element$Input$option,
+											3,
+											mdgriffith$elm_ui$Element$text('Spirit')),
+											A2(
+											mdgriffith$elm_ui$Element$Input$option,
+											4,
+											mdgriffith$elm_ui$Element$text('Matter')),
+											A2(
+											mdgriffith$elm_ui$Element$Input$option,
+											6,
+											mdgriffith$elm_ui$Element$text('Knowledge'))
+										]),
+									selected: elm$core$Maybe$Just(base)
+								}),
 								A2(
-								mdgriffith$elm_ui$Element$Input$option,
-								6,
-								mdgriffith$elm_ui$Element$text('Knowledge'))
-							]),
-						selected: elm$core$Maybe$Just(base)
-					}),
-					A2(
-					author$project$Singularis$View$Element$slider,
-					scale,
-					{
-						label: 'Data Per Sec',
-						max: A2(elm$core$Basics$pow, 2, 4),
-						min: 0,
-						onChange: A2(elm$core$Basics$composeR, elm$core$Basics$round, author$project$Singularis$Page$Ai$InfoPerSecChanged),
-						value: infoPerSec
-					}),
-					A2(
-					author$project$Singularis$View$Element$slider,
-					scale,
-					{
-						label: 'Nodes',
-						max: A2(elm$core$Basics$pow, 2, 6),
-						min: 0,
-						onChange: A2(elm$core$Basics$composeR, elm$core$Basics$round, author$project$Singularis$Page$Ai$EnergyChanged),
-						value: energy
-					}),
-					A2(
-					mdgriffith$elm_ui$Element$paragraph,
-					_List_Nil,
-					_List_fromArray(
-						[
-							mdgriffith$elm_ui$Element$text('symmetry denotes how much data can be processed. A Intelligence can overfit, meaning to much data is feed to fast. in that case the remaining data will increase (instead of decresing). Nodes allow for better processing power.')
-						]))
+								author$project$Singularis$View$Element$slider,
+								scale,
+								{
+									label: 'Data Per Sec',
+									max: A2(elm$core$Basics$pow, 2, 4),
+									min: 0,
+									onChange: A2(elm$core$Basics$composeR, elm$core$Basics$round, author$project$Singularis$Page$Ai$InfoPerSecChanged),
+									value: infoPerSec
+								}),
+								A2(
+								author$project$Singularis$View$Element$slider,
+								scale,
+								{
+									label: 'Nodes',
+									max: A2(elm$core$Basics$pow, 2, 6),
+									min: 0,
+									onChange: A2(elm$core$Basics$composeR, elm$core$Basics$round, author$project$Singularis$Page$Ai$EnergyChanged),
+									value: energy
+								})
+							])))
 				]));
 	});
-var author$project$Singularis$View$Element$title = function (scale) {
-	return author$project$Singularis$View$Element$heading(
-		elm$core$Basics$round(scale * 90));
-};
 var elm$core$List$repeatHelp = F3(
 	function (result, n, value) {
 		repeatHelp:
@@ -15168,30 +15143,28 @@ var author$project$Singularis$View$Polygon$view = F2(
 				]));
 	});
 var author$project$Singularis$Page$Home$view = function (scale) {
-	return A2(
-		mdgriffith$elm_ui$Element$column,
-		_List_fromArray(
-			[mdgriffith$elm_ui$Element$centerX]),
+	return elm$core$Dict$fromList(
 		_List_fromArray(
 			[
-				A2(author$project$Singularis$View$Element$title, scale, 'Occultus Singularis'),
+				_Utils_Tuple2(
+				'elements',
 				A2(
-				mdgriffith$elm_ui$Element$row,
-				_List_fromArray(
-					[
-						mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill),
-						mdgriffith$elm_ui$Element$spaceEvenly,
-						mdgriffith$elm_ui$Element$centerX
-					]),
-				_List_fromArray(
-					[
-						mdgriffith$elm_ui$Element$html(
-						A2(author$project$Singularis$View$Polygon$view, scale, 3)),
-						mdgriffith$elm_ui$Element$html(
-						A2(author$project$Singularis$View$Polygon$view, scale, 4)),
-						mdgriffith$elm_ui$Element$html(
-						A2(author$project$Singularis$View$Polygon$view, scale, 6))
-					]))
+					mdgriffith$elm_ui$Element$row,
+					_List_fromArray(
+						[
+							mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill),
+							mdgriffith$elm_ui$Element$spaceEvenly,
+							mdgriffith$elm_ui$Element$centerX
+						]),
+					_List_fromArray(
+						[
+							mdgriffith$elm_ui$Element$html(
+							A2(author$project$Singularis$View$Polygon$view, scale, 3)),
+							mdgriffith$elm_ui$Element$html(
+							A2(author$project$Singularis$View$Polygon$view, scale, 4)),
+							mdgriffith$elm_ui$Element$html(
+							A2(author$project$Singularis$View$Polygon$view, scale, 6))
+						])))
 			]));
 };
 var author$project$Singularis$Data$Answer$desc = function (_n0) {
@@ -15338,6 +15311,25 @@ var mdgriffith$elm_ui$Element$padding = function (x) {
 			x,
 			x));
 };
+var mdgriffith$elm_ui$Internal$Model$Paragraph = {$: 'Paragraph'};
+var mdgriffith$elm_ui$Element$paragraph = F2(
+	function (attrs, children) {
+		return A4(
+			mdgriffith$elm_ui$Internal$Model$element,
+			mdgriffith$elm_ui$Internal$Model$asParagraph,
+			mdgriffith$elm_ui$Internal$Model$div,
+			A2(
+				elm$core$List$cons,
+				mdgriffith$elm_ui$Internal$Model$Describe(mdgriffith$elm_ui$Internal$Model$Paragraph),
+				A2(
+					elm$core$List$cons,
+					mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill),
+					A2(
+						elm$core$List$cons,
+						mdgriffith$elm_ui$Element$spacing(5),
+						attrs))),
+			mdgriffith$elm_ui$Internal$Model$Unkeyed(children));
+	});
 var mdgriffith$elm_ui$Internal$Flag$fontColor = mdgriffith$elm_ui$Internal$Flag$flag(14);
 var mdgriffith$elm_ui$Element$Font$color = function (fontColor) {
 	return A2(
@@ -16283,81 +16275,86 @@ var author$project$Singularis$Page$Oracle$view = F2(
 		var question = _n0.question;
 		var errors = _n0.errors;
 		var answer = _n0.answer;
-		return A2(
-			mdgriffith$elm_ui$Element$column,
+		return elm$core$Dict$fromList(
 			_List_fromArray(
 				[
-					mdgriffith$elm_ui$Element$centerX,
-					mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill),
-					mdgriffith$elm_ui$Element$spacing(20)
-				]),
-			_Utils_ap(
-				_List_fromArray(
-					[
-						A2(author$project$Singularis$View$Element$section, scale, 'Oracle of the fourth dimension'),
-						A2(
-						mdgriffith$elm_ui$Element$Input$text,
+					_Utils_Tuple2(
+					'game',
+					A2(
+						mdgriffith$elm_ui$Element$column,
 						_List_fromArray(
 							[
-								mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill),
 								mdgriffith$elm_ui$Element$centerX,
-								author$project$Singularis$Page$Oracle$onEnter(author$project$Singularis$Page$Oracle$QuestionAsked)
+								mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill),
+								mdgriffith$elm_ui$Element$spacing(20)
 							]),
-						{
-							label: A2(
-								mdgriffith$elm_ui$Element$Input$labelAbove,
-								_List_Nil,
-								mdgriffith$elm_ui$Element$text('Ask your question:')),
-							onChange: author$project$Singularis$Page$Oracle$QuestionEntered,
-							placeholder: elm$core$Maybe$Nothing,
-							text: question
-						})
-					]),
-				_Utils_ap(
-					A2(elm$core$List$map, author$project$Singularis$Page$Oracle$viewError, errors),
-					function () {
-						if (answer.$ === 'Nothing') {
-							return _List_Nil;
-						} else {
-							var a = answer.a;
-							return _List_fromArray(
+						_Utils_ap(
+							_List_fromArray(
 								[
-									mdgriffith$elm_ui$Element$text('The oracle has answered:'),
 									A2(
-									mdgriffith$elm_ui$Element$column,
+									mdgriffith$elm_ui$Element$Input$text,
 									_List_fromArray(
 										[
+											mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill),
 											mdgriffith$elm_ui$Element$centerX,
-											mdgriffith$elm_ui$Element$spacing(
-											elm$core$Basics$round(scale * 10)),
-											mdgriffith$elm_ui$Element$width(
-											mdgriffith$elm_ui$Element$px(
-												elm$core$Basics$round(scale * 300)))
+											author$project$Singularis$Page$Oracle$onEnter(author$project$Singularis$Page$Oracle$QuestionAsked)
 										]),
-									function () {
-										var _n2 = author$project$Singularis$Data$Answer$desc(a);
-										var name = _n2.name;
-										var desc = _n2.desc;
+									{
+										label: A2(
+											mdgriffith$elm_ui$Element$Input$labelAbove,
+											_List_Nil,
+											mdgriffith$elm_ui$Element$text('Ask your question:')),
+										onChange: author$project$Singularis$Page$Oracle$QuestionEntered,
+										placeholder: elm$core$Maybe$Nothing,
+										text: question
+									})
+								]),
+							_Utils_ap(
+								A2(elm$core$List$map, author$project$Singularis$Page$Oracle$viewError, errors),
+								function () {
+									if (answer.$ === 'Nothing') {
+										return _List_Nil;
+									} else {
+										var a = answer.a;
 										return _List_fromArray(
 											[
-												A2(author$project$Singularis$View$Element$subsection, scale, name),
+												mdgriffith$elm_ui$Element$text('The oracle has answered:'),
 												A2(
-												mdgriffith$elm_ui$Element$el,
+												mdgriffith$elm_ui$Element$column,
 												_List_fromArray(
-													[mdgriffith$elm_ui$Element$centerX]),
-												mdgriffith$elm_ui$Element$html(
-													author$project$Singularis$View$Answer$view(a))),
-												A2(
-												mdgriffith$elm_ui$Element$paragraph,
-												_List_fromArray(
-													[mdgriffith$elm_ui$Element$Font$center]),
-												elm$core$List$singleton(
-													mdgriffith$elm_ui$Element$text(desc)))
+													[
+														mdgriffith$elm_ui$Element$centerX,
+														mdgriffith$elm_ui$Element$spacing(
+														elm$core$Basics$round(scale * 10)),
+														mdgriffith$elm_ui$Element$width(
+														mdgriffith$elm_ui$Element$px(
+															elm$core$Basics$round(scale * 300)))
+													]),
+												function () {
+													var _n2 = author$project$Singularis$Data$Answer$desc(a);
+													var name = _n2.name;
+													var desc = _n2.desc;
+													return _List_fromArray(
+														[
+															A2(author$project$Singularis$View$Element$subsection, scale, name),
+															A2(
+															mdgriffith$elm_ui$Element$el,
+															_List_fromArray(
+																[mdgriffith$elm_ui$Element$centerX]),
+															mdgriffith$elm_ui$Element$html(
+																author$project$Singularis$View$Answer$view(a))),
+															A2(
+															mdgriffith$elm_ui$Element$paragraph,
+															_List_fromArray(
+																[mdgriffith$elm_ui$Element$Font$center]),
+															elm$core$List$singleton(
+																mdgriffith$elm_ui$Element$text(desc)))
+														]);
+												}())
 											]);
-									}())
-								]);
-						}
-					}())));
+									}
+								}()))))
+				]));
 	});
 var elm$html$Html$Attributes$alt = elm$html$Html$Attributes$stringProperty('alt');
 var elm$html$Html$Attributes$src = function (url) {
@@ -16540,6 +16537,10 @@ var author$project$Singularis$View$Element$fromInlineMarkdown = function (inline
 				continue fromInlineMarkdown;
 		}
 	}
+};
+var author$project$Singularis$View$Element$title = function (scale) {
+	return author$project$Singularis$View$Element$heading(
+		elm$core$Basics$round(scale * 90));
 };
 var elm$html$Html$li = _VirtualDom_node('li');
 var elm$html$Html$ol = _VirtualDom_node('ol');
@@ -16895,8 +16896,8 @@ var pablohirafuji$elm_markdown$Markdown$Block$defaultHtml = F3(
 		}
 	});
 var pablohirafuji$elm_markdown$Markdown$Block$toHtml = A2(pablohirafuji$elm_markdown$Markdown$Block$defaultHtml, elm$core$Maybe$Nothing, elm$core$Maybe$Nothing);
-var author$project$Singularis$View$Element$fromMarkdown = F2(
-	function (scale, block) {
+var author$project$Singularis$View$Element$fromMarkdown = F3(
+	function (scale, customs, block) {
 		switch (block.$) {
 			case 'BlankLine':
 				return mdgriffith$elm_ui$Element$none;
@@ -16941,15 +16942,22 @@ var author$project$Singularis$View$Element$fromMarkdown = F2(
 					A2(elm$core$List$map, author$project$Singularis$View$Element$fromInlineMarkdown, inlines));
 			case 'CodeBlock':
 				var codeStr = block.b;
-				return A2(
-					mdgriffith$elm_ui$Element$paragraph,
-					_List_fromArray(
-						[
-							mdgriffith$elm_ui$Element$Font$family(
-							elm$core$List$singleton(mdgriffith$elm_ui$Element$Font$monospace))
-						]),
-					elm$core$List$singleton(
-						mdgriffith$elm_ui$Element$text(codeStr)));
+				var _n2 = A2(elm$core$Dict$get, codeStr, customs);
+				if (_n2.$ === 'Just') {
+					var element = _n2.a;
+					return element;
+				} else {
+					return A2(
+						mdgriffith$elm_ui$Element$paragraph,
+						_List_fromArray(
+							[
+								mdgriffith$elm_ui$Element$Background$color(author$project$Singularis$View$Element$black),
+								mdgriffith$elm_ui$Element$Font$family(
+								elm$core$List$singleton(mdgriffith$elm_ui$Element$Font$monospace))
+							]),
+						elm$core$List$singleton(
+							mdgriffith$elm_ui$Element$text(codeStr)));
+				}
 			case 'BlockQuote':
 				var blocks = block.a;
 				return A2(
@@ -16958,7 +16966,7 @@ var author$project$Singularis$View$Element$fromMarkdown = F2(
 						[mdgriffith$elm_ui$Element$Font$italic]),
 					A2(
 						elm$core$List$map,
-						author$project$Singularis$View$Element$fromMarkdown(scale),
+						A2(author$project$Singularis$View$Element$fromMarkdown, scale, customs),
 						blocks));
 			case 'List':
 				var model = block.a;
@@ -16973,9 +16981,9 @@ var author$project$Singularis$View$Element$fromMarkdown = F2(
 							return A2(elm$core$List$cons, a, _List_Nil);
 						}(
 							function () {
-								var _n2 = model.type_;
-								if (_n2.$ === 'Ordered') {
-									var startInt = _n2.a;
+								var _n3 = model.type_;
+								if (_n3.$ === 'Ordered') {
+									var startInt = _n3.a;
 									return (startInt === 1) ? elm$html$Html$ol(_List_Nil) : elm$html$Html$ol(
 										_List_fromArray(
 											[
@@ -17009,7 +17017,7 @@ var author$project$Singularis$View$Element$fromMarkdown = F2(
 					_List_Nil,
 					A2(
 						elm$core$List$map,
-						author$project$Singularis$View$Element$fromMarkdown(scale),
+						A2(author$project$Singularis$View$Element$fromMarkdown, scale, customs),
 						blocks));
 		}
 	});
@@ -17055,6 +17063,27 @@ var author$project$Singularis$View$Element$menu = function (scale) {
 						elm$core$Basics$round(scale * 10))
 					]))));
 };
+var author$project$Singularis$View$Element$spectralFont = mdgriffith$elm_ui$Element$Font$external(
+	{name: 'Spectral', url: 'https://fonts.googleapis.com/css?family=Spectral&display=swap'});
+var elm$core$Dict$map = F2(
+	function (func, dict) {
+		if (dict.$ === 'RBEmpty_elm_builtin') {
+			return elm$core$Dict$RBEmpty_elm_builtin;
+		} else {
+			var color = dict.a;
+			var key = dict.b;
+			var value = dict.c;
+			var left = dict.d;
+			var right = dict.e;
+			return A5(
+				elm$core$Dict$RBNode_elm_builtin,
+				color,
+				key,
+				A2(func, key, value),
+				A2(elm$core$Dict$map, func, left),
+				A2(elm$core$Dict$map, func, right));
+		}
+	});
 var mdgriffith$elm_ui$Internal$Model$OnlyDynamic = F2(
 	function (a, b) {
 		return {$: 'OnlyDynamic', a: a, b: b};
@@ -17263,6 +17292,8 @@ var mdgriffith$elm_ui$Element$layoutWith = F3(
 var mdgriffith$elm_ui$Element$layout = mdgriffith$elm_ui$Element$layoutWith(
 	{options: _List_Nil});
 var mdgriffith$elm_ui$Element$map = mdgriffith$elm_ui$Internal$Model$map;
+var mdgriffith$elm_ui$Internal$Model$Serif = {$: 'Serif'};
+var mdgriffith$elm_ui$Element$Font$serif = mdgriffith$elm_ui$Internal$Model$Serif;
 var elm$core$List$all = F2(
 	function (isOkay, list) {
 		return !A2(
@@ -20893,31 +20924,45 @@ var author$project$Singularis$view = function (model) {
 										]),
 									A2(
 										mdgriffith$elm_ui$Element$column,
-										_List_Nil,
-										A2(
-											elm$core$List$cons,
-											function () {
-												switch (route.$) {
-													case 'Home':
-														return author$project$Singularis$Page$Home$view(config.scale);
-													case 'Ai':
-														var aiModel = route.a;
-														return A2(
-															mdgriffith$elm_ui$Element$map,
-															author$project$Singularis$AiSpecific,
-															A2(author$project$Singularis$Page$Ai$view, config.scale, aiModel));
-													default:
-														var oracleModel = route.a;
-														return A2(
-															mdgriffith$elm_ui$Element$map,
-															author$project$Singularis$OracleSpecific,
-															A2(author$project$Singularis$Page$Oracle$view, config.scale, oracleModel));
-												}
-											}(),
-											A2(
-												elm$core$List$map,
-												author$project$Singularis$View$Element$fromMarkdown(config.scale),
-												A2(pablohirafuji$elm_markdown$Markdown$Block$parse, elm$core$Maybe$Nothing, config.text)))))
+										_List_fromArray(
+											[
+												mdgriffith$elm_ui$Element$spacing(10),
+												mdgriffith$elm_ui$Element$Font$family(
+												_List_fromArray(
+													[author$project$Singularis$View$Element$spectralFont, mdgriffith$elm_ui$Element$Font$serif]))
+											]),
+										elm$core$List$concat(
+											_List_fromArray(
+												[
+													A2(
+													elm$core$List$map,
+													A2(
+														author$project$Singularis$View$Element$fromMarkdown,
+														config.scale,
+														function () {
+															switch (route.$) {
+																case 'Home':
+																	return author$project$Singularis$Page$Home$view(config.scale);
+																case 'Ai':
+																	var aiModel = route.a;
+																	return A2(
+																		elm$core$Dict$map,
+																		function (_n2) {
+																			return mdgriffith$elm_ui$Element$map(author$project$Singularis$AiSpecific);
+																		},
+																		A2(author$project$Singularis$Page$Ai$view, config.scale, aiModel));
+																default:
+																	var oracleModel = route.a;
+																	return A2(
+																		elm$core$Dict$map,
+																		function (_n3) {
+																			return mdgriffith$elm_ui$Element$map(author$project$Singularis$OracleSpecific);
+																		},
+																		A2(author$project$Singularis$Page$Oracle$view, config.scale, oracleModel));
+															}
+														}()),
+													A2(pablohirafuji$elm_markdown$Markdown$Block$parse, elm$core$Maybe$Nothing, config.text))
+												]))))
 								]))));
 			}
 		}(),
