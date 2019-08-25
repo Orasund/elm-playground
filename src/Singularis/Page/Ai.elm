@@ -173,13 +173,13 @@ view scale { seed, time, symmetry, information, base, infoPerSec, energy, lastCi
             }
         , Element.slider scale
             { onChange = round >> EnergyChanged
-            , label = "Notes"
+            , label = "Nodes"
             , min = 0
             , max = 2 ^ 6
             , value = toFloat <| energy
             }
         , Element.paragraph [] <|
-          [ Element.text <| "symmetry denotes how much data can be processed. A Intelligence can overfit, meaning to much data is feed to fast. in that case the remaining data will increase (instead of decresing). Notes allow for better processing power."
+          [ Element.text <| "symmetry denotes how much data can be processed. A Intelligence can overfit, meaning to much data is feed to fast. in that case the remaining data will increase (instead of decresing). Nodes allow for better processing power."
 
           ]
         ]

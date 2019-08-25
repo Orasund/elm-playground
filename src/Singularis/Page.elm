@@ -1,4 +1,4 @@
-module Singularis.Page exposing (Config, Route(..), extractRoute)
+module Singularis.Page exposing (Config, Route(..), extractRoute, getPageName)
 
 import Browser.Navigation exposing (Key)
 import Dict
@@ -17,6 +17,7 @@ type alias Config =
     , time : Posix
     , scale : Float
     , seed : Seed
+    , text : String
     }
 
 
@@ -36,6 +37,28 @@ extractRoute config input =
 equals : String -> String -> Query.Parser (Maybe ())
 equals value name =
     Query.enum name <| Dict.fromList [ ( value, () ) ]
+
+
+getPageName : Url -> String
+getPageName input =
+    { input | path = "" }
+        |> Parser.parse
+            (Parser.query <|
+                Query.map
+                    (\page ->
+                        case page of
+                            Just "ai" ->
+                                "Ai"
+
+                            Just "oracle" ->
+                                "Oracle"
+
+                            _ ->
+                                "Home"
+                    )
+                    (Query.string "page")
+            )
+        |> Maybe.withDefault "Home"
 
 
 matchRoute : Config -> Parser (Route -> a) a

@@ -10,6 +10,8 @@ import Element.Font as Font
 import Geometry.Svg as Svg
 import Html exposing (Html, button, div, text)
 import Html.Events exposing (onClick)
+import Http exposing (Error(..))
+import Markdown.Block as Block
 import Random exposing (Seed)
 import Singularis.Data.Answer as Answer exposing (list)
 import Singularis.Page as Page exposing (Config, Route(..))
@@ -39,6 +41,7 @@ type alias ConfigBuilder =
     , time : Maybe Posix
     , scale : Maybe Float
     , seed : Maybe Seed
+    , text : Maybe String
     }
 
 
@@ -67,6 +70,7 @@ init _ url key =
         , time = Nothing
         , scale = Nothing
         , seed = Nothing
+        , text = Nothing
         }
     , Cmd.batch
         [ Task.perform (WaitingSpecific << GotTime) Time.now
@@ -77,6 +81,23 @@ init _ url key =
             )
             Dom.getViewport
         , Random.generate (WaitingSpecific << GotSeed) Random.independentSeed
+        , Http.get
+            { url =
+                "https://raw.githubusercontent.com/Orasund/"
+                    ++ "elm-playground/master/docs/"
+                    ++ (url |> Page.getPageName)
+                    ++ ".md"
+            , expect =
+                Http.expectString
+                    (\result ->
+                        case result of
+                            Ok code ->
+                                WaitingSpecific <| GotFile code
+
+                            Err error ->
+                                WaitingSpecific <| GotError error
+                    )
+            }
         ]
     )
 
@@ -85,6 +106,8 @@ type WaitingMsg
     = GotTime Posix
     | GotSize Int Int
     | GotSeed Seed
+    | GotFile String
+    | GotError Error
 
 
 type Msg
@@ -97,9 +120,9 @@ type Msg
 
 
 validateConfig : ConfigBuilder -> Model
-validateConfig ({ key, url, time, scale, seed } as configBuilder) =
-    case ( time, scale, seed ) of
-        ( Just posix, Just float, Just s ) ->
+validateConfig ({ key, url, time, scale, seed, text } as configBuilder) =
+    case ( ( time, scale ), ( seed, text ) ) of
+        ( ( Just posix, Just float ), ( Just s, Just t ) ) ->
             let
                 config : Config
                 config =
@@ -107,6 +130,7 @@ validateConfig ({ key, url, time, scale, seed } as configBuilder) =
                     , time = posix
                     , scale = float
                     , seed = s
+                    , text = t
                     }
             in
             Done { config = config, route = url |> Page.extractRoute config }
@@ -131,6 +155,14 @@ configUpdate msg config =
                 { config
                     | seed = Just <| seed
                 }
+
+            GotFile text ->
+                { config
+                    | text = Just <| text
+                }
+
+            GotError error ->
+                config
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -160,13 +192,14 @@ update msg model =
 
                 ( OracleSpecific _, _ ) ->
                     defaultCase
-                
-                ( AiSpecific aiMsg, Ai aiModel) ->
-                    (Done
-                        { state 
-                        | route = aiModel
-                            |> Ai.update aiMsg
-                            |> Ai
+
+                ( AiSpecific aiMsg, Ai aiModel ) ->
+                    ( Done
+                        { state
+                            | route =
+                                aiModel
+                                    |> Ai.update aiMsg
+                                    |> Ai
                         }
                     , Cmd.none
                     )
@@ -205,22 +238,23 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.batch <| List.concat
-    [ List.singleton <| BrowserEvents.onResize SizeChanged
-    , case model of
-        Done {route} ->
-            case route of
-                Ai aiModel ->
-                    Ai.subscriptions aiModel
-                    |> Sub.map AiSpecific
-                    |> List.singleton
+    Sub.batch <|
+        List.concat
+            [ List.singleton <| BrowserEvents.onResize SizeChanged
+            , case model of
+                Done { route } ->
+                    case route of
+                        Ai aiModel ->
+                            Ai.subscriptions aiModel
+                                |> Sub.map AiSpecific
+                                |> List.singleton
+
+                        _ ->
+                            []
+
                 _ ->
                     []
-        _ ->
-            []
-        
-    ]
-    
+            ]
 
 
 view : Model -> Document Msg
@@ -259,17 +293,24 @@ view model =
                                             10
                                 ]
                               <|
-                                case route of
-                                    Home ->
-                                        Home.view config.scale
+                                Element.column [] <|
+                                    (config.text
+                                        |> Block.parse Nothing
+                                        |> List.map (Element.fromMarkdown config.scale)
+                                        |> (::)
+                                            (case route of
+                                                Home ->
+                                                    Home.view config.scale
 
-                                    Ai aiModel->
-                                        Ai.view config.scale aiModel
-                                            |> Element.map AiSpecific
+                                                Ai aiModel ->
+                                                    Ai.view config.scale aiModel
+                                                        |> Element.map AiSpecific
 
-                                    Oracle oracleModel ->
-                                        Oracle.view config.scale oracleModel
-                                            |> Element.map OracleSpecific
+                                                Oracle oracleModel ->
+                                                    Oracle.view config.scale oracleModel
+                                                        |> Element.map OracleSpecific
+                                            )
+                                    )
                             ]
     }
 
