@@ -62,6 +62,27 @@ sizeToScale width _ =
         toFloat width / maxScreenWidth
 
 
+getMarkdown : Url -> { ok : String -> Msg, error : Error -> Msg } -> Cmd Msg
+getMarkdown url { ok, error } =
+    Http.get
+        { url =
+            "https://raw.githubusercontent.com/Orasund/"
+                ++ "elm-playground/master/docs/"
+                ++ (url |> Page.getPageName)
+                ++ ".md"
+        , expect =
+            Http.expectString
+                (\result ->
+                    case result of
+                        Ok code ->
+                            ok code
+
+                        Err err ->
+                            error err
+                )
+        }
+
+
 init : flags -> Url -> Key -> ( Model, Cmd Msg )
 init _ url key =
     ( Waiting
@@ -81,22 +102,9 @@ init _ url key =
             )
             Dom.getViewport
         , Random.generate (WaitingSpecific << GotSeed) Random.independentSeed
-        , Http.get
-            { url =
-                "https://raw.githubusercontent.com/Orasund/"
-                    ++ "elm-playground/master/docs/"
-                    ++ (url |> Page.getPageName)
-                    ++ ".md"
-            , expect =
-                Http.expectString
-                    (\result ->
-                        case result of
-                            Ok code ->
-                                WaitingSpecific <| GotFile code
-
-                            Err error ->
-                                WaitingSpecific <| GotError error
-                    )
+        , getMarkdown url
+            { ok = WaitingSpecific << GotFile
+            , error = WaitingSpecific << GotError
             }
         ]
     )
@@ -117,6 +125,7 @@ type Msg
     | UrlChanged Url
     | UrlRequested UrlRequest
     | SizeChanged Int Int
+    | FileChanged String
 
 
 validateConfig : ConfigBuilder -> Model
@@ -209,7 +218,10 @@ update msg model =
 
                 ( UrlChanged url, _ ) ->
                     ( Done { state | route = url |> Page.extractRoute config }
-                    , Cmd.none
+                    , getMarkdown url
+                        { ok = FileChanged
+                        , error = WaitingSpecific << GotError
+                        }
                     )
 
                 ( UrlRequested urlRequest, _ ) ->
@@ -228,6 +240,14 @@ update msg model =
                     ( Done
                         { state
                             | config = { config | scale = sizeToScale width height }
+                        }
+                    , Cmd.none
+                    )
+                
+                ( FileChanged text, _ ) ->
+                    ( Done
+                        { state
+                            | config = { config | text = text }
                         }
                     , Cmd.none
                     )

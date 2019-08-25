@@ -46,7 +46,7 @@ getPageName input =
             (Parser.query <|
                 Query.map
                     (\page ->
-                        case page of
+                        case page |> Debug.log "Page Name" of
                             Just "ai" ->
                                 "Ai"
 
@@ -58,7 +58,7 @@ getPageName input =
                     )
                     (Query.string "page")
             )
-        |> Maybe.withDefault "Home"
+        |> Maybe.withDefault "Error"
 
 
 matchRoute : Config -> Parser (Route -> a) a
