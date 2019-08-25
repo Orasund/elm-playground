@@ -11,6 +11,7 @@ module Singularis.View.Element exposing
     )
 
 import Color
+import Dict exposing (Dict)
 import Element exposing (Color, Element)
 import Element.Background as Background
 import Element.Font as Font exposing (Font)
@@ -21,7 +22,7 @@ import Html.Attributes as Attributes
 import Markdown.Block as Block exposing (Block(..), ListType(..))
 import Markdown.Inline as Inline exposing (Inline(..))
 import Singularis.View as View exposing (maxScreenWidth)
-import Dict exposing (Dict)
+
 
 comfortaaFont : Font
 comfortaaFont =
@@ -125,7 +126,7 @@ slider scale { onChange, label, min, max, value } =
 
 title : Float -> String -> Element msg
 title scale =
-    heading <| round <| (*) scale <| 90
+    heading <| round <| (*) scale <| 75
 
 
 section : Float -> String -> Element msg
@@ -223,7 +224,7 @@ fromMarkdown scale customs block =
                 List.map fromInlineMarkdown inlines
 
         CodeBlock _ codeStr ->
-            case customs |> Dict.get codeStr of
+            case customs |> Dict.get (codeStr |> String.replace "\n" "") of
                 Just element ->
                     element
 
@@ -234,7 +235,8 @@ fromMarkdown scale customs block =
                         ]
                     <|
                         List.singleton <|
-                            Element.text codeStr
+                            Element.text <|
+                                codeStr
 
         BlockQuote blocks ->
             blocks

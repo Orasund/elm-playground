@@ -320,6 +320,7 @@ view model =
                                         [ Element.spectralFont
                                         , Font.serif
                                         ]
+                                    , Font.justify
                                     ]
                                 <|
                                     List.concat

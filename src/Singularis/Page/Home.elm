@@ -17,9 +17,18 @@ view scale =
                 , Element.centerX
                 ]
             <|
-                [ Element.html <| Polygon.view scale <| 3
-                , Element.html <| Polygon.view scale <| 4
-                , Element.html <| Polygon.view scale <| 6
+                [ Element.column []
+                    [ Element.html <| Polygon.view scale <| 3
+                    , Element.el [ Element.centerX ] <| Element.text "Spirit"
+                    ]
+                , Element.column []
+                    [ Element.html <| Polygon.view scale <| 4
+                    , Element.el [ Element.centerX ] <| Element.text "Matter"
+                    ]
+                , Element.column []
+                    [ Element.html <| Polygon.view scale <| 6
+                    , Element.el [ Element.centerX ] <| Element.text "Knowledge"
+                    ]
                 ]
           )
         ]

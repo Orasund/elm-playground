@@ -46,7 +46,7 @@ getPageName input =
             (Parser.query <|
                 Query.map
                     (\page ->
-                        case page |> Debug.log "Page Name" of
+                        case page of
                             Just "ai" ->
                                 "Ai"
 
