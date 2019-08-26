@@ -16573,45 +16573,10 @@ var author$project$Singularis$View$Element$title = function (scale) {
 	return author$project$Singularis$View$Element$heading(
 		elm$core$Basics$round(scale * 75));
 };
-var elm$html$Html$li = _VirtualDom_node('li');
-var elm$html$Html$ol = _VirtualDom_node('ol');
-var elm$html$Html$ul = _VirtualDom_node('ul');
-var elm$html$Html$Attributes$start = function (n) {
-	return A2(
-		elm$html$Html$Attributes$stringProperty,
-		'start',
-		elm$core$String$fromInt(n));
-};
-var elm$html$Html$blockquote = _VirtualDom_node('blockquote');
-var elm$html$Html$code = _VirtualDom_node('code');
-var elm$html$Html$h1 = _VirtualDom_node('h1');
-var elm$html$Html$h2 = _VirtualDom_node('h2');
-var elm$html$Html$h3 = _VirtualDom_node('h3');
-var elm$html$Html$h4 = _VirtualDom_node('h4');
-var elm$html$Html$h5 = _VirtualDom_node('h5');
-var elm$html$Html$h6 = _VirtualDom_node('h6');
-var elm$html$Html$hr = _VirtualDom_node('hr');
-var elm$html$Html$pre = _VirtualDom_node('pre');
-var elm$html$Html$a = _VirtualDom_node('a');
-var elm$html$Html$br = _VirtualDom_node('br');
-var elm$html$Html$em = _VirtualDom_node('em');
-var elm$html$Html$img = _VirtualDom_node('img');
-var elm$html$Html$node = elm$virtual_dom$VirtualDom$node;
-var elm$html$Html$strong = _VirtualDom_node('strong');
-var elm$html$Html$Attributes$title = elm$html$Html$Attributes$stringProperty('title');
-var pablohirafuji$elm_markdown$Markdown$Inline$Emphasis = F2(
-	function (a, b) {
-		return {$: 'Emphasis', a: a, b: b};
-	});
-var pablohirafuji$elm_markdown$Markdown$Inline$attributeToAttribute = function (_n0) {
-	var name = _n0.a;
-	var maybeValue = _n0.b;
-	return A2(
-		elm$html$Html$Attributes$attribute,
-		name,
-		A2(elm$core$Maybe$withDefault, name, maybeValue));
-};
-var pablohirafuji$elm_markdown$Markdown$Inline$attributesToHtmlAttributes = elm$core$List$map(pablohirafuji$elm_markdown$Markdown$Inline$attributeToAttribute);
+var mdgriffith$elm_ui$Internal$Model$Right = {$: 'Right'};
+var mdgriffith$elm_ui$Element$alignRight = mdgriffith$elm_ui$Internal$Model$AlignX(mdgriffith$elm_ui$Internal$Model$Right);
+var mdgriffith$elm_ui$Internal$Model$Top = {$: 'Top'};
+var mdgriffith$elm_ui$Element$alignTop = mdgriffith$elm_ui$Internal$Model$AlignY(mdgriffith$elm_ui$Internal$Model$Top);
 var pablohirafuji$elm_markdown$Markdown$Inline$extractText = function (inlines) {
 	return A3(elm$core$List$foldl, pablohirafuji$elm_markdown$Markdown$Inline$extractTextHelp, '', inlines);
 };
@@ -16653,280 +16618,6 @@ var pablohirafuji$elm_markdown$Markdown$Inline$extractTextHelp = F2(
 					pablohirafuji$elm_markdown$Markdown$Inline$extractText(inlines));
 		}
 	});
-var pablohirafuji$elm_markdown$Markdown$Inline$defaultHtml = F2(
-	function (customTransformer, inline) {
-		var transformer = A2(
-			elm$core$Maybe$withDefault,
-			pablohirafuji$elm_markdown$Markdown$Inline$defaultHtml(elm$core$Maybe$Nothing),
-			customTransformer);
-		switch (inline.$) {
-			case 'Text':
-				var str = inline.a;
-				return elm$html$Html$text(str);
-			case 'HardLineBreak':
-				return A2(elm$html$Html$br, _List_Nil, _List_Nil);
-			case 'CodeInline':
-				var codeStr = inline.a;
-				return A2(
-					elm$html$Html$code,
-					_List_Nil,
-					_List_fromArray(
-						[
-							elm$html$Html$text(codeStr)
-						]));
-			case 'Link':
-				var url = inline.a;
-				var maybeTitle = inline.b;
-				var inlines = inline.c;
-				if (maybeTitle.$ === 'Just') {
-					var title_ = maybeTitle.a;
-					return A2(
-						elm$html$Html$a,
-						_List_fromArray(
-							[
-								elm$html$Html$Attributes$href(url),
-								elm$html$Html$Attributes$title(title_)
-							]),
-						A2(elm$core$List$map, transformer, inlines));
-				} else {
-					return A2(
-						elm$html$Html$a,
-						_List_fromArray(
-							[
-								elm$html$Html$Attributes$href(url)
-							]),
-						A2(elm$core$List$map, transformer, inlines));
-				}
-			case 'Image':
-				var url = inline.a;
-				var maybeTitle = inline.b;
-				var inlines = inline.c;
-				if (maybeTitle.$ === 'Just') {
-					var title_ = maybeTitle.a;
-					return A2(
-						elm$html$Html$img,
-						_List_fromArray(
-							[
-								elm$html$Html$Attributes$alt(
-								pablohirafuji$elm_markdown$Markdown$Inline$extractText(inlines)),
-								elm$html$Html$Attributes$src(url),
-								elm$html$Html$Attributes$title(title_)
-							]),
-						_List_Nil);
-				} else {
-					return A2(
-						elm$html$Html$img,
-						_List_fromArray(
-							[
-								elm$html$Html$Attributes$alt(
-								pablohirafuji$elm_markdown$Markdown$Inline$extractText(inlines)),
-								elm$html$Html$Attributes$src(url)
-							]),
-						_List_Nil);
-				}
-			case 'HtmlInline':
-				var tag = inline.a;
-				var attrs = inline.b;
-				var inlines = inline.c;
-				return A3(
-					elm$html$Html$node,
-					tag,
-					pablohirafuji$elm_markdown$Markdown$Inline$attributesToHtmlAttributes(attrs),
-					A2(elm$core$List$map, transformer, inlines));
-			case 'Emphasis':
-				var length = inline.a;
-				var inlines = inline.b;
-				switch (length) {
-					case 1:
-						return A2(
-							elm$html$Html$em,
-							_List_Nil,
-							A2(elm$core$List$map, transformer, inlines));
-					case 2:
-						return A2(
-							elm$html$Html$strong,
-							_List_Nil,
-							A2(elm$core$List$map, transformer, inlines));
-					default:
-						return ((length - 2) > 0) ? A2(
-							elm$html$Html$strong,
-							_List_Nil,
-							function (a) {
-								return A2(elm$core$List$cons, a, _List_Nil);
-							}(
-								transformer(
-									A2(pablohirafuji$elm_markdown$Markdown$Inline$Emphasis, length - 2, inlines)))) : A2(
-							elm$html$Html$em,
-							_List_Nil,
-							A2(elm$core$List$map, transformer, inlines));
-				}
-			default:
-				var inlines = inline.b;
-				return elm$html$Html$text('');
-		}
-	});
-var pablohirafuji$elm_markdown$Markdown$Inline$toHtml = pablohirafuji$elm_markdown$Markdown$Inline$defaultHtml(elm$core$Maybe$Nothing);
-var pablohirafuji$elm_markdown$Markdown$Block$defaultHtml = F3(
-	function (customHtml, customInlineHtml, block) {
-		var inlineToHtml = A2(elm$core$Maybe$withDefault, pablohirafuji$elm_markdown$Markdown$Inline$toHtml, customInlineHtml);
-		var blockToHtml = A2(
-			elm$core$Maybe$withDefault,
-			A2(pablohirafuji$elm_markdown$Markdown$Block$defaultHtml, elm$core$Maybe$Nothing, customInlineHtml),
-			customHtml);
-		switch (block.$) {
-			case 'BlankLine':
-				return _List_Nil;
-			case 'Heading':
-				var level = block.b;
-				var inlines = block.c;
-				var hElement = function () {
-					switch (level) {
-						case 1:
-							return elm$html$Html$h1(_List_Nil);
-						case 2:
-							return elm$html$Html$h2(_List_Nil);
-						case 3:
-							return elm$html$Html$h3(_List_Nil);
-						case 4:
-							return elm$html$Html$h4(_List_Nil);
-						case 5:
-							return elm$html$Html$h5(_List_Nil);
-						default:
-							return elm$html$Html$h6(_List_Nil);
-					}
-				}();
-				return _List_fromArray(
-					[
-						hElement(
-						A2(elm$core$List$map, inlineToHtml, inlines))
-					]);
-			case 'ThematicBreak':
-				return _List_fromArray(
-					[
-						A2(elm$html$Html$hr, _List_Nil, _List_Nil)
-					]);
-			case 'Paragraph':
-				var inlines = block.b;
-				return _List_fromArray(
-					[
-						A2(
-						elm$html$Html$p,
-						_List_Nil,
-						A2(elm$core$List$map, inlineToHtml, inlines))
-					]);
-			case 'CodeBlock':
-				if (block.a.$ === 'Fenced') {
-					var _n2 = block.a;
-					var model = _n2.b;
-					var codeStr = block.b;
-					var basicView = function (attrs) {
-						return _List_fromArray(
-							[
-								A2(
-								elm$html$Html$pre,
-								_List_Nil,
-								_List_fromArray(
-									[
-										A2(
-										elm$html$Html$code,
-										attrs,
-										_List_fromArray(
-											[
-												elm$html$Html$text(codeStr)
-											]))
-									]))
-							]);
-					};
-					var _n3 = model.language;
-					if (_n3.$ === 'Just') {
-						var language = _n3.a;
-						return basicView(
-							_List_fromArray(
-								[
-									elm$html$Html$Attributes$class('language-' + language)
-								]));
-					} else {
-						return basicView(_List_Nil);
-					}
-				} else {
-					var _n4 = block.a;
-					var codeStr = block.b;
-					return _List_fromArray(
-						[
-							A2(
-							elm$html$Html$pre,
-							_List_Nil,
-							_List_fromArray(
-								[
-									A2(
-									elm$html$Html$code,
-									_List_Nil,
-									_List_fromArray(
-										[
-											elm$html$Html$text(codeStr)
-										]))
-								]))
-						]);
-				}
-			case 'BlockQuote':
-				var blocks = block.a;
-				return function (a) {
-					return A2(elm$core$List$cons, a, _List_Nil);
-				}(
-					A2(
-						elm$html$Html$blockquote,
-						_List_Nil,
-						elm$core$List$concat(
-							A2(elm$core$List$map, blockToHtml, blocks))));
-			case 'List':
-				var model = block.a;
-				var items = block.b;
-				return function (a) {
-					return A2(elm$core$List$cons, a, _List_Nil);
-				}(
-					function () {
-						var _n5 = model.type_;
-						if (_n5.$ === 'Ordered') {
-							var startInt = _n5.a;
-							return (startInt === 1) ? elm$html$Html$ol(_List_Nil) : elm$html$Html$ol(
-								_List_fromArray(
-									[
-										elm$html$Html$Attributes$start(startInt)
-									]));
-						} else {
-							return elm$html$Html$ul(_List_Nil);
-						}
-					}()(
-						A2(
-							elm$core$List$map,
-							A2(
-								elm$core$Basics$composeR,
-								elm$core$List$map(blockToHtml),
-								A2(
-									elm$core$Basics$composeR,
-									elm$core$List$concat,
-									elm$html$Html$li(_List_Nil))),
-							items)));
-			case 'PlainInlines':
-				var inlines = block.a;
-				return A2(elm$core$List$map, inlineToHtml, inlines);
-			default:
-				var customBlock = block.a;
-				var blocks = block.b;
-				return function (a) {
-					return A2(elm$core$List$cons, a, _List_Nil);
-				}(
-					A2(
-						elm$html$Html$div,
-						_List_Nil,
-						A2(
-							elm$core$List$cons,
-							elm$html$Html$text('Unhandled custom block.'),
-							elm$core$List$concat(
-								A2(elm$core$List$map, blockToHtml, blocks)))));
-		}
-	});
-var pablohirafuji$elm_markdown$Markdown$Block$toHtml = A2(pablohirafuji$elm_markdown$Markdown$Block$defaultHtml, elm$core$Maybe$Nothing, elm$core$Maybe$Nothing);
 var author$project$Singularis$View$Element$fromMarkdown = F3(
 	function (scale, customs, block) {
 		switch (block.$) {
@@ -17007,36 +16698,43 @@ var author$project$Singularis$View$Element$fromMarkdown = F3(
 				var items = block.b;
 				return A2(
 					mdgriffith$elm_ui$Element$column,
-					_List_Nil,
+					_List_fromArray(
+						[
+							mdgriffith$elm_ui$Element$spacing(10)
+						]),
 					A2(
 						elm$core$List$map,
-						mdgriffith$elm_ui$Element$html,
-						function (a) {
-							return A2(elm$core$List$cons, a, _List_Nil);
-						}(
-							function () {
-								var _n3 = model.type_;
-								if (_n3.$ === 'Ordered') {
-									var startInt = _n3.a;
-									return (startInt === 1) ? elm$html$Html$ol(_List_Nil) : elm$html$Html$ol(
+						function (item) {
+							return A2(
+								mdgriffith$elm_ui$Element$row,
+								_List_Nil,
+								_List_fromArray(
+									[
+										A2(
+										mdgriffith$elm_ui$Element$el,
 										_List_fromArray(
 											[
-												elm$html$Html$Attributes$start(startInt)
-											]));
-								} else {
-									return elm$html$Html$ul(_List_Nil);
-								}
-							}()(
-								A2(
-									elm$core$List$map,
-									A2(
-										elm$core$Basics$composeR,
-										elm$core$List$map(pablohirafuji$elm_markdown$Markdown$Block$toHtml),
+												mdgriffith$elm_ui$Element$width(
+												mdgriffith$elm_ui$Element$px(50)),
+												mdgriffith$elm_ui$Element$height(mdgriffith$elm_ui$Element$fill),
+												mdgriffith$elm_ui$Element$alignRight,
+												mdgriffith$elm_ui$Element$alignTop,
+												mdgriffith$elm_ui$Element$Font$size(40)
+											]),
+										mdgriffith$elm_ui$Element$text('•')),
 										A2(
-											elm$core$Basics$composeR,
-											elm$core$List$concat,
-											elm$html$Html$li(_List_Nil))),
-									items)))));
+										mdgriffith$elm_ui$Element$row,
+										_List_fromArray(
+											[
+												mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill)
+											]),
+										A2(
+											elm$core$List$map,
+											A2(author$project$Singularis$View$Element$fromMarkdown, scale, customs),
+											item))
+									]));
+						},
+						items));
 			case 'PlainInlines':
 				var inlines = block.a;
 				return A2(
@@ -17326,6 +17024,22 @@ var mdgriffith$elm_ui$Element$layoutWith = F3(
 var mdgriffith$elm_ui$Element$layout = mdgriffith$elm_ui$Element$layoutWith(
 	{options: _List_Nil});
 var mdgriffith$elm_ui$Element$map = mdgriffith$elm_ui$Internal$Model$map;
+var mdgriffith$elm_ui$Internal$Model$Max = F2(
+	function (a, b) {
+		return {$: 'Max', a: a, b: b};
+	});
+var mdgriffith$elm_ui$Element$maximum = F2(
+	function (i, l) {
+		return A2(mdgriffith$elm_ui$Internal$Model$Max, i, l);
+	});
+var mdgriffith$elm_ui$Internal$Model$Min = F2(
+	function (a, b) {
+		return {$: 'Min', a: a, b: b};
+	});
+var mdgriffith$elm_ui$Element$minimum = F2(
+	function (i, l) {
+		return A2(mdgriffith$elm_ui$Internal$Model$Min, i, l);
+	});
 var mdgriffith$elm_ui$Element$Font$justify = A2(mdgriffith$elm_ui$Internal$Model$Class, mdgriffith$elm_ui$Internal$Flag$fontAlignment, mdgriffith$elm_ui$Internal$Style$classes.textJustify);
 var mdgriffith$elm_ui$Internal$Model$Serif = {$: 'Serif'};
 var mdgriffith$elm_ui$Element$Font$serif = mdgriffith$elm_ui$Internal$Model$Serif;
@@ -18860,6 +18574,10 @@ var pablohirafuji$elm_markdown$Markdown$InlineParser$initParser = F3(
 var pablohirafuji$elm_markdown$Markdown$Inline$CodeInline = function (a) {
 	return {$: 'CodeInline', a: a};
 };
+var pablohirafuji$elm_markdown$Markdown$Inline$Emphasis = F2(
+	function (a, b) {
+		return {$: 'Emphasis', a: a, b: b};
+	});
 var pablohirafuji$elm_markdown$Markdown$Inline$HardLineBreak = {$: 'HardLineBreak'};
 var pablohirafuji$elm_markdown$Markdown$Inline$HtmlInline = F3(
 	function (a, b, c) {
@@ -20951,8 +20669,13 @@ var author$project$Singularis$view = function (model) {
 									_List_fromArray(
 										[
 											mdgriffith$elm_ui$Element$width(
-											mdgriffith$elm_ui$Element$px(
-												elm$core$Basics$round(config.scale * author$project$Singularis$View$maxScreenWidth))),
+											A2(
+												mdgriffith$elm_ui$Element$minimum,
+												100,
+												A2(
+													mdgriffith$elm_ui$Element$maximum,
+													elm$core$Basics$round(author$project$Singularis$View$maxScreenWidth),
+													mdgriffith$elm_ui$Element$fill))),
 											mdgriffith$elm_ui$Element$centerX,
 											mdgriffith$elm_ui$Element$padding(
 											elm$core$Basics$round(config.scale * 10))
