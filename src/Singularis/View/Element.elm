@@ -143,7 +143,7 @@ fromInlineMarkdown : Inline i -> Element msg
 fromInlineMarkdown inline =
     case inline of
         Text str ->
-            Element.text str
+            Element.paragraph [] <| List.singleton <| Element.text str
 
         HardLineBreak ->
             Element.el [ Element.width Element.fill ] <|
@@ -165,7 +165,10 @@ fromInlineMarkdown inline =
                     |> Maybe.withDefault []
                 )
                 { url = url
-                , label = fromInlineMarkdown inlines
+                , label =
+                    Element.column [] <|
+                        List.map fromInlineMarkdown <|
+                            inlines
                 }
 
         Image url maybeTitle _ ->
@@ -175,23 +178,33 @@ fromInlineMarkdown inline =
                 }
 
         HtmlInline _ _ inlines ->
-            fromInlineMarkdown inlines
+            Element.column [] <|
+                List.map fromInlineMarkdown <|
+                    inlines
 
         Emphasis length inlines ->
             case length of
                 1 ->
                     Element.el [ Font.italic ] <|
-                        fromInlineMarkdown inlines
+                        Element.column [] <|
+                            List.map fromInlineMarkdown <|
+                                inlines
 
                 2 ->
                     Element.el [ Font.bold ] <|
-                        fromInlineMarkdown inlines
+                        Element.column [] <|
+                            List.map fromInlineMarkdown <|
+                                inlines
 
                 _ ->
-                    fromInlineMarkdown inlines
+                    Element.column [] <|
+                        List.map fromInlineMarkdown <|
+                            inlines
 
         Inline.Custom _ inlines ->
-            fromInlineMarkdown inlines
+            Element.column [] <|
+                List.map fromInlineMarkdown <|
+                    inlines
 
 
 fromMarkdown : Float -> Dict String (Element msg) -> Block b i -> Element msg
@@ -258,11 +271,11 @@ fromMarkdown scale customs block =
                             Element.text "•"
                         , item
                             |> List.map (fromMarkdown scale customs)
-                            |> Element.row [ Element.width <| Element.fill ]
+                            |> Element.paragraph [ ]
                         ]
-                            |> Element.row []
+                            |> Element.row [ Element.width <| Element.fill ]
                     )
-                |> Element.column [Element.spacing 10]
+                |> Element.column [ Element.spacing 10, Element.width <| Element.fill ]
 
         {- List.map
            (List.map Block.toHtml
