@@ -165,7 +165,7 @@ fromInlineMarkdown inline =
                     |> Maybe.withDefault []
                 )
                 { url = url
-                , label = fromInlineMarkdown inline
+                , label = fromInlineMarkdown inlines
                 }
 
         Image url maybeTitle _ ->
@@ -175,23 +175,23 @@ fromInlineMarkdown inline =
                 }
 
         HtmlInline _ _ inlines ->
-            fromInlineMarkdown inline
+            fromInlineMarkdown inlines
 
         Emphasis length inlines ->
             case length of
                 1 ->
                     Element.el [ Font.italic ] <|
-                        fromInlineMarkdown inline
+                        fromInlineMarkdown inlines
 
                 2 ->
                     Element.el [ Font.bold ] <|
-                        fromInlineMarkdown inline
+                        fromInlineMarkdown inlines
 
                 _ ->
-                    fromInlineMarkdown inline
+                    fromInlineMarkdown inlines
 
         Inline.Custom _ inlines ->
-            fromInlineMarkdown inline
+            fromInlineMarkdown inlines
 
 
 fromMarkdown : Float -> Dict String (Element msg) -> Block b i -> Element msg
