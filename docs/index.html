@@ -16482,91 +16482,104 @@ var mdgriffith$elm_ui$Internal$Model$Monospace = {$: 'Monospace'};
 var mdgriffith$elm_ui$Element$Font$monospace = mdgriffith$elm_ui$Internal$Model$Monospace;
 var mdgriffith$elm_ui$Element$Region$description = A2(elm$core$Basics$composeL, mdgriffith$elm_ui$Internal$Model$Describe, mdgriffith$elm_ui$Internal$Model$Label);
 var author$project$Singularis$View$Element$fromInlineMarkdown = function (inline) {
-	fromInlineMarkdown:
-	while (true) {
-		switch (inline.$) {
-			case 'Text':
-				var str = inline.a;
-				return mdgriffith$elm_ui$Element$text(str);
-			case 'HardLineBreak':
-				return A2(
-					mdgriffith$elm_ui$Element$el,
-					_List_fromArray(
-						[
-							mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill)
-						]),
-					mdgriffith$elm_ui$Element$none);
-			case 'CodeInline':
-				var codeStr = inline.a;
-				return A2(
-					mdgriffith$elm_ui$Element$paragraph,
-					_List_fromArray(
-						[
-							mdgriffith$elm_ui$Element$Font$family(
-							_List_fromArray(
-								[mdgriffith$elm_ui$Element$Font$monospace]))
-						]),
-					elm$core$List$singleton(
-						mdgriffith$elm_ui$Element$text(codeStr)));
-			case 'Link':
-				var url = inline.a;
-				var maybeTitle = inline.b;
-				var inlines = inline.c;
-				return A2(
-					mdgriffith$elm_ui$Element$link,
-					A2(
-						elm$core$Maybe$withDefault,
-						_List_Nil,
-						A2(
-							elm$core$Maybe$map,
-							A2(elm$core$Basics$composeR, mdgriffith$elm_ui$Element$Region$description, elm$core$List$singleton),
-							maybeTitle)),
-					{
-						label: author$project$Singularis$View$Element$fromInlineMarkdown(inline),
-						url: url
-					});
-			case 'Image':
-				var url = inline.a;
-				var maybeTitle = inline.b;
-				return A2(
-					mdgriffith$elm_ui$Element$image,
+	switch (inline.$) {
+		case 'Text':
+			var str = inline.a;
+			return A2(
+				mdgriffith$elm_ui$Element$paragraph,
+				_List_Nil,
+				elm$core$List$singleton(
+					mdgriffith$elm_ui$Element$text(str)));
+		case 'HardLineBreak':
+			return A2(
+				mdgriffith$elm_ui$Element$el,
+				_List_fromArray(
+					[
+						mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill)
+					]),
+				mdgriffith$elm_ui$Element$none);
+		case 'CodeInline':
+			var codeStr = inline.a;
+			return A2(
+				mdgriffith$elm_ui$Element$paragraph,
+				_List_fromArray(
+					[
+						mdgriffith$elm_ui$Element$Font$family(
+						_List_fromArray(
+							[mdgriffith$elm_ui$Element$Font$monospace]))
+					]),
+				elm$core$List$singleton(
+					mdgriffith$elm_ui$Element$text(codeStr)));
+		case 'Link':
+			var url = inline.a;
+			var maybeTitle = inline.b;
+			var inlines = inline.c;
+			return A2(
+				mdgriffith$elm_ui$Element$link,
+				A2(
+					elm$core$Maybe$withDefault,
 					_List_Nil,
-					{
-						description: A2(elm$core$Maybe$withDefault, '', maybeTitle),
-						src: url
-					});
-			case 'HtmlInline':
-				var inlines = inline.c;
-				var $temp$inline = inline;
-				inline = $temp$inline;
-				continue fromInlineMarkdown;
-			case 'Emphasis':
-				var length = inline.a;
-				var inlines = inline.b;
-				switch (length) {
-					case 1:
-						return A2(
-							mdgriffith$elm_ui$Element$el,
-							_List_fromArray(
-								[mdgriffith$elm_ui$Element$Font$italic]),
-							author$project$Singularis$View$Element$fromInlineMarkdown(inline));
-					case 2:
-						return A2(
-							mdgriffith$elm_ui$Element$el,
-							_List_fromArray(
-								[mdgriffith$elm_ui$Element$Font$bold]),
-							author$project$Singularis$View$Element$fromInlineMarkdown(inline));
-					default:
-						var $temp$inline = inline;
-						inline = $temp$inline;
-						continue fromInlineMarkdown;
-				}
-			default:
-				var inlines = inline.b;
-				var $temp$inline = inline;
-				inline = $temp$inline;
-				continue fromInlineMarkdown;
-		}
+					A2(
+						elm$core$Maybe$map,
+						A2(elm$core$Basics$composeR, mdgriffith$elm_ui$Element$Region$description, elm$core$List$singleton),
+						maybeTitle)),
+				{
+					label: A2(
+						mdgriffith$elm_ui$Element$column,
+						_List_Nil,
+						A2(elm$core$List$map, author$project$Singularis$View$Element$fromInlineMarkdown, inlines)),
+					url: url
+				});
+		case 'Image':
+			var url = inline.a;
+			var maybeTitle = inline.b;
+			return A2(
+				mdgriffith$elm_ui$Element$image,
+				_List_Nil,
+				{
+					description: A2(elm$core$Maybe$withDefault, '', maybeTitle),
+					src: url
+				});
+		case 'HtmlInline':
+			var inlines = inline.c;
+			return A2(
+				mdgriffith$elm_ui$Element$column,
+				_List_Nil,
+				A2(elm$core$List$map, author$project$Singularis$View$Element$fromInlineMarkdown, inlines));
+		case 'Emphasis':
+			var length = inline.a;
+			var inlines = inline.b;
+			switch (length) {
+				case 1:
+					return A2(
+						mdgriffith$elm_ui$Element$el,
+						_List_fromArray(
+							[mdgriffith$elm_ui$Element$Font$italic]),
+						A2(
+							mdgriffith$elm_ui$Element$column,
+							_List_Nil,
+							A2(elm$core$List$map, author$project$Singularis$View$Element$fromInlineMarkdown, inlines)));
+				case 2:
+					return A2(
+						mdgriffith$elm_ui$Element$el,
+						_List_fromArray(
+							[mdgriffith$elm_ui$Element$Font$bold]),
+						A2(
+							mdgriffith$elm_ui$Element$column,
+							_List_Nil,
+							A2(elm$core$List$map, author$project$Singularis$View$Element$fromInlineMarkdown, inlines)));
+				default:
+					return A2(
+						mdgriffith$elm_ui$Element$column,
+						_List_Nil,
+						A2(elm$core$List$map, author$project$Singularis$View$Element$fromInlineMarkdown, inlines));
+			}
+		default:
+			var inlines = inline.b;
+			return A2(
+				mdgriffith$elm_ui$Element$column,
+				_List_Nil,
+				A2(elm$core$List$map, author$project$Singularis$View$Element$fromInlineMarkdown, inlines));
 	}
 };
 var author$project$Singularis$View$Element$title = function (scale) {
@@ -16700,14 +16713,18 @@ var author$project$Singularis$View$Element$fromMarkdown = F3(
 					mdgriffith$elm_ui$Element$column,
 					_List_fromArray(
 						[
-							mdgriffith$elm_ui$Element$spacing(10)
+							mdgriffith$elm_ui$Element$spacing(10),
+							mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill)
 						]),
 					A2(
 						elm$core$List$map,
 						function (item) {
 							return A2(
 								mdgriffith$elm_ui$Element$row,
-								_List_Nil,
+								_List_fromArray(
+									[
+										mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill)
+									]),
 								_List_fromArray(
 									[
 										A2(
@@ -16723,11 +16740,8 @@ var author$project$Singularis$View$Element$fromMarkdown = F3(
 											]),
 										mdgriffith$elm_ui$Element$text('•')),
 										A2(
-										mdgriffith$elm_ui$Element$row,
-										_List_fromArray(
-											[
-												mdgriffith$elm_ui$Element$width(mdgriffith$elm_ui$Element$fill)
-											]),
+										mdgriffith$elm_ui$Element$paragraph,
+										_List_Nil,
 										A2(
 											elm$core$List$map,
 											A2(author$project$Singularis$View$Element$fromMarkdown, scale, customs),
