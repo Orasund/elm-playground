@@ -32,7 +32,8 @@ stone formations.
 When we think of knowledge, we most often mean some higher intelligence that can
 actually process such a knowledge (some form of god or goddess). In nature we
 see humans and some species of animals (like champanese or dolphins) as having
-some form of intelligence and the ability to recognise themself. So we only see intelligence occur together with spirit. (Note that every living being has a
+some form of intelligence and the ability to recognise themself. So we only see
+intelligence occur together with spirit. (Note that every living being has a
 spirit)
 
 ## Disclaimer
