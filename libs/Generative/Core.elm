@@ -1,5 +1,6 @@
 module Generative.Core exposing (Shape(..), ShapeType(..), contains)
 
+import Circle2d exposing (Circle2d)
 import LineSegment2d exposing (LineSegment2d)
 import Point2d
 import Polygon2d exposing (Polygon2d)
@@ -7,6 +8,7 @@ import Polygon2d exposing (Polygon2d)
 
 type ShapeType
     = Polygon Polygon2d
+    | Circle Circle2d
 
 
 type Shape a b

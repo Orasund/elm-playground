@@ -12,11 +12,19 @@ import Svg exposing (Svg)
 
 square : ( Float, Float ) -> ( Distribution, Distribution ) -> Generator (List (Svg msg))
 square p1 dist =
-    Shape.regular 5 100 p1
+    --Shape.regular 5 100 p1
+    Shape.circle 100 p1
         |> Shape.rotateBy (pi / 3)
+        |> Shape.withColor
+            (Color.hsla
+                0.05
+                0.3
+                0.5
+                0.5
+            )
         |> Shape.withSurface
             (Textured
-                { density = 0.07
+                { density = 0.05
                 , distribution = dist
                 , shapes =
                     \( x, y ) ->
@@ -31,11 +39,11 @@ square p1 dist =
                         in
                         Random.map2
                             (\angle size ->
-                                Shape.regular 4 size ( 0, 0 )
+                                Shape.circle size ( 0, 0 )
                                     |> Shape.withSurface Filled
                                     |> Shape.withColor
                                         (Color.hsla
-                                            0.05
+                                            (0.45 + y * x * 0.1)
                                             0.3
                                             (0.1 + 0.7 * (1 - distance))
                                             0.5
@@ -44,7 +52,7 @@ square p1 dist =
                             )
                             (Random.float 0 (2 * pi))
                             (Random.float 1 5)
-                , border = True
+                , border = False
                 }
             )
         |> Generative.toSvg

@@ -1,7 +1,7 @@
-module Generative.Shape exposing (Point, Shape, Surface(..), fromPoints, rectangle, regular, rotateBy, translateBy, withColor, withSurface)
+module Generative.Shape exposing (Point, Shape, Surface(..), circle, fromPoints, rectangle, regular, rotateBy, translateBy, withColor, withSurface)
 
 import BoundingBox2d
-import Circle2d exposing (Circle2d)
+import Circle2d
 import Color exposing (Color)
 import Generative.Core as Core
 import Generative.Distribution exposing (Distribution)
@@ -30,22 +30,28 @@ type alias Point =
     ( Float, Float )
 
 
-
---| Circle Circle2d
-
-
 type alias Shape =
     Core.Shape Surface Color
 
 
 withSurface : Surface -> Shape -> Shape
-withSurface surface (Core.Shape p _ c) =
-    Core.Shape p surface c
+withSurface s (Core.Shape p _ c) =
+    Core.Shape p s c
 
 
 withColor : Color -> Shape -> Shape
 withColor c (Core.Shape p s _) =
     Core.Shape p s c
+
+
+circle : Float -> Point -> Shape
+circle size p =
+    Core.Shape
+        (Circle2d.withRadius size (Point2d.fromCoordinates p)
+            |> Core.Circle
+        )
+        Empty
+        Color.black
 
 
 rectangle : Point -> Point -> Shape
@@ -117,6 +123,9 @@ rotateBy angle (Core.Shape shapeType s c) =
                 s
                 c
 
+        Core.Circle _ ->
+            Core.Shape shapeType s c
+
 
 translateBy : Point -> Shape -> Shape
 translateBy p (Core.Shape shapeType s c) =
@@ -126,6 +135,11 @@ translateBy p (Core.Shape shapeType s c) =
                 polygon
                     |> Polygon2d.translateBy (Vector2d.fromComponents p)
                     |> Core.Polygon
+
+            Core.Circle circ ->
+                circ
+                    |> Circle2d.translateBy (Vector2d.fromComponents p)
+                    |> Core.Circle
         )
         s
         c

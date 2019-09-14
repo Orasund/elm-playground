@@ -1,6 +1,7 @@
 module Generative exposing (toHtml, toSvg)
 
 import BoundingBox2d
+import Circle2d
 import Color
 import Generative.Core as Core
 import Generative.Distribution exposing (Distribution)
@@ -66,6 +67,41 @@ toSvg (Core.Shape shapeType surface color) =
                                 amount : Int
                                 amount =
                                     round <| width * height * density
+
+                                draw : Shape -> Generator (List (Svg msg))
+                                draw ((Core.Shape shapeType2 s c) as shape) =
+                                    case shapeType2 of
+                                        Core.Polygon polygon2 ->
+                                            if
+                                                polygon2
+                                                    |> Polygon2d.vertices
+                                                    |> List.all
+                                                        (Point2d.coordinates
+                                                            >> (\point ->
+                                                                    Core.contains
+                                                                        (polygon
+                                                                            |> Polygon2d.edges
+                                                                        )
+                                                                        point
+                                                                        0
+                                                               )
+                                                        )
+                                            then
+                                                shape |> toSvg
+
+                                            else
+                                                Random.constant []
+
+                                        Core.Circle circle ->
+                                            Shape.regular 12
+                                                (circle |> Circle2d.radius)
+                                                (circle
+                                                    |> Circle2d.centerPoint
+                                                    |> Point2d.coordinates
+                                                )
+                                                |> Shape.withSurface s
+                                                |> Shape.withColor c
+                                                |> draw
                             in
                             Random.list amount
                                 (pointGenerator
@@ -80,29 +116,7 @@ toSvg (Core.Shape shapeType surface color) =
                                                                 ((*) width >> (+) pos.x)
                                                                 ((*) height >> (+) pos.y)
                                                         )
-                                                        >> (\((Core.Shape shapeType2 _ _) as shape) ->
-                                                                case shapeType2 of
-                                                                    Core.Polygon polygon2 ->
-                                                                        if
-                                                                            polygon2
-                                                                                |> Polygon2d.vertices
-                                                                                |> List.all
-                                                                                    (Point2d.coordinates
-                                                                                        >> (\point ->
-                                                                                                Core.contains
-                                                                                                    (polygon
-                                                                                                        |> Polygon2d.edges
-                                                                                                    )
-                                                                                                    point
-                                                                                                    0
-                                                                                           )
-                                                                                    )
-                                                                        then
-                                                                            shape |> toSvg
-
-                                                                        else
-                                                                            Random.constant []
-                                                           )
+                                                        >> draw
                                                     )
                                         )
                                 )
@@ -125,6 +139,53 @@ toSvg (Core.Shape shapeType surface color) =
                                                 []
                                         )
                                     )
+
+        Core.Circle circle ->
+            case surface of
+                Empty ->
+                    circle
+                        |> Svg.circle2d
+                            [ Attributes.fill "none"
+                            , Attributes.strokeWidth "1"
+                            , Attributes.stroke <| Color.toCssString <| color
+                            ]
+                        |> List.singleton
+                        |> Random.constant
+
+                Filled ->
+                    circle
+                        |> Svg.circle2d
+                            [ Attributes.fill <| Color.toCssString <| color
+                            , Attributes.strokeWidth "1"
+                            , Attributes.stroke <| Color.toCssString <| color
+                            ]
+                        |> List.singleton
+                        |> Random.constant
+
+                Textured ({ border } as texture) ->
+                    Shape.regular 12
+                        (circle |> Circle2d.radius)
+                        (circle
+                            |> Circle2d.centerPoint
+                            |> Point2d.coordinates
+                        )
+                        |> Shape.withSurface (Textured { texture | border = False })
+                        |> toSvg
+                        |> (if border then
+                                Random.map
+                                    ((::)
+                                        (circle
+                                            |> Svg.circle2d
+                                                [ Attributes.fill "none"
+                                                , Attributes.strokeWidth "1"
+                                                , Attributes.stroke <| Color.toCssString <| color
+                                                ]
+                                        )
+                                    )
+
+                            else
+                                identity
+                           )
 
 
 toHtml : List (Attribute msg) -> List (Generator (List (Svg msg))) -> Generator (Html msg)
