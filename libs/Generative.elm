@@ -19,86 +19,112 @@ import Vector2d
 
 
 toSvg : Shape -> Generator (List (Svg msg))
-toSvg (Core.Shape polygon surface color) =
-    case polygon |> Polygon2d.boundingBox of
-        Nothing ->
-            Random.constant []
+toSvg (Core.Shape shapeType surface color) =
+    case shapeType of
+        Core.Polygon polygon ->
+            case polygon |> Polygon2d.boundingBox of
+                Nothing ->
+                    Random.constant []
 
-        Just boundingBox ->
-            case surface of
-                Empty ->
-                    polygon
-                        |> Svg.polygon2d
-                            [ Attributes.fill "none"
-                            , Attributes.strokeWidth "1"
-                            , Attributes.stroke <| Color.toCssString <| color
-                            ]
-                        |> List.singleton
-                        |> Random.constant
+                Just boundingBox ->
+                    case surface of
+                        Empty ->
+                            polygon
+                                |> Svg.polygon2d
+                                    [ Attributes.fill "none"
+                                    , Attributes.strokeWidth "1"
+                                    , Attributes.stroke <| Color.toCssString <| color
+                                    ]
+                                |> List.singleton
+                                |> Random.constant
 
-                Filled ->
-                    polygon
-                        |> Svg.polygon2d
-                            [ Attributes.fill <| Color.toCssString <| color
-                            , Attributes.strokeWidth "1"
-                            , Attributes.stroke <| Color.toCssString <| color
-                            ]
-                        |> List.singleton
-                        |> Random.constant
+                        Filled ->
+                            polygon
+                                |> Svg.polygon2d
+                                    [ Attributes.fill <| Color.toCssString <| color
+                                    , Attributes.strokeWidth "1"
+                                    , Attributes.stroke <| Color.toCssString <| color
+                                    ]
+                                |> List.singleton
+                                |> Random.constant
 
-                Textured { density, distribution, shapes, border } ->
-                    let
-                        ( width, height ) =
-                            boundingBox |> BoundingBox2d.dimensions
+                        Textured { density, distribution, shapes, border } ->
+                            let
+                                ( width, height ) =
+                                    boundingBox |> BoundingBox2d.dimensions
 
-                        pos : { x : Float, y : Float }
-                        pos =
-                            { x = boundingBox |> BoundingBox2d.minX
-                            , y = boundingBox |> BoundingBox2d.minY
-                            }
+                                pos : { x : Float, y : Float }
+                                pos =
+                                    { x = boundingBox |> BoundingBox2d.minX
+                                    , y = boundingBox |> BoundingBox2d.minY
+                                    }
 
-                        pointGenerator : Generator Point
-                        pointGenerator =
-                            distribution |> (\( x, y ) -> Random.pair x y)
+                                pointGenerator : Generator Point
+                                pointGenerator =
+                                    distribution |> (\( x, y ) -> Random.pair x y)
 
-                        amount : Int
-                        amount =
-                            round <| width * height * density
-                    in
-                    Random.list amount
-                        (pointGenerator
-                            |> Random.andThen
-                                (\p ->
-                                    p
-                                        |> shapes
-                                        |> Random.map
-                                            (Shape.translateBy
-                                                (p
-                                                    |> Tuple.mapBoth
-                                                        ((*) width >> (+) pos.x)
-                                                        ((*) height >> (+) pos.y)
-                                                )
-                                                >> toSvg
-                                            )
+                                amount : Int
+                                amount =
+                                    round <| width * height * density
+                            in
+                            Random.list amount
+                                (pointGenerator
+                                    |> Random.andThen
+                                        (\p ->
+                                            p
+                                                |> shapes
+                                                |> Random.map
+                                                    (Shape.translateBy
+                                                        (p
+                                                            |> Tuple.mapBoth
+                                                                ((*) width >> (+) pos.x)
+                                                                ((*) height >> (+) pos.y)
+                                                        )
+                                                        >> (\((Core.Shape shapeType2 _ _) as shape) ->
+                                                                case shapeType2 of
+                                                                    Core.Polygon polygon2 ->
+                                                                        if
+                                                                            polygon2
+                                                                                |> Polygon2d.vertices
+                                                                                |> List.all
+                                                                                    (Point2d.coordinates
+                                                                                        >> (\point ->
+                                                                                                Core.contains
+                                                                                                    (polygon
+                                                                                                        |> Polygon2d.edges
+                                                                                                    )
+                                                                                                    point
+                                                                                                    0
+                                                                                           )
+                                                                                    )
+                                                                        then
+                                                                            shape |> toSvg
+
+                                                                        else
+                                                                            Random.constant []
+                                                           )
+                                                    )
+                                        )
                                 )
-                        )
-                        |> Random.andThen
-                            (List.foldl
-                                (Random.map2 List.append)
-                                (Random.constant <|
-                                    if border then
-                                        polygon
-                                            |> Svg.polygon2d
-                                                [ Attributes.fill "none"
-                                                , Attributes.strokeWidth "1"
-                                                , Attributes.stroke <| Color.toCssString <| color
-                                                ]
-                                            |> List.singleton
+                                |> Random.andThen
+                                    (List.foldl
+                                        (Random.map2
+                                            List.append
+                                        )
+                                        (Random.constant <|
+                                            if border then
+                                                polygon
+                                                    |> Svg.polygon2d
+                                                        [ Attributes.fill "none"
+                                                        , Attributes.strokeWidth "1"
+                                                        , Attributes.stroke <| Color.toCssString <| color
+                                                        ]
+                                                    |> List.singleton
 
-                                    else
-                                        []
-                                )
-                            )
+                                            else
+                                                []
+                                        )
+                                    )
 
 
 toHtml : List (Attribute msg) -> List (Generator (List (Svg msg))) -> Generator (Html msg)

@@ -10,28 +10,40 @@ import Random exposing (Generator)
 import Svg exposing (Svg)
 
 
-rect : ( Float, Float ) -> ( Float, Float ) -> ( Distribution, Distribution ) -> Generator (List (Svg msg))
-rect p1 p2 dist =
-    Shape.rectangle p1 p2
+square : ( Float, Float ) -> ( Distribution, Distribution ) -> Generator (List (Svg msg))
+square p1 dist =
+    Shape.regular 5 100 p1
+        |> Shape.rotateBy (pi / 3)
         |> Shape.withSurface
             (Textured
-                { density = 0.15
+                { density = 0.07
                 , distribution = dist
                 , shapes =
                     \( x, y ) ->
                         let
-                            size : Float
-                            size =
-                                sqrt ((x - 0.5) ^ 2 + (y - 0.5) ^ 2) * 3
+                            distance : Float
+                            distance =
+                                sqrt ((x - 0.5) ^ 2 + (y - 0.5) ^ 2)
+
+                            n : Int
+                            n =
+                                (+) 2 <| round <| x * 4
                         in
-                        Random.float 0 (2 * pi)
-                            |> Random.map
-                                (\angle ->
-                                    Shape.rectangle ( 0, 0 ) ( 2 + size, 2 + size )
-                                        |> Shape.withSurface Empty
-                                        |> Shape.withColor (Color.rgba 0 0 0 0.5)
-                                        |> Shape.rotateBy angle
-                                )
+                        Random.map2
+                            (\angle size ->
+                                Shape.regular 4 size ( 0, 0 )
+                                    |> Shape.withSurface Filled
+                                    |> Shape.withColor
+                                        (Color.hsla
+                                            0.05
+                                            0.3
+                                            (0.1 + 0.7 * (1 - distance))
+                                            0.5
+                                        )
+                                    |> Shape.rotateBy angle
+                            )
+                            (Random.float 0 (2 * pi))
+                            (Random.float 1 5)
                 , border = True
                 }
             )
@@ -41,10 +53,10 @@ rect p1 p2 dist =
 main : Html msg
 main =
     Random.step
-        ([ rect ( 0, 0 ) ( 100, 100 ) ( Distribution.uniform, Distribution.uniform )
-         , rect ( 110, 0 ) ( 210, 100 ) ( Distribution.uniform, Distribution.gradual )
-         , rect ( 0, 110 ) ( 100, 210 ) ( Distribution.uniform, Distribution.normal )
-         , rect ( 110, 110 ) ( 210, 210 ) ( Distribution.normal, Distribution.normal )
+        ([ square ( 100, 100 ) ( Distribution.uniform, Distribution.uniform )
+         , square ( 300, 100 ) ( Distribution.uniform, Distribution.gradual )
+         , square ( 100, 300 ) ( Distribution.uniform, Distribution.normal )
+         , square ( 300, 300 ) ( Distribution.normal, Distribution.normal )
          ]
             |> Generative.toHtml [ Attributes.width 1000, Attributes.height 1000 ]
         )
