@@ -2,7 +2,7 @@ module GameJam exposing (main)
 
 import Color
 import Game
-import GameJam.Data exposing (boardSize, initialHealth,  initialPlayer, screenWidth, spriteSize)
+import GameJam.Data exposing (boardSize, initialHealth, initialPlayer, screenWidth, spriteSize)
 import GameJam.Data.Behaviour as Behaviour
 import GameJam.Data.Board as Board
 import GameJam.Data.Game as DataGame exposing (Game)
@@ -17,7 +17,7 @@ import PixelEngine exposing (Area, Input(..))
 import PixelEngine.Image as Image
 import PixelEngine.Tile as Tile
 import Random exposing (Generator)
-
+import Game.Gui as Gui exposing (Gui)
 
 type alias Model =
     { game : Game
@@ -27,7 +27,6 @@ type alias Model =
 
 type Msg
     = Move Direction
-
 
 
 init : Int -> Generator ( Model, Cmd msg )
@@ -103,34 +102,20 @@ update msg ({ game, won } as model) =
                     |> Just
                     |> Random.constant
 
+
+
 {------------------------
    VIEW
 ------------------------}
-view : Model -> List (Area Msg)
+
+
+view : Model -> Gui
 view { game, won } =
     let
         { health, board, player, super, level } =
             game
     in
-    [ PixelEngine.tiledArea
-        { rows = boardSize
-        , tileset = View.tileset
-        , background =
-            PixelEngine.colorBackground <|
-                if won then
-                    Color.rgb255 218 212 94
-                    --yellow
-
-                else if health <= 0 then
-                    Color.rgb255 208 70 72
-                    --red
-
-                else
-                    Color.rgb255 20 12 28
-
-        --black
-        }
-        (board
+    (board
             |> Grid.insert player
                 (if super then
                     ActivePlayer
@@ -141,16 +126,26 @@ view { game, won } =
             |> Grid.toList
             |> List.map (\( pos, square ) -> ( pos, square |> Square.view ))
         )
-    , PixelEngine.imageArea
-        { height = toFloat <| spriteSize * 1
-        , background =
-            PixelEngine.colorBackground <|
+    |> Gui.create
+        {gui=
+                PixelEngine.colorBackground <|
                 Color.rgb255 68 36 52
+            ,grid =
+                PixelEngine.colorBackground <|
+                if won then
+                    Color.rgb255 218 212 94
+                    --yellow
 
-        --gray
-        }
-      <|
-        [ ( ( 0, 0 )
+                else if health <= 0 then
+                    Color.rgb255 208 70 72
+                    --red
+
+                else
+                    Color.rgb255 20 12 28
+            }
+        View.tileset
+    |> Gui.withHeader
+        ( ( 0
           , Image.fromTextWithSpacing -3 ("Lv." ++ String.fromInt level) <|
                 Tile.tileset
                     { source = "Expire8x8.png"
@@ -158,10 +153,14 @@ view { game, won } =
                     , spriteHeight = 8
                     }
           )
-        ]
-            ++ Health.view health
-    ]
+        |> List.singleton
+        )
 
+    |> Gui.withFooter
+        []
+        (Health.view health)
+        []
+        
 
 
 {------------------------
@@ -189,11 +188,9 @@ controls input =
 
 
 
-
 {------------------------
    CONFIGURATION
 ------------------------}
-
 
 
 subscriptions : Model -> Sub Msg
@@ -209,5 +206,6 @@ main =
         , subscriptions = subscriptions
         , view = view
         , controls = controls
-        , width = screenWidth
+        , imgSize = spriteSize
+        , title = "One Switch"
         }

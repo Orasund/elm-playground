@@ -8,7 +8,7 @@ import Location exposing (Location)
 import PixelEngine.Image as Image exposing (Image)
 
 
-view : Int -> List ( Location, Image msg )
+view : Int -> List ( Float, Image msg )
 view amount =
     View.tileset
         |> Image.fromTile (Square.view Health)
@@ -17,7 +17,6 @@ view amount =
             (\i image ->
                 ( ( ((screenWidth - (toFloat <| amount * spriteSize)) / 2)
                         + (toFloat <| i * spriteSize)
-                  , toFloat <| 0 * spriteSize
                   )
                 , image
                 )

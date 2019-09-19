@@ -1,13 +1,15 @@
 module Game exposing (Game, define)
 
-import PixelEngine exposing (Area, Input(..), PixelEngine)
+import PixelEngine exposing (Area, Background, Input(..), PixelEngine)
+import PixelEngine.Image exposing (Image)
 import PixelEngine.Options as Options exposing (Options)
-import Random exposing (Seed,Generator)
-
+import PixelEngine.Tile exposing (Tile,Tileset)
+import Random exposing (Generator, Seed)
+import Game.Gui as Gui exposing (Gui)
 
 type Model model
     = Loading
-    | Running {game:model,seed:Seed}
+    | Running { game : model, seed : Seed }
 
 
 type Msg msg
@@ -26,23 +28,25 @@ init _ =
     )
 
 
-update : (Generator ( model, Cmd msg )) -> (msg -> model -> Generator (Maybe (model,Cmd msg) ))-> Msg msg -> Model model -> ( Model model, Cmd (Msg msg) )
+update : Generator ( model, Cmd msg ) -> (msg -> model -> Generator (Maybe ( model, Cmd msg ))) -> Msg msg -> Model model -> ( Model model, Cmd (Msg msg) )
 update initfun fun msg model =
     case ( msg, model ) of
         ( GotSeed seed, Loading ) ->
             seed
-            |> Random.step initfun
-            |> \((g,cmd),s) ->
-                (Running {seed=s,game = g},cmd |> Cmd.map Specific)
+                |> Random.step initfun
+                |> (\( ( g, cmd ), s ) ->
+                        ( Running { seed = s, game = g }, cmd |> Cmd.map Specific )
+                   )
 
         ( Specific runningMsg, Running runningModel ) ->
-                case runningModel.seed |> Random.step (fun runningMsg runningModel.game) of
-                    (Nothing,_) ->
-                        init ()
-                    (Just (game,cmd),seed) ->
-                        ( Running {game=game,seed=seed}
-                        , cmd |> Cmd.map Specific
-                        )
+            case runningModel.seed |> Random.step (fun runningMsg runningModel.game) of
+                ( Nothing, _ ) ->
+                    init ()
+
+                ( Just ( game, cmd ), seed ) ->
+                    ( Running { game = game, seed = seed }
+                    , cmd |> Cmd.map Specific
+                    )
 
         _ ->
             ( model, Cmd.none )
@@ -67,35 +71,39 @@ subscriptions fun model =
             Sub.none
 
 
-areas : (model -> List (Area msg)) -> Model model -> List (Area (Msg msg))
-areas fun model =
+areas : (model-> Gui)-> Model model-> Int  -> List (Area (Msg msg))
+areas fun model imgSize =
     case model of
         Loading ->
             []
 
         Running runningModel ->
             fun runningModel.game
-                |> List.map (PixelEngine.mapArea Specific)
+            |> Gui.toAreas imgSize
+            |> List.map (PixelEngine.mapArea never)
 
 
 view :
-    (model -> List (Area msg))
+    (model-> Gui)
+    -> String
+    -> Int
     -> Model model
     -> { title : String, options : Maybe (Options (Msg msg)), body : List (Area (Msg msg)) }
-view fun model =
-    { title = "One Switch"
+view fun title imgSize model =
+    { title = title
     , options = Just Options.default
-    , body = areas fun model
+    , body = areas fun model imgSize
     }
 
 
 define :
     { init : Generator ( model, Cmd msg )
     , controls : Input -> Maybe msg
-    , update : msg -> model -> Generator (Maybe (model,Cmd msg))
-    , view : model -> List (Area msg)
+    , update : msg -> model -> Generator (Maybe ( model, Cmd msg ))
+    , view :model -> Gui
+    , title : String
     , subscriptions : model -> Sub msg
-    , width : Float
+    , imgSize : Int
     }
     -> Game model msg
 define config =
@@ -103,7 +111,7 @@ define config =
         { init = init
         , update = update config.init config.update
         , subscriptions = subscriptions config.subscriptions
-        , view = view config.view
+        , view = view config.view config.title config.imgSize
         , controls = controls config.controls
-        , width = config.width
+        , width = toFloat config.imgSize * 16
         }

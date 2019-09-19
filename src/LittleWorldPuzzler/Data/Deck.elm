@@ -5,13 +5,13 @@ module LittleWorldPuzzler.Data.Deck exposing
     , fromList
     , generator
     , json
+    , moveTofirst
     , playFirst
     , playSecond
     , played
     , remaining
     , second
     , shuffle
-    , moveTofirst
     )
 
 import Jsonstore exposing (Json)
