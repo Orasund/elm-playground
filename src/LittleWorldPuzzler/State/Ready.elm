@@ -19,8 +19,7 @@ import Time exposing (Month(..))
 
 
 type alias State =
-    { game : Game
-    }
+    Game
 
 
 type alias Model =
@@ -47,11 +46,6 @@ type alias Action =
 stateGenerator : Generator State
 stateGenerator =
     Game.generator
-        |> Random.map
-            (\game ->
-                { game = game
-                }
-            )
 
 
 init : Seed -> ( Model, Cmd Msg )
@@ -106,7 +100,7 @@ monthToInt month =
 
 
 update : Msg -> Model -> Action
-update msg (( { game }, seed ) as model) =
+update msg (( game, seed ) as model) =
     case msg of
         NormalModeSelected ->
             Action.transitioning
@@ -152,7 +146,7 @@ update msg (( { game }, seed ) as model) =
 
 
 view : Float -> msg -> (Msg -> msg) -> Model -> Element msg
-view scale restartMsg msgMapper ( { game }, _ ) =
+view scale restartMsg msgMapper ( game, _ ) =
     Element.column
         [ Element.centerY
         , Element.centerX

@@ -3,7 +3,7 @@ module Example exposing (main)
 import Color
 import Generative
 import Generative.Distribution as Distribution exposing (Distribution)
-import Generative.Shape as Shape exposing (Shape, Surface(..))
+import Generative.Shape as Shape exposing (Surface(..))
 import Html exposing (Html)
 import Html.Attributes as Attributes
 import Random exposing (Generator)
@@ -39,7 +39,7 @@ square p1 dist =
                         in
                         Random.map2
                             (\angle size ->
-                                Shape.circle size ( 0, 0 )
+                                Shape.regular n size ( 0, 0 )
                                     |> Shape.withSurface Filled
                                     |> Shape.withColor
                                         (Color.hsla

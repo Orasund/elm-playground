@@ -11,6 +11,7 @@ module LittleWorldPuzzler.Data.Deck exposing
     , remaining
     , second
     , shuffle
+    , moveTofirst
     )
 
 import Jsonstore exposing (Json)

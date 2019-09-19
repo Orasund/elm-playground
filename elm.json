@@ -28,7 +28,7 @@
             "ianmackenzie/elm-geometry": "1.2.1",
             "ianmackenzie/elm-geometry-svg": "1.0.2",
             "joakin/elm-canvas": "4.0.1",
-            "lucamug/style-framework": "1.0.0",
+            "lucamug/style-framework": "1.1.0",
             "mdgriffith/elm-ui": "1.1.0",
             "pablohirafuji/elm-markdown": "2.0.5",
             "rtfeldman/elm-css": "16.0.1",
@@ -40,9 +40,11 @@
             "elm/file": "1.0.4",
             "elm/regex": "1.0.0",
             "elm/virtual-dom": "1.0.2",
+            "fredcy/elm-parseint": "2.0.1",
             "ianmackenzie/elm-float-extra": "1.1.0",
             "ianmackenzie/elm-interval": "1.0.1",
             "ianmackenzie/elm-triangular-mesh": "1.0.2",
+            "noahzgordon/elm-color-extra": "1.0.2",
             "owanturist/elm-union-find": "1.0.0",
             "rtfeldman/elm-hex": "1.0.0"
         }

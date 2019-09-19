@@ -4,19 +4,15 @@ import BoundingBox2d
 import Circle2d
 import Color
 import Generative.Core as Core
-import Generative.Distribution exposing (Distribution)
 import Generative.Shape as Shape exposing (Point, Shape, Surface(..))
 import Geometry.Svg as Svg
 import Html exposing (Attribute, Html)
-import Location
-import Point2d exposing (Point2d)
-import Polygon2d exposing (Polygon2d)
+import Point2d
+import Polygon2d
 import Random exposing (Generator)
 import Random.Float as Random
-import Rectangle2d
 import Svg exposing (Svg)
 import Svg.Attributes as Attributes
-import Vector2d
 
 
 toSvg : Shape -> Generator (List (Svg msg))

@@ -1,58 +1,166 @@
 module GameJam exposing (main)
 
-import Action
-import Game exposing (Game)
-import GameJam.Data exposing (initialLevel, screenWidth)
-import GameJam.Page.Running as Running
+import Color
+import Game
+import GameJam.Data exposing (boardSize, initialHealth,  initialPlayer, screenWidth, spriteSize)
+import GameJam.Data.Behaviour as Behaviour
+import GameJam.Data.Board as Board
+import GameJam.Data.Game as DataGame exposing (Game)
+import GameJam.Data.Square as Square exposing (Square(..))
+import GameJam.View as View
+import GameJam.View.Health as Health
+import GameJam.View.Square as Square
+import Grid
 import Grid.Direction exposing (Direction(..))
-import PixelEngine exposing (Area, Input(..), PixelEngine, game)
-import PixelEngine.Options as Options exposing (Options)
-import Random exposing (Seed)
+import Grid.Position as Position
+import PixelEngine exposing (Area, Input(..))
+import PixelEngine.Image as Image
+import PixelEngine.Tile as Tile
+import Random exposing (Generator)
 
 
-type Model
-    = Loading
-    | Running Running.Model
+type alias Model =
+    { game : Game
+    , won : Bool
+    }
 
 
 type Msg
-    = GotSeed Seed
-    | RunningSpecific Running.Msg
+    = Move Direction
 
 
-init : () -> ( Model, Cmd Msg )
-init _ =
-    ( Loading
-    , Random.generate GotSeed Random.independentSeed
-    )
+
+init : Int -> Generator ( Model, Cmd msg )
+init level =
+    Board.generator level
+        |> Random.map
+            (\board ->
+                ( { game =
+                        { board = board
+                        , health = initialHealth
+                        , player = initialPlayer
+                        , super = False
+                        , level = level
+                        }
+                  , won = False
+                  }
+                , Cmd.none
+                )
+            )
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
-    case ( msg, model ) of
-        ( GotSeed seed, Loading ) ->
-            ( Running <| Running.init ( seed, initialLevel ), Cmd.none )
+update : Msg -> Model -> Generator (Maybe ( Model, Cmd Msg ))
+update msg ({ game, won } as model) =
+    let
+        { player, health, level } =
+            game
+    in
+    case msg of
+        Move dir ->
+            if won then
+                init (level + 1)
+                    |> Random.map Just
 
-        ( RunningSpecific runningMsg, Running runningModel ) ->
-            Running.update runningMsg runningModel
-                |> Action.config
-                |> Action.withUpdate Running RunningSpecific
-                |> Action.withExit (init ())
-                |> Action.apply
+            else if health <= 0 then
+                init level
+                    |> Random.map Just
 
-        _ ->
-            ( model, Cmd.none )
+            else
+                let
+                    newGame : Game
+                    newGame =
+                        DataGame.update
+                            { game
+                                | player =
+                                    player
+                                        |> Position.move 1 dir
+                                        |> (\p ->
+                                                if
+                                                    game.board
+                                                        |> Grid.get p
+                                                        |> (\ms ->
+                                                                (ms /= Just Wall)
+                                                                    && (ms /= Just LookedDoor)
+                                                           )
+                                                then
+                                                    p
 
-
+                                                else
+                                                    player
+                                           )
+                            }
+                in
+                ( { model
+                    | game = newGame
+                    , won =
+                        newGame.board
+                            |> Grid.filter
+                                (\_ s -> Behaviour.removeToWin level |> List.member s)
+                            |> Grid.isEmpty
+                  }
+                , Cmd.none
+                )
+                    |> Just
+                    |> Random.constant
 
 {------------------------
-   SUBSCRIPTIONS
+   VIEW
 ------------------------}
+view : Model -> List (Area Msg)
+view { game, won } =
+    let
+        { health, board, player, super, level } =
+            game
+    in
+    [ PixelEngine.tiledArea
+        { rows = boardSize
+        , tileset = View.tileset
+        , background =
+            PixelEngine.colorBackground <|
+                if won then
+                    Color.rgb255 218 212 94
+                    --yellow
 
+                else if health <= 0 then
+                    Color.rgb255 208 70 72
+                    --red
 
-subscriptions : Model -> Sub Running.Msg
-subscriptions _ =
-    Sub.none
+                else
+                    Color.rgb255 20 12 28
+
+        --black
+        }
+        (board
+            |> Grid.insert player
+                (if super then
+                    ActivePlayer
+
+                 else
+                    Player
+                )
+            |> Grid.toList
+            |> List.map (\( pos, square ) -> ( pos, square |> Square.view ))
+        )
+    , PixelEngine.imageArea
+        { height = toFloat <| spriteSize * 1
+        , background =
+            PixelEngine.colorBackground <|
+                Color.rgb255 68 36 52
+
+        --gray
+        }
+      <|
+        [ ( ( 0, 0 )
+          , Image.fromTextWithSpacing -3 ("Lv." ++ String.fromInt level) <|
+                Tile.tileset
+                    { source = "Expire8x8.png"
+                    , spriteWidth = 8
+                    , spriteHeight = 8
+                    }
+          )
+        ]
+            ++ Health.view health
+    ]
 
 
 
@@ -61,40 +169,24 @@ subscriptions _ =
 ------------------------}
 
 
-controls : Input -> Maybe Running.Msg
+controls : Input -> Maybe Msg
 controls input =
     case input of
         InputUp ->
-            Just <| Running.Move Up
+            Just <| Move Up
 
         InputDown ->
-            Just <| Running.Move Down
+            Just <| Move Down
 
         InputLeft ->
-            Just <| Running.Move Left
+            Just <| Move Left
 
         InputRight ->
-            Just <| Running.Move Right
+            Just <| Move Right
 
         _ ->
             Nothing
 
-
-
-{------------------------
-   VIEW
-------------------------}
-
-
-areas : Model -> List (Area Msg)
-areas model =
-    case model of
-        Loading ->
-            []
-
-        Running runningModel ->
-            Running.view runningModel
-                |> List.map (PixelEngine.mapArea RunningSpecific)
 
 
 
@@ -103,28 +195,19 @@ areas model =
 ------------------------}
 
 
-options : Options Msg
-options =
-    Options.default
+
+subscriptions : Model -> Sub Msg
+subscriptions _ =
+    Sub.none
 
 
-view :
-    Model
-    -> { title : String, options : Maybe (Options Msg), body : List (Area Msg) }
-view model =
-    { title = "One Switch"
-    , options = Just options
-    , body = areas model
-    }
-
-
-main : Game Running.Model Running.Msg
+main : Game.Game Model Msg
 main =
-    Game.main
-        { init = Running.init
-        , update = Running.update
+    Game.define
+        { init = init 1
+        , update = update
         , subscriptions = subscriptions
-        , view = Running.view
+        , view = view
         , controls = controls
         , width = screenWidth
         }

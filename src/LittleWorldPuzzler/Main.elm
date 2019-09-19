@@ -317,7 +317,7 @@ view model =
                 content
     }
 
-
+main : Program () Model Msg
 main =
     Browser.document
         { init = init

@@ -1,14 +1,13 @@
-module Game exposing (Game, main)
+module Game exposing (Game, define)
 
-import Action
-import PixelEngine exposing (Area, Input(..), PixelEngine, game)
+import PixelEngine exposing (Area, Input(..), PixelEngine)
 import PixelEngine.Options as Options exposing (Options)
-import Random exposing (Seed)
+import Random exposing (Seed,Generator)
 
 
 type Model model
     = Loading
-    | Running { seed : Seed, game : model }
+    | Running {game:model,seed:Seed}
 
 
 type Msg msg
@@ -27,19 +26,23 @@ init _ =
     )
 
 
-update : (Seed -> ( model, Cmd msg )) -> (msg -> model -> ( model, Cmd msg )) -> Msg msg -> Model model -> ( Model model, Cmd (Msg msg) )
+update : (Generator ( model, Cmd msg )) -> (msg -> model -> Generator (Maybe (model,Cmd msg) ))-> Msg msg -> Model model -> ( Model model, Cmd (Msg msg) )
 update initfun fun msg model =
     case ( msg, model ) of
         ( GotSeed seed, Loading ) ->
-            initfun seed
-                |> Tuple.mapBoth (\m -> Running {seed=seed,game=m}) (Cmd.map Specific)
+            seed
+            |> Random.step initfun
+            |> \((g,cmd),s) ->
+                (Running {seed=s,game = g},cmd |> Cmd.map Specific)
 
         ( Specific runningMsg, Running runningModel ) ->
-            fun runningMsg runningModel
-                |> Action.config
-                |> Action.withUpdate Running Specific
-                |> Action.withExit (init ())
-                |> Action.apply
+                case runningModel.seed |> Random.step (fun runningMsg runningModel.game) of
+                    (Nothing,_) ->
+                        init ()
+                    (Just (game,cmd),seed) ->
+                        ( Running {game=game,seed=seed}
+                        , cmd |> Cmd.map Specific
+                        )
 
         _ ->
             ( model, Cmd.none )
@@ -52,7 +55,7 @@ controls fun input =
         |> Maybe.map Specific
 
 
-subscriptions : (model -> Sub msg) -> Model msg -> Sub (Msg msg)
+subscriptions : (model -> Sub msg) -> Model model -> Sub (Msg msg)
 subscriptions fun model =
     case model of
         Running { game } ->
@@ -64,20 +67,20 @@ subscriptions fun model =
             Sub.none
 
 
-areas : (model -> List (Area msg)) -> Model msg -> List (Area (Msg msg))
+areas : (model -> List (Area msg)) -> Model model -> List (Area (Msg msg))
 areas fun model =
     case model of
         Loading ->
             []
 
         Running runningModel ->
-            fun runningModel
+            fun runningModel.game
                 |> List.map (PixelEngine.mapArea Specific)
 
 
 view :
     (model -> List (Area msg))
-    -> Model msg
+    -> Model model
     -> { title : String, options : Maybe (Options (Msg msg)), body : List (Area (Msg msg)) }
 view fun model =
     { title = "One Switch"
@@ -86,20 +89,20 @@ view fun model =
     }
 
 
-main :
-    { init : Seed -> ( model, Cmd msg )
+define :
+    { init : Generator ( model, Cmd msg )
     , controls : Input -> Maybe msg
-    , update : msg -> model -> ( model, Cmd msg )
+    , update : msg -> model -> Generator (Maybe (model,Cmd msg))
     , view : model -> List (Area msg)
-    , subscripions : model -> Sub msg
-    , width : Int
+    , subscriptions : model -> Sub msg
+    , width : Float
     }
     -> Game model msg
-main config =
-    game
+define config =
+    PixelEngine.game
         { init = init
         , update = update config.init config.update
-        , subscriptions = subscriptions
+        , subscriptions = subscriptions config.subscriptions
         , view = view config.view
         , controls = controls config.controls
         , width = config.width
