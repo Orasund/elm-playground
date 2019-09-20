@@ -5,21 +5,25 @@ import GameJam.Data.Board exposing (Board)
 import GameJam.Data.Square exposing (Square(..))
 import Grid
 import Grid.Position as Position exposing (Position)
-
+import GJumper exposing (GameData)
 
 type alias Game =
-    { player : Position
-    , health : Int
-    , super : Bool
-    , board : Board
-    , level : Int
-    }
+        { health : Int
+        , super : Bool
+        , level : Int
+        , won : Bool
+        }
 
 
-updateBehaviour : Position -> Square -> Game -> Game
-updateBehaviour pos square ({ player, health, board, super } as game) =
+updateBehaviour : Position -> Square -> GameData Square Game -> GameData  Square Game
+updateBehaviour pos square ({data,grid,player} as game) =
     let
-        defaultCase : Game
+        { health, super } = data
+
+
+        board = grid
+
+        defaultCase : GameData Square Game
         defaultCase =
             game
     in
@@ -42,21 +46,21 @@ updateBehaviour pos square ({ player, health, board, super } as game) =
             case board |> Grid.get newPos of
                 Nothing ->
                     if player == newPos && not super then
-                        { game
-                            | board =
-                                board
-                                    |> Grid.insert newPos Enemy
-                                    |> Grid.remove pos
-                            , player =
-                                player
+                        { player =
+                            player
                                     |> Position.move 1
                                         (pos |> Position.coordsTo player |> Position.toDirection)
-                            , health = health - 1
+                        , grid =
+                            board
+                                    |> Grid.insert newPos Enemy
+                                    |> Grid.remove pos
+                        , data =    {data|health = health - 1}
+
                         }
 
                     else
                         { game
-                            | board =
+                            | grid =
                                 board
                                     |> Grid.insert newPos Enemy
                                     |> Grid.remove pos
@@ -67,43 +71,35 @@ updateBehaviour pos square ({ player, health, board, super } as game) =
 
         Health ->
             if player == pos then
-                { game
-                    | health = health + 1
-                }
+                { game| data ={data|health = health + 1} }
 
             else
                 defaultCase
 
         Lava ->
             if player == pos then
-                { game
-                    | health = health - 1
-                }
+                { game | data = {data|health = health - 1} }
 
             else
                 defaultCase
 
         PowerUp ->
             if player == pos then
-                { game
-                    | super = True
-                }
+                { game | data = {data|super = True}  }
 
             else
                 defaultCase
 
         PowerDown ->
             if player == pos then
-                { game
-                    | super = False
-                }
+                { game | data ={data|super = False} }
 
             else
                 defaultCase
 
         Swap ->
             if player == pos then
-                { game | super = not super }
+                { game | data = {data|super = not super }}
 
             else
                 defaultCase
@@ -112,19 +108,23 @@ updateBehaviour pos square ({ player, health, board, super } as game) =
             defaultCase
 
 
-update : Game -> Game
-update ({ player, super, level } as game) =
+update : GameData Square Game -> GameData Square Game
+update ({data,grid,player} as game) =
     let
+        { super, level } = data
+
+        board = grid
+
         activatedBoard : Board
         activatedBoard =
-            game.board
-                |> (game.board
+            board
+                |> (board
                         |> Grid.get player
                         |> Maybe.map (Behaviour.activate level)
                         |> Maybe.withDefault identity
                    )
 
-        updatedGame : Game
+        updatedGame : GameData Square Game
         updatedGame =
             activatedBoard
                 |> Grid.toList
@@ -132,15 +132,15 @@ update ({ player, super, level } as game) =
                     (\( pos, square ) ->
                         updateBehaviour pos square
                     )
-                    { game | board = activatedBoard }
+                    { game | grid = activatedBoard }
 
-        consumedGame : Game
+        consumedGame : GameData Square Game
         consumedGame =
             { updatedGame
-                | board =
-                    updatedGame.board
+                | grid =
+                    updatedGame.grid
                         |> (if
-                                updatedGame.board
+                                updatedGame.grid
                                     |> Grid.get player
                                     |> Maybe.map
                                         (\s -> Behaviour.consumable level super |> List.member s)
