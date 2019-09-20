@@ -12,7 +12,7 @@ removeToWin _ =
 
 consumable : Int -> Bool -> List Square
 consumable _ super =
-    [ Health, OpenDoor ]
+    [ Health, Key, OpenDoor ]
         ++ (if super then
                 [ InactiveEnemy ]
 

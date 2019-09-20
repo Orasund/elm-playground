@@ -1,27 +1,29 @@
 module GameJam.Data.Game exposing (Game, update, updateBehaviour)
 
+import GJumper exposing (GameData)
 import GameJam.Data.Behaviour as Behaviour
 import GameJam.Data.Board exposing (Board)
 import GameJam.Data.Square exposing (Square(..))
 import Grid
 import Grid.Position as Position exposing (Position)
-import GJumper exposing (GameData)
+
 
 type alias Game =
-        { health : Int
-        , super : Bool
-        , level : Int
-        , won : Bool
-        }
+    { health : Int
+    , super : Bool
+    , level : Int
+    , won : Bool
+    }
 
 
-updateBehaviour : Position -> Square -> GameData Square Game -> GameData  Square Game
-updateBehaviour pos square ({data,grid,player} as game) =
+updateBehaviour : Position -> Square -> GameData Square Game -> GameData Square Game
+updateBehaviour pos square ({ data, grid, player } as game) =
     let
-        { health, super } = data
+        { health, super } =
+            data
 
-
-        board = grid
+        board =
+            grid
 
         defaultCase : GameData Square Game
         defaultCase =
@@ -48,14 +50,13 @@ updateBehaviour pos square ({data,grid,player} as game) =
                     if player == newPos && not super then
                         { player =
                             player
-                                    |> Position.move 1
-                                        (pos |> Position.coordsTo player |> Position.toDirection)
+                                |> Position.move 1
+                                    (pos |> Position.coordsTo player |> Position.toDirection)
                         , grid =
                             board
-                                    |> Grid.insert newPos Enemy
-                                    |> Grid.remove pos
-                        , data =    {data|health = health - 1}
-
+                                |> Grid.insert newPos Enemy
+                                |> Grid.remove pos
+                        , data = { data | health = health - 1 }
                         }
 
                     else
@@ -71,35 +72,35 @@ updateBehaviour pos square ({data,grid,player} as game) =
 
         Health ->
             if player == pos then
-                { game| data ={data|health = health + 1} }
+                { game | data = { data | health = health + 1 } }
 
             else
                 defaultCase
 
         Lava ->
             if player == pos then
-                { game | data = {data|health = health - 1} }
+                { game | data = { data | health = health - 1 } }
 
             else
                 defaultCase
 
         PowerUp ->
             if player == pos then
-                { game | data = {data|super = True}  }
+                { game | data = { data | super = True } }
 
             else
                 defaultCase
 
         PowerDown ->
             if player == pos then
-                { game | data ={data|super = False} }
+                { game | data = { data | super = False } }
 
             else
                 defaultCase
 
         Swap ->
             if player == pos then
-                { game | data = {data|super = not super }}
+                { game | data = { data | super = not super } }
 
             else
                 defaultCase
@@ -109,11 +110,13 @@ updateBehaviour pos square ({data,grid,player} as game) =
 
 
 update : GameData Square Game -> GameData Square Game
-update ({data,grid,player} as game) =
+update ({ data, grid, player } as game) =
     let
-        { super, level } = data
+        { super, level } =
+            data
 
-        board = grid
+        board =
+            grid
 
         activatedBoard : Board
         activatedBoard =
