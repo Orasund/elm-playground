@@ -69,7 +69,7 @@ swap around x =
 
 applyPosition : Position -> Grid Square -> Grid Square
 applyPosition (x,y) =
-    Grid.map
+    {--Grid.map
         (\(posX,posY) ->
             Maybe.map
                 (\square ->
@@ -87,7 +87,8 @@ applyPosition (x,y) =
                             Bumper _ -> Bumper False
                             _ -> square
                 )
-        )
+        )--}
+    identity
 
 tick : Model -> Generator (Maybe Model)
 tick ({ player } as game) =
@@ -109,25 +110,49 @@ tick ({ player } as game) =
         oldX =
             game.data.x
 
-        grid =
-            if data.x /= oldX then
-                game.grid
-                    |> Grid.toList
-                    |> List.map
-                        (\( ( x, y ), elem ) ->
-                            ( ( x |> swap oldX
-                              , y
-                              )
-                            , elem
-                            )
-                        )
-                    |> Grid.fromList
-                        { rows = 16
-                        , columns = 16
-                        }
+        gridGenerator : Generator (Grid Square)
+        gridGenerator =
+            Random.map2
+                (\x y -> (x,y))
+            (Random.int 0 15)
+            (Random.int 1 14)
+            |> Random.map
+                (\newBumperPos ->
+                    (
+                    if data.x /= oldX then
+                        game.grid
+                            |> Grid.toList
+                            |> List.map
+                                (\( ( x, y ), elem ) ->
+                                    ( if y == playerY
+                                    then
+                                    ( x |> swap oldX
+                                    , y
+                                    )
+                                    else
+                                    (x,y)
+                                    , elem
+                                    )
+                                )
+                            |> Grid.fromList
+                                { rows = 16
+                                , columns = 16
+                                }
+                            |> Grid.update newBumperPos
+                                (
 
-            else
-                game.grid
+                                    Maybe.withDefault
+                                        ( (Bumper False)
+                                        )
+                                    >> Just 
+                                )
+
+
+                    else
+                        game.grid
+                    )
+                        
+                )
     in
     if status /= Running then
         init 1
@@ -135,58 +160,67 @@ tick ({ player } as game) =
     else
     (case square of
         Just Goal ->
-            { game | data = { data | status = Won } }
+            { game | data = { data | status = Won}, grid = game.grid |> Grid.remove (playerX,15)  }
+            |> Random.constant
 
         Just (Bumper _) ->
-            let
-                newGrid : Grid Square
-                newGrid =
-                    grid
-                        |> Grid.remove player
-                        |> Grid.toList
-                        |> List.map
-                            (\( ( x, y ), elem ) ->
-                                ( ( x
-                                  , if y == (player |> Tuple.second) then
-                                                14
-                                    else if y == 14 then
-                                                player |> Tuple.second
-                                    else
-                                        y
-                                  )
-                                , elem
-                                )
-                            )
-                        |> Grid.fromList
-                            { rows = 16
-                            , columns = 16
-                            }
-                newPlayer =
-                    player |> (\( x, y ) -> ( x, 14 ))
-            in
-            { game
-                | data = {data
-                    | status =
-                    if 
-                    [ newGrid |> Grid.get (playerX+1,14)
-                    , newGrid |> Grid.get (playerX-1,14)
-                    , newGrid |> Grid.get (playerX,13)
-                    ]
-                    |> List.all
-                        (\x -> 
-                            case x of 
-                                (Just (Wall _)) -> True
-                                _ -> False
-                        )
-                    then
-                    Lost
-                    else
-                    Running
-                }
-                , grid = newGrid |> applyPosition newPlayer
+            gridGenerator
+            |> Random.map
+                (\grid ->
                 
-                , player = newPlayer
-            }
+                    let
+                        newGrid : Grid Square
+                        newGrid =
+                            
+                                grid
+                                |> Grid.remove player
+                                |> Grid.toList
+                                |> List.map
+                                    (\( ( x, y ), elem ) ->
+                                        ( ( x
+                                        , if y == (player |> Tuple.second) then
+                                                        14
+                                            else if y == 14 then
+                                                        player |> Tuple.second
+                                            else
+                                                y
+                                        )
+                                        , elem
+                                        )
+                                    )
+                                |> Grid.fromList
+                                    { rows = 16
+                                    , columns = 16
+                                    }
+                        newPlayer =
+                            player |> (\( x, y ) -> ( x, 14 ))
+                    in
+                    { game
+                        | data = {data
+                            | status =
+                            if 
+                            [ newGrid |> Grid.get (playerX+1,14)
+                            , newGrid |> Grid.get (playerX-1,14)
+                            , newGrid |> Grid.get (playerX,13)
+                            ]
+                            |> List.all
+                                (\x -> 
+                                    case x of 
+                                        (Just (Wall _)) -> True
+                                        _ -> False
+                                )
+                            then
+                            Lost
+                            else
+                            Running
+                        }
+                        , grid = newGrid |> applyPosition newPlayer
+                        
+                        , player = newPlayer
+                    }
+                )
+                
+            
 
         _ ->
             let
@@ -197,17 +231,18 @@ tick ({ player } as game) =
                     else
                         player
             in
-            
-            { game
-                | grid = grid |> applyPosition newPlayer
-                , player = newPlayer
-                , data =
-                    { data | x = data.x |> swap oldX 
-                    ,level = game.data.level+1}
-            }
+            gridGenerator
+            |> Random.map
+                (\grid ->
+                { game
+                    | grid = grid |> applyPosition newPlayer
+                    , player = newPlayer
+                    , data =
+                        { data | x = data.x |> swap oldX 
+                        ,level = game.data.level+1}
+                })
     )
-        |> Just
-        |> Random.constant
+        |> Random.map Just
 
 
 
@@ -234,7 +269,7 @@ view { status, level } =
                     Color.rgb255 109 194 202
                 
                 Lost ->
-                    Color.rgb255 48 52 109
+                    Color.rgb255 20 12 28--Color.rgb255 48 52 109
 
                 Running ->
                     Color.rgb255 20 12 28
@@ -245,8 +280,8 @@ view { status, level } =
                  , Image.fromTextWithSpacing -1 ("turn " ++ String.fromInt level) <|
                     Tile.tileset
                         { source = "Expire8x8.png"
-                        , spriteWidth = 8
-                        , spriteHeight = 8
+                        , spriteWidth = 16
+                        , spriteHeight = 16
                         }
                  )
                     |> List.singleton

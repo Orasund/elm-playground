@@ -58,7 +58,7 @@ distribution : Generator (Maybe Square)
 distribution =
     Random.weighted
         ( 9, Nothing )
-        [ ( 7, Just (Wall False) ), ( 1, Just (Bumper False) ) ]
+        [ ( 6, Just (Wall False) ), ( 6, Just (Bumper False) ) ]
 
 
 
