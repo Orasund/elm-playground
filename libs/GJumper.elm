@@ -29,6 +29,7 @@ type Model square model
 type Msg
     = GotSeed Seed
     | Move Direction
+    | Reset
 
 
 type alias Game square model =
@@ -41,16 +42,15 @@ init _ =
     , Random.generate GotSeed Random.independentSeed
     )
 
-
 update :
     { initfun : Generator (GameData square model)
-    , isValid : Position -> GameData square model -> Bool
+    , isSolid : square -> Bool
     , tick : GameData square model -> Generator (Maybe (GameData square model))
     }
     -> Msg
     -> Model square model
     -> ( Model square model, Cmd Msg )
-update { initfun, isValid, tick } msg model =
+update { initfun, isSolid, tick } msg model =
     case ( msg, model ) of
         ( GotSeed seed, Loading ) ->
             seed
@@ -66,18 +66,20 @@ update { initfun, isValid, tick } msg model =
                             }
                         , Cmd.none
                         )
-                   )
+                    )
 
         ( Move dir, Running { gameData, seed } ) ->
             let
-                { player } =
+                { player,grid } =
                     gameData
 
                 newPos : Position
                 newPos =
-                    player |> Position.move 1 dir
+                    player
+                    |> Position.move 1 dir
+                    |> \(x,y) -> (x |> modBy 16,y |> modBy 16)
             in
-            if gameData |> isValid newPos then
+            if grid |> Grid.get newPos |> Maybe.map isSolid |> Maybe.withDefault False then
                 ( model, Cmd.none )
 
             else
@@ -92,6 +94,9 @@ update { initfun, isValid, tick } msg model =
                             }
                         , Cmd.none
                         )
+
+        (Reset,_) ->
+            init ()
 
         _ ->
             ( model, Cmd.none )
@@ -111,6 +116,9 @@ controls input =
 
         InputRight ->
             Just <| Move Right
+        
+        InputB ->
+            Just <| Reset
 
         _ ->
             Nothing
@@ -162,7 +170,7 @@ viewFun fun title imgSize model =
 
 define :
     { init : Generator (GameData square model)
-    , isValid : Position -> GameData square model -> Bool
+    , isSolid : square -> Bool
     , tick : GameData square model -> Generator (Maybe (GameData square model))
     , view : model -> View square
     , title : String
@@ -175,7 +183,7 @@ define config =
         , update =
             update
                 { initfun = config.init
-                , isValid = config.isValid
+                , isSolid = config.isSolid
                 , tick = config.tick
                 }
         , subscriptions = always Sub.none

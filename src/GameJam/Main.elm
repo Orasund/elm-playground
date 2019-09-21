@@ -39,15 +39,20 @@ init level =
             )
 
 
-isValid : Position -> Model -> Bool
-isValid p { grid } =
-    grid
-        |> Grid.get p
-        |> (\ms ->
-                (ms /= Just Wall)
-                    && (ms /= Just LookedDoor)
-           )
-        |> not
+isSolid : Square -> Bool
+isSolid square =
+    case square of
+        Wall ->
+            True
+
+        LookedDoor ->
+            True
+
+        Enemy ->
+            True
+
+        _ ->
+            False
 
 
 tick : Model -> Generator (Maybe Model)
@@ -140,16 +145,14 @@ view { health, won, super, level } =
                 )
                 []
             )
-            (PixelEngine.colorBackground <|
-                Color.rgb255 68 36 52
-            )
+            (PixelEngine.colorBackground <| Color.rgb255 68 36 52)
 
 
 main : GJumper.Game Square Game
 main =
     GJumper.define
         { init = init 1
-        , isValid = isValid
+        , isSolid = isSolid
         , tick = tick
         , view = view
         , imgSize = spriteSize
