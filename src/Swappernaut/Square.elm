@@ -14,10 +14,18 @@ view square =
     Tile.fromPosition <|
         case square of
             Wall focus ->
-                if focus then ( 0, 0 ) else (2,0)
+                if focus then
+                    ( 0, 0 )
+
+                else
+                    ( 2, 0 )
 
             Goal ->
                 ( 1, 0 )
 
             Bumper focus ->
-                if focus then ( 1, 1 ) else (3,0)
+                if focus then
+                    ( 1, 1 )
+
+                else
+                    ( 3, 0 )

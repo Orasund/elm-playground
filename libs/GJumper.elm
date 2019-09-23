@@ -193,6 +193,13 @@ define config =
         }
 
 
+gridGenerator : a -> 
+    { distribution : a -> ((Float,Maybe square),List (Float,Maybe square))
+    , fixed : a -> List (Int, square)
+    , level : a -> List (List (Maybe square))
+    } -> Generator (Grid square)
+gridGenerator =
+    Core.gridGenerator
 
 ------------------------------------------------------
 -- View

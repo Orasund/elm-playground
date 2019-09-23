@@ -1,4 +1,4 @@
-module GJumper.Core exposing (Footer(..), Gui(..), Header(..), View(..), create, toAreas, withFooter, withHeader)
+module GJumper.Core exposing (Footer(..), Gui(..), Header(..), View(..), gridGenerator,create, toAreas, withFooter, withHeader)
 
 import PixelEngine exposing (Area, Background)
 import PixelEngine.Image exposing (Image)
@@ -85,3 +85,76 @@ toAreas imgSize (Gui ({ background, tileset, body } as gui)) =
             , background = background
             }
     ]
+
+-----------------------------------------------------------------------
+-- Grid
+-----------------------------------------------------------------------
+boardSize : Int
+boardSize =
+    16
+
+
+gridGenerator : a -> 
+    { distribution : a -> ((Float,Maybe square),List (Float,Maybe square))
+    , fixed : a -> List (Int, square)
+    , level : a -> List (List (Maybe square))
+    } -> Generator (Grid square)
+gridGenerator l {distribution,fixed,level}=
+    let
+        distributedBoard : Generator (Grid square)
+        distributedBoard =
+            level l
+                |> List.indexedMap (\y -> List.indexedMap (\x square -> ( ( x, y ), square )))
+                |> List.concat
+                |> List.filterMap
+                    (\( loc, maybeSquare ) -> maybeSquare |> Maybe.map (\square -> ( loc, square )))
+                |> Grid.fromList
+                    { rows = boardSize
+                    , columns = boardSize
+                    }
+                |> (\g ->
+                        Random.list (boardSize * boardSize)
+                            (distribution l |> \(a,b) -> Random.weighted a b)
+                            |> Random.map
+                                (List.indexedMap (\i s -> ( ( i |> modBy boardSize, i // boardSize ), s ))
+                                    >> List.filterMap (\( pos, maybeS ) -> maybeS |> Maybe.map (\s -> ( pos, s )))
+                                    >> List.foldl
+                                        (\( pos, square ) ->
+                                            Grid.update pos
+                                                (Maybe.map Just
+                                                    >> Maybe.withDefault (Just <| square)
+                                                )
+                                        )
+                                        g
+                                )
+                   )
+    in
+    fixed l
+        |> List.map (\( n, s ) -> List.repeat n s)
+        |> List.concat
+        |> List.foldl
+            (\square ->
+                Random.map
+                    (\( b, positions ) ->
+                        case positions of
+                            [] ->
+                                ( b, positions )
+
+                            pos :: list ->
+                                ( b |> Grid.insert pos square, list )
+                    )
+            )
+            (distributedBoard
+                |> Random.andThen
+                    (\b ->
+                        Random.pair distributedBoard
+                            (b
+                                |> Grid.emptyPositions
+                                |> Random.shuffle
+                                |> Random.andThen Random.shuffle
+                            )
+                    )
+            )
+        |> Random.map Tuple.first
+
+
