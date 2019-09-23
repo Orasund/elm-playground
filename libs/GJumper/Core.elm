@@ -1,8 +1,11 @@
-module GJumper.Core exposing (Footer(..), Gui(..), Header(..), View(..), gridGenerator,create, toAreas, withFooter, withHeader)
+module GJumper.Core exposing (Footer(..), Gui(..), Header(..), View(..), create, gridGenerator, toAreas, withFooter, withHeader)
 
+import Grid exposing (Grid)
 import PixelEngine exposing (Area, Background)
 import PixelEngine.Image exposing (Image)
 import PixelEngine.Tile exposing (Tile, Tileset)
+import Random exposing (Generator)
+import Random.List as Random
 
 
 type View square
@@ -86,20 +89,24 @@ toAreas imgSize (Gui ({ background, tileset, body } as gui)) =
             }
     ]
 
+
+
 -----------------------------------------------------------------------
 -- Grid
 -----------------------------------------------------------------------
-boardSize : Int
-boardSize =
-    16
 
 
-gridGenerator : a -> 
-    { distribution : a -> ((Float,Maybe square),List (Float,Maybe square))
-    , fixed : a -> List (Int, square)
-    , level : a -> List (List (Maybe square))
-    } -> Generator (Grid square)
-gridGenerator l {distribution,fixed,level}=
+gridGenerator :
+    a
+    ->
+        { distribution : a -> ( ( Float, Maybe square ), List ( Float, Maybe square ) )
+        , fixed : a -> List ( Int, square )
+        , level : a -> List (List (Maybe square))
+        , rows : Int
+        , columns : Int
+        }
+    -> Generator (Grid square)
+gridGenerator l { distribution, fixed, level, rows, columns } =
     let
         distributedBoard : Generator (Grid square)
         distributedBoard =
@@ -109,14 +116,14 @@ gridGenerator l {distribution,fixed,level}=
                 |> List.filterMap
                     (\( loc, maybeSquare ) -> maybeSquare |> Maybe.map (\square -> ( loc, square )))
                 |> Grid.fromList
-                    { rows = boardSize
-                    , columns = boardSize
+                    { rows = rows
+                    , columns = columns
                     }
                 |> (\g ->
-                        Random.list (boardSize * boardSize)
-                            (distribution l |> \(a,b) -> Random.weighted a b)
+                        Random.list (rows * columns)
+                            (distribution l |> (\( a, b ) -> Random.weighted a b))
                             |> Random.map
-                                (List.indexedMap (\i s -> ( ( i |> modBy boardSize, i // boardSize ), s ))
+                                (List.indexedMap (\i s -> ( ( i |> modBy columns, i // columns ), s ))
                                     >> List.filterMap (\( pos, maybeS ) -> maybeS |> Maybe.map (\s -> ( pos, s )))
                                     >> List.foldl
                                         (\( pos, square ) ->
@@ -156,5 +163,3 @@ gridGenerator l {distribution,fixed,level}=
                     )
             )
         |> Random.map Tuple.first
-
-

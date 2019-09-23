@@ -1,10 +1,10 @@
-module GameJam.Data.Game exposing (Game, update, updateBehaviour)
+module OneSwitch.Data.Game exposing (Game, update, updateBehaviour)
 
 import GJumper exposing (GameData)
-import GameJam.Data.Behaviour as Behaviour
-import GameJam.Data.Board exposing (Board)
-import GameJam.Data.Square exposing (Square(..))
-import Grid
+import OneSwitch.Data.Behaviour as Behaviour
+import OneSwitch.Data.Board
+import OneSwitch.Data.Square exposing (Square(..))
+import Grid exposing (Grid)
 import Grid.Position as Position exposing (Position)
 
 
@@ -118,7 +118,7 @@ update ({ data, grid, player } as game) =
         board =
             grid
 
-        activatedBoard : Board
+        activatedBoard : Grid Square
         activatedBoard =
             board
                 |> (board

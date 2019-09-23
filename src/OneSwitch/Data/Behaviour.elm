@@ -1,8 +1,8 @@
-module GameJam.Data.Behaviour exposing (activate, consumable, removeToWin)
+module OneSwitch.Data.Behaviour exposing (activate, consumable, removeToWin)
 
-import GameJam.Data.Board exposing (Board)
-import GameJam.Data.Square as Square exposing (Square(..))
-import Grid
+import OneSwitch.Data.Board
+import OneSwitch.Data.Square as Square exposing (Square(..))
+import Grid exposing (Grid)
 
 
 removeToWin : Int -> List Square
@@ -21,7 +21,7 @@ consumable _ super =
            )
 
 
-activate : Int -> Square -> Board -> Board
+activate : Int -> Square -> Grid Square -> Grid Square
 activate _ square =
     case square of
         Swap ->
@@ -44,7 +44,7 @@ activate _ square =
 --------------------------------------------------------------------------------
 
 
-ifThenSwap : (Square -> Bool) -> Board -> Board
+ifThenSwap : (Square -> Bool) -> Grid Square -> Grid Square
 ifThenSwap fun =
     Grid.map
         (always <|

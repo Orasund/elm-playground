@@ -4,7 +4,6 @@ import BoundingBox2d
 import Circle2d
 import Color
 import Generative.Core as Core
-import Generative.Distribution exposing (Distribution)
 import Generative.Point exposing (Point)
 import Generative.Shape as Shape exposing (Shape, Surface(..))
 import Geometry.Svg as Svg

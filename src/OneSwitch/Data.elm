@@ -1,4 +1,4 @@
-module GameJam.Data exposing (boardSize, initialHealth, initialLevel, initialPlayer, screenWidth, spriteSize)
+module OneSwitch.Data exposing (boardSize, initialHealth, initialLevel, initialPlayer, screenWidth, spriteSize)
 
 import Grid.Position exposing (Position)
 

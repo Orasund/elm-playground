@@ -1,6 +1,6 @@
-module GameJam.View.Square exposing (empty, view)
+module OneSwitch.View.Square exposing (empty, view)
 
-import GameJam.Data.Square exposing (Square(..))
+import OneSwitch.Data.Square exposing (Square(..))
 import PixelEngine.Tile as Tile
 
 

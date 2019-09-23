@@ -1,17 +1,17 @@
-module GameJam exposing (main)
+module OneSwitch exposing (main)
 
 import Color
-import GJumper exposing (GameData, View)
-import GameJam.Data exposing (initialHealth, initialPlayer, screenWidth, spriteSize)
-import GameJam.Data.Behaviour as Behaviour
-import GameJam.Data.Board as Board
-import GameJam.Data.Game as DataGame exposing (Game)
-import GameJam.Data.Square as Square exposing (Square(..))
-import GameJam.View as View
-import GameJam.View.Square as Square
+import GJumper exposing (GameData, View,Status(..))
+import OneSwitch.Data exposing (initialHealth, initialPlayer, screenWidth, spriteSize)
+import OneSwitch.Data.Behaviour as Behaviour
+import OneSwitch.Data.Board as Board
+import OneSwitch.Data.Game as DataGame exposing (Game)
+import OneSwitch.Data.Square as Square exposing (Square(..))
+import OneSwitch.View as View
+import OneSwitch.View.Square as Square
 import Grid
-import Grid.Direction exposing (Direction(..))
 import Grid.Position exposing (Position)
+import Grid.Direction exposing (Direction(..))
 import PixelEngine exposing (Input(..))
 import PixelEngine.Image as Image
 import PixelEngine.Tile as Tile
@@ -22,21 +22,39 @@ type alias Model =
     GameData Square Game
 
 
-init : Int -> Generator Model
-init level =
-    Board.generator level
-        |> Random.map
-            (\board ->
-                { data =
-                    { health = initialHealth
+init : Maybe Game
+          -> Generator
+                 { columns : Int
+                 , data : Game
+                 , distribution :
+                       Game
+                       -> ( ( Float, Maybe Square )
+                          , List ( Float, Maybe Square )
+                          )
+                 , fixed : Game -> List ( Int, Square )
+                 , level : Game -> List (List (Maybe Square))
+                 , player : Position
+                 , rows : Int
+                 }
+init maybeGame =
+    let
+        level = maybeGame
+                |> Maybe.map .level
+                |> Maybe.withDefault 1
+    in
+    {columns = 16
+                 , data = { health = initialHealth
                     , super = False
                     , level = level
                     , won = False
                     }
-                , grid = board
-                , player = initialPlayer
-                }
-            )
+                 , distribution = .level >> Board.distribution
+                 , fixed = .level >> Board.fixed
+                 , level = .level >> Board.level
+                 , player = initialPlayer
+                 , rows = 16
+    }
+    |> Random.constant
 
 
 isSolid : Square -> Bool
@@ -55,35 +73,34 @@ isSolid square =
             False
 
 
-tick : Model -> Generator (Maybe Model)
+tick : Model -> Generator (Model, Status )
 tick game =
     let
-        { health, level, won } =
+        { level } =
             game.data
 
         ({ data, grid } as newGame) =
             DataGame.update game
-    in
-    if won then
-        init (level + 1)
-            |> Random.map Just
+        
 
-    else if health <= 0 then
-        init level
-            |> Random.map Just
 
-    else
-        { newGame
-            | data =
-                { data
-                    | won =
-                        grid
+        won : Bool
+        won =
+            grid
                             |> Grid.filter
                                 (\_ s -> Behaviour.removeToWin level |> List.member s)
                             |> Grid.isEmpty
-                }
-        }
-            |> Just
+    in
+    ({ newGame
+        | data = { data | won = won, level = if won then level+1 else level }
+         }
+        , if won then
+            Won
+        else if  data.health <= 0  then
+            Lost
+        else
+            Ongoing
+        )
             |> Random.constant
 
 
@@ -151,7 +168,7 @@ view { health, won, super, level } =
 main : GJumper.Game Square Game
 main =
     GJumper.define
-        { init = init 1
+        { init = init
         , isSolid = isSolid
         , tick = tick
         , view = view

@@ -1,11 +1,11 @@
-module GJumper exposing (Footer, Game, GameData, Header, View, define, footer, header, view, withGui)
+module GJumper exposing (Footer, Game, GameData, Header, InitModel, Status(..), View, define, footer, header, view, withGui)
 
 import GJumper.Core as Core
 import Grid exposing (Grid)
 import Grid.Direction exposing (Direction(..))
 import Grid.Position as Position exposing (Position)
 import PixelEngine exposing (Area, Background, Input(..), PixelEngine)
-import PixelEngine.Image as Image exposing (Image)
+import PixelEngine.Image exposing (Image)
 import PixelEngine.Options as Options exposing (Options)
 import PixelEngine.Tile exposing (Tile, Tileset)
 import Random exposing (Generator, Seed)
@@ -18,11 +18,31 @@ type alias GameData square data =
     }
 
 
-type Model square model
+type Status
+    = Ongoing
+    | Won
+    | Lost
+
+
+type alias InitModel square data =
+    { data : data
+    , player : Position
+    , distribution :
+        data
+        -> ( ( Float, Maybe square ), List ( Float, Maybe square ) )
+    , fixed : data -> List ( Int, square )
+    , level : data -> List (List (Maybe square))
+    , rows : Int
+    , columns : Int
+    }
+
+
+type Model square data
     = Loading
     | Running
-        { gameData : GameData square model
+        { gameData : GameData square data
         , seed : Seed
+        , status : Status
         }
 
 
@@ -42,60 +62,116 @@ init _ =
     , Random.generate GotSeed Random.independentSeed
     )
 
+
 update :
-    { initfun : Generator (GameData square model)
+    { initfun :
+        Maybe data
+        ->
+            Generator
+                { data : data
+                , player : Position
+                , distribution :
+                    data
+                    -> ( ( Float, Maybe square ), List ( Float, Maybe square ) )
+                , fixed : data -> List ( Int, square )
+                , level : data -> List (List (Maybe square))
+                , rows : Int
+                , columns : Int
+                }
     , isSolid : square -> Bool
-    , tick : GameData square model -> Generator (Maybe (GameData square model))
+    , tick : GameData square data -> Generator ( GameData square data, Status )
     }
     -> Msg
-    -> Model square model
-    -> ( Model square model, Cmd Msg )
+    -> Model square data
+    -> ( Model square data, Cmd Msg )
 update { initfun, isSolid, tick } msg model =
     case ( msg, model ) of
         ( GotSeed seed, Loading ) ->
             seed
-                |> Random.step initfun
-                |> (\( { data, grid, player }, s ) ->
-                        ( Running
-                            { seed = s
-                            , gameData =
-                                { grid = grid
-                                , player = player
-                                , data = data
-                                }
-                            }
+                |> Random.step
+                    (initfun Nothing
+                        |> Random.andThen
+                            (\{ data, player, distribution, fixed, level, rows, columns } ->
+                                Core.gridGenerator data
+                                    { distribution = distribution
+                                    , fixed = fixed
+                                    , level = level
+                                    , rows = rows
+                                    , columns = columns
+                                    }
+                                    |> Random.map
+                                        (\grid ->
+                                            { grid = grid |> Grid.remove player
+                                            , player = player
+                                            , data = data
+                                            }
+                                        )
+                            )
+                    )
+                |> (\( gameData, s ) ->
+                        ( Running { seed = s, gameData = gameData, status = Ongoing }
                         , Cmd.none
                         )
-                    )
+                   )
 
-        ( Move dir, Running { gameData, seed } ) ->
+        ( Move dir, Running { status, gameData, seed } ) ->
             let
-                { player,grid } =
-                    gameData
-
                 newPos : Position
                 newPos =
-                    player
-                    |> Position.move 1 dir
-                    |> \(x,y) -> (x |> modBy 16,y |> modBy 16)
+                    gameData.player
+                        |> Position.move 1 dir
+                        |> (\( x, y ) -> ( x |> modBy 16, y |> modBy 16 ))
             in
-            if grid |> Grid.get newPos |> Maybe.map isSolid |> Maybe.withDefault False then
+            if status /= Ongoing then
+                seed
+                    |> Random.step
+                        (initfun (Just gameData.data)
+                            |> Random.andThen
+                                (\{ data, player, distribution, fixed, level, rows, columns } ->
+                                    Core.gridGenerator data
+                                        { distribution = distribution
+                                        , fixed = fixed
+                                        , level = level
+                                        , rows = rows
+                                        , columns = columns
+                                        }
+                                        |> Random.map
+                                            (\grid ->
+                                                { grid = grid |> Grid.remove player
+                                                , player = player
+                                                , data = data
+                                                }
+                                            )
+                                )
+                        )
+                    |> (\( gD, s ) ->
+                            ( Running { seed = s, gameData = gD, status = Ongoing }
+                            , Cmd.none
+                            )
+                       )
+
+            else if
+                gameData.grid
+                    |> Grid.get newPos
+                    |> Maybe.map isSolid
+                    |> Maybe.withDefault False
+            then
                 ( model, Cmd.none )
 
             else
-                case seed |> Random.step (tick { gameData | player = newPos }) of
-                    ( Nothing, _ ) ->
-                        init ()
+                seed
+                    |> Random.step (tick { gameData | player = newPos })
+                    |> (\( ( gd, st ), s ) ->
+                            ( Running
+                                { gameData = gd
+                                , seed = s
+                                , status = st
+                                }
+                            , Cmd.none
+                            )
+                       )
 
-                    ( Just m2, s ) ->
-                        ( Running
-                            { gameData = m2
-                            , seed = s
-                            }
-                        , Cmd.none
-                        )
-
-        (Reset,_) ->
+        ( Reset, _ ) ->
             init ()
 
         _ ->
@@ -116,7 +192,7 @@ controls input =
 
         InputRight ->
             Just <| Move Right
-        
+
         InputB ->
             Just <| Reset
 
@@ -140,14 +216,42 @@ areas fun model imgSize =
 
                 ( h, f ) =
                     render.gui
+
+                ( playerX, playerY ) =
+                    player
+
+                { columns, rows } =
+                    grid |> Grid.dimensions
             in
             grid
                 |> Grid.toList
+                |> List.filterMap
+                    (\( ( x, y ), a ) ->
+                        let
+                            newX : Int
+                            newX =
+                                x - playerX + 7 |> modBy columns
+
+                            newY : Int
+                            newY =
+                                y - playerY + 7 |> modBy rows
+                        in
+                        if newX < 16 && newY < 16 then
+                            Just
+                                ( ( newX
+                                  , newY
+                                  )
+                                , a
+                                )
+
+                        else
+                            Nothing
+                    )
                 |> List.map
                     (\( pos, square ) ->
                         ( pos, square |> render.square )
                     )
-                |> (::) ( player, render.player )
+                |> (::) ( (7,7), render.player )
                 |> Core.create render.background render.tileset
                 |> Core.withHeader h
                 |> Core.withFooter f
@@ -169,14 +273,27 @@ viewFun fun title imgSize model =
 
 
 define :
-    { init : Generator (GameData square model)
+    { init :
+        Maybe data
+        ->
+            Generator
+                { data : data
+                , player : Position
+                , distribution :
+                    data
+                    -> ( ( Float, Maybe square ), List ( Float, Maybe square ) )
+                , fixed : data -> List ( Int, square )
+                , level : data -> List (List (Maybe square))
+                , rows : Int
+                , columns : Int
+                }
     , isSolid : square -> Bool
-    , tick : GameData square model -> Generator (Maybe (GameData square model))
-    , view : model -> View square
+    , tick : GameData square data -> Generator ( GameData square data, Status )
+    , view : data -> View square
     , title : String
     , imgSize : Int
     }
-    -> Game square model
+    -> Game square data
 define config =
     PixelEngine.game
         { init = init
@@ -193,13 +310,6 @@ define config =
         }
 
 
-gridGenerator : a -> 
-    { distribution : a -> ((Float,Maybe square),List (Float,Maybe square))
-    , fixed : a -> List (Int, square)
-    , level : a -> List (List (Maybe square))
-    } -> Generator (Grid square)
-gridGenerator =
-    Core.gridGenerator
 
 ------------------------------------------------------
 -- View

@@ -1,6 +1,6 @@
-module GameJam.View exposing (tileset)
+module OneSwitch.View exposing (tileset)
 
-import GameJam.Data exposing (spriteSize)
+import OneSwitch.Data exposing (spriteSize)
 import PixelEngine.Tile exposing (Tileset)
 
 

@@ -1,4 +1,4 @@
-module GameJam.Data.Square exposing (Square(..), swap)
+module OneSwitch.Data.Square exposing (Square(..), swap)
 
 
 type Square
