@@ -1,10 +1,11 @@
-module Generative.Shape exposing (Point, Shape, Surface(..), circle, fromPoints, rectangle, regular, rotateBy, translateBy, withColor, withSurface)
+module Generative.Shape exposing (Shape, Surface(..), circle, fromPoints, rectangle, regular, rotateBy, translateBy, withColor, withSurface)
 
 import BoundingBox2d
 import Circle2d
 import Color exposing (Color)
 import Generative.Core as Core
 import Generative.Distribution exposing (Distribution)
+import Generative.Point exposing (Point)
 import Point2d exposing (Point2d)
 import Polygon2d
 import Random exposing (Generator)
@@ -24,10 +25,6 @@ type Surface
         , shapes : Point -> Generator Shape
         , border : Bool
         }
-
-
-type alias Point =
-    ( Float, Float )
 
 
 type alias Shape =
