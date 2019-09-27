@@ -25,7 +25,8 @@ type Model
     | Done
         { chat : List Message
         , emojis : Dict String (Dict Char Int)
-        , analyse : List Message
+        , chatForm : String
+        , analysedChat : List Message
         , page : Page
         }
 
@@ -41,10 +42,16 @@ type WaitingMsg
     | FileSelected File
 
 
+type DoneMsg
+    = UpdateForm String
+    | PageChanged Page
+    | StartAnalysing
+
+
 type Msg
     = WaitingSpecific WaitingMsg
     | FileRead String
-    | PageChanged Page
+    | DoneSpecific DoneMsg
 
 
 init : () -> ( Model, Cmd Msg )
@@ -126,16 +133,18 @@ update msg model =
                             (\message ->
                                 Dict.update message.name
                                     (Maybe.map
-                                        (\dict -> message.msg
-                                            |> String.toList
-                                            |> List.foldl
-                                                (\c -> Dict.update c
-                                                    (Maybe.map ((+) 1)
-                                                        >> Maybe.withDefault 1
-                                                        >> Just
+                                        (\dict ->
+                                            message.msg
+                                                |> String.toList
+                                                |> List.foldl
+                                                    (\c ->
+                                                        Dict.update c
+                                                            (Maybe.map ((+) 1)
+                                                                >> Maybe.withDefault 1
+                                                                >> Just
+                                                            )
                                                     )
-                                                )
-                                                dict
+                                                    dict
                                         )
                                         >> Maybe.withDefault Dict.empty
                                         >> Just
@@ -143,13 +152,101 @@ update msg model =
                             )
                             Dict.empty
                 , page = Chat
-                , analyse = []
+                , chatForm = ""
+                , analysedChat = []
                 }
             , Cmd.none
             )
-        
-        (PageChanged page,Done m) ->
-            (Done {m|page = page},Cmd.none)
+
+        ( DoneSpecific doneMsg, Done doneModel ) ->
+            case doneMsg of
+                PageChanged page ->
+                    ( Done { doneModel | page = page }, Cmd.none )
+
+                UpdateForm string ->
+                    ( Done { doneModel | chatForm = string }, Cmd.none )
+
+                StartAnalysing ->
+                    let
+                        users : List String
+                        users =
+                            doneModel.emojis
+                                |> Dict.keys
+
+                        chat : List String
+                        chat =
+                            doneModel.chatForm
+                                |> String.split "\n"
+
+                        {- |> List.filterMap
+                           (String.filter (Char.toCode >> (\c -> c > 5024))
+                               >> (\string ->
+                                       if string == "" then
+                                           Nothing
+
+                                       else
+                                           Just string
+                                  )
+                           )
+                        -}
+                        emojiToUser : Char -> Maybe String
+                        emojiToUser emoji =
+                            users
+                                |> List.map
+                                    (\key ->
+                                        ( doneModel.emojis
+                                            |> Dict.get key
+                                            |> Maybe.withDefault Dict.empty
+                                            |> Dict.get emoji
+                                            |> Maybe.withDefault 0
+                                        , key
+                                        )
+                                    )
+                                |> List.sortBy Tuple.first
+                                |> List.reverse
+                                |> List.head
+                                |> Maybe.map Tuple.second
+
+                        analysedChat : List Message
+                        analysedChat =
+                            case users of
+                                [] ->
+                                    []
+
+                                default :: _ ->
+                                    chat
+                                        |> List.map
+                                            (\message ->
+                                                { msg = message
+                                                , name =
+                                                    message
+                                                        |> String.filter (Char.toCode >> (\c -> c > 5024))
+                                                        |> String.toList
+                                                        |> List.map
+                                                            (emojiToUser
+                                                                >> Maybe.withDefault default
+                                                            )
+                                                        |> List.foldl
+                                                            (\name ->
+                                                                Dict.update name
+                                                                    (Maybe.map ((+) 1)
+                                                                        >> Maybe.withDefault 1
+                                                                        >> Just
+                                                                    )
+                                                            )
+                                                            Dict.empty
+                                                        |> Dict.toList
+                                                        |> List.sortBy Tuple.second
+                                                        |> List.reverse
+                                                        |> List.head
+                                                        |> Maybe.map Tuple.first
+                                                        |> Maybe.withDefault default
+                                                }
+                                            )
+                    in
+                    ( Done { doneModel | analysedChat = analysedChat }
+                    , Cmd.none
+                    )
 
         _ ->
             ( model, Cmd.none )
@@ -173,65 +270,79 @@ view model =
             Processing ->
                 Element.none
 
-            Done { chat, emojis,analyse,page } ->
+            Done { chat, emojis, page, chatForm, analysedChat } ->
                 let
                     menuButton : Page -> String -> Element Msg
                     menuButton p name =
                         Input.button []
-                            {onPress = Just (PageChanged p)
-                            ,label = Element.text <| name
+                            { onPress = Just (DoneSpecific <| PageChanged p)
+                            , label = Element.text <| name
                             }
-                in
-                
-                Element.column [Element.centerX,Element.spacing 10] <|
-                [
-                Element.row
-                    [ Element.centerX
-                    , Element.width<| Element.fill
-                    , Element.spaceEvenly
-                    ] <|
-                    [ menuButton Chat "Chat"
-                    , menuButton Profil "Profil"
 
-                    ]
-                , case page of
-                    Chat ->
-                        chat
-                        |> List.map
-                            (\{ name, msg } -> name ++ ":" ++ msg |> Element.text)
-                        |> Element.column []
-                    Profil ->
-                        emojis
-                        |> Dict.toList
-                        |> List.map
-                            (\( name, dict ) ->
-                                dict
-                                    |> Dict.toList
-                                    |> List.sortBy Tuple.second
+                    menu : Element Msg
+                    menu =
+                        Element.row
+                            [ Element.centerX
+                            , Element.width <| Element.fill
+                            , Element.spaceEvenly
+                            ]
+                        <|
+                            [ menuButton Chat "Chat"
+                            , menuButton Profil "Profil"
+                            , menuButton Analyse "Analyse"
+                            ]
+                in
+                Element.column [ Element.centerX, Element.spacing 10 ] <|
+                    [ menu
+                    , case page of
+                        Chat ->
+                            chat
+                                |> List.map
+                                    (\{ name, msg } -> name ++ ":" ++ msg |> Element.text)
+                                |> Element.column [ Element.width <| Element.px 600 ]
+
+                        Profil ->
+                            emojis
+                                |> Dict.toList
+                                |> List.map
+                                    (\( name, dict ) ->
+                                        dict
+                                            |> Dict.toList
+                                            |> List.sortBy Tuple.second
+                                            |> List.reverse
+                                            |> List.map
+                                                (\( c, n ) ->
+                                                    String.fromChar c ++ ":" ++ String.fromInt n |> Element.text
+                                                )
+                                            |> (::) (Element.text name)
+                                            |> Element.column [ Element.alignTop, Element.spacing 10 ]
+                                    )
+                                |> Element.row [ Element.alignTop ]
+
+                        Analyse ->
+                            Element.column [ Element.centerX, Element.spacing 10 ] <|
+                                [ Input.multiline [ Element.width <| Element.px 600, Element.height <| Element.px 400 ]
+                                    { onChange = DoneSpecific << UpdateForm
+                                    , text = chatForm
+                                    , placeholder = Nothing
+                                    , label = Input.labelAbove [] <| Element.text "Copy chat in here"
+                                    , spellcheck = False
+                                    }
+                                , Input.button []
+                                    { onPress = Just (DoneSpecific <| StartAnalysing)
+                                    , label = Element.text <| "Start Analysing"
+                                    }
+                                , analysedChat
                                     |> List.map
-                                        (\( c, n ) ->
-                                            String.fromChar c ++ ":" ++ String.fromInt n |> Element.text
+                                        (\{ name, msg } ->
+                                            (name ++ ":" ++ msg)
+                                                |> Element.text
+                                                |> List.singleton
+                                                |> Element.paragraph []
                                         )
-                                    |> (::) (Element.text name)
-                                    |> Element.column [Element.width <| Element.px <| 100]
-                            )
-                        |> Element.row [Element.alignTop]
-                    Analyse ->
-                        Element.column []<|
-                        [Input.multiline []
-                            { onChange : String -> msg
-                            , text : String
-                            , placeholder : Maybe (Placeholder msg)
-                            , label : Label msg
-                            , spellcheck : Bool
-                            }
-                        analyse
-                        |> List.map
-                            (\{ name, msg } -> name ++ ":" ++ msg |> Element.text)
-                        |> Element.column []
-                        ]
-                ]
-                
+                                    |> Element.column [ Element.width <| Element.px 600 ]
+                                ]
+                    ]
 
 
 main : Program () Model Msg
