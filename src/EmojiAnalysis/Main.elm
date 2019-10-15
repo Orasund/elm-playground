@@ -194,11 +194,25 @@ update msg model =
                             users
                                 |> List.map
                                     (\key ->
-                                        ( doneModel.emojis
-                                            |> Dict.get key
-                                            |> Maybe.withDefault Dict.empty
+                                        ( let
+                                            dict : Dict Char Int
+                                            dict =
+                                                doneModel.emojis
+                                                    |> Dict.get key
+                                                    |> Maybe.withDefault Dict.empty
+
+                                            sum : Float
+                                            sum =
+                                                dict
+                                                    |> Dict.values
+                                                    |> List.sum
+                                                    |> toFloat
+                                          in
+                                          dict
                                             |> Dict.get emoji
                                             |> Maybe.withDefault 0
+                                            |> toFloat
+                                            |> (\a -> a / sum)
                                         , key
                                         )
                                     )
@@ -320,12 +334,12 @@ view model =
                                             |> List.reverse
                                             |> List.map
                                                 (\( c, n ) ->
-                                                    String.fromChar c ++ ":" ++ String.fromInt ( (toFloat n * 100) / sum |> floor) ++ "%" |> Element.text 
+                                                    String.fromChar c ++ ":" ++ String.fromInt ((toFloat n * 100) / sum |> floor) ++ "%" |> Element.text
                                                 )
                                             |> (::) (Element.text name)
                                             |> Element.column [ Element.alignTop, Element.spacing 10 ]
                                     )
-                                |> Element.row [ Element.alignTop ]
+                                |> Element.row [ Element.alignTop, Element.spacing 10 ]
 
                         Analyse ->
                             Element.column [ Element.centerX, Element.spacing 10 ] <|
