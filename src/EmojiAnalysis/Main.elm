@@ -306,13 +306,21 @@ view model =
                                 |> Dict.toList
                                 |> List.map
                                     (\( name, dict ) ->
+                                        let
+                                            sum : Float
+                                            sum =
+                                                dict
+                                                    |> Dict.values
+                                                    |> List.sum
+                                                    |> toFloat
+                                        in
                                         dict
                                             |> Dict.toList
                                             |> List.sortBy Tuple.second
                                             |> List.reverse
                                             |> List.map
                                                 (\( c, n ) ->
-                                                    String.fromChar c ++ ":" ++ String.fromInt n |> Element.text
+                                                    String.fromChar c ++ ":" ++ String.fromInt ( (toFloat n * 100) / sum |> floor) ++ "%" |> Element.text 
                                                 )
                                             |> (::) (Element.text name)
                                             |> Element.column [ Element.alignTop, Element.spacing 10 ]
