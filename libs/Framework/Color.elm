@@ -4,6 +4,7 @@ module Framework.Color exposing
     , dark
     , darkGrey
     , darkerGrey
+    , disabled
     , green
     , grey
     , info
@@ -20,12 +21,25 @@ module Framework.Color exposing
 
 import Element exposing (Attribute, Color)
 import Element.Background as Background
+import Element.Border as Border
 import Element.Font as Font
+import Html.Attributes as Attributes
 
 
 lightGrey : Color
 lightGrey =
     Element.rgb255 219 219 219
+
+
+disabled : List (Attribute msg)
+disabled =
+    [ Background.color <| lightGrey
+    , Border.color <| lightGrey
+    , Font.color <| grey
+    , Element.mouseOver []
+    , Element.focused []
+    , Element.htmlAttribute <| Attributes.style "cursor" "not-allowed"
+    ]
 
 
 grey : Color
@@ -45,9 +59,9 @@ turquoise =
 
 primary : List (Attribute msg)
 primary =
-    turquoise
-        |> Background.color
-        |> List.singleton
+    [ Background.color <| turquoise
+    , Border.color <| turquoise
+    ]
 
 
 cyan : Color
@@ -57,9 +71,9 @@ cyan =
 
 info : List (Attribute msg)
 info =
-    cyan
-        |> Background.color
-        |> List.singleton
+    [ Background.color <| cyan
+    , Border.color <| cyan
+    ]
 
 
 green : Color
@@ -69,9 +83,9 @@ green =
 
 success : List (Attribute msg)
 success =
-    green
-        |> Background.color
-        |> List.singleton
+    [ Background.color <| green
+    , Border.color <| green
+    ]
 
 
 yellow : Color
@@ -81,9 +95,9 @@ yellow =
 
 warning : List (Attribute msg)
 warning =
-    yellow
-        |> Background.color
-        |> List.singleton
+    [ Background.color <| yellow
+    , Border.color <| yellow
+    ]
 
 
 red : Color
@@ -93,8 +107,8 @@ red =
 
 danger : List (Attribute msg)
 danger =
-    [ red
-        |> Background.color
+    [ Background.color <| red
+    , Border.color <| red
     , Font.color <| lighterGrey
     ]
 
@@ -106,9 +120,9 @@ lighterGrey =
 
 light : List (Attribute msg)
 light =
-    lighterGrey
-        |> Background.color
-        |> List.singleton
+    [ Background.color <| lighterGrey
+    , Border.color <| lighterGrey
+    ]
 
 
 darkerGrey : Color
@@ -118,6 +132,7 @@ darkerGrey =
 
 dark : List (Attribute msg)
 dark =
-    [ darkerGrey |> Background.color
+    [ Background.color <| darkerGrey
+    , Border.color <| darkerGrey
     , Font.color <| lighterGrey
     ]

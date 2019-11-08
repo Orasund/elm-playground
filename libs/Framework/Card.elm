@@ -1,12 +1,13 @@
-module Framework.Card exposing (basic, fill, large, small)
+module Framework.Card exposing (fill, large, simple, small)
 
 import Element exposing (Attribute)
+import Element.Background as Background
 import Element.Border as Border
 import Framework.Color as Color
 
 
-basic : List (Attribute msg)
-basic =
+simple : List (Attribute msg)
+simple =
     [ Border.shadow
         { blur = 10
         , color = Element.rgba 0 0 0 0.05
@@ -24,7 +25,7 @@ basic =
 
 withSize : Int -> List (Attribute msg)
 withSize int =
-    basic ++ [ Element.width (Element.px int) ]
+    simple ++ [ Element.width (Element.minimum 240 <| Element.maximum int <| Element.fill) ]
 
 
 small : List (Attribute msg)
@@ -39,4 +40,4 @@ large =
 
 fill : List (Attribute msg)
 fill =
-    basic ++ [ Element.width Element.fill ]
+    simple ++ [ Element.width Element.fill ]
