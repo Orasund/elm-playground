@@ -1,5 +1,6 @@
-module Jsonstore exposing (Json, bool, decode, decodeList, delete, encode, encodeList, float, get, insert, int, map, object, string, toJson, update, with, withList)
+module Jsonstore exposing (Json, bool, decode, decodeList, delete, dict, encode, encodeList, float, get, insert, int, map, object, string, toJson, update, with, withList)
 
+import Dict exposing (Dict)
 import Http exposing (Error, Resolver)
 import Json.Decode as D exposing (Decoder)
 import Json.Encode as E exposing (Value)
@@ -33,6 +34,11 @@ string =
 bool : Json Bool
 bool =
     Json ( D.bool, E.bool )
+
+
+dict : Json a -> Json (Dict String a)
+dict (Json ( d, e )) =
+    Json ( d |> D.dict, E.dict identity e )
 
 
 type JsonObject obj a
@@ -189,7 +195,11 @@ get url decoder =
         }
 
 
-update : { url : String, decoder : Decoder a, value : Maybe a -> Value } -> Task Error ()
+update : { url : String, decoder : Decoder a, value : Maybe a -> Maybe Value } -> Task Error ()
 update { url, decoder, value } =
     get url decoder
-        |> Task.andThen (value >> insert url)
+        |> Task.andThen
+            (value
+                >> Maybe.map (insert url)
+                >> Maybe.withDefault (Task.succeed ())
+            )
