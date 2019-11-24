@@ -65,6 +65,7 @@ update msg model =
                     InRoom.init
                     InRoom
                     InRoomSpecific
+                |> Action.withExit (init ())
                 |> Action.apply
 
         ( InRoomSpecific specificMsg, InRoom specificModel ) ->
@@ -83,11 +84,11 @@ view model =
     let
         map :
             (msg -> Msg)
-            -> { element : Element msg, error : Maybe ( Error, msg ), message : Maybe String }
-            -> { element : Element Msg, error : Maybe ( Error, Msg ), message : Maybe String }
+            -> { element : Element msg, error : Maybe Error, message : Maybe String }
+            -> { element : Element Msg, error : Maybe Error, message : Maybe String }
         map fun out =
             { element = out.element |> Element.map fun
-            , error = out.error |> Maybe.map (Tuple.mapSecond fun)
+            , error = out.error
             , message = out.message
             }
 
@@ -120,19 +121,8 @@ view model =
                     Element.column Grid.simple <|
                         [ element
                         , case error of
-                            Just ( err, msg ) ->
-                                case err of
-                                    BadBody _ ->
-                                        Element.column (Grid.section ++ Card.fill) <|
-                                            [ Error.view err
-                                            , Input.button (Button.simple ++ Color.primary)
-                                                { onPress = Just msg
-                                                , label = Element.text <| "Retry"
-                                                }
-                                            ]
-
-                                    _ ->
-                                        Error.view err
+                            Just err ->
+                                Error.view err
 
                             Nothing ->
                                 Element.none

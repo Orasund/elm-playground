@@ -1,24 +1,24 @@
 module Emojidojo.Page.SelectingRoom exposing (Model, Msg, TransitionData, init, subscriptions, update, view)
 
 import Action
-import Dict exposing (Dict)
+import Dict
 import Element exposing (Element)
 import Element.Font as Font
 import Element.Input as Input
 import Emojidojo.Data as Data
+import Emojidojo.Data.Id as Id exposing (Id)
 import Emojidojo.Data.OpenRoom as OpenRoom exposing (OpenRoom)
+import Emojidojo.Data.Version as Version
 import Emojidojo.Page.InRoom as InRoom
 import Emojidojo.String as String
-import Emojidojo.View.Error as Error
 import Framework.Button as Button
 import Framework.Card as Card
 import Framework.Color as Color
 import Framework.Grid as Grid
 import Framework.Heading as Heading
 import Http exposing (Error)
-import Jsonstore
 import Random exposing (Seed)
-import Task
+import Task exposing (Task)
 import Time exposing (Posix)
 
 
@@ -36,7 +36,7 @@ type alias Model =
     , error : Maybe Error
     , message : Maybe String
     , seed : Seed
-    , playerId : Int
+    , playerId : Id
     }
 
 
@@ -45,17 +45,16 @@ type Msg
     | GotOpenRoomResponse (Result Error (List OpenRoom))
     | CreatedRoom OpenRoom
     | JoinedRoom OpenRoom
-    | RemovedOldRoom
-    | PressedRetryButton
     | TimePassed Posix
+    | GotVersion (Result Error (Maybe Float))
 
 
 type alias Action =
-    Action.Action Model Msg InRoom.TransitionData Never
+    Action.Action Model Msg InRoom.TransitionData ()
 
 
-init : TransitionData -> ( Model, Cmd Msg )
-init ({ lastUpdated } as data) =
+initialModel : TransitionData -> Model
+initialModel ({ lastUpdated } as data) =
     let
         ( activeRooms, oldRooms ) =
             data.openRooms
@@ -72,31 +71,41 @@ init ({ lastUpdated } as data) =
 
         ( playerId, seed ) =
             data.seed
-                |> Random.step (Random.int 0 Random.maxInt)
-
-        ( message, cmd ) =
-            case oldRooms |> List.head of
-                Just { id } ->
-                    ( Just "removing old Room..."
-                    , OpenRoom.removeResponse id
-                        |> Task.attempt (always RemovedOldRoom)
-                    )
-
-                Nothing ->
-                    ( Nothing
-                    , Cmd.none
-                    )
+                |> Random.step Id.generate
     in
-    ( { activeRooms = activeRooms
-      , oldRooms = oldRooms
-      , lastUpdated = lastUpdated
-      , error = Nothing
-      , message = message
-      , seed = seed
-      , playerId = playerId
-      }
-    , cmd
+    { activeRooms = activeRooms
+    , oldRooms = oldRooms
+    , lastUpdated = lastUpdated
+    , error = Nothing
+    , message = Nothing
+    , seed = seed
+    , playerId = playerId
+    }
+
+
+init : TransitionData -> ( Model, Cmd Msg )
+init data =
+    let
+        model : Model
+        model =
+            initialModel data
+    in
+    ( model
+    , Version.getResponse
+        |> Task.attempt GotVersion
     )
+
+
+updateTask : Model -> Task Error (List OpenRoom)
+updateTask model =
+    (case model.oldRooms |> List.head of
+        Just { id } ->
+            OpenRoom.removeResponse id
+
+        Nothing ->
+            Task.succeed ()
+    )
+        |> Task.andThen (\() -> OpenRoom.getListResponse)
 
 
 update : Msg -> Model -> Action
@@ -107,12 +116,13 @@ update msg model =
                 ( openRoom, seed ) =
                     model.seed
                         |> Random.step
-                            (Random.int 0 Random.maxInt
+                            (Id.generate
                                 |> Random.map
                                     (\id ->
                                         { id = id
                                         , lastUpdated = model.lastUpdated
                                         , player = Dict.empty
+                                        , gameId = Nothing
                                         }
                                     )
                             )
@@ -129,6 +139,7 @@ update msg model =
                 , room = openRoom
                 , hosting = True
                 , lastUpdated = model.lastUpdated
+                , seed = model.seed
                 }
 
         JoinedRoom openRoom ->
@@ -137,17 +148,20 @@ update msg model =
                 , room = openRoom
                 , hosting = False
                 , lastUpdated = model.lastUpdated
+                , seed = model.seed
                 }
 
         GotOpenRoomResponse result ->
             case result of
                 Ok maybeList ->
                     Action.updating <|
-                        init
+                        ( initialModel
                             { openRooms = maybeList
                             , lastUpdated = model.lastUpdated
                             , seed = model.seed
                             }
+                        , Cmd.none
+                        )
 
                 Err error ->
                     Action.updating
@@ -157,34 +171,43 @@ update msg model =
                         , Cmd.none
                         )
 
-        RemovedOldRoom ->
-            Action.updating <|
-                ( { model | message = Nothing }
-                , OpenRoom.getListResponse
-                    |> Task.attempt GotOpenRoomResponse
-                )
+        GotVersion result ->
+            case result of
+                Ok maybeFloat ->
+                    if maybeFloat == Just Data.version then
+                        Action.updating
+                            ( { model
+                                | message = Just <| "Updating List..."
+                              }
+                            , model
+                                |> updateTask
+                                |> Task.attempt GotOpenRoomResponse
+                            )
 
-        PressedRetryButton ->
-            Action.updating
-                ( { model | message = Just <| "Retrying..." }
-                , Jsonstore.delete (Data.url ++ String.openRoom)
-                    |> Task.andThen (always OpenRoom.getListResponse)
-                    |> Task.attempt GotOpenRoomResponse
-                )
+                    else
+                        Action.exiting
+
+                Err error ->
+                    Action.updating
+                        ( { model
+                            | error = Just error
+                          }
+                        , Cmd.none
+                        )
 
         TimePassed lastUpdated ->
             Action.updating
                 ( { model
-                    | message = Just <| "Updating List..."
+                    | message = Just <| "Checking Version..."
                     , lastUpdated = lastUpdated
                   }
-                , OpenRoom.getListResponse
-                    |> Task.attempt GotOpenRoomResponse
+                , Version.getResponse
+                    |> Task.attempt GotVersion
                 )
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Time.every (1000 * 5) TimePassed
 
 
@@ -193,7 +216,7 @@ view :
     ->
         { element : Element Msg
         , message : Maybe String
-        , error : Maybe ( Error, Msg )
+        , error : Maybe Error
         }
 view { activeRooms, oldRooms, error, message, playerId } =
     { element =
@@ -202,28 +225,38 @@ view { activeRooms, oldRooms, error, message, playerId } =
                 Element.text "Select a Room"
             , activeRooms
                 |> List.map
-                    (\({ id, player } as room) ->
-                        Input.button
-                            (Button.simple
-                                ++ Card.large
-                                ++ Color.success
-                                ++ (List.singleton <| Font.center)
-                            )
-                            { onPress = Just <| JoinedRoom <| room
-                            , label =
+                    (\({ id, player, gameId } as room) ->
+                        if gameId == Nothing then
+                            Input.button
+                                (Button.simple
+                                    ++ Card.large
+                                    ++ Color.success
+                                    ++ (List.singleton <| Font.center)
+                                )
+                                { onPress = Just <| JoinedRoom <| room
+                                , label =
+                                    Element.row Grid.spacedEvenly <|
+                                        [ Element.text <| Id.view id
+                                        , Element.text <|
+                                            (player
+                                                |> Dict.size
+                                                |> String.fromInt
+                                            )
+                                                ++ " Player"
+                                        ]
+                                }
+
+                        else
+                            Element.el
+                                (Button.simple
+                                    ++ Card.large
+                                    ++ (List.singleton <| Font.center)
+                                )
+                            <|
                                 Element.row Grid.spacedEvenly <|
-                                    [ Element.text <|
-                                        String.left 4 <|
-                                            String.fromInt <|
-                                                id
-                                    , Element.text <|
-                                        (player
-                                            |> Dict.size
-                                            |> String.fromInt
-                                        )
-                                            ++ " Player"
+                                    [ Element.text <| Id.view id
+                                    , Element.text <| "Game is running"
                                     ]
-                            }
                     )
                 |> Element.wrappedRow Grid.simple
             , Element.row Grid.spacedEvenly <|
@@ -233,7 +266,7 @@ view { activeRooms, oldRooms, error, message, playerId } =
                     }
                 , Element.text <|
                     "Player Id: "
-                        ++ (String.left 4 <| String.fromInt <| playerId)
+                        ++ (Id.view <| playerId)
                 ]
             , oldRooms
                 |> List.map
@@ -244,12 +277,11 @@ view { activeRooms, oldRooms, error, message, playerId } =
                             )
                         <|
                             Element.text <|
-                                String.left 4 <|
-                                    String.fromInt <|
-                                        id
+                                Id.view <|
+                                    id
                     )
                 |> Element.wrappedRow Grid.simple
             ]
     , message = message
-    , error = error |> Maybe.map (\err -> ( err, PressedRetryButton ))
+    , error = error
     }

@@ -1,4 +1,4 @@
-module Emojidojo.String exposing (jsonstore, lastUpdated, openRoom, player)
+module Emojidojo.String exposing (jsonstore, lastUpdated, openRoom,gameId, player, version)
 
 
 jsonstore : String
@@ -19,3 +19,13 @@ lastUpdated =
 player : String
 player =
     "/player"
+
+
+version : String
+version =
+    "/version"
+
+
+gameId : String
+gameId =
+    "/gameId"

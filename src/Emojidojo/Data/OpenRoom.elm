@@ -1,9 +1,19 @@
-module Emojidojo.Data.OpenRoom exposing (OpenRoom, getListResponse, getResponse, insertResponse, json, removeResponse, updateResponse)
+module Emojidojo.Data.OpenRoom exposing
+    ( OpenRoom
+    , getListResponse
+    , getResponse
+    , insertGameIdResponse
+    , insertResponse
+    , json
+    , removeResponse
+    , updateResponse
+    )
 
 import Dict exposing (Dict)
 import Emojidojo.Data as Data
-import Emojidojo.Data.Player as Player exposing (Player)
-import Emojidojo.Data.Timestamp as Timestamp exposing (Timestamp)
+import Emojidojo.Data.Id as Id exposing (Id)
+import Emojidojo.Data.PlayerInfo as PlayerInfo exposing (PlayerInfo)
+import Emojidojo.Data.Timestamp as Timestamp
 import Emojidojo.String as String
 import Http exposing (Error)
 import Jsonstore exposing (Json)
@@ -12,28 +22,38 @@ import Time exposing (Posix)
 
 
 type alias OpenRoom =
-    { id : Int
+    { id : Id
     , lastUpdated : Posix
-    , player : Dict String Player
+    , player : Dict Id PlayerInfo
+    , gameId : Maybe Id
     }
 
 
 json : Json OpenRoom
 json =
     Jsonstore.object OpenRoom
-        |> Jsonstore.with "id" Jsonstore.int .id
+        |> Jsonstore.with "id" Id.json .id
         |> Jsonstore.with "lastUpdated"
             (Jsonstore.int |> Jsonstore.map Time.millisToPosix Time.posixToMillis)
             .lastUpdated
-        |> Jsonstore.with "player" (Jsonstore.dict Player.json) .player
+        |> Jsonstore.with "player" (Jsonstore.dict PlayerInfo.json) .player
+        |> Jsonstore.withMaybe "gameId" Id.json .gameId
         |> Jsonstore.toJson
 
 
-getResponse : Int -> Task Error (Maybe OpenRoom)
+insertGameIdResponse : { gameId : Id, roomId : Id } -> Task Error ()
+insertGameIdResponse { gameId, roomId } =
+    gameId
+        |> Jsonstore.encode Id.json
+        |> Jsonstore.insert
+            (Data.url ++ String.openRoom ++ "/" ++ roomId ++ String.gameId)
+
+
+getResponse : Id -> Task Error (Maybe OpenRoom)
 getResponse id =
     json
         |> Jsonstore.decode
-        |> Jsonstore.get (Data.url ++ String.openRoom ++ "/" ++ String.fromInt id)
+        |> Jsonstore.get (Data.url ++ String.openRoom ++ "/" ++ id)
 
 
 getListResponse : Task Error (List OpenRoom)
@@ -50,20 +70,20 @@ insertResponse openRoom =
     openRoom
         |> Jsonstore.encode json
         |> Jsonstore.insert
-            (Data.url ++ String.openRoom ++ "/" ++ String.fromInt openRoom.id)
+            (Data.url ++ String.openRoom ++ "/" ++ openRoom.id)
 
 
-removeResponse : Int -> Task Error ()
+removeResponse : Id -> Task Error ()
 removeResponse id =
-    Jsonstore.delete (Data.url ++ String.openRoom ++ "/" ++ String.fromInt id)
+    Jsonstore.delete (Data.url ++ String.openRoom ++ "/" ++ id)
 
 
-updateResponse : { roomId : Int, lastUpdated : Posix } -> Task Error ()
+updateResponse : { roomId : Id, lastUpdated : Posix } -> Task Error ()
 updateResponse { roomId, lastUpdated } =
     Timestamp.updateResponse
         (Data.url
             ++ String.openRoom
-            ++ ("/" ++ String.fromInt roomId)
+            ++ ("/" ++ roomId)
             ++ String.lastUpdated
         )
         lastUpdated

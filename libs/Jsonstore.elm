@@ -1,4 +1,4 @@
-module Jsonstore exposing (Json, bool, decode, decodeList, delete, dict, encode, encodeList, float, get, insert, int, map, object, string, toJson, update, with, withList)
+module Jsonstore exposing (Json, bool, decode, decodeList, delete, dict, encode, encodeList, float, get, insert, int, map, object, string, toJson, update, with, withList, withMaybe)
 
 import Dict exposing (Dict)
 import Http exposing (Error, Resolver)
@@ -62,6 +62,24 @@ withList name (Json json) value (JsonObject ( d, e )) =
             |> D.map2 (\f fun -> fun f)
                 ((D.map (Maybe.withDefault []) << D.maybe << D.field name) (json |> Tuple.first |> D.list))
         , e |> (::) ( name, \o -> E.list (json |> Tuple.second) (o |> value) )
+        )
+
+
+withMaybe : String -> Json a -> (obj -> Maybe a) -> JsonObject (Maybe a -> fun) obj -> JsonObject fun obj
+withMaybe name (Json json) value (JsonObject ( d, e )) =
+    JsonObject
+        ( d
+            |> D.map2 (\f fun -> fun f)
+                (D.maybe <| D.field name (json |> Tuple.first))
+        , e
+            |> (::)
+                ( name
+                , \o ->
+                    (Maybe.map (json |> Tuple.second)
+                        >> Maybe.withDefault E.null
+                    )
+                        (o |> value)
+                )
         )
 
 

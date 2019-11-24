@@ -4,7 +4,7 @@ import Action
 import Element exposing (Element)
 import Emojidojo.Data as Data
 import Emojidojo.Data.OpenRoom as OpenRoom exposing (OpenRoom)
-import Emojidojo.Error
+import Emojidojo.Data.Version as Version
 import Emojidojo.Page.SelectingRoom as SelectingRoom
 import Emojidojo.String as String
 import Http exposing (Error(..))
@@ -19,6 +19,7 @@ type alias Model =
     , lastUpdated : Maybe Posix
     , seed : Maybe Seed
     , error : Maybe Error
+    , message : Maybe String
     }
 
 
@@ -26,8 +27,7 @@ type Msg
     = GotOpenRoomResponse (Result Error (List OpenRoom))
     | GotTime Posix
     | GotSeed Seed
-    | PressedRetryButton
-    | Reset (Result Error ())
+    | GotVersion (Result Error (Maybe Float))
 
 
 type alias Action =
@@ -40,10 +40,11 @@ init _ =
       , lastUpdated = Nothing
       , openRooms = Nothing
       , seed = Nothing
+      , message = Just <| "Loading..."
       }
     , Cmd.batch
-        [ OpenRoom.getListResponse
-            |> Task.attempt GotOpenRoomResponse
+        [ Version.getResponse
+            |> Task.attempt GotVersion
         , Time.now |> Task.perform GotTime
         , Random.generate GotSeed Random.independentSeed
         ]
@@ -67,6 +68,47 @@ evaluate ({ openRooms, lastUpdated, seed } as model) =
 update : Msg -> Model -> Action
 update msg model =
     case msg of
+        GotVersion result ->
+            case result of
+                Ok (Just float) ->
+                    Action.updating <|
+                        if float > Data.version then
+                            ( { model
+                                | message =
+                                    Just <|
+                                        "You are running version "
+                                            ++ String.fromFloat Data.version
+                                            ++ ". The current version is "
+                                            ++ String.fromFloat float
+                                            ++ ". Please refresh the page in order to upgrade to the new version."
+                              }
+                            , Cmd.none
+                            )
+
+                        else if float < Data.version then
+                            ( { model | message = Just "updating..." }
+                            , Jsonstore.delete Data.url
+                                |> Task.andThen (\() -> Version.getResponse)
+                                |> Task.attempt GotVersion
+                            )
+
+                        else
+                            ( model
+                            , OpenRoom.getListResponse
+                                |> Task.attempt GotOpenRoomResponse
+                            )
+
+                Ok Nothing ->
+                    Action.updating
+                        ( { model | message = Just "updating..." }
+                        , Version.insertResponse
+                            |> Task.andThen (\() -> Version.getResponse)
+                            |> Task.attempt GotVersion
+                        )
+
+                Err error ->
+                    Action.updating ( { model | error = Just error }, Cmd.none )
+
         GotOpenRoomResponse result ->
             case result of
                 Ok maybeList ->
@@ -82,24 +124,9 @@ update msg model =
         GotSeed seed ->
             evaluate <| { model | seed = Just seed }
 
-        PressedRetryButton ->
-            Action.updating
-                ( model
-                , Jsonstore.delete (Data.url ++ String.openRoom)
-                    |> Task.attempt Reset
-                )
-
-        Reset result ->
-            case result of
-                Ok () ->
-                    init () |> Action.updating
-
-                Err error ->
-                    Action.updating ( { model | error = Just error }, Cmd.none )
-
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Sub.none
 
 
@@ -108,18 +135,10 @@ view :
     ->
         { element : Element Msg
         , message : Maybe String
-        , error : Maybe ( Error, Msg )
+        , error : Maybe Error
         }
-view { error } =
-    case error of
-        Nothing ->
-            { element = Element.none
-            , message = Just "Loading..."
-            , error = Nothing
-            }
-
-        Just err ->
-            { element = Element.none
-            , message = Nothing
-            , error = Just ( err, PressedRetryButton )
-            }
+view { error, message } =
+    { element = Element.none
+    , message = message
+    , error = error
+    }
