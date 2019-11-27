@@ -29,7 +29,7 @@ type alias Model =
     , inactivePlayers : List PlayerInfo
     , hosting : Bool
     , message : Maybe String
-    , error : Maybe Error
+    , error : Maybe Http.Error
     , lastUpdated : Posix
     , seed : Seed
     }
@@ -40,7 +40,6 @@ type Msg
     | LeftRoom
     | TimePassed Posix
     | GotRoomResponse (Result Error (Maybe OpenRoom))
-    | GotVersion (Result Error (Maybe Float))
     | PressedStartGameButton
 
 
@@ -51,6 +50,11 @@ type alias TransitionData =
     , lastUpdated : Posix
     , seed : Seed
     }
+
+
+type Error
+    = HttpError Http.Error
+    | WrongVersion
 
 
 type alias Action =
@@ -99,6 +103,7 @@ init data =
         { id = model.playerId
         , lastUpdated = model.lastUpdated
         }
+        |> Task.mapError HttpError
         |> Task.andThen (\() -> updateTask model)
         |> Task.attempt GotRoomResponse
     )
@@ -106,27 +111,46 @@ init data =
 
 updateTask : Model -> Task Error (Maybe OpenRoom)
 updateTask model =
-    (if model.hosting then
-        OpenRoom.updateResponse
-            { roomId = model.roomId
-            , lastUpdated = model.lastUpdated
-            }
-            |> Task.andThen
-                (\() ->
-                    case model.inactivePlayers of
-                        player :: _ ->
-                            PlayerInfo.removeResponse
-                                { roomId = model.roomId
-                                , playerId = player.id
-                                }
-
-                        _ ->
+    Version.getResponse
+        |> Task.mapError HttpError
+        |> Task.andThen
+            (\maybeFloat ->
+                case maybeFloat of
+                    Just float ->
+                        if float == Data.version then
                             Task.succeed ()
-                )
 
-     else
-        Task.succeed ()
-    )
+                        else
+                            Task.fail WrongVersion
+
+                    Nothing ->
+                        Task.fail WrongVersion
+            )
+        |> Task.andThen
+            (\() ->
+                (if model.hosting then
+                    OpenRoom.updateResponse
+                        { roomId = model.roomId
+                        , lastUpdated = model.lastUpdated
+                        }
+                        |> Task.andThen
+                            (\() ->
+                                case model.inactivePlayers of
+                                    player :: _ ->
+                                        PlayerInfo.removeResponse
+                                            { roomId = model.roomId
+                                            , playerId = player.id
+                                            }
+
+                                    _ ->
+                                        Task.succeed ()
+                            )
+
+                 else
+                    Task.succeed ()
+                )
+                    |> Task.mapError HttpError
+            )
         |> Task.andThen
             (\() ->
                 PlayerInfo.updateResponse
@@ -134,10 +158,12 @@ updateTask model =
                     , playerId = model.playerId
                     , lastUpdated = model.lastUpdated
                     }
+                    |> Task.mapError HttpError
             )
         |> Task.andThen
             (\() ->
                 OpenRoom.getResponse model.roomId
+                    |> Task.mapError HttpError
             )
 
 
@@ -169,38 +195,12 @@ update msg model =
         TimePassed lastUpdated ->
             Action.updating
                 ( { model
-                    | message = Just <| "Checking Version..."
+                    | message = Just <| "Synchronizing..."
                     , lastUpdated = lastUpdated
                   }
-                , Version.getResponse
-                    |> Task.attempt GotVersion
+                , updateTask model
+                    |> Task.attempt GotRoomResponse
                 )
-
-        GotVersion result ->
-            case result of
-                Ok maybeFloat ->
-                    if maybeFloat == Just Data.version then
-                        { model
-                            | message = Just <| "Synchronizing..."
-                        }
-                            |> (\m ->
-                                    ( m
-                                    , updateTask m
-                                        |> Task.attempt GotRoomResponse
-                                    )
-                               )
-                            |> Action.updating
-
-                    else
-                        Action.exiting
-
-                Err error ->
-                    Action.updating
-                        ( { model
-                            | error = Just error
-                          }
-                        , Cmd.none
-                        )
 
         GotRoomResponse result ->
             case result of
@@ -219,13 +219,16 @@ update msg model =
                 Ok Nothing ->
                     Action.exiting
 
-                Err error ->
+                Err (HttpError error) ->
                     Action.updating
                         ( { model
                             | error = Just error
                           }
                         , Cmd.none
                         )
+
+                Err WrongVersion ->
+                    Action.exiting
 
         PressedStartGameButton ->
             let
@@ -239,8 +242,9 @@ update msg model =
                     { gameId = gameId
                     , roomId = model.roomId
                     }
-                    |> Task.andThen (\() -> Version.getResponse)
-                    |> Task.attempt GotVersion
+                    |> Task.mapError HttpError
+                    |> Task.andThen (\() -> updateTask model)
+                    |> Task.attempt GotRoomResponse
                 )
 
 
@@ -254,7 +258,7 @@ view :
     ->
         { element : Element Msg
         , message : Maybe String
-        , error : Maybe Error
+        , error : Maybe Http.Error
         }
 view { roomId, playerId, activePlayers, inactivePlayers, hosting, message, error, gameId } =
     { element =
@@ -307,7 +311,7 @@ view { roomId, playerId, activePlayers, inactivePlayers, hosting, message, error
                                    )
                         then
                             Input.button (Button.simple ++ Color.success)
-                                { onPress = Just  PressedStartGameButton
+                                { onPress = Just PressedStartGameButton
                                 , label =
                                     Element.text <| "start Game"
                                 }

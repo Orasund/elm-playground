@@ -7,10 +7,10 @@ import Emojidojo.Data.OpenRoom as OpenRoom exposing (OpenRoom)
 import Emojidojo.Data.Version as Version
 import Emojidojo.Page.SelectingRoom as SelectingRoom
 import Emojidojo.String as String
-import Http exposing (Error(..))
+import Http
 import Jsonstore
 import Random exposing (Seed)
-import Task
+import Task exposing (Task)
 import Time exposing (Posix)
 
 
@@ -18,16 +18,20 @@ type alias Model =
     { openRooms : Maybe (List OpenRoom)
     , lastUpdated : Maybe Posix
     , seed : Maybe Seed
-    , error : Maybe Error
+    , error : Maybe Http.Error
     , message : Maybe String
     }
+
+
+type Error
+    = HttpError Http.Error
+    | WrongVersion Float
 
 
 type Msg
     = GotOpenRoomResponse (Result Error (List OpenRoom))
     | GotTime Posix
     | GotSeed Seed
-    | GotVersion (Result Error (Maybe Float))
 
 
 type alias Action =
@@ -43,8 +47,8 @@ init _ =
       , message = Just <| "Loading..."
       }
     , Cmd.batch
-        [ Version.getResponse
-            |> Task.attempt GotVersion
+        [ updateTask
+            |> Task.attempt GotOpenRoomResponse
         , Time.now |> Task.perform GotTime
         , Random.generate GotSeed Random.independentSeed
         ]
@@ -65,50 +69,34 @@ evaluate ({ openRooms, lastUpdated, seed } as model) =
             Action.updating ( model, Cmd.none )
 
 
+updateTask : Task Error (List OpenRoom)
+updateTask =
+    Version.getResponse
+        |> Task.mapError HttpError
+        |> Task.andThen
+            (\maybeFloat ->
+                case maybeFloat of
+                    Just float ->
+                        if float == Data.version then
+                            OpenRoom.getListResponse
+                                |> Task.mapError HttpError
+
+                        else
+                            Task.fail (WrongVersion float)
+
+                    Nothing ->
+                        Version.insertResponse
+                            |> Task.andThen
+                                (\() ->
+                                    OpenRoom.getListResponse
+                                )
+                            |> Task.mapError HttpError
+            )
+
+
 update : Msg -> Model -> Action
 update msg model =
     case msg of
-        GotVersion result ->
-            case result of
-                Ok (Just float) ->
-                    Action.updating <|
-                        if float > Data.version then
-                            ( { model
-                                | message =
-                                    Just <|
-                                        "You are running version "
-                                            ++ String.fromFloat Data.version
-                                            ++ ". The current version is "
-                                            ++ String.fromFloat float
-                                            ++ ". Please refresh the page in order to upgrade to the new version."
-                              }
-                            , Cmd.none
-                            )
-
-                        else if float < Data.version then
-                            ( { model | message = Just "updating..." }
-                            , Jsonstore.delete Data.url
-                                |> Task.andThen (\() -> Version.getResponse)
-                                |> Task.attempt GotVersion
-                            )
-
-                        else
-                            ( model
-                            , OpenRoom.getListResponse
-                                |> Task.attempt GotOpenRoomResponse
-                            )
-
-                Ok Nothing ->
-                    Action.updating
-                        ( { model | message = Just "updating..." }
-                        , Version.insertResponse
-                            |> Task.andThen (\() -> Version.getResponse)
-                            |> Task.attempt GotVersion
-                        )
-
-                Err error ->
-                    Action.updating ( { model | error = Just error }, Cmd.none )
-
         GotOpenRoomResponse result ->
             case result of
                 Ok maybeList ->
@@ -116,7 +104,32 @@ update msg model =
                         |> evaluate
 
                 Err error ->
-                    Action.updating ( { model | error = Just error }, Cmd.none )
+                    case error of
+                        HttpError err ->
+                            Action.updating ( { model | error = Just err }, Cmd.none )
+
+                        WrongVersion float ->
+                            Action.updating <|
+                                if float > Data.version then
+                                    ( { model
+                                        | message =
+                                            Just <|
+                                                "You are running version "
+                                                    ++ String.fromFloat Data.version
+                                                    ++ ". The current version is "
+                                                    ++ String.fromFloat float
+                                                    ++ ". Please refresh the page in order to upgrade to the new version."
+                                      }
+                                    , Cmd.none
+                                    )
+
+                                else
+                                    ( { model | message = Just "updating..." }
+                                    , Jsonstore.delete Data.url
+                                        |> Task.mapError HttpError
+                                        |> Task.andThen (\() -> updateTask)
+                                        |> Task.attempt GotOpenRoomResponse
+                                    )
 
         GotTime posix ->
             evaluate <| { model | lastUpdated = Just posix }
@@ -135,7 +148,7 @@ view :
     ->
         { element : Element Msg
         , message : Maybe String
-        , error : Maybe Error
+        , error : Maybe Http.Error
         }
 view { error, message } =
     { element = Element.none

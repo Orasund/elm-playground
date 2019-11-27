@@ -16,8 +16,10 @@ import Framework.Card as Card
 import Framework.Color as Color
 import Framework.Grid as Grid
 import Framework.Heading as Heading
-import Http exposing (Error)
+import Http
+import Jsonstore
 import Random exposing (Seed)
+import String
 import Task exposing (Task)
 import Time exposing (Posix)
 
@@ -33,7 +35,7 @@ type alias Model =
     { activeRooms : List OpenRoom
     , oldRooms : List OpenRoom
     , lastUpdated : Posix
-    , error : Maybe Error
+    , error : Maybe Http.Error
     , message : Maybe String
     , seed : Seed
     , playerId : Id
@@ -46,7 +48,11 @@ type Msg
     | CreatedRoom OpenRoom
     | JoinedRoom OpenRoom
     | TimePassed Posix
-    | GotVersion (Result Error (Maybe Float))
+
+
+type Error
+    = HttpError Http.Error
+    | WrongVersion Float
 
 
 type alias Action =
@@ -91,21 +97,41 @@ init data =
             initialModel data
     in
     ( model
-    , Version.getResponse
-        |> Task.attempt GotVersion
+    , updateTask model
+        |> Task.attempt GotOpenRoomResponse
     )
 
 
 updateTask : Model -> Task Error (List OpenRoom)
 updateTask model =
-    (case model.oldRooms |> List.head of
-        Just { id } ->
-            OpenRoom.removeResponse id
+    Version.getResponse
+        |> Task.mapError HttpError
+        |> Task.andThen
+            (\maybeFloat ->
+                case maybeFloat of
+                    Just float ->
+                        if float == Data.version then
+                            (case model.oldRooms |> List.head of
+                                Just { id } ->
+                                    OpenRoom.removeResponse id
 
-        Nothing ->
-            Task.succeed ()
-    )
-        |> Task.andThen (\() -> OpenRoom.getListResponse)
+                                Nothing ->
+                                    Task.succeed ()
+                            )
+                                |> Task.andThen (\() -> OpenRoom.getListResponse)
+                                |> Task.mapError HttpError
+
+                        else
+                            Task.fail (WrongVersion float)
+
+                    Nothing ->
+                        Version.insertResponse
+                            |> Task.andThen
+                                (\() ->
+                                    OpenRoom.getListResponse
+                                )
+                            |> Task.mapError HttpError
+            )
 
 
 update : Msg -> Model -> Action
@@ -164,45 +190,41 @@ update msg model =
                         )
 
                 Err error ->
-                    Action.updating
-                        ( { model
-                            | error = Just error
-                          }
-                        , Cmd.none
-                        )
+                    case error of
+                        HttpError err ->
+                            Action.updating ( { model | error = Just err }, Cmd.none )
 
-        GotVersion result ->
-            case result of
-                Ok maybeFloat ->
-                    if maybeFloat == Just Data.version then
-                        Action.updating
-                            ( { model
-                                | message = Just <| "Updating List..."
-                              }
-                            , model
-                                |> updateTask
-                                |> Task.attempt GotOpenRoomResponse
-                            )
+                        WrongVersion float ->
+                            Action.updating <|
+                                if float > Data.version then
+                                    ( { model
+                                        | message =
+                                            Just <|
+                                                "You are running version "
+                                                    ++ String.fromFloat Data.version
+                                                    ++ ". The current version is "
+                                                    ++ String.fromFloat float
+                                                    ++ ". Please refresh the page in order to upgrade to the new version."
+                                      }
+                                    , Cmd.none
+                                    )
 
-                    else
-                        Action.exiting
-
-                Err error ->
-                    Action.updating
-                        ( { model
-                            | error = Just error
-                          }
-                        , Cmd.none
-                        )
+                                else
+                                    ( { model | message = Just "updating..." }
+                                    , Jsonstore.delete Data.url
+                                        |> Task.mapError HttpError
+                                        |> Task.andThen (\() -> updateTask model)
+                                        |> Task.attempt GotOpenRoomResponse
+                                    )
 
         TimePassed lastUpdated ->
             Action.updating
                 ( { model
-                    | message = Just <| "Checking Version..."
+                    | message = Just <| "Synchronizing..."
                     , lastUpdated = lastUpdated
                   }
-                , Version.getResponse
-                    |> Task.attempt GotVersion
+                , updateTask model
+                    |> Task.attempt GotOpenRoomResponse
                 )
 
 
@@ -216,7 +238,7 @@ view :
     ->
         { element : Element Msg
         , message : Maybe String
-        , error : Maybe Error
+        , error : Maybe Http.Error
         }
 view { activeRooms, oldRooms, error, message, playerId } =
     { element =
