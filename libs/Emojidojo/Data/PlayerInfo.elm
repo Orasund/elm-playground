@@ -1,6 +1,7 @@
 module Emojidojo.Data.PlayerInfo exposing (PlayerInfo, insertResponse, json, removeResponse, updateResponse)
 
 import Emojidojo.Data as Data
+import Emojidojo.Data.Config exposing (Config)
 import Emojidojo.Data.Id as Id exposing (Id)
 import Emojidojo.Data.Timestamp as Timestamp
 import Emojidojo.String as String
@@ -26,12 +27,12 @@ json =
         |> Jsonstore.toJson
 
 
-insertResponse : Id -> PlayerInfo -> Task Error ()
-insertResponse roomId player =
+insertResponse : Config -> Id -> PlayerInfo -> Task Error ()
+insertResponse config roomId player =
     player
         |> Jsonstore.encode json
         |> Jsonstore.insert
-            (Data.url
+            (Data.url config
                 ++ String.openRoom
                 ++ ("/" ++ roomId)
                 ++ String.player
@@ -39,10 +40,10 @@ insertResponse roomId player =
             )
 
 
-removeResponse : { roomId : Id, playerId : Id } -> Task Error ()
-removeResponse { roomId, playerId } =
+removeResponse : Config -> { roomId : Id, playerId : Id } -> Task Error ()
+removeResponse config { roomId, playerId } =
     Jsonstore.delete
-        (Data.url
+        (Data.url config
             ++ String.openRoom
             ++ ("/" ++ roomId)
             ++ String.player
@@ -50,10 +51,10 @@ removeResponse { roomId, playerId } =
         )
 
 
-updateResponse : { roomId : Id, playerId : Id, lastUpdated : Posix } -> Task Error ()
-updateResponse { roomId, playerId, lastUpdated } =
+updateResponse : Config -> { roomId : Id, playerId : Id, lastUpdated : Posix } -> Task Error ()
+updateResponse config { roomId, playerId, lastUpdated } =
     Timestamp.updateResponse
-        (Data.url
+        (Data.url config
             ++ String.openRoom
             ++ ("/" ++ roomId)
             ++ String.player

@@ -3,6 +3,7 @@ module Emojidojo.Page.Waiting exposing (Model, Msg, init, subscriptions, update,
 import Action
 import Element exposing (Element)
 import Emojidojo.Data as Data
+import Emojidojo.Data.Config exposing (Config)
 import Emojidojo.Data.OpenRoom as OpenRoom exposing (OpenRoom)
 import Emojidojo.Data.Version as Version
 import Emojidojo.Page.SelectingRoom as SelectingRoom
@@ -38,8 +39,8 @@ type alias Action =
     Action.Action Model Msg SelectingRoom.TransitionData Never
 
 
-init : () -> ( Model, Cmd Msg )
-init _ =
+init : Config -> () -> ( Model, Cmd Msg )
+init config _ =
     ( { error = Nothing
       , lastUpdated = Nothing
       , openRooms = Nothing
@@ -47,7 +48,7 @@ init _ =
       , message = Just <| "Loading..."
       }
     , Cmd.batch
-        [ updateTask
+        [ updateTask config
             |> Task.attempt GotOpenRoomResponse
         , Time.now |> Task.perform GotTime
         , Random.generate GotSeed Random.independentSeed
@@ -69,33 +70,33 @@ evaluate ({ openRooms, lastUpdated, seed } as model) =
             Action.updating ( model, Cmd.none )
 
 
-updateTask : Task Error (List OpenRoom)
-updateTask =
-    Version.getResponse
+updateTask : Config -> Task Error (List OpenRoom)
+updateTask config =
+    Version.getResponse config
         |> Task.mapError HttpError
         |> Task.andThen
             (\maybeFloat ->
                 case maybeFloat of
                     Just float ->
-                        if float == Data.version then
-                            OpenRoom.getListResponse
+                        if float == config.version then
+                            OpenRoom.getListResponse config
                                 |> Task.mapError HttpError
 
                         else
                             Task.fail (WrongVersion float)
 
                     Nothing ->
-                        Version.insertResponse
+                        Version.insertResponse config
                             |> Task.andThen
                                 (\() ->
-                                    OpenRoom.getListResponse
+                                    OpenRoom.getListResponse config
                                 )
                             |> Task.mapError HttpError
             )
 
 
-update : Msg -> Model -> Action
-update msg model =
+update : Config -> Msg -> Model -> Action
+update config msg model =
     case msg of
         GotOpenRoomResponse result ->
             case result of
@@ -110,12 +111,12 @@ update msg model =
 
                         WrongVersion float ->
                             Action.updating <|
-                                if float > Data.version then
+                                if float > config.version then
                                     ( { model
                                         | message =
                                             Just <|
                                                 "You are running version "
-                                                    ++ String.fromFloat Data.version
+                                                    ++ String.fromFloat config.version
                                                     ++ ". The current version is "
                                                     ++ String.fromFloat float
                                                     ++ ". Please refresh the page in order to upgrade to the new version."
@@ -125,9 +126,9 @@ update msg model =
 
                                 else
                                     ( { model | message = Just "updating..." }
-                                    , Jsonstore.delete Data.url
+                                    , Jsonstore.delete (Data.url config)
                                         |> Task.mapError HttpError
-                                        |> Task.andThen (\() -> updateTask)
+                                        |> Task.andThen (\() -> updateTask config)
                                         |> Task.attempt GotOpenRoomResponse
                                     )
 

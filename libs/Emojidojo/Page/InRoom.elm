@@ -5,10 +5,12 @@ import Dict
 import Element exposing (Element)
 import Element.Input as Input
 import Emojidojo.Data as Data
+import Emojidojo.Data.Config exposing (Config)
 import Emojidojo.Data.Id as Id exposing (Id)
 import Emojidojo.Data.OpenRoom as OpenRoom exposing (OpenRoom)
 import Emojidojo.Data.PlayerInfo as PlayerInfo exposing (PlayerInfo)
 import Emojidojo.Data.Version as Version
+import Emojidojo.Page.InGame as InGame
 import Emojidojo.String as String
 import Framework.Button as Button
 import Framework.Card as Card
@@ -57,12 +59,12 @@ type Error
     | WrongVersion
 
 
-type alias Action =
-    Action.Action Model Msg Never ()
+type alias Action data =
+    Action.Action Model Msg (InGame.TransitionData data) ()
 
 
-initialModel : TransitionData -> Model
-initialModel { room, playerId, hosting, lastUpdated, seed } =
+initialModel : Config -> TransitionData -> Model
+initialModel config { room, playerId, hosting, lastUpdated, seed } =
     let
         ( activePlayers, inactivePlayers ) =
             room.player
@@ -71,7 +73,7 @@ initialModel { room, playerId, hosting, lastUpdated, seed } =
                     (\list ->
                         (list.lastUpdated
                             |> Time.posixToMillis
-                            |> (+) Data.roomOpenInMillis
+                            |> (+) config.roomOpenInMillis
                         )
                             >= (lastUpdated
                                     |> Time.posixToMillis
@@ -91,33 +93,34 @@ initialModel { room, playerId, hosting, lastUpdated, seed } =
     }
 
 
-init : TransitionData -> ( Model, Cmd Msg )
-init data =
+init : Config -> TransitionData -> ( Model, Cmd Msg )
+init config data =
     let
         model : Model
         model =
-            initialModel data
+            initialModel config data
     in
     ( { model | message = Just "joining room..." }
-    , PlayerInfo.insertResponse model.roomId
+    , PlayerInfo.insertResponse config
+        model.roomId
         { id = model.playerId
         , lastUpdated = model.lastUpdated
         }
         |> Task.mapError HttpError
-        |> Task.andThen (\() -> updateTask model)
+        |> Task.andThen (\() -> updateTask config model)
         |> Task.attempt GotRoomResponse
     )
 
 
-updateTask : Model -> Task Error (Maybe OpenRoom)
-updateTask model =
-    Version.getResponse
+updateTask : Config -> Model -> Task Error (Maybe OpenRoom)
+updateTask config model =
+    Version.getResponse config
         |> Task.mapError HttpError
         |> Task.andThen
             (\maybeFloat ->
                 case maybeFloat of
                     Just float ->
-                        if float == Data.version then
+                        if float == config.version then
                             Task.succeed ()
 
                         else
@@ -129,7 +132,7 @@ updateTask model =
         |> Task.andThen
             (\() ->
                 (if model.hosting then
-                    OpenRoom.updateResponse
+                    OpenRoom.updateResponse config
                         { roomId = model.roomId
                         , lastUpdated = model.lastUpdated
                         }
@@ -137,7 +140,7 @@ updateTask model =
                             (\() ->
                                 case model.inactivePlayers of
                                     player :: _ ->
-                                        PlayerInfo.removeResponse
+                                        PlayerInfo.removeResponse config
                                             { roomId = model.roomId
                                             , playerId = player.id
                                             }
@@ -153,7 +156,7 @@ updateTask model =
             )
         |> Task.andThen
             (\() ->
-                PlayerInfo.updateResponse
+                PlayerInfo.updateResponse config
                     { roomId = model.roomId
                     , playerId = model.playerId
                     , lastUpdated = model.lastUpdated
@@ -162,25 +165,25 @@ updateTask model =
             )
         |> Task.andThen
             (\() ->
-                OpenRoom.getResponse model.roomId
+                OpenRoom.getResponse config model.roomId
                     |> Task.mapError HttpError
             )
 
 
-update : Msg -> Model -> Action
-update msg model =
+update : { init : data, config : Config } -> Msg -> Model -> Action data
+update input msg model =
     case msg of
         PressedLeaveRoomButton ->
             Action.updating <|
                 ( { model | message = Just "Leaving..." }
-                , PlayerInfo.removeResponse
+                , PlayerInfo.removeResponse input.config
                     { roomId = model.roomId
                     , playerId = model.playerId
                     }
                     |> (if model.hosting then
                             Task.andThen
                                 (always
-                                    (OpenRoom.removeResponse model.roomId)
+                                    (OpenRoom.removeResponse input.config model.roomId)
                                 )
 
                         else
@@ -198,23 +201,36 @@ update msg model =
                     | message = Just <| "Synchronizing..."
                     , lastUpdated = lastUpdated
                   }
-                , updateTask model
+                , updateTask input.config model
                     |> Task.attempt GotRoomResponse
                 )
 
         GotRoomResponse result ->
             case result of
                 Ok (Just room) ->
-                    Action.updating
-                        ( initialModel
-                            { room = room
-                            , playerId = model.playerId
-                            , hosting = model.hosting
-                            , lastUpdated = model.lastUpdated
-                            , seed = model.seed
-                            }
-                        , Cmd.none
-                        )
+                    case room.gameId of
+                        Just id ->
+                            Action.transitioning
+                                { room = room
+                                , playerId = model.playerId
+                                , gameId = id
+                                , hosting = model.hosting
+                                , lastUpdated = model.lastUpdated
+                                , seed = model.seed
+                                , gameData = input.init
+                                }
+
+                        Nothing ->
+                            Action.updating
+                                ( initialModel input.config
+                                    { room = room
+                                    , playerId = model.playerId
+                                    , hosting = model.hosting
+                                    , lastUpdated = model.lastUpdated
+                                    , seed = model.seed
+                                    }
+                                , Cmd.none
+                                )
 
                 Ok Nothing ->
                     Action.exiting
@@ -238,12 +254,12 @@ update msg model =
             in
             Action.updating <|
                 ( { model | message = Just "game starting...", seed = seed }
-                , OpenRoom.insertGameIdResponse
+                , OpenRoom.insertGameIdResponse input.config
                     { gameId = gameId
                     , roomId = model.roomId
                     }
                     |> Task.mapError HttpError
-                    |> Task.andThen (\() -> updateTask model)
+                    |> Task.andThen (\() -> updateTask input.config model)
                     |> Task.attempt GotRoomResponse
                 )
 
@@ -254,13 +270,14 @@ subscriptions _ =
 
 
 view :
-    Model
+    Config
+    -> Model
     ->
         { element : Element Msg
         , message : Maybe String
         , error : Maybe Http.Error
         }
-view { roomId, playerId, activePlayers, inactivePlayers, hosting, message, error, gameId } =
+view config { roomId, playerId, activePlayers, inactivePlayers, hosting, message, error, gameId } =
     { element =
         Element.column (Grid.simple ++ Card.fill) <|
             [ Element.row Grid.spacedEvenly <|
@@ -307,7 +324,7 @@ view { roomId, playerId, activePlayers, inactivePlayers, hosting, message, error
                             hosting
                                 && (activePlayers
                                         |> List.length
-                                        |> (==) Data.nrOfplayers
+                                        |> (==) config.nrOfplayers
                                    )
                         then
                             Input.button (Button.simple ++ Color.success)
@@ -318,7 +335,7 @@ view { roomId, playerId, activePlayers, inactivePlayers, hosting, message, error
 
                         else
                             Element.text <|
-                                String.fromInt Data.nrOfplayers
+                                String.fromInt config.nrOfplayers
                                     ++ " players are needed"
                 , Element.text <|
                     "Player Id: "

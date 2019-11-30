@@ -6,6 +6,7 @@ import Element exposing (Element)
 import Element.Font as Font
 import Element.Input as Input
 import Emojidojo.Data as Data
+import Emojidojo.Data.Config exposing (Config)
 import Emojidojo.Data.Id as Id exposing (Id)
 import Emojidojo.Data.OpenRoom as OpenRoom exposing (OpenRoom)
 import Emojidojo.Data.Version as Version
@@ -59,8 +60,8 @@ type alias Action =
     Action.Action Model Msg InRoom.TransitionData ()
 
 
-initialModel : TransitionData -> Model
-initialModel ({ lastUpdated } as data) =
+initialModel : Config -> TransitionData -> Model
+initialModel config ({ lastUpdated } as data) =
     let
         ( activeRooms, oldRooms ) =
             data.openRooms
@@ -68,7 +69,7 @@ initialModel ({ lastUpdated } as data) =
                     (\list ->
                         (list.lastUpdated
                             |> Time.posixToMillis
-                            |> (+) Data.roomOpenInMillis
+                            |> (+) config.roomOpenInMillis
                         )
                             >= (lastUpdated
                                     |> Time.posixToMillis
@@ -89,53 +90,52 @@ initialModel ({ lastUpdated } as data) =
     }
 
 
-init : TransitionData -> ( Model, Cmd Msg )
-init data =
+init : Config -> TransitionData -> ( Model, Cmd Msg )
+init config data =
     let
         model : Model
         model =
-            initialModel data
+            initialModel config data
     in
     ( model
-    , updateTask model
+    , updateTask config model
         |> Task.attempt GotOpenRoomResponse
     )
 
 
-updateTask : Model -> Task Error (List OpenRoom)
-updateTask model =
-    Version.getResponse
+updateTask : Config -> Model -> Task Error (List OpenRoom)
+updateTask config model =
+    Version.getResponse config
         |> Task.mapError HttpError
         |> Task.andThen
             (\maybeFloat ->
                 case maybeFloat of
                     Just float ->
-                        if float == Data.version then
+                        if float == config.version then
                             (case model.oldRooms |> List.head of
                                 Just { id } ->
-                                    OpenRoom.removeResponse id
+                                    OpenRoom.removeResponse config id
 
                                 Nothing ->
                                     Task.succeed ()
                             )
-                                |> Task.andThen (\() -> OpenRoom.getListResponse)
+                                |> Task.andThen
+                                    (\() -> OpenRoom.getListResponse config)
                                 |> Task.mapError HttpError
 
                         else
                             Task.fail (WrongVersion float)
 
                     Nothing ->
-                        Version.insertResponse
+                        Version.insertResponse config
                             |> Task.andThen
-                                (\() ->
-                                    OpenRoom.getListResponse
-                                )
+                                (\() -> OpenRoom.getListResponse config)
                             |> Task.mapError HttpError
             )
 
 
-update : Msg -> Model -> Action
-update msg model =
+update : Config -> Msg -> Model -> Action
+update config msg model =
     case msg of
         HostRoom ->
             let
@@ -155,7 +155,7 @@ update msg model =
             in
             Action.updating
                 ( { model | message = Just "Starting to Host...", seed = seed }
-                , OpenRoom.insertResponse openRoom
+                , OpenRoom.insertResponse config openRoom
                     |> Task.attempt (always (CreatedRoom openRoom))
                 )
 
@@ -181,7 +181,7 @@ update msg model =
             case result of
                 Ok maybeList ->
                     Action.updating <|
-                        ( initialModel
+                        ( initialModel config
                             { openRooms = maybeList
                             , lastUpdated = model.lastUpdated
                             , seed = model.seed
@@ -196,12 +196,12 @@ update msg model =
 
                         WrongVersion float ->
                             Action.updating <|
-                                if float > Data.version then
+                                if float > config.version then
                                     ( { model
                                         | message =
                                             Just <|
                                                 "You are running version "
-                                                    ++ String.fromFloat Data.version
+                                                    ++ String.fromFloat config.version
                                                     ++ ". The current version is "
                                                     ++ String.fromFloat float
                                                     ++ ". Please refresh the page in order to upgrade to the new version."
@@ -211,9 +211,9 @@ update msg model =
 
                                 else
                                     ( { model | message = Just "updating..." }
-                                    , Jsonstore.delete Data.url
+                                    , Jsonstore.delete (Data.url config)
                                         |> Task.mapError HttpError
-                                        |> Task.andThen (\() -> updateTask model)
+                                        |> Task.andThen (\() -> updateTask config model)
                                         |> Task.attempt GotOpenRoomResponse
                                     )
 
@@ -223,7 +223,7 @@ update msg model =
                     | message = Just <| "Synchronizing..."
                     , lastUpdated = lastUpdated
                   }
-                , updateTask model
+                , updateTask config model
                     |> Task.attempt GotOpenRoomResponse
                 )
 

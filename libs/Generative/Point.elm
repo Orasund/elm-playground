@@ -8,6 +8,8 @@ type alias Point =
     ( Float, Float )
 
 
+
+
 smoothen : Int -> List Point -> List Point
 smoothen n l =
     l

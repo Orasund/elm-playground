@@ -1,9 +1,11 @@
-module Emojidojo.Main exposing (main)
+module Emojidojo.Main exposing (Game, define)
 
 import Action
 import Browser exposing (Document)
 import Element exposing (Element)
 import Element.Input as Input
+import Emojidojo.Data.Config exposing (Config)
+import Emojidojo.Page.InGame as InGame
 import Emojidojo.Page.InRoom as InRoom
 import Emojidojo.Page.SelectingRoom as SelectingRoom
 import Emojidojo.Page.Waiting as Waiting
@@ -16,76 +18,89 @@ import Framework.Grid as Grid
 import Http exposing (Error(..))
 
 
-type Model
+type alias Game data msg =
+    Program () (Model data) (Msg msg)
+
+
+type Model data
     = Waiting Waiting.Model
     | SelectingRoom SelectingRoom.Model
     | InRoom InRoom.Model
+    | InGame (InGame.Model data)
 
 
-type Msg
+type Msg msg
     = WaitingSpecific Waiting.Msg
     | SelectingRoomSpecific SelectingRoom.Msg
     | InRoomSpecific InRoom.Msg
+    | InGameSpecific InGame.Msg
+    | GameSpecific msg
 
 
-init : () -> ( Model, Cmd Msg )
-init =
-    Waiting.init
+init : Config -> () -> ( Model data, Cmd (Msg msg) )
+init config =
+    Waiting.init config
         >> Action.updating
         >> Action.config
         >> Action.withUpdate Waiting WaitingSpecific
         >> Action.apply
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
-    let
-        defaultCase : ( Model, Cmd Msg )
-        defaultCase =
-            ( model, Cmd.none )
-    in
+update : { init : data, config : Config } -> Msg msg -> Model data -> ( Model data, Cmd (Msg msg) )
+update input msg model =
     case ( msg, model ) of
         ( WaitingSpecific specificMsg, Waiting specificModel ) ->
-            Waiting.update specificMsg specificModel
+            Waiting.update input.config specificMsg specificModel
                 |> Action.config
                 |> Action.withUpdate
                     Waiting
                     WaitingSpecific
                 |> Action.withTransition
-                    SelectingRoom.init
+                    (SelectingRoom.init input.config)
                     SelectingRoom
                     SelectingRoomSpecific
                 |> Action.apply
 
         ( SelectingRoomSpecific specificMsg, SelectingRoom specificModel ) ->
-            SelectingRoom.update specificMsg specificModel
+            SelectingRoom.update input.config specificMsg specificModel
                 |> Action.config
                 |> Action.withUpdate SelectingRoom SelectingRoomSpecific
                 |> Action.withTransition
-                    InRoom.init
+                    (InRoom.init input.config)
                     InRoom
                     InRoomSpecific
-                |> Action.withExit (init ())
+                |> Action.withExit (init input.config ())
                 |> Action.apply
 
         ( InRoomSpecific specificMsg, InRoom specificModel ) ->
-            InRoom.update specificMsg specificModel
+            InRoom.update { init = input.init, config = input.config } specificMsg specificModel
                 |> Action.config
                 |> Action.withUpdate InRoom InRoomSpecific
-                |> Action.withExit (init ())
+                |> Action.withTransition
+                    (InGame.init input.config)
+                    InGame
+                    InGameSpecific
+                |> Action.withExit (init input.config ())
+                |> Action.apply
+
+        ( InGameSpecific specificMsg, InGame specificModel ) ->
+            InGame.update input.config specificMsg specificModel
+                |> Action.config
+                |> Action.withUpdate InGame InGameSpecific
+                |> Action.withExit (init input.config ())
                 |> Action.apply
 
         _ ->
-            defaultCase
+            ( model, Cmd.none )
 
 
-view : Model -> Document Msg
-view model =
+view : { config : Config, view : data -> Element msg, title : String } -> Model data -> Document (Msg msg)
+view input model =
     let
         map :
-            (msg -> Msg)
-            -> { element : Element msg, error : Maybe Error, message : Maybe String }
-            -> { element : Element Msg, error : Maybe Error, message : Maybe String }
+            (msg1 -> Msg msg)
+            -> { element : Element msg1, error : Maybe Error, message : Maybe String }
+            -> { element : Element (Msg msg), error : Maybe Error, message : Maybe String }
         map fun out =
             { element = out.element |> Element.map fun
             , error = out.error
@@ -103,10 +118,17 @@ view model =
                         |> map SelectingRoomSpecific
 
                 InRoom specificModel ->
-                    InRoom.view specificModel
+                    InRoom.view input.config specificModel
                         |> map InRoomSpecific
+
+                InGame specificModel ->
+                    InGame.view
+                        { dataView = input.view >> Element.map GameSpecific
+                        , msgMapper = InGameSpecific
+                        }
+                        specificModel
     in
-    { title = "Emojidojo"
+    { title = input.title
     , body =
         List.singleton <|
             Framework.layout [] <|
@@ -133,7 +155,7 @@ view model =
     }
 
 
-subscriptions : Model -> Sub Msg
+subscriptions : Model data -> Sub (Msg msg)
 subscriptions model =
     case model of
         Waiting specificModel ->
@@ -148,12 +170,30 @@ subscriptions model =
             InRoom.subscriptions specificModel
                 |> Sub.map InRoomSpecific
 
+        InGame specificModel ->
+            InGame.subscriptions specificModel
+                |> Sub.map InGameSpecific
 
-main : Program () Model Msg
-main =
-    Browser.document
-        { init = init
-        , view = view
-        , update = update
-        , subscriptions = subscriptions
-        }
+
+define : { init : data, view : data -> Element msg, title : String, config : Config } -> Game data msg
+define input =
+    let
+        c :
+            { init : () -> ( Model data, Cmd (Msg msg) )
+            , view : Model data -> Document (Msg msg)
+            , update : Msg msg -> Model data -> ( Model data, Cmd (Msg msg) )
+            , subscriptions : Model data -> Sub (Msg msg)
+            }
+        c =
+            { init = init input.config
+            , view =
+                view
+                    { config = input.config
+                    , title = input.title
+                    , view = input.view
+                    }
+            , update = update { init = input.init, config = input.config }
+            , subscriptions = subscriptions
+            }
+    in
+    Browser.document c

@@ -3,6 +3,7 @@ module ChristmasCard exposing (main)
 import Color
 import Generative
 import Generative.Distribution as Distribution exposing (Distribution)
+import Generative.Point as Point exposing (Point)
 import Generative.Shape as Shape exposing (Shape, Surface(..))
 import Html exposing (Html)
 import Html.Attributes as Attributes
@@ -79,6 +80,28 @@ leaf =
         (Random.float 0.5 0.7)
 
 
+stemPart : Generator Shape
+stemPart =
+    Random.float (pi - pi / 4) (pi + pi / 4)
+        |> Random.map
+            (\angle ->
+                Shape.rectangle
+                    ( -(toFloat width / 32), -(toFloat height / 32) )
+                    ( toFloat width / 32, toFloat height / 32 )
+                    |> Shape.rotateBy angle
+                    |> Shape.withSurface
+                        (Textured
+                            { density = 0.05
+                            , distribution = ( Distribution.uniform, Distribution.uniform )
+                            , shapes =
+                                always
+                                    wood
+                            , border = False
+                            }
+                        )
+            )
+
+
 stem : Generator (List (Svg msg))
 stem =
     Shape.rectangle
@@ -86,15 +109,35 @@ stem =
         ( (toFloat width / 2) + (toFloat width / 16), toFloat (height * 4) / 6 )
         |> Shape.withSurface
             (Textured
-                { density = 0.05
+                { density = 0.005
                 , distribution = ( Distribution.uniform, Distribution.uniform )
                 , shapes =
                     always
-                        wood
+                        stemPart
                 , border = False
                 }
             )
         |> Generative.toSvg
+
+
+treePart : Generator Shape
+treePart =
+    Random.float (pi - pi / 4) (pi + pi / 4)
+        |> Random.map
+            (\angle ->
+                Shape.regular 3 (toFloat height / 16) ( 0, 0 )
+                    |> Shape.rotateBy angle
+                    |> Shape.withSurface
+                        (Textured
+                            { density = 0.015
+                            , distribution = ( Distribution.uniform, Distribution.uniform )
+                            , shapes =
+                                always
+                                    leaf
+                            , border = False
+                            }
+                        )
+            )
 
 
 tree : Generator (List (Svg msg))
@@ -103,15 +146,27 @@ tree =
         |> Shape.rotateBy pi
         |> Shape.withSurface
             (Textured
-                { density = 0.015
+                { density = 0.002
                 , distribution = ( Distribution.uniform, Distribution.uniform )
                 , shapes =
                     always
-                        leaf
+                        treePart
                 , border = False
                 }
             )
         |> Generative.toSvg
+
+
+f : List Point
+f =
+    [ ( 7, 2 )
+    , ( 0, 3 )
+    , ( 2, 1 )
+    , ( 1, 9 )
+    , ( 2, 9 )
+    , ( 0, 5 )
+    , ( 7, 6 )
+    ]
 
 
 main : Html msg
@@ -120,7 +175,35 @@ main =
         ([ tree
          , stem
          ]
+            |> List.append
+                (f
+                    |> Point.smoothen 5
+                    |> (\list ->
+                            list
+                                |> List.foldl
+                                    (\_ ( l, out ) ->
+                                        case l of
+                                            p1 :: p2 :: tail ->
+                                                ( p2 :: tail
+                                                , (Shape.fromPoints [ p1, p2 ] |> Generative.toSvg)
+                                                    :: out
+                                                )
+
+                                            _ ->
+                                                ( [], out )
+                                    )
+                                    ( list
+                                        |> List.map
+                                            (Tuple.mapBoth
+                                                ((*) (toFloat <| height // 16))
+                                                ((*) (toFloat <| height // 16))
+                                            )
+                                    , []
+                                    )
+                                |> Tuple.second
+                       )
+                )
             |> Generative.toHtml [ Attributes.width width, Attributes.height height ]
         )
-        (Random.initialSeed 42)
+        (Random.initialSeed 6)
         |> Tuple.first
