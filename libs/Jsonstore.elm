@@ -1,12 +1,32 @@
 module Jsonstore exposing (Json, bool, decode, decodeList, delete, dict, encode, encodeList, float, get, insert, int, map, object, string, toJson, update, with, withList, withMaybe)
 
+{-|
+
+## Decoding and Encoding
+
+@docs Json,decode,encode, encodeList, decodeList, map
+
+## Basics
+
+@docs bool,int,float,string,dict
+
+## Dealing with Objects
+
+@docs JsonObject, object, toJson, with, withList, withMaybe
+
+## Http Requests
+
+@docs update,get,insert,delete
+-}
+
 import Dict exposing (Dict)
 import Http exposing (Error, Resolver)
 import Json.Decode as D exposing (Decoder)
 import Json.Encode as E exposing (Value)
 import Task exposing (Task)
 
-
+{-| The Json type combines both the Json Decoder and Encoder.
+-}
 type Json a
     = Json ( D.Decoder a, a -> Value )
 
@@ -15,36 +35,43 @@ map : (a -> b) -> (b -> a) -> Json a -> Json b
 map dFun eFun (Json ( d, e )) =
     Json ( D.map dFun d, eFun >> e )
 
-
+{-|
+-}
 int : Json Int
 int =
     Json ( D.int, E.int )
 
-
+{-|
+-}
 float : Json Float
 float =
     Json ( D.float, E.float )
 
-
+{-|
+-}
 string : Json String
 string =
     Json ( D.string, E.string )
 
-
+{-|
+-}
 bool : Json Bool
 bool =
     Json ( D.bool, E.bool )
 
-
+{-|
+-}
 dict : Json a -> Json (Dict String a)
 dict (Json ( d, e )) =
     Json ( d |> D.dict, E.dict identity e )
 
-
+{-|
+-}
 type JsonObject obj a
     = JsonObject ( Decoder obj, List ( String, a -> Value ) )
 
-
+{-|
+-}
 with : String -> Json a -> (obj -> a) -> JsonObject (a -> fun) obj -> JsonObject fun obj
 with name (Json json) value (JsonObject ( d, e )) =
     JsonObject
@@ -54,7 +81,8 @@ with name (Json json) value (JsonObject ( d, e )) =
         , e |> (::) ( name, \o -> (json |> Tuple.second) (o |> value) )
         )
 
-
+{-|
+-}
 withList : String -> Json a -> (obj -> List a) -> JsonObject (List a -> fun) obj -> JsonObject fun obj
 withList name (Json json) value (JsonObject ( d, e )) =
     JsonObject
@@ -64,7 +92,8 @@ withList name (Json json) value (JsonObject ( d, e )) =
         , e |> (::) ( name, \o -> E.list (json |> Tuple.second) (o |> value) )
         )
 
-
+{-|
+-}
 withMaybe : String -> Json a -> (obj -> Maybe a) -> JsonObject (Maybe a -> fun) obj -> JsonObject fun obj
 withMaybe name (Json json) value (JsonObject ( d, e )) =
     JsonObject
@@ -82,12 +111,14 @@ withMaybe name (Json json) value (JsonObject ( d, e )) =
                 )
         )
 
-
+{-|
+-}
 object : obj -> JsonObject obj a
 object fun =
     JsonObject ( D.succeed fun, [] )
 
-
+{-|
+-}
 toJson : JsonObject obj obj -> Json obj
 toJson =
     \(JsonObject ( d, e )) ->
@@ -103,22 +134,27 @@ toJson =
                    )
             )
 
-
+{-| Returns the encoder for a List of a Json type
+-}
 encodeList : Json a -> List a -> Value
 encodeList (Json ( _, fun )) =
     E.list fun
 
 
+{-| Returns the decoder for a List of a Json type
+-}
 decodeList : Json a -> D.Decoder (List a)
 decodeList (Json ( fun, _ )) =
     D.list fun
 
-
+{-| Returns the decoder of a Json type
+-}
 decode : Json a -> D.Decoder a
 decode (Json ( fun, _ )) =
     fun
 
-
+{-| Returns the encoder of a Json type
+-}
 encode : Json a -> a -> Value
 encode (Json ( _, fun )) =
     fun
@@ -176,7 +212,10 @@ resolveWhatever =
                 Http.GoodStatus_ _ _ ->
                     Ok ()
 
+{-| Inserts a new Element.
 
+Do not use this function to update fields, use update instead.
+-}
 insert : String -> Value -> Task Error ()
 insert url value =
     Http.task
@@ -188,7 +227,10 @@ insert url value =
         , timeout = Nothing
         }
 
+{-| Deletes an Element.
 
+Will be successfull even if the content is empty.
+-}
 delete : String -> Task Error ()
 delete url =
     Http.task
