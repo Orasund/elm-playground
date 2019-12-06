@@ -9,14 +9,14 @@ import Emojidojo.Data.Version as Version
 import Emojidojo.Page.SelectingRoom as SelectingRoom
 import Emojidojo.String as String
 import Http
-import Jsonstore
+import Jsonstore exposing (Json)
 import Random exposing (Seed)
 import Task exposing (Task)
 import Time exposing (Posix)
 
 
-type alias Model =
-    { openRooms : Maybe (List OpenRoom)
+type alias Model data =
+    { openRooms : Maybe (List (OpenRoom data))
     , lastUpdated : Maybe Posix
     , seed : Maybe Seed
     , error : Maybe Http.Error
@@ -29,18 +29,18 @@ type Error
     | WrongVersion Float
 
 
-type Msg
-    = GotOpenRoomResponse (Result Error (List OpenRoom))
+type Msg data
+    = GotOpenRoomResponse (Result Error (List (OpenRoom data)))
     | GotTime Posix
     | GotSeed Seed
 
 
-type alias Action =
-    Action.Action Model Msg SelectingRoom.TransitionData Never
+type alias Action data =
+    Action.Action (Model data) (Msg data) (SelectingRoom.TransitionData data) Never
 
 
-init : Config -> () -> ( Model, Cmd Msg )
-init config _ =
+init : Json data -> Config -> () -> ( Model data, Cmd (Msg data) )
+init jsonData config _ =
     ( { error = Nothing
       , lastUpdated = Nothing
       , openRooms = Nothing
@@ -48,7 +48,7 @@ init config _ =
       , message = Just <| "Loading..."
       }
     , Cmd.batch
-        [ updateTask config
+        [ updateTask jsonData config
             |> Task.attempt GotOpenRoomResponse
         , Time.now |> Task.perform GotTime
         , Random.generate GotSeed Random.independentSeed
@@ -56,7 +56,7 @@ init config _ =
     )
 
 
-evaluate : Model -> Action
+evaluate : Model data -> Action data
 evaluate ({ openRooms, lastUpdated, seed } as model) =
     case ( openRooms, lastUpdated, seed ) of
         ( Just o, Just l, Just s ) ->
@@ -70,8 +70,8 @@ evaluate ({ openRooms, lastUpdated, seed } as model) =
             Action.updating ( model, Cmd.none )
 
 
-updateTask : Config -> Task Error (List OpenRoom)
-updateTask config =
+updateTask : Json data -> Config -> Task Error (List (OpenRoom data))
+updateTask dataJson config =
     Version.getResponse config
         |> Task.mapError HttpError
         |> Task.andThen
@@ -79,7 +79,7 @@ updateTask config =
                 case maybeFloat of
                     Just float ->
                         if float == config.version then
-                            OpenRoom.getListResponse config
+                            OpenRoom.getListResponse config dataJson
                                 |> Task.mapError HttpError
 
                         else
@@ -89,14 +89,14 @@ updateTask config =
                         Version.insertResponse config
                             |> Task.andThen
                                 (\() ->
-                                    OpenRoom.getListResponse config
+                                    OpenRoom.getListResponse config dataJson
                                 )
                             |> Task.mapError HttpError
             )
 
 
-update : Config -> Msg -> Model -> Action
-update config msg model =
+update : Json data -> Config -> Msg data -> Model data -> Action data
+update jsonData config msg model =
     case msg of
         GotOpenRoomResponse result ->
             case result of
@@ -128,7 +128,7 @@ update config msg model =
                                     ( { model | message = Just "updating..." }
                                     , Jsonstore.delete (Data.url config)
                                         |> Task.mapError HttpError
-                                        |> Task.andThen (\() -> updateTask config)
+                                        |> Task.andThen (\() -> updateTask jsonData config)
                                         |> Task.attempt GotOpenRoomResponse
                                     )
 
@@ -139,15 +139,15 @@ update config msg model =
             evaluate <| { model | seed = Just seed }
 
 
-subscriptions : Model -> Sub Msg
+subscriptions : Model data -> Sub (Msg data)
 subscriptions _ =
     Sub.none
 
 
 view :
-    Model
+    Model data
     ->
-        { element : Element Msg
+        { element : Element (Msg data)
         , message : Maybe String
         , error : Maybe Http.Error
         }

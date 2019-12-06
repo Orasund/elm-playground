@@ -3,7 +3,7 @@ module Emojidojo exposing (Game, config, define, withNrOfPlayers)
 import Element exposing (Element)
 import Emojidojo.Data.Config as Config
 import Emojidojo.Main as Main
-
+import Jsonstore exposing (Json)
 
 type alias Game data msg =
     Main.Game data msg
@@ -28,7 +28,16 @@ withNrOfPlayers nr (Config c) =
     Config { c | nrOfplayers = nr }
 
 
-define : { init : data, view : data -> Element msg, title : String, config : Config } -> Game data msg
+define :
+    { init : data
+    , view : data -> Element msg
+    , subscriptions : data -> Sub msg
+    , update : msg -> data -> ( data, Cmd msg )
+    , title : String
+    , config : Config
+    , json : Json data
+    }
+    -> Game data msg
 define input =
     let
         (Config c) =
@@ -37,6 +46,9 @@ define input =
     Main.define
         { init = input.init
         , view = input.view
+        , subscriptions = input.subscriptions
+        , update = input.update
         , title = input.title
         , config = c
+        , json = input.json
         }

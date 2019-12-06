@@ -18,23 +18,23 @@ import Framework.Color as Color
 import Framework.Grid as Grid
 import Framework.Heading as Heading
 import Http
-import Jsonstore
+import Jsonstore exposing (Json)
 import Random exposing (Seed)
 import String
 import Task exposing (Task)
 import Time exposing (Posix)
 
 
-type alias TransitionData =
-    { openRooms : List OpenRoom
+type alias TransitionData data =
+    { openRooms : List (OpenRoom data)
     , lastUpdated : Posix
     , seed : Seed
     }
 
 
-type alias Model =
-    { activeRooms : List OpenRoom
-    , oldRooms : List OpenRoom
+type alias Model data =
+    { activeRooms : List (OpenRoom data)
+    , oldRooms : List (OpenRoom data)
     , lastUpdated : Posix
     , error : Maybe Http.Error
     , message : Maybe String
@@ -43,11 +43,11 @@ type alias Model =
     }
 
 
-type Msg
+type Msg data
     = HostRoom
-    | GotOpenRoomResponse (Result Error (List OpenRoom))
-    | CreatedRoom OpenRoom
-    | JoinedRoom OpenRoom
+    | GotOpenRoomResponse (Result Error (List (OpenRoom data)))
+    | CreatedRoom (OpenRoom data)
+    | JoinedRoom (OpenRoom data)
     | TimePassed Posix
 
 
@@ -56,11 +56,11 @@ type Error
     | WrongVersion Float
 
 
-type alias Action =
-    Action.Action Model Msg InRoom.TransitionData ()
+type alias Action data =
+    Action.Action (Model data) (Msg data) (InRoom.TransitionData data) ()
 
 
-initialModel : Config -> TransitionData -> Model
+initialModel : Config -> TransitionData data -> Model data
 initialModel config ({ lastUpdated } as data) =
     let
         ( activeRooms, oldRooms ) =
@@ -90,21 +90,21 @@ initialModel config ({ lastUpdated } as data) =
     }
 
 
-init : Config -> TransitionData -> ( Model, Cmd Msg )
-init config data =
+init : Json data -> Config -> TransitionData data -> ( Model data, Cmd (Msg data) )
+init dataJson config data =
     let
-        model : Model
+        model : Model data
         model =
             initialModel config data
     in
     ( model
-    , updateTask config model
+    , updateTask dataJson config model
         |> Task.attempt GotOpenRoomResponse
     )
 
 
-updateTask : Config -> Model -> Task Error (List OpenRoom)
-updateTask config model =
+updateTask : Json data -> Config -> Model data -> Task Error (List (OpenRoom data))
+updateTask dataJson config model =
     Version.getResponse config
         |> Task.mapError HttpError
         |> Task.andThen
@@ -120,7 +120,7 @@ updateTask config model =
                                     Task.succeed ()
                             )
                                 |> Task.andThen
-                                    (\() -> OpenRoom.getListResponse config)
+                                    (\() -> OpenRoom.getListResponse config dataJson)
                                 |> Task.mapError HttpError
 
                         else
@@ -129,13 +129,13 @@ updateTask config model =
                     Nothing ->
                         Version.insertResponse config
                             |> Task.andThen
-                                (\() -> OpenRoom.getListResponse config)
+                                (\() -> OpenRoom.getListResponse config dataJson)
                             |> Task.mapError HttpError
             )
 
 
-update : Config -> Msg -> Model -> Action
-update config msg model =
+update : Json data -> Config -> Msg data -> Model data -> Action data
+update dataJson config msg model =
     case msg of
         HostRoom ->
             let
@@ -148,14 +148,14 @@ update config msg model =
                                         { id = id
                                         , lastUpdated = model.lastUpdated
                                         , player = Dict.empty
-                                        , gameId = Nothing
+                                        , game = Nothing
                                         }
                                     )
                             )
             in
             Action.updating
                 ( { model | message = Just "Starting to Host...", seed = seed }
-                , OpenRoom.insertResponse config openRoom
+                , OpenRoom.insertResponse config dataJson openRoom
                     |> Task.attempt (always (CreatedRoom openRoom))
                 )
 
@@ -213,7 +213,8 @@ update config msg model =
                                     ( { model | message = Just "updating..." }
                                     , Jsonstore.delete (Data.url config)
                                         |> Task.mapError HttpError
-                                        |> Task.andThen (\() -> updateTask config model)
+                                        |> Task.andThen
+                                            (\() -> updateTask dataJson config model)
                                         |> Task.attempt GotOpenRoomResponse
                                     )
 
@@ -223,20 +224,20 @@ update config msg model =
                     | message = Just <| "Synchronizing..."
                     , lastUpdated = lastUpdated
                   }
-                , updateTask config model
+                , updateTask dataJson config model
                     |> Task.attempt GotOpenRoomResponse
                 )
 
 
-subscriptions : Model -> Sub Msg
+subscriptions : Model data -> Sub (Msg data)
 subscriptions _ =
     Time.every (1000 * 5) TimePassed
 
 
 view :
-    Model
+    Model data
     ->
-        { element : Element Msg
+        { element : Element (Msg data)
         , message : Maybe String
         , error : Maybe Http.Error
         }
@@ -247,8 +248,8 @@ view { activeRooms, oldRooms, error, message, playerId } =
                 Element.text "Select a Room"
             , activeRooms
                 |> List.map
-                    (\({ id, player, gameId } as room) ->
-                        if gameId == Nothing then
+                    (\({ id, player, game } as room) ->
+                        if game == Nothing then
                             Input.button
                                 (Button.simple
                                     ++ Card.large

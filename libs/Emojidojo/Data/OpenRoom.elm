@@ -2,7 +2,6 @@ module Emojidojo.Data.OpenRoom exposing
     ( OpenRoom
     , getListResponse
     , getResponse
-    , insertGameIdResponse
     , insertResponse
     , json
     , removeResponse
@@ -12,6 +11,7 @@ module Emojidojo.Data.OpenRoom exposing
 import Dict exposing (Dict)
 import Emojidojo.Data as Data
 import Emojidojo.Data.Config exposing (Config)
+import Emojidojo.Data.Game as Game exposing (Game)
 import Emojidojo.Data.Id as Id exposing (Id)
 import Emojidojo.Data.PlayerInfo as PlayerInfo exposing (PlayerInfo)
 import Emojidojo.Data.Timestamp as Timestamp
@@ -22,54 +22,46 @@ import Task exposing (Task)
 import Time exposing (Posix)
 
 
-type alias OpenRoom =
+type alias OpenRoom data =
     { id : Id
     , lastUpdated : Posix
     , player : Dict Id PlayerInfo
-    , gameId : Maybe Id
+    , game : Maybe (Game data)
     }
 
 
-json : Json OpenRoom
-json =
+json : Json data -> Json (OpenRoom data)
+json dataJson =
     Jsonstore.object OpenRoom
         |> Jsonstore.with "id" Id.json .id
         |> Jsonstore.with "lastUpdated"
             (Jsonstore.int |> Jsonstore.map Time.millisToPosix Time.posixToMillis)
             .lastUpdated
         |> Jsonstore.with "player" (Jsonstore.dict PlayerInfo.json) .player
-        |> Jsonstore.withMaybe "gameId" Id.json .gameId
+        |> Jsonstore.withMaybe "game" (Game.json dataJson) .game
         |> Jsonstore.toJson
 
 
-insertGameIdResponse : Config -> { gameId : Id, roomId : Id } -> Task Error ()
-insertGameIdResponse config { gameId, roomId } =
-    gameId
-        |> Jsonstore.encode Id.json
-        |> Jsonstore.insert
-            (Data.url config ++ String.openRoom ++ "/" ++ roomId ++ String.gameId)
-
-
-getResponse : Config -> Id -> Task Error (Maybe OpenRoom)
-getResponse config id =
-    json
+getResponse : Config -> { roomId : Id, dataJson : Json data } -> Task Error (Maybe (OpenRoom data))
+getResponse config { roomId, dataJson } =
+    json dataJson
         |> Jsonstore.decode
-        |> Jsonstore.get (Data.url config ++ String.openRoom ++ "/" ++ id)
+        |> Jsonstore.get (Data.url config ++ String.openRoom ++ "/" ++ roomId)
 
 
-getListResponse : Config -> Task Error (List OpenRoom)
-getListResponse config =
-    json
+getListResponse : Config -> Json data -> Task Error (List (OpenRoom data))
+getListResponse config dataJson =
+    json dataJson
         |> Jsonstore.dict
         |> Jsonstore.decode
         |> Jsonstore.get (Data.url config ++ String.openRoom)
         |> Task.map (Maybe.map Dict.values >> Maybe.withDefault [])
 
 
-insertResponse : Config -> OpenRoom -> Task Error ()
-insertResponse config openRoom =
+insertResponse : Config -> Json data -> OpenRoom data -> Task Error ()
+insertResponse config dataJson openRoom =
     openRoom
-        |> Jsonstore.encode json
+        |> Jsonstore.encode (json dataJson)
         |> Jsonstore.insert
             (Data.url config ++ String.openRoom ++ "/" ++ openRoom.id)
 

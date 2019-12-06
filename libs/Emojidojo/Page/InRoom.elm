@@ -6,6 +6,7 @@ import Element exposing (Element)
 import Element.Input as Input
 import Emojidojo.Data as Data
 import Emojidojo.Data.Config exposing (Config)
+import Emojidojo.Data.Game as Game
 import Emojidojo.Data.Id as Id exposing (Id)
 import Emojidojo.Data.OpenRoom as OpenRoom exposing (OpenRoom)
 import Emojidojo.Data.PlayerInfo as PlayerInfo exposing (PlayerInfo)
@@ -18,6 +19,7 @@ import Framework.Color as Color
 import Framework.Grid as Grid
 import Framework.Heading as Heading
 import Http exposing (Error)
+import Jsonstore exposing (Json)
 import Random exposing (Seed)
 import Task exposing (Task)
 import Time exposing (Posix)
@@ -26,7 +28,6 @@ import Time exposing (Posix)
 type alias Model =
     { roomId : Id
     , playerId : Id
-    , gameId : Maybe Id
     , activePlayers : List PlayerInfo
     , inactivePlayers : List PlayerInfo
     , hosting : Bool
@@ -37,16 +38,16 @@ type alias Model =
     }
 
 
-type Msg
+type Msg data
     = PressedLeaveRoomButton
     | LeftRoom
     | TimePassed Posix
-    | GotRoomResponse (Result Error (Maybe OpenRoom))
+    | GotRoomResponse (Result Error (Maybe (OpenRoom data)))
     | PressedStartGameButton
 
 
-type alias TransitionData =
-    { room : OpenRoom
+type alias TransitionData data =
+    { room : OpenRoom data
     , playerId : Id
     , hosting : Bool
     , lastUpdated : Posix
@@ -60,10 +61,10 @@ type Error
 
 
 type alias Action data =
-    Action.Action Model Msg (InGame.TransitionData data) ()
+    Action.Action Model (Msg data) (InGame.TransitionData data) ()
 
 
-initialModel : Config -> TransitionData -> Model
+initialModel : Config -> TransitionData data -> Model
 initialModel config { room, playerId, hosting, lastUpdated, seed } =
     let
         ( activePlayers, inactivePlayers ) =
@@ -89,12 +90,11 @@ initialModel config { room, playerId, hosting, lastUpdated, seed } =
     , error = Nothing
     , lastUpdated = lastUpdated
     , seed = seed
-    , gameId = room.gameId
     }
 
 
-init : Config -> TransitionData -> ( Model, Cmd Msg )
-init config data =
+init : Json data -> Config -> TransitionData data -> ( Model, Cmd (Msg data) )
+init dataJson config data =
     let
         model : Model
         model =
@@ -107,13 +107,13 @@ init config data =
         , lastUpdated = model.lastUpdated
         }
         |> Task.mapError HttpError
-        |> Task.andThen (\() -> updateTask config model)
+        |> Task.andThen (\() -> updateTask dataJson config model)
         |> Task.attempt GotRoomResponse
     )
 
 
-updateTask : Config -> Model -> Task Error (Maybe OpenRoom)
-updateTask config model =
+updateTask : Json data -> Config -> Model -> Task Error (Maybe (OpenRoom data))
+updateTask dataJson config model =
     Version.getResponse config
         |> Task.mapError HttpError
         |> Task.andThen
@@ -165,12 +165,13 @@ updateTask config model =
             )
         |> Task.andThen
             (\() ->
-                OpenRoom.getResponse config model.roomId
+                OpenRoom.getResponse config
+                    { dataJson = dataJson, roomId = model.roomId }
                     |> Task.mapError HttpError
             )
 
 
-update : { init : data, config : Config } -> Msg -> Model -> Action data
+update : { init : data, config : Config, json : Json data } -> Msg data -> Model -> Action data
 update input msg model =
     case msg of
         PressedLeaveRoomButton ->
@@ -201,23 +202,22 @@ update input msg model =
                     | message = Just <| "Synchronizing..."
                     , lastUpdated = lastUpdated
                   }
-                , updateTask input.config model
+                , updateTask input.json input.config model
                     |> Task.attempt GotRoomResponse
                 )
 
         GotRoomResponse result ->
             case result of
                 Ok (Just room) ->
-                    case room.gameId of
-                        Just id ->
+                    case room.game of
+                        Just game ->
                             Action.transitioning
                                 { room = room
                                 , playerId = model.playerId
-                                , gameId = id
                                 , hosting = model.hosting
                                 , lastUpdated = model.lastUpdated
                                 , seed = model.seed
-                                , gameData = input.init
+                                , game = game
                                 }
 
                         Nothing ->
@@ -254,17 +254,21 @@ update input msg model =
             in
             Action.updating <|
                 ( { model | message = Just "game starting...", seed = seed }
-                , OpenRoom.insertGameIdResponse input.config
-                    { gameId = gameId
+                , Game.insertResponse input.config
+                    { dataJson = input.json
+                    , game =
+                        { data = input.init
+                        , currentPlayer = model.playerId
+                        }
                     , roomId = model.roomId
                     }
                     |> Task.mapError HttpError
-                    |> Task.andThen (\() -> updateTask input.config model)
+                    |> Task.andThen (\() -> updateTask input.json input.config model)
                     |> Task.attempt GotRoomResponse
                 )
 
 
-subscriptions : Model -> Sub Msg
+subscriptions : Model -> Sub (Msg data)
 subscriptions _ =
     Time.every (1000 * 5) TimePassed
 
@@ -273,11 +277,11 @@ view :
     Config
     -> Model
     ->
-        { element : Element Msg
+        { element : Element (Msg data)
         , message : Maybe String
         , error : Maybe Http.Error
         }
-view config { roomId, playerId, activePlayers, inactivePlayers, hosting, message, error, gameId } =
+view config { roomId, playerId, activePlayers, inactivePlayers, hosting, message, error } =
     { element =
         Element.column (Grid.simple ++ Card.fill) <|
             [ Element.row Grid.spacedEvenly <|
@@ -315,28 +319,23 @@ view config { roomId, playerId, activePlayers, inactivePlayers, hosting, message
                     )
                 |> Element.wrappedRow Grid.simple
             , Element.row Grid.spacedEvenly <|
-                [ case gameId of
-                    Just _ ->
-                        Element.el [] <| Element.none
+                [ if
+                    hosting
+                        && (activePlayers
+                                |> List.length
+                                |> (==) config.nrOfplayers
+                           )
+                  then
+                    Input.button (Button.simple ++ Color.success)
+                        { onPress = Just PressedStartGameButton
+                        , label =
+                            Element.text <| "start Game"
+                        }
 
-                    Nothing ->
-                        if
-                            hosting
-                                && (activePlayers
-                                        |> List.length
-                                        |> (==) config.nrOfplayers
-                                   )
-                        then
-                            Input.button (Button.simple ++ Color.success)
-                                { onPress = Just PressedStartGameButton
-                                , label =
-                                    Element.text <| "start Game"
-                                }
-
-                        else
-                            Element.text <|
-                                String.fromInt config.nrOfplayers
-                                    ++ " players are needed"
+                  else
+                    Element.text <|
+                        String.fromInt config.nrOfplayers
+                            ++ " players are needed"
                 , Element.text <|
                     "Player Id: "
                         ++ Id.view playerId

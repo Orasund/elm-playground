@@ -16,91 +16,111 @@ import Framework.Card as Card
 import Framework.Color as Color
 import Framework.Grid as Grid
 import Http exposing (Error(..))
+import Jsonstore exposing (Json)
 
 
 type alias Game data msg =
-    Program () (Model data) (Msg msg)
+    Program () (Model data) (Msg data msg)
 
 
 type Model data
-    = Waiting Waiting.Model
-    | SelectingRoom SelectingRoom.Model
+    = Waiting (Waiting.Model data)
+    | SelectingRoom (SelectingRoom.Model data)
     | InRoom InRoom.Model
     | InGame (InGame.Model data)
 
 
-type Msg msg
-    = WaitingSpecific Waiting.Msg
-    | SelectingRoomSpecific SelectingRoom.Msg
-    | InRoomSpecific InRoom.Msg
-    | InGameSpecific InGame.Msg
-    | GameSpecific msg
+type Msg data msg
+    = WaitingSpecific (Waiting.Msg data)
+    | SelectingRoomSpecific (SelectingRoom.Msg data)
+    | InRoomSpecific (InRoom.Msg data)
+    | InGameSpecific (InGame.Msg data msg)
 
 
-init : Config -> () -> ( Model data, Cmd (Msg msg) )
-init config =
-    Waiting.init config
+init : Json data -> Config -> () -> ( Model data, Cmd (Msg data msg) )
+init jsonData config =
+    Waiting.init jsonData config
         >> Action.updating
         >> Action.config
         >> Action.withUpdate Waiting WaitingSpecific
         >> Action.apply
 
 
-update : { init : data, config : Config } -> Msg msg -> Model data -> ( Model data, Cmd (Msg msg) )
+update :
+    { init : data
+    , config : Config
+    , update : msg -> data -> ( data, Cmd msg )
+    , json : Json data
+    }
+    -> Msg data msg
+    -> Model data
+    -> ( Model data, Cmd (Msg data msg) )
 update input msg model =
     case ( msg, model ) of
         ( WaitingSpecific specificMsg, Waiting specificModel ) ->
-            Waiting.update input.config specificMsg specificModel
+            Waiting.update input.json input.config specificMsg specificModel
                 |> Action.config
                 |> Action.withUpdate
                     Waiting
                     WaitingSpecific
                 |> Action.withTransition
-                    (SelectingRoom.init input.config)
+                    (SelectingRoom.init input.json input.config)
                     SelectingRoom
                     SelectingRoomSpecific
                 |> Action.apply
 
         ( SelectingRoomSpecific specificMsg, SelectingRoom specificModel ) ->
-            SelectingRoom.update input.config specificMsg specificModel
+            SelectingRoom.update input.json input.config specificMsg specificModel
                 |> Action.config
                 |> Action.withUpdate SelectingRoom SelectingRoomSpecific
                 |> Action.withTransition
-                    (InRoom.init input.config)
+                    (InRoom.init input.json input.config)
                     InRoom
                     InRoomSpecific
-                |> Action.withExit (init input.config ())
+                |> Action.withExit (init input.json input.config ())
                 |> Action.apply
 
         ( InRoomSpecific specificMsg, InRoom specificModel ) ->
-            InRoom.update { init = input.init, config = input.config } specificMsg specificModel
+            InRoom.update
+                { init = input.init
+                , config = input.config
+                , json = input.json
+                }
+                specificMsg
+                specificModel
                 |> Action.config
                 |> Action.withUpdate InRoom InRoomSpecific
                 |> Action.withTransition
-                    (InGame.init input.config)
+                    (InGame.init input.json input.config)
                     InGame
                     InGameSpecific
-                |> Action.withExit (init input.config ())
+                |> Action.withExit (init input.json input.config ())
                 |> Action.apply
 
         ( InGameSpecific specificMsg, InGame specificModel ) ->
-            InGame.update input.config specificMsg specificModel
+            InGame.update
+                { json = input.json
+                , update = input.update
+                , config = input.config
+                }
+                specificMsg
+                specificModel
                 |> Action.config
                 |> Action.withUpdate InGame InGameSpecific
-                |> Action.withExit (init input.config ())
+                |> Action.withExit (init input.json input.config ())
                 |> Action.apply
 
         _ ->
             ( model, Cmd.none )
 
 
-view : { config : Config, view : data -> Element msg, title : String } -> Model data -> Document (Msg msg)
+view : { config : Config, view : data -> Element msg, title : String } -> Model data -> Document (Msg data msg)
 view input model =
     let
         map :
-            (msg1 -> Msg msg)
+            (msg1 -> Msg data msg)
             -> { element : Element msg1, error : Maybe Error, message : Maybe String }
-            -> { element : Element (Msg msg), error : Maybe Error, message : Maybe String }
+            -> { element : Element (Msg data msg), error : Maybe Error, message : Maybe String }
         map fun out =
             { element = out.element |> Element.map fun
             , error = out.error
@@ -123,7 +143,10 @@ view input model =
 
                 InGame specificModel ->
                     InGame.view
-                        { dataView = input.view >> Element.map GameSpecific
+                        { dataView =
+                            input.view
+                                >> Element.map
+                                    (InGameSpecific << InGame.GameSpecific)
                         , msgMapper = InGameSpecific
                         }
                         specificModel
@@ -155,8 +178,8 @@ view input model =
     }
 
 
-subscriptions : Model data -> Sub (Msg msg)
-subscriptions model =
+subscriptions : (data -> Sub msg) -> Model data -> Sub (Msg data msg)
+subscriptions fun model =
     case model of
         Waiting specificModel ->
             Waiting.subscriptions specificModel
@@ -171,29 +194,44 @@ subscriptions model =
                 |> Sub.map InRoomSpecific
 
         InGame specificModel ->
-            InGame.subscriptions specificModel
+            InGame.subscriptions fun specificModel
                 |> Sub.map InGameSpecific
 
 
-define : { init : data, view : data -> Element msg, title : String, config : Config } -> Game data msg
+define :
+    { init : data
+    , json : Json data
+    , view : data -> Element msg
+    , subscriptions : data -> Sub msg
+    , update : msg -> data -> ( data, Cmd msg )
+    , title : String
+    , config : Config
+    }
+    -> Game data msg
 define input =
     let
         c :
-            { init : () -> ( Model data, Cmd (Msg msg) )
-            , view : Model data -> Document (Msg msg)
-            , update : Msg msg -> Model data -> ( Model data, Cmd (Msg msg) )
-            , subscriptions : Model data -> Sub (Msg msg)
+            { init : () -> ( Model data, Cmd (Msg data msg) )
+            , view : Model data -> Document (Msg data msg)
+            , update : Msg data msg -> Model data -> ( Model data, Cmd (Msg data msg) )
+            , subscriptions : Model data -> Sub (Msg data msg)
             }
         c =
-            { init = init input.config
+            { init = init input.json input.config
             , view =
                 view
                     { config = input.config
                     , title = input.title
                     , view = input.view
                     }
-            , update = update { init = input.init, config = input.config }
-            , subscriptions = subscriptions
+            , update =
+                update
+                    { init = input.init
+                    , config = input.config
+                    , update = input.update
+                    , json = input.json
+                    }
+            , subscriptions = subscriptions input.subscriptions
             }
     in
     Browser.document c
