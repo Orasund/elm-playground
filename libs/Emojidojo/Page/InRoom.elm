@@ -6,7 +6,7 @@ import Element exposing (Element)
 import Element.Input as Input
 import Emojidojo.Data as Data
 import Emojidojo.Data.Config exposing (Config)
-import Emojidojo.Data.Game as Game
+import Emojidojo.Data.Game as Game exposing (Game)
 import Emojidojo.Data.Id as Id exposing (Id)
 import Emojidojo.Data.OpenRoom as OpenRoom exposing (OpenRoom)
 import Emojidojo.Data.PlayerInfo as PlayerInfo exposing (PlayerInfo)
@@ -42,12 +42,13 @@ type Msg data
     = PressedLeaveRoomButton
     | LeftRoom
     | TimePassed Posix
-    | GotRoomResponse (Result Error (Maybe (OpenRoom data)))
+    | GotRoomResponse (Result Error (Maybe OpenRoom))
     | PressedStartGameButton
+    | GotGameResponse (Result Error (Maybe (Game data)))
 
 
-type alias TransitionData data =
-    { room : OpenRoom data
+type alias TransitionData =
+    { room : OpenRoom
     , playerId : Id
     , hosting : Bool
     , lastUpdated : Posix
@@ -64,7 +65,7 @@ type alias Action data =
     Action.Action Model (Msg data) (InGame.TransitionData data) ()
 
 
-initialModel : Config -> TransitionData data -> Model
+initialModel : Config -> TransitionData -> Model
 initialModel config { room, playerId, hosting, lastUpdated, seed } =
     let
         ( activePlayers, inactivePlayers ) =
@@ -93,8 +94,8 @@ initialModel config { room, playerId, hosting, lastUpdated, seed } =
     }
 
 
-init : Json data -> Config -> TransitionData data -> ( Model, Cmd (Msg data) )
-init dataJson config data =
+init : Config -> TransitionData -> ( Model, Cmd (Msg data) )
+init config data =
     let
         model : Model
         model =
@@ -107,13 +108,13 @@ init dataJson config data =
         , lastUpdated = model.lastUpdated
         }
         |> Task.mapError HttpError
-        |> Task.andThen (\() -> updateTask dataJson config model)
+        |> Task.andThen (\() -> updateTask config model)
         |> Task.attempt GotRoomResponse
     )
 
 
-updateTask : Json data -> Config -> Model -> Task Error (Maybe (OpenRoom data))
-updateTask dataJson config model =
+updateTask : Config -> Model -> Task Error (Maybe OpenRoom)
+updateTask config model =
     Version.getResponse config
         |> Task.mapError HttpError
         |> Task.andThen
@@ -165,8 +166,7 @@ updateTask dataJson config model =
             )
         |> Task.andThen
             (\() ->
-                OpenRoom.getResponse config
-                    { dataJson = dataJson, roomId = model.roomId }
+                OpenRoom.getResponse config model.roomId
                     |> Task.mapError HttpError
             )
 
@@ -197,28 +197,33 @@ update input msg model =
             Action.exiting
 
         TimePassed lastUpdated ->
+            let
+                newModel =
+                    { model
+                        | message = Just <| "Synchronizing..."
+                        , lastUpdated = lastUpdated
+                    }
+            in
             Action.updating
-                ( { model
-                    | message = Just <| "Synchronizing..."
-                    , lastUpdated = lastUpdated
-                  }
-                , updateTask input.json input.config model
+                ( newModel
+                , updateTask input.config newModel
                     |> Task.attempt GotRoomResponse
                 )
 
         GotRoomResponse result ->
             case result of
                 Ok (Just room) ->
-                    case room.game of
-                        Just game ->
-                            Action.transitioning
-                                { room = room
-                                , playerId = model.playerId
-                                , hosting = model.hosting
-                                , lastUpdated = model.lastUpdated
-                                , seed = model.seed
-                                , game = game
-                                }
+                    case room.gameId of
+                        Just id ->
+                            Action.updating
+                                ( { model | message = Just "entering game..." }
+                                , Game.getResponse input.config
+                                    { gameId = id
+                                    , jsonData = input.json
+                                    }
+                                    |> Task.mapError HttpError
+                                    |> Task.attempt GotGameResponse
+                                )
 
                         Nothing ->
                             Action.updating
@@ -257,15 +262,57 @@ update input msg model =
                 , Game.insertResponse input.config
                     { dataJson = input.json
                     , game =
-                        { data = input.init
+                        { id = gameId
+                        , lastUpdated = model.lastUpdated
+                        , player =
+                            model.activePlayers
+                                |> List.map
+                                    (\player ->
+                                        ( player.id, player )
+                                    )
+                                |> Dict.fromList
+                        , data = input.init
                         , currentPlayer = model.playerId
                         }
-                    , roomId = model.roomId
+                    , gameId = gameId
                     }
                     |> Task.mapError HttpError
-                    |> Task.andThen (\() -> updateTask input.json input.config model)
+                    |> Task.andThen
+                        (\() ->
+                            OpenRoom.insertGameIdResponse input.config
+                                { roomId = model.roomId
+                                , gameId = gameId
+                                }
+                                |> Task.mapError HttpError
+                        )
+                    |> Task.andThen (\() -> updateTask input.config model)
                     |> Task.attempt GotRoomResponse
                 )
+
+        GotGameResponse result ->
+            case result of
+                Ok (Just game) ->
+                    Action.transitioning
+                        { game = game
+                        , playerId = model.playerId
+                        , hosting = model.hosting
+                        , lastUpdated = model.lastUpdated
+                        , seed = model.seed
+                        }
+
+                Ok Nothing ->
+                    Action.exiting
+
+                Err (HttpError error) ->
+                    Action.updating
+                        ( { model
+                            | error = Just error
+                          }
+                        , Cmd.none
+                        )
+
+                Err WrongVersion ->
+                    Action.exiting
 
 
 subscriptions : Model -> Sub (Msg data)

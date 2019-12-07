@@ -4,6 +4,7 @@ import Action
 import Element exposing (Element)
 import Emojidojo.Data as Data
 import Emojidojo.Data.Config exposing (Config)
+import Emojidojo.Data.Game as Game exposing (Game)
 import Emojidojo.Data.OpenRoom as OpenRoom exposing (OpenRoom)
 import Emojidojo.Data.Version as Version
 import Emojidojo.Page.SelectingRoom as SelectingRoom
@@ -16,7 +17,8 @@ import Time exposing (Posix)
 
 
 type alias Model data =
-    { openRooms : Maybe (List (OpenRoom data))
+    { openRooms : Maybe (List OpenRoom)
+    , games : Maybe (List (Game data))
     , lastUpdated : Maybe Posix
     , seed : Maybe Seed
     , error : Maybe Http.Error
@@ -30,7 +32,7 @@ type Error
 
 
 type Msg data
-    = GotOpenRoomResponse (Result Error (List (OpenRoom data)))
+    = GotResponse (Result Error ( List OpenRoom, List (Game data) ))
     | GotTime Posix
     | GotSeed Seed
 
@@ -44,12 +46,12 @@ init jsonData config _ =
     ( { error = Nothing
       , lastUpdated = Nothing
       , openRooms = Nothing
+      , games = Nothing
       , seed = Nothing
       , message = Just <| "Loading..."
       }
     , Cmd.batch
-        [ updateTask jsonData config
-            |> Task.attempt GotOpenRoomResponse
+        [ updateTask jsonData config |> Task.attempt GotResponse
         , Time.now |> Task.perform GotTime
         , Random.generate GotSeed Random.independentSeed
         ]
@@ -57,10 +59,11 @@ init jsonData config _ =
 
 
 evaluate : Model data -> Action data
-evaluate ({ openRooms, lastUpdated, seed } as model) =
-    case ( openRooms, lastUpdated, seed ) of
-        ( Just o, Just l, Just s ) ->
+evaluate ({ games, openRooms, lastUpdated, seed } as model) =
+    case ( games, ( openRooms, lastUpdated, seed ) ) of
+        ( Just g, ( Just o, Just l, Just s ) ) ->
             { openRooms = o
+            , games = g
             , lastUpdated = l
             , seed = s
             }
@@ -70,8 +73,8 @@ evaluate ({ openRooms, lastUpdated, seed } as model) =
             Action.updating ( model, Cmd.none )
 
 
-updateTask : Json data -> Config -> Task Error (List (OpenRoom data))
-updateTask dataJson config =
+updateTask : Json data -> Config -> Task Error ( List OpenRoom, List (Game data) )
+updateTask jsonData config =
     Version.getResponse config
         |> Task.mapError HttpError
         |> Task.andThen
@@ -79,7 +82,7 @@ updateTask dataJson config =
                 case maybeFloat of
                     Just float ->
                         if float == config.version then
-                            OpenRoom.getListResponse config dataJson
+                            OpenRoom.getListResponse config
                                 |> Task.mapError HttpError
 
                         else
@@ -89,19 +92,28 @@ updateTask dataJson config =
                         Version.insertResponse config
                             |> Task.andThen
                                 (\() ->
-                                    OpenRoom.getListResponse config dataJson
+                                    OpenRoom.getListResponse config
                                 )
                             |> Task.mapError HttpError
+            )
+        |> Task.andThen
+            (\maybeRoomList ->
+                Game.getListResponse config jsonData
+                    |> Task.mapError HttpError
+                    |> Task.map (Tuple.pair maybeRoomList)
             )
 
 
 update : Json data -> Config -> Msg data -> Model data -> Action data
 update jsonData config msg model =
     case msg of
-        GotOpenRoomResponse result ->
+        GotResponse result ->
             case result of
-                Ok maybeList ->
-                    { model | openRooms = Just maybeList }
+                Ok ( maybeRoomList, maybeGameList ) ->
+                    { model
+                        | openRooms = Just maybeRoomList
+                        , games = Just maybeGameList
+                    }
                         |> evaluate
 
                 Err error ->
@@ -129,7 +141,7 @@ update jsonData config msg model =
                                     , Jsonstore.delete (Data.url config)
                                         |> Task.mapError HttpError
                                         |> Task.andThen (\() -> updateTask jsonData config)
-                                        |> Task.attempt GotOpenRoomResponse
+                                        |> Task.attempt GotResponse
                                     )
 
         GotTime posix ->

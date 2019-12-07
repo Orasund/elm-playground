@@ -74,7 +74,7 @@ update input msg model =
                 |> Action.config
                 |> Action.withUpdate SelectingRoom SelectingRoomSpecific
                 |> Action.withTransition
-                    (InRoom.init input.json input.config)
+                    (InRoom.init input.config)
                     InRoom
                     InRoomSpecific
                 |> Action.withExit (init input.json input.config ())

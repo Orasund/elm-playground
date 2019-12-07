@@ -8,8 +8,7 @@ import Emojidojo.Data as Data
 import Emojidojo.Data.Config exposing (Config)
 import Emojidojo.Data.Game as Game exposing (Game)
 import Emojidojo.Data.Id as Id exposing (Id)
-import Emojidojo.Data.OpenRoom as OpenRoom exposing (OpenRoom)
-import Emojidojo.Data.PlayerInfo as PlayerInfo exposing (PlayerInfo)
+import Emojidojo.Data.Player as Player exposing (Player)
 import Emojidojo.Data.Version as Version
 import Emojidojo.String as String
 import Framework.Button as Button
@@ -25,11 +24,11 @@ import Time exposing (Posix)
 
 
 type alias Model data =
-    { roomId : Id
+    { gameId : Id
     , playerId : Id
     , game : Game data
-    , activePlayers : List PlayerInfo
-    , inactivePlayers : List PlayerInfo
+    , activePlayers : List Player
+    , inactivePlayers : List Player
     , hosting : Bool
     , message : Maybe String
     , error : Maybe Http.Error
@@ -42,13 +41,12 @@ type Msg data msg
     = PressedLeaveRoomButton
     | LeftRoom
     | TimePassed Posix
-    | GotRoomResponse (Result Error (Maybe (OpenRoom data)))
+    | GotGameResponse (Result Error (Maybe (Game data)))
     | GameSpecific msg
 
 
 type alias TransitionData data =
-    { room : OpenRoom data
-    , game : Game data
+    { game : Game data
     , playerId : Id
     , hosting : Bool
     , lastUpdated : Posix
@@ -66,10 +64,10 @@ type alias Action data msg =
 
 
 initialModel : Config -> TransitionData data -> Model data
-initialModel config { room, game, playerId, hosting, lastUpdated, seed } =
+initialModel config { game, playerId, hosting, lastUpdated, seed } =
     let
         ( activePlayers, inactivePlayers ) =
-            room.player
+            game.player
                 |> Dict.values
                 |> List.partition
                     (\list ->
@@ -82,7 +80,7 @@ initialModel config { room, game, playerId, hosting, lastUpdated, seed } =
                                )
                     )
     in
-    { roomId = room.id
+    { gameId = game.id
     , playerId = playerId
     , game = game
     , activePlayers = activePlayers
@@ -103,19 +101,19 @@ init json config data =
             initialModel config data
     in
     ( { model | message = Just "joining room..." }
-    , PlayerInfo.insertResponse config
-        model.roomId
+    , Player.insertResponse config
+        model.gameId
         { id = model.playerId
         , lastUpdated = model.lastUpdated
         }
         |> Task.mapError HttpError
         |> Task.andThen (\() -> updateTask json config model)
-        |> Task.attempt GotRoomResponse
+        |> Task.attempt GotGameResponse
     )
 
 
-updateTask : Json data -> Config -> Model data -> Task Error (Maybe (OpenRoom data))
-updateTask json config model =
+updateTask : Json data -> Config -> Model data -> Task Error (Maybe (Game data))
+updateTask jsonData config model =
     Version.getResponse config
         |> Task.mapError HttpError
         |> Task.andThen
@@ -134,16 +132,16 @@ updateTask json config model =
         |> Task.andThen
             (\() ->
                 (if model.hosting then
-                    OpenRoom.updateResponse config
-                        { roomId = model.roomId
+                    Game.updateLastUpdatedResponse config
+                        { gameId = model.gameId
                         , lastUpdated = model.lastUpdated
                         }
                         |> Task.andThen
                             (\() ->
                                 case model.inactivePlayers of
                                     player :: _ ->
-                                        PlayerInfo.removeResponse config
-                                            { roomId = model.roomId
+                                        Player.removeResponse config
+                                            { gameId = model.gameId
                                             , playerId = player.id
                                             }
 
@@ -158,8 +156,8 @@ updateTask json config model =
             )
         |> Task.andThen
             (\() ->
-                PlayerInfo.updateResponse config
-                    { roomId = model.roomId
+                Player.updateResponse config
+                    { gameId = model.gameId
                     , playerId = model.playerId
                     , lastUpdated = model.lastUpdated
                     }
@@ -171,7 +169,7 @@ updateTask json config model =
                     model.hosting
                         && (model.activePlayers |> List.length |> (/=) config.nrOfplayers)
                 then
-                    OpenRoom.removeResponse config model.roomId
+                    Game.removeResponse config model.gameId
                         |> Task.mapError HttpError
 
                 else
@@ -179,7 +177,7 @@ updateTask json config model =
             )
         |> Task.andThen
             (\() ->
-                OpenRoom.getResponse config { dataJson = json, roomId = model.roomId }
+                Game.getResponse config { gameId = model.gameId, jsonData = jsonData }
                     |> Task.mapError HttpError
             )
 
@@ -194,14 +192,14 @@ update input msg model =
         PressedLeaveRoomButton ->
             Action.updating <|
                 ( { model | message = Just "Leaving..." }
-                , PlayerInfo.removeResponse input.config
-                    { roomId = model.roomId
+                , Player.removeResponse input.config
+                    { gameId = model.gameId
                     , playerId = model.playerId
                     }
                     |> (if model.hosting then
                             Task.andThen
                                 (always
-                                    (OpenRoom.removeResponse input.config model.roomId)
+                                    (Game.removeResponse input.config model.gameId)
                                 )
 
                         else
@@ -214,34 +212,37 @@ update input msg model =
             Action.exiting
 
         TimePassed lastUpdated ->
+            let
+                newModel =
+                    { model
+                        | message = Just <| "Synchronizing..."
+                        , lastUpdated = lastUpdated
+                    }
+            in
             Action.updating
-                ( { model
-                    | message = Just <| "Synchronizing..."
-                    , lastUpdated = lastUpdated
-                  }
-                , updateTask input.json input.config model
-                    |> Task.attempt GotRoomResponse
+                ( newModel
+                , updateTask input.json input.config newModel
+                    |> Task.attempt GotGameResponse
                 )
 
-        GotRoomResponse result ->
+        GotGameResponse result ->
             case result of
-                Ok (Just room) ->
-                    case room.game of
-                        Just game ->
-                            Action.updating
-                                ( initialModel input.config
-                                    { room = room
-                                    , playerId = model.playerId
-                                    , hosting = model.hosting
-                                    , lastUpdated = model.lastUpdated
-                                    , seed = model.seed
-                                    , game = game
-                                    }
-                                , Cmd.none
-                                )
+                Ok (Just game) ->
+                    Action.updating
+                        ( initialModel input.config
+                            { playerId = model.playerId
+                            , hosting = model.hosting
+                            , lastUpdated = model.lastUpdated
+                            , seed = model.seed
+                            , game =
+                                if game.currentPlayer == model.playerId then
+                                    { game | data = model.game.data }
 
-                        Nothing ->
-                            Action.exiting
+                                else
+                                    game
+                            }
+                        , Cmd.none
+                        )
 
                 Ok Nothing ->
                     Action.exiting
@@ -313,6 +314,14 @@ view { dataView, msgMapper } { game, hosting, message, error, playerId } =
                         }
                     ]
             , dataView game.data
+            , if game.currentPlayer == playerId then
+                Input.button (Button.simple ++ Color.success)
+                    { onPress = Nothing
+                    , label = Element.text <| "End Turn"
+                    }
+
+              else
+                Element.none
             ]
     , message = message
     , error = error
