@@ -19,25 +19,25 @@ import Http exposing (Error(..))
 import Jsonstore exposing (Json)
 
 
-type alias Game data msg =
-    Program () (Model data) (Msg data msg)
+type alias Game data remote msg =
+    Program () (Model remote data) (Msg data remote msg)
 
 
-type Model data
-    = Waiting (Waiting.Model data)
-    | SelectingRoom (SelectingRoom.Model data)
+type Model remote data
+    = Waiting (Waiting.Model remote)
+    | SelectingRoom (SelectingRoom.Model remote)
     | InRoom InRoom.Model
     | InGame (InGame.Model data)
 
 
-type Msg data msg
-    = WaitingSpecific (Waiting.Msg data)
-    | SelectingRoomSpecific (SelectingRoom.Msg data)
-    | InRoomSpecific (InRoom.Msg data)
-    | InGameSpecific (InGame.Msg data msg)
+type Msg data remote msg
+    = WaitingSpecific (Waiting.Msg remote)
+    | SelectingRoomSpecific (SelectingRoom.Msg remote)
+    | InRoomSpecific (InRoom.Msg remote)
+    | InGameSpecific (InGame.Msg remote msg)
 
 
-init : Json data -> Config -> () -> ( Model data, Cmd (Msg data msg) )
+init : Json remote -> Config -> () -> ( Model remote data, Cmd (Msg data remote msg) )
 init jsonData config =
     Waiting.init jsonData config
         >> Action.updating
@@ -47,14 +47,17 @@ init jsonData config =
 
 
 update :
-    { init : data
+    { init : remote -> data
     , config : Config
     , update : msg -> data -> ( data, Cmd msg )
-    , json : Json data
+    , json : Json remote
+    , remoteWrapper : remote -> msg
+    , remoteInit : remote
+    , remoteFromModel : data -> remote
     }
-    -> Msg data msg
-    -> Model data
-    -> ( Model data, Cmd (Msg data msg) )
+    -> Msg data remote msg
+    -> Model remote data
+    -> ( Model remote data, Cmd (Msg data remote msg) )
 update input msg model =
     case ( msg, model ) of
         ( WaitingSpecific specificMsg, Waiting specificModel ) ->
@@ -85,6 +88,7 @@ update input msg model =
                 { init = input.init
                 , config = input.config
                 , json = input.json
+                , remoteInit = input.remoteInit
                 }
                 specificMsg
                 specificModel
@@ -102,6 +106,9 @@ update input msg model =
                 { json = input.json
                 , update = input.update
                 , config = input.config
+                , remoteWrapper = input.remoteWrapper
+                , remoteFromModel = input.remoteFromModel
+                , init = input.init
                 }
                 specificMsg
                 specificModel
@@ -114,13 +121,13 @@ update input msg model =
             ( model, Cmd.none )
 
 
-view : { config : Config, view : data -> Element msg, title : String } -> Model data -> Document (Msg data msg)
+view : { config : Config, view : data -> Element msg, title : String } -> Model remote data -> Document (Msg data remote msg)
 view input model =
     let
         map :
-            (msg1 -> Msg data msg)
+            (msg1 -> Msg data remote msg)
             -> { element : Element msg1, error : Maybe Error, message : Maybe String }
-            -> { element : Element (Msg data msg), error : Maybe Error, message : Maybe String }
+            -> { element : Element (Msg data remote msg), error : Maybe Error, message : Maybe String }
         map fun out =
             { element = out.element |> Element.map fun
             , error = out.error
@@ -178,7 +185,7 @@ view input model =
     }
 
 
-subscriptions : (data -> Sub msg) -> Model data -> Sub (Msg data msg)
+subscriptions : (data -> Sub msg) -> Model remote data -> Sub (Msg data remote msg)
 subscriptions fun model =
     case model of
         Waiting specificModel ->
@@ -199,25 +206,30 @@ subscriptions fun model =
 
 
 define :
-    { init : data
-    , json : Json data
+    { init : remote -> data
+    , remote :
+        { msg : remote -> msg
+        , json : Json remote
+        , init : remote
+        , fromModel : data -> remote
+        }
     , view : data -> Element msg
     , subscriptions : data -> Sub msg
     , update : msg -> data -> ( data, Cmd msg )
     , title : String
     , config : Config
     }
-    -> Game data msg
+    -> Game data remote msg
 define input =
     let
         c :
-            { init : () -> ( Model data, Cmd (Msg data msg) )
-            , view : Model data -> Document (Msg data msg)
-            , update : Msg data msg -> Model data -> ( Model data, Cmd (Msg data msg) )
-            , subscriptions : Model data -> Sub (Msg data msg)
+            { init : () -> ( Model remote data, Cmd (Msg data remote msg) )
+            , view : Model remote data -> Document (Msg data remote msg)
+            , update : Msg data remote msg -> Model remote data -> ( Model remote data, Cmd (Msg data remote msg) )
+            , subscriptions : Model remote data -> Sub (Msg data remote msg)
             }
         c =
-            { init = init input.json input.config
+            { init = init input.remote.json input.config
             , view =
                 view
                     { config = input.config
@@ -229,7 +241,10 @@ define input =
                     { init = input.init
                     , config = input.config
                     , update = input.update
-                    , json = input.json
+                    , json = input.remote.json
+                    , remoteWrapper = input.remote.msg
+                    , remoteInit = input.remote.init
+                    , remoteFromModel = input.remote.fromModel
                     }
             , subscriptions = subscriptions input.subscriptions
             }

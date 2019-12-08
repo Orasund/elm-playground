@@ -5,8 +5,9 @@ import Emojidojo.Data.Config as Config
 import Emojidojo.Main as Main
 import Jsonstore exposing (Json)
 
-type alias Game data msg =
-    Main.Game data msg
+
+type alias Game data remote msg =
+    Main.Game data remote msg
 
 
 type Config
@@ -29,15 +30,20 @@ withNrOfPlayers nr (Config c) =
 
 
 define :
-    { init : data
+    { init : remote -> data
     , view : data -> Element msg
     , subscriptions : data -> Sub msg
     , update : msg -> data -> ( data, Cmd msg )
     , title : String
     , config : Config
-    , json : Json data
+    , remote :
+        { msg : remote -> msg
+        , json : Json remote
+        , init : remote
+        , fromModel : data -> remote
+        }
     }
-    -> Game data msg
+    -> Game data remote msg
 define input =
     let
         (Config c) =
@@ -50,5 +56,5 @@ define input =
         , update = input.update
         , title = input.title
         , config = c
-        , json = input.json
+        , remote = input.remote
         }

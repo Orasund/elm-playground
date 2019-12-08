@@ -26,19 +26,19 @@ import Task exposing (Task)
 import Time exposing (Posix)
 
 
-type alias TransitionData data =
+type alias TransitionData remote =
     { openRooms : List OpenRoom
-    , games : List (Game data)
+    , games : List (Game remote)
     , lastUpdated : Posix
     , seed : Seed
     }
 
 
-type alias Model data =
+type alias Model remote =
     { activeRooms : List OpenRoom
     , oldRooms : List OpenRoom
-    , activeGames : List (Game data)
-    , oldGames : List (Game data)
+    , activeGames : List (Game remote)
+    , oldGames : List (Game remote)
     , lastUpdated : Posix
     , error : Maybe Http.Error
     , message : Maybe String
@@ -47,9 +47,9 @@ type alias Model data =
     }
 
 
-type Msg data
+type Msg remote
     = HostRoom
-    | GotOpenRoomResponse (Result Error ( List OpenRoom, List (Game data) ))
+    | GotOpenRoomResponse (Result Error ( List OpenRoom, List (Game remote) ))
     | CreatedRoom OpenRoom
     | JoinedRoom OpenRoom
     | TimePassed Posix
@@ -60,11 +60,11 @@ type Error
     | WrongVersion Float
 
 
-type alias Action data =
-    Action.Action (Model data) (Msg data) InRoom.TransitionData ()
+type alias Action remote =
+    Action.Action (Model remote) (Msg remote) InRoom.TransitionData ()
 
 
-initialModel : Config -> TransitionData data -> Model data
+initialModel : Config -> TransitionData remote -> Model remote
 initialModel config ({ lastUpdated } as data) =
     let
         ( activeRooms, oldRooms ) =
@@ -109,10 +109,10 @@ initialModel config ({ lastUpdated } as data) =
     }
 
 
-init : Json data -> Config -> TransitionData data -> ( Model data, Cmd (Msg data) )
+init : Json remote -> Config -> TransitionData remote -> ( Model remote, Cmd (Msg remote) )
 init jsonData config data =
     let
-        model : Model data
+        model : Model remote
         model =
             initialModel config data
     in
@@ -122,7 +122,7 @@ init jsonData config data =
     )
 
 
-updateTask : Json data -> Config -> Model data -> Task Error ( List OpenRoom, List (Game data) )
+updateTask : Json remote -> Config -> Model remote -> Task Error ( List OpenRoom, List (Game remote) )
 updateTask jsonData config model =
     Version.getResponse config
         |> Task.mapError HttpError
@@ -170,7 +170,7 @@ updateTask jsonData config model =
             )
 
 
-update : Json data -> Config -> Msg data -> Model data -> Action data
+update : Json remote -> Config -> Msg remote -> Model remote -> Action remote
 update jsonData config msg model =
     case msg of
         HostRoom ->
@@ -270,15 +270,15 @@ update jsonData config msg model =
                 )
 
 
-subscriptions : Model data -> Sub (Msg data)
+subscriptions : Model remote -> Sub (Msg remote)
 subscriptions _ =
     Time.every (1000 * 5) TimePassed
 
 
 view :
-    Model data
+    Model remote
     ->
-        { element : Element (Msg data)
+        { element : Element (Msg remote)
         , message : Maybe String
         , error : Maybe Http.Error
         }

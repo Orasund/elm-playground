@@ -37,12 +37,13 @@ type alias Model data =
     }
 
 
-type Msg data msg
+type Msg remote msg
     = PressedLeaveRoomButton
     | LeftRoom
     | TimePassed Posix
-    | GotGameResponse (Result Error (Maybe (Game data)))
+    | GotGameResponse (Result Error (Maybe (Game remote)))
     | GameSpecific msg
+    | PressedEndTurnButton
 
 
 type alias TransitionData data =
@@ -59,8 +60,8 @@ type Error
     | WrongVersion
 
 
-type alias Action data msg =
-    Action.Action (Model data) (Msg data msg) Never ()
+type alias Action data remote msg =
+    Action.Action (Model data) (Msg remote msg) Never ()
 
 
 initialModel : Config -> TransitionData data -> Model data
@@ -93,7 +94,7 @@ initialModel config { game, playerId, hosting, lastUpdated, seed } =
     }
 
 
-init : Json data -> Config -> TransitionData data -> ( Model data, Cmd (Msg data msg) )
+init : Json remote -> Config -> TransitionData data -> ( Model data, Cmd (Msg remote msg) )
 init json config data =
     let
         model : Model data
@@ -112,7 +113,7 @@ init json config data =
     )
 
 
-updateTask : Json data -> Config -> Model data -> Task Error (Maybe (Game data))
+updateTask : Json remote -> Config -> Model data -> Task Error (Maybe (Game remote))
 updateTask jsonData config model =
     Version.getResponse config
         |> Task.mapError HttpError
@@ -183,10 +184,16 @@ updateTask jsonData config model =
 
 
 update :
-    { json : Json data, update : msg -> data -> ( data, Cmd msg ), config : Config }
-    -> Msg data msg
+    { json : Json remote
+    , remoteWrapper : remote -> msg
+    , update : msg -> data -> ( data, Cmd msg )
+    , config : Config
+    , remoteFromModel : data -> remote
+    , init : remote -> data
+    }
+    -> Msg remote msg
     -> Model data
-    -> Action data msg
+    -> Action data remote msg
 update input msg model =
     case msg of
         PressedLeaveRoomButton ->
@@ -228,20 +235,20 @@ update input msg model =
         GotGameResponse result ->
             case result of
                 Ok (Just game) ->
+                    let
+                        ( data, cmd ) =
+                            model.game.data
+                                |> input.update (input.remoteWrapper game.data)
+                    in
                     Action.updating
                         ( initialModel input.config
                             { playerId = model.playerId
                             , hosting = model.hosting
                             , lastUpdated = model.lastUpdated
                             , seed = model.seed
-                            , game =
-                                if game.currentPlayer == model.playerId then
-                                    { game | data = model.game.data }
-
-                                else
-                                    game
+                            , game = game |> Game.map data
                             }
-                        , Cmd.none
+                        , cmd |> Cmd.map GameSpecific
                         )
 
                 Ok Nothing ->
@@ -271,8 +278,35 @@ update input msg model =
                 , cmd |> Cmd.map GameSpecific
                 )
 
+        PressedEndTurnButton ->
+            let
+                remote : remote
+                remote =
+                    model.game.data |> input.remoteFromModel
+            in
+            Action.updating
+                ( { game = model.game |> Game.map (remote |> input.init)
+                  , playerId = model.playerId
+                  , hosting = model.hosting
+                  , lastUpdated = model.lastUpdated
+                  , seed = model.seed
+                  }
+                    |> initialModel input.config
+                , Game.updateResponse input.config
+                    { gameId = model.gameId
+                    , jsonData = input.json
+                    , remote = remote
+                    }
+                    |> Task.mapError HttpError
+                    |> Task.andThen
+                        (\() ->
+                            updateTask input.json input.config model
+                        )
+                    |> Task.attempt GotGameResponse
+                )
 
-subscriptions : (data -> Sub msg) -> Model data -> Sub (Msg data msg)
+
+subscriptions : (data -> Sub msg) -> Model data -> Sub (Msg remote msg)
 subscriptions fun model =
     Sub.batch
         [ fun model.game.data |> Sub.map GameSpecific
@@ -282,7 +316,7 @@ subscriptions fun model =
 
 view :
     { dataView : data -> Element msg2
-    , msgMapper : Msg data msg1 -> msg2
+    , msgMapper : Msg remote msg1 -> msg2
     }
     -> Model data
     ->
@@ -314,14 +348,15 @@ view { dataView, msgMapper } { game, hosting, message, error, playerId } =
                         }
                     ]
             , dataView game.data
-            , if game.currentPlayer == playerId then
-                Input.button (Button.simple ++ Color.success)
-                    { onPress = Nothing
-                    , label = Element.text <| "End Turn"
-                    }
+            , Element.map msgMapper <|
+                if game.currentPlayer == playerId then
+                    Input.button (Button.simple ++ Color.success)
+                        { onPress = Just PressedEndTurnButton
+                        , label = Element.text <| "End Turn"
+                        }
 
-              else
-                Element.none
+                else
+                    Element.none
             ]
     , message = message
     , error = error

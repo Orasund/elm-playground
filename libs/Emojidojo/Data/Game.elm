@@ -1,4 +1,4 @@
-module Emojidojo.Data.Game exposing (Game, getListResponse, getResponse, insertResponse, json, removeResponse, updateCurrentPlayerResponse, updateLastUpdatedResponse)
+module Emojidojo.Data.Game exposing (Game, getListResponse, getResponse, insertResponse, json, map, removeResponse, updateCurrentPlayerResponse, updateLastUpdatedResponse, updateResponse)
 
 import Dict exposing (Dict)
 import Emojidojo.Data as Data
@@ -19,6 +19,16 @@ type alias Game data =
     , player : Dict Id Player
     , currentPlayer : Id
     , data : data
+    }
+
+
+map : data -> Game remote -> Game data
+map data game =
+    { id = game.id
+    , lastUpdated = game.lastUpdated
+    , player = game.player
+    , currentPlayer = game.currentPlayer
+    , data = data
     }
 
 
@@ -64,12 +74,22 @@ removeResponse config id =
     Jsonstore.delete (Data.url config ++ String.game ++ "/" ++ id)
 
 
+updateResponse : Config -> { gameId : Id, jsonData : Json data, remote : data } -> Task Error ()
+updateResponse config { gameId, jsonData, remote } =
+    Jsonstore.update
+        { url = Data.url config ++ String.game ++ "/" ++ gameId ++ String.data
+        , decoder = jsonData |> Jsonstore.decode
+        , value = Maybe.map (always (remote |> Jsonstore.encode jsonData))
+        }
+
+
 updateCurrentPlayerResponse : Config -> { currentPlayer : Id, gameId : Id } -> Task Error ()
 updateCurrentPlayerResponse config { currentPlayer, gameId } =
-    currentPlayer
-        |> Jsonstore.encode Id.json
-        |> Jsonstore.insert
-            (Data.url config ++ String.game ++ "/" ++ gameId ++ String.currentPlayer)
+    Jsonstore.update
+        { url = Data.url config ++ String.game ++ "/" ++ gameId ++ String.currentPlayer
+        , decoder = Id.json |> Jsonstore.decode
+        , value = Maybe.map (always (currentPlayer |> Jsonstore.encode Id.json))
+        }
 
 
 updateLastUpdatedResponse : Config -> { gameId : Id, lastUpdated : Posix } -> Task Error ()

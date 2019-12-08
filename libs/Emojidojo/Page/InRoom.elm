@@ -38,13 +38,13 @@ type alias Model =
     }
 
 
-type Msg data
+type Msg remote
     = PressedLeaveRoomButton
     | LeftRoom
     | TimePassed Posix
     | GotRoomResponse (Result Error (Maybe OpenRoom))
     | PressedStartGameButton
-    | GotGameResponse (Result Error (Maybe (Game data)))
+    | GotGameResponse (Result Error (Maybe (Game remote)))
 
 
 type alias TransitionData =
@@ -61,8 +61,8 @@ type Error
     | WrongVersion
 
 
-type alias Action data =
-    Action.Action Model (Msg data) (InGame.TransitionData data) ()
+type alias Action remote data =
+    Action.Action Model (Msg remote) (InGame.TransitionData data) ()
 
 
 initialModel : Config -> TransitionData -> Model
@@ -94,7 +94,7 @@ initialModel config { room, playerId, hosting, lastUpdated, seed } =
     }
 
 
-init : Config -> TransitionData -> ( Model, Cmd (Msg data) )
+init : Config -> TransitionData -> ( Model, Cmd (Msg remote) )
 init config data =
     let
         model : Model
@@ -171,7 +171,15 @@ updateTask config model =
             )
 
 
-update : { init : data, config : Config, json : Json data } -> Msg data -> Model -> Action data
+update :
+    { init : remote -> data
+    , config : Config
+    , json : Json remote
+    , remoteInit : remote
+    }
+    -> Msg remote
+    -> Model
+    -> Action remote data
 update input msg model =
     case msg of
         PressedLeaveRoomButton ->
@@ -271,7 +279,7 @@ update input msg model =
                                         ( player.id, player )
                                     )
                                 |> Dict.fromList
-                        , data = input.init
+                        , data = input.remoteInit
                         , currentPlayer = model.playerId
                         }
                     , gameId = gameId
@@ -293,7 +301,7 @@ update input msg model =
             case result of
                 Ok (Just game) ->
                     Action.transitioning
-                        { game = game
+                        { game = game  |> Game.map (game.data |> input.init)
                         , playerId = model.playerId
                         , hosting = model.hosting
                         , lastUpdated = model.lastUpdated
@@ -315,7 +323,7 @@ update input msg model =
                     Action.exiting
 
 
-subscriptions : Model -> Sub (Msg data)
+subscriptions : Model -> Sub (Msg remote)
 subscriptions _ =
     Time.every (1000 * 5) TimePassed
 
@@ -324,7 +332,7 @@ view :
     Config
     -> Model
     ->
-        { element : Element (Msg data)
+        { element : Element (Msg remote)
         , message : Maybe String
         , error : Maybe Http.Error
         }

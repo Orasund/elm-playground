@@ -16,9 +16,9 @@ import Task exposing (Task)
 import Time exposing (Posix)
 
 
-type alias Model data =
+type alias Model remote =
     { openRooms : Maybe (List OpenRoom)
-    , games : Maybe (List (Game data))
+    , games : Maybe (List (Game remote))
     , lastUpdated : Maybe Posix
     , seed : Maybe Seed
     , error : Maybe Http.Error
@@ -31,17 +31,17 @@ type Error
     | WrongVersion Float
 
 
-type Msg data
-    = GotResponse (Result Error ( List OpenRoom, List (Game data) ))
+type Msg remote
+    = GotResponse (Result Error ( List OpenRoom, List (Game remote) ))
     | GotTime Posix
     | GotSeed Seed
 
 
-type alias Action data =
-    Action.Action (Model data) (Msg data) (SelectingRoom.TransitionData data) Never
+type alias Action remote =
+    Action.Action (Model remote) (Msg remote) (SelectingRoom.TransitionData remote) Never
 
 
-init : Json data -> Config -> () -> ( Model data, Cmd (Msg data) )
+init : Json remote -> Config -> () -> ( Model remote, Cmd (Msg remote) )
 init jsonData config _ =
     ( { error = Nothing
       , lastUpdated = Nothing
@@ -58,7 +58,7 @@ init jsonData config _ =
     )
 
 
-evaluate : Model data -> Action data
+evaluate : Model remote -> Action remote
 evaluate ({ games, openRooms, lastUpdated, seed } as model) =
     case ( games, ( openRooms, lastUpdated, seed ) ) of
         ( Just g, ( Just o, Just l, Just s ) ) ->
@@ -73,7 +73,7 @@ evaluate ({ games, openRooms, lastUpdated, seed } as model) =
             Action.updating ( model, Cmd.none )
 
 
-updateTask : Json data -> Config -> Task Error ( List OpenRoom, List (Game data) )
+updateTask : Json remote -> Config -> Task Error ( List OpenRoom, List (Game remote) )
 updateTask jsonData config =
     Version.getResponse config
         |> Task.mapError HttpError
@@ -104,7 +104,7 @@ updateTask jsonData config =
             )
 
 
-update : Json data -> Config -> Msg data -> Model data -> Action data
+update : Json remote -> Config -> Msg remote -> Model remote -> Action remote
 update jsonData config msg model =
     case msg of
         GotResponse result ->
@@ -151,15 +151,15 @@ update jsonData config msg model =
             evaluate <| { model | seed = Just seed }
 
 
-subscriptions : Model data -> Sub (Msg data)
+subscriptions : Model remote -> Sub (Msg remote)
 subscriptions _ =
     Sub.none
 
 
 view :
-    Model data
+    Model remote
     ->
-        { element : Element (Msg data)
+        { element : Element (Msg remote)
         , message : Maybe String
         , error : Maybe Http.Error
         }
