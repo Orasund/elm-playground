@@ -12,7 +12,6 @@ module Emojidojo.Data.OpenRoom exposing
 import Dict exposing (Dict)
 import Emojidojo.Data as Data
 import Emojidojo.Data.Config exposing (Config)
-import Emojidojo.Data.Game as Game exposing (Game)
 import Emojidojo.Data.Id as Id exposing (Id)
 import Emojidojo.Data.PlayerInfo as PlayerInfo exposing (PlayerInfo)
 import Emojidojo.Data.Timestamp as Timestamp

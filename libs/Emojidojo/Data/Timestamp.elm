@@ -1,6 +1,5 @@
 module Emojidojo.Data.Timestamp exposing (Timestamp, json, updateResponse)
 
-import Emojidojo.Data as Data
 import Http exposing (Error)
 import Jsonstore exposing (Json)
 import Task exposing (Task)

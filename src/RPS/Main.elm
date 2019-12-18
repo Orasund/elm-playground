@@ -5,7 +5,7 @@ import Element.Input as Input
 import Emojidojo exposing (Game)
 import Framework.Button as Button
 import Framework.Grid as Grid
-import Jsonstore exposing (Json)
+import Jsonstore
 
 
 type alias Model =

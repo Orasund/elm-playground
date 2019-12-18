@@ -4,13 +4,11 @@ import Action
 import Dict
 import Element exposing (Element)
 import Element.Input as Input
-import Emojidojo.Data as Data
 import Emojidojo.Data.Config exposing (Config)
 import Emojidojo.Data.Game as Game exposing (Game)
 import Emojidojo.Data.Id as Id exposing (Id)
 import Emojidojo.Data.Player as Player exposing (Player)
 import Emojidojo.Data.Version as Version
-import Emojidojo.String as String
 import Framework.Button as Button
 import Framework.Card as Card
 import Framework.Color as Color
@@ -324,39 +322,59 @@ view :
         , message : Maybe String
         , error : Maybe Http.Error
         }
-view { dataView, msgMapper } { game, hosting, message, error, playerId } =
+view { dataView, msgMapper } { game, activePlayers, inactivePlayers, hosting, message, error, playerId } =
     { element =
-        Element.column (Grid.simple ++ Card.fill) <|
-            [ Element.map msgMapper <|
-                Element.row Grid.spacedEvenly <|
-                    [ Element.el Heading.h1 <|
-                        Element.text <|
-                            if game.currentPlayer == playerId then
-                                "Your turn"
-
-                            else
-                                "waiting..."
-                    , Input.button (Button.simple ++ Color.danger)
-                        { onPress = Just PressedLeaveRoomButton
-                        , label =
+        Element.column Grid.simple <|
+            [ Element.column (Grid.simple ++ Card.fill) <|
+                [ Element.map msgMapper <|
+                    Element.row Grid.spacedEvenly <|
+                        [ Element.el Heading.h1 <|
                             Element.text <|
-                                if hosting then
-                                    "close Game"
+                                if game.currentPlayer == playerId then
+                                    "Your turn"
 
                                 else
-                                    "leave Game"
-                        }
-                    ]
-            , dataView game.data
-            , Element.map msgMapper <|
-                if game.currentPlayer == playerId then
-                    Input.button (Button.simple ++ Color.success)
-                        { onPress = Just PressedEndTurnButton
-                        , label = Element.text <| "End Turn"
-                        }
+                                    "waiting..."
+                        , Input.button (Button.simple ++ Color.danger)
+                            { onPress = Just PressedLeaveRoomButton
+                            , label =
+                                Element.text <|
+                                    if hosting then
+                                        "close Game"
 
-                else
-                    Element.none
+                                    else
+                                        "leave Game"
+                            }
+                        ]
+                , dataView game.data
+                , Element.map msgMapper <|
+                    if game.currentPlayer == playerId then
+                        Input.button (Button.simple ++ Color.success)
+                            { onPress = Just PressedEndTurnButton
+                            , label = Element.text <| "End Turn"
+                            }
+
+                    else
+                        Element.none
+                ]
+            , activePlayers
+                |> List.map
+                    (\{ id } ->
+                        Element.el Card.large <|
+                            Element.text <|
+                                Id.view <|
+                                    id
+                    )
+                |> Element.wrappedRow Grid.simple
+            , inactivePlayers
+                |> List.map
+                    (\{ id } ->
+                        Element.el (Card.large ++ Color.disabled) <|
+                            Element.text <|
+                                Id.view <|
+                                    id
+                    )
+                |> Element.wrappedRow Grid.simple
             ]
     , message = message
     , error = error

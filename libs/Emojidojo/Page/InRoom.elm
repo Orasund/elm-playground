@@ -4,7 +4,6 @@ import Action
 import Dict
 import Element exposing (Element)
 import Element.Input as Input
-import Emojidojo.Data as Data
 import Emojidojo.Data.Config exposing (Config)
 import Emojidojo.Data.Game as Game exposing (Game)
 import Emojidojo.Data.Id as Id exposing (Id)
@@ -301,7 +300,7 @@ update input msg model =
             case result of
                 Ok (Just game) ->
                     Action.transitioning
-                        { game = game  |> Game.map (game.data |> input.init)
+                        { game = game |> Game.map (game.data |> input.init)
                         , playerId = model.playerId
                         , hosting = model.hosting
                         , lastUpdated = model.lastUpdated

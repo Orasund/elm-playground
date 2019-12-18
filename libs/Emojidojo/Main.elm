@@ -3,7 +3,6 @@ module Emojidojo.Main exposing (Game, define)
 import Action
 import Browser exposing (Document)
 import Element exposing (Element)
-import Element.Input as Input
 import Emojidojo.Data.Config exposing (Config)
 import Emojidojo.Page.InGame as InGame
 import Emojidojo.Page.InRoom as InRoom
@@ -11,9 +10,6 @@ import Emojidojo.Page.SelectingRoom as SelectingRoom
 import Emojidojo.Page.Waiting as Waiting
 import Emojidojo.View.Error as Error
 import Framework
-import Framework.Button as Button
-import Framework.Card as Card
-import Framework.Color as Color
 import Framework.Grid as Grid
 import Http exposing (Error(..))
 import Jsonstore exposing (Json)

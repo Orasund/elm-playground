@@ -1,8 +1,8 @@
-module ChristmasCard exposing (main)
+module Generative.ChristmasCard exposing (main)
 
 import Color
 import Generative
-import Generative.Distribution as Distribution exposing (Distribution)
+import Generative.Distribution as Distribution
 import Generative.Point as Point exposing (Point)
 import Generative.Shape as Shape exposing (Shape, Surface(..))
 import Html exposing (Html)
@@ -25,15 +25,16 @@ wood : Generator Shape
 wood =
     Random.map2
         (\angle size ->
-            Shape.rectangle ( -1, 0 ) ( 1, size )
+            Shape.rectangle ( -2, 0 ) ( 2, size )
                 |> Shape.withSurface Filled
-                |> Shape.withColor
-                    (Color.hsla
-                        0.03
-                        0.5
-                        0.2
-                        0.5
-                    )
+                |> Shape.withColor (Color.hsla 0.3 0.2 1 1)
+                {- (Color.hsla
+                       0.03
+                       0.5
+                       0.2
+                       0.5
+                   )
+                -}
                 |> Shape.rotateBy angle
         )
         (Random.float -(pi / 4) (pi / 4))
@@ -44,33 +45,29 @@ leaf : Generator Shape
 leaf =
     Random.map4
         (\isLeaf angle size color ->
-            if isLeaf == 0 then
+            if isLeaf < 2 then
                 Shape.circle 10 ( 0, 0 )
-                    |> Shape.withColor
-                        (Color.hsla
-                            (color
-                                |> (*) 10
-                                |> round
-                                |> (+) -6
-                                |> modBy 10
-                                |> toFloat
-                                |> (\x -> x / 10)
-                            )
-                            0.7
-                            0.5
-                            1
-                        )
+                    |> Shape.withColor (Color.hsla 0.3 0.2 1 1)
+                    {- (Color.hsla
+                           (color
+                               |> (*) 10
+                               |> round
+                               |> (+) -6
+                               |> modBy 10
+                               |> toFloat
+                               |> (\x -> x / 10)
+                           )
+                           0.7
+                           0.5
+                           1
+                       )
+                    -}
                     |> Shape.withSurface Filled
 
             else
                 Shape.regular 3 size ( 0, 0 )
-                    |> Shape.withColor
-                        (Color.hsla
-                            0.3
-                            0.2
-                            0.4
-                            color
-                        )
+                    --|> Shape.withColor (Color.hsla 0.3 0.2 0.4 color)
+                    |> Shape.withColor (Color.hsla 0.3 0.2 1 1)
                     |> Shape.rotateBy angle
                     |> Shape.withSurface Filled
         )
@@ -176,7 +173,8 @@ main =
          , stem
          ]
             |> List.append
-                (f
+                ([]
+                    --f
                     |> Point.smoothen 5
                     |> (\list ->
                             list
@@ -205,5 +203,5 @@ main =
                 )
             |> Generative.toHtml [ Attributes.width width, Attributes.height height ]
         )
-        (Random.initialSeed 6)
+        (Random.initialSeed 55)
         |> Tuple.first
