@@ -203,5 +203,5 @@ main =
                 )
             |> Generative.toHtml [ Attributes.width width, Attributes.height height ]
         )
-        (Random.initialSeed 55)
+        (Random.initialSeed 66)
         |> Tuple.first
