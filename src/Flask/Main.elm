@@ -35,7 +35,7 @@ spacingMult =
 
 fontMult : Float
 fontMult =
-    3.6 * baseMult
+    3.8 * baseMult
 
 
 type alias Model =
@@ -129,6 +129,9 @@ card { name, cost, effects, hasDesc, code, img } =
           <|
             Element.text <|
                 case cost of
+                    ( [], 0 ) ->
+                        " "
+
                     ( [], n ) ->
                         String.fromInt n
                             ++ " "
@@ -194,33 +197,38 @@ card { name, cost, effects, hasDesc, code, img } =
                 ]
             <|
                 Element.none
-        , effects
-            |> List.map
-                (\effect ->
-                    effect
-                        |> Effect.toTextField
-                        |> (if
-                                hasDesc
-                                    && (case effect of
-                                            Plant ->
-                                                effectsAmount <= 1
+        , if effectsAmount == 0 then
+            Element.el [ Element.height <| Element.fill ] <|
+                Element.none
 
-                                            _ ->
-                                                effectsAmount <= 2
-                                       )
-                            then
-                                identity
+          else
+            effects
+                |> List.map
+                    (\effect ->
+                        effect
+                            |> Effect.toTextField
+                            |> (if
+                                    hasDesc
+                                        && (case effect of
+                                                Plant ->
+                                                    effectsAmount <= 1
 
-                            else
-                                \field -> { field | desc = "" }
-                           )
-                        |> textField
-                        |> Element.el
-                            [ Font.size <| round <| 2 * fontMult
-                            , Element.padding <| round <| 2 * spacingMult
-                            ]
-                )
-            |> Element.column [ Element.spacing <| round <| 1 * spacingMult ]
+                                                _ ->
+                                                    effectsAmount <= 2
+                                           )
+                                then
+                                    identity
+
+                                else
+                                    \field -> { field | desc = "" }
+                               )
+                            |> textField
+                            |> Element.el
+                                [ Font.size <| round <| 2 * fontMult
+                                , Element.padding <| round <| 2 * spacingMult
+                                ]
+                    )
+                |> Element.column [ Element.spacing <| round <| 1 * spacingMult ]
         , Element.row
             [ Font.size <| round <| 1 * fontMult
             , Element.spaceEvenly
@@ -238,15 +246,15 @@ card { name, cost, effects, hasDesc, code, img } =
 view : Model -> Html Msg
 view model =
     Element.layout [] <|
-        Element.column [] <|
-            [ Element.paragraph [ Element.width <| Element.px <| 4 * cardWidth ] <|
+        Element.column [ Element.spacing 10 ] <|
+            [ Element.paragraph [ Element.width <| Element.fill ] <|
                 [ card
                     { name = "Research"
                     , cost = ( [], 1 )
                     , effects = [ Add [ Elem.Blue, Elem.Blue ] ]
                     , hasDesc = True
                     , code = "B1"
-                    , img = "research.jpg"
+                    , img = "img/emoji/research.jpg"
                     }
                 , card
                     { name = "Invent"
@@ -254,7 +262,7 @@ view model =
                     , effects = [ Draw 1 ]
                     , hasDesc = True
                     , code = "B2"
-                    , img = "invent.jpg"
+                    , img = "img/emoji/invent.jpg"
                     }
                 , card
                     { name = "Attack"
@@ -262,7 +270,7 @@ view model =
                     , effects = [ Remove 2 ]
                     , hasDesc = True
                     , code = "R1"
-                    , img = "attack.jpg"
+                    , img = "img/emoji/attack.jpg"
                     }
                 , card
                     { name = "Sabotage"
@@ -270,7 +278,7 @@ view model =
                     , effects = [ Discard 2 ]
                     , hasDesc = True
                     , code = "R2"
-                    , img = "sabotage.jpg"
+                    , img = "img/emoji/sabotage.jpg"
                     }
                 , card
                     { name = "Sale"
@@ -278,7 +286,7 @@ view model =
                     , effects = [ Add [ Elem.Yellow, Elem.Yellow, Elem.Yellow ] ]
                     , hasDesc = True
                     , code = "Y1"
-                    , img = "sale.jpg"
+                    , img = "img/emoji/sale.jpg"
                     }
                 , card
                     { name = "Reboot"
@@ -286,7 +294,7 @@ view model =
                     , effects = [ Reboot ]
                     , hasDesc = True
                     , code = "Y2"
-                    , img = "reboot.jpg"
+                    , img = "img/emoji/reboot.jpg"
                     }
                 , card
                     { name = "Exchange"
@@ -294,7 +302,7 @@ view model =
                     , effects = [ Choose ]
                     , hasDesc = True
                     , code = "G1"
-                    , img = "exchange.jpg"
+                    , img = "img/emoji/exchange.jpg"
                     }
                 , card
                     { name = "Plant"
@@ -302,7 +310,15 @@ view model =
                     , effects = [ Plant ]
                     , hasDesc = True
                     , code = "G2"
-                    , img = "plant.jpg"
+                    , img = "img/emoji/plant.jpg"
+                    }
+                , card
+                    { name = " "
+                    , cost = ( [], 0 )
+                    , effects = []
+                    , hasDesc = True
+                    , code = " "
+                    , img = ""
                     }
                 ]
             , Element.text "Zum Drucken die Seitenskalierung auf 38% stellen bei 600dpi"
