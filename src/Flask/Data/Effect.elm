@@ -1,4 +1,4 @@
-module Flask.Data.Effect exposing (Effect(..), toTextField)
+module Flask.Data.Effect exposing (Effect(..), simplify, toTextField)
 
 import Flask.Data.Element as Element exposing (Element)
 
@@ -11,6 +11,72 @@ type Effect
     | Discard Int
     | Reboot
     | Plant
+
+
+simplify : List Effect -> List Effect
+simplify list =
+    let
+        { add, choose, draw, remove, discard, reboot, plant } =
+            list
+                |> List.foldl
+                    (\effect out ->
+                        case effect of
+                            Add l ->
+                                { out | add = l ++ out.add }
+
+                            Choose ->
+                                { out | choose = out.choose + 1 }
+
+                            Draw n ->
+                                { out | draw = out.draw + n }
+
+                            Remove n ->
+                                { out | remove = out.remove + n }
+
+                            Discard n ->
+                                { out | discard = out.discard + n }
+
+                            Reboot ->
+                                { out | reboot = True }
+
+                            Plant ->
+                                { out | plant = True }
+                    )
+                    { add = [], choose = 0, draw = 0, remove = 0, discard = 0, reboot = False, plant = False }
+    in
+    List.concat
+        [ if plant then
+            [ Plant ]
+
+          else
+            []
+        , if add == [] then
+            []
+
+          else
+            [ Add add ]
+        , if draw == 0 then
+            []
+
+          else
+            [ Draw draw ]
+        , Choose |> List.repeat choose
+        , if remove == 0 then
+            []
+
+          else
+            [ Remove remove ]
+        , if discard == 0 then
+            []
+
+          else
+            [ Discard discard ]
+        , if reboot then
+            [ Reboot ]
+
+          else
+            []
+        ]
 
 
 toTextField : Effect -> { title : String, desc : String }
@@ -27,19 +93,19 @@ toTextField effect =
                    )
 
         Choose ->
-            { title = "+(💰💰|💥💥| 📘📘)"
-            , desc = "Füge entweder 💰💰 oder 💥💥 oder 📘📘 zu deinem Counter hinzu"
+            { title = "+(💰💰/💥💥/📘📘/💚💚)"
+            , desc = "Füge entweder 💰💰 , 💥💥 , 📘📘 oder 💚💚 zu deinem Counter hinzu"
             }
 
         Draw n ->
             { title = "Draw " ++ String.fromInt n ++ " Card"
             , desc =
-                "Ziehe die "
+                "Ziehe "
                     ++ (if n <= 1 then
-                            "oberste Karte"
+                            "eine Karte"
 
                         else
-                            String.fromInt n ++ " obersten Karten"
+                            String.fromInt n ++ " Karten"
                        )
                     ++ " des Nachzieh- "
                     ++ (if n <= 1 then
@@ -66,7 +132,7 @@ toTextField effect =
                         else
                             String.fromInt n ++ " Ressourcen"
                        )
-                    ++ " der eigenen Wahl. Der Gegner hat das Spiel verloren sobald dieser am Anfang des eigenen Zuges keine Ressourcen mehr besitzt."
+                    ++ " der eigenen Wahl. Der Gegner hat das Spiel verloren sobald dieser am Ende des eigenen oder gegnerischen Zuges keine Ressourcen mehr besitzt."
             }
 
         Discard n ->
@@ -91,5 +157,5 @@ toTextField effect =
         Plant ->
             { title = "Plant"
             , desc =
-                "Diese Karte bleibt am Spielfeld liegen bis sie aktiviert wird. Alle weiteren in diesem Zug gespielten Karten werden bezahlt und für spätere Aktivierung unter diese Karte gelegt. Die Karte kann vor oder während deinem Zug aktiviert werden. Anschließend werden alle darunter liegen Karten aktiviert."
+                "Diese Karte wird verdeckt gespielt und bleibt am Spielfeld liegen bis sie aktiviert wird. Alle weiteren in diesem Zug gespielten Karten werden bezahlt und für eine spätere Aktivierung unter diese Karte gelegt. Die Karte darf jederzeit aktiviert werden. Anschließend werden alle darunter liegen Karten aktiviert."
             }

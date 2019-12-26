@@ -7,6 +7,7 @@
     "elm-version": "0.19.1",
     "dependencies": {
         "direct": {
+            "JohnBugner/elm-bag": "2.0.0",
             "Orasund/elm-action": "2.1.2",
             "Orasund/elm-cellautomata": "1.0.1",
             "Orasund/elm-game-essentials": "1.0.0",
