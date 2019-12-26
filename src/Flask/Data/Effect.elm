@@ -93,7 +93,7 @@ toTextField effect =
                    )
 
         Choose ->
-            { title = "+(💰💰/💥💥/📘📘/💚💚)"
+            { title = "+2 Resources of one kind"
             , desc = "Füge entweder 💰💰 , 💥💥 , 📘📘 oder 💚💚 zu deinem Counter hinzu"
             }
 
@@ -120,9 +120,12 @@ toTextField effect =
         Remove n ->
             { title =
                 "Action: -"
-                    ++ ("❔"
-                            |> List.repeat n
-                            |> String.concat
+                    ++ String.fromInt n
+                    ++ (if n <= 1 then
+                            " Resource"
+
+                        else
+                            " Resources"
                        )
             , desc =
                 "Ein Gegner verliert "
