@@ -2,6 +2,7 @@ module FactoryCity.View.Deck exposing (view, viewOne)
 
 import Card
 import Element exposing (Attribute, Element)
+import Element.Background as Background
 import Element.Font as Font
 import FactoryCity.Data.CellType as CellType exposing (CellType)
 import FactoryCity.Data.Deck as Deck exposing (Deck, Selected(..))
@@ -129,7 +130,16 @@ view scale sort maybeSelectedMsg maybeSelected deck =
             , cards =
                 List.concat
                     [ [ Card.card
-                            { attributes = []
+                            { attributes =
+                                Deck.first deck
+                                    |> .item
+                                    |> Maybe.map
+                                        (CellType.color
+                                            >> (\( r, g, b ) ->
+                                                    [ Background.color <| Element.rgb255 r g b ]
+                                               )
+                                        )
+                                    |> Maybe.withDefault []
                             , content =
                                 viewContent scale <|
                                     Deck.first deck
@@ -140,7 +150,16 @@ view scale sort maybeSelectedMsg maybeSelected deck =
                     , case deck |> Deck.second of
                         Just cellType ->
                             [ Card.card
-                                { attributes = []
+                                { attributes =
+                                    cellType
+                                        |> .item
+                                        |> Maybe.map
+                                            (CellType.color
+                                                >> (\( r, g, b ) ->
+                                                        [ Background.color <| Element.rgb255 r g b ]
+                                                   )
+                                            )
+                                        |> Maybe.withDefault []
                                 , content = viewContent scale cellType
                                 , onPress = maybeSelectedMsg |> Maybe.map (\fun -> fun Second)
                                 , selected = maybeSelected == Just Second

@@ -4,6 +4,7 @@ module FactoryCity.Data.CellType exposing
     , Item(..)
     , belt
     , burnable
+    , color
     , containerList
     , crate
     , furnace
@@ -12,6 +13,7 @@ module FactoryCity.Data.CellType exposing
     , toString
     )
 
+import Color exposing (Color)
 import Grid.Direction as Direction exposing (Direction(..))
 import Jsonstore exposing (Json)
 
@@ -25,6 +27,19 @@ type Item
 itemList : List Item
 itemList =
     [ Wood, Stone, Iron ]
+
+
+color : Item -> ( Int, Int, Int )
+color item =
+    case item of
+        Wood ->
+            ( 255, 194, 170 )
+
+        Stone ->
+            ( 117, 175, 150 )
+
+        Iron ->
+            ( 102, 153, 153 )
 
 
 burnable : List Item

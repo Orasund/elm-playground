@@ -20,16 +20,25 @@ viewCell scale position maybeMsg maybeCellType =
          , Element.width <| Element.px <| floor <| scale * 100
          , Element.height <| Element.px <| floor <| scale * 100
          ]
-            |> (if maybeCellType == Nothing then
-                    case maybeMsg of
-                        Just msg ->
-                            (::) (Events.onClick <| msg position)
+            ++ (case maybeCellType of
+                    Nothing ->
+                        case maybeMsg of
+                            Just msg ->
+                                [ Events.onClick <| msg position ]
 
-                        Nothing ->
-                            identity
+                            Nothing ->
+                                []
 
-                else
-                    identity
+                    Just cellType ->
+                        cellType
+                            |> .item
+                            |> Maybe.map
+                                (CellType.color
+                                    >> (\( r, g, b ) ->
+                                            [ Background.color <| Element.rgb255 r g b ]
+                                       )
+                                )
+                            |> Maybe.withDefault []
                )
         )
     <|
