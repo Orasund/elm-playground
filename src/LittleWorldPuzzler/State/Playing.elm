@@ -2,7 +2,6 @@ module LittleWorldPuzzler.State.Playing exposing (Mode(..), Model, Msg, Transiti
 
 import Action
 import Element exposing (Element)
-import Framework.Modifier exposing (Modifier(..))
 import Grid.Bordered as Grid
 import Grid.Position exposing (Position)
 import Http exposing (Error(..))
@@ -286,50 +285,46 @@ update msg (( { game, history, selected, mode, viewCollection, collection } as s
 ----------------------
 
 
-view : Float -> msg -> (Msg -> msg) -> Model -> Element msg
+view :
+    Float
+    -> msg
+    -> (Msg -> msg)
+    -> Model
+    -> ( Maybe { isWon : Bool, shade : List (Element msg) }, List (Element msg) )
 view scale restartMsg msgMapper ( { game, selected, mode, viewCollection, collection, viewedCard }, _ ) =
-    Element.column
-        [ Element.centerY
-        , Element.centerX
-        ]
-    <|
-        [ Element.column
-            [ Element.centerY
-            , Element.centerX
-            , Element.spacing 5
-            ]
-            [ if mode == Challenge then
-                HeaderView.viewWithUndo scale
-                    { restartMsg = restartMsg
-                    , previousMsg = msgMapper Undo
-                    , nextMsg = msgMapper Redo
-                    }
-                    game.score
+    ( Nothing
+    , [ if mode == Challenge then
+            HeaderView.viewWithUndo scale
+                { restartMsg = restartMsg
+                , previousMsg = msgMapper Undo
+                , nextMsg = msgMapper Redo
+                }
+                game.score
 
-              else
-                HeaderView.view scale
-                    restartMsg
-                    game.score
-            , if viewCollection then
-                CollectionView.view scale (msgMapper << CardSelected) collection viewedCard
+        else
+            HeaderView.view scale
+                restartMsg
+                game.score
+      , if viewCollection then
+            CollectionView.view scale (msgMapper << CardSelected) collection viewedCard
 
-              else
-                GameView.view
-                    { scale = scale
-                    , selected = selected
-                    , sort = mode /= Challenge
-                    }
-                    { positionSelectedMsg = msgMapper << PositionSelected
-                    , selectedMsg = msgMapper << Selected
-                    }
-                    game
-            ]
-        , if viewCollection then
+        else
+            GameView.view
+                { scale = scale
+                , selected = selected
+                , sort = mode /= Challenge
+                }
+                { positionSelectedMsg = msgMapper << PositionSelected
+                , selectedMsg = msgMapper << Selected
+                }
+                game
+      , (if viewCollection then
             PageSelectorView.viewCollection
 
-          else
+         else
             PageSelectorView.viewGame
-                scale
-            <|
-                msgMapper PageChangeRequested
-        ]
+        )
+        <|
+            msgMapper PageChangeRequested
+      ]
+    )

@@ -2,7 +2,6 @@ module LittleWorldPuzzler.State.Replaying exposing (Model, Msg, update, view)
 
 import Action
 import Element exposing (Element)
-import Framework.Modifier exposing (Modifier(..))
 import LittleWorldPuzzler.Data.CellType exposing (CellType(..))
 import LittleWorldPuzzler.Data.Deck exposing (Selected(..))
 import LittleWorldPuzzler.Data.Game exposing (Game)
@@ -54,22 +53,24 @@ update msg model =
 ----------------------
 
 
-view : Float -> msg -> (Msg -> msg) -> Model -> Element msg
+view :
+    Float
+    -> msg
+    -> (Msg -> msg)
+    -> Model
+    -> ( Maybe { isWon : Bool, shade : List (Element msg) }, List (Element msg) )
 view scale restartMsg msgMapper model =
     let
         ({ score } as game) =
             model.present
     in
-    Element.column
-        [ Element.centerY
-        , Element.centerX
-        , Element.spacing 5
-        ]
-        [ HeaderView.viewWithUndo scale
+    ( Nothing
+    , [ HeaderView.viewWithUndo scale
             { restartMsg = restartMsg
             , previousMsg = msgMapper Previous
             , nextMsg = msgMapper Next
             }
             score
-        , GameView.viewReplay scale game
-        ]
+      , GameView.viewReplay scale game
+      ]
+    )

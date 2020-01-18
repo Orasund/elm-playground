@@ -5,6 +5,7 @@ import Element.Background as Background
 import Element.Border as Border
 import Element.Events as Events
 import Element.Font as Font
+import Framework.Grid as Grid
 import Grid.Bordered as Grid exposing (Grid)
 import Grid.Position exposing (Position)
 import LittleWorldPuzzler.Data.CellType as CellType exposing (CellType)
@@ -17,8 +18,8 @@ viewCell scale position maybeMsg maybeCellType =
         ([ Element.centerX
          , Border.width 1
          , Border.color <| Element.rgba255 219 219 219 1
-         , Element.width <| Element.px <| floor <| scale * 142
-         , Element.height <| Element.px <| floor <| scale * 142
+         , Element.width <| Element.px <| floor <| scale * 100
+         , Element.height <| Element.px <| floor <| scale * 100
          , Element.inFront <|
             Element.el
                 [ Element.height <| Element.fill
@@ -71,7 +72,7 @@ viewCell scale position maybeMsg maybeCellType =
                         Element.text <|
                             (cellType |> CellType.toString)
                     , Element.column
-                        [ Font.size <| floor <| scale * 12
+                        [ Font.size <| floor <| scale * 10
                         , Element.spacing <| floor <| scale * 5
                         , Element.centerX
                         ]
@@ -85,10 +86,12 @@ viewCell scale position maybeMsg maybeCellType =
 view : Float -> Maybe (Position -> msg) -> Grid CellType -> Element msg
 view scale maybePositionMsg grid =
     Element.column
-        [ Element.spaceEvenly
-        , Element.centerX
-        , Element.height <| Element.px <| floor <| scale * 568
-        ]
+        (Grid.compact
+            ++ [ Element.centerX
+               , Element.width <| Element.shrink
+               , Element.height <| Element.px <| floor <| scale * 400
+               ]
+        )
     <|
         (grid
             |> Grid.foldr

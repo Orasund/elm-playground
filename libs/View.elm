@@ -6,7 +6,12 @@ import Element.Input as Input
 import Framework.Grid as Grid
 
 
-dropDown : List (Attribute msg) -> { onToggle : Bool -> msg, isDropped : Bool, label : Element msg, content : List (Element msg) } -> Element msg
+dropDown : List (Attribute msg) -> 
+    { onToggle : Bool -> msg
+    , isDropped : Bool
+    , label : Element msg
+    , content : List (Element msg)
+    } -> Element msg
 dropDown attributes { onToggle, isDropped, label, content } =
     Element.el
         ([ Events.onClick <| onToggle <| not isDropped

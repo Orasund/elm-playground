@@ -2,13 +2,16 @@ module LittleWorldPuzzler.State.Finished exposing (Model, Msg(..), TransitionDat
 
 import Action
 import Element exposing (Element)
+import Element.Font as Font
+import Element.Input as Input
+import Framework.Button as Button
+import Framework.Heading as Heading
 import Http exposing (Error(..))
 import LittleWorldPuzzler.Data.Entry as Entry exposing (Entry)
 import LittleWorldPuzzler.Data.Game exposing (EndCondition(..), Game)
 import LittleWorldPuzzler.Request as Request exposing (Response(..))
 import LittleWorldPuzzler.View.Game as GameView
 import LittleWorldPuzzler.View.Header as HeaderView
-import LittleWorldPuzzler.View.PageSelector as PageSelectorView
 import UndoList exposing (UndoList)
 
 
@@ -157,61 +160,141 @@ update msg model =
 ----------------------
 
 
-view : Float -> msg -> (Msg -> msg) -> Model -> Element msg
-view scale restartMsg msgMapper model =
-    Element.column
-        [ Element.centerY
-        , Element.centerX
-        , Element.spacing 5
+viewScore : { requestedReplayMsg : msg, restartMsg : msg } -> { score : Int, response : Maybe (Result Error ( Int, Bool )) } -> List (Element msg)
+viewScore { requestedReplayMsg, restartMsg } { score, response } =
+    List.concat
+        [ [ Element.el (Heading.h2 ++ [ Element.centerX ]) <|
+                Element.text <|
+                    case response of
+                        Just (Ok ( _, True )) ->
+                            "New Highscore"
+
+                        _ ->
+                            "Game Over"
+          , Element.el (Heading.h3 ++ [ Element.centerX ]) <|
+                Element.text "Score"
+          , Element.el (Heading.h1 ++ [ Element.centerX ]) <|
+                Element.text <|
+                    String.fromInt <|
+                        score
+          ]
+        , case response of
+            Just (Ok ( highscore, _ )) ->
+                [ Element.el (Heading.h3 ++ [ Element.centerX ]) <|
+                    Element.text <|
+                        "Highscore"
+                , Element.el (Heading.h4 ++ [ Element.centerX ]) <|
+                    Element.text <|
+                        String.fromInt <|
+                            highscore
+                , Input.button
+                    (Button.simple
+                        ++ [ Font.family [ Font.sansSerif ]
+                           , Element.centerX
+                           , Font.color <| Element.rgb 0 0 0
+                           ]
+                    )
+                  <|
+                    { onPress = Just requestedReplayMsg
+                    , label =
+                        Element.text "Replay Highscore"
+                    }
+                ]
+
+            Just (Err error) ->
+                List.singleton <|
+                    Element.paragraph
+                        [ Element.alignLeft
+                        , Font.color <| Element.rgb 255 0 0
+                        , Element.centerX
+                        ]
+                    <|
+                        [ Element.text <|
+                            viewError <|
+                                error
+                        ]
+
+            _ ->
+                []
+        , [ Input.button
+                (Button.simple
+                    ++ [ Font.family [ Font.sansSerif ]
+                       , Element.centerX
+                       , Font.color <| Element.rgb 0 0 0
+                       ]
+                )
+            <|
+                { onPress = Just restartMsg
+                , label =
+                    Element.text "Restart"
+                }
+          ]
         ]
-        (case model of
-            End { game, error } ->
-                [ HeaderView.view scale restartMsg game.score
-                , GameView.viewFinished
-                    { scale = scale
-                    , status = Lost
-                    , highscore = Nothing
-                    , requestedReplayMsg = msgMapper RequestedReplay
-                    , error =
-                        error
-                            |> Maybe.map
-                                (\e ->
-                                    case e of
-                                        BadUrl string ->
-                                            "BadUrl: " ++ string
 
-                                        Timeout ->
-                                            "Timeout"
 
-                                        NetworkError ->
-                                            "Network Error"
+viewError : Error -> String
+viewError e =
+    case e of
+        BadUrl string ->
+            "BadUrl: " ++ string
 
-                                        BadStatus int ->
-                                            "Response Status: " ++ String.fromInt int
+        Timeout ->
+            "Timeout"
 
-                                        BadBody string ->
-                                            string
-                                )
-                    }
-                    game
-                , PageSelectorView.viewInactive scale
-                ]
+        NetworkError ->
+            "Network Error"
 
-            Highscore { game, highscore, newHighscore } ->
-                [ HeaderView.view scale restartMsg game.score
-                , GameView.viewFinished
-                    { scale = scale
-                    , status =
-                        if newHighscore then
-                            NewHighscore
+        BadStatus int ->
+            "Response Status: " ++ String.fromInt int
 
-                        else
-                            Lost
-                    , highscore = Just highscore.history.present.score
-                    , requestedReplayMsg = msgMapper RequestedReplay
-                    , error = Nothing
-                    }
-                    game
-                , PageSelectorView.viewInactive scale
-                ]
-        )
+        BadBody string ->
+            string
+
+
+view :
+    Float
+    -> msg
+    -> (Msg -> msg)
+    -> Model
+    -> ( Maybe { isWon : Bool, shade : List (Element msg) }, List (Element msg) )
+view scale restartMsg msgMapper model =
+    let
+        ({ score } as game) =
+            case model of
+                End m ->
+                    m.game
+
+                Highscore m ->
+                    m.game
+    in
+    ( Just
+        { isWon =
+            case model of
+                End _ ->
+                    False
+
+                Highscore { newHighscore } ->
+                    newHighscore
+        , shade =
+            viewScore
+                { requestedReplayMsg = msgMapper RequestedReplay
+                , restartMsg = restartMsg
+                }
+                { score = score
+                , response =
+                    case model of
+                        End { error } ->
+                            error |> Maybe.map Err
+
+                        Highscore { highscore, newHighscore } ->
+                            Just <|
+                                Ok <|
+                                    ( highscore.history.present.score
+                                    , newHighscore
+                                    )
+                }
+        }
+    , [ HeaderView.view scale restartMsg game.score
+      , GameView.viewFinished scale game
+      ]
+    )

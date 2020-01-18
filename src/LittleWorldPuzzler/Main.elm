@@ -1,4 +1,4 @@
-module Main exposing (main)
+module LittleWorldPuzzler.Main exposing (main)
 
 import Action
 import Browser
@@ -7,11 +7,15 @@ import Browser.Events exposing (onResize)
 import Element exposing (Option)
 import Element.Background as Background
 import Element.Font as Font
+import Framework
+import Html
+import Html.Attributes as Attributes
 import LittleWorldPuzzler.State.Finished as FinishedState
 import LittleWorldPuzzler.State.Playing as PlayingState
 import LittleWorldPuzzler.State.Prepairing as PreparingState
 import LittleWorldPuzzler.State.Ready as ReadyState
 import LittleWorldPuzzler.State.Replaying as ReplayingState
+import LittleWorldPuzzler.View.Shade as Shade
 import Random
 import Task
 
@@ -273,48 +277,80 @@ view model =
             else
                 []
 
-        ( content, options ) =
+        ( maybeShade, content ) =
             case model of
-                Playing ( playingModel, { scale, portraitMode } ) ->
-                    ( PlayingState.view scale Restart PlayingSpecific playingModel
-                    , forceHover portraitMode
-                    )
+                Playing ( playingModel, { scale } ) ->
+                    PlayingState.view scale Restart PlayingSpecific playingModel
 
-                Replaying ( replayingModel, { scale, portraitMode } ) ->
-                    ( ReplayingState.view scale Restart ReplayingSpecific replayingModel
-                    , forceHover portraitMode
-                    )
+                Replaying ( replayingModel, { scale } ) ->
+                    ReplayingState.view scale Restart ReplayingSpecific replayingModel
 
-                Finished ( finishedModel, { scale, portraitMode } ) ->
-                    ( FinishedState.view scale Restart FinishedSpecific finishedModel
-                    , forceHover portraitMode
-                    )
+                Finished ( finishedModel, { scale } ) ->
+                    FinishedState.view scale Restart FinishedSpecific finishedModel
 
-                Ready ( readyModel, { scale, portraitMode } ) ->
-                    ( ReadyState.view scale Restart ReadySpecific readyModel
-                    , forceHover portraitMode
-                    )
+                Ready ( readyModel, { scale } ) ->
+                    ReadyState.view scale Restart ReadySpecific readyModel
 
                 Preparing _ ->
-                    ( Element.text ""
-                    , []
-                    )
+                    ( Nothing, [ Element.text "" ] )
+
+        portraitMode : Bool
+        portraitMode =
+            case model of
+                Playing ( _, config ) ->
+                    config.portraitMode
+
+                Replaying ( _, config ) ->
+                    config.portraitMode
+
+                Finished ( _, config ) ->
+                    config.portraitMode
+
+                Ready ( _, config ) ->
+                    config.portraitMode
+
+                Preparing _ ->
+                    False
     in
     { title = "Little World Puzzler"
     , body =
-        List.singleton <|
-            Element.layoutWith
-                { options = options }
-                [ Font.family
-                    [ Font.external
-                        { url = "font.css"
-                        , name = "Noto Emoji"
-                        }
-                    ]
-                , Background.color <| Element.rgb255 44 48 51
+        [ Html.node "meta"
+            [ Attributes.attribute "name" "viewport"
+            , Attributes.attribute "content" "width=device-width, initial-scale=1.0"
+            ]
+            []
+        , Element.layoutWith
+            { options = forceHover portraitMode ++ Framework.layoutOptions }
+            ([ Font.family
+                [ Font.external
+                    { url = "font.css"
+                    , name = "Noto Emoji"
+                    }
                 ]
-            <|
+             , Background.color <| Element.rgb255 44 48 51
+             ]
+                ++ (maybeShade
+                        |> Maybe.map
+                            (\{ isWon, shade } ->
+                                List.singleton <|
+                                    Element.inFront <|
+                                        (if isWon then
+                                            Shade.viewWon
+
+                                         else
+                                            Shade.viewNormal
+                                        )
+                                        <|
+                                            shade
+                            )
+                        |> Maybe.withDefault []
+                   )
+                ++ Framework.layoutAttributes
+            )
+          <|
+            Element.column Framework.container <|
                 content
+        ]
     }
 
 

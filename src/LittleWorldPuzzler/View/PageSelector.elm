@@ -1,77 +1,40 @@
-module LittleWorldPuzzler.View.PageSelector exposing (viewCollection, viewGame, viewInactive)
+module LittleWorldPuzzler.View.PageSelector exposing (viewCollection, viewGame)
 
-import Element exposing (Attribute, Element)
-import Element.Background as Background
-import Element.Border as Border
+import Element exposing (Element)
 import Element.Font as Font
-import LittleWorldPuzzler.View.Button as Button
+import Element.Input as Input
+import Framework.Button as Button
+import Framework.Color as Color
+import Framework.Grid as Grid
 
 
-attributes : Float -> List (Attribute msg)
-attributes scale =
-    [ Element.width <| Element.px <| floor <| scale * 200
-    , Element.padding <| floor <| 7 * scale
-    , Element.alignTop
-    , Border.roundEach
-        { topLeft = 0
-        , topRight = 0
-        , bottomLeft = floor <| 10 * scale
-        , bottomRight = floor <| 10 * scale
-        }
-    , Font.size <| floor <| 36 * scale
-    , Font.family
-        [ Font.sansSerif ]
-    ]
-
-
-activeButton : Float -> msg -> String -> Element msg
-activeButton scale msg label =
-    Button.view (attributes scale)
+activeButton : msg -> String -> Element msg
+activeButton msg label =
+    Input.button (Button.groupBottom ++ [ Font.family [ Font.sansSerif ] ])
         { onPress = Just msg
         , label = Element.text <| label
         }
 
 
-inactiveButton : Float -> String -> Element msg
-inactiveButton scale label =
-    Button.view
-        ([ Background.color <| Element.rgb255 242 242 242
-         , Element.height <| Element.px <| floor <| scale * 52
-         , Border.width 0
-         ]
-            |> List.append (attributes scale)
-        )
+inactiveButton : String -> Element msg
+inactiveButton label =
+    Input.button (Button.groupBottom ++ Color.primary ++ [ Font.family [ Font.sansSerif ] ])
         { onPress = Nothing
         , label = Element.text <| label
         }
 
 
-view : Float -> List (Element msg) -> Element msg
-view scale =
-    Element.row
-        [ Element.height <| Element.px <| floor <| scale * 52
-        , Element.centerX
-        , Element.spacing <| floor <| scale * 20
+viewGame : msg -> Element msg
+viewGame msg =
+    Element.row (Grid.simple ++ [ Element.centerX, Element.width <| Element.shrink ])
+        [ inactiveButton "Game"
+        , activeButton msg "Collection"
         ]
 
 
-viewGame : Float -> msg -> Element msg
-viewGame scale msg =
-    view scale <|
-        [ inactiveButton scale "Game"
-        , activeButton scale msg "Collection"
+viewCollection : msg -> Element msg
+viewCollection msg =
+    Element.row (Grid.simple ++ [ Element.centerX, Element.width <| Element.shrink ])
+        [ activeButton msg "Game"
+        , inactiveButton "Collection"
         ]
-
-
-viewCollection : Float -> msg -> Element msg
-viewCollection scale msg =
-    view scale <|
-        [ activeButton scale msg "Game"
-        , inactiveButton scale "Collection"
-        ]
-
-
-viewInactive : Float -> Element msg
-viewInactive scale =
-    view scale <|
-        []

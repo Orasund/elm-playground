@@ -1,7 +1,6 @@
 module LittleWorldPuzzler.State.Prepairing exposing (Model, Msg(..), update)
 
 import Action
-import Framework.Modifier exposing (Modifier(..))
 import LittleWorldPuzzler.Data.CellType exposing (CellType(..))
 import LittleWorldPuzzler.Data.Deck exposing (Selected(..))
 import Random exposing (Seed)
