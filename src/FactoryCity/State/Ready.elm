@@ -5,10 +5,9 @@ import Element exposing (Element)
 import Element.Font as Font
 import Element.Input as Input
 import FactoryCity.Data.Game as Game exposing (Game)
-import FactoryCity.State.Playing as PlayingState exposing (Mode(..))
+import FactoryCity.State.Playing as PlayingState 
 import FactoryCity.View.Game as GameView
 import FactoryCity.View.Header as HeaderView
-import FactoryCity.View.PageSelector as PageSelectorView
 import Framework.Button as Button
 import Framework.Card as Card
 import Framework.Grid as Grid
@@ -34,8 +33,6 @@ type alias Model =
 
 type Msg
     = NormalModeSelected
-    | ChallengeModeSelected
-    | ObtainedData ( Month, Int )
 
 
 type alias Action =
@@ -111,29 +108,6 @@ update msg (( game, seed ) as model) =
             Action.transitioning
                 { game = game
                 , seed = seed
-                , mode = Normal
-                }
-
-        ChallengeModeSelected ->
-            Action.updating
-                ( model
-                , Task.perform
-                    (\t ->
-                        ObtainedData ( t |> Time.toMonth Time.utc, t |> Time.toYear Time.utc )
-                    )
-                    Time.now
-                )
-
-        ObtainedData ( month, year ) ->
-            let
-                newSeed : Seed
-                newSeed =
-                    Random.initialSeed <| year * 100 + monthToInt month
-            in
-            Action.transitioning
-                { game = Random.step Game.generator newSeed |> Tuple.first
-                , seed = newSeed
-                , mode = Challenge
                 }
 
 
@@ -214,11 +188,6 @@ view scale restartMsg msgMapper ( game, _ ) =
                         (msgMapper <| NormalModeSelected)
                         { title = "Normal"
                         , desc = "Random cards, one life. If you loose you can blame RNG."
-                        }
-                    , viewMode
-                        (msgMapper <| ChallengeModeSelected)
-                        { title = "Monthly Challenge"
-                        , desc = "No randomness. Fixed card order. Comes with an undo button."
                         }
                     ]
                 ]

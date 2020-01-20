@@ -11,6 +11,10 @@ module FactoryCity.Data.CellType exposing
     , itemList
     , smeltable
     , toString
+    , movableList
+    , MovableSort(..)
+    , merger
+    , output
     )
 
 import Color exposing (Color)
@@ -23,6 +27,13 @@ type Item
     | Stone
     | Iron
 
+type MovableSort
+    = Belt
+    | Merger
+
+movableList : List MovableSort
+movableList =
+    [ Belt , Merger ]
 
 itemList : List Item
 itemList =
@@ -56,6 +67,9 @@ crate : Item -> CellType
 crate item =
     { item = Just item, sort = Crate }
 
+output : CellType
+output =
+    {item = Nothing, sort = Output}
 
 furnace : CellType
 furnace =
@@ -67,9 +81,14 @@ furnace =
 belt : { from : Direction, to : Direction } -> CellType
 belt { from, to } =
     { item = Nothing
-    , sort = Belt { from = from, to = to }
+    , sort = Movable Belt { from = from, to = to }
     }
 
+merger : Direction -> CellType
+merger dir =
+    { item = Nothing
+    , sort = Movable Merger {from = dir |> Direction.flip, to = dir }
+    }
 
 containerList : List ContainerSort
 containerList =
@@ -79,9 +98,10 @@ containerList =
 
 
 type ContainerSort
-    = Belt { from : Direction, to : Direction }
+    = Movable MovableSort { from : Direction, to : Direction }
     | Crate
     | Furnace { isWarm : Bool }
+    | Output
 
 
 type alias CellType =
@@ -120,10 +140,41 @@ directionToString dir =
 toString : CellType -> ( String, String )
 toString { sort, item } =
     ( case sort of
-        Belt { from, to } ->
-            [ from |> Direction.flip, to ]
-                |> List.map directionToString
-                |> String.concat
+        Movable movableSort { from, to } ->
+            case movableSort of
+                Belt ->
+                    case (from,to) of
+                        (Up,Left)->
+                            "↵"
+                        (Up,Down) ->
+                            "↓"
+                        (Up,Right) ->
+                            "↪"
+                        (Left,Up) ->
+                            "⤴"
+                        (Left,Right) ->
+                            "→"
+                        (Left,Down) ->
+                            "⤵"
+                        (Down,Up) ->
+                            "↑"
+                        (Down,Left) ->
+                            "⮢"
+                        (Down,Right) ->
+                            "⮣"
+                        (Right,Up) ->
+                            "⮤"
+                        (Right,Left) ->
+                            "←"
+                        (Right,Down) ->
+                            "⮦"
+                        _ ->
+                            "🔄"
+
+                Merger ->
+                    [ from |> Direction.flip, to ]
+                        |> List.map directionToString
+                        |> String.concat
 
         Crate ->
             "📦"
@@ -134,6 +185,9 @@ toString { sort, item } =
 
             else
                 "📛"
+        
+        Output ->
+            "🚚"
     , item
         |> Maybe.map itemToString
         |> Maybe.withDefault ""

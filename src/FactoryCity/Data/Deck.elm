@@ -21,47 +21,24 @@ import Random exposing (Generator)
 import Random.List as RandomList
 
 
-type Selected
-    = First
-    | Second
-
-
 type alias Deck =
-    Zipper CellType
+    String 
 
 
-generator : Generator Deck
-generator =
+init : Deck
+init =
     [ CellType.crate Wood
     , CellType.crate Stone
     , CellType.furnace
-    , CellType.belt { from = Up, to = Left }
-    , CellType.belt { from = Right, to = Down }
     , CellType.belt { from = Up, to = Down }
+    , CellType.merger Down
+    , CellType.merger Left
+    , CellType.output
     ]
-        |> fromList
-        |> shuffle
+        |> Array.fromList
 
 
-fromList : List CellType -> Deck
-fromList =
-    Zipper.fromList
-        >> Zipper.withDefault (CellType.crate Wood)
 
-
-remaining : Deck -> List CellType
-remaining =
-    Zipper.after
-
-
-played : Deck -> List CellType
-played =
-    Zipper.before
-
-
-first : Deck -> CellType
-first =
-    Zipper.current
 
 
 second : Deck -> Maybe CellType

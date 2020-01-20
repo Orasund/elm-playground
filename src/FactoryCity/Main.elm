@@ -7,7 +7,6 @@ import Browser.Events exposing (onResize)
 import Element exposing (Option)
 import Element.Background as Background
 import Element.Font as Font
-import FactoryCity.State.Finished as FinishedState
 import FactoryCity.State.Playing as PlayingState
 import FactoryCity.State.Prepairing as PreparingState
 import FactoryCity.State.Ready as ReadyState
@@ -48,7 +47,6 @@ type Model
     | Ready ( ReadyState.Model, Config )
     | Playing ( PlayingState.Model, Config )
     | Replaying ( ReplayingState.Model, Config )
-    | Finished ( FinishedState.Model, Config )
 
 
 type Msg
@@ -56,7 +54,6 @@ type Msg
     | ReadySpecific ReadyState.Msg
     | PreparingSpecific PreparingState.Msg
     | ReplayingSpecific ReplayingState.Msg
-    | FinishedSpecific FinishedState.Msg
     | Resized Config
     | Restart
 
@@ -152,33 +149,7 @@ update msg model =
             PlayingState.update playingMsg playingModel
                 |> Action.config
                 |> Action.withUpdate (\m -> Playing ( m, config )) PlayingSpecific
-                |> Action.withTransition
-                    (FinishedState.init
-                        >> (\( m, c ) ->
-                                ( ( m, config )
-                                , c
-                                )
-                           )
-                    )
-                    Finished
-                    FinishedSpecific
                 |> Action.withExit (init ())
-                |> Action.apply
-
-        ( FinishedSpecific finishedMsg, Finished ( finishedModel, config ) ) ->
-            FinishedState.update finishedMsg finishedModel
-                |> Action.config
-                |> Action.withUpdate
-                    (\m -> Finished ( m, config ))
-                    FinishedSpecific
-                |> Action.withTransition
-                    (\m ->
-                        ( ( m, config )
-                        , Cmd.none
-                        )
-                    )
-                    Replaying
-                    never
                 |> Action.apply
 
         ( ReplayingSpecific replayingMsg, Replaying ( replayingModel, config ) ) ->
@@ -201,12 +172,6 @@ update msg model =
                 Replaying ( replayingModel, config ) ->
                     Replaying
                         ( replayingModel
-                        , { config | scale = scale, portraitMode = portraitMode }
-                        )
-
-                Finished ( finishedModel, config ) ->
-                    Finished
-                        ( finishedModel
                         , { config | scale = scale, portraitMode = portraitMode }
                         )
 
@@ -247,8 +212,9 @@ update msg model =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions _ =
-    onResize
+subscriptions model =
+    Sub.batch
+    ( [onResize
         (\w h ->
             { width = toFloat w, height = toFloat h }
                 |> (\dim ->
@@ -258,6 +224,16 @@ subscriptions _ =
                             }
                    )
         )
+    ] ++
+        (case model of
+            Playing playingModel ->
+                List.singleton <|
+                    Sub.map PlayingSpecific<|
+                    PlayingState.subscriptions <| Tuple.first <| playingModel
+            _ ->
+                []
+        )
+    )
 
 
 
@@ -286,9 +262,6 @@ view model =
                 Replaying ( replayingModel, { scale } ) ->
                     ReplayingState.view scale Restart ReplayingSpecific replayingModel
 
-                Finished ( finishedModel, { scale } ) ->
-                    FinishedState.view scale Restart FinishedSpecific finishedModel
-
                 Ready ( readyModel, { scale } ) ->
                     ReadyState.view scale Restart ReadySpecific readyModel
 
@@ -302,9 +275,6 @@ view model =
                     config.portraitMode
 
                 Replaying ( replayingModel, config ) ->
-                    config.portraitMode
-
-                Finished ( finishedModel, config ) ->
                     config.portraitMode
 
                 Ready ( readyModel, config ) ->

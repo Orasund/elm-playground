@@ -1,8 +1,8 @@
-module FactoryCity.Automata.Rule exposing (burnable, container, movables, smeltable)
+module FactoryCity.Automata.Rule exposing (output,merger,burnable, container, movables, smeltable)
 
 import CellAutomata exposing (Rule, RuleExpression(..))
 import FactoryCity.Automata.Neighborhood as Neighborhood
-import FactoryCity.Data.CellType as CellType exposing (CellType, ContainerSort(..), Item)
+import FactoryCity.Data.CellType as CellType exposing (MovableSort(..),CellType, ContainerSort(..), Item)
 import Grid.Direction as Direction exposing (Direction(..))
 
 
@@ -10,12 +10,116 @@ directionList : List Direction
 directionList =
     [ Up, Right, Down, Left ]
 
+output : List (Rule CellType)
+output =
+    let
+        rules : MovableSort -> { from : Direction, to : Direction } -> Item -> List (Rule CellType)
+        rules movableSort { from, to } item =
+            [ { from =
+                    Just
+                        { item = Nothing
+                        , sort = Output
+                        }
+              , to =
+                    Just
+                        { item = Just item
+                        , sort = Output
+                        }
+              , neighbors =
+                    CellAutomata.anyNeighborhood
+                        |> (Neighborhood.set (to |> Direction.flip) <|
+                                Exactly <|
+                                    Just <|
+                                        { item = Just item
+                                        , sort = Movable movableSort { from = from, to = to }
+                                        }
+                           )
+              }
+            , { from =
+                    Just
+                        { item = Just item
+                        , sort = Movable movableSort { from = from, to = to }
+                        }
+              , to =
+                    Just
+                        { item = Nothing
+                        , sort = Movable movableSort { from = from, to = to }
+                        }
+              , neighbors =
+                    CellAutomata.anyNeighborhood
+                        |> (Neighborhood.set to <|
+                                Exactly <|
+                                    Just
+                                        { item = Nothing
+                                        , sort = Output
+                                        }
+                           )
+              }
+            ]
+    in
+    CellType.movableList
+        |> List.concatMap (\movableSort ->
+    directionList
+        |> List.concatMap
+            (\from ->
+                directionList
+                    |> List.concatMap
+                        (\to ->
+                            CellType.itemList
+                                |> List.concatMap 
+                                    (\i -> rules movableSort { from = from, to = to } i)
+                        )
+            ))
+
+merger : List (Rule CellType)
+merger =
+    let
+        rules : { from : Direction, to : Direction } -> ( Item, Item ) -> List (Rule CellType)
+        rules { from, to } ( itemFrom, itemTo ) =
+            [ {from = 
+                Just <|
+                    { item = Nothing
+                    , sort = Movable Merger {from=from,to=to}
+                    
+                    }
+              , to =
+                Just <|
+                    { item = Nothing
+                    , sort = Movable Merger
+                        { from = 
+                            from |> Direction.rotRight
+                                |> (\x -> if x == to then 
+                                        x|>Direction.rotRight 
+                                    else
+                                        x
+                                    )
+                        , to = to
+                        }
+                    }
+              , neighbors =
+                CellAutomata.anyNeighborhood
+              }
+
+            ]
+    in
+    directionList
+        |> List.concatMap
+            (\from ->
+                directionList
+                    |> List.concatMap
+                        (\to ->
+                            CellType.smeltable
+                                |> List.concatMap 
+                                    (\i -> rules { from = from, to = to } i)
+                        )
+            )
+
 
 smeltable : List (Rule CellType)
 smeltable =
     let
-        rules : { from : Direction, to : Direction } -> ( Item, Item ) -> List (Rule CellType)
-        rules { from, to } ( itemFrom, itemTo ) =
+        rules : MovableSort -> { from : Direction, to : Direction } -> ( Item, Item ) -> List (Rule CellType)
+        rules movableSort { from, to } ( itemFrom, itemTo ) =
             [ { from =
                     Just
                         { item = Nothing
@@ -32,19 +136,19 @@ smeltable =
                                 Exactly <|
                                     Just <|
                                         { item = Just itemFrom
-                                        , sort = Belt { from = from, to = to }
+                                        , sort = Movable movableSort { from = from, to = to }
                                         }
                            )
               }
             , { from =
                     Just
                         { item = Just itemFrom
-                        , sort = Belt { from = from, to = to }
+                        , sort = Movable movableSort { from = from, to = to }
                         }
               , to =
                     Just
                         { item = Nothing
-                        , sort = Belt { from = from, to = to }
+                        , sort = Movable movableSort { from = from, to = to }
                         }
               , neighbors =
                     CellAutomata.anyNeighborhood
@@ -58,6 +162,8 @@ smeltable =
               }
             ]
     in
+    CellType.movableList
+        |> List.concatMap (\movableSort ->
     directionList
         |> List.concatMap
             (\from ->
@@ -65,16 +171,17 @@ smeltable =
                     |> List.concatMap
                         (\to ->
                             CellType.smeltable
-                                |> List.concatMap (\i -> rules { from = from, to = to } i)
+                                |> List.concatMap 
+                                    (\i -> rules movableSort { from = from, to = to } i)
                         )
-            )
+            ))
 
 
 burnable : List (Rule CellType)
 burnable =
     let
-        rules : { from : Direction, to : Direction } -> Item -> List (Rule CellType)
-        rules { from, to } i =
+        rules : MovableSort -> { from : Direction, to : Direction } -> Item -> List (Rule CellType)
+        rules movableSort { from, to } i =
             [ { from =
                     Just
                         { item = Nothing
@@ -91,19 +198,19 @@ burnable =
                                 Exactly <|
                                     Just <|
                                         { item = Just i
-                                        , sort = Belt { from = from, to = to }
+                                        , sort = Movable movableSort { from = from, to = to }
                                         }
                            )
               }
             , { from =
                     Just
                         { item = Just i
-                        , sort = Belt { from = from, to = to }
+                        , sort = Movable movableSort { from = from, to = to }
                         }
               , to =
                     Just
                         { item = Nothing
-                        , sort = Belt { from = from, to = to }
+                        , sort = Movable movableSort { from = from, to = to }
                         }
               , neighbors =
                     CellAutomata.anyNeighborhood
@@ -117,6 +224,8 @@ burnable =
               }
             ]
     in
+    CellType.movableList
+        |> List.concatMap (\movableSort ->
     directionList
         |> List.concatMap
             (\from ->
@@ -124,25 +233,26 @@ burnable =
                     |> List.concatMap
                         (\to ->
                             CellType.burnable
-                                |> List.concatMap (\i -> rules { from = from, to = to } i)
+                                |> List.concatMap 
+                                    (\i -> rules movableSort { from = from, to = to } i)
                         )
-            )
+            ))
 
 
 container : List (Rule CellType)
 container =
     let
-        rules : ContainerSort -> { from : Direction, to : Direction } -> Item -> List (Rule CellType)
-        rules sort { from, to } i =
+        rules : MovableSort -> ContainerSort -> { from : Direction, to : Direction } -> Item -> List (Rule CellType)
+        rules movableSort sort { from, to } i =
             [ { from =
                     Just
                         { item = Nothing
-                        , sort = Belt { from = from, to = to }
+                        , sort = Movable movableSort { from = from, to = to }
                         }
               , to =
                     Just
                         { item = Just i
-                        , sort = Belt { from = from, to = to }
+                        , sort = Movable movableSort { from = from, to = to }
                         }
               , neighbors =
                     CellAutomata.anyNeighborhood
@@ -169,13 +279,15 @@ container =
                         |> (Neighborhood.set (from |> Direction.flip) <|
                                 Exactly <|
                                     Just <|
-                                        { sort = Belt { from = from, to = to }
+                                        { sort = Movable movableSort { from = from, to = to }
                                         , item = Nothing
                                         }
                            )
               }
             ]
     in
+    CellType.movableList
+        |> List.concatMap (\movableSort ->
     CellType.containerList
         |> List.concatMap
             (\sort ->
@@ -186,84 +298,94 @@ container =
                                 |> List.concatMap
                                     (\to ->
                                         CellType.itemList
-                                            |> List.concatMap (\i -> rules sort { from = from, to = to } i)
+                                            |> List.concatMap (\i -> 
+                                                rules movableSort sort { from = from, to = to } i)
                                     )
                         )
-            )
+            ))
 
 
 movables : List (Rule CellType)
 movables =
     let
-        rules : { from : Direction, to : Direction } -> Item -> List (Rule CellType)
-        rules { from, to } i =
+        rules : MovableSort -> { from : Direction, to : Direction } -> Item -> List (Rule CellType)
+        rules movableSort { from, to } i =
             [ { from =
                     Just
                         { item = Nothing
-                        , sort = Belt { from = from, to = to }
+                        , sort = Movable movableSort { from = from, to = to }
                         }
               , to =
                     Just
                         { item = Just i
-                        , sort = Belt { from = from, to = to }
+                        , sort = Movable movableSort { from = from, to = to }
                         }
               , neighbors =
                     CellAutomata.anyNeighborhood
                         |> Neighborhood.set from
                             (OneOf
-                                (directionList
+                                (CellType.movableList
+                                    |> List.concatMap (\mov ->
+                                        
+                                    directionList
                                     |> List.map
                                         (\dir ->
                                             Just <|
                                                 { sort =
-                                                    Belt
+                                                    Movable mov
                                                         { from = dir
                                                         , to = from |> Direction.flip
                                                         }
                                                 , item = Just i
                                                 }
-                                        )
+                                        ))
                                 )
                             )
               }
             , { from =
                     Just
                         { item = Just i
-                        , sort = Belt { from = from, to = to }
+                        , sort = Movable movableSort { from = from, to = to }
                         }
               , to =
                     Just
                         { item = Nothing
-                        , sort = Belt { from = from, to = to }
+                        , sort = Movable movableSort { from = from, to = to }
                         }
               , neighbors =
                     CellAutomata.anyNeighborhood
                         |> Neighborhood.set to
                             (OneOf
-                                (directionList
+                                (CellType.movableList
+                                    |> List.concatMap (\mov ->
+                                    directionList
                                     |> List.map
                                         (\dir ->
                                             Just <|
                                                 { sort =
-                                                    Belt
+                                                    Movable mov
                                                         { from = to |> Direction.flip
                                                         , to = dir
                                                         }
                                                 , item = Nothing
                                                 }
-                                        )
+                                        ))
                                 )
                             )
               }
             ]
     in
-    directionList
+    CellType.movableList
+        |> List.concatMap (\movableSort ->
+            directionList
         |> List.concatMap
             (\from ->
                 directionList
                     |> List.concatMap
                         (\to ->
                             CellType.itemList
-                                |> List.concatMap (\i -> rules { from = from, to = to } i)
+                                |> List.concatMap (\i -> rules movableSort { from = from, to = to } i)
                         )
             )
+        )
+    

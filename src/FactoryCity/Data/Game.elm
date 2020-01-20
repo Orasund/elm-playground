@@ -32,8 +32,8 @@ occuringTypes board =
         |> Set.fromList
 
 
-step : Set ( String, String ) -> Game -> ( Game, Set ( String, String ) )
-step set ({ score } as game) =
+step : Game -> Game
+step ({ score } as game) =
     let
         boardStep : ListRule -> Dict Position CellType -> ( Board, Board ) -> ( Board, Board )
         boardStep listRule read ( b, remaining ) =
@@ -60,13 +60,14 @@ step set ({ score } as game) =
                 |> boardStep Rule.container (game.board |> Grid.toDict)
                 |> boardStep Rule.burnable (game.board |> Grid.toDict)
                 |> boardStep Rule.smeltable (game.board |> Grid.toDict)
+                |> boardStep Rule.merger (game.board |> Grid.toDict)
+                |> boardStep Rule.output (game.board |> Grid.toDict)
                 |> Tuple.first
     in
     ( { game
         | board = board
         , score = score + 1
       }
-    , set |> Set.union (occuringTypes board)
     )
 
 
