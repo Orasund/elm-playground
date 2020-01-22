@@ -25,36 +25,48 @@ card { attributes, selected, onPress, content } =
     }
 
 
-view : Float -> ( Float, Float ) -> Card msg -> Element msg
-view scale ( width, height ) { attributes, selected, onPress, content } =
+view : Int -> ( Float, Float ) -> Card msg -> Element msg
+view amount ( width, height ) { attributes, selected, onPress, content } =
     let
         att : List (Attribute msg)
         att =
             List.concat
-                [ [ Element.width <| Element.px <| floor <| width * scale
-                  , Element.height <| Element.px <| floor <| height * scale
+                [ [ Element.width <| Element.px <| floor <| width
+                  , Element.height <| Element.px <| floor <| height
                   , Border.width 1
                   , Border.color <| Element.rgba255 219 219 219 1
-                  , Border.rounded <| floor <| 4 * scale
-                  , Element.padding <| floor <| 5 * scale
+                  , Border.rounded <| floor <| 4
+                  , Element.padding <| floor <| 5
                   , Background.color <| Element.rgb255 255 255 255
                   ]
                 , attributes
                 ]
     in
-    if selected then
-        Element.el
-            (Element.alignTop :: att)
-        <|
-            content
+    Element.el
+        [ Element.height <| Element.px <| floor <| height * 1.1
+        , Element.width <|
+            Element.px <|
+                if selected then
+                    floor <| width
 
-    else
+                else if amount < 5 then
+                    floor <| width
+
+                else
+                    (floor <| width) * 4 // amount
+        ]
+    <|
         Input.button
             ([ Element.mouseOver
                 [ Border.color <| Element.rgb255 155 203 255
                 ]
-             , Element.alignBottom
              ]
+                ++ (if selected then
+                        [ Element.alignTop ]
+
+                    else
+                        [ Element.alignBottom ]
+                   )
                 ++ att
             )
             { label = content
@@ -62,12 +74,12 @@ view scale ( width, height ) { attributes, selected, onPress, content } =
             }
 
 
-hand : List (Attribute msg) -> { scale : Float, dimensions : ( Float, Float ), width : Float, cards : List (Card msg) } -> Element msg
-hand attributes { scale, dimensions, width, cards } =
+hand : List (Attribute msg) -> { dimensions : ( Float, Float ), width : Float, cards : List (Card msg) } -> Element msg
+hand attributes { dimensions, width, cards } =
     let
-        cardsAmount : Float
+        cardsAmount : Int
         cardsAmount =
-            cards |> List.length |> toFloat
+            cards |> List.length
 
         ( cardWidth, _ ) =
             dimensions
@@ -77,21 +89,16 @@ hand attributes { scale, dimensions, width, cards } =
                 0
 
             else
-                (width - scale * cardsAmount * cardWidth)
-                    / (cardsAmount - 1)
-                    |> clamp -(cardWidth * scale / 5) (cardWidth * scale / 5)
-
-        {- |> \x -> if x> ((cardWidth) * scale / 5) then
-           ((cardWidth) * scale / 5)
-           else x
-        -}
+                (width - toFloat cardsAmount * cardWidth)
+                    / (toFloat cardsAmount - 1)
+                    |> clamp -(cardWidth / 5) (cardWidth / 5)
     in
     cards
-        |> List.map (view scale dimensions)
-        |> Element.row
-            ([ --Element.width <| Element.px <| round <| width
-               --,
-               Element.spacing <| round <| spacing
+        |> List.map (view cardsAmount dimensions)
+        |> Element.wrappedRow
+            ([ Element.width <| Element.shrink
+             , Element.height <| Element.shrink
+             , Element.spacing <| round <| spacing
              , Element.centerX
              ]
                 ++ attributes

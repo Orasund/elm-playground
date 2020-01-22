@@ -1,19 +1,14 @@
 module FactoryCity.Data.Deck exposing
     ( Deck
-    , Selected(..)
-    , first
-    , fromList
-    , generator
-    , moveTofirst
-    , playFirst
-    , playSecond
-    , played
-    , remaining
-    , second
-    , shuffle
+    , add
+    , init
+    , remove
+    , toList
     )
 
-import FactoryCity.Data.CellType as CellType exposing (CellType, ContainerSort(..), Item(..))
+import Bag exposing (Bag)
+import Dict exposing (Dict)
+import FactoryCity.Data.CellType as CellType exposing (CellType, ContainerSort, Item(..))
 import Grid.Direction as Direction exposing (Direction(..))
 import Jsonstore exposing (Json)
 import List.Zipper as Zipper exposing (Zipper(..))
@@ -22,7 +17,7 @@ import Random.List as RandomList
 
 
 type alias Deck =
-    String 
+    Bag String
 
 
 init : Deck
@@ -35,58 +30,30 @@ init =
     , CellType.merger Left
     , CellType.output
     ]
-        |> Array.fromList
+        |> List.map (CellType.containerSortToString >> (\k -> ( k, 1 )))
+        |> Bag.fromList
 
 
+add : ContainerSort -> Deck -> Deck
+add k =
+    Bag.insert 1 (k |> CellType.containerSortToString)
 
 
+remove : ContainerSort -> Deck -> Result () Deck
+remove k bag =
+    if (bag |> Bag.count (k |> CellType.containerSortToString)) < 1 then
+        Err ()
 
-second : Deck -> Maybe CellType
-second =
-    Zipper.after
-        >> List.head
-
-
-{-| Move the focus to the first element of the list.
--}
-moveTofirst : Zipper a -> Zipper a
-moveTofirst ((Zipper ls x rs) as zipper) =
-    case List.reverse ls of
-        [] ->
-            zipper
-
-        y :: ys ->
-            Zipper [] y (ys ++ [ x ] ++ rs)
+    else
+        bag |> Bag.remove 1 (k |> CellType.containerSortToString) |> Ok
 
 
-playFirst : { shuffle : Bool } -> Deck -> Generator Deck
-playFirst options deck =
-    case deck |> Zipper.next of
-        Just newDeck ->
-            Random.constant newDeck
-
-        Nothing ->
-            if options.shuffle then
-                deck |> shuffle
-
-            else
-                generator
-
-
-playSecond : Deck -> Deck
-playSecond deck =
-    case deck |> Zipper.after of
-        b :: tail ->
-            deck
-                |> Zipper.mapBefore (\list -> [ b ] |> List.append list)
-                |> Zipper.mapAfter (always tail)
-
-        [] ->
-            deck
-
-
-shuffle : Deck -> Generator Deck
-shuffle =
-    Zipper.toList
-        >> RandomList.shuffle
-        >> Random.map fromList
+toList : Deck -> List ( ContainerSort, Int )
+toList =
+    Bag.toList
+        >> List.filterMap
+            (\( k, v ) ->
+                k
+                    |> CellType.stringToContainerSort
+                    |> Maybe.map (\c -> ( c, v ))
+            )

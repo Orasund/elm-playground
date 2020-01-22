@@ -10,7 +10,6 @@ import Element.Font as Font
 import FactoryCity.State.Playing as PlayingState
 import FactoryCity.State.Prepairing as PreparingState
 import FactoryCity.State.Ready as ReadyState
-import FactoryCity.State.Replaying as ReplayingState
 import FactoryCity.View.Shade as Shade
 import Framework
 import Framework.Grid as Grid
@@ -46,14 +45,12 @@ type Model
     = Preparing PreparingState.Model
     | Ready ( ReadyState.Model, Config )
     | Playing ( PlayingState.Model, Config )
-    | Replaying ( ReplayingState.Model, Config )
 
 
 type Msg
     = PlayingSpecific PlayingState.Msg
     | ReadySpecific ReadyState.Msg
     | PreparingSpecific PreparingState.Msg
-    | ReplayingSpecific ReplayingState.Msg
     | Resized Config
     | Restart
 
@@ -152,12 +149,6 @@ update msg model =
                 |> Action.withExit (init ())
                 |> Action.apply
 
-        ( ReplayingSpecific replayingMsg, Replaying ( replayingModel, config ) ) ->
-            ReplayingState.update replayingMsg replayingModel
-                |> Action.config
-                |> Action.withUpdate (\m -> Replaying ( m, config )) never
-                |> Action.apply
-
         ( Restart, _ ) ->
             init ()
 
@@ -166,12 +157,6 @@ update msg model =
                 Playing ( playingModel, config ) ->
                     Playing
                         ( playingModel
-                        , { config | scale = scale, portraitMode = portraitMode }
-                        )
-
-                Replaying ( replayingModel, config ) ->
-                    Replaying
-                        ( replayingModel
                         , { config | scale = scale, portraitMode = portraitMode }
                         )
 
@@ -214,26 +199,29 @@ update msg model =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-    ( [onResize
-        (\w h ->
-            { width = toFloat w, height = toFloat h }
-                |> (\dim ->
-                        Resized
-                            { scale = calcScale dim
-                            , portraitMode = calcPortraitMode dim
-                            }
-                   )
+        ([ onResize
+            (\w h ->
+                { width = toFloat w, height = toFloat h }
+                    |> (\dim ->
+                            Resized
+                                { scale = calcScale dim
+                                , portraitMode = calcPortraitMode dim
+                                }
+                       )
+            )
+         ]
+            ++ (case model of
+                    Playing playingModel ->
+                        List.singleton <|
+                            Sub.map PlayingSpecific <|
+                                PlayingState.subscriptions <|
+                                    Tuple.first <|
+                                        playingModel
+
+                    _ ->
+                        []
+               )
         )
-    ] ++
-        (case model of
-            Playing playingModel ->
-                List.singleton <|
-                    Sub.map PlayingSpecific<|
-                    PlayingState.subscriptions <| Tuple.first <| playingModel
-            _ ->
-                []
-        )
-    )
 
 
 
@@ -259,9 +247,6 @@ view model =
                 Playing ( playingModel, { scale } ) ->
                     PlayingState.view scale Restart PlayingSpecific playingModel
 
-                Replaying ( replayingModel, { scale } ) ->
-                    ReplayingState.view scale Restart ReplayingSpecific replayingModel
-
                 Ready ( readyModel, { scale } ) ->
                     ReadyState.view scale Restart ReadySpecific readyModel
 
@@ -274,16 +259,13 @@ view model =
                 Playing ( playingModel, config ) ->
                     config.portraitMode
 
-                Replaying ( replayingModel, config ) ->
-                    config.portraitMode
-
                 Ready ( readyModel, config ) ->
                     config.portraitMode
 
                 Preparing _ ->
                     False
     in
-    { title = "Little World Puzzler"
+    { title = "Factory City"
     , body =
         [ Html.node "meta"
             [ Attributes.attribute "name" "viewport"
@@ -292,13 +274,7 @@ view model =
             []
         , Element.layoutWith
             { options = forceHover portraitMode ++ Framework.layoutOptions }
-            ([ Font.family
-                [ Font.external
-                    { url = "font.css"
-                    , name = "Noto Emoji"
-                    }
-                ]
-             , Background.color <| Element.rgb255 44 48 51
+            ([ Background.color <| Element.rgb255 44 48 51
              ]
                 ++ (maybeShade
                         |> Maybe.map

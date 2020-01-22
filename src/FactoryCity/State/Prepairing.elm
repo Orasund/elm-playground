@@ -2,7 +2,7 @@ module FactoryCity.State.Prepairing exposing (Model, Msg(..), update)
 
 import Action
 import FactoryCity.Data.CellType exposing (CellType)
-import FactoryCity.Data.Deck exposing (Selected(..))
+import FactoryCity.Data.Deck
 import Random exposing (Seed)
 
 

@@ -5,9 +5,10 @@ import Element exposing (Element)
 import Element.Font as Font
 import Element.Input as Input
 import FactoryCity.Data.Game as Game exposing (Game)
-import FactoryCity.State.Playing as PlayingState 
+import FactoryCity.State.Playing as PlayingState
 import FactoryCity.View.Game as GameView
 import FactoryCity.View.Header as HeaderView
+import FactoryCity.View.Text as Text
 import Framework.Button as Button
 import Framework.Card as Card
 import Framework.Grid as Grid
@@ -45,14 +46,14 @@ type alias Action =
 ----------------------
 
 
-stateGenerator : Generator State
-stateGenerator =
-    Game.generator
+initialState : State
+initialState =
+    Game.init
 
 
 init : Seed -> ( Model, Cmd Msg )
 init seed =
-    ( Random.step stateGenerator seed, Cmd.none )
+    ( ( initialState, seed ), Cmd.none )
 
 
 
@@ -164,13 +165,7 @@ view scale restartMsg msgMapper ( game, _ ) =
                            , Element.centerY
                            ]
                     )
-                    [ Element.el
-                        [ Font.size <| floor <| scale * 150
-                        , Font.family
-                            [ Font.typeface "Noto Emoji" ]
-                        ]
-                      <|
-                        Element.text "🌍"
+                    [ Text.view (round <| scale * 150) "🏭"
                     , Element.column
                         [ Font.size <| floor <| scale * 80
                         , Element.centerX
@@ -178,9 +173,8 @@ view scale restartMsg msgMapper ( game, _ ) =
                         , Font.center
                         ]
                       <|
-                        [ Element.text "Little"
-                        , Element.text "World"
-                        , Element.text "Puzzler"
+                        [ Element.text "Factory"
+                        , Element.text "City"
                         ]
                     ]
                 , Element.column (Grid.simple ++ [ Element.centerY ]) <|

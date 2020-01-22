@@ -1,11 +1,11 @@
-module FactoryCity.Data.Game exposing (EndCondition(..), Game, generator, step)
+module FactoryCity.Data.Game exposing (EndCondition(..), Game, init, step)
 
 import Dict exposing (Dict)
 import FactoryCity.Automata as Automata exposing (ListRule)
 import FactoryCity.Automata.Rule as Rule
 import FactoryCity.Data.Board as Board exposing (Board, columns, rows)
 import FactoryCity.Data.CellType as CellType exposing (CellType)
-import FactoryCity.Data.Deck as Deck exposing (Deck, Selected(..))
+import FactoryCity.Data.Deck as Deck exposing (Deck)
 import Grid.Bordered as Grid
 import Grid.Position exposing (Position)
 import Random exposing (Generator)
@@ -64,21 +64,16 @@ step ({ score } as game) =
                 |> boardStep Rule.output (game.board |> Grid.toDict)
                 |> Tuple.first
     in
-    ( { game
+    { game
         | board = board
         , score = score + 1
-      }
-    )
+    }
 
 
-generator : Generator Game
-generator =
-    Deck.generator
-        |> Random.map
-            (\deck ->
-                { board =
-                    Grid.empty { columns = columns, rows = rows }
-                , deck = deck
-                , score = 0
-                }
-            )
+init : Game
+init =
+    { board =
+        Grid.empty { columns = columns, rows = rows }
+    , deck = Deck.init
+    , score = 0
+    }
