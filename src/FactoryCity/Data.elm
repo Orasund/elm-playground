@@ -1,9 +1,14 @@
-module FactoryCity.Data exposing (devMode, gameVersion, maxHistorySize, maxPrice, updateName)
+module FactoryCity.Data exposing (bugCycle, devMode, gameVersion, maxHistorySize, maxPrice, updateName)
 
 
 maxPrice : Int
 maxPrice =
     1000
+
+
+bugCycle : Int
+bugCycle =
+    100
 
 
 gameVersion : Int

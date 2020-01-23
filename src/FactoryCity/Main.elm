@@ -37,7 +37,6 @@ width =
 
 type alias Config =
     { scale : Float
-    , portraitMode : Bool
     }
 
 
@@ -77,23 +76,8 @@ calcScale dim =
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    ( Preparing { scale = Nothing, seed = Nothing, portraitMode = False }
-    , Cmd.batch
-        [ Random.generate (PreparingSpecific << PreparingState.GotSeed)
-            Random.independentSeed
-        , Task.perform
-            (\{ viewport } ->
-                { width = viewport.width, height = viewport.height }
-                    |> (\dim ->
-                            Resized
-                                { scale = calcScale dim
-                                , portraitMode = calcPortraitMode dim
-                                }
-                       )
-            )
-            Dom.getViewport
-        ]
-    )
+    PreparingState.init calcScale
+        |> Tuple.mapBoth Preparing (Cmd.map PreparingSpecific)
 
 
 
@@ -110,12 +94,11 @@ update msg model =
                 |> Action.config
                 |> Action.withUpdate Preparing never
                 |> Action.withTransition
-                    (\{ scale, portraitMode, seed } ->
-                        ReadyState.init seed
+                    (\{ scale, shop, seed } ->
+                        ReadyState.init shop seed
                             |> (\( m, c ) ->
                                     ( ( m
                                       , { scale = scale
-                                        , portraitMode = portraitMode
                                         }
                                       )
                                     , c
@@ -152,37 +135,22 @@ update msg model =
         ( Restart, _ ) ->
             init ()
 
-        ( Resized { scale, portraitMode }, _ ) ->
+        ( Resized { scale }, _ ) ->
             ( case model of
                 Playing ( playingModel, config ) ->
                     Playing
                         ( playingModel
-                        , { config | scale = scale, portraitMode = portraitMode }
+                        , { config | scale = scale }
                         )
 
                 Ready ( readyModel, config ) ->
                     Ready
                         ( readyModel
-                        , { config | scale = scale, portraitMode = portraitMode }
+                        , { config | scale = scale }
                         )
 
-                Preparing ({ seed } as prepairingModel) ->
-                    case seed of
-                        Just s ->
-                            Ready
-                                ( ReadyState.init s
-                                    |> Tuple.first
-                                , { scale = scale
-                                  , portraitMode = portraitMode
-                                  }
-                                )
-
-                        Nothing ->
-                            Preparing
-                                { prepairingModel
-                                    | scale = Just scale
-                                    , portraitMode = portraitMode
-                                }
+                Preparing _ ->
+                    model
             , Cmd.none
             )
 
@@ -205,7 +173,6 @@ subscriptions model =
                     |> (\dim ->
                             Resized
                                 { scale = calcScale dim
-                                , portraitMode = calcPortraitMode dim
                                 }
                        )
             )
@@ -233,15 +200,6 @@ subscriptions model =
 view : Model -> Browser.Document Msg
 view model =
     let
-        forceHover : Bool -> List Option
-        forceHover bool =
-            if bool then
-                [ Element.forceHover
-                ]
-
-            else
-                []
-
         ( maybeShade, content ) =
             case model of
                 Playing ( playingModel, { scale } ) ->
@@ -250,20 +208,8 @@ view model =
                 Ready ( readyModel, { scale } ) ->
                     ReadyState.view scale Restart ReadySpecific readyModel
 
-                Preparing _ ->
-                    ( Nothing, [ Element.text "" ] )
-
-        portraitMode : Bool
-        portraitMode =
-            case model of
-                Playing ( playingModel, config ) ->
-                    config.portraitMode
-
-                Ready ( readyModel, config ) ->
-                    config.portraitMode
-
-                Preparing _ ->
-                    False
+                Preparing preparingModel ->
+                    PreparingState.view preparingModel
     in
     { title = "Factory City"
     , body =
@@ -273,7 +219,7 @@ view model =
             ]
             []
         , Element.layoutWith
-            { options = forceHover portraitMode ++ Framework.layoutOptions }
+            { options = Framework.layoutOptions }
             ([ Background.color <| Element.rgb255 44 48 51
              ]
                 ++ (maybeShade

@@ -23,12 +23,12 @@ type alias Deck =
 init : Deck
 init =
     [ CellType.crate Wood
+    , CellType.crate Wood
+    , CellType.crate Stone
     , CellType.crate Stone
     , CellType.furnace
-    , CellType.belt { from = Up, to = Down }
-    , CellType.merger Down
-    , CellType.merger Left
-    , CellType.output
+    , CellType.belt { from = Up, to = Left }
+    , CellType.belt { from = Up, to = Right }
     ]
         |> List.map (CellType.containerSortToString >> (\k -> ( k, 1 )))
         |> Bag.fromList

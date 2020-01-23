@@ -75,7 +75,7 @@ view scale sort maybeSelectedMsg maybeSelected deck =
             , Element.height <| Element.px <| floor <| 200 * scale
             ]
             { width = 250 * scale
-            , dimensions = ( 120, 176 )
+            , dimensions = ( 120 * scale, 176 * scale )
             , cards =
                 deck
                     |> Deck.toList

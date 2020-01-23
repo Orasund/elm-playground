@@ -5,13 +5,14 @@ import Bag exposing (Bag)
 import Element exposing (Element)
 import FactoryCity.Data as Data
 import FactoryCity.Data.Board as Board
-import FactoryCity.Data.CellType as CellType exposing (CellType, ContainerSort, Item(..))
+import FactoryCity.Data.CellType as CellType exposing (CellType, ContainerSort(..), Item(..))
 import FactoryCity.Data.Deck as Deck
 import FactoryCity.Data.Game as Game exposing (EndCondition(..), Game)
+import FactoryCity.Data.RemoteShop as RemoteShop
 import FactoryCity.View.Game as GameView
-import FactoryCity.View.Header as HeaderView
 import Grid.Bordered as Grid
-import Grid.Position exposing (Position)
+import Grid.Direction as Direction exposing (Direction(..))
+import Grid.Position as Position exposing (Position)
 import Http exposing (Error(..))
 import Process
 import Random exposing (Seed)
@@ -38,6 +39,7 @@ type alias State =
     , stepCount : Int
     , shop : Bag String
     , money : Int
+    , nextBugIn : Int
     }
 
 
@@ -54,11 +56,15 @@ type Msg
     | ClickedBuy String
     | ClickedSell ContainerSort
     | ChangedLoopLength Int
+    | ClickedCraft ContainerSort
+    | GotShopResponse (Result Http.Error (Bag String))
+    | Sync
 
 
 type alias TransitionData =
-    { game : Game
+    { shop : Bag String
     , seed : Seed
+    , source : Item
     }
 
 
@@ -73,23 +79,17 @@ type alias Action =
 
 
 init : TransitionData -> ( Model, Cmd Msg )
-init { game, seed } =
-    ( ( { game = game
+init { shop, seed, source } =
+    ( ( { game = Game.init source
         , selected = Nothing
         , running = False
         , viewedCard = Nothing
         , initialSeed = seed
-        , source = Wood
-        , loopEvery = 10
-        , stepCount = 10
-        , shop =
-            [ ( CellType.crate Scrap, 1000 )
-            , ( CellType.crate Wood, 100 )
-            , ( CellType.crate Stone, 100 )
-            , ( CellType.crate Iron, 10 )
-            ]
-                |> List.map (Tuple.mapFirst CellType.containerSortToString)
-                |> Bag.fromList
+        , source = source
+        , loopEvery = 5
+        , stepCount = 5
+        , nextBugIn = Data.bugCycle
+        , shop = shop
         , money = 0
         }
       , seed
@@ -171,7 +171,7 @@ removeCard position ( { game, initialSeed } as state, seed ) =
 
 
 update : Msg -> Model -> Action
-update msg (( { selected, stepCount, loopEvery, source, shop, money } as state, seed ) as model) =
+update msg (( { selected, stepCount, loopEvery, source, nextBugIn, shop, money } as state, seed ) as model) =
     let
         defaultCase : Action
         defaultCase =
@@ -181,63 +181,146 @@ update msg (( { selected, stepCount, loopEvery, source, shop, money } as state, 
     case msg of
         TimePassed ->
             Action.updating
-                ( ( state
-                        |> (\({ game } as x) ->
-                                { state
-                                    | stepCount = stepCount - 1
-                                    , game =
-                                        { game
-                                            | deck =
-                                                game.board
-                                                    |> Board.getOutput
-                                                    |> List.foldl Deck.add game.deck
-                                            , board = game.board |> Board.unload
+                ( state
+                    |> (\({ game } as x) ->
+                            { state
+                                | stepCount = stepCount - 1
+                                , nextBugIn = nextBugIn - 1
+                                , game =
+                                    { game
+                                        | deck =
+                                            game.board
+                                                |> Board.getOutput
+                                                |> List.foldl Deck.add game.deck
+                                        , board = game.board |> Board.unload
+                                    }
+                            }
+                       )
+                    |> (\({ game } as x) ->
+                            if x.stepCount <= 0 then
+                                case
+                                    game.board
+                                        |> Board.getInput source
+                                        |> List.foldl
+                                            (\cell ->
+                                                Result.andThen
+                                                    (Deck.remove cell)
+                                            )
+                                            (Ok game.deck)
+                                of
+                                    Ok deck ->
+                                        { x
+                                            | stepCount = loopEvery
+                                            , game =
+                                                { game
+                                                    | deck =
+                                                        deck
+                                                    , board =
+                                                        game.board
+                                                            |> Board.refill
+                                                }
                                         }
-                                }
-                           )
-                        |> (\({ game } as x) ->
-                                if x.stepCount <= 0 then
-                                    case
-                                        game.board
-                                            |> Board.getInput
-                                            |> List.foldl
-                                                (\cell ->
-                                                    Result.andThen
-                                                        (Deck.remove cell)
-                                                )
-                                                (Ok game.deck)
-                                    of
-                                        Ok deck ->
-                                            { x
-                                                | stepCount = loopEvery
-                                                , game =
-                                                    { game
-                                                        | deck =
-                                                            deck
-                                                                |> Deck.add (CellType.crate source)
-                                                        , board =
-                                                            game.board
-                                                                |> Board.refill
-                                                    }
-                                            }
 
-                                        Err () ->
-                                            { x
-                                                | stepCount = loopEvery
-                                                , game =
-                                                    { game
-                                                        | deck =
-                                                            game.deck
-                                                                |> Deck.add (CellType.crate source)
-                                                    }
-                                            }
+                                    Err () ->
+                                        { x
+                                            | stepCount = loopEvery
+                                            , game =
+                                                { game
+                                                    | deck =
+                                                        game.deck
+                                                }
+                                        }
 
-                                else
-                                    x
-                           )
-                        |> (\x -> { x | game = x.game |> Game.step })
-                  , seed
-                  )
+                            else
+                                x
+                       )
+                    |> (\({ game } as x) ->
+                            { x
+                                | game =
+                                    { game
+                                        | board =
+                                            game.board
+                                                |> Grid.map
+                                                    (\pos ->
+                                                        Maybe.map
+                                                            (\cell ->
+                                                                if
+                                                                    ([ Up, Left, Right, Down ]
+                                                                        |> List.filterMap
+                                                                            (\dir ->
+                                                                                case
+                                                                                    game.board
+                                                                                        |> Grid.get
+                                                                                            (pos
+                                                                                                |> Position.move 1
+                                                                                                    (case dir of
+                                                                                                        Right ->
+                                                                                                            Up
+
+                                                                                                        Up ->
+                                                                                                            Right
+
+                                                                                                        Down ->
+                                                                                                            Left
+
+                                                                                                        Left ->
+                                                                                                            Down
+                                                                                                    )
+                                                                                            )
+                                                                                of
+                                                                                    Ok (Just { sort }) ->
+                                                                                        case sort of
+                                                                                            Movable _ { from } ->
+                                                                                                if from == dir then
+                                                                                                    Just ()
+
+                                                                                                else
+                                                                                                    Nothing
+
+                                                                                            _ ->
+                                                                                                Nothing
+
+                                                                                    _ ->
+                                                                                        Nothing
+                                                                            )
+                                                                        |> List.length
+                                                                    )
+                                                                        > 1
+                                                                then
+                                                                    CellType.fromCard <| CellType.crate Scrap
+
+                                                                else
+                                                                    cell
+                                                            )
+                                                    )
+                                    }
+                            }
+                       )
+                    |> (\x -> { x | game = x.game |> Game.step })
+                    |> (\({ game } as s) ->
+                            if s.nextBugIn <= 0 then
+                                seed
+                                    |> Random.step
+                                        (Random.map2
+                                            (\x y ->
+                                                { s
+                                                    | nextBugIn = Data.bugCycle
+                                                    , game =
+                                                        { game
+                                                            | board =
+                                                                game.board
+                                                                    |> Grid.ignoringErrors
+                                                                        (Grid.update ( x, y ) (always <| Ok <| Just <| { item = Nothing, sort = Bug }))
+                                                        }
+                                                }
+                                            )
+                                            (Random.int 0 3)
+                                            (Random.int 0 3)
+                                        )
+
+                            else
+                                ( s, seed )
+                       )
                 , Cmd.none
                 )
 
@@ -298,21 +381,50 @@ update msg (( { selected, stepCount, loopEvery, source, shop, money } as state, 
                 game =
                     state.game
             in
-            Action.updating
-                ( ( case game.deck |> Deck.remove card of
-                        Ok deck ->
-                            { state
-                                | money = money + price
-                                , shop = shop |> Bag.insert 1 key
-                                , game = { game | deck = deck }
-                            }
+            case game.deck |> Deck.remove card of
+                Ok deck ->
+                    case card of
+                        Crate i ->
+                            Action.updating
+                                ( ( { state
+                                        | money = money + price
+                                        , shop = shop |> Bag.insert 1 key
+                                        , game = { game | deck = deck }
+                                    }
+                                  , seed
+                                  )
+                                , Task.attempt GotShopResponse
+                                    (RemoteShop.insert i
+                                        |> Task.andThen
+                                            (\() ->
+                                                RemoteShop.sync
+                                            )
+                                    )
+                                )
 
-                        Err () ->
-                            state
-                  , seed
-                  )
-                , Cmd.none
-                )
+                        _ ->
+                            Action.updating
+                                ( ( { state
+                                        | money = money + price
+                                        , shop =
+                                            shop
+                                                |> Bag.insert 1
+                                                    (Crate Scrap |> CellType.containerSortToString)
+                                        , game = { game | deck = deck }
+                                    }
+                                  , seed
+                                  )
+                                , Task.attempt GotShopResponse
+                                    (RemoteShop.insert Scrap
+                                        |> Task.andThen
+                                            (\() ->
+                                                RemoteShop.sync
+                                            )
+                                    )
+                                )
+
+                Err () ->
+                    Action.updating ( ( state, seed ), Cmd.none )
 
         ClickedBuy card ->
             let
@@ -332,19 +444,46 @@ update msg (( { selected, stepCount, loopEvery, source, shop, money } as state, 
                         , game = { game | deck = game.deck |> Deck.add containerSort }
                     }
             in
-            Action.updating
-                ( ( if price <= money then
-                        card
-                            |> CellType.stringToContainerSort
-                            |> Maybe.map buy
-                            |> Maybe.withDefault state
+            if price <= money then
+                card
+                    |> CellType.stringToContainerSort
+                    |> Maybe.andThen
+                        (\c ->
+                            case c of
+                                Crate i ->
+                                    Just <|
+                                        Action.updating
+                                            ( ( c |> buy
+                                              , seed
+                                              )
+                                            , Task.attempt GotShopResponse
+                                                (RemoteShop.remove i
+                                                    |> Task.andThen
+                                                        (\() ->
+                                                            RemoteShop.sync
+                                                        )
+                                                )
+                                            )
 
-                    else
-                        state
-                  , seed
-                  )
-                , Cmd.none
-                )
+                                _ ->
+                                    Nothing
+                        )
+                    |> Maybe.withDefault
+                        (Action.updating
+                            ( ( state
+                              , seed
+                              )
+                            , Cmd.none
+                            )
+                        )
+
+            else
+                Action.updating
+                    ( ( state
+                      , seed
+                      )
+                    , Cmd.none
+                    )
 
         ChangedLoopLength int ->
             Action.updating
@@ -354,10 +493,86 @@ update msg (( { selected, stepCount, loopEvery, source, shop, money } as state, 
                 , Cmd.none
                 )
 
+        ClickedCraft card ->
+            let
+                cost : Bag String
+                cost =
+                    card |> CellType.craftingCost
+
+                game =
+                    state.game
+            in
+            Action.updating
+                ( ( case
+                        cost
+                            |> Bag.toList
+                            |> List.foldl
+                                (\( cell, n ) ->
+                                    Result.andThen
+                                        (\d ->
+                                            if n <= (d |> Bag.count cell) then
+                                                d
+                                                    |> Bag.remove n cell
+                                                    |> Ok
+
+                                            else
+                                                Err ()
+                                        )
+                                )
+                                (Ok game.deck)
+                    of
+                        Ok deck ->
+                            { state
+                                | game =
+                                    { game
+                                        | deck =
+                                            deck
+                                                |> Deck.add card
+                                    }
+                                , selected = Just card
+                            }
+
+                        Err () ->
+                            { state | selected = Just card }
+                  , seed
+                  )
+                , Cmd.none
+                )
+
+        GotShopResponse result ->
+            case result of
+                Ok s ->
+                    Action.updating
+                        ( ( { state | shop = s }
+                          , seed
+                          )
+                        , Cmd.none
+                        )
+
+                Err _ ->
+                    Action.updating
+                        ( ( state
+                          , seed
+                          )
+                        , Cmd.none
+                        )
+
+        Sync ->
+            Action.updating
+                ( ( state
+                  , seed
+                  )
+                , RemoteShop.sync
+                    |> Task.attempt GotShopResponse
+                )
+
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Time.every 1000 (always TimePassed)
+    Sub.batch
+        [ Time.every 1000 (always TimePassed)
+        , Time.every 60000 (always Sync)
+        ]
 
 
 
@@ -372,24 +587,23 @@ view :
     -> (Msg -> msg)
     -> Model
     -> ( Maybe { isWon : Bool, shade : List (Element msg) }, List (Element msg) )
-view scale restartMsg msgMapper ( { stepCount, shop, money, game, selected, viewedCard, loopEvery }, _ ) =
+view scale restartMsg msgMapper ( { stepCount, nextBugIn, shop, money, game, selected, viewedCard, loopEvery }, _ ) =
     ( Nothing
-    , [ HeaderView.view scale
-            restartMsg
-            stepCount
-      , GameView.view
-            money
-            shop
-            { scale = scale
+    , [ GameView.view
+            { counter = stepCount
+            , shop = shop
+            , money = money
+            , scale = scale
             , selected = selected
             , sort = True
             , loopLength = loopEvery
-            }
-            { positionSelectedMsg = msgMapper << PositionSelected
+            , positionSelectedMsg = msgMapper << PositionSelected
             , selectedMsg = msgMapper << Selected
             , buyMsg = msgMapper << ClickedBuy
             , sellMsg = msgMapper << ClickedSell
             , changedLoopLengthMsg = msgMapper << ChangedLoopLength
+            , craftMsg = msgMapper << ClickedCraft
+            , nextBugIn = nextBugIn
             }
             game
       ]

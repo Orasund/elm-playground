@@ -1,4 +1,4 @@
-module FactoryCity.View.Game exposing (view, viewFinished, viewHome, viewReplay)
+module FactoryCity.View.Game exposing (view)
 
 import Bag exposing (Bag)
 import Element exposing (Element)
@@ -10,6 +10,7 @@ import FactoryCity.Data.CellType exposing (CellType, ContainerSort)
 import FactoryCity.Data.Deck
 import FactoryCity.Data.Game exposing (EndCondition(..), Game)
 import FactoryCity.View.Board as BoardView
+import FactoryCity.View.Crafting as Crafting
 import FactoryCity.View.Deck as DeckView
 import FactoryCity.View.Details as Details
 import FactoryCity.View.Settings as Settings
@@ -20,105 +21,79 @@ import Framework.Heading as Heading
 import Grid.Position exposing (Position)
 
 
-viewFinished : Float -> Game -> Element msg
-viewFinished scale { board, deck } =
-    Element.column Grid.simple
-        [ BoardView.view scale Nothing board
-        , DeckView.view scale { sort = False } Nothing Nothing deck
-        ]
-
-
-viewReplay : Float -> Game -> Element msg
-viewReplay scale { board, deck } =
-    Element.column
-        ([ Element.spacing (floor <| 5 * scale)
-         , Background.color <| Element.rgb255 242 242 242
-         , Element.padding (floor <| 20 * scale)
-         , Border.rounded (floor <| 10 * scale)
-         , Element.centerX
-         ]
-            |> ((::) <|
-                    Element.inFront <|
-                        Element.el
-                            [ Element.width <| Element.fill
-                            , Element.height <| Element.fill
-                            , Background.color <| Element.rgb255 255 255 255
-                            , Element.alpha 0.3
-                            ]
-                        <|
-                            Element.el
-                                (Heading.h1
-                                    ++ [ Element.centerX
-                                       , Element.centerY
-                                       , Font.family
-                                            [ Font.sansSerif ]
-                                       ]
-                                )
-                            <|
-                                Element.text "REPLAY"
-               )
-        )
-    <|
-        [ BoardView.view scale Nothing board
-        , DeckView.view scale { sort = False } Nothing Nothing deck
-        ]
-
-
-viewHome : Float -> Game -> Element msg
-viewHome scale { board, deck } =
-    Element.column Grid.simple <|
-        [ BoardView.view scale Nothing board
-        , DeckView.view scale { sort = False } Nothing Nothing deck
-        ]
-
-
 view :
-    Int
-    -> Bag String
-    ->
-        { scale : Float
-        , selected : Maybe ContainerSort
-        , sort : Bool
-        , loopLength : Int
-        }
-    ->
-        { positionSelectedMsg : Position -> msg
-        , selectedMsg : ContainerSort -> msg
-        , buyMsg : String -> msg
-        , sellMsg : ContainerSort -> msg
-        , changedLoopLengthMsg : Int -> msg
-        }
+    { counter : Int
+    , money : Int
+    , shop : Bag String
+    , scale : Float
+    , selected : Maybe ContainerSort
+    , sort : Bool
+    , loopLength : Int
+    , positionSelectedMsg : Position -> msg
+    , selectedMsg : ContainerSort -> msg
+    , buyMsg : String -> msg
+    , sellMsg : ContainerSort -> msg
+    , changedLoopLengthMsg : Int -> msg
+    , craftMsg : ContainerSort -> msg
+    , nextBugIn : Int
+    }
     -> Game
     -> Element msg
-view money shop { scale, selected, sort, loopLength } { changedLoopLengthMsg, positionSelectedMsg, selectedMsg, buyMsg, sellMsg } { board, deck } =
-    Element.wrappedRow Grid.spaceEvenly <|
-        [ Shop.view
-            { shop = shop
-            , buyMsg = buyMsg
-            , money = money
-            }
+view { counter, money, shop, nextBugIn, scale, selected, sort, loopLength, craftMsg, changedLoopLengthMsg, positionSelectedMsg, selectedMsg, buyMsg, sellMsg } { board, deck } =
+    Element.wrappedRow Grid.simple <|
+        [ Element.column Grid.simple <|
+            [ Element.row Grid.spaceEvenly <|
+                [ Element.el Heading.h1 <| Element.text "Shop"
+                , Element.text <| "Money:" ++ (money |> String.fromInt)
+                ]
+            , Shop.view
+                { shop = shop
+                , buyMsg = Just buyMsg
+                , money = money
+                }
+            , Element.el Heading.h1 <| Element.text "Crafting"
+            , Crafting.view { craftMsg = craftMsg }
+            ]
         , Element.column Grid.simple <|
-            [ BoardView.view scale (Just positionSelectedMsg) board
-            , DeckView.view scale { sort = sort } (Just selectedMsg) selected deck
+            [ Element.row Grid.simple <|
+                [ Element.el [ Element.width <| Element.fill ] <| Element.none
+                , Element.el (Heading.h1 ++ [ Element.width <| Element.fill ]) <|
+                    Element.el [ Element.centerX ] <|
+                        Element.text <|
+                            String.fromInt <|
+                                counter
+                , Element.paragraph [ Element.width <| Element.fill ] <|
+                    List.singleton <|
+                        Element.text <|
+                            "Next bug in "
+                                ++ (String.fromInt <| nextBugIn)
+                                ++ " turns"
+                ]
+            , board
+                |> BoardView.view
+                    { scale = scale
+                    , maybePositionMsg = Just positionSelectedMsg
+                    }
+            , deck |> DeckView.view scale { sort = sort } (Just selectedMsg) selected
             ]
         , let
-            price : Int
-            price =
+            price : ContainerSort -> Int
+            price c =
                 selected
                     |> Maybe.map
                         (\card ->
-                            max 1 <| Data.maxPrice // ((shop |> Bag.count (card |> FactoryCity.Data.CellType.containerSortToString)) + 1)
+                            max 1 <| Data.maxPrice // ((shop |> Bag.count (c |> FactoryCity.Data.CellType.containerSortToString)) + 1)
                         )
                     |> Maybe.withDefault 0
           in
-          Element.column (Grid.simple ++ [ Element.width <| Element.shrink ]) <|
-            [ Element.el Heading.h2 <| Element.text "Details"
+          Element.column Grid.simple <|
+            [ Element.el Heading.h1 <| Element.text "Details"
             , Details.view
                 { selected = selected
                 , sellMsg = sellMsg
                 , price = price
                 }
-            , Element.el Heading.h2 <| Element.text "Settings"
+            , Element.el Heading.h1 <| Element.text "Settings"
             , Settings.view
                 { changedLoopLengthMsg = changedLoopLengthMsg
                 , loopLength = loopLength

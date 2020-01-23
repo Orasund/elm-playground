@@ -14,7 +14,7 @@ module FactoryCity.Data.Board exposing
     , values
     )
 
-import FactoryCity.Data.CellType as CellType exposing (CellType, ContainerSort(..), MovableSort(..))
+import FactoryCity.Data.CellType as CellType exposing (CellType, ContainerSort(..), Item(..), MovableSort(..))
 import Grid.Bordered as Grid exposing (Grid)
 import Grid.Position exposing (Position)
 import Jsonstore exposing (Json)
@@ -59,14 +59,18 @@ getOutput =
             )
 
 
-getInput : Board -> List ContainerSort
-getInput =
+getInput : Item -> Board -> List ContainerSort
+getInput item =
     Grid.toList
         >> List.filterMap
             (\( _, v ) ->
                 case v.sort of
                     Crate i ->
-                        Just <| CellType.crate i
+                        if i == item then
+                            Nothing
+
+                        else
+                            Just <| CellType.crate i
 
                     _ ->
                         Nothing
@@ -86,11 +90,11 @@ refill =
                         Movable Merger { from, to } ->
                             { sort = CellType.merger to, item = Nothing }
 
-                        Furnace _ ->
-                            { sort = Furnace { isWarm = False }, item = Nothing }
+                        Machine machineSort _ ->
+                            { sort = Machine machineSort { isWarm = False }, item = Nothing }
 
                         _ ->
-                            cellType
+                            { sort = cellType.sort, item = Nothing }
                 )
         )
 

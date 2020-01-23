@@ -1,9 +1,22 @@
-module FactoryCity.State.Prepairing exposing (Model, Msg(..), update)
+module FactoryCity.State.Prepairing exposing (Model, Msg(..), init, update, view)
 
 import Action
+import Bag exposing (Bag)
+import Browser.Dom as Dom
+import Element exposing (Element)
+import Element.Font as Font
 import FactoryCity.Data.CellType exposing (CellType)
 import FactoryCity.Data.Deck
+import FactoryCity.Data.RemoteShop as RemoteShop
+import FactoryCity.View.Text as Text
+import Framework.Card as Card
+import Framework.Color as Color
+import Framework.Grid as Grid
+import Framework.Heading as Heading
+import Http exposing (Error(..))
 import Random exposing (Seed)
+import Result exposing (Result)
+import Task
 
 
 
@@ -14,13 +27,16 @@ import Random exposing (Seed)
 
 type alias Model =
     { scale : Maybe Float
-    , portraitMode : Bool
     , seed : Maybe Seed
+    , shop : Maybe (Bag String)
+    , error : Maybe Http.Error
     }
 
 
 type Msg
     = GotSeed Seed
+    | GotShopResponse (Result Http.Error (Bag String))
+    | GotScale Float
 
 
 type alias Action =
@@ -28,32 +44,125 @@ type alias Action =
         Never
         { scale : Float
         , seed : Seed
-        , portraitMode : Bool
+        , shop : Bag String
         }
         Never
 
 
+init : ({ height : Float, width : Float } -> Float) -> ( Model, Cmd Msg )
+init calcScale =
+    ( { scale = Nothing
+      , seed = Nothing
+      , shop = Nothing
+      , error = Nothing
+      }
+    , Cmd.batch
+        [ Random.generate GotSeed Random.independentSeed
+        , Task.attempt GotShopResponse RemoteShop.sync
+        , Task.perform
+            (\{ viewport } ->
+                { width = viewport.width, height = viewport.height }
+                    |> (\dim ->
+                            GotScale <| calcScale dim
+                       )
+            )
+            Dom.getViewport
+        ]
+    )
 
---()
+
+
 ----------------------
 -- Update
 ----------------------
+
+
+validate : Model -> Action
+validate model =
+    Maybe.map3
+        (\scale seed shop ->
+            Action.transitioning
+                { scale = scale
+                , seed = seed
+                , shop = shop
+                }
+        )
+        model.scale
+        model.seed
+        model.shop
+        |> Maybe.withDefault (Action.updating ( model, Cmd.none ))
 
 
 update : Msg -> Model -> Action
 update msg model =
     case msg of
         GotSeed seed ->
-            case model.scale of
-                Just scale ->
-                    Action.transitioning
-                        { scale = scale
-                        , portraitMode = model.portraitMode
-                        , seed = seed
-                        }
+            { model | seed = Just seed }
+                |> validate
 
-                Nothing ->
-                    Action.updating
-                        ( { model | seed = Just seed }
-                        , Cmd.none
-                        )
+        GotShopResponse result ->
+            case result of
+                Ok shop ->
+                    { model | shop = Just shop }
+                        |> validate
+
+                Err error ->
+                    Action.updating ( { model | error = Just error }, Cmd.none )
+
+        GotScale scale ->
+            { model | scale = Just scale }
+                |> validate
+
+
+view :
+    Model
+    -> ( Maybe { isWon : Bool, shade : List (Element.Element msg) }, List (Element.Element msg) )
+view model =
+    ( Nothing
+    , List.singleton <|
+        Element.column
+            (Grid.simple
+                ++ [ Element.width <| Element.shrink
+                   , Element.centerY
+                   ]
+            )
+            [ Text.view (round <| 150) "🏭"
+            , Element.column
+                (Heading.h1
+                    ++ [ Element.centerX
+                       , Font.center
+                       ]
+                )
+              <|
+                [ Element.text "Factory"
+                , Element.text "City"
+                ]
+            , model.error
+                |> Maybe.map
+                    (\error ->
+                        Element.el (Card.large ++ Color.warning) <|
+                            Element.text <|
+                                "Error:"
+                                    ++ (case error of
+                                            BadUrl string ->
+                                                "bad url: " ++ string
+
+                                            Timeout ->
+                                                "timeout"
+
+                                            NetworkError ->
+                                                "network error"
+
+                                            BadStatus int ->
+                                                "bad status: " ++ String.fromInt int
+
+                                            BadBody string ->
+                                                "bad body: " ++ string
+                                       )
+                    )
+                |> Maybe.withDefault
+                    (Element.el Card.large <|
+                        Element.text "Loading..."
+                    )
+            ]
+    )

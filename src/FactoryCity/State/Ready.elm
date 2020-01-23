@@ -1,13 +1,15 @@
 module FactoryCity.State.Ready exposing (Model, Msg, init, update, view)
 
 import Action
+import Bag exposing (Bag)
 import Element exposing (Element)
 import Element.Font as Font
 import Element.Input as Input
+import FactoryCity.Data.CellType exposing (Item(..))
 import FactoryCity.Data.Game as Game exposing (Game)
 import FactoryCity.State.Playing as PlayingState
 import FactoryCity.View.Game as GameView
-import FactoryCity.View.Header as HeaderView
+import FactoryCity.View.Shop as Shop
 import FactoryCity.View.Text as Text
 import Framework.Button as Button
 import Framework.Card as Card
@@ -25,7 +27,7 @@ import Time exposing (Month(..))
 
 
 type alias State =
-    Game
+    Bag String
 
 
 type alias Model =
@@ -33,7 +35,7 @@ type alias Model =
 
 
 type Msg
-    = NormalModeSelected
+    = ClickedStart Item
 
 
 type alias Action =
@@ -46,14 +48,14 @@ type alias Action =
 ----------------------
 
 
-initialState : State
+initialState : Bag String -> State
 initialState =
-    Game.init
+    identity
 
 
-init : Seed -> ( Model, Cmd Msg )
-init seed =
-    ( ( initialState, seed ), Cmd.none )
+init : Bag String -> Seed -> ( Model, Cmd Msg )
+init shop seed =
+    ( ( initialState shop, seed ), Cmd.none )
 
 
 
@@ -103,12 +105,13 @@ monthToInt month =
 
 
 update : Msg -> Model -> Action
-update msg (( game, seed ) as model) =
+update msg (( shop, seed ) as model) =
     case msg of
-        NormalModeSelected ->
+        ClickedStart item ->
             Action.transitioning
-                { game = game
-                , seed = seed
+                { seed = seed
+                , shop = shop
+                , source = item
                 }
 
 
@@ -154,40 +157,46 @@ view :
     -> (Msg -> msg)
     -> Model
     -> ( Maybe { isWon : Bool, shade : List (Element msg) }, List (Element msg) )
-view scale restartMsg msgMapper ( game, _ ) =
-    ( Just
-        { isWon = False
-        , shade =
-            [ Element.wrappedRow (Grid.simple ++ [ Element.height <| Element.fill ])
-                [ Element.row
-                    (Grid.simple
-                        ++ [ Element.width <| Element.shrink
-                           , Element.centerY
-                           ]
-                    )
-                    [ Text.view (round <| scale * 150) "🏭"
-                    , Element.column
-                        [ Font.size <| floor <| scale * 80
-                        , Element.centerX
-                        , Font.color <| Element.rgb255 255 255 255
-                        , Font.center
-                        ]
-                      <|
-                        [ Element.text "Factory"
-                        , Element.text "City"
-                        ]
+view scale restartMsg msgMapper ( shop, _ ) =
+    ( Nothing
+    , List.singleton <|
+        Element.wrappedRow (Grid.simple ++ [ Element.height <| Element.fill ])
+            [ Element.row
+                (Grid.simple
+                    ++ [ Element.width <| Element.shrink
+                       , Element.centerY
+                       ]
+                )
+                [ Text.view (round <| scale * 150) "🏭"
+                , Element.column
+                    [ Font.size <| floor <| scale * 80
+                    , Element.centerX
+                    , Font.center
                     ]
-                , Element.column (Grid.simple ++ [ Element.centerY ]) <|
-                    [ viewMode
-                        (msgMapper <| NormalModeSelected)
-                        { title = "Normal"
-                        , desc = "Random cards, one life. If you loose you can blame RNG."
-                        }
+                  <|
+                    [ Element.text "Factory"
+                    , Element.text "City"
                     ]
                 ]
+            , Shop.view { shop = shop, buyMsg = Nothing, money = 0 }
+            , Element.column
+                (Grid.simple
+                    ++ [ Element.centerY
+                       , Element.centerX
+                       , Element.width <| Element.shrink
+                       ]
+                )
+              <|
+                [ viewMode
+                    (msgMapper <| ClickedStart <| Wood)
+                    { title = "Wood cutter"
+                    , desc = "You get wood for free"
+                    }
+                , viewMode
+                    (msgMapper <| ClickedStart <| Stone)
+                    { title = "Miner"
+                    , desc = "You get stone for free"
+                    }
+                ]
             ]
-        }
-    , [ HeaderView.view scale restartMsg game.score
-      , GameView.viewHome scale game
-      ]
     )

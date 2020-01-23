@@ -75,8 +75,8 @@ viewCell scale position maybeMsg maybeCellType =
                     []
 
 
-view : Float -> Maybe (Position -> msg) -> Grid CellType -> Element msg
-view scale maybePositionMsg grid =
+view : { scale : Float, maybePositionMsg : Maybe (Position -> msg) } -> Grid CellType -> Element msg
+view { scale, maybePositionMsg } grid =
     Element.column
         (Grid.compact
             ++ [ Element.centerX

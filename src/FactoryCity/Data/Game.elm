@@ -4,9 +4,10 @@ import Dict exposing (Dict)
 import FactoryCity.Automata as Automata exposing (ListRule)
 import FactoryCity.Automata.Rule as Rule
 import FactoryCity.Data.Board as Board exposing (Board, columns, rows)
-import FactoryCity.Data.CellType as CellType exposing (CellType)
+import FactoryCity.Data.CellType as CellType exposing (CellType, Item)
 import FactoryCity.Data.Deck as Deck exposing (Deck)
 import Grid.Bordered as Grid
+import Grid.Direction exposing (Direction(..))
 import Grid.Position exposing (Position)
 import Random exposing (Generator)
 import Set exposing (Set)
@@ -60,6 +61,8 @@ step ({ score } as game) =
                 |> boardStep Rule.container (game.board |> Grid.toDict)
                 |> boardStep Rule.burnable (game.board |> Grid.toDict)
                 |> boardStep Rule.smeltable (game.board |> Grid.toDict)
+                |> boardStep Rule.shreddable (game.board |> Grid.toDict)
+                |> boardStep Rule.pressable (game.board |> Grid.toDict)
                 |> boardStep Rule.merger (game.board |> Grid.toDict)
                 |> boardStep Rule.output (game.board |> Grid.toDict)
                 |> Tuple.first
@@ -70,10 +73,14 @@ step ({ score } as game) =
     }
 
 
-init : Game
-init =
+init : Item -> Game
+init item =
     { board =
-        Grid.empty { columns = columns, rows = rows }
+        [ ( ( 1, 1 ), { item = Nothing, sort = CellType.crate item } )
+        , ( ( 2, 1 ), { item = Nothing, sort = CellType.belt { from = Up, to = Down } } )
+        , ( ( 3, 1 ), { item = Nothing, sort = CellType.output } )
+        ]
+            |> Grid.fromList { columns = columns, rows = rows }
     , deck = Deck.init
     , score = 0
     }
