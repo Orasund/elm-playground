@@ -7,7 +7,7 @@ import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
 import FactoryCity.Data as Data
-import FactoryCity.Data.CellType as CellType exposing (ContainerSort(..))
+import FactoryCity.Data.CellType as CellType exposing (ContainerSort, Item)
 import FactoryCity.View.Text as Text
 import Framework.Button as Button
 import Framework.Card as Card
@@ -18,68 +18,102 @@ import Framework.Heading as Heading
 
 view :
     { shop : Bag String
-    , buyMsg : Maybe (String -> msg)
+    , buyMsg : Maybe (Item -> msg)
+    , sellMsg : Maybe (ContainerSort -> msg)
     , money : Int
+    , deck : Bag String
     }
     -> Element msg
-view { shop, buyMsg, money } =
+view { shop, buyMsg, sellMsg, money, deck } =
     Element.el Grid.section <|
         Element.column Grid.simple <|
             [ Element.text <| "Money:" ++ (money |> String.fromInt)
             , Element.column Grid.simple <|
                 (shop
                     |> Bag.toList
+                    |> List.filterMap
+                        (\( c, n ) ->
+                            c
+                                |> CellType.stringToItem
+                                |> Maybe.map (\a -> ( a, n ))
+                        )
                     |> List.map
-                        (\( card, n ) ->
+                        (\( item, n ) ->
                             let
                                 cost : Int
                                 cost =
                                     max 1 <| Data.maxPrice // n
                             in
                             Element.row
-                                Grid.spaceEvenly
+                                Grid.simple
                             <|
-                                [ Element.el
-                                    (case card |> CellType.stringToContainerSort of
-                                        Just (Crate item) ->
-                                            item
-                                                |> CellType.color
-                                                |> (\( r, g, b ) ->
-                                                        [ Background.color <| Element.rgb255 r g b
-                                                        , Border.rounded 20
-                                                        , Element.paddingXY 16 12
-                                                        ]
-                                                   )
+                                [ Element.el [ Element.width <| Element.fill ] <|
+                                    Element.el
+                                        (item
+                                            |> CellType.color
+                                            |> (\( r, g, b ) ->
+                                                    [ Background.color <|
+                                                        Element.rgb255 r g b
+                                                    , Border.rounded 20
+                                                    , Element.paddingXY 16 12
+                                                    ]
+                                               )
+                                        )
+                                    <|
+                                        Text.view 16 <|
+                                            CellType.itemToString <|
+                                                item
+                                , Maybe.map2
+                                    (\bMsg sMsg ->
+                                        Element.row (Grid.compact ++ [ Element.width <| Element.fill ])
+                                            [ Input.button
+                                                (Button.groupLeft
+                                                    ++ (case deck |> Bag.count (CellType.crate item |> CellType.containerSortToString) of
+                                                            0 ->
+                                                                Color.disabled
 
-                                        _ ->
-                                            []
-                                    )
-                                  <|
-                                    Text.view 16 <|
-                                        card
-                                , buyMsg
-                                    |> Maybe.map
-                                        (\msg ->
-                                            Input.button
-                                                (Button.simple
+                                                            _ ->
+                                                                []
+                                                       )
+                                                    ++ [ Element.width <| Element.fill ]
+                                                )
+                                              <|
+                                                { onPress = Just <| sMsg <| CellType.crate <| item
+                                                , label =
+                                                    Element.row Grid.spaceEvenly <|
+                                                        [ Element.text <| "💲"
+                                                        , Element.text <| String.fromInt (max 1 <| Data.maxPrice // (n + 1))
+                                                        ]
+                                                }
+                                            , Input.button
+                                                (Button.groupRight
                                                     ++ (if cost <= money then
-                                                            []
+                                                            Color.primary
 
                                                         else
                                                             Color.disabled
                                                        )
+                                                    ++ [ Element.width <| Element.fill ]
                                                 )
-                                            <|
-                                                { onPress = Just <| msg <| card
+                                              <|
+                                                { onPress = Just <| bMsg <| item
                                                 , label =
-                                                    Element.text <|
-                                                        "Buy for "
-                                                            ++ (cost |> String.fromInt)
+                                                    Element.row Grid.spaceEvenly <|
+                                                        [ Element.text <| "\u{1F6D2}"
+                                                        , Element.text <| (cost |> String.fromInt)
+                                                        ]
                                                 }
-                                        )
+                                            ]
+                                    )
+                                    buyMsg
+                                    sellMsg
                                     |> Maybe.withDefault
                                         ("Selling for "
-                                            ++ (Data.maxPrice // (n + 1) |> max 1 |> String.fromInt)
+                                            ++ (Data.maxPrice
+                                                    // (n + 1)
+                                                    |> max 1
+                                                    |> String.fromInt
+                                               )
                                             |> Element.text
                                         )
                                 ]

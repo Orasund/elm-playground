@@ -33,6 +33,7 @@ module FactoryCity.Data.CellType exposing
     , tierTwoList
     , toCard
     , toString
+    , stringToItem
     )
 
 import Bag exposing (Bag)
@@ -605,22 +606,9 @@ tierTwoList =
           , Machine Press { isWarm = False }
           , output
           ]
-        , dirList
-            |> List.concatMap
-                (\from ->
-                    dirList
-                        |> List.filterMap
-                            (\to ->
-                                if from == to then
-                                    Nothing
-
-                                else if from == (to |> Direction.flip) then
-                                    Nothing
-
-                                else
-                                    Just <| Movable Belt { from = from, to = to }
-                            )
-                )
+        ,  dirList
+            |> List.map
+                (\to -> Movable Merger { from = to |> Direction.flip, to = to })
         ]
 
 
@@ -637,9 +625,22 @@ tierThreeList =
             [ Up, Left, Down, Right ]
     in
     List.concat
-        [ dirList
-            |> List.map
-                (\to -> Movable Merger { from = to |> Direction.flip, to = to })
+        [dirList
+            |> List.concatMap
+                (\from ->
+                    dirList
+                        |> List.filterMap
+                            (\to ->
+                                if from == to then
+                                    Nothing
+
+                                else if from == (to |> Direction.flip) then
+                                    Nothing
+
+                                else
+                                    Just <| Movable Belt { from = from, to = to }
+                            )
+                )
         ]
 
 

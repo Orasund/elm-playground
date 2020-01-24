@@ -47,6 +47,7 @@ type alias State =
     , shop : Bag String
     , money : Int
     , nextBugIn : Int
+    , hasPower : Bool
     }
 
 
@@ -60,7 +61,7 @@ type Msg
     | CardPlaced
     | CardSelected ContainerSort
     | TimePassed
-    | ClickedBuy String
+    | ClickedBuy Item
     | ClickedSell ContainerSort
     | ChangedLoopLength Int
     | ClickedCraft ContainerSort
@@ -68,6 +69,7 @@ type Msg
     | Sync
     | ClickedChangeTab String
     | ChangedViewport (Result Dom.Error ())
+    | TogglePower
 
 
 type alias TransitionData =
@@ -100,6 +102,7 @@ init { shop, seed, source } =
         , nextBugIn = Data.bugCycle
         , shop = shop
         , money = 0
+        , hasPower = True
         }
       , seed
       )
@@ -377,23 +380,23 @@ update msg (( { selected, stepCount, loopEvery, source, nextBugIn, shop, money }
                 )
 
         ClickedSell card ->
-            let
-                key : String
-                key =
-                    card |> CellType.containerSortToString
-
-                price : Int
-                price =
-                    Data.maxPrice // (shop |> Bag.count key |> (+) 1)
-
-                game : Game
-                game =
-                    state.game
-            in
-            case game.deck |> Deck.remove card of
+            case state.game.deck |> Deck.remove card of
                 Ok deck ->
                     case card of
                         Crate i ->
+                            let
+                                key : String
+                                key =
+                                    i |> CellType.itemToString
+
+                                price : Int
+                                price =
+                                    Data.maxPrice // (shop |> Bag.count key |> (+) 1)
+
+                                game : Game
+                                game =
+                                    state.game
+                            in
                             Action.updating
                                 ( ( { state
                                         | money = money + price
@@ -412,13 +415,25 @@ update msg (( { selected, stepCount, loopEvery, source, nextBugIn, shop, money }
                                 )
 
                         _ ->
+                            let
+                                key : String
+                                key =
+                                    Scrap |> CellType.itemToString
+
+                                price : Int
+                                price =
+                                    Data.maxPrice // (shop |> Bag.count key |> (+) 1)
+
+                                game : Game
+                                game =
+                                    state.game
+                            in
                             Action.updating
                                 ( ( { state
                                         | money = money + price
                                         , shop =
                                             shop
-                                                |> Bag.insert 1
-                                                    (Crate Scrap |> CellType.containerSortToString)
+                                                |> Bag.insert 1 key
                                         , game = { game | deck = deck }
                                     }
                                   , seed
@@ -435,56 +450,37 @@ update msg (( { selected, stepCount, loopEvery, source, nextBugIn, shop, money }
                 Err () ->
                     Action.updating ( ( state, seed ), Cmd.none )
 
-        ClickedBuy card ->
+        ClickedBuy item ->
             let
+                key : String
+                key =
+                    item |> CellType.itemToString
+
                 price : Int
                 price =
-                    Data.maxPrice // (shop |> Bag.count card)
+                    Data.maxPrice // (shop |> Bag.count key)
 
                 game : Game
                 game =
                     state.game
-
-                buy : ContainerSort -> State
-                buy containerSort =
-                    { state
-                        | money = money - price
-                        , shop = shop |> Bag.remove 1 card
-                        , game = { game | deck = game.deck |> Deck.add containerSort }
-                    }
             in
             if price <= money then
-                card
-                    |> CellType.stringToContainerSort
-                    |> Maybe.andThen
-                        (\c ->
-                            case c of
-                                Crate i ->
-                                    Just <|
-                                        Action.updating
-                                            ( ( c |> buy
-                                              , seed
-                                              )
-                                            , Task.attempt GotShopResponse
-                                                (RemoteShop.remove i
-                                                    |> Task.andThen
-                                                        (\() ->
-                                                            RemoteShop.sync
-                                                        )
-                                                )
-                                            )
-
-                                _ ->
-                                    Nothing
+                Action.updating
+                    ( ( { state
+                            | money = money - price
+                            , shop = shop |> Bag.remove 1 key
+                            , game = { game | deck = game.deck |> Deck.add (Crate item) }
+                        }
+                      , seed
+                      )
+                    , Task.attempt GotShopResponse
+                        (RemoteShop.remove item
+                            |> Task.andThen
+                                (\() ->
+                                    RemoteShop.sync
+                                )
                         )
-                    |> Maybe.withDefault
-                        (Action.updating
-                            ( ( state
-                              , seed
-                              )
-                            , Cmd.none
-                            )
-                        )
+                    )
 
             else
                 Action.updating
@@ -592,13 +588,21 @@ update msg (( { selected, stepCount, loopEvery, source, nextBugIn, shop, money }
                 , Cmd.none
                 )
 
+        TogglePower ->
+            Action.updating
+                ( ( { state | hasPower = not state.hasPower }, seed ), Cmd.none )
+
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
-    Sub.batch
-        [ Time.every 1000 (always TimePassed)
-        , Time.every 60000 (always Sync)
-        ]
+subscriptions ( state, _ ) =
+    if state.hasPower then
+        Sub.batch
+            [ Time.every 1000 (always TimePassed)
+            , Time.every 10000 (always Sync)
+            ]
+
+    else
+        Sub.none
 
 
 
@@ -613,7 +617,7 @@ view :
     -> (Msg -> msg)
     -> Model
     -> ( Maybe (Element msg), List (Element msg) )
-view scale restartMsg msgMapper ( { stepCount, nextBugIn, shop, money, game, selected, viewedCard, loopEvery }, _ ) =
+view scale restartMsg msgMapper ( { hasPower, stepCount, nextBugIn, shop, money, game, selected, viewedCard, loopEvery }, _ ) =
     let
         list =
             GameView.view
@@ -631,6 +635,8 @@ view scale restartMsg msgMapper ( { stepCount, nextBugIn, shop, money, game, sel
                 , changedLoopLengthMsg = msgMapper << ChangedLoopLength
                 , craftMsg = msgMapper << ClickedCraft
                 , nextBugIn = nextBugIn
+                , hasPower = hasPower
+                , togglePowerMsg = msgMapper <| TogglePower
                 }
                 game
     in
@@ -666,6 +672,6 @@ view scale restartMsg msgMapper ( { stepCount, nextBugIn, shop, money, game, sel
                     >> Element.column Grid.simple
                 )
             |> Element.wrappedRow Grid.simple
-      , Element.el [ Element.height <| Element.px <| 50] <| Element.none
+      , Element.el [ Element.height <| Element.px <| 50 ] <| Element.none
       ]
     )

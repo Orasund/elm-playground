@@ -6,7 +6,7 @@ import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import FactoryCity.Data as Data
-import FactoryCity.Data.CellType exposing (CellType, ContainerSort)
+import FactoryCity.Data.CellType exposing (CellType, ContainerSort(..), Item(..))
 import FactoryCity.Data.Deck
 import FactoryCity.Data.Game exposing (EndCondition(..), Game)
 import FactoryCity.View.Board as BoardView
@@ -32,20 +32,24 @@ view :
     , loopLength : Int
     , positionSelectedMsg : Position -> msg
     , selectedMsg : ContainerSort -> msg
-    , buyMsg : String -> msg
+    , buyMsg : Item -> msg
     , sellMsg : ContainerSort -> msg
     , changedLoopLengthMsg : Int -> msg
     , craftMsg : ContainerSort -> msg
     , nextBugIn : Int
+    , hasPower : Bool
+    , togglePowerMsg : msg
     }
     -> Game
     -> List (List ( String, Element msg ))
-view { counter, money, shop, nextBugIn, scale, selected, sort, loopLength, craftMsg, changedLoopLengthMsg, positionSelectedMsg, selectedMsg, buyMsg, sellMsg } { board, deck } =
+view { counter, hasPower, togglePowerMsg, money, shop, nextBugIn, scale, selected, sort, loopLength, craftMsg, changedLoopLengthMsg, positionSelectedMsg, selectedMsg, buyMsg, sellMsg } { board, deck } =
     [ [ ( "Shop"
         , Shop.view
             { shop = shop
             , buyMsg = Just buyMsg
+            , sellMsg = Just sellMsg
             , money = money
+            , deck = deck
             }
         )
       , ( "Crafting", Crafting.view { craftMsg = craftMsg } )
@@ -77,14 +81,16 @@ view { counter, money, shop, nextBugIn, scale, selected, sort, loopLength, craft
         )
     , [ ( "Details"
         , let
-            price : ContainerSort -> Int
-            price c =
-                selected
-                    |> Maybe.map
-                        (\card ->
-                            max 1 <| Data.maxPrice // ((shop |> Bag.count (c |> FactoryCity.Data.CellType.containerSortToString)) + 1)
-                        )
-                    |> Maybe.withDefault 0
+            price : Int
+            price =
+                (case selected of
+                    Just (Crate item) ->
+                        item
+
+                    _ ->
+                        Scrap
+                )
+                    |> (\item -> max 1 <| Data.maxPrice // ((shop |> Bag.count (item |> FactoryCity.Data.CellType.itemToString)) + 1))
           in
           Details.view
             { selected = selected
@@ -96,6 +102,8 @@ view { counter, money, shop, nextBugIn, scale, selected, sort, loopLength, craft
         , Settings.view
             { changedLoopLengthMsg = changedLoopLengthMsg
             , loopLength = loopLength
+            , hasPower = hasPower
+            , togglePowerMsg = togglePowerMsg
             }
         )
       ]

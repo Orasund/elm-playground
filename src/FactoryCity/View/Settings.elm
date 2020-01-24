@@ -9,15 +9,21 @@ import Framework.Grid as Grid
 import Framework.Input as Input
 
 
-view : { changedLoopLengthMsg : Int -> msg, loopLength : Int } -> Element msg
-view { changedLoopLengthMsg, loopLength } =
+view :
+    { changedLoopLengthMsg : Int -> msg
+    , loopLength : Int
+    , hasPower : Bool
+    , togglePowerMsg : msg
+    }
+    -> Element msg
+view { changedLoopLengthMsg, loopLength, hasPower, togglePowerMsg } =
     Element.column Grid.section <|
         [ Element.row Grid.spaceEvenly <|
             [ Element.paragraph [] <|
                 List.singleton <|
                     Element.text <|
                         "Loop Length"
-            , [ 5, 8, 11, 14 ]
+            , [ 5, 10, 15, 20 ]
                 |> List.indexedMap
                     (\i n ->
                         Input.button
@@ -42,5 +48,29 @@ view { changedLoopLengthMsg, loopLength } =
                             }
                     )
                 |> Element.row Grid.compact
+            ]
+        , Element.row Grid.spaceEvenly <|
+            [ Element.paragraph [] <|
+                List.singleton <|
+                    Element.text <|
+                        "Power"
+            , Input.button
+                (Button.simple
+                    ++ (if hasPower then
+                            Color.primary
+
+                        else
+                            []
+                       )
+                )
+                { onPress = Just <| togglePowerMsg
+                , label =
+                    Element.text <|
+                        if hasPower then
+                            "on"
+
+                        else
+                            "off"
+                }
             ]
         ]

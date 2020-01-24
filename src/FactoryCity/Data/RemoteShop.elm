@@ -28,7 +28,7 @@ toBag { chips, iron, scrap, stone, wood, chipboard } =
     , ( Chipboard, chipboard )
     ]
         |> List.map
-            (Tuple.mapBoth (Crate >> CellType.containerSortToString)
+            (Tuple.mapBoth CellType.itemToString
                 (Maybe.withDefault 0)
             )
         |> Bag.fromList

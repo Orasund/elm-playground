@@ -179,7 +179,13 @@ view scale restartMsg msgMapper ( shop, _ ) =
                         , Element.text "City"
                         ]
                     ]
-                , Shop.view { shop = shop, buyMsg = Nothing, money = 0 }
+                , Shop.view
+                    { shop = shop
+                    , buyMsg = Nothing
+                    , sellMsg = Nothing
+                    , money = 0
+                    , deck = Bag.empty
+                    }
                 ]
             , Element.column
                 (Grid.simple
