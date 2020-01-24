@@ -53,21 +53,22 @@ view amount ( width, height ) { attributes, selected, onPress, content } =
                     floor <| width
 
                 else
-                    (floor <| width) * 4 // amount
+                    (floor <| width) * 3 // amount
         ]
     <|
         Input.button
-            ([ Element.mouseOver
-                [ Border.color <| Element.rgb255 155 203 255
-                ]
-             ]
-                ++ (if selected then
-                        [ Element.alignTop ]
+            (List.concat
+                [ [ Element.mouseOver
+                        [ Border.color <| Element.rgb255 155 203 255
+                        ]
+                  ]
+                , if selected then
+                    [ Element.alignTop ]
 
-                    else
-                        [ Element.alignBottom ]
-                   )
-                ++ att
+                  else
+                    [ Element.alignBottom ]
+                , att
+                ]
             )
             { label = content
             , onPress = onPress

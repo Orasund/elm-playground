@@ -5,8 +5,6 @@ import Bag exposing (Bag)
 import Browser.Dom as Dom
 import Element exposing (Element)
 import Element.Font as Font
-import FactoryCity.Data.CellType exposing (CellType)
-import FactoryCity.Data.Deck
 import FactoryCity.Data.RemoteShop as RemoteShop
 import FactoryCity.View.Text as Text
 import Framework.Card as Card
@@ -116,7 +114,7 @@ update msg model =
 
 view :
     Model
-    -> ( Maybe (Element.Element msg), List (Element.Element msg) )
+    -> ( Maybe ( Element msg, Element msg ), List (Element msg) )
 view model =
     ( Nothing
     , List.singleton <|

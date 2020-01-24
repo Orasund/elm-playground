@@ -7,9 +7,10 @@ import Element exposing (Element)
 import Element.Input as Input
 import FactoryCity.Data as Data
 import FactoryCity.Data.Board as Board
-import FactoryCity.Data.CellType as CellType exposing (CellType, ContainerSort(..), Item(..))
+import FactoryCity.Data.CellType as CellType exposing (CellType, ContainerSort(..))
 import FactoryCity.Data.Deck as Deck
 import FactoryCity.Data.Game as Game exposing (EndCondition(..), Game)
+import FactoryCity.Data.Item as Item exposing (Item(..))
 import FactoryCity.Data.RemoteShop as RemoteShop
 import FactoryCity.View.Game as GameView
 import Framework.Button as Button
@@ -17,7 +18,7 @@ import Framework.Color as Color
 import Framework.Grid as Grid
 import Framework.Heading as Heading
 import Grid.Bordered as Grid
-import Grid.Direction as Direction exposing (Direction(..))
+import Grid.Direction exposing (Direction(..))
 import Grid.Position as Position exposing (Position)
 import Html.Attributes as Attributes
 import Http exposing (Error(..))
@@ -194,7 +195,7 @@ update msg (( { selected, stepCount, loopEvery, source, nextBugIn, shop, money }
         TimePassed ->
             Action.updating
                 ( state
-                    |> (\({ game } as x) ->
+                    |> (\{ game } ->
                             { state
                                 | stepCount = stepCount - 1
                                 , nextBugIn = nextBugIn - 1
@@ -387,7 +388,7 @@ update msg (( { selected, stepCount, loopEvery, source, nextBugIn, shop, money }
                             let
                                 key : String
                                 key =
-                                    i |> CellType.itemToString
+                                    i |> Item.itemToString
 
                                 price : Int
                                 price =
@@ -418,7 +419,7 @@ update msg (( { selected, stepCount, loopEvery, source, nextBugIn, shop, money }
                             let
                                 key : String
                                 key =
-                                    Scrap |> CellType.itemToString
+                                    Scrap |> Item.itemToString
 
                                 price : Int
                                 price =
@@ -454,7 +455,7 @@ update msg (( { selected, stepCount, loopEvery, source, nextBugIn, shop, money }
             let
                 key : String
                 key =
-                    item |> CellType.itemToString
+                    item |> Item.itemToString
 
                 price : Int
                 price =
@@ -582,7 +583,7 @@ update msg (( { selected, stepCount, loopEvery, source, nextBugIn, shop, money }
                     |> Task.attempt ChangedViewport
                 )
 
-        ChangedViewport result ->
+        ChangedViewport _ ->
             Action.updating
                 ( ( state, seed )
                 , Cmd.none
@@ -613,11 +614,10 @@ subscriptions ( state, _ ) =
 
 view :
     Float
-    -> msg
     -> (Msg -> msg)
     -> Model
-    -> ( Maybe (Element msg), List (Element msg) )
-view scale restartMsg msgMapper ( { hasPower, stepCount, nextBugIn, shop, money, game, selected, viewedCard, loopEvery }, _ ) =
+    -> ( Maybe ( Element msg, Element msg ), List (Element msg) )
+view scale msgMapper ( { hasPower, stepCount, nextBugIn, shop, money, game, selected, loopEvery }, _ ) =
     let
         list =
             GameView.view
@@ -626,7 +626,6 @@ view scale restartMsg msgMapper ( { hasPower, stepCount, nextBugIn, shop, money,
                 , money = money
                 , scale = scale
                 , selected = selected
-                , sort = True
                 , loopLength = loopEvery
                 , positionSelectedMsg = msgMapper << PositionSelected
                 , selectedMsg = msgMapper << Selected
@@ -640,30 +639,61 @@ view scale restartMsg msgMapper ( { hasPower, stepCount, nextBugIn, shop, money,
                 }
                 game
     in
-    ( list
-        |> List.concat
-        |> List.map
-            (\( name, _ ) ->
-                Input.button Button.simple
-                    { onPress = Just <| msgMapper <| ClickedChangeTab <| name
-                    , label = Element.text <| name
-                    }
+    ( Just <|
+        ( Element.row
+            (Grid.simple
+                ++ Color.light
+                ++ [ Element.height <| Element.px <| Data.yOffset ]
             )
-        |> Element.wrappedRow
-            (Color.light
-                ++ [ Element.alignBottom
-                   , Element.paddingXY 16 2
-                   , Element.width <| Element.fill
-                   , Element.spaceEvenly
-                   ]
-            )
-        |> Just
-    , [ list
+          <|
+            [ Element.el [ Element.width <| Element.fill ] <| Element.none
+            , Element.el
+                (Heading.h1
+                    ++ [ Element.width <| Element.fill
+                       , Element.alignBottom
+                       ]
+                )
+              <|
+                Element.el [ Element.centerX ] <|
+                    Element.text <|
+                        String.fromInt <|
+                            stepCount
+            , Element.paragraph
+                [ Element.width <| Element.fill
+                , Element.alignBottom
+                ]
+              <|
+                List.singleton <|
+                    Element.text <|
+                        "Next bug in "
+                            ++ (String.fromInt <| nextBugIn)
+                            ++ " turns"
+            ]
+        , list
+            |> List.concat
+            |> List.map
+                (\( name, _ ) ->
+                    Input.button Button.simple
+                        { onPress = Just <| msgMapper <| ClickedChangeTab <| name
+                        , label = Element.text <| name
+                        }
+                )
+            |> Element.wrappedRow
+                (Color.light
+                    ++ [ Element.paddingXY 16 2
+                       , Element.width <| Element.fill
+                       , Element.spaceEvenly
+                       , Element.alignBottom
+                       ]
+                )
+        )
+    , [ Element.el [ Element.height <| Element.px <| Data.yOffset ] <| Element.none
+      , list
             |> List.map
                 (List.map
                     (\( name, content ) ->
                         Element.column Grid.simple <|
-                            [ Element.el (Heading.h1 ++ [ Element.htmlAttribute <| Attributes.id <| name ]) <|
+                            [ Element.el (Heading.h2 ++ [ Element.htmlAttribute <| Attributes.id <| name ]) <|
                                 Element.text <|
                                     name
                             , content

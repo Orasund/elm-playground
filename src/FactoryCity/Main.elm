@@ -2,21 +2,15 @@ module FactoryCity.Main exposing (main)
 
 import Action
 import Browser
-import Browser.Dom as Dom
 import Browser.Events exposing (onResize)
-import Element exposing (Option)
+import Element
 import Element.Background as Background
-import Element.Font as Font
 import FactoryCity.State.Playing as PlayingState
 import FactoryCity.State.Prepairing as PreparingState
 import FactoryCity.State.Ready as ReadyState
-import FactoryCity.View.Shade as Shade
 import Framework
-import Framework.Grid as Grid
 import Html
 import Html.Attributes as Attributes
-import Random
-import Task
 
 
 height : Float
@@ -51,12 +45,6 @@ type Msg
     | ReadySpecific ReadyState.Msg
     | PreparingSpecific PreparingState.Msg
     | Resized Config
-    | Restart
-
-
-calcPortraitMode : { height : Float, width : Float } -> Bool
-calcPortraitMode dim =
-    dim.height > dim.width
 
 
 calcScale : { height : Float, width : Float } -> Float
@@ -132,9 +120,6 @@ update msg model =
                 |> Action.withExit (init ())
                 |> Action.apply
 
-        ( Restart, _ ) ->
-            init ()
-
         ( Resized { scale }, _ ) ->
             ( case model of
                 Playing ( playingModel, config ) ->
@@ -167,27 +152,28 @@ update msg model =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        ([ onResize
-            (\w h ->
-                { width = toFloat w, height = toFloat h }
-                    |> (\dim ->
-                            Resized
-                                { scale = calcScale dim
-                                }
-                       )
-            )
-         ]
-            ++ (case model of
-                    Playing playingModel ->
-                        List.singleton <|
-                            Sub.map PlayingSpecific <|
-                                PlayingState.subscriptions <|
-                                    Tuple.first <|
-                                        playingModel
+        (List.concat
+            [ [ onResize
+                    (\w h ->
+                        { width = toFloat w, height = toFloat h }
+                            |> (\dim ->
+                                    Resized
+                                        { scale = calcScale dim
+                                        }
+                               )
+                    )
+              ]
+            , case model of
+                Playing playingModel ->
+                    List.singleton <|
+                        Sub.map PlayingSpecific <|
+                            PlayingState.subscriptions <|
+                                Tuple.first <|
+                                    playingModel
 
-                    _ ->
-                        []
-               )
+                _ ->
+                    []
+            ]
         )
 
 
@@ -200,13 +186,13 @@ subscriptions model =
 view : Model -> Browser.Document Msg
 view model =
     let
-        ( inFrontContent, content ) =
+        ( maybeInfrontContent, content ) =
             case model of
                 Playing ( playingModel, { scale } ) ->
-                    PlayingState.view scale Restart PlayingSpecific playingModel
+                    PlayingState.view scale PlayingSpecific playingModel
 
                 Ready ( readyModel, { scale } ) ->
-                    ReadyState.view scale Restart ReadySpecific readyModel
+                    ReadyState.view scale ReadySpecific readyModel
 
                 Preparing preparingModel ->
                     PreparingState.view preparingModel
@@ -223,10 +209,14 @@ view model =
             (List.concat
                 [ [ Background.color <| Element.rgb255 44 48 51
                   ]
-                , inFrontContent
+                , maybeInfrontContent
                     |> Maybe.map
-                        (Element.inFront
-                            >> List.singleton
+                        (\( topContent, bottomContent ) ->
+                            [ topContent
+                                |> Element.inFront
+                            , bottomContent
+                                |> Element.inFront
+                            ]
                         )
                     |> Maybe.withDefault []
                 , Framework.layoutAttributes

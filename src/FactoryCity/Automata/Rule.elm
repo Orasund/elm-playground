@@ -2,9 +2,9 @@ module FactoryCity.Automata.Rule exposing (burnable, container, merger, movables
 
 import CellAutomata exposing (Rule, RuleExpression(..))
 import FactoryCity.Automata.Neighborhood as Neighborhood
-import FactoryCity.Data.CellType as CellType exposing (CellType, ContainerSort(..), Item(..), MachineSort(..), MovableSort(..))
+import FactoryCity.Data.CellType as CellType exposing (CellType, ContainerSort(..), MachineSort(..), MovableSort(..))
 import Grid.Direction as Direction exposing (Direction(..))
-
+import FactoryCity.Data.Item as Item exposing (Item(..))
 
 directionList : List Direction
 directionList =
@@ -67,7 +67,7 @@ output =
                             directionList
                                 |> List.concatMap
                                     (\to ->
-                                        CellType.itemList
+                                        Item.itemList
                                             |> List.concatMap
                                                 (\i -> rules movableSort { from = from, to = to } i)
                                     )
@@ -79,7 +79,7 @@ merger : List (Rule CellType)
 merger =
     let
         rules : { from : Direction, to : Direction } -> ( Item, Item ) -> List (Rule CellType)
-        rules { from, to } ( itemFrom, itemTo ) =
+        rules { from, to } _ =
             [ { from =
                     Just <|
                         { item = Nothing
@@ -114,7 +114,7 @@ merger =
                 directionList
                     |> List.concatMap
                         (\to ->
-                            CellType.smeltable
+                            Item.smeltable
                                 |> List.concatMap
                                     (\i -> rules { from = from, to = to } i)
                         )
@@ -177,7 +177,7 @@ pressable =
                             directionList
                                 |> List.concatMap
                                     (\to ->
-                                        CellType.pressable
+                                        Item.pressable
                                             |> List.concatMap
                                                 (\i -> rules movableSort { from = from, to = to } i)
                                     )
@@ -284,7 +284,7 @@ shreddable =
                             directionList
                                 |> List.concatMap
                                     (\to ->
-                                        CellType.shreddable
+                                        Item.shreddable
                                             |> List.concatMap
                                                 (\i -> rules movableSort { from = from, to = to } i)
                                     )
@@ -348,7 +348,7 @@ smeltable =
                             directionList
                                 |> List.concatMap
                                     (\to ->
-                                        CellType.smeltable
+                                        Item.smeltable
                                             |> List.concatMap
                                                 (\i -> rules movableSort { from = from, to = to } i)
                                     )
@@ -415,7 +415,7 @@ burnable =
                                         directionList
                                             |> List.concatMap
                                                 (\to ->
-                                                    CellType.burnable
+                                                    Item.burnable
                                                         |> List.concatMap
                                                             (\i -> rules machineSort movableSort { from = from, to = to } i)
                                                 )
@@ -483,7 +483,7 @@ container =
                                         directionList
                                             |> List.concatMap
                                                 (\to ->
-                                                    CellType.itemList
+                                                    Item.itemList
                                                         |> List.concatMap
                                                             (\i ->
                                                                 rules movableSort sort { from = from, to = to } i
@@ -576,7 +576,7 @@ movables =
                             directionList
                                 |> List.concatMap
                                     (\to ->
-                                        CellType.itemList
+                                        Item.itemList
                                             |> List.concatMap (\i -> rules movableSort { from = from, to = to } i)
                                     )
                         )

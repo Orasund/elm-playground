@@ -6246,16 +6246,16 @@ var $Orasund$elm_jsonstore$Jsonstore$get = F2(
 				url: url
 			});
 	});
-var $author$project$FactoryCity$Data$CellType$Chipboard = {$: 'Chipboard'};
-var $author$project$FactoryCity$Data$CellType$Chips = {$: 'Chips'};
-var $author$project$FactoryCity$Data$CellType$Iron = {$: 'Iron'};
+var $author$project$FactoryCity$Data$Item$Chipboard = {$: 'Chipboard'};
+var $author$project$FactoryCity$Data$Item$Chips = {$: 'Chips'};
+var $author$project$FactoryCity$Data$Item$Iron = {$: 'Iron'};
 var $author$project$FactoryCity$Data$RemoteShop$RemoteShop = F6(
 	function (chips, iron, scrap, stone, wood, chipboard) {
 		return {chipboard: chipboard, chips: chips, iron: iron, scrap: scrap, stone: stone, wood: wood};
 	});
-var $author$project$FactoryCity$Data$CellType$Scrap = {$: 'Scrap'};
-var $author$project$FactoryCity$Data$CellType$Stone = {$: 'Stone'};
-var $author$project$FactoryCity$Data$CellType$Wood = {$: 'Wood'};
+var $author$project$FactoryCity$Data$Item$Scrap = {$: 'Scrap'};
+var $author$project$FactoryCity$Data$Item$Stone = {$: 'Stone'};
+var $author$project$FactoryCity$Data$Item$Wood = {$: 'Wood'};
 var $Orasund$elm_jsonstore$Jsonstore$Json = function (a) {
 	return {$: 'Json', a: a};
 };
@@ -6263,7 +6263,7 @@ var $elm$json$Json$Decode$int = _Json_decodeInt;
 var $elm$json$Json$Encode$int = _Json_wrap;
 var $Orasund$elm_jsonstore$Jsonstore$int = $Orasund$elm_jsonstore$Jsonstore$Json(
 	_Utils_Tuple2($elm$json$Json$Decode$int, $elm$json$Json$Encode$int));
-var $author$project$FactoryCity$Data$CellType$itemToString = function (item) {
+var $author$project$FactoryCity$Data$Item$itemToString = function (item) {
 	switch (item.$) {
 		case 'Wood':
 			return 'Wood';
@@ -6390,42 +6390,42 @@ var $Orasund$elm_jsonstore$Jsonstore$withMaybe = F4(
 var $author$project$FactoryCity$Data$RemoteShop$json = $Orasund$elm_jsonstore$Jsonstore$toJson(
 	A4(
 		$Orasund$elm_jsonstore$Jsonstore$withMaybe,
-		$author$project$FactoryCity$Data$CellType$itemToString($author$project$FactoryCity$Data$CellType$Chipboard),
+		$author$project$FactoryCity$Data$Item$itemToString($author$project$FactoryCity$Data$Item$Chipboard),
 		$Orasund$elm_jsonstore$Jsonstore$int,
 		function ($) {
 			return $.chipboard;
 		},
 		A4(
 			$Orasund$elm_jsonstore$Jsonstore$withMaybe,
-			$author$project$FactoryCity$Data$CellType$itemToString($author$project$FactoryCity$Data$CellType$Wood),
+			$author$project$FactoryCity$Data$Item$itemToString($author$project$FactoryCity$Data$Item$Wood),
 			$Orasund$elm_jsonstore$Jsonstore$int,
 			function ($) {
 				return $.wood;
 			},
 			A4(
 				$Orasund$elm_jsonstore$Jsonstore$withMaybe,
-				$author$project$FactoryCity$Data$CellType$itemToString($author$project$FactoryCity$Data$CellType$Stone),
+				$author$project$FactoryCity$Data$Item$itemToString($author$project$FactoryCity$Data$Item$Stone),
 				$Orasund$elm_jsonstore$Jsonstore$int,
 				function ($) {
 					return $.stone;
 				},
 				A4(
 					$Orasund$elm_jsonstore$Jsonstore$withMaybe,
-					$author$project$FactoryCity$Data$CellType$itemToString($author$project$FactoryCity$Data$CellType$Scrap),
+					$author$project$FactoryCity$Data$Item$itemToString($author$project$FactoryCity$Data$Item$Scrap),
 					$Orasund$elm_jsonstore$Jsonstore$int,
 					function ($) {
 						return $.scrap;
 					},
 					A4(
 						$Orasund$elm_jsonstore$Jsonstore$withMaybe,
-						$author$project$FactoryCity$Data$CellType$itemToString($author$project$FactoryCity$Data$CellType$Iron),
+						$author$project$FactoryCity$Data$Item$itemToString($author$project$FactoryCity$Data$Item$Iron),
 						$Orasund$elm_jsonstore$Jsonstore$int,
 						function ($) {
 							return $.iron;
 						},
 						A4(
 							$Orasund$elm_jsonstore$Jsonstore$withMaybe,
-							$author$project$FactoryCity$Data$CellType$itemToString($author$project$FactoryCity$Data$CellType$Chips),
+							$author$project$FactoryCity$Data$Item$itemToString($author$project$FactoryCity$Data$Item$Chips),
 							$Orasund$elm_jsonstore$Jsonstore$int,
 							function ($) {
 								return $.chips;
@@ -6486,16 +6486,16 @@ var $author$project$FactoryCity$Data$RemoteShop$toBag = function (_v0) {
 			$elm$core$List$map,
 			A2(
 				$elm$core$Tuple$mapBoth,
-				$author$project$FactoryCity$Data$CellType$itemToString,
+				$author$project$FactoryCity$Data$Item$itemToString,
 				$elm$core$Maybe$withDefault(0)),
 			_List_fromArray(
 				[
-					_Utils_Tuple2($author$project$FactoryCity$Data$CellType$Chips, chips),
-					_Utils_Tuple2($author$project$FactoryCity$Data$CellType$Iron, iron),
-					_Utils_Tuple2($author$project$FactoryCity$Data$CellType$Scrap, scrap),
-					_Utils_Tuple2($author$project$FactoryCity$Data$CellType$Stone, stone),
-					_Utils_Tuple2($author$project$FactoryCity$Data$CellType$Wood, wood),
-					_Utils_Tuple2($author$project$FactoryCity$Data$CellType$Chipboard, chipboard)
+					_Utils_Tuple2($author$project$FactoryCity$Data$Item$Chips, chips),
+					_Utils_Tuple2($author$project$FactoryCity$Data$Item$Iron, iron),
+					_Utils_Tuple2($author$project$FactoryCity$Data$Item$Scrap, scrap),
+					_Utils_Tuple2($author$project$FactoryCity$Data$Item$Stone, stone),
+					_Utils_Tuple2($author$project$FactoryCity$Data$Item$Wood, wood),
+					_Utils_Tuple2($author$project$FactoryCity$Data$Item$Chipboard, chipboard)
 				])));
 };
 var $author$project$FactoryCity$String$url = 'https://www.jsonstore.io/61c0a862d41e1159fac8a9dce81f18ed84b18bbccfd8c4805145ba3e3983d5cb';
@@ -6545,6 +6545,17 @@ var $author$project$FactoryCity$Main$Resized = function (a) {
 	return {$: 'Resized', a: a};
 };
 var $elm$core$Platform$Sub$batch = _Platform_batch;
+var $elm$core$List$append = F2(
+	function (xs, ys) {
+		if (!ys.b) {
+			return xs;
+		} else {
+			return A3($elm$core$List$foldr, $elm$core$List$cons, ys, xs);
+		}
+	});
+var $elm$core$List$concat = function (lists) {
+	return A3($elm$core$List$foldr, $elm$core$List$append, _List_Nil, lists);
+};
 var $elm$core$Platform$Sub$map = _Platform_map;
 var $elm$browser$Browser$Events$Window = {$: 'Window'};
 var $elm$browser$Browser$Events$MySub = F3(
@@ -7040,33 +7051,36 @@ var $author$project$FactoryCity$State$Playing$subscriptions = function (_v0) {
 };
 var $author$project$FactoryCity$Main$subscriptions = function (model) {
 	return $elm$core$Platform$Sub$batch(
-		_Utils_ap(
+		$elm$core$List$concat(
 			_List_fromArray(
 				[
-					$elm$browser$Browser$Events$onResize(
-					F2(
-						function (w, h) {
-							return function (dim) {
-								return $author$project$FactoryCity$Main$Resized(
-									{
-										scale: $author$project$FactoryCity$Main$calcScale(dim)
-									});
-							}(
-								{height: h, width: w});
-						}))
-				]),
-			function () {
-				if (model.$ === 'Playing') {
-					var playingModel = model.a;
-					return $elm$core$List$singleton(
-						A2(
-							$elm$core$Platform$Sub$map,
-							$author$project$FactoryCity$Main$PlayingSpecific,
-							$author$project$FactoryCity$State$Playing$subscriptions(playingModel.a)));
-				} else {
-					return _List_Nil;
-				}
-			}()));
+					_List_fromArray(
+					[
+						$elm$browser$Browser$Events$onResize(
+						F2(
+							function (w, h) {
+								return function (dim) {
+									return $author$project$FactoryCity$Main$Resized(
+										{
+											scale: $author$project$FactoryCity$Main$calcScale(dim)
+										});
+								}(
+									{height: h, width: w});
+							}))
+					]),
+					function () {
+					if (model.$ === 'Playing') {
+						var playingModel = model.a;
+						return $elm$core$List$singleton(
+							A2(
+								$elm$core$Platform$Sub$map,
+								$author$project$FactoryCity$Main$PlayingSpecific,
+								$author$project$FactoryCity$State$Playing$subscriptions(playingModel.a)));
+					} else {
+						return _List_Nil;
+					}
+				}()
+				])));
 };
 var $author$project$FactoryCity$Main$Playing = function (a) {
 	return {$: 'Playing', a: a};
@@ -7337,7 +7351,7 @@ var $author$project$FactoryCity$Data$CellType$containerSortToString = function (
 			}
 		case 'Crate':
 			var item = containerSort.a;
-			return '📦' + $author$project$FactoryCity$Data$CellType$itemToString(item);
+			return '📦' + $author$project$FactoryCity$Data$Item$itemToString(item);
 		case 'Machine':
 			var machineSort = containerSort.a;
 			var isWarm = containerSort.b.isWarm;
@@ -7370,10 +7384,10 @@ var $author$project$FactoryCity$Data$Deck$init = $JohnBugner$elm_bag$Bag$fromLis
 			}),
 		_List_fromArray(
 			[
-				$author$project$FactoryCity$Data$CellType$crate($author$project$FactoryCity$Data$CellType$Wood),
-				$author$project$FactoryCity$Data$CellType$crate($author$project$FactoryCity$Data$CellType$Wood),
-				$author$project$FactoryCity$Data$CellType$crate($author$project$FactoryCity$Data$CellType$Stone),
-				$author$project$FactoryCity$Data$CellType$crate($author$project$FactoryCity$Data$CellType$Stone),
+				$author$project$FactoryCity$Data$CellType$crate($author$project$FactoryCity$Data$Item$Wood),
+				$author$project$FactoryCity$Data$CellType$crate($author$project$FactoryCity$Data$Item$Wood),
+				$author$project$FactoryCity$Data$CellType$crate($author$project$FactoryCity$Data$Item$Stone),
+				$author$project$FactoryCity$Data$CellType$crate($author$project$FactoryCity$Data$Item$Stone),
 				$author$project$FactoryCity$Data$CellType$furnace,
 				$author$project$FactoryCity$Data$CellType$belt(
 				{from: $Orasund$elm_game_essentials$Grid$Direction$Up, to: $Orasund$elm_game_essentials$Grid$Direction$Left}),
@@ -7478,16 +7492,16 @@ var $elm$core$Tuple$mapFirst = F2(
 	});
 var $author$project$FactoryCity$Data$CellType$tierOne = _List_fromArray(
 	[
-		_Utils_Tuple2($author$project$FactoryCity$Data$CellType$Iron, 2)
+		_Utils_Tuple2($author$project$FactoryCity$Data$Item$Iron, 2)
 	]);
 var $author$project$FactoryCity$Data$CellType$tierThree = _List_fromArray(
 	[
-		_Utils_Tuple2($author$project$FactoryCity$Data$CellType$Iron, 2),
-		_Utils_Tuple2($author$project$FactoryCity$Data$CellType$Chipboard, 2)
+		_Utils_Tuple2($author$project$FactoryCity$Data$Item$Iron, 2),
+		_Utils_Tuple2($author$project$FactoryCity$Data$Item$Chipboard, 2)
 	]);
 var $author$project$FactoryCity$Data$CellType$tierTwo = _List_fromArray(
 	[
-		_Utils_Tuple2($author$project$FactoryCity$Data$CellType$Iron, 5)
+		_Utils_Tuple2($author$project$FactoryCity$Data$Item$Iron, 5)
 	]);
 var $author$project$FactoryCity$Data$CellType$craftingCost = function (card) {
 	return $JohnBugner$elm_bag$Bag$fromList(
@@ -7707,7 +7721,7 @@ var $author$project$FactoryCity$Data$RemoteShop$insert = function (item) {
 	return $Orasund$elm_jsonstore$Jsonstore$update(
 		{
 			decoder: $Orasund$elm_jsonstore$Jsonstore$decode($Orasund$elm_jsonstore$Jsonstore$int),
-			url: $author$project$FactoryCity$String$url + ('/' + $author$project$FactoryCity$Data$CellType$itemToString(item)),
+			url: $author$project$FactoryCity$String$url + ('/' + $author$project$FactoryCity$Data$Item$itemToString(item)),
 			value: A2(
 				$elm$core$Basics$composeR,
 				$elm$core$Maybe$map(
@@ -7909,11 +7923,11 @@ var $author$project$FactoryCity$State$Playing$playCard = F3(
 				seed));
 	});
 var $author$project$FactoryCity$Data$Board$refill = $Orasund$elm_game_essentials$Grid$Bordered$map(
-	function (pos) {
+	function (_v0) {
 		return $elm$core$Maybe$map(
 			function (cellType) {
 				var sort = cellType.sort;
-				_v0$3:
+				_v1$3:
 				while (true) {
 					switch (sort.$) {
 						case 'Crate':
@@ -7924,15 +7938,14 @@ var $author$project$FactoryCity$Data$Board$refill = $Orasund$elm_game_essentials
 							};
 						case 'Movable':
 							if (sort.a.$ === 'Merger') {
-								var _v1 = sort.a;
-								var from = sort.b.from;
+								var _v2 = sort.a;
 								var to = sort.b.to;
 								return {
 									item: $elm$core$Maybe$Nothing,
 									sort: $author$project$FactoryCity$Data$CellType$merger(to)
 								};
 							} else {
-								break _v0$3;
+								break _v1$3;
 							}
 						case 'Machine':
 							var machineSort = sort.a;
@@ -7944,7 +7957,7 @@ var $author$project$FactoryCity$Data$Board$refill = $Orasund$elm_game_essentials
 									{isWarm: false})
 							};
 						default:
-							break _v0$3;
+							break _v1$3;
 					}
 				}
 				return {item: $elm$core$Maybe$Nothing, sort: cellType.sort};
@@ -7963,7 +7976,7 @@ var $author$project$FactoryCity$Data$RemoteShop$remove = function (item) {
 	return $Orasund$elm_jsonstore$Jsonstore$update(
 		{
 			decoder: $Orasund$elm_jsonstore$Jsonstore$decode($Orasund$elm_jsonstore$Jsonstore$int),
-			url: $author$project$FactoryCity$String$url + ('/' + $author$project$FactoryCity$Data$CellType$itemToString(item)),
+			url: $author$project$FactoryCity$String$url + ('/' + $author$project$FactoryCity$Data$Item$itemToString(item)),
 			value: $elm$core$Maybe$andThen(
 				function (n) {
 					return (n === 1) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(
@@ -7986,7 +7999,6 @@ var $author$project$FactoryCity$Data$Board$remove = function (position) {
 };
 var $author$project$FactoryCity$Data$CellType$toCard = function (_v0) {
 	var sort = _v0.sort;
-	var item = _v0.item;
 	switch (sort.$) {
 		case 'Movable':
 			if (sort.a.$ === 'Belt') {
@@ -8016,7 +8028,7 @@ var $author$project$FactoryCity$Data$CellType$toCard = function (_v0) {
 		case 'Output':
 			return $author$project$FactoryCity$Data$CellType$output;
 		default:
-			return $author$project$FactoryCity$Data$CellType$Crate($author$project$FactoryCity$Data$CellType$Scrap);
+			return $author$project$FactoryCity$Data$CellType$Crate($author$project$FactoryCity$Data$Item$Scrap);
 	}
 };
 var $author$project$FactoryCity$State$Playing$removeCard = F2(
@@ -8237,7 +8249,7 @@ var $author$project$FactoryCity$Data$CellType$toString = function (_v0) {
 		A2(
 			$elm$core$Maybe$withDefault,
 			'',
-			A2($elm$core$Maybe$map, $author$project$FactoryCity$Data$CellType$itemToString, item)));
+			A2($elm$core$Maybe$map, $author$project$FactoryCity$Data$Item$itemToString, item)));
 };
 var $author$project$FactoryCity$Automata$order = A2(
 	$elm$core$Basics$composeR,
@@ -8250,19 +8262,8 @@ var $Orasund$elm_cellautomata$CellAutomata$Exactly = function (a) {
 };
 var $Orasund$elm_cellautomata$CellAutomata$Anything = {$: 'Anything'};
 var $Orasund$elm_cellautomata$CellAutomata$anyNeighborhood = {east: $Orasund$elm_cellautomata$CellAutomata$Anything, north: $Orasund$elm_cellautomata$CellAutomata$Anything, northEast: $Orasund$elm_cellautomata$CellAutomata$Anything, northWest: $Orasund$elm_cellautomata$CellAutomata$Anything, south: $Orasund$elm_cellautomata$CellAutomata$Anything, southEast: $Orasund$elm_cellautomata$CellAutomata$Anything, southWest: $Orasund$elm_cellautomata$CellAutomata$Anything, west: $Orasund$elm_cellautomata$CellAutomata$Anything};
-var $author$project$FactoryCity$Data$CellType$burnable = _List_fromArray(
-	[$author$project$FactoryCity$Data$CellType$Wood, $author$project$FactoryCity$Data$CellType$Chips, $author$project$FactoryCity$Data$CellType$Chipboard]);
-var $elm$core$List$append = F2(
-	function (xs, ys) {
-		if (!ys.b) {
-			return xs;
-		} else {
-			return A3($elm$core$List$foldr, $elm$core$List$cons, ys, xs);
-		}
-	});
-var $elm$core$List$concat = function (lists) {
-	return A3($elm$core$List$foldr, $elm$core$List$append, _List_Nil, lists);
-};
+var $author$project$FactoryCity$Data$Item$burnable = _List_fromArray(
+	[$author$project$FactoryCity$Data$Item$Wood, $author$project$FactoryCity$Data$Item$Chips, $author$project$FactoryCity$Data$Item$Chipboard]);
 var $elm$core$List$concatMap = F2(
 	function (f, list) {
 		return $elm$core$List$concat(
@@ -8389,7 +8390,7 @@ var $author$project$FactoryCity$Automata$Rule$burnable = function () {
 												{from: from, to: to},
 												i);
 										},
-										$author$project$FactoryCity$Data$CellType$burnable);
+										$author$project$FactoryCity$Data$Item$burnable);
 								},
 								$author$project$FactoryCity$Automata$Rule$directionList);
 						},
@@ -8399,12 +8400,12 @@ var $author$project$FactoryCity$Automata$Rule$burnable = function () {
 		},
 		$author$project$FactoryCity$Data$CellType$machineList);
 }();
-var $author$project$FactoryCity$Data$CellType$itemList = _List_fromArray(
-	[$author$project$FactoryCity$Data$CellType$Wood, $author$project$FactoryCity$Data$CellType$Stone, $author$project$FactoryCity$Data$CellType$Iron, $author$project$FactoryCity$Data$CellType$Scrap, $author$project$FactoryCity$Data$CellType$Chips, $author$project$FactoryCity$Data$CellType$Chipboard]);
+var $author$project$FactoryCity$Data$Item$itemList = _List_fromArray(
+	[$author$project$FactoryCity$Data$Item$Wood, $author$project$FactoryCity$Data$Item$Stone, $author$project$FactoryCity$Data$Item$Iron, $author$project$FactoryCity$Data$Item$Scrap, $author$project$FactoryCity$Data$Item$Chips, $author$project$FactoryCity$Data$Item$Chipboard]);
 var $author$project$FactoryCity$Data$CellType$containerList = $elm$core$List$concat(
 	_List_fromArray(
 		[
-			A2($elm$core$List$map, $author$project$FactoryCity$Data$CellType$Crate, $author$project$FactoryCity$Data$CellType$itemList),
+			A2($elm$core$List$map, $author$project$FactoryCity$Data$CellType$Crate, $author$project$FactoryCity$Data$Item$itemList),
 			_List_fromArray(
 			[
 				A2(
@@ -8503,7 +8504,7 @@ var $author$project$FactoryCity$Automata$Rule$container = function () {
 												{from: from, to: to},
 												i);
 										},
-										$author$project$FactoryCity$Data$CellType$itemList);
+										$author$project$FactoryCity$Data$Item$itemList);
 								},
 								$author$project$FactoryCity$Automata$Rule$directionList);
 						},
@@ -8540,17 +8541,15 @@ var $Orasund$elm_game_essentials$Grid$Direction$rotRight = function (direction) 
 			return $Orasund$elm_game_essentials$Grid$Direction$Up;
 	}
 };
-var $author$project$FactoryCity$Data$CellType$smeltable = _List_fromArray(
+var $author$project$FactoryCity$Data$Item$smeltable = _List_fromArray(
 	[
-		_Utils_Tuple2($author$project$FactoryCity$Data$CellType$Stone, $author$project$FactoryCity$Data$CellType$Iron)
+		_Utils_Tuple2($author$project$FactoryCity$Data$Item$Stone, $author$project$FactoryCity$Data$Item$Iron)
 	]);
 var $author$project$FactoryCity$Automata$Rule$merger = function () {
 	var rules = F2(
 		function (_v0, _v1) {
 			var from = _v0.from;
 			var to = _v0.to;
-			var itemFrom = _v1.a;
-			var itemTo = _v1.b;
 			return _List_fromArray(
 				[
 					{
@@ -8594,7 +8593,7 @@ var $author$project$FactoryCity$Automata$Rule$merger = function () {
 								{from: from, to: to},
 								i);
 						},
-						$author$project$FactoryCity$Data$CellType$smeltable);
+						$author$project$FactoryCity$Data$Item$smeltable);
 				},
 				$author$project$FactoryCity$Automata$Rule$directionList);
 		},
@@ -8718,7 +8717,7 @@ var $author$project$FactoryCity$Automata$Rule$movables = function () {
 										{from: from, to: to},
 										i);
 								},
-								$author$project$FactoryCity$Data$CellType$itemList);
+								$author$project$FactoryCity$Data$Item$itemList);
 						},
 						$author$project$FactoryCity$Automata$Rule$directionList);
 				},
@@ -8801,7 +8800,7 @@ var $author$project$FactoryCity$Automata$Rule$output = function () {
 										{from: from, to: to},
 										i);
 								},
-								$author$project$FactoryCity$Data$CellType$itemList);
+								$author$project$FactoryCity$Data$Item$itemList);
 						},
 						$author$project$FactoryCity$Automata$Rule$directionList);
 				},
@@ -8809,10 +8808,10 @@ var $author$project$FactoryCity$Automata$Rule$output = function () {
 		},
 		$author$project$FactoryCity$Data$CellType$movableList);
 }();
-var $author$project$FactoryCity$Data$CellType$pressable = _List_fromArray(
+var $author$project$FactoryCity$Data$Item$pressable = _List_fromArray(
 	[
-		_Utils_Tuple2($author$project$FactoryCity$Data$CellType$Scrap, $author$project$FactoryCity$Data$CellType$Stone),
-		_Utils_Tuple2($author$project$FactoryCity$Data$CellType$Chips, $author$project$FactoryCity$Data$CellType$Chipboard)
+		_Utils_Tuple2($author$project$FactoryCity$Data$Item$Scrap, $author$project$FactoryCity$Data$Item$Stone),
+		_Utils_Tuple2($author$project$FactoryCity$Data$Item$Chips, $author$project$FactoryCity$Data$Item$Chipboard)
 	]);
 var $author$project$FactoryCity$Automata$Rule$pressable = function () {
 	var rules = F3(
@@ -8906,7 +8905,7 @@ var $author$project$FactoryCity$Automata$Rule$pressable = function () {
 										{from: from, to: to},
 										i);
 								},
-								$author$project$FactoryCity$Data$CellType$pressable);
+								$author$project$FactoryCity$Data$Item$pressable);
 						},
 						$author$project$FactoryCity$Automata$Rule$directionList);
 				},
@@ -8914,10 +8913,10 @@ var $author$project$FactoryCity$Automata$Rule$pressable = function () {
 		},
 		$author$project$FactoryCity$Data$CellType$movableList);
 }();
-var $author$project$FactoryCity$Data$CellType$shreddable = _List_fromArray(
+var $author$project$FactoryCity$Data$Item$shreddable = _List_fromArray(
 	[
-		_Utils_Tuple2($author$project$FactoryCity$Data$CellType$Stone, $author$project$FactoryCity$Data$CellType$Scrap),
-		_Utils_Tuple2($author$project$FactoryCity$Data$CellType$Wood, $author$project$FactoryCity$Data$CellType$Chips)
+		_Utils_Tuple2($author$project$FactoryCity$Data$Item$Stone, $author$project$FactoryCity$Data$Item$Scrap),
+		_Utils_Tuple2($author$project$FactoryCity$Data$Item$Wood, $author$project$FactoryCity$Data$Item$Chips)
 	]);
 var $author$project$FactoryCity$Automata$Rule$shreddable = function () {
 	var rules = F3(
@@ -9061,7 +9060,7 @@ var $author$project$FactoryCity$Automata$Rule$shreddable = function () {
 										{from: from, to: to},
 										i);
 								},
-								$author$project$FactoryCity$Data$CellType$shreddable);
+								$author$project$FactoryCity$Data$Item$shreddable);
 						},
 						$author$project$FactoryCity$Automata$Rule$directionList);
 				},
@@ -9161,7 +9160,7 @@ var $author$project$FactoryCity$Automata$Rule$smeltable = function () {
 										{from: from, to: to},
 										i);
 								},
-								$author$project$FactoryCity$Data$CellType$smeltable);
+								$author$project$FactoryCity$Data$Item$smeltable);
 						},
 						$author$project$FactoryCity$Automata$Rule$directionList);
 				},
@@ -9311,7 +9310,7 @@ var $JohnBugner$elm_bag$Bag$toList = function (b) {
 		$JohnBugner$elm_bag$Bag$dict(b));
 };
 var $author$project$FactoryCity$Data$Board$unload = $Orasund$elm_game_essentials$Grid$Bordered$map(
-	function (pos) {
+	function (_v0) {
 		return $elm$core$Maybe$map(
 			function (cellType) {
 				var sort = cellType.sort;
@@ -9422,7 +9421,7 @@ var $author$project$FactoryCity$State$Playing$update = F2(
 																		A2(
 																			$elm$core$List$filterMap,
 																			function (dir) {
-																				var _v2 = A2(
+																				var _v3 = A2(
 																					$Orasund$elm_game_essentials$Grid$Bordered$get,
 																					A3(
 																						$Orasund$elm_game_essentials$Grid$Position$move,
@@ -9441,8 +9440,8 @@ var $author$project$FactoryCity$State$Playing$update = F2(
 																						}(),
 																						pos),
 																					game.board);
-																				if ((_v2.$ === 'Ok') && (_v2.a.$ === 'Just')) {
-																					var sort = _v2.a.a.sort;
+																				if ((_v3.$ === 'Ok') && (_v3.a.$ === 'Just')) {
+																					var sort = _v3.a.a.sort;
 																					if (sort.$ === 'Movable') {
 																						var from = sort.b.from;
 																						return _Utils_eq(from, dir) ? $elm$core$Maybe$Just(_Utils_Tuple0) : $elm$core$Maybe$Nothing;
@@ -9455,7 +9454,7 @@ var $author$project$FactoryCity$State$Playing$update = F2(
 																			},
 																			_List_fromArray(
 																				[$Orasund$elm_game_essentials$Grid$Direction$Up, $Orasund$elm_game_essentials$Grid$Direction$Left, $Orasund$elm_game_essentials$Grid$Direction$Right, $Orasund$elm_game_essentials$Grid$Direction$Down]))) > 1) ? $author$project$FactoryCity$Data$CellType$fromCard(
-																		$author$project$FactoryCity$Data$CellType$crate($author$project$FactoryCity$Data$CellType$Scrap)) : cell;
+																		$author$project$FactoryCity$Data$CellType$crate($author$project$FactoryCity$Data$Item$Scrap)) : cell;
 																});
 														},
 														game.board)
@@ -9465,7 +9464,7 @@ var $author$project$FactoryCity$State$Playing$update = F2(
 									function (x) {
 										var game = x.game;
 										if (x.stepCount <= 0) {
-											var _v1 = A3(
+											var _v2 = A3(
 												$elm$core$List$foldl,
 												function (cell) {
 													return $elm$core$Result$andThen(
@@ -9473,8 +9472,8 @@ var $author$project$FactoryCity$State$Playing$update = F2(
 												},
 												$elm$core$Result$Ok(game.deck),
 												A2($author$project$FactoryCity$Data$Board$getInput, source, game.board));
-											if (_v1.$ === 'Ok') {
-												var deck = _v1.a;
+											if (_v2.$ === 'Ok') {
+												var deck = _v2.a;
 												return _Utils_update(
 													x,
 													{
@@ -9500,8 +9499,8 @@ var $author$project$FactoryCity$State$Playing$update = F2(
 											return x;
 										}
 									}(
-										function (x) {
-											var game = x.game;
+										function (_v1) {
+											var game = _v1.game;
 											return _Utils_update(
 												state,
 												{
@@ -9567,38 +9566,12 @@ var $author$project$FactoryCity$State$Playing$update = F2(
 						$elm$core$Platform$Cmd$none));
 			case 'ClickedSell':
 				var card = msg.a;
-				var _v6 = A2($author$project$FactoryCity$Data$Deck$remove, card, state.game.deck);
-				if (_v6.$ === 'Ok') {
-					var deck = _v6.a;
+				var _v7 = A2($author$project$FactoryCity$Data$Deck$remove, card, state.game.deck);
+				if (_v7.$ === 'Ok') {
+					var deck = _v7.a;
 					if (card.$ === 'Crate') {
 						var i = card.a;
-						var key = $author$project$FactoryCity$Data$CellType$itemToString(i);
-						var price = ($author$project$FactoryCity$Data$maxPrice / (1 + A2($JohnBugner$elm_bag$Bag$count, key, shop))) | 0;
-						var game = state.game;
-						return $Orasund$elm_action$Action$updating(
-							_Utils_Tuple2(
-								_Utils_Tuple2(
-									_Utils_update(
-										state,
-										{
-											game: _Utils_update(
-												game,
-												{deck: deck}),
-											money: money + price,
-											shop: A3($JohnBugner$elm_bag$Bag$insert, 1, key, shop)
-										}),
-									seed),
-								A2(
-									$elm$core$Task$attempt,
-									$author$project$FactoryCity$State$Playing$GotShopResponse,
-									A2(
-										$elm$core$Task$andThen,
-										function (_v8) {
-											return $author$project$FactoryCity$Data$RemoteShop$sync;
-										},
-										$author$project$FactoryCity$Data$RemoteShop$insert(i)))));
-					} else {
-						var key = $author$project$FactoryCity$Data$CellType$itemToString($author$project$FactoryCity$Data$CellType$Scrap);
+						var key = $author$project$FactoryCity$Data$Item$itemToString(i);
 						var price = ($author$project$FactoryCity$Data$maxPrice / (1 + A2($JohnBugner$elm_bag$Bag$count, key, shop))) | 0;
 						var game = state.game;
 						return $Orasund$elm_action$Action$updating(
@@ -9622,7 +9595,33 @@ var $author$project$FactoryCity$State$Playing$update = F2(
 										function (_v9) {
 											return $author$project$FactoryCity$Data$RemoteShop$sync;
 										},
-										$author$project$FactoryCity$Data$RemoteShop$insert($author$project$FactoryCity$Data$CellType$Scrap)))));
+										$author$project$FactoryCity$Data$RemoteShop$insert(i)))));
+					} else {
+						var key = $author$project$FactoryCity$Data$Item$itemToString($author$project$FactoryCity$Data$Item$Scrap);
+						var price = ($author$project$FactoryCity$Data$maxPrice / (1 + A2($JohnBugner$elm_bag$Bag$count, key, shop))) | 0;
+						var game = state.game;
+						return $Orasund$elm_action$Action$updating(
+							_Utils_Tuple2(
+								_Utils_Tuple2(
+									_Utils_update(
+										state,
+										{
+											game: _Utils_update(
+												game,
+												{deck: deck}),
+											money: money + price,
+											shop: A3($JohnBugner$elm_bag$Bag$insert, 1, key, shop)
+										}),
+									seed),
+								A2(
+									$elm$core$Task$attempt,
+									$author$project$FactoryCity$State$Playing$GotShopResponse,
+									A2(
+										$elm$core$Task$andThen,
+										function (_v10) {
+											return $author$project$FactoryCity$Data$RemoteShop$sync;
+										},
+										$author$project$FactoryCity$Data$RemoteShop$insert($author$project$FactoryCity$Data$Item$Scrap)))));
 					}
 				} else {
 					return $Orasund$elm_action$Action$updating(
@@ -9632,7 +9631,7 @@ var $author$project$FactoryCity$State$Playing$update = F2(
 				}
 			case 'ClickedBuy':
 				var item = msg.a;
-				var key = $author$project$FactoryCity$Data$CellType$itemToString(item);
+				var key = $author$project$FactoryCity$Data$Item$itemToString(item);
 				var price = ($author$project$FactoryCity$Data$maxPrice / A2($JohnBugner$elm_bag$Bag$count, key, shop)) | 0;
 				var game = state.game;
 				return (_Utils_cmp(price, money) < 1) ? $Orasund$elm_action$Action$updating(
@@ -9658,7 +9657,7 @@ var $author$project$FactoryCity$State$Playing$update = F2(
 							$author$project$FactoryCity$State$Playing$GotShopResponse,
 							A2(
 								$elm$core$Task$andThen,
-								function (_v10) {
+								function (_v11) {
 									return $author$project$FactoryCity$Data$RemoteShop$sync;
 								},
 								$author$project$FactoryCity$Data$RemoteShop$remove(item))))) : $Orasund$elm_action$Action$updating(
@@ -9683,11 +9682,11 @@ var $author$project$FactoryCity$State$Playing$update = F2(
 					_Utils_Tuple2(
 						_Utils_Tuple2(
 							function () {
-								var _v11 = A3(
+								var _v12 = A3(
 									$elm$core$List$foldl,
-									function (_v12) {
-										var cell = _v12.a;
-										var n = _v12.b;
+									function (_v13) {
+										var cell = _v13.a;
+										var n = _v13.b;
 										return $elm$core$Result$andThen(
 											function (d) {
 												return (_Utils_cmp(
@@ -9698,8 +9697,8 @@ var $author$project$FactoryCity$State$Playing$update = F2(
 									},
 									$elm$core$Result$Ok(game.deck),
 									$JohnBugner$elm_bag$Bag$toList(cost));
-								if (_v11.$ === 'Ok') {
-									var deck = _v11.a;
+								if (_v12.$ === 'Ok') {
+									var deck = _v12.a;
 									return _Utils_update(
 										state,
 										{
@@ -9753,13 +9752,12 @@ var $author$project$FactoryCity$State$Playing$update = F2(
 							$author$project$FactoryCity$State$Playing$ChangedViewport,
 							A2(
 								$elm$core$Task$andThen,
-								function (_v14) {
-									var element = _v14.element;
+								function (_v15) {
+									var element = _v15.element;
 									return A2($elm$browser$Browser$Dom$setViewport, 0, element.y);
 								},
 								$elm$browser$Browser$Dom$getElement(string)))));
 			case 'ChangedViewport':
-				var result = msg.a;
 				return $Orasund$elm_action$Action$updating(
 					_Utils_Tuple2(
 						_Utils_Tuple2(state, seed),
@@ -9860,9 +9858,9 @@ var $author$project$FactoryCity$State$Prepairing$update = F2(
 		}
 	});
 var $author$project$FactoryCity$State$Ready$update = F2(
-	function (msg, model) {
-		var shop = model.a;
-		var seed = model.b;
+	function (msg, _v0) {
+		var shop = _v0.a;
+		var seed = _v0.b;
 		var item = msg.a;
 		return $Orasund$elm_action$Action$transitioning(
 			{seed: seed, shop: shop, source: item});
@@ -9931,7 +9929,7 @@ var $Orasund$elm_action$Action$withUpdate = F2(
 var $author$project$FactoryCity$Main$update = F2(
 	function (msg, model) {
 		var _v0 = _Utils_Tuple2(msg, model);
-		_v0$5:
+		_v0$4:
 		while (true) {
 			switch (_v0.a.$) {
 				case 'PreparingSpecific':
@@ -9965,7 +9963,7 @@ var $author$project$FactoryCity$Main$update = F2(
 									$Orasund$elm_action$Action$config(
 										A2($author$project$FactoryCity$State$Prepairing$update, preparingMsg, preparingModel)))));
 					} else {
-						break _v0$5;
+						break _v0$4;
 					}
 				case 'ReadySpecific':
 					if (_v0.b.$ === 'Ready') {
@@ -9998,7 +9996,7 @@ var $author$project$FactoryCity$Main$update = F2(
 									$Orasund$elm_action$Action$config(
 										A2($author$project$FactoryCity$State$Ready$update, readyMsg, readyModel)))));
 					} else {
-						break _v0$5;
+						break _v0$4;
 					}
 				case 'PlayingSpecific':
 					if (_v0.b.$ === 'Playing') {
@@ -10020,20 +10018,17 @@ var $author$project$FactoryCity$Main$update = F2(
 									$Orasund$elm_action$Action$config(
 										A2($author$project$FactoryCity$State$Playing$update, playingMsg, playingModel)))));
 					} else {
-						break _v0$5;
+						break _v0$4;
 					}
-				case 'Restart':
-					var _v6 = _v0.a;
-					return $author$project$FactoryCity$Main$init(_Utils_Tuple0);
 				default:
 					var scale = _v0.a.a.scale;
 					return _Utils_Tuple2(
 						function () {
 							switch (model.$) {
 								case 'Playing':
-									var _v8 = model.a;
-									var playingModel = _v8.a;
-									var config = _v8.b;
+									var _v7 = model.a;
+									var playingModel = _v7.a;
+									var config = _v7.b;
 									return $author$project$FactoryCity$Main$Playing(
 										_Utils_Tuple2(
 											playingModel,
@@ -10041,9 +10036,9 @@ var $author$project$FactoryCity$Main$update = F2(
 												config,
 												{scale: scale})));
 								case 'Ready':
-									var _v9 = model.a;
-									var readyModel = _v9.a;
-									var config = _v9.b;
+									var _v8 = model.a;
+									var readyModel = _v8.a;
+									var config = _v8.b;
 									return $author$project$FactoryCity$Main$Ready(
 										_Utils_Tuple2(
 											readyModel,
@@ -10059,7 +10054,6 @@ var $author$project$FactoryCity$Main$update = F2(
 		}
 		return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 	});
-var $author$project$FactoryCity$Main$Restart = {$: 'Restart'};
 var $elm$virtual_dom$VirtualDom$attribute = F2(
 	function (key, value) {
 		return A2(
@@ -16029,6 +16023,7 @@ var $Orasund$elm_ui_framework$Framework$Heading$h = function (inputLevel) {
 		]);
 };
 var $Orasund$elm_ui_framework$Framework$Heading$h1 = $Orasund$elm_ui_framework$Framework$Heading$h(1);
+var $Orasund$elm_ui_framework$Framework$Heading$h2 = $Orasund$elm_ui_framework$Framework$Heading$h(2);
 var $mdgriffith$elm_ui$Element$htmlAttribute = $mdgriffith$elm_ui$Internal$Model$Attr;
 var $elm$html$Html$Attributes$id = $elm$html$Html$Attributes$stringProperty('id');
 var $mdgriffith$elm_ui$Internal$Model$Empty = {$: 'Empty'};
@@ -16055,10 +16050,68 @@ var $mdgriffith$elm_ui$Element$paddingXY = F2(
 				y,
 				x));
 	});
+var $mdgriffith$elm_ui$Internal$Model$Paragraph = {$: 'Paragraph'};
+var $mdgriffith$elm_ui$Internal$Model$SpacingStyle = F3(
+	function (a, b, c) {
+		return {$: 'SpacingStyle', a: a, b: b, c: c};
+	});
+var $mdgriffith$elm_ui$Internal$Flag$spacing = $mdgriffith$elm_ui$Internal$Flag$flag(3);
+var $mdgriffith$elm_ui$Internal$Model$spacingName = F2(
+	function (x, y) {
+		return 'spacing-' + ($elm$core$String$fromInt(x) + ('-' + $elm$core$String$fromInt(y)));
+	});
+var $mdgriffith$elm_ui$Element$spacing = function (x) {
+	return A2(
+		$mdgriffith$elm_ui$Internal$Model$StyleClass,
+		$mdgriffith$elm_ui$Internal$Flag$spacing,
+		A3(
+			$mdgriffith$elm_ui$Internal$Model$SpacingStyle,
+			A2($mdgriffith$elm_ui$Internal$Model$spacingName, x, x),
+			x,
+			x));
+};
+var $mdgriffith$elm_ui$Element$paragraph = F2(
+	function (attrs, children) {
+		return A4(
+			$mdgriffith$elm_ui$Internal$Model$element,
+			$mdgriffith$elm_ui$Internal$Model$asParagraph,
+			$mdgriffith$elm_ui$Internal$Model$div,
+			A2(
+				$elm$core$List$cons,
+				$mdgriffith$elm_ui$Internal$Model$Describe($mdgriffith$elm_ui$Internal$Model$Paragraph),
+				A2(
+					$elm$core$List$cons,
+					$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
+					A2(
+						$elm$core$List$cons,
+						$mdgriffith$elm_ui$Element$spacing(5),
+						attrs))),
+			$mdgriffith$elm_ui$Internal$Model$Unkeyed(children));
+	});
 var $mdgriffith$elm_ui$Internal$Model$Px = function (a) {
 	return {$: 'Px', a: a};
 };
 var $mdgriffith$elm_ui$Element$px = $mdgriffith$elm_ui$Internal$Model$Px;
+var $mdgriffith$elm_ui$Internal$Model$AsRow = {$: 'AsRow'};
+var $mdgriffith$elm_ui$Internal$Model$asRow = $mdgriffith$elm_ui$Internal$Model$AsRow;
+var $mdgriffith$elm_ui$Element$row = F2(
+	function (attrs, children) {
+		return A4(
+			$mdgriffith$elm_ui$Internal$Model$element,
+			$mdgriffith$elm_ui$Internal$Model$asRow,
+			$mdgriffith$elm_ui$Internal$Model$div,
+			A2(
+				$elm$core$List$cons,
+				$mdgriffith$elm_ui$Internal$Model$htmlClass($mdgriffith$elm_ui$Internal$Style$classes.contentLeft + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.contentCenterY)),
+				A2(
+					$elm$core$List$cons,
+					$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$shrink),
+					A2(
+						$elm$core$List$cons,
+						$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$shrink),
+						attrs))),
+			$mdgriffith$elm_ui$Internal$Model$Unkeyed(children));
+	});
 var $mdgriffith$elm_ui$Internal$Flag$fontAlignment = $mdgriffith$elm_ui$Internal$Flag$flag(12);
 var $mdgriffith$elm_ui$Element$Font$center = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$fontAlignment, $mdgriffith$elm_ui$Internal$Style$classes.textCenter);
 var $Orasund$elm_ui_framework$Framework$Color$grey = A3($mdgriffith$elm_ui$Element$rgb255, 122, 122, 122);
@@ -16282,25 +16335,6 @@ var $Orasund$elm_ui_framework$Framework$Button$simple = _Utils_ap(
 				])),
 			A2($mdgriffith$elm_ui$Element$paddingXY, 16, 12)
 		]));
-var $mdgriffith$elm_ui$Internal$Model$SpacingStyle = F3(
-	function (a, b, c) {
-		return {$: 'SpacingStyle', a: a, b: b, c: c};
-	});
-var $mdgriffith$elm_ui$Internal$Flag$spacing = $mdgriffith$elm_ui$Internal$Flag$flag(3);
-var $mdgriffith$elm_ui$Internal$Model$spacingName = F2(
-	function (x, y) {
-		return 'spacing-' + ($elm$core$String$fromInt(x) + ('-' + $elm$core$String$fromInt(y)));
-	});
-var $mdgriffith$elm_ui$Element$spacing = function (x) {
-	return A2(
-		$mdgriffith$elm_ui$Internal$Model$StyleClass,
-		$mdgriffith$elm_ui$Internal$Flag$spacing,
-		A3(
-			$mdgriffith$elm_ui$Internal$Model$SpacingStyle,
-			A2($mdgriffith$elm_ui$Internal$Model$spacingName, x, x),
-			x,
-			x));
-};
 var $Orasund$elm_ui_framework$Framework$Grid$simple = _List_fromArray(
 	[
 		$mdgriffith$elm_ui$Element$spacing(10),
@@ -16311,45 +16345,6 @@ var $mdgriffith$elm_ui$Element$spaceEvenly = A2($mdgriffith$elm_ui$Internal$Mode
 var $mdgriffith$elm_ui$Element$text = function (content) {
 	return $mdgriffith$elm_ui$Internal$Model$Text(content);
 };
-var $mdgriffith$elm_ui$Internal$Model$Paragraph = {$: 'Paragraph'};
-var $mdgriffith$elm_ui$Element$paragraph = F2(
-	function (attrs, children) {
-		return A4(
-			$mdgriffith$elm_ui$Internal$Model$element,
-			$mdgriffith$elm_ui$Internal$Model$asParagraph,
-			$mdgriffith$elm_ui$Internal$Model$div,
-			A2(
-				$elm$core$List$cons,
-				$mdgriffith$elm_ui$Internal$Model$Describe($mdgriffith$elm_ui$Internal$Model$Paragraph),
-				A2(
-					$elm$core$List$cons,
-					$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
-					A2(
-						$elm$core$List$cons,
-						$mdgriffith$elm_ui$Element$spacing(5),
-						attrs))),
-			$mdgriffith$elm_ui$Internal$Model$Unkeyed(children));
-	});
-var $mdgriffith$elm_ui$Internal$Model$AsRow = {$: 'AsRow'};
-var $mdgriffith$elm_ui$Internal$Model$asRow = $mdgriffith$elm_ui$Internal$Model$AsRow;
-var $mdgriffith$elm_ui$Element$row = F2(
-	function (attrs, children) {
-		return A4(
-			$mdgriffith$elm_ui$Internal$Model$element,
-			$mdgriffith$elm_ui$Internal$Model$asRow,
-			$mdgriffith$elm_ui$Internal$Model$div,
-			A2(
-				$elm$core$List$cons,
-				$mdgriffith$elm_ui$Internal$Model$htmlClass($mdgriffith$elm_ui$Internal$Style$classes.contentLeft + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.contentCenterY)),
-				A2(
-					$elm$core$List$cons,
-					$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$shrink),
-					A2(
-						$elm$core$List$cons,
-						$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$shrink),
-						attrs))),
-			$mdgriffith$elm_ui$Internal$Model$Unkeyed(children));
-	});
 var $mdgriffith$elm_ui$Element$Border$widthXY = F2(
 	function (x, y) {
 		return A2(
@@ -16420,7 +16415,7 @@ var $Orasund$elm_game_essentials$Grid$Bordered$foldr = F3(
 			val,
 			A2($elm$core$List$range, 0, columns - 1));
 	});
-var $author$project$FactoryCity$Data$CellType$color = function (item) {
+var $author$project$FactoryCity$Data$Item$color = function (item) {
 	switch (item.$) {
 		case 'Wood':
 			return _Utils_Tuple3(255, 194, 170);
@@ -24005,7 +24000,7 @@ var $author$project$FactoryCity$View$Board$viewCell = F4(
 									$elm$core$Maybe$map,
 									A2(
 										$elm$core$Basics$composeR,
-										$author$project$FactoryCity$Data$CellType$color,
+										$author$project$FactoryCity$Data$Item$color,
 										function (_v2) {
 											var r = _v2.a;
 											var g = _v2.b;
@@ -24400,7 +24395,7 @@ var $author$project$FactoryCity$View$Crafting$view = function (_v0) {
 												function (_v2) {
 													var item = _v2.a;
 													var n = _v2.b;
-													return $elm$core$String$fromInt(n) + (' ' + $author$project$FactoryCity$Data$CellType$itemToString(item));
+													return $elm$core$String$fromInt(n) + (' ' + $author$project$FactoryCity$Data$Item$itemToString(item));
 												},
 												fun))))),
 								A2(
@@ -24483,7 +24478,7 @@ var $author$project$Card$view = F3(
 						$elm$core$Basics$floor(height * 1.1))),
 					$mdgriffith$elm_ui$Element$width(
 					$mdgriffith$elm_ui$Element$px(
-						selected ? $elm$core$Basics$floor(width) : ((amount < 5) ? $elm$core$Basics$floor(width) : ((($elm$core$Basics$floor(width) * 4) / amount) | 0))))
+						selected ? $elm$core$Basics$floor(width) : ((amount < 5) ? $elm$core$Basics$floor(width) : ((($elm$core$Basics$floor(width) * 3) / amount) | 0))))
 				]),
 			A2(
 				$mdgriffith$elm_ui$Element$Input$button,
@@ -24547,20 +24542,20 @@ var $author$project$FactoryCity$Data$CellType$stringToDirection = function (stri
 			return $elm$core$Maybe$Nothing;
 	}
 };
-var $author$project$FactoryCity$Data$CellType$stringToItem = function (string) {
+var $author$project$FactoryCity$Data$Item$stringToItem = function (string) {
 	switch (string) {
 		case 'Wood':
-			return $elm$core$Maybe$Just($author$project$FactoryCity$Data$CellType$Wood);
+			return $elm$core$Maybe$Just($author$project$FactoryCity$Data$Item$Wood);
 		case 'Stone':
-			return $elm$core$Maybe$Just($author$project$FactoryCity$Data$CellType$Stone);
+			return $elm$core$Maybe$Just($author$project$FactoryCity$Data$Item$Stone);
 		case 'Iron':
-			return $elm$core$Maybe$Just($author$project$FactoryCity$Data$CellType$Iron);
+			return $elm$core$Maybe$Just($author$project$FactoryCity$Data$Item$Iron);
 		case 'Scrap':
-			return $elm$core$Maybe$Just($author$project$FactoryCity$Data$CellType$Scrap);
+			return $elm$core$Maybe$Just($author$project$FactoryCity$Data$Item$Scrap);
 		case 'Chips':
-			return $elm$core$Maybe$Just($author$project$FactoryCity$Data$CellType$Chips);
+			return $elm$core$Maybe$Just($author$project$FactoryCity$Data$Item$Chips);
 		case 'Chipboard':
-			return $elm$core$Maybe$Just($author$project$FactoryCity$Data$CellType$Chipboard);
+			return $elm$core$Maybe$Just($author$project$FactoryCity$Data$Item$Chipboard);
 		default:
 			return $elm$core$Maybe$Nothing;
 	}
@@ -24654,7 +24649,7 @@ var $author$project$FactoryCity$Data$CellType$stringToContainerSort = function (
 						return A2(
 							$elm$core$Maybe$map,
 							$author$project$FactoryCity$Data$CellType$Crate,
-							$author$project$FactoryCity$Data$CellType$stringToItem(item));
+							$author$project$FactoryCity$Data$Item$stringToItem(item));
 					case '🔄':
 						var _v3 = _v1.a;
 						var machine = _v3.b;
@@ -24758,8 +24753,8 @@ var $author$project$FactoryCity$View$Deck$viewContent = F2(
 					$elm$core$String$fromInt(n))
 				]));
 	});
-var $author$project$FactoryCity$View$Deck$view = F5(
-	function (scale, sort, maybeSelectedMsg, maybeSelected, deck) {
+var $author$project$FactoryCity$View$Deck$view = F4(
+	function (scale, maybeSelectedMsg, maybeSelected, deck) {
 		return A2(
 			$mdgriffith$elm_ui$Element$row,
 			$author$project$FactoryCity$View$Deck$viewAttributes(scale),
@@ -24795,7 +24790,7 @@ var $author$project$FactoryCity$View$Deck$view = F5(
 															A3($mdgriffith$elm_ui$Element$rgb255, r, g, b))
 														]);
 												}(
-													$author$project$FactoryCity$Data$CellType$color(item));
+													$author$project$FactoryCity$Data$Item$color(item));
 											} else {
 												return _List_Nil;
 											}
@@ -24837,10 +24832,10 @@ var $author$project$FactoryCity$View$Details$displayItem = function (item) {
 					return $mdgriffith$elm_ui$Element$Background$color(
 						A3($mdgriffith$elm_ui$Element$rgb255, r, g, b));
 				}(
-					$author$project$FactoryCity$Data$CellType$color(item))
+					$author$project$FactoryCity$Data$Item$color(item))
 				])),
 		$mdgriffith$elm_ui$Element$text(
-			$author$project$FactoryCity$Data$CellType$itemToString(item)));
+			$author$project$FactoryCity$Data$Item$itemToString(item)));
 };
 var $author$project$FactoryCity$View$Details$display = function (containerSort) {
 	switch (containerSort.$) {
@@ -24863,56 +24858,56 @@ var $author$project$FactoryCity$View$Details$display = function (containerSort) 
 								return _List_fromArray(
 									[
 										$mdgriffith$elm_ui$Element$text(' Use '),
-										$author$project$FactoryCity$View$Details$displayItem($author$project$FactoryCity$Data$CellType$Wood),
+										$author$project$FactoryCity$View$Details$displayItem($author$project$FactoryCity$Data$Item$Wood),
 										$mdgriffith$elm_ui$Element$text(' as your primary fuel resource. Alternatively '),
-										$author$project$FactoryCity$View$Details$displayItem($author$project$FactoryCity$Data$CellType$Wood),
+										$author$project$FactoryCity$View$Details$displayItem($author$project$FactoryCity$Data$Item$Wood),
 										$mdgriffith$elm_ui$Element$text(' can be turned into '),
-										$author$project$FactoryCity$View$Details$displayItem($author$project$FactoryCity$Data$CellType$Chips),
+										$author$project$FactoryCity$View$Details$displayItem($author$project$FactoryCity$Data$Item$Chips),
 										$mdgriffith$elm_ui$Element$text(' using the shredder.')
 									]);
 							case 'Stone':
 								return _List_fromArray(
 									[
 										$mdgriffith$elm_ui$Element$text(' Smelt '),
-										$author$project$FactoryCity$View$Details$displayItem($author$project$FactoryCity$Data$CellType$Stone),
+										$author$project$FactoryCity$View$Details$displayItem($author$project$FactoryCity$Data$Item$Stone),
 										$mdgriffith$elm_ui$Element$text(' into '),
-										$author$project$FactoryCity$View$Details$displayItem($author$project$FactoryCity$Data$CellType$Iron),
+										$author$project$FactoryCity$View$Details$displayItem($author$project$FactoryCity$Data$Item$Iron),
 										$mdgriffith$elm_ui$Element$text(' using the furnace.')
 									]);
 							case 'Scrap':
 								return _List_fromArray(
 									[
 										$mdgriffith$elm_ui$Element$text(' '),
-										$author$project$FactoryCity$View$Details$displayItem($author$project$FactoryCity$Data$CellType$Scrap),
-										$mdgriffith$elm_ui$Element$text(' itself have be produced in different ways. Use the press to turn it back into '),
-										$author$project$FactoryCity$View$Details$displayItem($author$project$FactoryCity$Data$CellType$Stone),
+										$author$project$FactoryCity$View$Details$displayItem($author$project$FactoryCity$Data$Item$Scrap),
+										$mdgriffith$elm_ui$Element$text(' itself can be produced in different ways. Use the press to turn it back into '),
+										$author$project$FactoryCity$View$Details$displayItem($author$project$FactoryCity$Data$Item$Stone),
 										$mdgriffith$elm_ui$Element$text('.')
 									]);
 							case 'Chips':
 								return _List_fromArray(
 									[
 										$mdgriffith$elm_ui$Element$text(' If done correctly, '),
-										$author$project$FactoryCity$View$Details$displayItem($author$project$FactoryCity$Data$CellType$Chips),
+										$author$project$FactoryCity$View$Details$displayItem($author$project$FactoryCity$Data$Item$Chips),
 										$mdgriffith$elm_ui$Element$text(' is the best fuel available.')
 									]);
 							case 'Iron':
 								return _List_fromArray(
 									[
 										$mdgriffith$elm_ui$Element$text(' Craft '),
-										$author$project$FactoryCity$View$Details$displayItem($author$project$FactoryCity$Data$CellType$Iron),
+										$author$project$FactoryCity$View$Details$displayItem($author$project$FactoryCity$Data$Item$Iron),
 										$mdgriffith$elm_ui$Element$text(' into items.')
 									]);
 							default:
 								return _List_fromArray(
 									[
 										$mdgriffith$elm_ui$Element$text(' Craft '),
-										$author$project$FactoryCity$View$Details$displayItem($author$project$FactoryCity$Data$CellType$Chipboard),
+										$author$project$FactoryCity$View$Details$displayItem($author$project$FactoryCity$Data$Item$Chipboard),
 										$mdgriffith$elm_ui$Element$text(' into items.')
 									]);
 						}
 					}()
 					]),
-				name: $author$project$FactoryCity$Data$CellType$itemToString(item) + ' Crate'
+				name: $author$project$FactoryCity$Data$Item$itemToString(item) + ' Crate'
 			};
 		case 'Movable':
 			if (containerSort.a.$ === 'Belt') {
@@ -24922,7 +24917,7 @@ var $author$project$FactoryCity$View$Details$display = function (containerSort) 
 						_List_fromArray(
 							[
 								$mdgriffith$elm_ui$Element$text('Transports an item. If an output has multiple conveyor belts attached, it will turn into '),
-								$author$project$FactoryCity$View$Details$displayItem($author$project$FactoryCity$Data$CellType$Scrap),
+								$author$project$FactoryCity$View$Details$displayItem($author$project$FactoryCity$Data$Item$Scrap),
 								$mdgriffith$elm_ui$Element$text('. Similarly if two belts try to push an item onto the same tile, one of the items will be permantly deleted.')
 							])),
 					name: 'Conveyor Belt'
@@ -24973,10 +24968,10 @@ var $author$project$FactoryCity$View$Details$display = function (containerSort) 
 																return $mdgriffith$elm_ui$Element$Background$color(
 																	A3($mdgriffith$elm_ui$Element$rgb255, r, g, b));
 															}(
-																$author$project$FactoryCity$Data$CellType$color(from))
+																$author$project$FactoryCity$Data$Item$color(from))
 															])),
 													$mdgriffith$elm_ui$Element$text(
-														$author$project$FactoryCity$Data$CellType$itemToString(from))),
+														$author$project$FactoryCity$Data$Item$itemToString(from))),
 													$mdgriffith$elm_ui$Element$text(' into '),
 													A2(
 													$mdgriffith$elm_ui$Element$el,
@@ -24991,14 +24986,14 @@ var $author$project$FactoryCity$View$Details$display = function (containerSort) 
 																return $mdgriffith$elm_ui$Element$Background$color(
 																	A3($mdgriffith$elm_ui$Element$rgb255, r, g, b));
 															}(
-																$author$project$FactoryCity$Data$CellType$color(to))
+																$author$project$FactoryCity$Data$Item$color(to))
 															])),
 													$mdgriffith$elm_ui$Element$text(
-														$author$project$FactoryCity$Data$CellType$itemToString(to))),
+														$author$project$FactoryCity$Data$Item$itemToString(to))),
 													$mdgriffith$elm_ui$Element$text('. ')
 												]);
 										},
-										$author$project$FactoryCity$Data$CellType$smeltable),
+										$author$project$FactoryCity$Data$Item$smeltable),
 										$elm$core$List$singleton(
 										$mdgriffith$elm_ui$Element$text('Needs either ')),
 										A2(
@@ -25020,12 +25015,12 @@ var $author$project$FactoryCity$View$Details$display = function (containerSort) 
 																return $mdgriffith$elm_ui$Element$Background$color(
 																	A3($mdgriffith$elm_ui$Element$rgb255, r, g, b));
 															}(
-																$author$project$FactoryCity$Data$CellType$color(i))
+																$author$project$FactoryCity$Data$Item$color(i))
 															])),
 													$mdgriffith$elm_ui$Element$text(
-														$author$project$FactoryCity$Data$CellType$itemToString(i)));
+														$author$project$FactoryCity$Data$Item$itemToString(i)));
 											},
-											$author$project$FactoryCity$Data$CellType$burnable)),
+											$author$project$FactoryCity$Data$Item$burnable)),
 										$elm$core$List$singleton(
 										$mdgriffith$elm_ui$Element$text(' at the beginning of each cycle.'))
 									]))),
@@ -25059,10 +25054,10 @@ var $author$project$FactoryCity$View$Details$display = function (containerSort) 
 																return $mdgriffith$elm_ui$Element$Background$color(
 																	A3($mdgriffith$elm_ui$Element$rgb255, r, g, b));
 															}(
-																$author$project$FactoryCity$Data$CellType$color(from))
+																$author$project$FactoryCity$Data$Item$color(from))
 															])),
 													$mdgriffith$elm_ui$Element$text(
-														$author$project$FactoryCity$Data$CellType$itemToString(from))),
+														$author$project$FactoryCity$Data$Item$itemToString(from))),
 													$mdgriffith$elm_ui$Element$text(' into '),
 													A2(
 													$mdgriffith$elm_ui$Element$el,
@@ -25077,14 +25072,14 @@ var $author$project$FactoryCity$View$Details$display = function (containerSort) 
 																return $mdgriffith$elm_ui$Element$Background$color(
 																	A3($mdgriffith$elm_ui$Element$rgb255, r, g, b));
 															}(
-																$author$project$FactoryCity$Data$CellType$color(to))
+																$author$project$FactoryCity$Data$Item$color(to))
 															])),
 													$mdgriffith$elm_ui$Element$text(
-														$author$project$FactoryCity$Data$CellType$itemToString(to))),
+														$author$project$FactoryCity$Data$Item$itemToString(to))),
 													$mdgriffith$elm_ui$Element$text('. ')
 												]);
 										},
-										$author$project$FactoryCity$Data$CellType$shreddable),
+										$author$project$FactoryCity$Data$Item$shreddable),
 										$elm$core$List$singleton(
 										$mdgriffith$elm_ui$Element$text(' Needs either ')),
 										A2(
@@ -25106,12 +25101,12 @@ var $author$project$FactoryCity$View$Details$display = function (containerSort) 
 																return $mdgriffith$elm_ui$Element$Background$color(
 																	A3($mdgriffith$elm_ui$Element$rgb255, r, g, b));
 															}(
-																$author$project$FactoryCity$Data$CellType$color(i))
+																$author$project$FactoryCity$Data$Item$color(i))
 															])),
 													$mdgriffith$elm_ui$Element$text(
-														$author$project$FactoryCity$Data$CellType$itemToString(i)));
+														$author$project$FactoryCity$Data$Item$itemToString(i)));
 											},
-											$author$project$FactoryCity$Data$CellType$burnable)),
+											$author$project$FactoryCity$Data$Item$burnable)),
 										$elm$core$List$singleton(
 										$mdgriffith$elm_ui$Element$text(' at the beginning of each cycle. It procudes up to 3 items and will store the additional items in adjacent crates!'))
 									]))),
@@ -25145,10 +25140,10 @@ var $author$project$FactoryCity$View$Details$display = function (containerSort) 
 																return $mdgriffith$elm_ui$Element$Background$color(
 																	A3($mdgriffith$elm_ui$Element$rgb255, r, g, b));
 															}(
-																$author$project$FactoryCity$Data$CellType$color(from))
+																$author$project$FactoryCity$Data$Item$color(from))
 															])),
 													$mdgriffith$elm_ui$Element$text(
-														$author$project$FactoryCity$Data$CellType$itemToString(from))),
+														$author$project$FactoryCity$Data$Item$itemToString(from))),
 													$mdgriffith$elm_ui$Element$text(' into '),
 													A2(
 													$mdgriffith$elm_ui$Element$el,
@@ -25163,14 +25158,14 @@ var $author$project$FactoryCity$View$Details$display = function (containerSort) 
 																return $mdgriffith$elm_ui$Element$Background$color(
 																	A3($mdgriffith$elm_ui$Element$rgb255, r, g, b));
 															}(
-																$author$project$FactoryCity$Data$CellType$color(to))
+																$author$project$FactoryCity$Data$Item$color(to))
 															])),
 													$mdgriffith$elm_ui$Element$text(
-														$author$project$FactoryCity$Data$CellType$itemToString(to))),
+														$author$project$FactoryCity$Data$Item$itemToString(to))),
 													$mdgriffith$elm_ui$Element$text('. ')
 												]);
 										},
-										$author$project$FactoryCity$Data$CellType$pressable),
+										$author$project$FactoryCity$Data$Item$pressable),
 										$elm$core$List$singleton(
 										$mdgriffith$elm_ui$Element$text(' Needs either ')),
 										A2(
@@ -25192,12 +25187,12 @@ var $author$project$FactoryCity$View$Details$display = function (containerSort) 
 																return $mdgriffith$elm_ui$Element$Background$color(
 																	A3($mdgriffith$elm_ui$Element$rgb255, r, g, b));
 															}(
-																$author$project$FactoryCity$Data$CellType$color(i))
+																$author$project$FactoryCity$Data$Item$color(i))
 															])),
 													$mdgriffith$elm_ui$Element$text(
-														$author$project$FactoryCity$Data$CellType$itemToString(i)));
+														$author$project$FactoryCity$Data$Item$itemToString(i)));
 											},
-											$author$project$FactoryCity$Data$CellType$burnable)),
+											$author$project$FactoryCity$Data$Item$burnable)),
 										$elm$core$List$singleton(
 										$mdgriffith$elm_ui$Element$text(' for every usage.'))
 									]))),
@@ -25502,11 +25497,11 @@ var $author$project$FactoryCity$View$Shop$view = function (_v0) {
 														A2($mdgriffith$elm_ui$Element$paddingXY, 16, 12)
 													]);
 											}(
-												$author$project$FactoryCity$Data$CellType$color(item)),
+												$author$project$FactoryCity$Data$Item$color(item)),
 											A2(
 												$author$project$FactoryCity$View$Text$view,
 												16,
-												$author$project$FactoryCity$Data$CellType$itemToString(item)))),
+												$author$project$FactoryCity$Data$Item$itemToString(item)))),
 										A2(
 										$elm$core$Maybe$withDefault,
 										$mdgriffith$elm_ui$Element$text(
@@ -25601,7 +25596,7 @@ var $author$project$FactoryCity$View$Shop$view = function (_v0) {
 									function (a) {
 										return _Utils_Tuple2(a, n);
 									},
-									$author$project$FactoryCity$Data$CellType$stringToItem(c));
+									$author$project$FactoryCity$Data$Item$stringToItem(c));
 							},
 							$JohnBugner$elm_bag$Bag$toList(shop))))
 				])));
@@ -25616,7 +25611,6 @@ var $author$project$FactoryCity$View$Game$view = F2(
 		var nextBugIn = _v0.nextBugIn;
 		var scale = _v0.scale;
 		var selected = _v0.selected;
-		var sort = _v0.sort;
 		var loopLength = _v0.loopLength;
 		var craftMsg = _v0.craftMsg;
 		var changedLoopLengthMsg = _v0.changedLoopLengthMsg;
@@ -25654,58 +25648,25 @@ var $author$project$FactoryCity$View$Game$view = F2(
 						_List_fromArray(
 							[
 								A2(
-								$mdgriffith$elm_ui$Element$row,
-								$Orasund$elm_ui_framework$Framework$Grid$simple,
-								_List_fromArray(
-									[
-										A2(
-										$mdgriffith$elm_ui$Element$el,
-										_List_fromArray(
-											[
-												$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
-											]),
-										$mdgriffith$elm_ui$Element$none),
-										A2(
-										$mdgriffith$elm_ui$Element$el,
-										_Utils_ap(
-											$Orasund$elm_ui_framework$Framework$Heading$h1,
-											_List_fromArray(
-												[
-													$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
-												])),
-										A2(
-											$mdgriffith$elm_ui$Element$el,
-											_List_fromArray(
-												[$mdgriffith$elm_ui$Element$centerX]),
-											$mdgriffith$elm_ui$Element$text(
-												$elm$core$String$fromInt(counter)))),
-										A2(
-										$mdgriffith$elm_ui$Element$paragraph,
-										_List_fromArray(
-											[
-												$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
-											]),
-										$elm$core$List$singleton(
-											$mdgriffith$elm_ui$Element$text(
-												'Next bug in ' + ($elm$core$String$fromInt(nextBugIn) + ' turns'))))
-									])),
-								A2(
 								$author$project$FactoryCity$View$Board$view,
 								{
 									maybePositionMsg: $elm$core$Maybe$Just(positionSelectedMsg),
 									scale: scale
 								},
 								board),
-								A5(
+								A4(
 								$author$project$FactoryCity$View$Deck$view,
 								scale,
-								{sort: sort},
 								$elm$core$Maybe$Just(selectedMsg),
 								selected,
 								deck)
 							])))),
 				_List_fromArray(
 				[
+					_Utils_Tuple2(
+					'Machine',
+					$author$project$FactoryCity$View$Settings$view(
+						{changedLoopLengthMsg: changedLoopLengthMsg, hasPower: hasPower, loopLength: loopLength, togglePowerMsg: togglePowerMsg})),
 					_Utils_Tuple2(
 					'Details',
 					function () {
@@ -25715,7 +25676,7 @@ var $author$project$FactoryCity$View$Game$view = F2(
 								1,
 								($author$project$FactoryCity$Data$maxPrice / (A2(
 									$JohnBugner$elm_bag$Bag$count,
-									$author$project$FactoryCity$Data$CellType$itemToString(item),
+									$author$project$FactoryCity$Data$Item$itemToString(item),
 									shop) + 1)) | 0);
 						}(
 							function () {
@@ -25723,21 +25684,18 @@ var $author$project$FactoryCity$View$Game$view = F2(
 									var item = selected.a.a;
 									return item;
 								} else {
-									return $author$project$FactoryCity$Data$CellType$Scrap;
+									return $author$project$FactoryCity$Data$Item$Scrap;
 								}
 							}());
 						return $author$project$FactoryCity$View$Details$view(
 							{price: price, selected: selected, sellMsg: sellMsg});
-					}()),
-					_Utils_Tuple2(
-					'Settings',
-					$author$project$FactoryCity$View$Settings$view(
-						{changedLoopLengthMsg: changedLoopLengthMsg, hasPower: hasPower, loopLength: loopLength, togglePowerMsg: togglePowerMsg}))
+					}())
 				])
 			]);
 	});
-var $author$project$FactoryCity$State$Playing$view = F4(
-	function (scale, restartMsg, msgMapper, _v0) {
+var $author$project$FactoryCity$Data$yOffset = 50;
+var $author$project$FactoryCity$State$Playing$view = F3(
+	function (scale, msgMapper, _v0) {
 		var hasPower = _v0.a.hasPower;
 		var stepCount = _v0.a.stepCount;
 		var nextBugIn = _v0.a.nextBugIn;
@@ -25745,7 +25703,6 @@ var $author$project$FactoryCity$State$Playing$view = F4(
 		var money = _v0.a.money;
 		var game = _v0.a.game;
 		var selected = _v0.a.selected;
-		var viewedCard = _v0.a.viewedCard;
 		var loopEvery = _v0.a.loopEvery;
 		var list = A2(
 			$author$project$FactoryCity$View$Game$view,
@@ -25764,40 +25721,94 @@ var $author$project$FactoryCity$State$Playing$view = F4(
 				selectedMsg: A2($elm$core$Basics$composeL, msgMapper, $author$project$FactoryCity$State$Playing$Selected),
 				sellMsg: A2($elm$core$Basics$composeL, msgMapper, $author$project$FactoryCity$State$Playing$ClickedSell),
 				shop: shop,
-				sort: true,
 				togglePowerMsg: msgMapper($author$project$FactoryCity$State$Playing$TogglePower)
 			},
 			game);
 		return _Utils_Tuple2(
 			$elm$core$Maybe$Just(
-				A2(
-					$mdgriffith$elm_ui$Element$wrappedRow,
-					_Utils_ap(
-						$Orasund$elm_ui_framework$Framework$Color$light,
+				_Utils_Tuple2(
+					A2(
+						$mdgriffith$elm_ui$Element$row,
+						_Utils_ap(
+							$Orasund$elm_ui_framework$Framework$Grid$simple,
+							_Utils_ap(
+								$Orasund$elm_ui_framework$Framework$Color$light,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_ui$Element$height(
+										$mdgriffith$elm_ui$Element$px($author$project$FactoryCity$Data$yOffset))
+									]))),
 						_List_fromArray(
 							[
-								$mdgriffith$elm_ui$Element$alignBottom,
-								A2($mdgriffith$elm_ui$Element$paddingXY, 16, 2),
-								$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
-								$mdgriffith$elm_ui$Element$spaceEvenly
+								A2(
+								$mdgriffith$elm_ui$Element$el,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
+									]),
+								$mdgriffith$elm_ui$Element$none),
+								A2(
+								$mdgriffith$elm_ui$Element$el,
+								_Utils_ap(
+									$Orasund$elm_ui_framework$Framework$Heading$h1,
+									_List_fromArray(
+										[
+											$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
+											$mdgriffith$elm_ui$Element$alignBottom
+										])),
+								A2(
+									$mdgriffith$elm_ui$Element$el,
+									_List_fromArray(
+										[$mdgriffith$elm_ui$Element$centerX]),
+									$mdgriffith$elm_ui$Element$text(
+										$elm$core$String$fromInt(stepCount)))),
+								A2(
+								$mdgriffith$elm_ui$Element$paragraph,
+								_List_fromArray(
+									[
+										$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
+										$mdgriffith$elm_ui$Element$alignBottom
+									]),
+								$elm$core$List$singleton(
+									$mdgriffith$elm_ui$Element$text(
+										'Next bug in ' + ($elm$core$String$fromInt(nextBugIn) + ' turns'))))
 							])),
 					A2(
-						$elm$core$List$map,
-						function (_v1) {
-							var name = _v1.a;
-							return A2(
-								$mdgriffith$elm_ui$Element$Input$button,
-								$Orasund$elm_ui_framework$Framework$Button$simple,
-								{
-									label: $mdgriffith$elm_ui$Element$text(name),
-									onPress: $elm$core$Maybe$Just(
-										msgMapper(
-											$author$project$FactoryCity$State$Playing$ClickedChangeTab(name)))
-								});
-						},
-						$elm$core$List$concat(list)))),
+						$mdgriffith$elm_ui$Element$wrappedRow,
+						_Utils_ap(
+							$Orasund$elm_ui_framework$Framework$Color$light,
+							_List_fromArray(
+								[
+									A2($mdgriffith$elm_ui$Element$paddingXY, 16, 2),
+									$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
+									$mdgriffith$elm_ui$Element$spaceEvenly,
+									$mdgriffith$elm_ui$Element$alignBottom
+								])),
+						A2(
+							$elm$core$List$map,
+							function (_v1) {
+								var name = _v1.a;
+								return A2(
+									$mdgriffith$elm_ui$Element$Input$button,
+									$Orasund$elm_ui_framework$Framework$Button$simple,
+									{
+										label: $mdgriffith$elm_ui$Element$text(name),
+										onPress: $elm$core$Maybe$Just(
+											msgMapper(
+												$author$project$FactoryCity$State$Playing$ClickedChangeTab(name)))
+									});
+							},
+							$elm$core$List$concat(list))))),
 			_List_fromArray(
 				[
+					A2(
+					$mdgriffith$elm_ui$Element$el,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_ui$Element$height(
+							$mdgriffith$elm_ui$Element$px($author$project$FactoryCity$Data$yOffset))
+						]),
+					$mdgriffith$elm_ui$Element$none),
 					A2(
 					$mdgriffith$elm_ui$Element$wrappedRow,
 					$Orasund$elm_ui_framework$Framework$Grid$simple,
@@ -25817,7 +25828,7 @@ var $author$project$FactoryCity$State$Playing$view = F4(
 												A2(
 												$mdgriffith$elm_ui$Element$el,
 												_Utils_ap(
-													$Orasund$elm_ui_framework$Framework$Heading$h1,
+													$Orasund$elm_ui_framework$Framework$Heading$h2,
 													_List_fromArray(
 														[
 															$mdgriffith$elm_ui$Element$htmlAttribute(
@@ -25921,7 +25932,6 @@ var $mdgriffith$elm_ui$Element$Font$family = function (families) {
 			A3($elm$core$List$foldl, $mdgriffith$elm_ui$Internal$Model$renderFontClassName, 'ff-', families),
 			families));
 };
-var $Orasund$elm_ui_framework$Framework$Heading$h2 = $Orasund$elm_ui_framework$Framework$Heading$h(2);
 var $mdgriffith$elm_ui$Element$Font$sansSerif = $mdgriffith$elm_ui$Internal$Model$SansSerif;
 var $author$project$FactoryCity$State$Ready$viewMode = F2(
 	function (msg, _v0) {
@@ -25966,8 +25976,8 @@ var $author$project$FactoryCity$State$Ready$viewMode = F2(
 				onPress: $elm$core$Maybe$Just(msg)
 			});
 	});
-var $author$project$FactoryCity$State$Ready$view = F4(
-	function (scale, restartMsg, msgMapper, _v0) {
+var $author$project$FactoryCity$State$Ready$view = F3(
+	function (scale, msgMapper, _v0) {
 		var shop = _v0.a;
 		return _Utils_Tuple2(
 			$elm$core$Maybe$Nothing,
@@ -26040,12 +26050,12 @@ var $author$project$FactoryCity$State$Ready$view = F4(
 									A2(
 									$author$project$FactoryCity$State$Ready$viewMode,
 									msgMapper(
-										$author$project$FactoryCity$State$Ready$ClickedStart($author$project$FactoryCity$Data$CellType$Wood)),
+										$author$project$FactoryCity$State$Ready$ClickedStart($author$project$FactoryCity$Data$Item$Wood)),
 									{desc: 'You get wood for free', title: 'Wood cutter'}),
 									A2(
 									$author$project$FactoryCity$State$Ready$viewMode,
 									msgMapper(
-										$author$project$FactoryCity$State$Ready$ClickedStart($author$project$FactoryCity$Data$CellType$Stone)),
+										$author$project$FactoryCity$State$Ready$ClickedStart($author$project$FactoryCity$Data$Item$Stone)),
 									{desc: 'You get stone for free', title: 'Miner'})
 								]))
 						]))));
@@ -26057,18 +26067,18 @@ var $author$project$FactoryCity$Main$view = function (model) {
 				var _v2 = model.a;
 				var playingModel = _v2.a;
 				var scale = _v2.b.scale;
-				return A4($author$project$FactoryCity$State$Playing$view, scale, $author$project$FactoryCity$Main$Restart, $author$project$FactoryCity$Main$PlayingSpecific, playingModel);
+				return A3($author$project$FactoryCity$State$Playing$view, scale, $author$project$FactoryCity$Main$PlayingSpecific, playingModel);
 			case 'Ready':
 				var _v3 = model.a;
 				var readyModel = _v3.a;
 				var scale = _v3.b.scale;
-				return A4($author$project$FactoryCity$State$Ready$view, scale, $author$project$FactoryCity$Main$Restart, $author$project$FactoryCity$Main$ReadySpecific, readyModel);
+				return A3($author$project$FactoryCity$State$Ready$view, scale, $author$project$FactoryCity$Main$ReadySpecific, readyModel);
 			default:
 				var preparingModel = model.a;
 				return $author$project$FactoryCity$State$Prepairing$view(preparingModel);
 		}
 	}();
-	var inFrontContent = _v0.a;
+	var maybeInfrontContent = _v0.a;
 	var content = _v0.b;
 	return {
 		body: _List_fromArray(
@@ -26098,8 +26108,16 @@ var $author$project$FactoryCity$Main$view = function (model) {
 							_List_Nil,
 							A2(
 								$elm$core$Maybe$map,
-								A2($elm$core$Basics$composeR, $mdgriffith$elm_ui$Element$inFront, $elm$core$List$singleton),
-								inFrontContent)),
+								function (_v4) {
+									var topContent = _v4.a;
+									var bottomContent = _v4.b;
+									return _List_fromArray(
+										[
+											$mdgriffith$elm_ui$Element$inFront(topContent),
+											$mdgriffith$elm_ui$Element$inFront(bottomContent)
+										]);
+								},
+								maybeInfrontContent)),
 							$Orasund$elm_ui_framework$Framework$layoutAttributes
 						])),
 				A2($mdgriffith$elm_ui$Element$column, $Orasund$elm_ui_framework$Framework$container, content))

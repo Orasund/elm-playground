@@ -10,7 +10,7 @@ import FactoryCity.View.Text as Text
 import Framework.Grid as Grid
 import Grid.Bordered as Grid exposing (Grid)
 import Grid.Position exposing (Position)
-
+import FactoryCity.Data.Item as Item
 
 viewCell : Float -> Position -> Maybe (Position -> msg) -> Maybe CellType -> Element msg
 viewCell scale position maybeMsg maybeCellType =
@@ -36,7 +36,7 @@ viewCell scale position maybeMsg maybeCellType =
                         cellType
                             |> .item
                             |> Maybe.map
-                                (CellType.color
+                                (Item.color
                                     >> (\( r, g, b ) ->
                                             [ Background.color <| Element.rgb255 r g b ]
                                        )

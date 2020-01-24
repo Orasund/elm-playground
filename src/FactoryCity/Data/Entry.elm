@@ -1,7 +1,7 @@
 module FactoryCity.Data.Entry exposing (Entry, new)
 
-import FactoryCity.Data as Data exposing (gameVersion)
-import FactoryCity.Data.Game as Game exposing (EndCondition(..), Game)
+import FactoryCity.Data exposing (gameVersion)
+import FactoryCity.Data.Game exposing (EndCondition(..), Game)
 import UndoList exposing (UndoList)
 
 

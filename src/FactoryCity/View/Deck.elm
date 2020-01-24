@@ -3,40 +3,42 @@ module FactoryCity.View.Deck exposing (view)
 import Card
 import Element exposing (Attribute, Element)
 import Element.Background as Background
-import Element.Font as Font
-import FactoryCity.Data.CellType as CellType exposing (CellType, ContainerSort(..))
+import FactoryCity.Data.CellType as CellType exposing (ContainerSort(..))
 import FactoryCity.Data.Deck as Deck exposing (Deck)
+import FactoryCity.Data.Item as Item
 import FactoryCity.View.Text as Text
 import Framework.Grid as Grid
 
 
-viewInactiveCard : Float -> Element msg -> Element msg
-viewInactiveCard scale content =
-    Element.el
-        [ Element.width <| Element.px <| floor <| 120 * scale
-        , Element.height <| Element.px <| floor <| 176 * scale
-        , Element.alignTop
-        , Element.padding <| floor <| 5 * scale
-        ]
-    <|
-        content
+
+{- viewInactiveCard : Float -> Element msg -> Element msg
+   viewInactiveCard scale content =
+       Element.el
+           [ Element.width <| Element.px <| floor <| 120 * scale
+           , Element.height <| Element.px <| floor <| 176 * scale
+           , Element.alignTop
+           , Element.padding <| floor <| 5 * scale
+           ]
+       <|
+           content
 
 
-viewCardList : Float -> { sort : Bool } -> List CellType -> Element msg
-viewCardList scale { sort } =
-    List.map CellType.toString
-        >> (if sort then
-                List.sort
+   viewCardList : Float -> { sort : Bool } -> List CellType -> Element msg
+   viewCardList scale { sort } =
+       List.map CellType.toString
+           >> (if sort then
+                   List.sort
 
-            else
-                identity
-           )
-        >> List.map (\( name, item ) -> Element.text name)
-        >> Element.wrappedRow
-            [ Font.size <| floor <| 25 * scale
-            , Element.spacing <| floor <| 5 * scale
-            , Element.centerX
-            ]
+               else
+                   identity
+              )
+           >> List.map (\( name, _ ) -> Element.text name)
+           >> Element.wrappedRow
+               [ Font.size <| floor <| 25 * scale
+               , Element.spacing <| floor <| 5 * scale
+               , Element.centerX
+               ]
+-}
 
 
 viewContent : ContainerSort -> Int -> Element msg
@@ -63,12 +65,11 @@ viewAttributes scale =
 
 view :
     Float
-    -> { sort : Bool }
     -> Maybe (ContainerSort -> msg)
     -> Maybe ContainerSort
     -> Deck
     -> Element msg
-view scale sort maybeSelectedMsg maybeSelected deck =
+view scale maybeSelectedMsg maybeSelected deck =
     Element.row (viewAttributes scale) <|
         [ Card.hand
             [ Element.centerX
@@ -86,7 +87,7 @@ view scale sort maybeSelectedMsg maybeSelected deck =
                                     case containerSort of
                                         Crate item ->
                                             item
-                                                |> CellType.color
+                                                |> Item.color
                                                 |> (\( r, g, b ) ->
                                                         [ Background.color <| Element.rgb255 r g b ]
                                                    )

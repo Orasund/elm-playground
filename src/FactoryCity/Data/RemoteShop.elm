@@ -1,7 +1,8 @@
 module FactoryCity.Data.RemoteShop exposing (insert, json, remove, sync)
 
 import Bag exposing (Bag)
-import FactoryCity.Data.CellType as CellType exposing (ContainerSort(..), Item(..))
+import FactoryCity.Data.CellType exposing (ContainerSort(..))
+import FactoryCity.Data.Item as Item exposing (Item(..))
 import FactoryCity.String as String
 import Http
 import Jsonstore exposing (Json)
@@ -28,7 +29,7 @@ toBag { chips, iron, scrap, stone, wood, chipboard } =
     , ( Chipboard, chipboard )
     ]
         |> List.map
-            (Tuple.mapBoth CellType.itemToString
+            (Tuple.mapBoth Item.itemToString
                 (Maybe.withDefault 0)
             )
         |> Bag.fromList
@@ -37,12 +38,12 @@ toBag { chips, iron, scrap, stone, wood, chipboard } =
 json : Json RemoteShop
 json =
     Jsonstore.object RemoteShop
-        |> Jsonstore.withMaybe (Chips |> CellType.itemToString) Jsonstore.int .chips
-        |> Jsonstore.withMaybe (Iron |> CellType.itemToString) Jsonstore.int .iron
-        |> Jsonstore.withMaybe (Scrap |> CellType.itemToString) Jsonstore.int .scrap
-        |> Jsonstore.withMaybe (Stone |> CellType.itemToString) Jsonstore.int .stone
-        |> Jsonstore.withMaybe (Wood |> CellType.itemToString) Jsonstore.int .wood
-        |> Jsonstore.withMaybe (Chipboard |> CellType.itemToString) Jsonstore.int .chipboard
+        |> Jsonstore.withMaybe (Chips |> Item.itemToString) Jsonstore.int .chips
+        |> Jsonstore.withMaybe (Iron |> Item.itemToString) Jsonstore.int .iron
+        |> Jsonstore.withMaybe (Scrap |> Item.itemToString) Jsonstore.int .scrap
+        |> Jsonstore.withMaybe (Stone |> Item.itemToString) Jsonstore.int .stone
+        |> Jsonstore.withMaybe (Wood |> Item.itemToString) Jsonstore.int .wood
+        |> Jsonstore.withMaybe (Chipboard |> Item.itemToString) Jsonstore.int .chipboard
         |> Jsonstore.toJson
 
 
@@ -57,7 +58,7 @@ sync =
 remove : Item -> Task Http.Error ()
 remove item =
     Jsonstore.update
-        { url = String.url ++ "/" ++ (item |> CellType.itemToString)
+        { url = String.url ++ "/" ++ (item |> Item.itemToString)
         , decoder = Jsonstore.int |> Jsonstore.decode
         , value =
             Maybe.andThen
@@ -74,7 +75,7 @@ remove item =
 insert : Item -> Task Http.Error ()
 insert item =
     Jsonstore.update
-        { url = String.url ++ "/" ++ (item |> CellType.itemToString)
+        { url = String.url ++ "/" ++ (item |> Item.itemToString)
         , decoder = Jsonstore.int |> Jsonstore.decode
         , value =
             Maybe.map ((+) 1)

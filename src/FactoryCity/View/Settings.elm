@@ -3,7 +3,6 @@ module FactoryCity.View.Settings exposing (view)
 import Element exposing (Element)
 import Element.Input as Input
 import Framework.Button as Button
-import Framework.Card as Card
 import Framework.Color as Color
 import Framework.Grid as Grid
 import Framework.Input as Input

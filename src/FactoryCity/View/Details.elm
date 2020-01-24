@@ -4,11 +4,11 @@ import Element exposing (Attribute, Element)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Input as Input
-import FactoryCity.Data.CellType as CellType exposing (ContainerSort(..), Item(..), MachineSort(..), MovableSort(..))
+import FactoryCity.Data.CellType as CellType exposing (ContainerSort(..), MachineSort(..), MovableSort(..))
+import FactoryCity.Data.Item as Item exposing (Item(..))
 import FactoryCity.View.Text as Text
 import Framework.Button as Button
 import Framework.Card as Card
-import Framework.Color as Color
 import Framework.Grid as Grid
 import Framework.Heading as Heading
 
@@ -25,21 +25,21 @@ displayItem item =
     Element.el
         (tag
             ++ [ item
-                    |> CellType.color
+                    |> Item.color
                     |> (\( r, g, b ) ->
                             Background.color <| Element.rgb255 r g b
                        )
                ]
         )
     <|
-        Element.text (item |> CellType.itemToString)
+        Element.text (item |> Item.itemToString)
 
 
 display : ContainerSort -> { name : String, desc : List (List (Element msg)) }
 display containerSort =
     case containerSort of
         Crate item ->
-            { name = (item |> CellType.itemToString) ++ " Crate"
+            { name = (item |> Item.itemToString) ++ " Crate"
             , desc =
                 [ [ Element.text <| "Outputs one "
                   , displayItem <| item
@@ -69,7 +69,7 @@ display containerSort =
                     Scrap ->
                         [ Element.text <| " "
                         , displayItem <| Scrap
-                        , Element.text <| " itself have be produced in different ways. Use the press to turn it back into "
+                        , Element.text <| " itself can be produced in different ways. Use the press to turn it back into "
                         , displayItem <| Stone
                         , Element.text <| "."
                         ]
@@ -127,26 +127,26 @@ display containerSort =
             , desc =
                 List.singleton <|
                     List.concat
-                        [ CellType.smeltable
+                        [ Item.smeltable
                             |> List.concatMap
                                 (\( from, to ) ->
                                     [ Element.text <| "Smelts "
                                     , Element.el
                                         (tag
                                             ++ [ from
-                                                    |> CellType.color
+                                                    |> Item.color
                                                     |> (\( r, g, b ) ->
                                                             Background.color <| Element.rgb255 r g b
                                                        )
                                                ]
                                         )
                                       <|
-                                        Element.text (from |> CellType.itemToString)
+                                        Element.text (from |> Item.itemToString)
                                     , Element.text <| " into "
                                     , Element.el
                                         (tag
                                             ++ [ to
-                                                    |> CellType.color
+                                                    |> Item.color
                                                     |> (\( r, g, b ) ->
                                                             Background.color <| Element.rgb255 r g b
                                                        )
@@ -154,18 +154,18 @@ display containerSort =
                                         )
                                       <|
                                         Element.text <|
-                                            (to |> CellType.itemToString)
+                                            (to |> Item.itemToString)
                                     , Element.text <| ". "
                                     ]
                                 )
                         , List.singleton <| Element.text <| "Needs either "
-                        , CellType.burnable
+                        , Item.burnable
                             |> List.map
                                 (\i ->
                                     Element.el
                                         (tag
                                             ++ [ i
-                                                    |> CellType.color
+                                                    |> Item.color
                                                     |> (\( r, g, b ) ->
                                                             Background.color <| Element.rgb255 r g b
                                                        )
@@ -173,7 +173,7 @@ display containerSort =
                                         )
                                     <|
                                         Element.text <|
-                                            (i |> CellType.itemToString)
+                                            (i |> Item.itemToString)
                                 )
                             |> List.intersperse (Element.text " or ")
                         , List.singleton <| Element.text <| " at the beginning of each cycle."
@@ -185,26 +185,26 @@ display containerSort =
             , desc =
                 List.singleton <|
                     List.concat
-                        [ CellType.shreddable
+                        [ Item.shreddable
                             |> List.concatMap
                                 (\( from, to ) ->
                                     [ Element.text <| "Shredds "
                                     , Element.el
                                         (tag
                                             ++ [ from
-                                                    |> CellType.color
+                                                    |> Item.color
                                                     |> (\( r, g, b ) ->
                                                             Background.color <| Element.rgb255 r g b
                                                        )
                                                ]
                                         )
                                       <|
-                                        Element.text (from |> CellType.itemToString)
+                                        Element.text (from |> Item.itemToString)
                                     , Element.text <| " into "
                                     , Element.el
                                         (tag
                                             ++ [ to
-                                                    |> CellType.color
+                                                    |> Item.color
                                                     |> (\( r, g, b ) ->
                                                             Background.color <| Element.rgb255 r g b
                                                        )
@@ -212,18 +212,18 @@ display containerSort =
                                         )
                                       <|
                                         Element.text <|
-                                            (to |> CellType.itemToString)
+                                            (to |> Item.itemToString)
                                     , Element.text <| ". "
                                     ]
                                 )
                         , List.singleton <| Element.text <| " Needs either "
-                        , CellType.burnable
+                        , Item.burnable
                             |> List.map
                                 (\i ->
                                     Element.el
                                         (tag
                                             ++ [ i
-                                                    |> CellType.color
+                                                    |> Item.color
                                                     |> (\( r, g, b ) ->
                                                             Background.color <| Element.rgb255 r g b
                                                        )
@@ -231,7 +231,7 @@ display containerSort =
                                         )
                                     <|
                                         Element.text <|
-                                            (i |> CellType.itemToString)
+                                            (i |> Item.itemToString)
                                 )
                             |> List.intersperse (Element.text " or ")
                         , List.singleton <| Element.text <| " at the beginning of each cycle. It procudes up to 3 items and will store the additional items in adjacent crates!"
@@ -243,26 +243,26 @@ display containerSort =
             , desc =
                 List.singleton <|
                     List.concat
-                        [ CellType.pressable
+                        [ Item.pressable
                             |> List.concatMap
                                 (\( from, to ) ->
                                     [ Element.text <| "Compresses "
                                     , Element.el
                                         (tag
                                             ++ [ from
-                                                    |> CellType.color
+                                                    |> Item.color
                                                     |> (\( r, g, b ) ->
                                                             Background.color <| Element.rgb255 r g b
                                                        )
                                                ]
                                         )
                                       <|
-                                        Element.text (from |> CellType.itemToString)
+                                        Element.text (from |> Item.itemToString)
                                     , Element.text <| " into "
                                     , Element.el
                                         (tag
                                             ++ [ to
-                                                    |> CellType.color
+                                                    |> Item.color
                                                     |> (\( r, g, b ) ->
                                                             Background.color <| Element.rgb255 r g b
                                                        )
@@ -270,20 +270,20 @@ display containerSort =
                                         )
                                       <|
                                         Element.text <|
-                                            (to |> CellType.itemToString)
+                                            (to |> Item.itemToString)
                                     , Element.text <| ". "
                                     ]
                                 )
                         , List.singleton <|
                             Element.text <|
                                 " Needs either "
-                        , CellType.burnable
+                        , Item.burnable
                             |> List.map
                                 (\i ->
                                     Element.el
                                         (tag
                                             ++ [ i
-                                                    |> CellType.color
+                                                    |> Item.color
                                                     |> (\( r, g, b ) ->
                                                             Background.color <| Element.rgb255 r g b
                                                        )
@@ -291,7 +291,7 @@ display containerSort =
                                         )
                                     <|
                                         Element.text <|
-                                            (i |> CellType.itemToString)
+                                            (i |> Item.itemToString)
                                 )
                             |> List.intersperse (Element.text " or ")
                         , List.singleton <|

@@ -3,16 +3,12 @@ module FactoryCity.View.Crafting exposing (view)
 import Element exposing (Element)
 import Element.Input as Input
 import FactoryCity.Data.CellType as CellType exposing (ContainerSort(..), MachineSort(..), MovableSort(..))
+import FactoryCity.Data.Item as Item
 import FactoryCity.View.Text as Text
 import Framework.Button as Button
 import Framework.Card as Card
 import Framework.Grid as Grid
-import Grid.Direction as Direction exposing (Direction(..))
-
-
-dirList : List Direction
-dirList =
-    [ Up, Left, Right, Down ]
+import Grid.Direction exposing (Direction(..))
 
 
 view : { craftMsg : ContainerSort -> msg } -> Element msg
@@ -34,7 +30,7 @@ view { craftMsg } =
                         (fun
                             |> List.map
                                 (\( item, n ) ->
-                                    (n |> String.fromInt) ++ " " ++ (item |> CellType.itemToString)
+                                    (n |> String.fromInt) ++ " " ++ (item |> Item.itemToString)
                                 )
                             |> String.join " and "
                             |> Element.text

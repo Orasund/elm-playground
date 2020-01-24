@@ -4,16 +4,14 @@ import Bag exposing (Bag)
 import Element exposing (Element)
 import Element.Background as Background
 import Element.Border as Border
-import Element.Font as Font
 import Element.Input as Input
 import FactoryCity.Data as Data
-import FactoryCity.Data.CellType as CellType exposing (ContainerSort, Item)
+import FactoryCity.Data.CellType as CellType exposing (ContainerSort)
+import FactoryCity.Data.Item as Item exposing (Item)
 import FactoryCity.View.Text as Text
 import Framework.Button as Button
-import Framework.Card as Card
 import Framework.Color as Color
 import Framework.Grid as Grid
-import Framework.Heading as Heading
 
 
 view :
@@ -34,7 +32,7 @@ view { shop, buyMsg, sellMsg, money, deck } =
                     |> List.filterMap
                         (\( c, n ) ->
                             c
-                                |> CellType.stringToItem
+                                |> Item.stringToItem
                                 |> Maybe.map (\a -> ( a, n ))
                         )
                     |> List.map
@@ -50,7 +48,7 @@ view { shop, buyMsg, sellMsg, money, deck } =
                                 [ Element.el [ Element.width <| Element.fill ] <|
                                     Element.el
                                         (item
-                                            |> CellType.color
+                                            |> Item.color
                                             |> (\( r, g, b ) ->
                                                     [ Background.color <|
                                                         Element.rgb255 r g b
@@ -61,7 +59,7 @@ view { shop, buyMsg, sellMsg, money, deck } =
                                         )
                                     <|
                                         Text.view 16 <|
-                                            CellType.itemToString <|
+                                            Item.itemToString <|
                                                 item
                                 , Maybe.map2
                                     (\bMsg sMsg ->

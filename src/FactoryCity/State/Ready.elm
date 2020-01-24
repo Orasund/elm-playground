@@ -5,18 +5,15 @@ import Bag exposing (Bag)
 import Element exposing (Element)
 import Element.Font as Font
 import Element.Input as Input
-import FactoryCity.Data.CellType exposing (Item(..))
-import FactoryCity.Data.Game as Game exposing (Game)
+import FactoryCity.Data.Item exposing (Item(..))
 import FactoryCity.State.Playing as PlayingState
-import FactoryCity.View.Game as GameView
 import FactoryCity.View.Shop as Shop
 import FactoryCity.View.Text as Text
 import Framework.Button as Button
 import Framework.Card as Card
 import Framework.Grid as Grid
 import Framework.Heading as Heading
-import Random exposing (Generator, Seed)
-import Task
+import Random exposing (Seed)
 import Time exposing (Month(..))
 
 
@@ -62,50 +59,49 @@ init shop seed =
 ----------------------
 -- Update
 ----------------------
+{- monthToInt : Month -> Int
+   monthToInt month =
+       case month of
+           Jan ->
+               1
 
+           Feb ->
+               2
 
-monthToInt : Month -> Int
-monthToInt month =
-    case month of
-        Jan ->
-            1
+           Mar ->
+               3
 
-        Feb ->
-            2
+           Apr ->
+               4
 
-        Mar ->
-            3
+           May ->
+               5
 
-        Apr ->
-            4
+           Jun ->
+               6
 
-        May ->
-            5
+           Jul ->
+               7
 
-        Jun ->
-            6
+           Aug ->
+               8
 
-        Jul ->
-            7
+           Sep ->
+               9
 
-        Aug ->
-            8
+           Oct ->
+               10
 
-        Sep ->
-            9
+           Nov ->
+               11
 
-        Oct ->
-            10
-
-        Nov ->
-            11
-
-        Dec ->
-            12
+           Dec ->
+               12
+-}
 
 
 update : Msg -> Model -> Action
-update msg (( shop, seed ) as model) =
+update msg ( shop, seed ) =
     case msg of
         ClickedStart item ->
             Action.transitioning
@@ -153,11 +149,10 @@ viewMode msg { title, desc } =
 
 view :
     Float
-    -> msg
     -> (Msg -> msg)
     -> Model
-    -> ( Maybe (Element msg), List (Element msg) )
-view scale restartMsg msgMapper ( shop, _ ) =
+    -> ( Maybe ( Element msg, Element msg ), List (Element msg) )
+view scale msgMapper ( shop, _ ) =
     ( Nothing
     , List.singleton <|
         Element.wrappedRow (Grid.simple ++ [ Element.height <| Element.fill ])

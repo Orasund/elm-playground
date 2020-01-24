@@ -1,4 +1,9 @@
-module FactoryCity.Data exposing (bugCycle, devMode, gameVersion, maxHistorySize, maxPrice, updateName)
+module FactoryCity.Data exposing (bugCycle, devMode, gameVersion, maxHistorySize, maxPrice, updateName, yOffset)
+
+
+yOffset : Int
+yOffset =
+    50
 
 
 maxPrice : Int

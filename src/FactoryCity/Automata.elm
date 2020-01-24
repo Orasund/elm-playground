@@ -6,8 +6,6 @@ module FactoryCity.Automata exposing
 
 import CellAutomata exposing (Order, Rule)
 import Dict exposing (Dict)
-import FactoryCity.Automata.Neighborhood as Neighborhood
-import FactoryCity.Automata.Rule as Rule
 import FactoryCity.Data.CellType as CellType exposing (CellType)
 
 

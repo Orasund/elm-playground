@@ -3,14 +3,17 @@ module FactoryCity.Data.Game exposing (EndCondition(..), Game, init, step)
 import Dict exposing (Dict)
 import FactoryCity.Automata as Automata exposing (ListRule)
 import FactoryCity.Automata.Rule as Rule
-import FactoryCity.Data.Board as Board exposing (Board, columns, rows)
-import FactoryCity.Data.CellType as CellType exposing (CellType, Item)
+import FactoryCity.Data.Board exposing (Board, columns, rows)
+import FactoryCity.Data.CellType as CellType exposing (CellType)
 import FactoryCity.Data.Deck as Deck exposing (Deck)
+import FactoryCity.Data.Item exposing (Item)
 import Grid.Bordered as Grid
 import Grid.Direction exposing (Direction(..))
 import Grid.Position exposing (Position)
-import Random exposing (Generator)
-import Set exposing (Set)
+
+
+
+--import Set exposing (Set)
 
 
 type EndCondition
@@ -25,12 +28,14 @@ type alias Game =
     }
 
 
-occuringTypes : Board -> Set ( String, String )
-occuringTypes board =
-    board
-        |> Board.values
-        |> List.map CellType.toString
-        |> Set.fromList
+
+{- occuringTypes : Board -> Set ( String, String )
+   occuringTypes board =
+       board
+           |> Board.values
+           |> List.map CellType.toString
+           |> Set.fromList
+-}
 
 
 step : Game -> Game

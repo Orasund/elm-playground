@@ -1,12 +1,9 @@
 module FactoryCity.Data.CellType exposing
     ( CellType
     , ContainerSort(..)
-    , Item(..)
     , MachineSort(..)
     , MovableSort(..)
     , belt
-    , burnable
-    , color
     , containerList
     , containerSortToString
     , craftingCost
@@ -15,17 +12,11 @@ module FactoryCity.Data.CellType exposing
     , fromCard
     , fromString
     , furnace
-    , itemList
-    , itemToString
     , machineList
     , merger
     , movableList
     , output
-    , pressable
-    , shreddable
-    , smeltable
     , stringToContainerSort
-    , stringToItem
     , tierOne
     , tierOneList
     , tierThree
@@ -37,24 +28,8 @@ module FactoryCity.Data.CellType exposing
     )
 
 import Bag exposing (Bag)
-import Color exposing (Color)
-import Dict exposing (Dict)
+import FactoryCity.Data.Item as Item exposing (Item(..))
 import Grid.Direction as Direction exposing (Direction(..))
-import Jsonstore exposing (Json)
-
-
-type Item
-    = Wood
-    | Stone
-    | Iron
-    | Scrap
-    | Chips
-    | Chipboard
-
-
-itemList : List Item
-itemList =
-    [ Wood, Stone, Iron, Scrap, Chips, Chipboard ]
 
 
 type MovableSort
@@ -78,53 +53,6 @@ machineList =
     [ Furnace
     , Shredder
     , Press
-    ]
-
-
-color : Item -> ( Int, Int, Int )
-color item =
-    case item of
-        Wood ->
-            ( 255, 194, 170 )
-
-        Stone ->
-            ( 117, 175, 150 )
-
-        Iron ->
-            ( 102, 153, 153 )
-
-        Scrap ->
-            ( 255, 170, 170 )
-
-        Chips ->
-            ( 255, 255, 170 )
-
-        Chipboard ->
-            ( 255, 226, 170 )
-
-
-burnable : List Item
-burnable =
-    [ Wood, Chips, Chipboard ]
-
-
-smeltable : List ( Item, Item )
-smeltable =
-    [ ( Stone, Iron )
-    ]
-
-
-shreddable : List ( Item, Item )
-shreddable =
-    [ ( Stone, Scrap )
-    , ( Wood, Chips )
-    ]
-
-
-pressable : List ( Item, Item )
-pressable =
-    [ ( Scrap, Stone )
-    , ( Chips, Chipboard )
     ]
 
 
@@ -166,7 +94,7 @@ merger dir =
 containerList : List ContainerSort
 containerList =
     List.concat
-        [ itemList |> List.map Crate
+        [ Item.itemList |> List.map Crate
         , [ Machine Furnace { isWarm = True }
           , Machine Shredder { isWarm = True }
           , Machine Press { isWarm = False }
@@ -183,54 +111,9 @@ type ContainerSort
 
 
 type alias CellType =
-    { item : Maybe Item, sort : ContainerSort }
-
-
-itemToString : Item -> String
-itemToString item =
-    case item of
-        Wood ->
-            "Wood"
-
-        Stone ->
-            "Stone"
-
-        Iron ->
-            "Iron"
-
-        Scrap ->
-            "Scrap"
-
-        Chips ->
-            "Chips"
-
-        Chipboard ->
-            "Chipboard"
-
-
-stringToItem : String -> Maybe Item
-stringToItem string =
-    case string of
-        "Wood" ->
-            Just Wood
-
-        "Stone" ->
-            Just Stone
-
-        "Iron" ->
-            Just Iron
-
-        "Scrap" ->
-            Just Scrap
-
-        "Chips" ->
-            Just Chips
-
-        "Chipboard" ->
-            Just Chipboard
-
-        _ ->
-            Nothing
+    { item : Maybe Item
+    , sort : ContainerSort
+    }
 
 
 directionToString : Direction -> String
@@ -401,7 +284,7 @@ containerSortToString containerSort =
                         |> String.concat
 
         Crate item ->
-            "📦" ++ (item |> itemToString)
+            "📦" ++ (item |> Item.itemToString)
 
         Machine machineSort { isWarm } ->
             (if isWarm then
@@ -429,7 +312,7 @@ stringToContainerSort string =
             case string |> String.uncons of
                 Just ( '📦', item ) ->
                     item
-                        |> stringToItem
+                        |> Item.stringToItem
                         |> Maybe.map Crate
 
                 Just ( '🔄', machine ) ->
@@ -467,7 +350,7 @@ toString : CellType -> ( String, String )
 toString { sort, item } =
     ( sort |> containerSortToString
     , item
-        |> Maybe.map itemToString
+        |> Maybe.map Item.itemToString
         |> Maybe.withDefault ""
     )
 
@@ -479,7 +362,7 @@ fromString ( sortString, itemString ) =
         Just Nothing
 
       else
-        itemString |> stringToItem |> Maybe.map Just
+        itemString |> Item.stringToItem |> Maybe.map Just
     )
         |> (\( maybeSort, maybeItem ) ->
                 case ( maybeSort, maybeItem ) of
@@ -492,7 +375,7 @@ fromString ( sortString, itemString ) =
 
 
 toCard : CellType -> ContainerSort
-toCard { sort, item } =
+toCard { sort } =
     case sort of
         Movable Belt movable ->
             belt movable

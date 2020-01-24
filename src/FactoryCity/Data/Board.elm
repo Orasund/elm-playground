@@ -14,10 +14,10 @@ module FactoryCity.Data.Board exposing
     , values
     )
 
-import FactoryCity.Data.CellType as CellType exposing (CellType, ContainerSort(..), Item(..), MovableSort(..))
+import FactoryCity.Data.CellType as CellType exposing (CellType, ContainerSort(..), MovableSort(..))
+import FactoryCity.Data.Item exposing (Item(..))
 import Grid.Bordered as Grid exposing (Grid)
 import Grid.Position exposing (Position)
-import Jsonstore exposing (Json)
 
 
 columns : Int
@@ -80,14 +80,14 @@ getInput item =
 refill : Board -> Board
 refill =
     Grid.map
-        (\pos ->
+        (\_ ->
             Maybe.map
                 (\({ sort } as cellType) ->
                     case sort of
                         Crate item ->
                             { sort = Crate item, item = Just item }
 
-                        Movable Merger { from, to } ->
+                        Movable Merger { to } ->
                             { sort = CellType.merger to, item = Nothing }
 
                         Machine machineSort _ ->
@@ -102,7 +102,7 @@ refill =
 unload : Board -> Board
 unload =
     Grid.map
-        (\pos ->
+        (\_ ->
             Maybe.map
                 (\({ sort } as cellType) ->
                     case sort of

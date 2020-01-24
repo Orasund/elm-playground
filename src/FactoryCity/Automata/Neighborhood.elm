@@ -1,8 +1,6 @@
 module FactoryCity.Automata.Neighborhood exposing (set)
 
-import CellAutomata exposing (Neighborhood, RuleExpression(..), Symmetry, anyNeighborhood)
-import Dict
-import FactoryCity.Data.CellType as CellType exposing (CellType)
+import CellAutomata exposing (Neighborhood, RuleExpression(..))
 import Grid.Direction exposing (Direction(..))
 
 

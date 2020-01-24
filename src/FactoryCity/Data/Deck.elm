@@ -7,13 +7,10 @@ module FactoryCity.Data.Deck exposing
     )
 
 import Bag exposing (Bag)
-import Dict exposing (Dict)
-import FactoryCity.Data.CellType as CellType exposing (CellType, ContainerSort, Item(..))
-import Grid.Direction as Direction exposing (Direction(..))
-import Jsonstore exposing (Json)
-import List.Zipper as Zipper exposing (Zipper(..))
-import Random exposing (Generator)
-import Random.List as RandomList
+import FactoryCity.Data.CellType as CellType exposing (ContainerSort)
+import FactoryCity.Data.Item exposing (Item(..))
+import Grid.Direction exposing (Direction(..))
+import List.Zipper exposing (Zipper(..))
 
 
 type alias Deck =
