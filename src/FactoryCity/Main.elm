@@ -200,7 +200,7 @@ subscriptions model =
 view : Model -> Browser.Document Msg
 view model =
     let
-        ( maybeShade, content ) =
+        ( inFrontContent, content ) =
             case model of
                 Playing ( playingModel, { scale } ) ->
                     PlayingState.view scale Restart PlayingSpecific playingModel
@@ -220,25 +220,17 @@ view model =
             []
         , Element.layoutWith
             { options = Framework.layoutOptions }
-            ([ Background.color <| Element.rgb255 44 48 51
-             ]
-                ++ (maybeShade
-                        |> Maybe.map
-                            (\{ isWon, shade } ->
-                                List.singleton <|
-                                    Element.inFront <|
-                                        (if isWon then
-                                            Shade.viewWon
-
-                                         else
-                                            Shade.viewNormal
-                                        )
-                                        <|
-                                            shade
-                            )
-                        |> Maybe.withDefault []
-                   )
-                ++ Framework.layoutAttributes
+            (List.concat
+                [ [ Background.color <| Element.rgb255 44 48 51
+                  ]
+                , inFrontContent
+                    |> Maybe.map
+                        (Element.inFront
+                            >> List.singleton
+                        )
+                    |> Maybe.withDefault []
+                , Framework.layoutAttributes
+                ]
             )
           <|
             Element.column Framework.container <|

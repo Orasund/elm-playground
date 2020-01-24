@@ -19,6 +19,7 @@ import Framework.Card as Card
 import Framework.Grid as Grid
 import Framework.Heading as Heading
 import Grid.Position exposing (Position)
+import Html.Attributes as Attributes
 
 
 view :
@@ -38,23 +39,20 @@ view :
     , nextBugIn : Int
     }
     -> Game
-    -> Element msg
+    -> List (List ( String, Element msg ))
 view { counter, money, shop, nextBugIn, scale, selected, sort, loopLength, craftMsg, changedLoopLengthMsg, positionSelectedMsg, selectedMsg, buyMsg, sellMsg } { board, deck } =
-    Element.wrappedRow Grid.simple <|
-        [ Element.column Grid.simple <|
-            [ Element.row Grid.spaceEvenly <|
-                [ Element.el Heading.h1 <| Element.text "Shop"
-                , Element.text <| "Money:" ++ (money |> String.fromInt)
-                ]
-            , Shop.view
-                { shop = shop
-                , buyMsg = Just buyMsg
-                , money = money
-                }
-            , Element.el Heading.h1 <| Element.text "Crafting"
-            , Crafting.view { craftMsg = craftMsg }
-            ]
-        , Element.column Grid.simple <|
+    [ [ ( "Shop"
+        , Shop.view
+            { shop = shop
+            , buyMsg = Just buyMsg
+            , money = money
+            }
+        )
+      , ( "Crafting", Crafting.view { craftMsg = craftMsg } )
+      ]
+    , List.singleton <|
+        ( "Game"
+        , Element.column Grid.section <|
             [ Element.row Grid.simple <|
                 [ Element.el [ Element.width <| Element.fill ] <| Element.none
                 , Element.el (Heading.h1 ++ [ Element.width <| Element.fill ]) <|
@@ -76,6 +74,8 @@ view { counter, money, shop, nextBugIn, scale, selected, sort, loopLength, craft
                     }
             , deck |> DeckView.view scale { sort = sort } (Just selectedMsg) selected
             ]
+        )
+    , [ ( "Details"
         , let
             price : ContainerSort -> Int
             price c =
@@ -86,17 +86,17 @@ view { counter, money, shop, nextBugIn, scale, selected, sort, loopLength, craft
                         )
                     |> Maybe.withDefault 0
           in
-          Element.column Grid.simple <|
-            [ Element.el Heading.h1 <| Element.text "Details"
-            , Details.view
-                { selected = selected
-                , sellMsg = sellMsg
-                , price = price
-                }
-            , Element.el Heading.h1 <| Element.text "Settings"
-            , Settings.view
-                { changedLoopLengthMsg = changedLoopLengthMsg
-                , loopLength = loopLength
-                }
-            ]
-        ]
+          Details.view
+            { selected = selected
+            , sellMsg = sellMsg
+            , price = price
+            }
+        )
+      , ( "Settings"
+        , Settings.view
+            { changedLoopLengthMsg = changedLoopLengthMsg
+            , loopLength = loopLength
+            }
+        )
+      ]
+    ]

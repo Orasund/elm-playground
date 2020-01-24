@@ -156,34 +156,36 @@ view :
     -> msg
     -> (Msg -> msg)
     -> Model
-    -> ( Maybe { isWon : Bool, shade : List (Element msg) }, List (Element msg) )
+    -> ( Maybe (Element msg), List (Element msg) )
 view scale restartMsg msgMapper ( shop, _ ) =
     ( Nothing
     , List.singleton <|
         Element.wrappedRow (Grid.simple ++ [ Element.height <| Element.fill ])
-            [ Element.row
-                (Grid.simple
-                    ++ [ Element.width <| Element.shrink
-                       , Element.centerY
-                       ]
-                )
-                [ Text.view (round <| scale * 150) "🏭"
-                , Element.column
-                    [ Font.size <| floor <| scale * 80
-                    , Element.centerX
-                    , Font.center
+            [ Element.column (Grid.simple ++ [ Element.width <| Element.fill ])
+                [ Element.row
+                    (Grid.simple
+                        ++ [ Element.width <| Element.shrink
+                           , Element.centerY
+                           ]
+                    )
+                    [ Text.view (round <| scale * 150) "🏭"
+                    , Element.column
+                        [ Font.size <| floor <| scale * 80
+                        , Element.centerX
+                        , Font.center
+                        ]
+                      <|
+                        [ Element.text "Factory"
+                        , Element.text "City"
+                        ]
                     ]
-                  <|
-                    [ Element.text "Factory"
-                    , Element.text "City"
-                    ]
+                , Shop.view { shop = shop, buyMsg = Nothing, money = 0 }
                 ]
-            , Shop.view { shop = shop, buyMsg = Nothing, money = 0 }
             , Element.column
                 (Grid.simple
                     ++ [ Element.centerY
                        , Element.centerX
-                       , Element.width <| Element.shrink
+                       , Element.width <| Element.fill
                        ]
                 )
               <|

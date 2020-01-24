@@ -116,7 +116,7 @@ update msg model =
 
 view :
     Model
-    -> ( Maybe { isWon : Bool, shade : List (Element.Element msg) }, List (Element.Element msg) )
+    -> ( Maybe (Element.Element msg), List (Element.Element msg) )
 view model =
     ( Nothing
     , List.singleton <|

@@ -14,16 +14,18 @@ type alias RemoteShop =
     , scrap : Maybe Int
     , stone : Maybe Int
     , wood : Maybe Int
+    , chipboard : Maybe Int
     }
 
 
 toBag : RemoteShop -> Bag String
-toBag { chips, iron, scrap, stone, wood } =
+toBag { chips, iron, scrap, stone, wood, chipboard } =
     [ ( Chips, chips )
     , ( Iron, iron )
     , ( Scrap, scrap )
     , ( Stone, stone )
     , ( Wood, wood )
+    , ( Chipboard, chipboard )
     ]
         |> List.map
             (Tuple.mapBoth (Crate >> CellType.containerSortToString)
@@ -35,26 +37,12 @@ toBag { chips, iron, scrap, stone, wood } =
 json : Json RemoteShop
 json =
     Jsonstore.object RemoteShop
-        |> Jsonstore.withMaybe
-            (Chips |> CellType.itemToString)
-            Jsonstore.int
-            .chips
-        |> Jsonstore.withMaybe
-            (Iron |> CellType.itemToString)
-            Jsonstore.int
-            .iron
-        |> Jsonstore.withMaybe
-            (Scrap |> CellType.itemToString)
-            Jsonstore.int
-            .scrap
-        |> Jsonstore.withMaybe
-            (Stone |> CellType.itemToString)
-            Jsonstore.int
-            .stone
-        |> Jsonstore.withMaybe
-            (Wood |> CellType.itemToString)
-            Jsonstore.int
-            .wood
+        |> Jsonstore.withMaybe (Chips |> CellType.itemToString) Jsonstore.int .chips
+        |> Jsonstore.withMaybe (Iron |> CellType.itemToString) Jsonstore.int .iron
+        |> Jsonstore.withMaybe (Scrap |> CellType.itemToString) Jsonstore.int .scrap
+        |> Jsonstore.withMaybe (Stone |> CellType.itemToString) Jsonstore.int .stone
+        |> Jsonstore.withMaybe (Wood |> CellType.itemToString) Jsonstore.int .wood
+        |> Jsonstore.withMaybe (Chipboard |> CellType.itemToString) Jsonstore.int .chipboard
         |> Jsonstore.toJson
 
 

@@ -95,7 +95,7 @@ hand attributes { dimensions, width, cards } =
     in
     cards
         |> List.map (view cardsAmount dimensions)
-        |> Element.wrappedRow
+        |> Element.row
             ([ Element.width <| Element.shrink
              , Element.height <| Element.shrink
              , Element.spacing <| round <| spacing

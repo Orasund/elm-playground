@@ -38,6 +38,11 @@ display containerSort =
             , desc = "Outputs one iron at the start of each loop. Nothing will happen if you do not have any iron. Craft iron into items."
             }
 
+        Crate Chipboard ->
+            { name = "Chipboard Crate"
+            , desc = "Outputs one chipboard at the start of each loop. Nothing will happen if you do not have any chipboards. Craft chipboards into items."
+            }
+
         Movable Belt _ ->
             { name = "Conveyor Belt"
             , desc = "Transports an item. If an output has multiple conveyor belts attached, it will turn into scrap. Similarly if two belts try to push an item onto the same tile, one of the items will be permantly deleted."

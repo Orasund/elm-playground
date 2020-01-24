@@ -26,7 +26,11 @@ module FactoryCity.Data.CellType exposing
     , smeltable
     , stringToContainerSort
     , tierOne
+    , tierOneList
+    , tierThree
+    , tierThreeList
     , tierTwo
+    , tierTwoList
     , toCard
     , toString
     )
@@ -44,11 +48,12 @@ type Item
     | Iron
     | Scrap
     | Chips
+    | Chipboard
 
 
 itemList : List Item
 itemList =
-    [ Wood, Stone, Iron, Scrap, Chips ]
+    [ Wood, Stone, Iron, Scrap, Chips, Chipboard ]
 
 
 type MovableSort
@@ -91,12 +96,15 @@ color item =
             ( 255, 170, 170 )
 
         Chips ->
+            ( 255, 255, 170 )
+
+        Chipboard ->
             ( 255, 226, 170 )
 
 
 burnable : List Item
 burnable =
-    [ Wood, Chips ]
+    [ Wood, Chips, Chipboard ]
 
 
 smeltable : List ( Item, Item )
@@ -115,6 +123,7 @@ shreddable =
 pressable : List ( Item, Item )
 pressable =
     [ ( Scrap, Stone )
+    , ( Chips, Chipboard )
     ]
 
 
@@ -194,6 +203,9 @@ itemToString item =
         Chips ->
             "Chips"
 
+        Chipboard ->
+            "Chipboard"
+
 
 stringToItem : String -> Maybe Item
 stringToItem string =
@@ -212,6 +224,9 @@ stringToItem string =
 
         "Chips" ->
             Just Chips
+
+        "Chipboard" ->
+            Just Chipboard
 
         _ ->
             Nothing
@@ -544,9 +559,88 @@ tierOne =
     [ ( Iron, 2 ) ]
 
 
+tierOneList : List ContainerSort
+tierOneList =
+    let
+        dirList : List Direction
+        dirList =
+            [ Up, Left, Down, Right ]
+    in
+    List.concat
+        [ [ Machine Furnace { isWarm = False }
+          ]
+        , dirList
+            |> List.concatMap
+                (\from ->
+                    dirList
+                        |> List.filterMap
+                            (\to ->
+                                if from == to then
+                                    Nothing
+
+                                else if from == (to |> Direction.flip) then
+                                    Just <| Movable Belt { from = from, to = to }
+
+                                else
+                                    Nothing
+                            )
+                )
+        ]
+
+
 tierTwo : List ( Item, Int )
 tierTwo =
     [ ( Iron, 5 ) ]
+
+
+tierTwoList : List ContainerSort
+tierTwoList =
+    let
+        dirList : List Direction
+        dirList =
+            [ Up, Left, Down, Right ]
+    in
+    List.concat
+        [ [ Machine Shredder { isWarm = False }
+          , Machine Press { isWarm = False }
+          , output
+          ]
+        , dirList
+            |> List.concatMap
+                (\from ->
+                    dirList
+                        |> List.filterMap
+                            (\to ->
+                                if from == to then
+                                    Nothing
+
+                                else if from == (to |> Direction.flip) then
+                                    Nothing
+
+                                else
+                                    Just <| Movable Belt { from = from, to = to }
+                            )
+                )
+        ]
+
+
+tierThree : List ( Item, Int )
+tierThree =
+    [ ( Iron, 2 ), ( Chipboard, 2 ) ]
+
+
+tierThreeList : List ContainerSort
+tierThreeList =
+    let
+        dirList : List Direction
+        dirList =
+            [ Up, Left, Down, Right ]
+    in
+    List.concat
+        [ dirList
+            |> List.map
+                (\to -> Movable Merger { from = to |> Direction.flip, to = to })
+        ]
 
 
 craftingCost : ContainerSort -> Bag String
@@ -555,8 +649,15 @@ craftingCost card =
         Crate _ ->
             defaultTier
 
-        Movable Belt _ ->
-            tierOne
+        Movable Belt { from, to } ->
+            if from == to then
+                defaultTier
+
+            else if from == (to |> Direction.flip) then
+                tierOne
+
+            else
+                tierThree
 
         Movable Merger _ ->
             tierTwo
@@ -571,7 +672,7 @@ craftingCost card =
             tierTwo
 
         Output ->
-            tierOne
+            tierTwo
 
         Bug ->
             defaultTier

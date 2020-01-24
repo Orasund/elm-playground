@@ -2,7 +2,9 @@ module FactoryCity.State.Playing exposing (Model, Msg, TransitionData, init, sub
 
 import Action
 import Bag exposing (Bag)
+import Browser.Dom as Dom
 import Element exposing (Element)
+import Element.Input as Input
 import FactoryCity.Data as Data
 import FactoryCity.Data.Board as Board
 import FactoryCity.Data.CellType as CellType exposing (CellType, ContainerSort(..), Item(..))
@@ -10,9 +12,14 @@ import FactoryCity.Data.Deck as Deck
 import FactoryCity.Data.Game as Game exposing (EndCondition(..), Game)
 import FactoryCity.Data.RemoteShop as RemoteShop
 import FactoryCity.View.Game as GameView
+import Framework.Button as Button
+import Framework.Color as Color
+import Framework.Grid as Grid
+import Framework.Heading as Heading
 import Grid.Bordered as Grid
 import Grid.Direction as Direction exposing (Direction(..))
 import Grid.Position as Position exposing (Position)
+import Html.Attributes as Attributes
 import Http exposing (Error(..))
 import Process
 import Random exposing (Seed)
@@ -59,6 +66,8 @@ type Msg
     | ClickedCraft ContainerSort
     | GotShopResponse (Result Http.Error (Bag String))
     | Sync
+    | ClickedChangeTab String
+    | ChangedViewport (Result Dom.Error ())
 
 
 type alias TransitionData =
@@ -566,6 +575,23 @@ update msg (( { selected, stepCount, loopEvery, source, nextBugIn, shop, money }
                     |> Task.attempt GotShopResponse
                 )
 
+        ClickedChangeTab string ->
+            Action.updating
+                ( ( state, seed )
+                , Dom.getElement string
+                    |> Task.andThen
+                        (\{ element } ->
+                            Dom.setViewport 0 element.y
+                        )
+                    |> Task.attempt ChangedViewport
+                )
+
+        ChangedViewport result ->
+            Action.updating
+                ( ( state, seed )
+                , Cmd.none
+                )
+
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
@@ -586,25 +612,60 @@ view :
     -> msg
     -> (Msg -> msg)
     -> Model
-    -> ( Maybe { isWon : Bool, shade : List (Element msg) }, List (Element msg) )
+    -> ( Maybe (Element msg), List (Element msg) )
 view scale restartMsg msgMapper ( { stepCount, nextBugIn, shop, money, game, selected, viewedCard, loopEvery }, _ ) =
-    ( Nothing
-    , [ GameView.view
-            { counter = stepCount
-            , shop = shop
-            , money = money
-            , scale = scale
-            , selected = selected
-            , sort = True
-            , loopLength = loopEvery
-            , positionSelectedMsg = msgMapper << PositionSelected
-            , selectedMsg = msgMapper << Selected
-            , buyMsg = msgMapper << ClickedBuy
-            , sellMsg = msgMapper << ClickedSell
-            , changedLoopLengthMsg = msgMapper << ChangedLoopLength
-            , craftMsg = msgMapper << ClickedCraft
-            , nextBugIn = nextBugIn
-            }
-            game
+    let
+        list =
+            GameView.view
+                { counter = stepCount
+                , shop = shop
+                , money = money
+                , scale = scale
+                , selected = selected
+                , sort = True
+                , loopLength = loopEvery
+                , positionSelectedMsg = msgMapper << PositionSelected
+                , selectedMsg = msgMapper << Selected
+                , buyMsg = msgMapper << ClickedBuy
+                , sellMsg = msgMapper << ClickedSell
+                , changedLoopLengthMsg = msgMapper << ChangedLoopLength
+                , craftMsg = msgMapper << ClickedCraft
+                , nextBugIn = nextBugIn
+                }
+                game
+    in
+    ( list
+        |> List.concat
+        |> List.map
+            (\( name, _ ) ->
+                Input.button Button.simple
+                    { onPress = Just <| msgMapper <| ClickedChangeTab <| name
+                    , label = Element.text <| name
+                    }
+            )
+        |> Element.wrappedRow
+            (Color.light
+                ++ [ Element.alignBottom
+                   , Element.paddingXY 16 2
+                   , Element.width <| Element.fill
+                   , Element.spaceEvenly
+                   ]
+            )
+        |> Just
+    , [ list
+            |> List.map
+                (List.map
+                    (\( name, content ) ->
+                        Element.column Grid.simple <|
+                            [ Element.el (Heading.h1 ++ [ Element.htmlAttribute <| Attributes.id <| name ]) <|
+                                Element.text <|
+                                    name
+                            , content
+                            ]
+                    )
+                    >> Element.column Grid.simple
+                )
+            |> Element.wrappedRow Grid.simple
+      , Element.el [ Element.height <| Element.px <| 50] <| Element.none
       ]
     )

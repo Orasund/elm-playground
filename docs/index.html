@@ -6246,11 +6246,12 @@ var $Orasund$elm_jsonstore$Jsonstore$get = F2(
 				url: url
 			});
 	});
+var $author$project$FactoryCity$Data$CellType$Chipboard = {$: 'Chipboard'};
 var $author$project$FactoryCity$Data$CellType$Chips = {$: 'Chips'};
 var $author$project$FactoryCity$Data$CellType$Iron = {$: 'Iron'};
-var $author$project$FactoryCity$Data$RemoteShop$RemoteShop = F5(
-	function (chips, iron, scrap, stone, wood) {
-		return {chips: chips, iron: iron, scrap: scrap, stone: stone, wood: wood};
+var $author$project$FactoryCity$Data$RemoteShop$RemoteShop = F6(
+	function (chips, iron, scrap, stone, wood, chipboard) {
+		return {chipboard: chipboard, chips: chips, iron: iron, scrap: scrap, stone: stone, wood: wood};
 	});
 var $author$project$FactoryCity$Data$CellType$Scrap = {$: 'Scrap'};
 var $author$project$FactoryCity$Data$CellType$Stone = {$: 'Stone'};
@@ -6272,8 +6273,10 @@ var $author$project$FactoryCity$Data$CellType$itemToString = function (item) {
 			return 'Iron';
 		case 'Scrap':
 			return 'Scrap';
-		default:
+		case 'Chips':
 			return 'Chips';
+		default:
+			return 'Chipboard';
 	}
 };
 var $Orasund$elm_jsonstore$Jsonstore$JsonObject = function (a) {
@@ -6387,40 +6390,47 @@ var $Orasund$elm_jsonstore$Jsonstore$withMaybe = F4(
 var $author$project$FactoryCity$Data$RemoteShop$json = $Orasund$elm_jsonstore$Jsonstore$toJson(
 	A4(
 		$Orasund$elm_jsonstore$Jsonstore$withMaybe,
-		$author$project$FactoryCity$Data$CellType$itemToString($author$project$FactoryCity$Data$CellType$Wood),
+		$author$project$FactoryCity$Data$CellType$itemToString($author$project$FactoryCity$Data$CellType$Chipboard),
 		$Orasund$elm_jsonstore$Jsonstore$int,
 		function ($) {
-			return $.wood;
+			return $.chipboard;
 		},
 		A4(
 			$Orasund$elm_jsonstore$Jsonstore$withMaybe,
-			$author$project$FactoryCity$Data$CellType$itemToString($author$project$FactoryCity$Data$CellType$Stone),
+			$author$project$FactoryCity$Data$CellType$itemToString($author$project$FactoryCity$Data$CellType$Wood),
 			$Orasund$elm_jsonstore$Jsonstore$int,
 			function ($) {
-				return $.stone;
+				return $.wood;
 			},
 			A4(
 				$Orasund$elm_jsonstore$Jsonstore$withMaybe,
-				$author$project$FactoryCity$Data$CellType$itemToString($author$project$FactoryCity$Data$CellType$Scrap),
+				$author$project$FactoryCity$Data$CellType$itemToString($author$project$FactoryCity$Data$CellType$Stone),
 				$Orasund$elm_jsonstore$Jsonstore$int,
 				function ($) {
-					return $.scrap;
+					return $.stone;
 				},
 				A4(
 					$Orasund$elm_jsonstore$Jsonstore$withMaybe,
-					$author$project$FactoryCity$Data$CellType$itemToString($author$project$FactoryCity$Data$CellType$Iron),
+					$author$project$FactoryCity$Data$CellType$itemToString($author$project$FactoryCity$Data$CellType$Scrap),
 					$Orasund$elm_jsonstore$Jsonstore$int,
 					function ($) {
-						return $.iron;
+						return $.scrap;
 					},
 					A4(
 						$Orasund$elm_jsonstore$Jsonstore$withMaybe,
-						$author$project$FactoryCity$Data$CellType$itemToString($author$project$FactoryCity$Data$CellType$Chips),
+						$author$project$FactoryCity$Data$CellType$itemToString($author$project$FactoryCity$Data$CellType$Iron),
 						$Orasund$elm_jsonstore$Jsonstore$int,
 						function ($) {
-							return $.chips;
+							return $.iron;
 						},
-						$Orasund$elm_jsonstore$Jsonstore$object($author$project$FactoryCity$Data$RemoteShop$RemoteShop)))))));
+						A4(
+							$Orasund$elm_jsonstore$Jsonstore$withMaybe,
+							$author$project$FactoryCity$Data$CellType$itemToString($author$project$FactoryCity$Data$CellType$Chips),
+							$Orasund$elm_jsonstore$Jsonstore$int,
+							function ($) {
+								return $.chips;
+							},
+							$Orasund$elm_jsonstore$Jsonstore$object($author$project$FactoryCity$Data$RemoteShop$RemoteShop))))))));
 var $author$project$FactoryCity$Data$CellType$Crate = function (a) {
 	return {$: 'Crate', a: a};
 };
@@ -6631,6 +6641,7 @@ var $author$project$FactoryCity$Data$RemoteShop$toBag = function (_v0) {
 	var scrap = _v0.scrap;
 	var stone = _v0.stone;
 	var wood = _v0.wood;
+	var chipboard = _v0.chipboard;
 	return $JohnBugner$elm_bag$Bag$fromList(
 		A2(
 			$elm$core$List$map,
@@ -6644,7 +6655,8 @@ var $author$project$FactoryCity$Data$RemoteShop$toBag = function (_v0) {
 					_Utils_Tuple2($author$project$FactoryCity$Data$CellType$Iron, iron),
 					_Utils_Tuple2($author$project$FactoryCity$Data$CellType$Scrap, scrap),
 					_Utils_Tuple2($author$project$FactoryCity$Data$CellType$Stone, stone),
-					_Utils_Tuple2($author$project$FactoryCity$Data$CellType$Wood, wood)
+					_Utils_Tuple2($author$project$FactoryCity$Data$CellType$Wood, wood),
+					_Utils_Tuple2($author$project$FactoryCity$Data$CellType$Chipboard, chipboard)
 				])));
 };
 var $author$project$FactoryCity$String$url = 'https://www.jsonstore.io/61c0a862d41e1159fac8a9dce81f18ed84b18bbccfd8c4805145ba3e3983d5cb';
@@ -7430,6 +7442,9 @@ var $author$project$FactoryCity$State$Ready$init = F2(
 			$elm$core$Platform$Cmd$none);
 	});
 var $author$project$FactoryCity$Data$CellType$Bug = {$: 'Bug'};
+var $author$project$FactoryCity$State$Playing$ChangedViewport = function (a) {
+	return {$: 'ChangedViewport', a: a};
+};
 var $author$project$FactoryCity$State$Playing$GotShopResponse = function (a) {
 	return {$: 'GotShopResponse', a: a};
 };
@@ -7471,6 +7486,11 @@ var $author$project$FactoryCity$Data$CellType$tierOne = _List_fromArray(
 	[
 		_Utils_Tuple2($author$project$FactoryCity$Data$CellType$Iron, 2)
 	]);
+var $author$project$FactoryCity$Data$CellType$tierThree = _List_fromArray(
+	[
+		_Utils_Tuple2($author$project$FactoryCity$Data$CellType$Iron, 2),
+		_Utils_Tuple2($author$project$FactoryCity$Data$CellType$Chipboard, 2)
+	]);
 var $author$project$FactoryCity$Data$CellType$tierTwo = _List_fromArray(
 	[
 		_Utils_Tuple2($author$project$FactoryCity$Data$CellType$Iron, 5)
@@ -7488,7 +7508,11 @@ var $author$project$FactoryCity$Data$CellType$craftingCost = function (card) {
 					case 'Movable':
 						if (card.a.$ === 'Belt') {
 							var _v1 = card.a;
-							return $author$project$FactoryCity$Data$CellType$tierOne;
+							var from = card.b.from;
+							var to = card.b.to;
+							return _Utils_eq(from, to) ? $author$project$FactoryCity$Data$CellType$defaultTier : (_Utils_eq(
+								from,
+								$Orasund$elm_game_essentials$Grid$Direction$flip(to)) ? $author$project$FactoryCity$Data$CellType$tierOne : $author$project$FactoryCity$Data$CellType$tierThree);
 						} else {
 							var _v2 = card.a;
 							return $author$project$FactoryCity$Data$CellType$tierTwo;
@@ -7506,7 +7530,7 @@ var $author$project$FactoryCity$Data$CellType$craftingCost = function (card) {
 								return $author$project$FactoryCity$Data$CellType$tierTwo;
 						}
 					case 'Output':
-						return $author$project$FactoryCity$Data$CellType$tierOne;
+						return $author$project$FactoryCity$Data$CellType$tierTwo;
 					default:
 						return $author$project$FactoryCity$Data$CellType$defaultTier;
 				}
@@ -7576,6 +7600,7 @@ var $Orasund$elm_game_essentials$Grid$Bordered$get = F2(
 		return A2($Orasund$elm_game_essentials$Grid$Bordered$isValid, pos, grid) ? $elm$core$Result$Ok(
 			A2($elm$core$Dict$get, pos, dict)) : $elm$core$Result$Err($Orasund$elm_game_essentials$Grid$Bordered$OutOfBounds);
 	});
+var $elm$browser$Browser$Dom$getElement = _Browser_getElement;
 var $Orasund$elm_game_essentials$Grid$Bordered$toList = function (_v0) {
 	var dict = _v0.a.dict;
 	return $elm$core$Dict$toList(dict);
@@ -8021,6 +8046,7 @@ var $author$project$FactoryCity$State$Playing$removeCard = F2(
 					}),
 				seed));
 	});
+var $elm$browser$Browser$Dom$setViewport = _Browser_setViewport;
 var $Orasund$elm_cellautomata$CellAutomata$General$Automata = function (a) {
 	return {$: 'Automata', a: a};
 };
@@ -8222,7 +8248,7 @@ var $Orasund$elm_cellautomata$CellAutomata$Exactly = function (a) {
 var $Orasund$elm_cellautomata$CellAutomata$Anything = {$: 'Anything'};
 var $Orasund$elm_cellautomata$CellAutomata$anyNeighborhood = {east: $Orasund$elm_cellautomata$CellAutomata$Anything, north: $Orasund$elm_cellautomata$CellAutomata$Anything, northEast: $Orasund$elm_cellautomata$CellAutomata$Anything, northWest: $Orasund$elm_cellautomata$CellAutomata$Anything, south: $Orasund$elm_cellautomata$CellAutomata$Anything, southEast: $Orasund$elm_cellautomata$CellAutomata$Anything, southWest: $Orasund$elm_cellautomata$CellAutomata$Anything, west: $Orasund$elm_cellautomata$CellAutomata$Anything};
 var $author$project$FactoryCity$Data$CellType$burnable = _List_fromArray(
-	[$author$project$FactoryCity$Data$CellType$Wood, $author$project$FactoryCity$Data$CellType$Chips]);
+	[$author$project$FactoryCity$Data$CellType$Wood, $author$project$FactoryCity$Data$CellType$Chips, $author$project$FactoryCity$Data$CellType$Chipboard]);
 var $elm$core$List$append = F2(
 	function (xs, ys) {
 		if (!ys.b) {
@@ -8371,7 +8397,7 @@ var $author$project$FactoryCity$Automata$Rule$burnable = function () {
 		$author$project$FactoryCity$Data$CellType$machineList);
 }();
 var $author$project$FactoryCity$Data$CellType$itemList = _List_fromArray(
-	[$author$project$FactoryCity$Data$CellType$Wood, $author$project$FactoryCity$Data$CellType$Stone, $author$project$FactoryCity$Data$CellType$Iron, $author$project$FactoryCity$Data$CellType$Scrap, $author$project$FactoryCity$Data$CellType$Chips]);
+	[$author$project$FactoryCity$Data$CellType$Wood, $author$project$FactoryCity$Data$CellType$Stone, $author$project$FactoryCity$Data$CellType$Iron, $author$project$FactoryCity$Data$CellType$Scrap, $author$project$FactoryCity$Data$CellType$Chips, $author$project$FactoryCity$Data$CellType$Chipboard]);
 var $author$project$FactoryCity$Data$CellType$containerList = $elm$core$List$concat(
 	_List_fromArray(
 		[
@@ -8782,7 +8808,8 @@ var $author$project$FactoryCity$Automata$Rule$output = function () {
 }();
 var $author$project$FactoryCity$Data$CellType$pressable = _List_fromArray(
 	[
-		_Utils_Tuple2($author$project$FactoryCity$Data$CellType$Scrap, $author$project$FactoryCity$Data$CellType$Stone)
+		_Utils_Tuple2($author$project$FactoryCity$Data$CellType$Scrap, $author$project$FactoryCity$Data$CellType$Stone),
+		_Utils_Tuple2($author$project$FactoryCity$Data$CellType$Chips, $author$project$FactoryCity$Data$CellType$Chipboard)
 	]);
 var $author$project$FactoryCity$Automata$Rule$pressable = function () {
 	var rules = F3(
@@ -9306,6 +9333,8 @@ var $author$project$FactoryCity$Data$CellType$stringToItem = function (string) {
 			return $elm$core$Maybe$Just($author$project$FactoryCity$Data$CellType$Scrap);
 		case 'Chips':
 			return $elm$core$Maybe$Just($author$project$FactoryCity$Data$CellType$Chips);
+		case 'Chipboard':
+			return $elm$core$Maybe$Just($author$project$FactoryCity$Data$CellType$Chipboard);
 		default:
 			return $elm$core$Maybe$Nothing;
 	}
@@ -9909,11 +9938,32 @@ var $author$project$FactoryCity$State$Playing$update = F2(
 							_Utils_Tuple2(state, seed),
 							$elm$core$Platform$Cmd$none));
 				}
-			default:
+			case 'Sync':
 				return $Orasund$elm_action$Action$updating(
 					_Utils_Tuple2(
 						_Utils_Tuple2(state, seed),
 						A2($elm$core$Task$attempt, $author$project$FactoryCity$State$Playing$GotShopResponse, $author$project$FactoryCity$Data$RemoteShop$sync)));
+			case 'ClickedChangeTab':
+				var string = msg.a;
+				return $Orasund$elm_action$Action$updating(
+					_Utils_Tuple2(
+						_Utils_Tuple2(state, seed),
+						A2(
+							$elm$core$Task$attempt,
+							$author$project$FactoryCity$State$Playing$ChangedViewport,
+							A2(
+								$elm$core$Task$andThen,
+								function (_v15) {
+									var element = _v15.element;
+									return A2($elm$browser$Browser$Dom$setViewport, 0, element.y);
+								},
+								$elm$browser$Browser$Dom$getElement(string)))));
+			default:
+				var result = msg.a;
+				return $Orasund$elm_action$Action$updating(
+					_Utils_Tuple2(
+						_Utils_Tuple2(state, seed),
+						$elm$core$Platform$Cmd$none));
 		}
 	});
 var $elm$core$Maybe$map3 = F4(
@@ -15939,6 +15989,9 @@ var $author$project$FactoryCity$State$Playing$ChangedLoopLength = function (a) {
 var $author$project$FactoryCity$State$Playing$ClickedBuy = function (a) {
 	return {$: 'ClickedBuy', a: a};
 };
+var $author$project$FactoryCity$State$Playing$ClickedChangeTab = function (a) {
+	return {$: 'ClickedChangeTab', a: a};
+};
 var $author$project$FactoryCity$State$Playing$ClickedCraft = function (a) {
 	return {$: 'ClickedCraft', a: a};
 };
@@ -15951,6 +16004,149 @@ var $author$project$FactoryCity$State$Playing$PositionSelected = function (a) {
 var $author$project$FactoryCity$State$Playing$Selected = function (a) {
 	return {$: 'Selected', a: a};
 };
+var $mdgriffith$elm_ui$Internal$Model$Bottom = {$: 'Bottom'};
+var $mdgriffith$elm_ui$Element$alignBottom = $mdgriffith$elm_ui$Internal$Model$AlignY($mdgriffith$elm_ui$Internal$Model$Bottom);
+var $mdgriffith$elm_ui$Internal$Model$Button = {$: 'Button'};
+var $elm$json$Json$Encode$bool = _Json_wrap;
+var $elm$html$Html$Attributes$boolProperty = F2(
+	function (key, bool) {
+		return A2(
+			_VirtualDom_property,
+			key,
+			$elm$json$Json$Encode$bool(bool));
+	});
+var $elm$html$Html$Attributes$disabled = $elm$html$Html$Attributes$boolProperty('disabled');
+var $mdgriffith$elm_ui$Element$Input$hasFocusStyle = function (attr) {
+	if (((attr.$ === 'StyleClass') && (attr.b.$ === 'PseudoSelector')) && (attr.b.a.$ === 'Focus')) {
+		var _v1 = attr.b;
+		var _v2 = _v1.a;
+		return true;
+	} else {
+		return false;
+	}
+};
+var $mdgriffith$elm_ui$Element$Input$focusDefault = function (attrs) {
+	return A2($elm$core$List$any, $mdgriffith$elm_ui$Element$Input$hasFocusStyle, attrs) ? $mdgriffith$elm_ui$Internal$Model$NoAttribute : $mdgriffith$elm_ui$Internal$Model$htmlClass('focusable');
+};
+var $elm$virtual_dom$VirtualDom$Normal = function (a) {
+	return {$: 'Normal', a: a};
+};
+var $elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
+var $elm$html$Html$Events$on = F2(
+	function (event, decoder) {
+		return A2(
+			$elm$virtual_dom$VirtualDom$on,
+			event,
+			$elm$virtual_dom$VirtualDom$Normal(decoder));
+	});
+var $elm$html$Html$Events$onClick = function (msg) {
+	return A2(
+		$elm$html$Html$Events$on,
+		'click',
+		$elm$json$Json$Decode$succeed(msg));
+};
+var $mdgriffith$elm_ui$Element$Events$onClick = A2($elm$core$Basics$composeL, $mdgriffith$elm_ui$Internal$Model$Attr, $elm$html$Html$Events$onClick);
+var $mdgriffith$elm_ui$Element$Input$enter = 'Enter';
+var $elm$json$Json$Decode$andThen = _Json_andThen;
+var $elm$json$Json$Decode$fail = _Json_fail;
+var $elm$virtual_dom$VirtualDom$MayPreventDefault = function (a) {
+	return {$: 'MayPreventDefault', a: a};
+};
+var $elm$html$Html$Events$preventDefaultOn = F2(
+	function (event, decoder) {
+		return A2(
+			$elm$virtual_dom$VirtualDom$on,
+			event,
+			$elm$virtual_dom$VirtualDom$MayPreventDefault(decoder));
+	});
+var $elm$json$Json$Decode$string = _Json_decodeString;
+var $mdgriffith$elm_ui$Element$Input$onKey = F2(
+	function (desiredCode, msg) {
+		var decode = function (code) {
+			return _Utils_eq(code, desiredCode) ? $elm$json$Json$Decode$succeed(msg) : $elm$json$Json$Decode$fail('Not the enter key');
+		};
+		var isKey = A2(
+			$elm$json$Json$Decode$andThen,
+			decode,
+			A2($elm$json$Json$Decode$field, 'key', $elm$json$Json$Decode$string));
+		return $mdgriffith$elm_ui$Internal$Model$Attr(
+			A2(
+				$elm$html$Html$Events$preventDefaultOn,
+				'keyup',
+				A2(
+					$elm$json$Json$Decode$map,
+					function (fired) {
+						return _Utils_Tuple2(fired, true);
+					},
+					isKey)));
+	});
+var $mdgriffith$elm_ui$Element$Input$onEnter = function (msg) {
+	return A2($mdgriffith$elm_ui$Element$Input$onKey, $mdgriffith$elm_ui$Element$Input$enter, msg);
+};
+var $mdgriffith$elm_ui$Internal$Model$Class = F2(
+	function (a, b) {
+		return {$: 'Class', a: a, b: b};
+	});
+var $mdgriffith$elm_ui$Internal$Flag$cursor = $mdgriffith$elm_ui$Internal$Flag$flag(21);
+var $mdgriffith$elm_ui$Element$pointer = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$cursor, $mdgriffith$elm_ui$Internal$Style$classes.cursorPointer);
+var $elm$html$Html$Attributes$tabindex = function (n) {
+	return A2(
+		_VirtualDom_attribute,
+		'tabIndex',
+		$elm$core$String$fromInt(n));
+};
+var $mdgriffith$elm_ui$Element$Input$button = F2(
+	function (attrs, _v0) {
+		var onPress = _v0.onPress;
+		var label = _v0.label;
+		return A4(
+			$mdgriffith$elm_ui$Internal$Model$element,
+			$mdgriffith$elm_ui$Internal$Model$asEl,
+			$mdgriffith$elm_ui$Internal$Model$div,
+			A2(
+				$elm$core$List$cons,
+				$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$shrink),
+				A2(
+					$elm$core$List$cons,
+					$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$shrink),
+					A2(
+						$elm$core$List$cons,
+						$mdgriffith$elm_ui$Internal$Model$htmlClass($mdgriffith$elm_ui$Internal$Style$classes.contentCenterX + (' ' + ($mdgriffith$elm_ui$Internal$Style$classes.contentCenterY + (' ' + ($mdgriffith$elm_ui$Internal$Style$classes.seButton + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.noTextSelection)))))),
+						A2(
+							$elm$core$List$cons,
+							$mdgriffith$elm_ui$Element$pointer,
+							A2(
+								$elm$core$List$cons,
+								$mdgriffith$elm_ui$Element$Input$focusDefault(attrs),
+								A2(
+									$elm$core$List$cons,
+									$mdgriffith$elm_ui$Internal$Model$Describe($mdgriffith$elm_ui$Internal$Model$Button),
+									A2(
+										$elm$core$List$cons,
+										$mdgriffith$elm_ui$Internal$Model$Attr(
+											$elm$html$Html$Attributes$tabindex(0)),
+										function () {
+											if (onPress.$ === 'Nothing') {
+												return A2(
+													$elm$core$List$cons,
+													$mdgriffith$elm_ui$Internal$Model$Attr(
+														$elm$html$Html$Attributes$disabled(true)),
+													attrs);
+											} else {
+												var msg = onPress.a;
+												return A2(
+													$elm$core$List$cons,
+													$mdgriffith$elm_ui$Element$Events$onClick(msg),
+													A2(
+														$elm$core$List$cons,
+														$mdgriffith$elm_ui$Element$Input$onEnter(msg),
+														attrs));
+											}
+										}()))))))),
+			$mdgriffith$elm_ui$Internal$Model$Unkeyed(
+				_List_fromArray(
+					[label])));
+	});
 var $mdgriffith$elm_ui$Element$el = F2(
 	function (attrs, child) {
 		return A4(
@@ -15970,10 +16166,6 @@ var $mdgriffith$elm_ui$Element$el = F2(
 	});
 var $mdgriffith$elm_ui$Internal$Model$Left = {$: 'Left'};
 var $mdgriffith$elm_ui$Element$alignLeft = $mdgriffith$elm_ui$Internal$Model$AlignX($mdgriffith$elm_ui$Internal$Model$Left);
-var $mdgriffith$elm_ui$Internal$Model$Class = F2(
-	function (a, b) {
-		return {$: 'Class', a: a, b: b};
-	});
 var $mdgriffith$elm_ui$Internal$Flag$fontWeight = $mdgriffith$elm_ui$Internal$Flag$flag(13);
 var $mdgriffith$elm_ui$Element$Font$bold = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$fontWeight, $mdgriffith$elm_ui$Internal$Style$classes.bold);
 var $elm$core$Basics$clamp = F3(
@@ -16027,9 +16219,259 @@ var $Orasund$elm_ui_framework$Framework$Heading$h = function (inputLevel) {
 		]);
 };
 var $Orasund$elm_ui_framework$Framework$Heading$h1 = $Orasund$elm_ui_framework$Framework$Heading$h(1);
+var $mdgriffith$elm_ui$Element$htmlAttribute = $mdgriffith$elm_ui$Internal$Model$Attr;
+var $elm$html$Html$Attributes$id = $elm$html$Html$Attributes$stringProperty('id');
 var $mdgriffith$elm_ui$Internal$Model$Empty = {$: 'Empty'};
 var $mdgriffith$elm_ui$Element$none = $mdgriffith$elm_ui$Internal$Model$Empty;
-var $mdgriffith$elm_ui$Internal$Model$Paragraph = {$: 'Paragraph'};
+var $mdgriffith$elm_ui$Element$paddingXY = F2(
+	function (x, y) {
+		return _Utils_eq(x, y) ? A2(
+			$mdgriffith$elm_ui$Internal$Model$StyleClass,
+			$mdgriffith$elm_ui$Internal$Flag$padding,
+			A5(
+				$mdgriffith$elm_ui$Internal$Model$PaddingStyle,
+				'p-' + $elm$core$String$fromInt(x),
+				x,
+				x,
+				x,
+				x)) : A2(
+			$mdgriffith$elm_ui$Internal$Model$StyleClass,
+			$mdgriffith$elm_ui$Internal$Flag$padding,
+			A5(
+				$mdgriffith$elm_ui$Internal$Model$PaddingStyle,
+				'p-' + ($elm$core$String$fromInt(x) + ('-' + $elm$core$String$fromInt(y))),
+				y,
+				x,
+				y,
+				x));
+	});
+var $mdgriffith$elm_ui$Internal$Model$Px = function (a) {
+	return {$: 'Px', a: a};
+};
+var $mdgriffith$elm_ui$Element$px = $mdgriffith$elm_ui$Internal$Model$Px;
+var $mdgriffith$elm_ui$Internal$Flag$fontAlignment = $mdgriffith$elm_ui$Internal$Flag$flag(12);
+var $mdgriffith$elm_ui$Element$Font$center = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$fontAlignment, $mdgriffith$elm_ui$Internal$Style$classes.textCenter);
+var $Orasund$elm_ui_framework$Framework$Color$grey = A3($mdgriffith$elm_ui$Element$rgb255, 122, 122, 122);
+var $Orasund$elm_ui_framework$Framework$Color$lightGrey = A3($mdgriffith$elm_ui$Element$rgb255, 219, 219, 219);
+var $mdgriffith$elm_ui$Internal$Model$Hover = {$: 'Hover'};
+var $mdgriffith$elm_ui$Internal$Model$PseudoSelector = F2(
+	function (a, b) {
+		return {$: 'PseudoSelector', a: a, b: b};
+	});
+var $mdgriffith$elm_ui$Internal$Flag$hover = $mdgriffith$elm_ui$Internal$Flag$flag(33);
+var $mdgriffith$elm_ui$Internal$Model$TransformComponent = F2(
+	function (a, b) {
+		return {$: 'TransformComponent', a: a, b: b};
+	});
+var $mdgriffith$elm_ui$Internal$Model$Text = function (a) {
+	return {$: 'Text', a: a};
+};
+var $elm$virtual_dom$VirtualDom$map = _VirtualDom_map;
+var $mdgriffith$elm_ui$Internal$Model$map = F2(
+	function (fn, el) {
+		switch (el.$) {
+			case 'Styled':
+				var styled = el.a;
+				return $mdgriffith$elm_ui$Internal$Model$Styled(
+					{
+						html: F2(
+							function (add, context) {
+								return A2(
+									$elm$virtual_dom$VirtualDom$map,
+									fn,
+									A2(styled.html, add, context));
+							}),
+						styles: styled.styles
+					});
+			case 'Unstyled':
+				var html = el.a;
+				return $mdgriffith$elm_ui$Internal$Model$Unstyled(
+					A2(
+						$elm$core$Basics$composeL,
+						$elm$virtual_dom$VirtualDom$map(fn),
+						html));
+			case 'Text':
+				var str = el.a;
+				return $mdgriffith$elm_ui$Internal$Model$Text(str);
+			default:
+				return $mdgriffith$elm_ui$Internal$Model$Empty;
+		}
+	});
+var $elm$virtual_dom$VirtualDom$mapAttribute = _VirtualDom_mapAttribute;
+var $mdgriffith$elm_ui$Internal$Model$mapAttrFromStyle = F2(
+	function (fn, attr) {
+		switch (attr.$) {
+			case 'NoAttribute':
+				return $mdgriffith$elm_ui$Internal$Model$NoAttribute;
+			case 'Describe':
+				var description = attr.a;
+				return $mdgriffith$elm_ui$Internal$Model$Describe(description);
+			case 'AlignX':
+				var x = attr.a;
+				return $mdgriffith$elm_ui$Internal$Model$AlignX(x);
+			case 'AlignY':
+				var y = attr.a;
+				return $mdgriffith$elm_ui$Internal$Model$AlignY(y);
+			case 'Width':
+				var x = attr.a;
+				return $mdgriffith$elm_ui$Internal$Model$Width(x);
+			case 'Height':
+				var x = attr.a;
+				return $mdgriffith$elm_ui$Internal$Model$Height(x);
+			case 'Class':
+				var x = attr.a;
+				var y = attr.b;
+				return A2($mdgriffith$elm_ui$Internal$Model$Class, x, y);
+			case 'StyleClass':
+				var flag = attr.a;
+				var style = attr.b;
+				return A2($mdgriffith$elm_ui$Internal$Model$StyleClass, flag, style);
+			case 'Nearby':
+				var location = attr.a;
+				var elem = attr.b;
+				return A2(
+					$mdgriffith$elm_ui$Internal$Model$Nearby,
+					location,
+					A2($mdgriffith$elm_ui$Internal$Model$map, fn, elem));
+			case 'Attr':
+				var htmlAttr = attr.a;
+				return $mdgriffith$elm_ui$Internal$Model$Attr(
+					A2($elm$virtual_dom$VirtualDom$mapAttribute, fn, htmlAttr));
+			default:
+				var fl = attr.a;
+				var trans = attr.b;
+				return A2($mdgriffith$elm_ui$Internal$Model$TransformComponent, fl, trans);
+		}
+	});
+var $mdgriffith$elm_ui$Internal$Model$removeNever = function (style) {
+	return A2($mdgriffith$elm_ui$Internal$Model$mapAttrFromStyle, $elm$core$Basics$never, style);
+};
+var $mdgriffith$elm_ui$Internal$Model$unwrapDecsHelper = F2(
+	function (attr, _v0) {
+		var styles = _v0.a;
+		var trans = _v0.b;
+		var _v1 = $mdgriffith$elm_ui$Internal$Model$removeNever(attr);
+		switch (_v1.$) {
+			case 'StyleClass':
+				var style = _v1.b;
+				return _Utils_Tuple2(
+					A2($elm$core$List$cons, style, styles),
+					trans);
+			case 'TransformComponent':
+				var flag = _v1.a;
+				var component = _v1.b;
+				return _Utils_Tuple2(
+					styles,
+					A2($mdgriffith$elm_ui$Internal$Model$composeTransformation, trans, component));
+			default:
+				return _Utils_Tuple2(styles, trans);
+		}
+	});
+var $mdgriffith$elm_ui$Internal$Model$unwrapDecorations = function (attrs) {
+	var _v0 = A3(
+		$elm$core$List$foldl,
+		$mdgriffith$elm_ui$Internal$Model$unwrapDecsHelper,
+		_Utils_Tuple2(_List_Nil, $mdgriffith$elm_ui$Internal$Model$Untransformed),
+		attrs);
+	var styles = _v0.a;
+	var transform = _v0.b;
+	return A2(
+		$elm$core$List$cons,
+		$mdgriffith$elm_ui$Internal$Model$Transform(transform),
+		styles);
+};
+var $mdgriffith$elm_ui$Element$mouseOver = function (decs) {
+	return A2(
+		$mdgriffith$elm_ui$Internal$Model$StyleClass,
+		$mdgriffith$elm_ui$Internal$Flag$hover,
+		A2(
+			$mdgriffith$elm_ui$Internal$Model$PseudoSelector,
+			$mdgriffith$elm_ui$Internal$Model$Hover,
+			$mdgriffith$elm_ui$Internal$Model$unwrapDecorations(decs)));
+};
+var $mdgriffith$elm_ui$Internal$Model$Top = {$: 'Top'};
+var $mdgriffith$elm_ui$Element$alignTop = $mdgriffith$elm_ui$Internal$Model$AlignY($mdgriffith$elm_ui$Internal$Model$Top);
+var $mdgriffith$elm_ui$Element$rgba = $mdgriffith$elm_ui$Internal$Model$Rgba;
+var $mdgriffith$elm_ui$Internal$Flag$borderRound = $mdgriffith$elm_ui$Internal$Flag$flag(17);
+var $mdgriffith$elm_ui$Element$Border$rounded = function (radius) {
+	return A2(
+		$mdgriffith$elm_ui$Internal$Model$StyleClass,
+		$mdgriffith$elm_ui$Internal$Flag$borderRound,
+		A3(
+			$mdgriffith$elm_ui$Internal$Model$Single,
+			'br-' + $elm$core$String$fromInt(radius),
+			'border-radius',
+			$elm$core$String$fromInt(radius) + 'px'));
+};
+var $mdgriffith$elm_ui$Internal$Model$boxShadowClass = function (shadow) {
+	return $elm$core$String$concat(
+		_List_fromArray(
+			[
+				shadow.inset ? 'box-inset' : 'box-',
+				$mdgriffith$elm_ui$Internal$Model$floatClass(shadow.offset.a) + 'px',
+				$mdgriffith$elm_ui$Internal$Model$floatClass(shadow.offset.b) + 'px',
+				$mdgriffith$elm_ui$Internal$Model$floatClass(shadow.blur) + 'px',
+				$mdgriffith$elm_ui$Internal$Model$floatClass(shadow.size) + 'px',
+				$mdgriffith$elm_ui$Internal$Model$formatColorClass(shadow.color)
+			]));
+};
+var $mdgriffith$elm_ui$Internal$Flag$shadows = $mdgriffith$elm_ui$Internal$Flag$flag(19);
+var $mdgriffith$elm_ui$Element$Border$shadow = function (almostShade) {
+	var shade = {blur: almostShade.blur, color: almostShade.color, inset: false, offset: almostShade.offset, size: almostShade.size};
+	return A2(
+		$mdgriffith$elm_ui$Internal$Model$StyleClass,
+		$mdgriffith$elm_ui$Internal$Flag$shadows,
+		A3(
+			$mdgriffith$elm_ui$Internal$Model$Single,
+			$mdgriffith$elm_ui$Internal$Model$boxShadowClass(shade),
+			'box-shadow',
+			$mdgriffith$elm_ui$Internal$Model$formatBoxShadow(shade)));
+};
+var $mdgriffith$elm_ui$Internal$Model$BorderWidth = F5(
+	function (a, b, c, d, e) {
+		return {$: 'BorderWidth', a: a, b: b, c: c, d: d, e: e};
+	});
+var $mdgriffith$elm_ui$Element$Border$width = function (v) {
+	return A2(
+		$mdgriffith$elm_ui$Internal$Model$StyleClass,
+		$mdgriffith$elm_ui$Internal$Flag$borderWidth,
+		A5(
+			$mdgriffith$elm_ui$Internal$Model$BorderWidth,
+			'b-' + $elm$core$String$fromInt(v),
+			v,
+			v,
+			v,
+			v));
+};
+var $Orasund$elm_ui_framework$Framework$Card$simple = _List_fromArray(
+	[
+		$mdgriffith$elm_ui$Element$Border$shadow(
+		{
+			blur: 10,
+			color: A4($mdgriffith$elm_ui$Element$rgba, 0, 0, 0, 0.05),
+			offset: _Utils_Tuple2(0, 2),
+			size: 1
+		}),
+		$mdgriffith$elm_ui$Element$Border$width(1),
+		$mdgriffith$elm_ui$Element$Border$color($Orasund$elm_ui_framework$Framework$Color$lightGrey),
+		$mdgriffith$elm_ui$Element$Border$rounded(4),
+		$mdgriffith$elm_ui$Element$alignTop,
+		$mdgriffith$elm_ui$Element$padding(20),
+		$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$shrink)
+	]);
+var $Orasund$elm_ui_framework$Framework$Button$simple = _Utils_ap(
+	$Orasund$elm_ui_framework$Framework$Card$simple,
+	_List_fromArray(
+		[
+			$mdgriffith$elm_ui$Element$Font$center,
+			$mdgriffith$elm_ui$Element$Background$color($Orasund$elm_ui_framework$Framework$Color$lightGrey),
+			$mdgriffith$elm_ui$Element$mouseOver(
+			_List_fromArray(
+				[
+					$mdgriffith$elm_ui$Element$Border$color($Orasund$elm_ui_framework$Framework$Color$grey)
+				])),
+			A2($mdgriffith$elm_ui$Element$paddingXY, 16, 12)
+		]));
 var $mdgriffith$elm_ui$Internal$Model$SpacingStyle = F3(
 	function (a, b, c) {
 		return {$: 'SpacingStyle', a: a, b: b, c: c};
@@ -16049,6 +16491,17 @@ var $mdgriffith$elm_ui$Element$spacing = function (x) {
 			x,
 			x));
 };
+var $Orasund$elm_ui_framework$Framework$Grid$simple = _List_fromArray(
+	[
+		$mdgriffith$elm_ui$Element$spacing(10),
+		$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
+		$mdgriffith$elm_ui$Element$alignTop
+	]);
+var $mdgriffith$elm_ui$Element$spaceEvenly = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$spacing, $mdgriffith$elm_ui$Internal$Style$classes.spaceEvenly);
+var $mdgriffith$elm_ui$Element$text = function (content) {
+	return $mdgriffith$elm_ui$Internal$Model$Text(content);
+};
+var $mdgriffith$elm_ui$Internal$Model$Paragraph = {$: 'Paragraph'};
 var $mdgriffith$elm_ui$Element$paragraph = F2(
 	function (attrs, children) {
 		return A4(
@@ -16087,29 +16540,45 @@ var $mdgriffith$elm_ui$Element$row = F2(
 						attrs))),
 			$mdgriffith$elm_ui$Internal$Model$Unkeyed(children));
 	});
-var $mdgriffith$elm_ui$Internal$Model$Top = {$: 'Top'};
-var $mdgriffith$elm_ui$Element$alignTop = $mdgriffith$elm_ui$Internal$Model$AlignY($mdgriffith$elm_ui$Internal$Model$Top);
-var $Orasund$elm_ui_framework$Framework$Grid$simple = _List_fromArray(
-	[
-		$mdgriffith$elm_ui$Element$spacing(10),
-		$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
-		$mdgriffith$elm_ui$Element$alignTop
-	]);
-var $mdgriffith$elm_ui$Element$spaceEvenly = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$spacing, $mdgriffith$elm_ui$Internal$Style$classes.spaceEvenly);
-var $Orasund$elm_ui_framework$Framework$Grid$spaceEvenly = _List_fromArray(
-	[
-		$mdgriffith$elm_ui$Element$spaceEvenly,
-		$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
-		$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill),
-		$mdgriffith$elm_ui$Element$centerX,
-		$mdgriffith$elm_ui$Element$centerY
-	]);
-var $mdgriffith$elm_ui$Internal$Model$Text = function (a) {
-	return {$: 'Text', a: a};
+var $mdgriffith$elm_ui$Element$Border$widthXY = F2(
+	function (x, y) {
+		return A2(
+			$mdgriffith$elm_ui$Internal$Model$StyleClass,
+			$mdgriffith$elm_ui$Internal$Flag$borderWidth,
+			A5(
+				$mdgriffith$elm_ui$Internal$Model$BorderWidth,
+				'b-' + ($elm$core$String$fromInt(x) + ('-' + $elm$core$String$fromInt(y))),
+				y,
+				x,
+				y,
+				x));
+	});
+var $mdgriffith$elm_ui$Element$Border$widthEach = function (_v0) {
+	var bottom = _v0.bottom;
+	var top = _v0.top;
+	var left = _v0.left;
+	var right = _v0.right;
+	return (_Utils_eq(top, bottom) && _Utils_eq(left, right)) ? (_Utils_eq(top, right) ? $mdgriffith$elm_ui$Element$Border$width(top) : A2($mdgriffith$elm_ui$Element$Border$widthXY, left, top)) : A2(
+		$mdgriffith$elm_ui$Internal$Model$StyleClass,
+		$mdgriffith$elm_ui$Internal$Flag$borderWidth,
+		A5(
+			$mdgriffith$elm_ui$Internal$Model$BorderWidth,
+			'b-' + ($elm$core$String$fromInt(top) + ('-' + ($elm$core$String$fromInt(right) + ('-' + ($elm$core$String$fromInt(bottom) + ('-' + $elm$core$String$fromInt(left))))))),
+			top,
+			right,
+			bottom,
+			left));
 };
-var $mdgriffith$elm_ui$Element$text = function (content) {
-	return $mdgriffith$elm_ui$Internal$Model$Text(content);
-};
+var $Orasund$elm_ui_framework$Framework$Grid$section = _Utils_ap(
+	$Orasund$elm_ui_framework$Framework$Grid$simple,
+	_List_fromArray(
+		[
+			$mdgriffith$elm_ui$Element$Border$widthEach(
+			{bottom: 0, left: 0, right: 0, top: 2}),
+			$mdgriffith$elm_ui$Element$Border$color($Orasund$elm_ui_framework$Framework$Color$lightGrey),
+			$mdgriffith$elm_ui$Element$paddingEach(
+			{bottom: 30, left: 0, right: 0, top: 10})
+		]));
 var $Orasund$elm_ui_framework$Framework$Grid$compact = _List_fromArray(
 	[
 		$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
@@ -16141,12 +16610,6 @@ var $Orasund$elm_game_essentials$Grid$Bordered$foldr = F3(
 			val,
 			A2($elm$core$List$range, 0, columns - 1));
 	});
-var $mdgriffith$elm_ui$Internal$Model$Px = function (a) {
-	return {$: 'Px', a: a};
-};
-var $mdgriffith$elm_ui$Element$px = $mdgriffith$elm_ui$Internal$Model$Px;
-var $mdgriffith$elm_ui$Internal$Flag$fontAlignment = $mdgriffith$elm_ui$Internal$Flag$flag(12);
-var $mdgriffith$elm_ui$Element$Font$center = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$fontAlignment, $mdgriffith$elm_ui$Internal$Style$classes.textCenter);
 var $author$project$FactoryCity$Data$CellType$color = function (item) {
 	switch (item.$) {
 		case 'Wood':
@@ -16157,28 +16620,12 @@ var $author$project$FactoryCity$Data$CellType$color = function (item) {
 			return _Utils_Tuple3(102, 153, 153);
 		case 'Scrap':
 			return _Utils_Tuple3(255, 170, 170);
+		case 'Chips':
+			return _Utils_Tuple3(255, 255, 170);
 		default:
 			return _Utils_Tuple3(255, 226, 170);
 	}
 };
-var $elm$virtual_dom$VirtualDom$Normal = function (a) {
-	return {$: 'Normal', a: a};
-};
-var $elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
-var $elm$html$Html$Events$on = F2(
-	function (event, decoder) {
-		return A2(
-			$elm$virtual_dom$VirtualDom$on,
-			event,
-			$elm$virtual_dom$VirtualDom$Normal(decoder));
-	});
-var $elm$html$Html$Events$onClick = function (msg) {
-	return A2(
-		$elm$html$Html$Events$on,
-		'click',
-		$elm$json$Json$Decode$succeed(msg));
-};
-var $mdgriffith$elm_ui$Element$Events$onClick = A2($elm$core$Basics$composeL, $mdgriffith$elm_ui$Internal$Model$Attr, $elm$html$Html$Events$onClick);
 var $mdgriffith$elm_ui$Element$rgba255 = F4(
 	function (red, green, blue, a) {
 		return A4($mdgriffith$elm_ui$Internal$Model$Rgba, red / 255, green / 255, blue / 255, a);
@@ -23704,22 +24151,6 @@ var $author$project$FactoryCity$View$Text$view = F2(
 					},
 					string)));
 	});
-var $mdgriffith$elm_ui$Internal$Model$BorderWidth = F5(
-	function (a, b, c, d, e) {
-		return {$: 'BorderWidth', a: a, b: b, c: c, d: d, e: e};
-	});
-var $mdgriffith$elm_ui$Element$Border$width = function (v) {
-	return A2(
-		$mdgriffith$elm_ui$Internal$Model$StyleClass,
-		$mdgriffith$elm_ui$Internal$Flag$borderWidth,
-		A5(
-			$mdgriffith$elm_ui$Internal$Model$BorderWidth,
-			'b-' + $elm$core$String$fromInt(v),
-			v,
-			v,
-			v,
-			v));
-};
 var $author$project$FactoryCity$View$Board$viewCell = F4(
 	function (scale, position, maybeMsg, maybeCellType) {
 		return A2(
@@ -23859,388 +24290,103 @@ var $author$project$FactoryCity$View$Board$view = F2(
 					_Utils_Tuple2(_List_Nil, _List_Nil),
 					grid).b));
 	});
-var $mdgriffith$elm_ui$Internal$Model$Button = {$: 'Button'};
-var $elm$json$Json$Encode$bool = _Json_wrap;
-var $elm$html$Html$Attributes$boolProperty = F2(
-	function (key, bool) {
-		return A2(
-			_VirtualDom_property,
-			key,
-			$elm$json$Json$Encode$bool(bool));
-	});
-var $elm$html$Html$Attributes$disabled = $elm$html$Html$Attributes$boolProperty('disabled');
-var $mdgriffith$elm_ui$Element$Input$hasFocusStyle = function (attr) {
-	if (((attr.$ === 'StyleClass') && (attr.b.$ === 'PseudoSelector')) && (attr.b.a.$ === 'Focus')) {
-		var _v1 = attr.b;
-		var _v2 = _v1.a;
-		return true;
-	} else {
-		return false;
-	}
-};
-var $mdgriffith$elm_ui$Element$Input$focusDefault = function (attrs) {
-	return A2($elm$core$List$any, $mdgriffith$elm_ui$Element$Input$hasFocusStyle, attrs) ? $mdgriffith$elm_ui$Internal$Model$NoAttribute : $mdgriffith$elm_ui$Internal$Model$htmlClass('focusable');
-};
-var $mdgriffith$elm_ui$Element$Input$enter = 'Enter';
-var $elm$json$Json$Decode$andThen = _Json_andThen;
-var $elm$json$Json$Decode$fail = _Json_fail;
-var $elm$virtual_dom$VirtualDom$MayPreventDefault = function (a) {
-	return {$: 'MayPreventDefault', a: a};
-};
-var $elm$html$Html$Events$preventDefaultOn = F2(
-	function (event, decoder) {
-		return A2(
-			$elm$virtual_dom$VirtualDom$on,
-			event,
-			$elm$virtual_dom$VirtualDom$MayPreventDefault(decoder));
-	});
-var $elm$json$Json$Decode$string = _Json_decodeString;
-var $mdgriffith$elm_ui$Element$Input$onKey = F2(
-	function (desiredCode, msg) {
-		var decode = function (code) {
-			return _Utils_eq(code, desiredCode) ? $elm$json$Json$Decode$succeed(msg) : $elm$json$Json$Decode$fail('Not the enter key');
-		};
-		var isKey = A2(
-			$elm$json$Json$Decode$andThen,
-			decode,
-			A2($elm$json$Json$Decode$field, 'key', $elm$json$Json$Decode$string));
-		return $mdgriffith$elm_ui$Internal$Model$Attr(
-			A2(
-				$elm$html$Html$Events$preventDefaultOn,
-				'keyup',
-				A2(
-					$elm$json$Json$Decode$map,
-					function (fired) {
-						return _Utils_Tuple2(fired, true);
-					},
-					isKey)));
-	});
-var $mdgriffith$elm_ui$Element$Input$onEnter = function (msg) {
-	return A2($mdgriffith$elm_ui$Element$Input$onKey, $mdgriffith$elm_ui$Element$Input$enter, msg);
-};
-var $mdgriffith$elm_ui$Internal$Flag$cursor = $mdgriffith$elm_ui$Internal$Flag$flag(21);
-var $mdgriffith$elm_ui$Element$pointer = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$cursor, $mdgriffith$elm_ui$Internal$Style$classes.cursorPointer);
-var $elm$html$Html$Attributes$tabindex = function (n) {
-	return A2(
-		_VirtualDom_attribute,
-		'tabIndex',
-		$elm$core$String$fromInt(n));
-};
-var $mdgriffith$elm_ui$Element$Input$button = F2(
-	function (attrs, _v0) {
-		var onPress = _v0.onPress;
-		var label = _v0.label;
-		return A4(
-			$mdgriffith$elm_ui$Internal$Model$element,
-			$mdgriffith$elm_ui$Internal$Model$asEl,
-			$mdgriffith$elm_ui$Internal$Model$div,
-			A2(
-				$elm$core$List$cons,
-				$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$shrink),
-				A2(
-					$elm$core$List$cons,
-					$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$shrink),
-					A2(
-						$elm$core$List$cons,
-						$mdgriffith$elm_ui$Internal$Model$htmlClass($mdgriffith$elm_ui$Internal$Style$classes.contentCenterX + (' ' + ($mdgriffith$elm_ui$Internal$Style$classes.contentCenterY + (' ' + ($mdgriffith$elm_ui$Internal$Style$classes.seButton + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.noTextSelection)))))),
-						A2(
-							$elm$core$List$cons,
-							$mdgriffith$elm_ui$Element$pointer,
-							A2(
-								$elm$core$List$cons,
-								$mdgriffith$elm_ui$Element$Input$focusDefault(attrs),
-								A2(
-									$elm$core$List$cons,
-									$mdgriffith$elm_ui$Internal$Model$Describe($mdgriffith$elm_ui$Internal$Model$Button),
-									A2(
-										$elm$core$List$cons,
-										$mdgriffith$elm_ui$Internal$Model$Attr(
-											$elm$html$Html$Attributes$tabindex(0)),
-										function () {
-											if (onPress.$ === 'Nothing') {
-												return A2(
-													$elm$core$List$cons,
-													$mdgriffith$elm_ui$Internal$Model$Attr(
-														$elm$html$Html$Attributes$disabled(true)),
-													attrs);
-											} else {
-												var msg = onPress.a;
-												return A2(
-													$elm$core$List$cons,
-													$mdgriffith$elm_ui$Element$Events$onClick(msg),
-													A2(
-														$elm$core$List$cons,
-														$mdgriffith$elm_ui$Element$Input$onEnter(msg),
-														attrs));
-											}
-										}()))))))),
-			$mdgriffith$elm_ui$Internal$Model$Unkeyed(
-				_List_fromArray(
-					[label])));
-	});
-var $author$project$FactoryCity$View$Crafting$dirList = _List_fromArray(
-	[$Orasund$elm_game_essentials$Grid$Direction$Up, $Orasund$elm_game_essentials$Grid$Direction$Left, $Orasund$elm_game_essentials$Grid$Direction$Right, $Orasund$elm_game_essentials$Grid$Direction$Down]);
-var $Orasund$elm_ui_framework$Framework$Color$lightGrey = A3($mdgriffith$elm_ui$Element$rgb255, 219, 219, 219);
-var $mdgriffith$elm_ui$Element$Border$widthXY = F2(
-	function (x, y) {
-		return A2(
-			$mdgriffith$elm_ui$Internal$Model$StyleClass,
-			$mdgriffith$elm_ui$Internal$Flag$borderWidth,
-			A5(
-				$mdgriffith$elm_ui$Internal$Model$BorderWidth,
-				'b-' + ($elm$core$String$fromInt(x) + ('-' + $elm$core$String$fromInt(y))),
-				y,
-				x,
-				y,
-				x));
-	});
-var $mdgriffith$elm_ui$Element$Border$widthEach = function (_v0) {
-	var bottom = _v0.bottom;
-	var top = _v0.top;
-	var left = _v0.left;
-	var right = _v0.right;
-	return (_Utils_eq(top, bottom) && _Utils_eq(left, right)) ? (_Utils_eq(top, right) ? $mdgriffith$elm_ui$Element$Border$width(top) : A2($mdgriffith$elm_ui$Element$Border$widthXY, left, top)) : A2(
-		$mdgriffith$elm_ui$Internal$Model$StyleClass,
-		$mdgriffith$elm_ui$Internal$Flag$borderWidth,
-		A5(
-			$mdgriffith$elm_ui$Internal$Model$BorderWidth,
-			'b-' + ($elm$core$String$fromInt(top) + ('-' + ($elm$core$String$fromInt(right) + ('-' + ($elm$core$String$fromInt(bottom) + ('-' + $elm$core$String$fromInt(left))))))),
-			top,
-			right,
-			bottom,
-			left));
-};
-var $Orasund$elm_ui_framework$Framework$Grid$section = _Utils_ap(
-	$Orasund$elm_ui_framework$Framework$Grid$simple,
-	_List_fromArray(
-		[
-			$mdgriffith$elm_ui$Element$Border$widthEach(
-			{bottom: 0, left: 0, right: 0, top: 2}),
-			$mdgriffith$elm_ui$Element$Border$color($Orasund$elm_ui_framework$Framework$Color$lightGrey),
-			$mdgriffith$elm_ui$Element$paddingEach(
-			{bottom: 30, left: 0, right: 0, top: 10})
-		]));
-var $Orasund$elm_ui_framework$Framework$Color$grey = A3($mdgriffith$elm_ui$Element$rgb255, 122, 122, 122);
-var $mdgriffith$elm_ui$Internal$Model$Hover = {$: 'Hover'};
-var $mdgriffith$elm_ui$Internal$Model$PseudoSelector = F2(
-	function (a, b) {
-		return {$: 'PseudoSelector', a: a, b: b};
-	});
-var $mdgriffith$elm_ui$Internal$Flag$hover = $mdgriffith$elm_ui$Internal$Flag$flag(33);
-var $mdgriffith$elm_ui$Internal$Model$TransformComponent = F2(
-	function (a, b) {
-		return {$: 'TransformComponent', a: a, b: b};
-	});
-var $elm$virtual_dom$VirtualDom$map = _VirtualDom_map;
-var $mdgriffith$elm_ui$Internal$Model$map = F2(
-	function (fn, el) {
-		switch (el.$) {
-			case 'Styled':
-				var styled = el.a;
-				return $mdgriffith$elm_ui$Internal$Model$Styled(
-					{
-						html: F2(
-							function (add, context) {
-								return A2(
-									$elm$virtual_dom$VirtualDom$map,
-									fn,
-									A2(styled.html, add, context));
-							}),
-						styles: styled.styles
-					});
-			case 'Unstyled':
-				var html = el.a;
-				return $mdgriffith$elm_ui$Internal$Model$Unstyled(
-					A2(
-						$elm$core$Basics$composeL,
-						$elm$virtual_dom$VirtualDom$map(fn),
-						html));
-			case 'Text':
-				var str = el.a;
-				return $mdgriffith$elm_ui$Internal$Model$Text(str);
-			default:
-				return $mdgriffith$elm_ui$Internal$Model$Empty;
-		}
-	});
-var $elm$virtual_dom$VirtualDom$mapAttribute = _VirtualDom_mapAttribute;
-var $mdgriffith$elm_ui$Internal$Model$mapAttrFromStyle = F2(
-	function (fn, attr) {
-		switch (attr.$) {
-			case 'NoAttribute':
-				return $mdgriffith$elm_ui$Internal$Model$NoAttribute;
-			case 'Describe':
-				var description = attr.a;
-				return $mdgriffith$elm_ui$Internal$Model$Describe(description);
-			case 'AlignX':
-				var x = attr.a;
-				return $mdgriffith$elm_ui$Internal$Model$AlignX(x);
-			case 'AlignY':
-				var y = attr.a;
-				return $mdgriffith$elm_ui$Internal$Model$AlignY(y);
-			case 'Width':
-				var x = attr.a;
-				return $mdgriffith$elm_ui$Internal$Model$Width(x);
-			case 'Height':
-				var x = attr.a;
-				return $mdgriffith$elm_ui$Internal$Model$Height(x);
-			case 'Class':
-				var x = attr.a;
-				var y = attr.b;
-				return A2($mdgriffith$elm_ui$Internal$Model$Class, x, y);
-			case 'StyleClass':
-				var flag = attr.a;
-				var style = attr.b;
-				return A2($mdgriffith$elm_ui$Internal$Model$StyleClass, flag, style);
-			case 'Nearby':
-				var location = attr.a;
-				var elem = attr.b;
-				return A2(
-					$mdgriffith$elm_ui$Internal$Model$Nearby,
-					location,
-					A2($mdgriffith$elm_ui$Internal$Model$map, fn, elem));
-			case 'Attr':
-				var htmlAttr = attr.a;
-				return $mdgriffith$elm_ui$Internal$Model$Attr(
-					A2($elm$virtual_dom$VirtualDom$mapAttribute, fn, htmlAttr));
-			default:
-				var fl = attr.a;
-				var trans = attr.b;
-				return A2($mdgriffith$elm_ui$Internal$Model$TransformComponent, fl, trans);
-		}
-	});
-var $mdgriffith$elm_ui$Internal$Model$removeNever = function (style) {
-	return A2($mdgriffith$elm_ui$Internal$Model$mapAttrFromStyle, $elm$core$Basics$never, style);
-};
-var $mdgriffith$elm_ui$Internal$Model$unwrapDecsHelper = F2(
-	function (attr, _v0) {
-		var styles = _v0.a;
-		var trans = _v0.b;
-		var _v1 = $mdgriffith$elm_ui$Internal$Model$removeNever(attr);
-		switch (_v1.$) {
-			case 'StyleClass':
-				var style = _v1.b;
-				return _Utils_Tuple2(
-					A2($elm$core$List$cons, style, styles),
-					trans);
-			case 'TransformComponent':
-				var flag = _v1.a;
-				var component = _v1.b;
-				return _Utils_Tuple2(
-					styles,
-					A2($mdgriffith$elm_ui$Internal$Model$composeTransformation, trans, component));
-			default:
-				return _Utils_Tuple2(styles, trans);
-		}
-	});
-var $mdgriffith$elm_ui$Internal$Model$unwrapDecorations = function (attrs) {
-	var _v0 = A3(
-		$elm$core$List$foldl,
-		$mdgriffith$elm_ui$Internal$Model$unwrapDecsHelper,
-		_Utils_Tuple2(_List_Nil, $mdgriffith$elm_ui$Internal$Model$Untransformed),
-		attrs);
-	var styles = _v0.a;
-	var transform = _v0.b;
-	return A2(
-		$elm$core$List$cons,
-		$mdgriffith$elm_ui$Internal$Model$Transform(transform),
-		styles);
-};
-var $mdgriffith$elm_ui$Element$mouseOver = function (decs) {
-	return A2(
-		$mdgriffith$elm_ui$Internal$Model$StyleClass,
-		$mdgriffith$elm_ui$Internal$Flag$hover,
-		A2(
-			$mdgriffith$elm_ui$Internal$Model$PseudoSelector,
-			$mdgriffith$elm_ui$Internal$Model$Hover,
-			$mdgriffith$elm_ui$Internal$Model$unwrapDecorations(decs)));
-};
-var $mdgriffith$elm_ui$Element$paddingXY = F2(
-	function (x, y) {
-		return _Utils_eq(x, y) ? A2(
-			$mdgriffith$elm_ui$Internal$Model$StyleClass,
-			$mdgriffith$elm_ui$Internal$Flag$padding,
-			A5(
-				$mdgriffith$elm_ui$Internal$Model$PaddingStyle,
-				'p-' + $elm$core$String$fromInt(x),
-				x,
-				x,
-				x,
-				x)) : A2(
-			$mdgriffith$elm_ui$Internal$Model$StyleClass,
-			$mdgriffith$elm_ui$Internal$Flag$padding,
-			A5(
-				$mdgriffith$elm_ui$Internal$Model$PaddingStyle,
-				'p-' + ($elm$core$String$fromInt(x) + ('-' + $elm$core$String$fromInt(y))),
-				y,
-				x,
-				y,
-				x));
-	});
-var $mdgriffith$elm_ui$Element$rgba = $mdgriffith$elm_ui$Internal$Model$Rgba;
-var $mdgriffith$elm_ui$Internal$Flag$borderRound = $mdgriffith$elm_ui$Internal$Flag$flag(17);
-var $mdgriffith$elm_ui$Element$Border$rounded = function (radius) {
-	return A2(
-		$mdgriffith$elm_ui$Internal$Model$StyleClass,
-		$mdgriffith$elm_ui$Internal$Flag$borderRound,
-		A3(
-			$mdgriffith$elm_ui$Internal$Model$Single,
-			'br-' + $elm$core$String$fromInt(radius),
-			'border-radius',
-			$elm$core$String$fromInt(radius) + 'px'));
-};
-var $mdgriffith$elm_ui$Internal$Model$boxShadowClass = function (shadow) {
-	return $elm$core$String$concat(
+var $Orasund$elm_ui_framework$Framework$Grid$spaceEvenly = _List_fromArray(
+	[
+		$mdgriffith$elm_ui$Element$spaceEvenly,
+		$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
+		$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill),
+		$mdgriffith$elm_ui$Element$centerX,
+		$mdgriffith$elm_ui$Element$centerY
+	]);
+var $author$project$FactoryCity$Data$CellType$tierOneList = function () {
+	var dirList = _List_fromArray(
+		[$Orasund$elm_game_essentials$Grid$Direction$Up, $Orasund$elm_game_essentials$Grid$Direction$Left, $Orasund$elm_game_essentials$Grid$Direction$Down, $Orasund$elm_game_essentials$Grid$Direction$Right]);
+	return $elm$core$List$concat(
 		_List_fromArray(
 			[
-				shadow.inset ? 'box-inset' : 'box-',
-				$mdgriffith$elm_ui$Internal$Model$floatClass(shadow.offset.a) + 'px',
-				$mdgriffith$elm_ui$Internal$Model$floatClass(shadow.offset.b) + 'px',
-				$mdgriffith$elm_ui$Internal$Model$floatClass(shadow.blur) + 'px',
-				$mdgriffith$elm_ui$Internal$Model$floatClass(shadow.size) + 'px',
-				$mdgriffith$elm_ui$Internal$Model$formatColorClass(shadow.color)
-			]));
-};
-var $mdgriffith$elm_ui$Internal$Flag$shadows = $mdgriffith$elm_ui$Internal$Flag$flag(19);
-var $mdgriffith$elm_ui$Element$Border$shadow = function (almostShade) {
-	var shade = {blur: almostShade.blur, color: almostShade.color, inset: false, offset: almostShade.offset, size: almostShade.size};
-	return A2(
-		$mdgriffith$elm_ui$Internal$Model$StyleClass,
-		$mdgriffith$elm_ui$Internal$Flag$shadows,
-		A3(
-			$mdgriffith$elm_ui$Internal$Model$Single,
-			$mdgriffith$elm_ui$Internal$Model$boxShadowClass(shade),
-			'box-shadow',
-			$mdgriffith$elm_ui$Internal$Model$formatBoxShadow(shade)));
-};
-var $Orasund$elm_ui_framework$Framework$Card$simple = _List_fromArray(
-	[
-		$mdgriffith$elm_ui$Element$Border$shadow(
-		{
-			blur: 10,
-			color: A4($mdgriffith$elm_ui$Element$rgba, 0, 0, 0, 0.05),
-			offset: _Utils_Tuple2(0, 2),
-			size: 1
-		}),
-		$mdgriffith$elm_ui$Element$Border$width(1),
-		$mdgriffith$elm_ui$Element$Border$color($Orasund$elm_ui_framework$Framework$Color$lightGrey),
-		$mdgriffith$elm_ui$Element$Border$rounded(4),
-		$mdgriffith$elm_ui$Element$alignTop,
-		$mdgriffith$elm_ui$Element$padding(20),
-		$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$shrink)
-	]);
-var $Orasund$elm_ui_framework$Framework$Button$simple = _Utils_ap(
-	$Orasund$elm_ui_framework$Framework$Card$simple,
-	_List_fromArray(
-		[
-			$mdgriffith$elm_ui$Element$Font$center,
-			$mdgriffith$elm_ui$Element$Background$color($Orasund$elm_ui_framework$Framework$Color$lightGrey),
-			$mdgriffith$elm_ui$Element$mouseOver(
-			_List_fromArray(
+				_List_fromArray(
 				[
-					$mdgriffith$elm_ui$Element$Border$color($Orasund$elm_ui_framework$Framework$Color$grey)
-				])),
-			A2($mdgriffith$elm_ui$Element$paddingXY, 16, 12)
-		]));
+					A2(
+					$author$project$FactoryCity$Data$CellType$Machine,
+					$author$project$FactoryCity$Data$CellType$Furnace,
+					{isWarm: false})
+				]),
+				A2(
+				$elm$core$List$concatMap,
+				function (from) {
+					return A2(
+						$elm$core$List$filterMap,
+						function (to) {
+							return _Utils_eq(from, to) ? $elm$core$Maybe$Nothing : (_Utils_eq(
+								from,
+								$Orasund$elm_game_essentials$Grid$Direction$flip(to)) ? $elm$core$Maybe$Just(
+								A2(
+									$author$project$FactoryCity$Data$CellType$Movable,
+									$author$project$FactoryCity$Data$CellType$Belt,
+									{from: from, to: to})) : $elm$core$Maybe$Nothing);
+						},
+						dirList);
+				},
+				dirList)
+			]));
+}();
+var $author$project$FactoryCity$Data$CellType$tierThreeList = function () {
+	var dirList = _List_fromArray(
+		[$Orasund$elm_game_essentials$Grid$Direction$Up, $Orasund$elm_game_essentials$Grid$Direction$Left, $Orasund$elm_game_essentials$Grid$Direction$Down, $Orasund$elm_game_essentials$Grid$Direction$Right]);
+	return $elm$core$List$concat(
+		_List_fromArray(
+			[
+				A2(
+				$elm$core$List$map,
+				function (to) {
+					return A2(
+						$author$project$FactoryCity$Data$CellType$Movable,
+						$author$project$FactoryCity$Data$CellType$Merger,
+						{
+							from: $Orasund$elm_game_essentials$Grid$Direction$flip(to),
+							to: to
+						});
+				},
+				dirList)
+			]));
+}();
+var $author$project$FactoryCity$Data$CellType$tierTwoList = function () {
+	var dirList = _List_fromArray(
+		[$Orasund$elm_game_essentials$Grid$Direction$Up, $Orasund$elm_game_essentials$Grid$Direction$Left, $Orasund$elm_game_essentials$Grid$Direction$Down, $Orasund$elm_game_essentials$Grid$Direction$Right]);
+	return $elm$core$List$concat(
+		_List_fromArray(
+			[
+				_List_fromArray(
+				[
+					A2(
+					$author$project$FactoryCity$Data$CellType$Machine,
+					$author$project$FactoryCity$Data$CellType$Shredder,
+					{isWarm: false}),
+					A2(
+					$author$project$FactoryCity$Data$CellType$Machine,
+					$author$project$FactoryCity$Data$CellType$Press,
+					{isWarm: false}),
+					$author$project$FactoryCity$Data$CellType$output
+				]),
+				A2(
+				$elm$core$List$concatMap,
+				function (from) {
+					return A2(
+						$elm$core$List$filterMap,
+						function (to) {
+							return _Utils_eq(from, to) ? $elm$core$Maybe$Nothing : (_Utils_eq(
+								from,
+								$Orasund$elm_game_essentials$Grid$Direction$flip(to)) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(
+								A2(
+									$author$project$FactoryCity$Data$CellType$Movable,
+									$author$project$FactoryCity$Data$CellType$Belt,
+									{from: from, to: to})));
+						},
+						dirList);
+				},
+				dirList)
+			]));
+}();
 var $mdgriffith$elm_ui$Internal$Model$Padding = F5(
 	function (a, b, c, d, e) {
 		return {$: 'Padding', a: a, b: b, c: c, d: d, e: e};
@@ -24474,64 +24620,9 @@ var $author$project$FactoryCity$View$Crafting$view = function (_v0) {
 				},
 				_List_fromArray(
 					[
-						_Utils_Tuple2(
-						$author$project$FactoryCity$Data$CellType$tierOne,
-						$elm$core$List$concat(
-							_List_fromArray(
-								[
-									_List_fromArray(
-									[
-										A2(
-										$author$project$FactoryCity$Data$CellType$Machine,
-										$author$project$FactoryCity$Data$CellType$Furnace,
-										{isWarm: false}),
-										$author$project$FactoryCity$Data$CellType$output
-									]),
-									A2(
-									$elm$core$List$concatMap,
-									function (from) {
-										return A2(
-											$elm$core$List$filterMap,
-											function (to) {
-												return _Utils_eq(from, to) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(
-													A2(
-														$author$project$FactoryCity$Data$CellType$Movable,
-														$author$project$FactoryCity$Data$CellType$Belt,
-														{from: from, to: to}));
-											},
-											$author$project$FactoryCity$View$Crafting$dirList);
-									},
-									$author$project$FactoryCity$View$Crafting$dirList)
-								]))),
-						_Utils_Tuple2(
-						$author$project$FactoryCity$Data$CellType$tierTwo,
-						$elm$core$List$concat(
-							_List_fromArray(
-								[
-									_List_fromArray(
-									[
-										A2(
-										$author$project$FactoryCity$Data$CellType$Machine,
-										$author$project$FactoryCity$Data$CellType$Shredder,
-										{isWarm: false}),
-										A2(
-										$author$project$FactoryCity$Data$CellType$Machine,
-										$author$project$FactoryCity$Data$CellType$Press,
-										{isWarm: false})
-									]),
-									A2(
-									$elm$core$List$map,
-									function (to) {
-										return A2(
-											$author$project$FactoryCity$Data$CellType$Movable,
-											$author$project$FactoryCity$Data$CellType$Merger,
-											{
-												from: $Orasund$elm_game_essentials$Grid$Direction$flip(to),
-												to: to
-											});
-									},
-									$author$project$FactoryCity$View$Crafting$dirList)
-								])))
+						_Utils_Tuple2($author$project$FactoryCity$Data$CellType$tierOne, $author$project$FactoryCity$Data$CellType$tierOneList),
+						_Utils_Tuple2($author$project$FactoryCity$Data$CellType$tierTwo, $author$project$FactoryCity$Data$CellType$tierTwoList),
+						_Utils_Tuple2($author$project$FactoryCity$Data$CellType$tierThree, $author$project$FactoryCity$Data$CellType$tierThreeList)
 					]))));
 };
 var $author$project$Card$card = function (_v0) {
@@ -24541,8 +24632,6 @@ var $author$project$Card$card = function (_v0) {
 	var content = _v0.content;
 	return {attributes: attributes, content: content, onPress: onPress, selected: selected};
 };
-var $mdgriffith$elm_ui$Internal$Model$Bottom = {$: 'Bottom'};
-var $mdgriffith$elm_ui$Element$alignBottom = $mdgriffith$elm_ui$Internal$Model$AlignY($mdgriffith$elm_ui$Internal$Model$Bottom);
 var $author$project$Card$view = F3(
 	function (amount, _v0, _v1) {
 		var width = _v0.a;
@@ -24614,7 +24703,7 @@ var $author$project$Card$hand = F2(
 		var cardWidth = _v1.a;
 		var spacing = ((cardsAmount - 1) <= 0) ? 0 : A3($elm$core$Basics$clamp, -(cardWidth / 5), cardWidth / 5, (width - (cardsAmount * cardWidth)) / (cardsAmount - 1));
 		return A2(
-			$mdgriffith$elm_ui$Element$wrappedRow,
+			$mdgriffith$elm_ui$Element$row,
 			_Utils_ap(
 				_List_fromArray(
 					[
@@ -24750,16 +24839,19 @@ var $author$project$FactoryCity$View$Details$display = function (containerSort) 
 				case 'Chips':
 					var _v4 = containerSort.a;
 					return {desc: 'Outputs chips at the start of each loop. Nothing will happen if you do not have any chips. If done correctly, chips is the best fuel available.', name: 'Chips Crate'};
-				default:
+				case 'Iron':
 					var _v5 = containerSort.a;
 					return {desc: 'Outputs one iron at the start of each loop. Nothing will happen if you do not have any iron. Craft iron into items.', name: 'Iron Crate'};
+				default:
+					var _v6 = containerSort.a;
+					return {desc: 'Outputs one chipboard at the start of each loop. Nothing will happen if you do not have any chipboards. Craft chipboards into items.', name: 'Chipboard Crate'};
 			}
 		case 'Movable':
 			if (containerSort.a.$ === 'Belt') {
-				var _v6 = containerSort.a;
+				var _v7 = containerSort.a;
 				return {desc: 'Transports an item. If an output has multiple conveyor belts attached, it will turn into scrap. Similarly if two belts try to push an item onto the same tile, one of the items will be permantly deleted.', name: 'Conveyor Belt'};
 			} else {
-				var _v7 = containerSort.a;
+				var _v8 = containerSort.a;
 				return {desc: 'Merges items from three directions into one. This merger will avoid merging conflicts, thus its safer then a usual conveyor belt. But its also three times slower.', name: 'Merger'};
 			}
 		case 'Output':
@@ -24767,13 +24859,13 @@ var $author$project$FactoryCity$View$Details$display = function (containerSort) 
 		case 'Machine':
 			switch (containerSort.a.$) {
 				case 'Furnace':
-					var _v8 = containerSort.a;
+					var _v9 = containerSort.a;
 					return {desc: 'Smelts items. Always need a fuel at the beginning of each cycle (like wood or chips). Once its activated, it can turn stone into iron.', name: 'Furnace'};
 				case 'Shredder':
-					var _v9 = containerSort.a;
+					var _v10 = containerSort.a;
 					return {desc: 'Chops items into smaller items. Need fuel at the beginning of each cycle to function. One running it will turn wood into chips. It will also fill nearby crates!', name: 'Shredder'};
 				default:
-					var _v10 = containerSort.a;
+					var _v11 = containerSort.a;
 					return {desc: 'Compresses items. Needs fuel for every usabe, but in return it will compress scrap back into stone.', name: 'Press'};
 			}
 		default:
@@ -24957,7 +25049,6 @@ var $mdgriffith$elm_ui$Element$focused = function (decs) {
 			$mdgriffith$elm_ui$Internal$Model$Focus,
 			$mdgriffith$elm_ui$Internal$Model$unwrapDecorations(decs)));
 };
-var $mdgriffith$elm_ui$Element$htmlAttribute = $mdgriffith$elm_ui$Internal$Model$Attr;
 var $Orasund$elm_ui_framework$Framework$Color$disabled = _List_fromArray(
 	[
 		$mdgriffith$elm_ui$Element$Background$color($Orasund$elm_ui_framework$Framework$Color$lightGrey),
@@ -24978,65 +25069,73 @@ var $author$project$FactoryCity$View$Shop$view = function (_v0) {
 		A2(
 			$mdgriffith$elm_ui$Element$column,
 			$Orasund$elm_ui_framework$Framework$Grid$simple,
-			A2(
-				$elm$core$List$map,
-				function (_v1) {
-					var card = _v1.a;
-					var n = _v1.b;
-					var cost = A2($elm$core$Basics$max, 1, ($author$project$FactoryCity$Data$maxPrice / n) | 0);
-					return A2(
-						$mdgriffith$elm_ui$Element$row,
-						$Orasund$elm_ui_framework$Framework$Grid$spaceEvenly,
-						_List_fromArray(
-							[
-								A2(
-								$mdgriffith$elm_ui$Element$el,
-								function () {
-									var _v2 = $author$project$FactoryCity$Data$CellType$stringToContainerSort(card);
-									if ((_v2.$ === 'Just') && (_v2.a.$ === 'Crate')) {
-										var item = _v2.a.a;
-										return function (_v3) {
-											var r = _v3.a;
-											var g = _v3.b;
-											var b = _v3.c;
-											return _List_fromArray(
-												[
-													$mdgriffith$elm_ui$Element$Background$color(
-													A3($mdgriffith$elm_ui$Element$rgb255, r, g, b)),
-													$mdgriffith$elm_ui$Element$Border$rounded(20),
-													A2($mdgriffith$elm_ui$Element$paddingXY, 16, 12)
-												]);
-										}(
-											$author$project$FactoryCity$Data$CellType$color(item));
-									} else {
-										return _List_Nil;
-									}
-								}(),
-								A2($author$project$FactoryCity$View$Text$view, 16, card)),
-								A2(
-								$elm$core$Maybe$withDefault,
-								$mdgriffith$elm_ui$Element$text(
-									'Selling for ' + $elm$core$String$fromInt(
-										A2($elm$core$Basics$max, 1, ($author$project$FactoryCity$Data$maxPrice / (n + 1)) | 0))),
-								A2(
-									$elm$core$Maybe$map,
-									function (msg) {
-										return A2(
-											$mdgriffith$elm_ui$Element$Input$button,
-											_Utils_ap(
-												$Orasund$elm_ui_framework$Framework$Button$simple,
-												(_Utils_cmp(cost, money) < 1) ? _List_Nil : $Orasund$elm_ui_framework$Framework$Color$disabled),
-											{
-												label: $mdgriffith$elm_ui$Element$text(
-													'Buy for ' + $elm$core$String$fromInt(cost)),
-												onPress: $elm$core$Maybe$Just(
-													msg(card))
-											});
-									},
-									buyMsg))
-							]));
-				},
-				$JohnBugner$elm_bag$Bag$toList(shop))));
+			_List_fromArray(
+				[
+					$mdgriffith$elm_ui$Element$text(
+					'Money:' + $elm$core$String$fromInt(money)),
+					A2(
+					$mdgriffith$elm_ui$Element$column,
+					$Orasund$elm_ui_framework$Framework$Grid$simple,
+					A2(
+						$elm$core$List$map,
+						function (_v1) {
+							var card = _v1.a;
+							var n = _v1.b;
+							var cost = A2($elm$core$Basics$max, 1, ($author$project$FactoryCity$Data$maxPrice / n) | 0);
+							return A2(
+								$mdgriffith$elm_ui$Element$row,
+								$Orasund$elm_ui_framework$Framework$Grid$spaceEvenly,
+								_List_fromArray(
+									[
+										A2(
+										$mdgriffith$elm_ui$Element$el,
+										function () {
+											var _v2 = $author$project$FactoryCity$Data$CellType$stringToContainerSort(card);
+											if ((_v2.$ === 'Just') && (_v2.a.$ === 'Crate')) {
+												var item = _v2.a.a;
+												return function (_v3) {
+													var r = _v3.a;
+													var g = _v3.b;
+													var b = _v3.c;
+													return _List_fromArray(
+														[
+															$mdgriffith$elm_ui$Element$Background$color(
+															A3($mdgriffith$elm_ui$Element$rgb255, r, g, b)),
+															$mdgriffith$elm_ui$Element$Border$rounded(20),
+															A2($mdgriffith$elm_ui$Element$paddingXY, 16, 12)
+														]);
+												}(
+													$author$project$FactoryCity$Data$CellType$color(item));
+											} else {
+												return _List_Nil;
+											}
+										}(),
+										A2($author$project$FactoryCity$View$Text$view, 16, card)),
+										A2(
+										$elm$core$Maybe$withDefault,
+										$mdgriffith$elm_ui$Element$text(
+											'Selling for ' + $elm$core$String$fromInt(
+												A2($elm$core$Basics$max, 1, ($author$project$FactoryCity$Data$maxPrice / (n + 1)) | 0))),
+										A2(
+											$elm$core$Maybe$map,
+											function (msg) {
+												return A2(
+													$mdgriffith$elm_ui$Element$Input$button,
+													_Utils_ap(
+														$Orasund$elm_ui_framework$Framework$Button$simple,
+														(_Utils_cmp(cost, money) < 1) ? _List_Nil : $Orasund$elm_ui_framework$Framework$Color$disabled),
+													{
+														label: $mdgriffith$elm_ui$Element$text(
+															'Buy for ' + $elm$core$String$fromInt(cost)),
+														onPress: $elm$core$Maybe$Just(
+															msg(card))
+													});
+											},
+											buyMsg))
+									]));
+						},
+						$JohnBugner$elm_bag$Bag$toList(shop)))
+				])));
 };
 var $author$project$FactoryCity$View$Game$view = F2(
 	function (_v0, _v1) {
@@ -25056,135 +25155,113 @@ var $author$project$FactoryCity$View$Game$view = F2(
 		var sellMsg = _v0.sellMsg;
 		var board = _v1.board;
 		var deck = _v1.deck;
-		return A2(
-			$mdgriffith$elm_ui$Element$wrappedRow,
-			$Orasund$elm_ui_framework$Framework$Grid$simple,
-			_List_fromArray(
+		return _List_fromArray(
+			[
+				_List_fromArray(
 				[
+					_Utils_Tuple2(
+					'Shop',
+					$author$project$FactoryCity$View$Shop$view(
+						{
+							buyMsg: $elm$core$Maybe$Just(buyMsg),
+							money: money,
+							shop: shop
+						})),
+					_Utils_Tuple2(
+					'Crafting',
+					$author$project$FactoryCity$View$Crafting$view(
+						{craftMsg: craftMsg}))
+				]),
+				$elm$core$List$singleton(
+				_Utils_Tuple2(
+					'Game',
 					A2(
-					$mdgriffith$elm_ui$Element$column,
-					$Orasund$elm_ui_framework$Framework$Grid$simple,
-					_List_fromArray(
-						[
-							A2(
-							$mdgriffith$elm_ui$Element$row,
-							$Orasund$elm_ui_framework$Framework$Grid$spaceEvenly,
-							_List_fromArray(
-								[
-									A2(
-									$mdgriffith$elm_ui$Element$el,
-									$Orasund$elm_ui_framework$Framework$Heading$h1,
-									$mdgriffith$elm_ui$Element$text('Shop')),
-									$mdgriffith$elm_ui$Element$text(
-									'Money:' + $elm$core$String$fromInt(money))
-								])),
-							$author$project$FactoryCity$View$Shop$view(
-							{
-								buyMsg: $elm$core$Maybe$Just(buyMsg),
-								money: money,
-								shop: shop
-							}),
-							A2(
-							$mdgriffith$elm_ui$Element$el,
-							$Orasund$elm_ui_framework$Framework$Heading$h1,
-							$mdgriffith$elm_ui$Element$text('Crafting')),
-							$author$project$FactoryCity$View$Crafting$view(
-							{craftMsg: craftMsg})
-						])),
-					A2(
-					$mdgriffith$elm_ui$Element$column,
-					$Orasund$elm_ui_framework$Framework$Grid$simple,
-					_List_fromArray(
-						[
-							A2(
-							$mdgriffith$elm_ui$Element$row,
-							$Orasund$elm_ui_framework$Framework$Grid$simple,
-							_List_fromArray(
-								[
-									A2(
-									$mdgriffith$elm_ui$Element$el,
-									_List_fromArray(
-										[
-											$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
-										]),
-									$mdgriffith$elm_ui$Element$none),
-									A2(
-									$mdgriffith$elm_ui$Element$el,
-									_Utils_ap(
-										$Orasund$elm_ui_framework$Framework$Heading$h1,
-										_List_fromArray(
-											[
-												$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
-											])),
-									A2(
-										$mdgriffith$elm_ui$Element$el,
-										_List_fromArray(
-											[$mdgriffith$elm_ui$Element$centerX]),
-										$mdgriffith$elm_ui$Element$text(
-											$elm$core$String$fromInt(counter)))),
-									A2(
-									$mdgriffith$elm_ui$Element$paragraph,
-									_List_fromArray(
-										[
-											$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
-										]),
-									$elm$core$List$singleton(
-										$mdgriffith$elm_ui$Element$text(
-											'Next bug in ' + ($elm$core$String$fromInt(nextBugIn) + ' turns'))))
-								])),
-							A2(
-							$author$project$FactoryCity$View$Board$view,
-							{
-								maybePositionMsg: $elm$core$Maybe$Just(positionSelectedMsg),
-								scale: scale
-							},
-							board),
-							A5(
-							$author$project$FactoryCity$View$Deck$view,
-							scale,
-							{sort: sort},
-							$elm$core$Maybe$Just(selectedMsg),
-							selected,
-							deck)
-						])),
-					function () {
-					var price = function (c) {
-						return A2(
-							$elm$core$Maybe$withDefault,
-							0,
-							A2(
-								$elm$core$Maybe$map,
-								function (card) {
-									return A2(
-										$elm$core$Basics$max,
-										1,
-										($author$project$FactoryCity$Data$maxPrice / (A2(
-											$JohnBugner$elm_bag$Bag$count,
-											$author$project$FactoryCity$Data$CellType$containerSortToString(c),
-											shop) + 1)) | 0);
-								},
-								selected));
-					};
-					return A2(
 						$mdgriffith$elm_ui$Element$column,
-						$Orasund$elm_ui_framework$Framework$Grid$simple,
+						$Orasund$elm_ui_framework$Framework$Grid$section,
 						_List_fromArray(
 							[
 								A2(
-								$mdgriffith$elm_ui$Element$el,
-								$Orasund$elm_ui_framework$Framework$Heading$h1,
-								$mdgriffith$elm_ui$Element$text('Details')),
-								$author$project$FactoryCity$View$Details$view(
-								{price: price, selected: selected, sellMsg: sellMsg}),
+								$mdgriffith$elm_ui$Element$row,
+								$Orasund$elm_ui_framework$Framework$Grid$simple,
+								_List_fromArray(
+									[
+										A2(
+										$mdgriffith$elm_ui$Element$el,
+										_List_fromArray(
+											[
+												$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
+											]),
+										$mdgriffith$elm_ui$Element$none),
+										A2(
+										$mdgriffith$elm_ui$Element$el,
+										_Utils_ap(
+											$Orasund$elm_ui_framework$Framework$Heading$h1,
+											_List_fromArray(
+												[
+													$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
+												])),
+										A2(
+											$mdgriffith$elm_ui$Element$el,
+											_List_fromArray(
+												[$mdgriffith$elm_ui$Element$centerX]),
+											$mdgriffith$elm_ui$Element$text(
+												$elm$core$String$fromInt(counter)))),
+										A2(
+										$mdgriffith$elm_ui$Element$paragraph,
+										_List_fromArray(
+											[
+												$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
+											]),
+										$elm$core$List$singleton(
+											$mdgriffith$elm_ui$Element$text(
+												'Next bug in ' + ($elm$core$String$fromInt(nextBugIn) + ' turns'))))
+									])),
 								A2(
-								$mdgriffith$elm_ui$Element$el,
-								$Orasund$elm_ui_framework$Framework$Heading$h1,
-								$mdgriffith$elm_ui$Element$text('Settings')),
-								$author$project$FactoryCity$View$Settings$view(
-								{changedLoopLengthMsg: changedLoopLengthMsg, loopLength: loopLength})
-							]));
-				}()
-				]));
+								$author$project$FactoryCity$View$Board$view,
+								{
+									maybePositionMsg: $elm$core$Maybe$Just(positionSelectedMsg),
+									scale: scale
+								},
+								board),
+								A5(
+								$author$project$FactoryCity$View$Deck$view,
+								scale,
+								{sort: sort},
+								$elm$core$Maybe$Just(selectedMsg),
+								selected,
+								deck)
+							])))),
+				_List_fromArray(
+				[
+					_Utils_Tuple2(
+					'Details',
+					function () {
+						var price = function (c) {
+							return A2(
+								$elm$core$Maybe$withDefault,
+								0,
+								A2(
+									$elm$core$Maybe$map,
+									function (card) {
+										return A2(
+											$elm$core$Basics$max,
+											1,
+											($author$project$FactoryCity$Data$maxPrice / (A2(
+												$JohnBugner$elm_bag$Bag$count,
+												$author$project$FactoryCity$Data$CellType$containerSortToString(c),
+												shop) + 1)) | 0);
+									},
+									selected));
+						};
+						return $author$project$FactoryCity$View$Details$view(
+							{price: price, selected: selected, sellMsg: sellMsg});
+					}()),
+					_Utils_Tuple2(
+					'Settings',
+					$author$project$FactoryCity$View$Settings$view(
+						{changedLoopLengthMsg: changedLoopLengthMsg, loopLength: loopLength}))
+				])
+			]);
 	});
 var $author$project$FactoryCity$State$Playing$view = F4(
 	function (scale, restartMsg, msgMapper, _v0) {
@@ -25196,29 +25273,94 @@ var $author$project$FactoryCity$State$Playing$view = F4(
 		var selected = _v0.a.selected;
 		var viewedCard = _v0.a.viewedCard;
 		var loopEvery = _v0.a.loopEvery;
+		var list = A2(
+			$author$project$FactoryCity$View$Game$view,
+			{
+				buyMsg: A2($elm$core$Basics$composeL, msgMapper, $author$project$FactoryCity$State$Playing$ClickedBuy),
+				changedLoopLengthMsg: A2($elm$core$Basics$composeL, msgMapper, $author$project$FactoryCity$State$Playing$ChangedLoopLength),
+				counter: stepCount,
+				craftMsg: A2($elm$core$Basics$composeL, msgMapper, $author$project$FactoryCity$State$Playing$ClickedCraft),
+				loopLength: loopEvery,
+				money: money,
+				nextBugIn: nextBugIn,
+				positionSelectedMsg: A2($elm$core$Basics$composeL, msgMapper, $author$project$FactoryCity$State$Playing$PositionSelected),
+				scale: scale,
+				selected: selected,
+				selectedMsg: A2($elm$core$Basics$composeL, msgMapper, $author$project$FactoryCity$State$Playing$Selected),
+				sellMsg: A2($elm$core$Basics$composeL, msgMapper, $author$project$FactoryCity$State$Playing$ClickedSell),
+				shop: shop,
+				sort: true
+			},
+			game);
 		return _Utils_Tuple2(
-			$elm$core$Maybe$Nothing,
+			$elm$core$Maybe$Just(
+				A2(
+					$mdgriffith$elm_ui$Element$wrappedRow,
+					_Utils_ap(
+						$Orasund$elm_ui_framework$Framework$Color$light,
+						_List_fromArray(
+							[
+								$mdgriffith$elm_ui$Element$alignBottom,
+								A2($mdgriffith$elm_ui$Element$paddingXY, 16, 2),
+								$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
+								$mdgriffith$elm_ui$Element$spaceEvenly
+							])),
+					A2(
+						$elm$core$List$map,
+						function (_v1) {
+							var name = _v1.a;
+							return A2(
+								$mdgriffith$elm_ui$Element$Input$button,
+								$Orasund$elm_ui_framework$Framework$Button$simple,
+								{
+									label: $mdgriffith$elm_ui$Element$text(name),
+									onPress: $elm$core$Maybe$Just(
+										msgMapper(
+											$author$project$FactoryCity$State$Playing$ClickedChangeTab(name)))
+								});
+						},
+						$elm$core$List$concat(list)))),
 			_List_fromArray(
 				[
 					A2(
-					$author$project$FactoryCity$View$Game$view,
-					{
-						buyMsg: A2($elm$core$Basics$composeL, msgMapper, $author$project$FactoryCity$State$Playing$ClickedBuy),
-						changedLoopLengthMsg: A2($elm$core$Basics$composeL, msgMapper, $author$project$FactoryCity$State$Playing$ChangedLoopLength),
-						counter: stepCount,
-						craftMsg: A2($elm$core$Basics$composeL, msgMapper, $author$project$FactoryCity$State$Playing$ClickedCraft),
-						loopLength: loopEvery,
-						money: money,
-						nextBugIn: nextBugIn,
-						positionSelectedMsg: A2($elm$core$Basics$composeL, msgMapper, $author$project$FactoryCity$State$Playing$PositionSelected),
-						scale: scale,
-						selected: selected,
-						selectedMsg: A2($elm$core$Basics$composeL, msgMapper, $author$project$FactoryCity$State$Playing$Selected),
-						sellMsg: A2($elm$core$Basics$composeL, msgMapper, $author$project$FactoryCity$State$Playing$ClickedSell),
-						shop: shop,
-						sort: true
-					},
-					game)
+					$mdgriffith$elm_ui$Element$wrappedRow,
+					$Orasund$elm_ui_framework$Framework$Grid$simple,
+					A2(
+						$elm$core$List$map,
+						A2(
+							$elm$core$Basics$composeR,
+							$elm$core$List$map(
+								function (_v2) {
+									var name = _v2.a;
+									var content = _v2.b;
+									return A2(
+										$mdgriffith$elm_ui$Element$column,
+										$Orasund$elm_ui_framework$Framework$Grid$simple,
+										_List_fromArray(
+											[
+												A2(
+												$mdgriffith$elm_ui$Element$el,
+												_Utils_ap(
+													$Orasund$elm_ui_framework$Framework$Heading$h1,
+													_List_fromArray(
+														[
+															$mdgriffith$elm_ui$Element$htmlAttribute(
+															$elm$html$Html$Attributes$id(name))
+														])),
+												$mdgriffith$elm_ui$Element$text(name)),
+												content
+											]));
+								}),
+							$mdgriffith$elm_ui$Element$column($Orasund$elm_ui_framework$Framework$Grid$simple)),
+						list)),
+					A2(
+					$mdgriffith$elm_ui$Element$el,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_ui$Element$height(
+							$mdgriffith$elm_ui$Element$px(50))
+						]),
+					$mdgriffith$elm_ui$Element$none)
 				]));
 	});
 var $Orasund$elm_ui_framework$Framework$Color$yellow = A3($mdgriffith$elm_ui$Element$rgb255, 255, 221, 87);
@@ -25365,37 +25507,48 @@ var $author$project$FactoryCity$State$Ready$view = F4(
 					_List_fromArray(
 						[
 							A2(
-							$mdgriffith$elm_ui$Element$row,
+							$mdgriffith$elm_ui$Element$column,
 							_Utils_ap(
 								$Orasund$elm_ui_framework$Framework$Grid$simple,
 								_List_fromArray(
 									[
-										$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$shrink),
-										$mdgriffith$elm_ui$Element$centerY
+										$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
 									])),
 							_List_fromArray(
 								[
 									A2(
-									$author$project$FactoryCity$View$Text$view,
-									$elm$core$Basics$round(scale * 150),
-									'🏭'),
-									A2(
-									$mdgriffith$elm_ui$Element$column,
+									$mdgriffith$elm_ui$Element$row,
+									_Utils_ap(
+										$Orasund$elm_ui_framework$Framework$Grid$simple,
+										_List_fromArray(
+											[
+												$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$shrink),
+												$mdgriffith$elm_ui$Element$centerY
+											])),
 									_List_fromArray(
 										[
-											$mdgriffith$elm_ui$Element$Font$size(
-											$elm$core$Basics$floor(scale * 80)),
-											$mdgriffith$elm_ui$Element$centerX,
-											$mdgriffith$elm_ui$Element$Font$center
-										]),
-									_List_fromArray(
-										[
-											$mdgriffith$elm_ui$Element$text('Factory'),
-											$mdgriffith$elm_ui$Element$text('City')
-										]))
+											A2(
+											$author$project$FactoryCity$View$Text$view,
+											$elm$core$Basics$round(scale * 150),
+											'🏭'),
+											A2(
+											$mdgriffith$elm_ui$Element$column,
+											_List_fromArray(
+												[
+													$mdgriffith$elm_ui$Element$Font$size(
+													$elm$core$Basics$floor(scale * 80)),
+													$mdgriffith$elm_ui$Element$centerX,
+													$mdgriffith$elm_ui$Element$Font$center
+												]),
+											_List_fromArray(
+												[
+													$mdgriffith$elm_ui$Element$text('Factory'),
+													$mdgriffith$elm_ui$Element$text('City')
+												]))
+										])),
+									$author$project$FactoryCity$View$Shop$view(
+									{buyMsg: $elm$core$Maybe$Nothing, money: 0, shop: shop})
 								])),
-							$author$project$FactoryCity$View$Shop$view(
-							{buyMsg: $elm$core$Maybe$Nothing, money: 0, shop: shop}),
 							A2(
 							$mdgriffith$elm_ui$Element$column,
 							_Utils_ap(
@@ -25404,7 +25557,7 @@ var $author$project$FactoryCity$State$Ready$view = F4(
 									[
 										$mdgriffith$elm_ui$Element$centerY,
 										$mdgriffith$elm_ui$Element$centerX,
-										$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$shrink)
+										$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
 									])),
 							_List_fromArray(
 								[
@@ -25421,61 +25574,6 @@ var $author$project$FactoryCity$State$Ready$view = F4(
 								]))
 						]))));
 	});
-var $author$project$FactoryCity$View$Shade$view = F2(
-	function (attributes, content) {
-		return A2(
-			$mdgriffith$elm_ui$Element$el,
-			A2(
-				$elm$core$List$append,
-				_Utils_ap(
-					$Orasund$elm_ui_framework$Framework$Card$simple,
-					_List_fromArray(
-						[
-							$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
-							$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill),
-							$mdgriffith$elm_ui$Element$Border$width(0),
-							$mdgriffith$elm_ui$Element$Border$rounded(0),
-							$mdgriffith$elm_ui$Element$centerX,
-							$mdgriffith$elm_ui$Element$centerY,
-							$mdgriffith$elm_ui$Element$Font$family(
-							_List_fromArray(
-								[$mdgriffith$elm_ui$Element$Font$sansSerif]))
-						])),
-				attributes),
-			A2(
-				$mdgriffith$elm_ui$Element$column,
-				_Utils_ap(
-					$Orasund$elm_ui_framework$Framework$Grid$spaceEvenly,
-					_List_fromArray(
-						[
-							$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$shrink)
-						])),
-				content));
-	});
-var $author$project$FactoryCity$View$Shade$viewNormal = function (content) {
-	return A2(
-		$author$project$FactoryCity$View$Shade$view,
-		_List_fromArray(
-			[
-				$mdgriffith$elm_ui$Element$Background$color(
-				A4($mdgriffith$elm_ui$Element$rgba255, 0, 0, 0, 0.7)),
-				$mdgriffith$elm_ui$Element$Font$color(
-				A3($mdgriffith$elm_ui$Element$rgb255, 255, 255, 255))
-			]),
-		content);
-};
-var $author$project$FactoryCity$View$Shade$viewWon = function (content) {
-	return A2(
-		$author$project$FactoryCity$View$Shade$view,
-		_List_fromArray(
-			[
-				$mdgriffith$elm_ui$Element$Background$color(
-				A4($mdgriffith$elm_ui$Element$rgba255, 204, 166, 0, 0.7)),
-				$mdgriffith$elm_ui$Element$Font$color(
-				A3($mdgriffith$elm_ui$Element$rgb255, 0, 0, 0))
-			]),
-		content);
-};
 var $author$project$FactoryCity$Main$view = function (model) {
 	var _v0 = function () {
 		switch (model.$) {
@@ -25494,7 +25592,7 @@ var $author$project$FactoryCity$Main$view = function (model) {
 				return $author$project$FactoryCity$State$Prepairing$view(preparingModel);
 		}
 	}();
-	var maybeShade = _v0.a;
+	var inFrontContent = _v0.a;
 	var content = _v0.b;
 	return {
 		body: _List_fromArray(
@@ -25511,27 +25609,23 @@ var $author$project$FactoryCity$Main$view = function (model) {
 				A3(
 				$mdgriffith$elm_ui$Element$layoutWith,
 				{options: $Orasund$elm_ui_framework$Framework$layoutOptions},
-				_Utils_ap(
+				$elm$core$List$concat(
 					_List_fromArray(
 						[
-							$mdgriffith$elm_ui$Element$Background$color(
-							A3($mdgriffith$elm_ui$Element$rgb255, 44, 48, 51))
-						]),
-					_Utils_ap(
-						A2(
+							_List_fromArray(
+							[
+								$mdgriffith$elm_ui$Element$Background$color(
+								A3($mdgriffith$elm_ui$Element$rgb255, 44, 48, 51))
+							]),
+							A2(
 							$elm$core$Maybe$withDefault,
 							_List_Nil,
 							A2(
 								$elm$core$Maybe$map,
-								function (_v4) {
-									var isWon = _v4.isWon;
-									var shade = _v4.shade;
-									return $elm$core$List$singleton(
-										$mdgriffith$elm_ui$Element$inFront(
-											(isWon ? $author$project$FactoryCity$View$Shade$viewWon : $author$project$FactoryCity$View$Shade$viewNormal)(shade)));
-								},
-								maybeShade)),
-						$Orasund$elm_ui_framework$Framework$layoutAttributes)),
+								A2($elm$core$Basics$composeR, $mdgriffith$elm_ui$Element$inFront, $elm$core$List$singleton),
+								inFrontContent)),
+							$Orasund$elm_ui_framework$Framework$layoutAttributes
+						])),
 				A2($mdgriffith$elm_ui$Element$column, $Orasund$elm_ui_framework$Framework$container, content))
 			]),
 		title: 'Factory City'

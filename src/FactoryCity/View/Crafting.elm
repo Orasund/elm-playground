@@ -18,34 +18,13 @@ dirList =
 view : { craftMsg : ContainerSort -> msg } -> Element msg
 view { craftMsg } =
     [ ( CellType.tierOne
-      , List.concat
-            [ [ Machine Furnace { isWarm = False }
-              , CellType.output
-              ]
-            , dirList
-                |> List.concatMap
-                    (\from ->
-                        dirList
-                            |> List.filterMap
-                                (\to ->
-                                    if from == to then
-                                        Nothing
-
-                                    else
-                                        Just <| Movable Belt { from = from, to = to }
-                                )
-                    )
-            ]
+      , CellType.tierOneList
       )
     , ( CellType.tierTwo
-      , List.concat
-            [ [ Machine Shredder { isWarm = False }
-              , Machine Press { isWarm = False }
-              ]
-            , dirList
-                |> List.map
-                    (\to -> Movable Merger { from = to |> Direction.flip, to = to })
-            ]
+      , CellType.tierTwoList
+      )
+    , ( CellType.tierThree
+      , CellType.tierThreeList
       )
     ]
         |> List.map
