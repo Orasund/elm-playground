@@ -337,7 +337,7 @@ view { selected, sellMsg, price } =
                             |> Element.textColumn Grid.section
                         , Input.button Button.simple <|
                             { label =
-                                Element.text <|
+                                Text.view 16 <|
                                     "💲 sell for "
                                         ++ (price
                                                 |> String.fromInt

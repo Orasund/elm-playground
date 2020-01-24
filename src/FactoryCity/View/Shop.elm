@@ -81,7 +81,7 @@ view { shop, buyMsg, sellMsg, money, deck } =
                                                 { onPress = Just <| sMsg <| CellType.crate <| item
                                                 , label =
                                                     Element.row Grid.spaceEvenly <|
-                                                        [ Element.text <| "💲"
+                                                        [ Text.view 16 <| "💲"
                                                         , Element.text <| String.fromInt (max 1 <| Data.maxPrice // (n + 1))
                                                         ]
                                                 }
@@ -99,7 +99,7 @@ view { shop, buyMsg, sellMsg, money, deck } =
                                                 { onPress = Just <| bMsg <| item
                                                 , label =
                                                     Element.row Grid.spaceEvenly <|
-                                                        [ Element.text <| "\u{1F6D2}"
+                                                        [ Text.view 16 <| "\u{1F6D2}"
                                                         , Element.text <| (cost |> String.fromInt)
                                                         ]
                                                 }

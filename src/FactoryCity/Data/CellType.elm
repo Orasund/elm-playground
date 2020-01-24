@@ -25,6 +25,7 @@ module FactoryCity.Data.CellType exposing
     , shreddable
     , smeltable
     , stringToContainerSort
+    , stringToItem
     , tierOne
     , tierOneList
     , tierThree
@@ -33,7 +34,6 @@ module FactoryCity.Data.CellType exposing
     , tierTwoList
     , toCard
     , toString
-    , stringToItem
     )
 
 import Bag exposing (Bag)
@@ -272,7 +272,7 @@ movableToString : { from : Direction, to : Direction } -> Maybe String
 movableToString { from, to } =
     case ( from, to ) of
         ( Up, Left ) ->
-            Just "↵"
+            Just "⤶"
 
         ( Up, Down ) ->
             Just "↓"
@@ -293,19 +293,19 @@ movableToString { from, to } =
             Just "↑"
 
         ( Down, Left ) ->
-            Just "⮢"
+            Just "↰"
 
         ( Down, Right ) ->
-            Just "⮣"
+            Just "↱"
 
         ( Right, Up ) ->
-            Just "⮤"
+            Just "⬑"
 
         ( Right, Left ) ->
             Just "←"
 
         ( Right, Down ) ->
-            Just "⮦"
+            Just "⬐"
 
         _ ->
             Nothing
@@ -314,7 +314,7 @@ movableToString { from, to } =
 stringToMovable : String -> Maybe { from : Direction, to : Direction }
 stringToMovable string =
     (case string of
-        "↵" ->
+        "⤶" ->
             Just ( Up, Left )
 
         "↓" ->
@@ -335,19 +335,19 @@ stringToMovable string =
         "↑" ->
             Just ( Down, Up )
 
-        "⮢" ->
+        "↰" ->
             Just ( Down, Left )
 
-        "⮣" ->
+        "↱" ->
             Just ( Down, Right )
 
-        "⮤" ->
+        "⬑" ->
             Just ( Right, Up )
 
         "←" ->
             Just ( Right, Left )
 
-        "⮦" ->
+        "⬐" ->
             Just ( Right, Down )
 
         _ ->
@@ -606,7 +606,7 @@ tierTwoList =
           , Machine Press { isWarm = False }
           , output
           ]
-        ,  dirList
+        , dirList
             |> List.map
                 (\to -> Movable Merger { from = to |> Direction.flip, to = to })
         ]
@@ -625,7 +625,7 @@ tierThreeList =
             [ Up, Left, Down, Right ]
     in
     List.concat
-        [dirList
+        [ dirList
             |> List.concatMap
                 (\from ->
                     dirList

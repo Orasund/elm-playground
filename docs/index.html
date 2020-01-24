@@ -7245,7 +7245,7 @@ var $author$project$FactoryCity$Data$CellType$movableToString = function (_v0) {
 					case 'Left':
 						var _v2 = _v1.a;
 						var _v3 = _v1.b;
-						return $elm$core$Maybe$Just('↵');
+						return $elm$core$Maybe$Just('⤶');
 					case 'Down':
 						var _v4 = _v1.a;
 						var _v5 = _v1.b;
@@ -7283,11 +7283,11 @@ var $author$project$FactoryCity$Data$CellType$movableToString = function (_v0) {
 					case 'Left':
 						var _v16 = _v1.a;
 						var _v17 = _v1.b;
-						return $elm$core$Maybe$Just('⮢');
+						return $elm$core$Maybe$Just('↰');
 					case 'Right':
 						var _v18 = _v1.a;
 						var _v19 = _v1.b;
-						return $elm$core$Maybe$Just('⮣');
+						return $elm$core$Maybe$Just('↱');
 					default:
 						break _v1$12;
 				}
@@ -7296,7 +7296,7 @@ var $author$project$FactoryCity$Data$CellType$movableToString = function (_v0) {
 					case 'Up':
 						var _v20 = _v1.a;
 						var _v21 = _v1.b;
-						return $elm$core$Maybe$Just('⮤');
+						return $elm$core$Maybe$Just('⬑');
 					case 'Left':
 						var _v22 = _v1.a;
 						var _v23 = _v1.b;
@@ -7304,7 +7304,7 @@ var $author$project$FactoryCity$Data$CellType$movableToString = function (_v0) {
 					case 'Down':
 						var _v24 = _v1.a;
 						var _v25 = _v1.b;
-						return $elm$core$Maybe$Just('⮦');
+						return $elm$core$Maybe$Just('⬐');
 					default:
 						break _v1$12;
 				}
@@ -24587,7 +24587,7 @@ var $author$project$FactoryCity$Data$CellType$stringToMovable = function (string
 		},
 		function () {
 			switch (string) {
-				case '↵':
+				case '⤶':
 					return $elm$core$Maybe$Just(
 						_Utils_Tuple2($Orasund$elm_game_essentials$Grid$Direction$Up, $Orasund$elm_game_essentials$Grid$Direction$Left));
 				case '↓':
@@ -24608,19 +24608,19 @@ var $author$project$FactoryCity$Data$CellType$stringToMovable = function (string
 				case '↑':
 					return $elm$core$Maybe$Just(
 						_Utils_Tuple2($Orasund$elm_game_essentials$Grid$Direction$Down, $Orasund$elm_game_essentials$Grid$Direction$Up));
-				case '⮢':
+				case '↰':
 					return $elm$core$Maybe$Just(
 						_Utils_Tuple2($Orasund$elm_game_essentials$Grid$Direction$Down, $Orasund$elm_game_essentials$Grid$Direction$Left));
-				case '⮣':
+				case '↱':
 					return $elm$core$Maybe$Just(
 						_Utils_Tuple2($Orasund$elm_game_essentials$Grid$Direction$Down, $Orasund$elm_game_essentials$Grid$Direction$Right));
-				case '⮤':
+				case '⬑':
 					return $elm$core$Maybe$Just(
 						_Utils_Tuple2($Orasund$elm_game_essentials$Grid$Direction$Right, $Orasund$elm_game_essentials$Grid$Direction$Up));
 				case '←':
 					return $elm$core$Maybe$Just(
 						_Utils_Tuple2($Orasund$elm_game_essentials$Grid$Direction$Right, $Orasund$elm_game_essentials$Grid$Direction$Left));
-				case '⮦':
+				case '⬐':
 					return $elm$core$Maybe$Just(
 						_Utils_Tuple2($Orasund$elm_game_essentials$Grid$Direction$Right, $Orasund$elm_game_essentials$Grid$Direction$Down));
 				default:
@@ -25294,7 +25294,9 @@ var $author$project$FactoryCity$View$Details$view = function (_v0) {
 								$mdgriffith$elm_ui$Element$Input$button,
 								$Orasund$elm_ui_framework$Framework$Button$simple,
 								{
-									label: $mdgriffith$elm_ui$Element$text(
+									label: A2(
+										$author$project$FactoryCity$View$Text$view,
+										16,
 										'💲 sell for ' + $elm$core$String$fromInt(price)),
 									onPress: $elm$core$Maybe$Just(
 										sellMsg(card))
@@ -25551,7 +25553,7 @@ var $author$project$FactoryCity$View$Shop$view = function (_v0) {
 																		$Orasund$elm_ui_framework$Framework$Grid$spaceEvenly,
 																		_List_fromArray(
 																			[
-																				$mdgriffith$elm_ui$Element$text('💲'),
+																				A2($author$project$FactoryCity$View$Text$view, 16, '💲'),
 																				$mdgriffith$elm_ui$Element$text(
 																				$elm$core$String$fromInt(
 																					A2($elm$core$Basics$max, 1, ($author$project$FactoryCity$Data$maxPrice / (n + 1)) | 0)))
@@ -25576,7 +25578,7 @@ var $author$project$FactoryCity$View$Shop$view = function (_v0) {
 																		$Orasund$elm_ui_framework$Framework$Grid$spaceEvenly,
 																		_List_fromArray(
 																			[
-																				$mdgriffith$elm_ui$Element$text('\uD83D\uDED2'),
+																				A2($author$project$FactoryCity$View$Text$view, 16, '\uD83D\uDED2'),
 																				$mdgriffith$elm_ui$Element$text(
 																				$elm$core$String$fromInt(cost))
 																			])),
