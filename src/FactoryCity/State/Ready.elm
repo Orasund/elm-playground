@@ -200,6 +200,11 @@ view scale msgMapper ( shop, _ ) =
                     { title = "Miner"
                     , desc = "You get stone for free"
                     }
+                , viewMode
+                    (msgMapper <| ClickedStart <| Scrap)
+                    { title = "Scrap Dealer"
+                    , desc = "You get scrap for free"
+                    }
                 ]
             ]
     )

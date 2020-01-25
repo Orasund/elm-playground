@@ -7118,6 +7118,9 @@ var $Orasund$elm_action$Action$config = function (action) {
 		action,
 		{exitFun: $elm$core$Basics$never, modelMapper: $elm$core$Basics$never, msgMapper: $elm$core$Basics$never, transitionFun: $elm$core$Basics$never});
 };
+var $author$project$FactoryCity$State$Playing$GotShopResponse = function (a) {
+	return {$: 'GotShopResponse', a: a};
+};
 var $author$project$FactoryCity$Data$bugCycle = 100;
 var $Orasund$elm_game_essentials$Grid$Direction$Down = {$: 'Down'};
 var $Orasund$elm_game_essentials$Grid$Direction$Up = {$: 'Up'};
@@ -7425,7 +7428,88 @@ var $author$project$FactoryCity$Data$Game$init = function (item) {
 		score: 0
 	};
 };
-var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
+var $author$project$FactoryCity$Data$Item$itemList = _List_fromArray(
+	[$author$project$FactoryCity$Data$Item$Wood, $author$project$FactoryCity$Data$Item$Stone, $author$project$FactoryCity$Data$Item$Iron, $author$project$FactoryCity$Data$Item$Scrap, $author$project$FactoryCity$Data$Item$Chips, $author$project$FactoryCity$Data$Item$Chipboard]);
+var $elm$core$Maybe$andThen = F2(
+	function (callback, maybeValue) {
+		if (maybeValue.$ === 'Just') {
+			var value = maybeValue.a;
+			return callback(value);
+		} else {
+			return $elm$core$Maybe$Nothing;
+		}
+	});
+var $Orasund$elm_jsonstore$Jsonstore$encode = function (_v0) {
+	var _v1 = _v0.a;
+	var fun = _v1.b;
+	return fun;
+};
+var $elm$http$Http$jsonBody = function (value) {
+	return A2(
+		_Http_pair,
+		'application/json',
+		A2($elm$json$Json$Encode$encode, 0, value));
+};
+var $Orasund$elm_jsonstore$Jsonstore$resolveWhatever = $elm$http$Http$stringResolver(
+	function (response) {
+		switch (response.$) {
+			case 'BadUrl_':
+				var url = response.a;
+				return $elm$core$Result$Err(
+					$elm$http$Http$BadUrl(url));
+			case 'Timeout_':
+				return $elm$core$Result$Err($elm$http$Http$Timeout);
+			case 'NetworkError_':
+				return $elm$core$Result$Err($elm$http$Http$NetworkError);
+			case 'BadStatus_':
+				var metadata = response.a;
+				return $elm$core$Result$Err(
+					$elm$http$Http$BadStatus(metadata.statusCode));
+			default:
+				return $elm$core$Result$Ok(_Utils_Tuple0);
+		}
+	});
+var $Orasund$elm_jsonstore$Jsonstore$insert = F2(
+	function (url, value) {
+		return $elm$http$Http$task(
+			{
+				body: $elm$http$Http$jsonBody(value),
+				headers: _List_Nil,
+				method: 'POST',
+				resolver: $Orasund$elm_jsonstore$Jsonstore$resolveWhatever,
+				timeout: $elm$core$Maybe$Nothing,
+				url: url
+			});
+	});
+var $Orasund$elm_jsonstore$Jsonstore$update = function (_v0) {
+	var url = _v0.url;
+	var decoder = _v0.decoder;
+	var value = _v0.value;
+	return A2(
+		$elm$core$Task$andThen,
+		A2(
+			$elm$core$Basics$composeR,
+			value,
+			A2(
+				$elm$core$Basics$composeR,
+				$elm$core$Maybe$map(
+					$Orasund$elm_jsonstore$Jsonstore$insert(url)),
+				$elm$core$Maybe$withDefault(
+					$elm$core$Task$succeed(_Utils_Tuple0)))),
+		A2($Orasund$elm_jsonstore$Jsonstore$get, url, decoder));
+};
+var $author$project$FactoryCity$Data$RemoteShop$remove = function (item) {
+	return $Orasund$elm_jsonstore$Jsonstore$update(
+		{
+			decoder: $Orasund$elm_jsonstore$Jsonstore$decode($Orasund$elm_jsonstore$Jsonstore$int),
+			url: $author$project$FactoryCity$String$url + ('/' + $author$project$FactoryCity$Data$Item$itemToString(item)),
+			value: $elm$core$Maybe$andThen(
+				function (n) {
+					return (n === 1) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(
+						A2($Orasund$elm_jsonstore$Jsonstore$encode, $Orasund$elm_jsonstore$Jsonstore$int, n - 1));
+				})
+		});
+};
 var $author$project$FactoryCity$State$Playing$init = function (_v0) {
 	var shop = _v0.shop;
 	var seed = _v0.seed;
@@ -7447,9 +7531,19 @@ var $author$project$FactoryCity$State$Playing$init = function (_v0) {
 				viewedCard: $elm$core$Maybe$Nothing
 			},
 			seed),
-		$elm$core$Platform$Cmd$none);
+		A2(
+			$elm$core$Task$attempt,
+			$author$project$FactoryCity$State$Playing$GotShopResponse,
+			A2(
+				$elm$core$Task$andThen,
+				function (_v1) {
+					return $author$project$FactoryCity$Data$RemoteShop$sync;
+				},
+				$elm$core$Task$sequence(
+					A2($elm$core$List$map, $author$project$FactoryCity$Data$RemoteShop$remove, $author$project$FactoryCity$Data$Item$itemList)))));
 };
 var $author$project$FactoryCity$State$Ready$initialState = $elm$core$Basics$identity;
+var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $author$project$FactoryCity$State$Ready$init = F2(
 	function (shop, seed) {
 		return _Utils_Tuple2(
@@ -7461,9 +7555,6 @@ var $author$project$FactoryCity$State$Ready$init = F2(
 var $author$project$FactoryCity$Data$CellType$Bug = {$: 'Bug'};
 var $author$project$FactoryCity$State$Playing$ChangedViewport = function (a) {
 	return {$: 'ChangedViewport', a: a};
-};
-var $author$project$FactoryCity$State$Playing$GotShopResponse = function (a) {
-	return {$: 'GotShopResponse', a: a};
 };
 var $author$project$FactoryCity$Data$Deck$add = function (k) {
 	return A2(
@@ -7497,7 +7588,7 @@ var $author$project$FactoryCity$Data$CellType$tierOne = _List_fromArray(
 var $author$project$FactoryCity$Data$CellType$tierThree = _List_fromArray(
 	[
 		_Utils_Tuple2($author$project$FactoryCity$Data$Item$Iron, 2),
-		_Utils_Tuple2($author$project$FactoryCity$Data$Item$Chipboard, 2)
+		_Utils_Tuple2($author$project$FactoryCity$Data$Item$Chipboard, 5)
 	]);
 var $author$project$FactoryCity$Data$CellType$tierTwo = _List_fromArray(
 	[
@@ -7658,65 +7749,6 @@ var $Orasund$elm_game_essentials$Grid$Bordered$ignoringErrors = F2(
 			return grid;
 		}
 	});
-var $Orasund$elm_jsonstore$Jsonstore$encode = function (_v0) {
-	var _v1 = _v0.a;
-	var fun = _v1.b;
-	return fun;
-};
-var $elm$http$Http$jsonBody = function (value) {
-	return A2(
-		_Http_pair,
-		'application/json',
-		A2($elm$json$Json$Encode$encode, 0, value));
-};
-var $Orasund$elm_jsonstore$Jsonstore$resolveWhatever = $elm$http$Http$stringResolver(
-	function (response) {
-		switch (response.$) {
-			case 'BadUrl_':
-				var url = response.a;
-				return $elm$core$Result$Err(
-					$elm$http$Http$BadUrl(url));
-			case 'Timeout_':
-				return $elm$core$Result$Err($elm$http$Http$Timeout);
-			case 'NetworkError_':
-				return $elm$core$Result$Err($elm$http$Http$NetworkError);
-			case 'BadStatus_':
-				var metadata = response.a;
-				return $elm$core$Result$Err(
-					$elm$http$Http$BadStatus(metadata.statusCode));
-			default:
-				return $elm$core$Result$Ok(_Utils_Tuple0);
-		}
-	});
-var $Orasund$elm_jsonstore$Jsonstore$insert = F2(
-	function (url, value) {
-		return $elm$http$Http$task(
-			{
-				body: $elm$http$Http$jsonBody(value),
-				headers: _List_Nil,
-				method: 'POST',
-				resolver: $Orasund$elm_jsonstore$Jsonstore$resolveWhatever,
-				timeout: $elm$core$Maybe$Nothing,
-				url: url
-			});
-	});
-var $Orasund$elm_jsonstore$Jsonstore$update = function (_v0) {
-	var url = _v0.url;
-	var decoder = _v0.decoder;
-	var value = _v0.value;
-	return A2(
-		$elm$core$Task$andThen,
-		A2(
-			$elm$core$Basics$composeR,
-			value,
-			A2(
-				$elm$core$Basics$composeR,
-				$elm$core$Maybe$map(
-					$Orasund$elm_jsonstore$Jsonstore$insert(url)),
-				$elm$core$Maybe$withDefault(
-					$elm$core$Task$succeed(_Utils_Tuple0)))),
-		A2($Orasund$elm_jsonstore$Jsonstore$get, url, decoder));
-};
 var $author$project$FactoryCity$Data$RemoteShop$insert = function (item) {
 	return $Orasund$elm_jsonstore$Jsonstore$update(
 		{
@@ -7963,27 +7995,6 @@ var $author$project$FactoryCity$Data$Board$refill = $Orasund$elm_game_essentials
 				return {item: $elm$core$Maybe$Nothing, sort: cellType.sort};
 			});
 	});
-var $elm$core$Maybe$andThen = F2(
-	function (callback, maybeValue) {
-		if (maybeValue.$ === 'Just') {
-			var value = maybeValue.a;
-			return callback(value);
-		} else {
-			return $elm$core$Maybe$Nothing;
-		}
-	});
-var $author$project$FactoryCity$Data$RemoteShop$remove = function (item) {
-	return $Orasund$elm_jsonstore$Jsonstore$update(
-		{
-			decoder: $Orasund$elm_jsonstore$Jsonstore$decode($Orasund$elm_jsonstore$Jsonstore$int),
-			url: $author$project$FactoryCity$String$url + ('/' + $author$project$FactoryCity$Data$Item$itemToString(item)),
-			value: $elm$core$Maybe$andThen(
-				function (n) {
-					return (n === 1) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(
-						A2($Orasund$elm_jsonstore$Jsonstore$encode, $Orasund$elm_jsonstore$Jsonstore$int, n - 1));
-				})
-		});
-};
 var $Orasund$elm_game_essentials$Grid$Bordered$remove = F2(
 	function (pos, grid) {
 		var dict = grid.a.dict;
@@ -8400,8 +8411,6 @@ var $author$project$FactoryCity$Automata$Rule$burnable = function () {
 		},
 		$author$project$FactoryCity$Data$CellType$machineList);
 }();
-var $author$project$FactoryCity$Data$Item$itemList = _List_fromArray(
-	[$author$project$FactoryCity$Data$Item$Wood, $author$project$FactoryCity$Data$Item$Stone, $author$project$FactoryCity$Data$Item$Iron, $author$project$FactoryCity$Data$Item$Scrap, $author$project$FactoryCity$Data$Item$Chips, $author$project$FactoryCity$Data$Item$Chipboard]);
 var $author$project$FactoryCity$Data$CellType$containerList = $elm$core$List$concat(
 	_List_fromArray(
 		[
@@ -24482,21 +24491,23 @@ var $author$project$Card$view = F3(
 				]),
 			A2(
 				$mdgriffith$elm_ui$Element$Input$button,
-				_Utils_ap(
+				$elm$core$List$concat(
 					_List_fromArray(
 						[
-							$mdgriffith$elm_ui$Element$mouseOver(
 							_List_fromArray(
-								[
-									$mdgriffith$elm_ui$Element$Border$color(
-									A3($mdgriffith$elm_ui$Element$rgb255, 155, 203, 255))
-								]))
-						]),
-					_Utils_ap(
-						selected ? _List_fromArray(
+							[
+								$mdgriffith$elm_ui$Element$mouseOver(
+								_List_fromArray(
+									[
+										$mdgriffith$elm_ui$Element$Border$color(
+										A3($mdgriffith$elm_ui$Element$rgb255, 155, 203, 255))
+									]))
+							]),
+							selected ? _List_fromArray(
 							[$mdgriffith$elm_ui$Element$alignTop]) : _List_fromArray(
 							[$mdgriffith$elm_ui$Element$alignBottom]),
-						att)),
+							att
+						])),
 				{label: content, onPress: onPress}));
 	});
 var $author$project$Card$hand = F2(
@@ -26056,7 +26067,12 @@ var $author$project$FactoryCity$State$Ready$view = F3(
 									$author$project$FactoryCity$State$Ready$viewMode,
 									msgMapper(
 										$author$project$FactoryCity$State$Ready$ClickedStart($author$project$FactoryCity$Data$Item$Stone)),
-									{desc: 'You get stone for free', title: 'Miner'})
+									{desc: 'You get stone for free', title: 'Miner'}),
+									A2(
+									$author$project$FactoryCity$State$Ready$viewMode,
+									msgMapper(
+										$author$project$FactoryCity$State$Ready$ClickedStart($author$project$FactoryCity$Data$Item$Scrap)),
+									{desc: 'You get scrap for free', title: 'Scrap Dealer'})
 								]))
 						]))));
 	});

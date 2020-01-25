@@ -107,7 +107,14 @@ init { shop, seed, source } =
         }
       , seed
       )
-    , Cmd.none
+    , Item.itemList
+        |> List.map RemoteShop.remove
+        |> Task.sequence
+        |> Task.andThen
+            (\_ ->
+                RemoteShop.sync
+            )
+        |> Task.attempt GotShopResponse
     )
 
 

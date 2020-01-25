@@ -497,7 +497,7 @@ tierTwoList =
 
 tierThree : List ( Item, Int )
 tierThree =
-    [ ( Iron, 2 ), ( Chipboard, 2 ) ]
+    [ ( Iron, 2 ), ( Chipboard, 5 ) ]
 
 
 tierThreeList : List ContainerSort
