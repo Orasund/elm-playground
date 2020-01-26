@@ -24,10 +24,9 @@ import Html.Attributes as Attributes
 import Http exposing (Error(..))
 import Process
 import Random exposing (Seed)
-import Set exposing (Set)
+import Set
 import Task
 import Time
-import UndoList exposing (UndoList)
 
 
 
@@ -49,6 +48,7 @@ type alias State =
     , money : Int
     , nextBugIn : Int
     , hasPower : Bool
+    , bugCycle : Int
     }
 
 
@@ -62,8 +62,8 @@ type Msg
     | CardPlaced
     | CardSelected ContainerSort
     | TimePassed
-    | ClickedBuy Item
-    | ClickedSell ContainerSort
+    | ClickedBuy Item Int
+    | ClickedSell ContainerSort Int
     | ChangedLoopLength Int
     | ClickedCraft ContainerSort
     | GotShopResponse (Result Http.Error (Bag String))
@@ -100,15 +100,16 @@ init { shop, seed, source } =
         , source = source
         , loopEvery = 5
         , stepCount = 5
-        , nextBugIn = Data.bugCycle
+        , nextBugIn = Data.maxBugCycle
         , shop = shop
         , money = 0
         , hasPower = True
+        , bugCycle = Data.maxBugCycle
         }
       , seed
       )
     , Item.itemList
-        |> List.map RemoteShop.remove
+        |> List.map (\i -> RemoteShop.remove i 5)
         |> Task.sequence
         |> Task.andThen
             (\_ ->
@@ -138,9 +139,9 @@ play ( { game } as state, seed ) =
 
 
 playCard : ContainerSort -> Position -> Model -> Action
-playCard containerSort position ( { game, initialSeed } as state, seed ) =
+playCard containerSort position ( { game } as state, seed ) =
     play
-        ( case game.deck |> Deck.remove containerSort of
+        ( case game.deck |> Deck.remove containerSort 1 of
             Ok deck ->
                 case game.board |> Board.get position of
                     Just _ ->
@@ -224,7 +225,7 @@ update msg (( { selected, stepCount, loopEvery, source, nextBugIn, shop, money }
                                         |> List.foldl
                                             (\cell ->
                                                 Result.andThen
-                                                    (Deck.remove cell)
+                                                    (Deck.remove cell 1)
                                             )
                                             (Ok game.deck)
                                 of
@@ -324,7 +325,8 @@ update msg (( { selected, stepCount, loopEvery, source, nextBugIn, shop, money }
                                         (Random.map2
                                             (\x y ->
                                                 { s
-                                                    | nextBugIn = Data.bugCycle
+                                                    | nextBugIn = state.bugCycle - 1
+                                                    , bugCycle = state.bugCycle - 1
                                                     , game =
                                                         { game
                                                             | board =
@@ -387,8 +389,8 @@ update msg (( { selected, stepCount, loopEvery, source, nextBugIn, shop, money }
                 , Cmd.none
                 )
 
-        ClickedSell card ->
-            case state.game.deck |> Deck.remove card of
+        ClickedSell card n ->
+            case state.game.deck |> Deck.remove card n of
                 Ok deck ->
                     case card of
                         Crate i ->
@@ -414,7 +416,7 @@ update msg (( { selected, stepCount, loopEvery, source, nextBugIn, shop, money }
                                   , seed
                                   )
                                 , Task.attempt GotShopResponse
-                                    (RemoteShop.insert i
+                                    (RemoteShop.insert i n
                                         |> Task.andThen
                                             (\() ->
                                                 RemoteShop.sync
@@ -447,7 +449,7 @@ update msg (( { selected, stepCount, loopEvery, source, nextBugIn, shop, money }
                                   , seed
                                   )
                                 , Task.attempt GotShopResponse
-                                    (RemoteShop.insert Scrap
+                                    (RemoteShop.insert Scrap n
                                         |> Task.andThen
                                             (\() ->
                                                 RemoteShop.sync
@@ -458,7 +460,7 @@ update msg (( { selected, stepCount, loopEvery, source, nextBugIn, shop, money }
                 Err () ->
                     Action.updating ( ( state, seed ), Cmd.none )
 
-        ClickedBuy item ->
+        ClickedBuy item n ->
             let
                 key : String
                 key =
@@ -482,7 +484,7 @@ update msg (( { selected, stepCount, loopEvery, source, nextBugIn, shop, money }
                       , seed
                       )
                     , Task.attempt GotShopResponse
-                        (RemoteShop.remove item
+                        (RemoteShop.remove item n
                             |> Task.andThen
                                 (\() ->
                                     RemoteShop.sync
@@ -636,8 +638,8 @@ view scale msgMapper ( { hasPower, stepCount, nextBugIn, shop, money, game, sele
                 , loopLength = loopEvery
                 , positionSelectedMsg = msgMapper << PositionSelected
                 , selectedMsg = msgMapper << Selected
-                , buyMsg = msgMapper << ClickedBuy
-                , sellMsg = msgMapper << ClickedSell
+                , buyMsg = \a b -> ClickedBuy a b |> msgMapper
+                , sellMsg = \a b -> ClickedSell a b |> msgMapper
                 , changedLoopLengthMsg = msgMapper << ChangedLoopLength
                 , craftMsg = msgMapper << ClickedCraft
                 , nextBugIn = nextBugIn

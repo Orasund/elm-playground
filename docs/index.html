@@ -7121,7 +7121,6 @@ var $Orasund$elm_action$Action$config = function (action) {
 var $author$project$FactoryCity$State$Playing$GotShopResponse = function (a) {
 	return {$: 'GotShopResponse', a: a};
 };
-var $author$project$FactoryCity$Data$bugCycle = 100;
 var $Orasund$elm_game_essentials$Grid$Direction$Down = {$: 'Down'};
 var $Orasund$elm_game_essentials$Grid$Direction$Up = {$: 'Up'};
 var $author$project$FactoryCity$Data$CellType$Belt = {$: 'Belt'};
@@ -7430,6 +7429,7 @@ var $author$project$FactoryCity$Data$Game$init = function (item) {
 };
 var $author$project$FactoryCity$Data$Item$itemList = _List_fromArray(
 	[$author$project$FactoryCity$Data$Item$Wood, $author$project$FactoryCity$Data$Item$Stone, $author$project$FactoryCity$Data$Item$Iron, $author$project$FactoryCity$Data$Item$Scrap, $author$project$FactoryCity$Data$Item$Chips, $author$project$FactoryCity$Data$Item$Chipboard]);
+var $author$project$FactoryCity$Data$maxBugCycle = 100;
 var $elm$core$Maybe$andThen = F2(
 	function (callback, maybeValue) {
 		if (maybeValue.$ === 'Just') {
@@ -7498,18 +7498,19 @@ var $Orasund$elm_jsonstore$Jsonstore$update = function (_v0) {
 					$elm$core$Task$succeed(_Utils_Tuple0)))),
 		A2($Orasund$elm_jsonstore$Jsonstore$get, url, decoder));
 };
-var $author$project$FactoryCity$Data$RemoteShop$remove = function (item) {
-	return $Orasund$elm_jsonstore$Jsonstore$update(
-		{
-			decoder: $Orasund$elm_jsonstore$Jsonstore$decode($Orasund$elm_jsonstore$Jsonstore$int),
-			url: $author$project$FactoryCity$String$url + ('/' + $author$project$FactoryCity$Data$Item$itemToString(item)),
-			value: $elm$core$Maybe$andThen(
-				function (n) {
-					return (n === 1) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(
-						A2($Orasund$elm_jsonstore$Jsonstore$encode, $Orasund$elm_jsonstore$Jsonstore$int, n - 1));
-				})
-		});
-};
+var $author$project$FactoryCity$Data$RemoteShop$remove = F2(
+	function (item, amount) {
+		return $Orasund$elm_jsonstore$Jsonstore$update(
+			{
+				decoder: $Orasund$elm_jsonstore$Jsonstore$decode($Orasund$elm_jsonstore$Jsonstore$int),
+				url: $author$project$FactoryCity$String$url + ('/' + $author$project$FactoryCity$Data$Item$itemToString(item)),
+				value: $elm$core$Maybe$andThen(
+					function (n) {
+						return (_Utils_cmp(n, amount) < 1) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(
+							A2($Orasund$elm_jsonstore$Jsonstore$encode, $Orasund$elm_jsonstore$Jsonstore$int, n - amount));
+					})
+			});
+	});
 var $author$project$FactoryCity$State$Playing$init = function (_v0) {
 	var shop = _v0.shop;
 	var seed = _v0.seed;
@@ -7517,12 +7518,13 @@ var $author$project$FactoryCity$State$Playing$init = function (_v0) {
 	return _Utils_Tuple2(
 		_Utils_Tuple2(
 			{
+				bugCycle: $author$project$FactoryCity$Data$maxBugCycle,
 				game: $author$project$FactoryCity$Data$Game$init(source),
 				hasPower: true,
 				initialSeed: seed,
 				loopEvery: 5,
 				money: 0,
-				nextBugIn: $author$project$FactoryCity$Data$bugCycle,
+				nextBugIn: $author$project$FactoryCity$Data$maxBugCycle,
 				running: false,
 				selected: $elm$core$Maybe$Nothing,
 				shop: shop,
@@ -7540,7 +7542,12 @@ var $author$project$FactoryCity$State$Playing$init = function (_v0) {
 					return $author$project$FactoryCity$Data$RemoteShop$sync;
 				},
 				$elm$core$Task$sequence(
-					A2($elm$core$List$map, $author$project$FactoryCity$Data$RemoteShop$remove, $author$project$FactoryCity$Data$Item$itemList)))));
+					A2(
+						$elm$core$List$map,
+						function (i) {
+							return A2($author$project$FactoryCity$Data$RemoteShop$remove, i, 5);
+						},
+						$author$project$FactoryCity$Data$Item$itemList)))));
 };
 var $author$project$FactoryCity$State$Ready$initialState = $elm$core$Basics$identity;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
@@ -7614,7 +7621,8 @@ var $author$project$FactoryCity$Data$CellType$craftingCost = function (card) {
 								$Orasund$elm_game_essentials$Grid$Direction$flip(to)) ? $author$project$FactoryCity$Data$CellType$tierOne : $author$project$FactoryCity$Data$CellType$tierThree);
 						} else {
 							var _v2 = card.a;
-							return $author$project$FactoryCity$Data$CellType$tierTwo;
+							var to = card.b.to;
+							return _Utils_eq(to, $Orasund$elm_game_essentials$Grid$Direction$Down) ? $author$project$FactoryCity$Data$CellType$tierTwo : $author$project$FactoryCity$Data$CellType$tierThree;
 						}
 					case 'Machine':
 						switch (card.a.$) {
@@ -7749,24 +7757,25 @@ var $Orasund$elm_game_essentials$Grid$Bordered$ignoringErrors = F2(
 			return grid;
 		}
 	});
-var $author$project$FactoryCity$Data$RemoteShop$insert = function (item) {
-	return $Orasund$elm_jsonstore$Jsonstore$update(
-		{
-			decoder: $Orasund$elm_jsonstore$Jsonstore$decode($Orasund$elm_jsonstore$Jsonstore$int),
-			url: $author$project$FactoryCity$String$url + ('/' + $author$project$FactoryCity$Data$Item$itemToString(item)),
-			value: A2(
-				$elm$core$Basics$composeR,
-				$elm$core$Maybe$map(
-					$elm$core$Basics$add(1)),
-				A2(
+var $author$project$FactoryCity$Data$RemoteShop$insert = F2(
+	function (item, amount) {
+		return $Orasund$elm_jsonstore$Jsonstore$update(
+			{
+				decoder: $Orasund$elm_jsonstore$Jsonstore$decode($Orasund$elm_jsonstore$Jsonstore$int),
+				url: $author$project$FactoryCity$String$url + ('/' + $author$project$FactoryCity$Data$Item$itemToString(item)),
+				value: A2(
 					$elm$core$Basics$composeR,
-					$elm$core$Maybe$withDefault(1),
+					$elm$core$Maybe$map(
+						$elm$core$Basics$add(amount)),
 					A2(
 						$elm$core$Basics$composeR,
-						$Orasund$elm_jsonstore$Jsonstore$encode($Orasund$elm_jsonstore$Jsonstore$int),
-						$elm$core$Maybe$Just)))
-		});
-};
+						$elm$core$Maybe$withDefault(amount),
+						A2(
+							$elm$core$Basics$composeR,
+							$Orasund$elm_jsonstore$Jsonstore$encode($Orasund$elm_jsonstore$Jsonstore$int),
+							$elm$core$Maybe$Just)))
+			});
+	});
 var $Orasund$elm_game_essentials$Grid$Bordered$foldl = F3(
 	function (fun, val, _v0) {
 		var dict = _v0.a.dict;
@@ -7905,15 +7914,17 @@ var $author$project$FactoryCity$State$Playing$play = function (_v0) {
 var $JohnBugner$elm_bag$Bag$remove = function (n) {
 	return $JohnBugner$elm_bag$Bag$insert(-n);
 };
-var $author$project$FactoryCity$Data$Deck$remove = F2(
-	function (k, bag) {
-		return (A2(
-			$JohnBugner$elm_bag$Bag$count,
-			$author$project$FactoryCity$Data$CellType$containerSortToString(k),
-			bag) < 1) ? $elm$core$Result$Err(_Utils_Tuple0) : $elm$core$Result$Ok(
+var $author$project$FactoryCity$Data$Deck$remove = F3(
+	function (k, n, bag) {
+		return (_Utils_cmp(
+			A2(
+				$JohnBugner$elm_bag$Bag$count,
+				$author$project$FactoryCity$Data$CellType$containerSortToString(k),
+				bag),
+			n) < 0) ? $elm$core$Result$Err(_Utils_Tuple0) : $elm$core$Result$Ok(
 			A3(
 				$JohnBugner$elm_bag$Bag$remove,
-				1,
+				n,
 				$author$project$FactoryCity$Data$CellType$containerSortToString(k),
 				bag));
 	});
@@ -7921,12 +7932,11 @@ var $author$project$FactoryCity$State$Playing$playCard = F3(
 	function (containerSort, position, _v0) {
 		var state = _v0.a;
 		var game = state.game;
-		var initialSeed = state.initialSeed;
 		var seed = _v0.b;
 		return $author$project$FactoryCity$State$Playing$play(
 			_Utils_Tuple2(
 				function () {
-					var _v1 = A2($author$project$FactoryCity$Data$Deck$remove, containerSort, game.deck);
+					var _v1 = A3($author$project$FactoryCity$Data$Deck$remove, containerSort, 1, game.deck);
 					if (_v1.$ === 'Ok') {
 						var deck = _v1.a;
 						var _v2 = A2($author$project$FactoryCity$Data$Board$get, position, game.board);
@@ -9385,6 +9395,7 @@ var $author$project$FactoryCity$State$Playing$update = F2(
 											return _Utils_update(
 												s,
 												{
+													bugCycle: state.bugCycle - 1,
 													game: _Utils_update(
 														game,
 														{
@@ -9399,7 +9410,7 @@ var $author$project$FactoryCity$State$Playing$update = F2(
 																				{item: $elm$core$Maybe$Nothing, sort: $author$project$FactoryCity$Data$CellType$Bug})))),
 																game.board)
 														}),
-													nextBugIn: $author$project$FactoryCity$Data$bugCycle
+													nextBugIn: state.bugCycle - 1
 												});
 										}),
 									A2($elm$random$Random$int, 0, 3),
@@ -9477,7 +9488,7 @@ var $author$project$FactoryCity$State$Playing$update = F2(
 												$elm$core$List$foldl,
 												function (cell) {
 													return $elm$core$Result$andThen(
-														$author$project$FactoryCity$Data$Deck$remove(cell));
+														A2($author$project$FactoryCity$Data$Deck$remove, cell, 1));
 												},
 												$elm$core$Result$Ok(game.deck),
 												A2($author$project$FactoryCity$Data$Board$getInput, source, game.board));
@@ -9575,7 +9586,8 @@ var $author$project$FactoryCity$State$Playing$update = F2(
 						$elm$core$Platform$Cmd$none));
 			case 'ClickedSell':
 				var card = msg.a;
-				var _v7 = A2($author$project$FactoryCity$Data$Deck$remove, card, state.game.deck);
+				var n = msg.b;
+				var _v7 = A3($author$project$FactoryCity$Data$Deck$remove, card, n, state.game.deck);
 				if (_v7.$ === 'Ok') {
 					var deck = _v7.a;
 					if (card.$ === 'Crate') {
@@ -9604,7 +9616,7 @@ var $author$project$FactoryCity$State$Playing$update = F2(
 										function (_v9) {
 											return $author$project$FactoryCity$Data$RemoteShop$sync;
 										},
-										$author$project$FactoryCity$Data$RemoteShop$insert(i)))));
+										A2($author$project$FactoryCity$Data$RemoteShop$insert, i, n)))));
 					} else {
 						var key = $author$project$FactoryCity$Data$Item$itemToString($author$project$FactoryCity$Data$Item$Scrap);
 						var price = ($author$project$FactoryCity$Data$maxPrice / (1 + A2($JohnBugner$elm_bag$Bag$count, key, shop))) | 0;
@@ -9630,7 +9642,7 @@ var $author$project$FactoryCity$State$Playing$update = F2(
 										function (_v10) {
 											return $author$project$FactoryCity$Data$RemoteShop$sync;
 										},
-										$author$project$FactoryCity$Data$RemoteShop$insert($author$project$FactoryCity$Data$Item$Scrap)))));
+										A2($author$project$FactoryCity$Data$RemoteShop$insert, $author$project$FactoryCity$Data$Item$Scrap, n)))));
 					}
 				} else {
 					return $Orasund$elm_action$Action$updating(
@@ -9640,6 +9652,7 @@ var $author$project$FactoryCity$State$Playing$update = F2(
 				}
 			case 'ClickedBuy':
 				var item = msg.a;
+				var n = msg.b;
 				var key = $author$project$FactoryCity$Data$Item$itemToString(item);
 				var price = ($author$project$FactoryCity$Data$maxPrice / A2($JohnBugner$elm_bag$Bag$count, key, shop)) | 0;
 				var game = state.game;
@@ -9669,7 +9682,7 @@ var $author$project$FactoryCity$State$Playing$update = F2(
 								function (_v11) {
 									return $author$project$FactoryCity$Data$RemoteShop$sync;
 								},
-								$author$project$FactoryCity$Data$RemoteShop$remove(item))))) : $Orasund$elm_action$Action$updating(
+								A2($author$project$FactoryCity$Data$RemoteShop$remove, item, n))))) : $Orasund$elm_action$Action$updating(
 					_Utils_Tuple2(
 						_Utils_Tuple2(state, seed),
 						$elm$core$Platform$Cmd$none));
@@ -15798,18 +15811,20 @@ var $elm$html$Html$node = $elm$virtual_dom$VirtualDom$node;
 var $author$project$FactoryCity$State$Playing$ChangedLoopLength = function (a) {
 	return {$: 'ChangedLoopLength', a: a};
 };
-var $author$project$FactoryCity$State$Playing$ClickedBuy = function (a) {
-	return {$: 'ClickedBuy', a: a};
-};
+var $author$project$FactoryCity$State$Playing$ClickedBuy = F2(
+	function (a, b) {
+		return {$: 'ClickedBuy', a: a, b: b};
+	});
 var $author$project$FactoryCity$State$Playing$ClickedChangeTab = function (a) {
 	return {$: 'ClickedChangeTab', a: a};
 };
 var $author$project$FactoryCity$State$Playing$ClickedCraft = function (a) {
 	return {$: 'ClickedCraft', a: a};
 };
-var $author$project$FactoryCity$State$Playing$ClickedSell = function (a) {
-	return {$: 'ClickedSell', a: a};
-};
+var $author$project$FactoryCity$State$Playing$ClickedSell = F2(
+	function (a, b) {
+		return {$: 'ClickedSell', a: a, b: b};
+	});
 var $author$project$FactoryCity$State$Playing$PositionSelected = function (a) {
 	return {$: 'PositionSelected', a: a};
 };
@@ -24113,95 +24128,86 @@ var $Orasund$elm_ui_framework$Framework$Grid$spaceEvenly = _List_fromArray(
 		$mdgriffith$elm_ui$Element$centerX,
 		$mdgriffith$elm_ui$Element$centerY
 	]);
-var $author$project$FactoryCity$Data$CellType$tierOneList = function () {
-	var dirList = _List_fromArray(
-		[$Orasund$elm_game_essentials$Grid$Direction$Up, $Orasund$elm_game_essentials$Grid$Direction$Left, $Orasund$elm_game_essentials$Grid$Direction$Down, $Orasund$elm_game_essentials$Grid$Direction$Right]);
-	return $elm$core$List$concat(
-		_List_fromArray(
-			[
-				_List_fromArray(
-				[
+var $author$project$FactoryCity$Data$CellType$tierOneList = _List_fromArray(
+	[
+		A2(
+		$author$project$FactoryCity$Data$CellType$Machine,
+		$author$project$FactoryCity$Data$CellType$Furnace,
+		{isWarm: false}),
+		A2(
+		$author$project$FactoryCity$Data$CellType$Movable,
+		$author$project$FactoryCity$Data$CellType$Belt,
+		{from: $Orasund$elm_game_essentials$Grid$Direction$Up, to: $Orasund$elm_game_essentials$Grid$Direction$Down})
+	]);
+var $author$project$FactoryCity$Data$CellType$dirList = _List_fromArray(
+	[$Orasund$elm_game_essentials$Grid$Direction$Up, $Orasund$elm_game_essentials$Grid$Direction$Left, $Orasund$elm_game_essentials$Grid$Direction$Down, $Orasund$elm_game_essentials$Grid$Direction$Right]);
+var $author$project$FactoryCity$Data$CellType$tierThreeList = $elm$core$List$concat(
+	_List_fromArray(
+		[
+			A2(
+			$elm$core$List$concatMap,
+			function (from) {
+				return A2(
+					$elm$core$List$filterMap,
+					function (to) {
+						return _Utils_eq(from, to) ? $elm$core$Maybe$Nothing : (_Utils_eq(
+							from,
+							$Orasund$elm_game_essentials$Grid$Direction$flip(to)) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(
+							A2(
+								$author$project$FactoryCity$Data$CellType$Movable,
+								$author$project$FactoryCity$Data$CellType$Belt,
+								{from: from, to: to})));
+					},
+					$author$project$FactoryCity$Data$CellType$dirList);
+			},
+			$author$project$FactoryCity$Data$CellType$dirList),
+			A2(
+			$elm$core$List$filterMap,
+			function (to) {
+				return (!_Utils_eq(to, $Orasund$elm_game_essentials$Grid$Direction$Down)) ? $elm$core$Maybe$Just(
 					A2(
-					$author$project$FactoryCity$Data$CellType$Machine,
-					$author$project$FactoryCity$Data$CellType$Furnace,
-					{isWarm: false})
-				]),
-				A2(
-				$elm$core$List$concatMap,
-				function (from) {
-					return A2(
-						$elm$core$List$filterMap,
-						function (to) {
-							return _Utils_eq(from, to) ? $elm$core$Maybe$Nothing : (_Utils_eq(
-								from,
-								$Orasund$elm_game_essentials$Grid$Direction$flip(to)) ? $elm$core$Maybe$Just(
-								A2(
-									$author$project$FactoryCity$Data$CellType$Movable,
-									$author$project$FactoryCity$Data$CellType$Belt,
-									{from: from, to: to})) : $elm$core$Maybe$Nothing);
-						},
-						dirList);
-				},
-				dirList)
-			]));
-}();
-var $author$project$FactoryCity$Data$CellType$tierThreeList = function () {
-	var dirList = _List_fromArray(
-		[$Orasund$elm_game_essentials$Grid$Direction$Up, $Orasund$elm_game_essentials$Grid$Direction$Left, $Orasund$elm_game_essentials$Grid$Direction$Down, $Orasund$elm_game_essentials$Grid$Direction$Right]);
-	return $elm$core$List$concat(
-		_List_fromArray(
-			[
-				A2(
-				$elm$core$List$concatMap,
-				function (from) {
-					return A2(
-						$elm$core$List$filterMap,
-						function (to) {
-							return _Utils_eq(from, to) ? $elm$core$Maybe$Nothing : (_Utils_eq(
-								from,
-								$Orasund$elm_game_essentials$Grid$Direction$flip(to)) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(
-								A2(
-									$author$project$FactoryCity$Data$CellType$Movable,
-									$author$project$FactoryCity$Data$CellType$Belt,
-									{from: from, to: to})));
-						},
-						dirList);
-				},
-				dirList)
-			]));
-}();
-var $author$project$FactoryCity$Data$CellType$tierTwoList = function () {
-	var dirList = _List_fromArray(
-		[$Orasund$elm_game_essentials$Grid$Direction$Up, $Orasund$elm_game_essentials$Grid$Direction$Left, $Orasund$elm_game_essentials$Grid$Direction$Down, $Orasund$elm_game_essentials$Grid$Direction$Right]);
-	return $elm$core$List$concat(
-		_List_fromArray(
-			[
-				_List_fromArray(
-				[
-					A2(
-					$author$project$FactoryCity$Data$CellType$Machine,
-					$author$project$FactoryCity$Data$CellType$Shredder,
-					{isWarm: false}),
-					A2(
-					$author$project$FactoryCity$Data$CellType$Machine,
-					$author$project$FactoryCity$Data$CellType$Press,
-					{isWarm: false}),
-					$author$project$FactoryCity$Data$CellType$output
-				]),
-				A2(
-				$elm$core$List$map,
-				function (to) {
-					return A2(
 						$author$project$FactoryCity$Data$CellType$Movable,
 						$author$project$FactoryCity$Data$CellType$Merger,
 						{
 							from: $Orasund$elm_game_essentials$Grid$Direction$flip(to),
 							to: to
-						});
-				},
-				dirList)
-			]));
-}();
+						})) : $elm$core$Maybe$Nothing;
+			},
+			$author$project$FactoryCity$Data$CellType$dirList)
+		]));
+var $author$project$FactoryCity$Data$CellType$tierTwoList = $elm$core$List$concat(
+	_List_fromArray(
+		[
+			_List_fromArray(
+			[
+				A2(
+				$author$project$FactoryCity$Data$CellType$Machine,
+				$author$project$FactoryCity$Data$CellType$Shredder,
+				{isWarm: false}),
+				A2(
+				$author$project$FactoryCity$Data$CellType$Machine,
+				$author$project$FactoryCity$Data$CellType$Press,
+				{isWarm: false}),
+				$author$project$FactoryCity$Data$CellType$output,
+				A2(
+				$author$project$FactoryCity$Data$CellType$Movable,
+				$author$project$FactoryCity$Data$CellType$Merger,
+				{from: $Orasund$elm_game_essentials$Grid$Direction$Up, to: $Orasund$elm_game_essentials$Grid$Direction$Down})
+			]),
+			A2(
+			$elm$core$List$filterMap,
+			function (to) {
+				return (!_Utils_eq(to, $Orasund$elm_game_essentials$Grid$Direction$Down)) ? $elm$core$Maybe$Just(
+					A2(
+						$author$project$FactoryCity$Data$CellType$Movable,
+						$author$project$FactoryCity$Data$CellType$Belt,
+						{
+							from: $Orasund$elm_game_essentials$Grid$Direction$flip(to),
+							to: to
+						})) : $elm$core$Maybe$Nothing;
+			},
+			$author$project$FactoryCity$Data$CellType$dirList)
+		]));
 var $mdgriffith$elm_ui$Internal$Model$Padding = F5(
 	function (a, b, c, d, e) {
 		return {$: 'Padding', a: a, b: b, c: c, d: d, e: e};
@@ -25263,6 +25269,7 @@ var $author$project$FactoryCity$View$Details$view = function (_v0) {
 	var selected = _v0.selected;
 	var sellMsg = _v0.sellMsg;
 	var price = _v0.price;
+	var amount = _v0.amount;
 	return A2(
 		$mdgriffith$elm_ui$Element$column,
 		$Orasund$elm_ui_framework$Framework$Grid$section,
@@ -25276,38 +25283,59 @@ var $author$project$FactoryCity$View$Details$view = function (_v0) {
 						var _v2 = $author$project$FactoryCity$View$Details$display(card);
 						var name = _v2.name;
 						var desc = _v2.desc;
-						return _List_fromArray(
-							[
-								A2(
-								$mdgriffith$elm_ui$Element$paragraph,
-								$Orasund$elm_ui_framework$Framework$Heading$h3,
-								_List_fromArray(
+						return $elm$core$List$concat(
+							_List_fromArray(
+								[
+									_List_fromArray(
 									[
 										A2(
-										$author$project$FactoryCity$View$Text$view,
-										24,
-										$author$project$FactoryCity$Data$CellType$containerSortToString(card)),
-										$mdgriffith$elm_ui$Element$text(' - ' + name)
-									])),
-								A2(
-								$mdgriffith$elm_ui$Element$textColumn,
-								$Orasund$elm_ui_framework$Framework$Grid$section,
-								A2(
-									$elm$core$List$map,
-									$mdgriffith$elm_ui$Element$paragraph(_List_Nil),
-									desc)),
-								A2(
-								$mdgriffith$elm_ui$Element$Input$button,
-								$Orasund$elm_ui_framework$Framework$Button$simple,
-								{
-									label: A2(
-										$author$project$FactoryCity$View$Text$view,
-										16,
-										'💲 sell for ' + $elm$core$String$fromInt(price)),
-									onPress: $elm$core$Maybe$Just(
-										sellMsg(card))
-								})
-							]);
+										$mdgriffith$elm_ui$Element$paragraph,
+										$Orasund$elm_ui_framework$Framework$Heading$h3,
+										_List_fromArray(
+											[
+												A2(
+												$author$project$FactoryCity$View$Text$view,
+												24,
+												$author$project$FactoryCity$Data$CellType$containerSortToString(card)),
+												$mdgriffith$elm_ui$Element$text(' - ' + name)
+											])),
+										A2(
+										$mdgriffith$elm_ui$Element$textColumn,
+										$Orasund$elm_ui_framework$Framework$Grid$section,
+										A2(
+											$elm$core$List$map,
+											$mdgriffith$elm_ui$Element$paragraph(_List_Nil),
+											desc))
+									]),
+									(amount >= 1) ? _List_fromArray(
+									[
+										A2(
+										$mdgriffith$elm_ui$Element$row,
+										$Orasund$elm_ui_framework$Framework$Grid$spaceEvenly,
+										_List_fromArray(
+											[
+												A2(
+												$mdgriffith$elm_ui$Element$Input$button,
+												$Orasund$elm_ui_framework$Framework$Button$simple,
+												{
+													label: A2(
+														$author$project$FactoryCity$View$Text$view,
+														16,
+														'💲 sell for ' + $elm$core$String$fromInt(price)),
+													onPress: $elm$core$Maybe$Just(
+														A2(sellMsg, card, 1))
+												}),
+												A2(
+												$mdgriffith$elm_ui$Element$Input$button,
+												$Orasund$elm_ui_framework$Framework$Button$simple,
+												{
+													label: A2($author$project$FactoryCity$View$Text$view, 16, '💲 sell all'),
+													onPress: $elm$core$Maybe$Just(
+														A2(sellMsg, card, amount))
+												})
+											]))
+									]) : _List_Nil
+								]));
 					} else {
 						return $elm$core$List$singleton(
 							A2(
@@ -25565,8 +25593,10 @@ var $author$project$FactoryCity$View$Shop$view = function (_v0) {
 																					A2($elm$core$Basics$max, 1, ($author$project$FactoryCity$Data$maxPrice / (n + 1)) | 0)))
 																			])),
 																	onPress: $elm$core$Maybe$Just(
-																		sMsg(
-																			$author$project$FactoryCity$Data$CellType$crate(item)))
+																		A2(
+																			sMsg,
+																			$author$project$FactoryCity$Data$CellType$crate(item),
+																			1))
 																}),
 																A2(
 																$mdgriffith$elm_ui$Element$Input$button,
@@ -25589,7 +25619,7 @@ var $author$project$FactoryCity$View$Shop$view = function (_v0) {
 																				$elm$core$String$fromInt(cost))
 																			])),
 																	onPress: $elm$core$Maybe$Just(
-																		bMsg(item))
+																		A2(bMsg, item, 1))
 																})
 															]));
 												}),
@@ -25699,7 +25729,23 @@ var $author$project$FactoryCity$View$Game$view = F2(
 								}
 							}());
 						return $author$project$FactoryCity$View$Details$view(
-							{price: price, selected: selected, sellMsg: sellMsg});
+							{
+								amount: A2(
+									$elm$core$Maybe$withDefault,
+									0,
+									A2(
+										$elm$core$Maybe$map,
+										function (card) {
+											return A2(
+												$JohnBugner$elm_bag$Bag$count,
+												$author$project$FactoryCity$Data$CellType$containerSortToString(card),
+												deck);
+										},
+										selected)),
+								price: price,
+								selected: selected,
+								sellMsg: sellMsg
+							});
 					}())
 				])
 			]);
@@ -25718,7 +25764,11 @@ var $author$project$FactoryCity$State$Playing$view = F3(
 		var list = A2(
 			$author$project$FactoryCity$View$Game$view,
 			{
-				buyMsg: A2($elm$core$Basics$composeL, msgMapper, $author$project$FactoryCity$State$Playing$ClickedBuy),
+				buyMsg: F2(
+					function (a, b) {
+						return msgMapper(
+							A2($author$project$FactoryCity$State$Playing$ClickedBuy, a, b));
+					}),
 				changedLoopLengthMsg: A2($elm$core$Basics$composeL, msgMapper, $author$project$FactoryCity$State$Playing$ChangedLoopLength),
 				counter: stepCount,
 				craftMsg: A2($elm$core$Basics$composeL, msgMapper, $author$project$FactoryCity$State$Playing$ClickedCraft),
@@ -25730,7 +25780,11 @@ var $author$project$FactoryCity$State$Playing$view = F3(
 				scale: scale,
 				selected: selected,
 				selectedMsg: A2($elm$core$Basics$composeL, msgMapper, $author$project$FactoryCity$State$Playing$Selected),
-				sellMsg: A2($elm$core$Basics$composeL, msgMapper, $author$project$FactoryCity$State$Playing$ClickedSell),
+				sellMsg: F2(
+					function (a, b) {
+						return msgMapper(
+							A2($author$project$FactoryCity$State$Playing$ClickedSell, a, b));
+					}),
 				shop: shop,
 				togglePowerMsg: msgMapper($author$project$FactoryCity$State$Playing$TogglePower)
 			},

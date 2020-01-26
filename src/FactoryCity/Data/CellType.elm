@@ -32,6 +32,11 @@ import FactoryCity.Data.Item as Item exposing (Item(..))
 import Grid.Direction as Direction exposing (Direction(..))
 
 
+dirList : List Direction
+dirList =
+    [ Up, Left, Down, Right ]
+
+
 type MovableSort
     = Belt
     | Merger
@@ -445,31 +450,9 @@ tierOne =
 
 tierOneList : List ContainerSort
 tierOneList =
-    let
-        dirList : List Direction
-        dirList =
-            [ Up, Left, Down, Right ]
-    in
-    List.concat
-        [ [ Machine Furnace { isWarm = False }
-          ]
-        , dirList
-            |> List.concatMap
-                (\from ->
-                    dirList
-                        |> List.filterMap
-                            (\to ->
-                                if from == to then
-                                    Nothing
-
-                                else if from == (to |> Direction.flip) then
-                                    Just <| Movable Belt { from = from, to = to }
-
-                                else
-                                    Nothing
-                            )
-                )
-        ]
+    [ Machine Furnace { isWarm = False }
+    , Movable Belt { from = Up, to = Down }
+    ]
 
 
 tierTwo : List ( Item, Int )
@@ -479,19 +462,21 @@ tierTwo =
 
 tierTwoList : List ContainerSort
 tierTwoList =
-    let
-        dirList : List Direction
-        dirList =
-            [ Up, Left, Down, Right ]
-    in
     List.concat
         [ [ Machine Shredder { isWarm = False }
           , Machine Press { isWarm = False }
           , output
+          , Movable Merger { from = Up, to = Down }
           ]
         , dirList
-            |> List.map
-                (\to -> Movable Merger { from = to |> Direction.flip, to = to })
+            |> List.filterMap
+                (\to ->
+                    if to /= Down then
+                        Just <| Movable Belt { from = to |> Direction.flip, to = to }
+
+                    else
+                        Nothing
+                )
         ]
 
 
@@ -502,11 +487,6 @@ tierThree =
 
 tierThreeList : List ContainerSort
 tierThreeList =
-    let
-        dirList : List Direction
-        dirList =
-            [ Up, Left, Down, Right ]
-    in
     List.concat
         [ dirList
             |> List.concatMap
@@ -523,6 +503,15 @@ tierThreeList =
                                 else
                                     Just <| Movable Belt { from = from, to = to }
                             )
+                )
+        , dirList
+            |> List.filterMap
+                (\to ->
+                    if to /= Down then
+                        Just <| Movable Merger { from = to |> Direction.flip, to = to }
+
+                    else
+                        Nothing
                 )
         ]
 
@@ -543,8 +532,12 @@ craftingCost card =
             else
                 tierThree
 
-        Movable Merger _ ->
-            tierTwo
+        Movable Merger { to } ->
+            if to == Down then
+                tierTwo
+
+            else
+                tierThree
 
         Machine Furnace _ ->
             tierOne

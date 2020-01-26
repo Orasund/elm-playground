@@ -1,6 +1,6 @@
 module FactoryCity.View.Game exposing (view)
 
-import Bag exposing (Bag)
+import Bag as Bag exposing (Bag)
 import Element exposing (Element)
 import FactoryCity.Data as Data
 import FactoryCity.Data.CellType exposing (ContainerSort(..))
@@ -26,8 +26,8 @@ view :
     , loopLength : Int
     , positionSelectedMsg : Position -> msg
     , selectedMsg : ContainerSort -> msg
-    , buyMsg : Item -> msg
-    , sellMsg : ContainerSort -> msg
+    , buyMsg : Item -> Int -> msg
+    , sellMsg : ContainerSort -> Int -> msg
     , changedLoopLengthMsg : Int -> msg
     , craftMsg : ContainerSort -> msg
     , nextBugIn : Int
@@ -81,7 +81,14 @@ view { counter, hasPower, togglePowerMsg, money, shop, nextBugIn, scale, selecte
                     |> (\item -> max 1 <| Data.maxPrice // ((shop |> Bag.count (item |> Item.itemToString)) + 1))
           in
           Details.view
-            { selected = selected
+            { amount =
+                selected
+                    |> Maybe.map
+                        (\card ->
+                            deck |> Bag.count (card |> FactoryCity.Data.CellType.containerSortToString)
+                        )
+                    |> Maybe.withDefault 0
+            , selected = selected
             , sellMsg = sellMsg
             , price = price
             }

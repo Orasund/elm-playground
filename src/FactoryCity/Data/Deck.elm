@@ -36,13 +36,13 @@ add k =
     Bag.insert 1 (k |> CellType.containerSortToString)
 
 
-remove : ContainerSort -> Deck -> Result () Deck
-remove k bag =
-    if (bag |> Bag.count (k |> CellType.containerSortToString)) < 1 then
+remove : ContainerSort -> Int -> Deck -> Result () Deck
+remove k n bag =
+    if (bag |> Bag.count (k |> CellType.containerSortToString)) < n then
         Err ()
 
     else
-        bag |> Bag.remove 1 (k |> CellType.containerSortToString) |> Ok
+        bag |> Bag.remove n (k |> CellType.containerSortToString) |> Ok
 
 
 toList : Deck -> List ( ContainerSort, Int )

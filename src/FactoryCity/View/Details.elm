@@ -312,11 +312,12 @@ display containerSort =
 
 view :
     { selected : Maybe ContainerSort
-    , sellMsg : ContainerSort -> msg
+    , sellMsg : ContainerSort -> Int -> msg
     , price : Int
+    , amount : Int
     }
     -> Element msg
-view { selected, sellMsg, price } =
+view { selected, sellMsg, price, amount } =
     Element.column Grid.section <|
         List.singleton <|
             Element.column Card.large <|
@@ -326,25 +327,40 @@ view { selected, sellMsg, price } =
                             { name, desc } =
                                 display card
                         in
-                        [ Element.paragraph Heading.h3 <|
-                            [ Text.view 24 <|
-                                CellType.containerSortToString <|
-                                    card
-                            , Element.text <| " - " ++ name
+                        List.concat
+                            [ [ Element.paragraph Heading.h3 <|
+                                    [ Text.view 24 <|
+                                        CellType.containerSortToString <|
+                                            card
+                                    , Element.text <| " - " ++ name
+                                    ]
+                              , desc
+                                    |> List.map (Element.paragraph [])
+                                    |> Element.textColumn Grid.section
+                              ]
+                            , if amount >= 1 then
+                                [ Element.row Grid.spaceEvenly
+                                    [ Input.button Button.simple <|
+                                        { label =
+                                            Text.view 16 <|
+                                                "💲 sell for "
+                                                    ++ (price
+                                                            |> String.fromInt
+                                                       )
+                                        , onPress = Just <| sellMsg card 1
+                                        }
+                                    , Input.button Button.simple <|
+                                        { label =
+                                            Text.view 16 <|
+                                                "💲 sell all"
+                                        , onPress = Just <| sellMsg card amount
+                                        }
+                                    ]
+                                ]
+
+                              else
+                                []
                             ]
-                        , desc
-                            |> List.map (Element.paragraph [])
-                            |> Element.textColumn Grid.section
-                        , Input.button Button.simple <|
-                            { label =
-                                Text.view 16 <|
-                                    "💲 sell for "
-                                        ++ (price
-                                                |> String.fromInt
-                                           )
-                            , onPress = Just <| sellMsg <| card
-                            }
-                        ]
 
                     Nothing ->
                         List.singleton <|

@@ -55,31 +55,31 @@ sync =
         |> Task.map (Maybe.map toBag >> Maybe.withDefault Bag.empty)
 
 
-remove : Item -> Task Http.Error ()
-remove item =
+remove : Item -> Int -> Task Http.Error ()
+remove item amount =
     Jsonstore.update
         { url = String.url ++ "/" ++ (item |> Item.itemToString)
         , decoder = Jsonstore.int |> Jsonstore.decode
         , value =
             Maybe.andThen
                 (\n ->
-                    if n == 1 then
+                    if n <= amount then
                         Nothing
 
                     else
-                        Just <| Jsonstore.encode Jsonstore.int <| n - 1
+                        Just <| Jsonstore.encode Jsonstore.int <| n - amount
                 )
         }
 
 
-insert : Item -> Task Http.Error ()
-insert item =
+insert : Item -> Int -> Task Http.Error ()
+insert item amount =
     Jsonstore.update
         { url = String.url ++ "/" ++ (item |> Item.itemToString)
         , decoder = Jsonstore.int |> Jsonstore.decode
         , value =
-            Maybe.map ((+) 1)
-                >> Maybe.withDefault 1
+            Maybe.map ((+) amount)
+                >> Maybe.withDefault amount
                 >> Jsonstore.encode Jsonstore.int
                 >> Just
         }
