@@ -349,12 +349,6 @@ view { selected, sellMsg, price, amount } =
                                                        )
                                         , onPress = Just <| sellMsg card 1
                                         }
-                                    , Input.button Button.simple <|
-                                        { label =
-                                            Text.view 16 <|
-                                                "💲 sell all"
-                                        , onPress = Just <| sellMsg card amount
-                                        }
                                     ]
                                 ]
 
