@@ -409,8 +409,8 @@ update msg (( { selected, stepCount, loopEvery, source, nextBugIn, shop, money }
                             in
                             Action.updating
                                 ( ( { state
-                                        | money = money + price
-                                        , shop = shop |> Bag.insert 1 key
+                                        | money = money + price * n
+                                        , shop = shop |> Bag.insert n key
                                         , game = { game | deck = deck }
                                     }
                                   , seed
@@ -443,7 +443,7 @@ update msg (( { selected, stepCount, loopEvery, source, nextBugIn, shop, money }
                                         | money = money + price * n
                                         , shop =
                                             shop
-                                                |> Bag.insert 1 key
+                                                |> Bag.insert n key
                                         , game = { game | deck = deck }
                                     }
                                   , seed
