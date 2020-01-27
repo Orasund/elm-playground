@@ -7550,7 +7550,7 @@ var $author$project$FactoryCity$State$Playing$init = function (_v0) {
 					A2(
 						$elm$core$List$map,
 						function (i) {
-							return A2($author$project$FactoryCity$Data$RemoteShop$remove, i, 50);
+							return A2($author$project$FactoryCity$Data$RemoteShop$remove, i, 5);
 						},
 						$author$project$FactoryCity$Data$Item$itemList)))));
 };
@@ -9620,8 +9620,8 @@ var $author$project$FactoryCity$State$Playing$update = F2(
 											game: _Utils_update(
 												game,
 												{deck: deck}),
-											money: money + price,
-											shop: A3($JohnBugner$elm_bag$Bag$insert, 1, key, shop)
+											money: money + (price * n),
+											shop: A3($JohnBugner$elm_bag$Bag$insert, n, key, shop)
 										}),
 									seed),
 								A2(
@@ -9647,7 +9647,7 @@ var $author$project$FactoryCity$State$Playing$update = F2(
 												game,
 												{deck: deck}),
 											money: money + (price * n),
-											shop: A3($JohnBugner$elm_bag$Bag$insert, 1, key, shop)
+											shop: A3($JohnBugner$elm_bag$Bag$insert, n, key, shop)
 										}),
 									seed),
 								A2(

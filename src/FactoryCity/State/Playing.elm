@@ -109,7 +109,7 @@ init { shop, seed, source } =
       , seed
       )
     , Item.itemList
-        |> List.map (\i -> RemoteShop.remove i 50)
+        |> List.map (\i -> RemoteShop.remove i 5)
         |> Task.sequence
         |> Task.andThen
             (\_ ->
