@@ -7,7 +7,7 @@ import Element exposing (Element)
 import Element.Input as Input
 import FactoryCity.Data as Data
 import FactoryCity.Data.Board as Board
-import FactoryCity.Data.CellType as CellType exposing (CellType, ContainerSort(..))
+import FactoryCity.Data.CellType as CellType exposing (CellType, ContainerSort(..), RemovableSort(..))
 import FactoryCity.Data.Deck as Deck
 import FactoryCity.Data.Game as Game exposing (EndCondition(..), Game)
 import FactoryCity.Data.Item as Item exposing (Item(..))
@@ -109,7 +109,7 @@ init { shop, seed, source } =
       , seed
       )
     , Item.itemList
-        |> List.map (\i -> RemoteShop.remove i 5)
+        |> List.map (\i -> RemoteShop.remove i 50)
         |> Task.sequence
         |> Task.andThen
             (\_ ->
@@ -308,7 +308,7 @@ update msg (( { selected, stepCount, loopEvery, source, nextBugIn, shop, money }
                                                                     )
                                                                         > 1
                                                                 then
-                                                                    CellType.fromCard <| CellType.crate Scrap
+                                                                    CellType.fromCard <| Removable Trash
 
                                                                 else
                                                                     cell
@@ -332,7 +332,7 @@ update msg (( { selected, stepCount, loopEvery, source, nextBugIn, shop, money }
                                                             | board =
                                                                 game.board
                                                                     |> Grid.ignoringErrors
-                                                                        (Grid.update ( x, y ) (always <| Ok <| Just <| { item = Nothing, sort = Bug }))
+                                                                        (Grid.update ( x, y ) (always <| Ok <| Just <| { item = Nothing, sort = Removable Bug }))
                                                         }
                                                 }
                                             )
@@ -440,7 +440,7 @@ update msg (( { selected, stepCount, loopEvery, source, nextBugIn, shop, money }
                             in
                             Action.updating
                                 ( ( { state
-                                        | money = money + price
+                                        | money = money + price * n
                                         , shop =
                                             shop
                                                 |> Bag.insert 1 key

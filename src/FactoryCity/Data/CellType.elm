@@ -3,6 +3,7 @@ module FactoryCity.Data.CellType exposing
     , ContainerSort(..)
     , MachineSort(..)
     , MovableSort(..)
+    , RemovableSort(..)
     , belt
     , containerList
     , containerSortToString
@@ -16,6 +17,7 @@ module FactoryCity.Data.CellType exposing
     , merger
     , movableList
     , output
+    , removableList
     , stringToContainerSort
     , tierOne
     , tierOneList
@@ -59,6 +61,16 @@ machineList =
     , Shredder
     , Press
     ]
+
+
+type RemovableSort
+    = Bug
+    | Trash
+
+
+removableList : List RemovableSort
+removableList =
+    [ Bug, Trash ]
 
 
 crate : Item -> ContainerSort
@@ -112,7 +124,7 @@ type ContainerSort
     | Crate Item
     | Machine MachineSort { isWarm : Bool }
     | Output
-    | Bug
+    | Removable RemovableSort
 
 
 type alias CellType =
@@ -303,8 +315,13 @@ containerSortToString containerSort =
         Output ->
             "🚛"
 
-        Bug ->
-            "🐞"
+        Removable removableSort ->
+            case removableSort of
+                Bug ->
+                    "🐞"
+
+                Trash ->
+                    "🗑"
 
 
 stringToContainerSort : String -> Maybe ContainerSort
@@ -345,7 +362,10 @@ stringToContainerSort string =
                                     Just <| Output
 
                                 "🐞" ->
-                                    Just <| Bug
+                                    Just <| Removable Bug
+
+                                "🗑" ->
+                                    Just <| Removable Trash
 
                                 _ ->
                                     Nothing
@@ -403,7 +423,7 @@ toCard { sort } =
         Output ->
             output
 
-        Bug ->
+        Removable _ ->
             Crate Scrap
 
 
@@ -433,8 +453,8 @@ fromCard containerSort =
             Output ->
                 output
 
-            Bug ->
-                Bug
+            Removable bug ->
+                Removable bug
     }
 
 
@@ -551,7 +571,7 @@ craftingCost card =
         Output ->
             tierTwo
 
-        Bug ->
+        Removable _ ->
             defaultTier
     )
         |> List.map (Tuple.mapFirst (crate >> containerSortToString))

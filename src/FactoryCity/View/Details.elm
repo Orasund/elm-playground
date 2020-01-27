@@ -300,8 +300,8 @@ display containerSort =
                         ]
             }
 
-        Bug ->
-            { name = "Bug"
+        Removable _ ->
+            { name = "Removable"
             , desc =
                 List.singleton <|
                     List.singleton <|

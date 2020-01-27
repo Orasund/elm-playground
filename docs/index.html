@@ -7363,7 +7363,12 @@ var $author$project$FactoryCity$Data$CellType$containerSortToString = function (
 		case 'Output':
 			return '🚛';
 		default:
-			return '🐞';
+			var removableSort = containerSort.a;
+			if (removableSort.$ === 'Bug') {
+				return '🐞';
+			} else {
+				return '🗑';
+			}
 	}
 };
 var $author$project$FactoryCity$Data$CellType$Furnace = {$: 'Furnace'};
@@ -7545,7 +7550,7 @@ var $author$project$FactoryCity$State$Playing$init = function (_v0) {
 					A2(
 						$elm$core$List$map,
 						function (i) {
-							return A2($author$project$FactoryCity$Data$RemoteShop$remove, i, 5);
+							return A2($author$project$FactoryCity$Data$RemoteShop$remove, i, 50);
 						},
 						$author$project$FactoryCity$Data$Item$itemList)))));
 };
@@ -7563,6 +7568,10 @@ var $author$project$FactoryCity$Data$CellType$Bug = {$: 'Bug'};
 var $author$project$FactoryCity$State$Playing$ChangedViewport = function (a) {
 	return {$: 'ChangedViewport', a: a};
 };
+var $author$project$FactoryCity$Data$CellType$Removable = function (a) {
+	return {$: 'Removable', a: a};
+};
+var $author$project$FactoryCity$Data$CellType$Trash = {$: 'Trash'};
 var $author$project$FactoryCity$Data$Deck$add = function (k) {
 	return A2(
 		$JohnBugner$elm_bag$Bag$insert,
@@ -7696,7 +7705,8 @@ var $author$project$FactoryCity$Data$CellType$fromCard = function (containerSort
 				case 'Output':
 					return $author$project$FactoryCity$Data$CellType$output;
 				default:
-					return $author$project$FactoryCity$Data$CellType$Bug;
+					var bug = containerSort.a;
+					return $author$project$FactoryCity$Data$CellType$Removable(bug);
 			}
 		}()
 	};
@@ -8562,7 +8572,8 @@ var $Orasund$elm_game_essentials$Grid$Direction$rotRight = function (direction) 
 };
 var $author$project$FactoryCity$Data$Item$smeltable = _List_fromArray(
 	[
-		_Utils_Tuple2($author$project$FactoryCity$Data$Item$Stone, $author$project$FactoryCity$Data$Item$Iron)
+		_Utils_Tuple2($author$project$FactoryCity$Data$Item$Stone, $author$project$FactoryCity$Data$Item$Iron),
+		_Utils_Tuple2($author$project$FactoryCity$Data$Item$Chipboard, $author$project$FactoryCity$Data$Item$Scrap)
 	]);
 var $author$project$FactoryCity$Automata$Rule$merger = function () {
 	var rules = F2(
@@ -8935,7 +8946,9 @@ var $author$project$FactoryCity$Automata$Rule$pressable = function () {
 var $author$project$FactoryCity$Data$Item$shreddable = _List_fromArray(
 	[
 		_Utils_Tuple2($author$project$FactoryCity$Data$Item$Stone, $author$project$FactoryCity$Data$Item$Scrap),
-		_Utils_Tuple2($author$project$FactoryCity$Data$Item$Wood, $author$project$FactoryCity$Data$Item$Chips)
+		_Utils_Tuple2($author$project$FactoryCity$Data$Item$Wood, $author$project$FactoryCity$Data$Item$Chips),
+		_Utils_Tuple2($author$project$FactoryCity$Data$Item$Iron, $author$project$FactoryCity$Data$Item$Scrap),
+		_Utils_Tuple2($author$project$FactoryCity$Data$Item$Scrap, $author$project$FactoryCity$Data$Item$Chips)
 	]);
 var $author$project$FactoryCity$Automata$Rule$shreddable = function () {
 	var rules = F3(
@@ -9407,7 +9420,10 @@ var $author$project$FactoryCity$State$Playing$update = F2(
 																	$elm$core$Basics$always(
 																		$elm$core$Result$Ok(
 																			$elm$core$Maybe$Just(
-																				{item: $elm$core$Maybe$Nothing, sort: $author$project$FactoryCity$Data$CellType$Bug})))),
+																				{
+																					item: $elm$core$Maybe$Nothing,
+																					sort: $author$project$FactoryCity$Data$CellType$Removable($author$project$FactoryCity$Data$CellType$Bug)
+																				})))),
 																game.board)
 														}),
 													nextBugIn: state.bugCycle - 1
@@ -9474,7 +9490,7 @@ var $author$project$FactoryCity$State$Playing$update = F2(
 																			},
 																			_List_fromArray(
 																				[$Orasund$elm_game_essentials$Grid$Direction$Up, $Orasund$elm_game_essentials$Grid$Direction$Left, $Orasund$elm_game_essentials$Grid$Direction$Right, $Orasund$elm_game_essentials$Grid$Direction$Down]))) > 1) ? $author$project$FactoryCity$Data$CellType$fromCard(
-																		$author$project$FactoryCity$Data$CellType$crate($author$project$FactoryCity$Data$Item$Scrap)) : cell;
+																		$author$project$FactoryCity$Data$CellType$Removable($author$project$FactoryCity$Data$CellType$Trash)) : cell;
 																});
 														},
 														game.board)
@@ -9630,7 +9646,7 @@ var $author$project$FactoryCity$State$Playing$update = F2(
 											game: _Utils_update(
 												game,
 												{deck: deck}),
-											money: money + price,
+											money: money + (price * n),
 											shop: A3($JohnBugner$elm_bag$Bag$insert, 1, key, shop)
 										}),
 									seed),
@@ -24719,7 +24735,11 @@ var $author$project$FactoryCity$Data$CellType$stringToContainerSort = function (
 				case '🚛':
 					return $elm$core$Maybe$Just($author$project$FactoryCity$Data$CellType$Output);
 				case '🐞':
-					return $elm$core$Maybe$Just($author$project$FactoryCity$Data$CellType$Bug);
+					return $elm$core$Maybe$Just(
+						$author$project$FactoryCity$Data$CellType$Removable($author$project$FactoryCity$Data$CellType$Bug));
+				case '🗑':
+					return $elm$core$Maybe$Just(
+						$author$project$FactoryCity$Data$CellType$Removable($author$project$FactoryCity$Data$CellType$Trash));
 				default:
 					return $elm$core$Maybe$Nothing;
 			}
@@ -25221,7 +25241,7 @@ var $author$project$FactoryCity$View$Details$display = function (containerSort) 
 				desc: $elm$core$List$singleton(
 					$elm$core$List$singleton(
 						$mdgriffith$elm_ui$Element$text('This is a Bug'))),
-				name: 'Bug'
+				name: 'Removable'
 			};
 	}
 };

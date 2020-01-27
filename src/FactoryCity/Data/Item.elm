@@ -44,6 +44,7 @@ burnable =
 smeltable : List ( Item, Item )
 smeltable =
     [ ( Stone, Iron )
+    , ( Chipboard, Scrap )
     ]
 
 
@@ -51,6 +52,8 @@ shreddable : List ( Item, Item )
 shreddable =
     [ ( Stone, Scrap )
     , ( Wood, Chips )
+    , ( Iron, Scrap )
+    , ( Scrap, Chips)
     ]
 
 
