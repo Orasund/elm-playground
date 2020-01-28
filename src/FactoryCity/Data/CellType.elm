@@ -546,8 +546,11 @@ craftingCost card =
             if from == to then
                 defaultTier
 
-            else if from == (to |> Direction.flip) then
+            else if (to == Down) && (from == Up) then
                 tierOne
+
+            else if from == (to |> Direction.flip) then
+                tierTwo
 
             else
                 tierThree

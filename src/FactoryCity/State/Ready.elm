@@ -191,9 +191,9 @@ view scale msgMapper ( shop, _ ) =
                 )
               <|
                 [ viewMode
-                    (msgMapper <| ClickedStart <| Wood)
-                    { title = "Wood cutter"
-                    , desc = "You get wood for free"
+                    (msgMapper <| ClickedStart <| Scrap)
+                    { title = "Scrap Dealer"
+                    , desc = "You get scrap for free"
                     }
                 , viewMode
                     (msgMapper <| ClickedStart <| Stone)
@@ -201,9 +201,9 @@ view scale msgMapper ( shop, _ ) =
                     , desc = "You get stone for free"
                     }
                 , viewMode
-                    (msgMapper <| ClickedStart <| Scrap)
-                    { title = "Scrap Dealer"
-                    , desc = "You get scrap for free"
+                    (msgMapper <| ClickedStart <| Wood)
+                    { title = "Wood cutter"
+                    , desc = "You get wood for free"
                     }
                 ]
             ]

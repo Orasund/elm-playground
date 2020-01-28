@@ -17,7 +17,7 @@ import Framework.Grid as Grid
 view :
     { shop : Bag String
     , buyMsg : Maybe (Item -> Int -> msg)
-    , sellMsg : Maybe (ContainerSort -> Int -> msg)
+    , sellMsg : Maybe (ContainerSort -> msg)
     , money : Int
     , deck : Bag String
     }
@@ -76,7 +76,7 @@ view { shop, buyMsg, sellMsg, money, deck } =
                                                     ++ [ Element.width <| Element.fill ]
                                                 )
                                               <|
-                                                { onPress = Just <| sMsg (CellType.crate <| item) 1
+                                                { onPress = Just <| sMsg (CellType.crate <| item)
                                                 , label =
                                                     Element.row Grid.spaceEvenly <|
                                                         [ Text.view 16 <| "💲"

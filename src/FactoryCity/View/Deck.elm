@@ -10,37 +10,6 @@ import FactoryCity.View.Text as Text
 import Framework.Grid as Grid
 
 
-
-{- viewInactiveCard : Float -> Element msg -> Element msg
-   viewInactiveCard scale content =
-       Element.el
-           [ Element.width <| Element.px <| floor <| 120 * scale
-           , Element.height <| Element.px <| floor <| 176 * scale
-           , Element.alignTop
-           , Element.padding <| floor <| 5 * scale
-           ]
-       <|
-           content
-
-
-   viewCardList : Float -> { sort : Bool } -> List CellType -> Element msg
-   viewCardList scale { sort } =
-       List.map CellType.toString
-           >> (if sort then
-                   List.sort
-
-               else
-                   identity
-              )
-           >> List.map (\( name, _ ) -> Element.text name)
-           >> Element.wrappedRow
-               [ Font.size <| floor <| 25 * scale
-               , Element.spacing <| floor <| 5 * scale
-               , Element.centerX
-               ]
--}
-
-
 viewContent : ContainerSort -> Int -> Element msg
 viewContent containerSort n =
     Element.column
@@ -75,7 +44,7 @@ view scale maybeSelectedMsg maybeSelected deck =
             [ Element.centerX
             , Element.height <| Element.px <| floor <| 200 * scale
             ]
-            { width = 250 * scale
+            { width = 400 * scale
             , dimensions = ( 120 * scale, 176 * scale )
             , cards =
                 deck

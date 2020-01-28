@@ -312,7 +312,7 @@ display containerSort =
 
 view :
     { selected : Maybe ContainerSort
-    , sellMsg : ContainerSort -> Int -> msg
+    , sellMsg : ContainerSort -> msg
     , price : Int
     , amount : Int
     }
@@ -347,7 +347,7 @@ view { selected, sellMsg, price, amount } =
                                                     ++ (price
                                                             |> String.fromInt
                                                        )
-                                        , onPress = Just <| sellMsg card 1
+                                        , onPress = Just <| sellMsg card
                                         }
                                     ]
                                 ]

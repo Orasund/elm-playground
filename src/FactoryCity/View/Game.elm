@@ -13,13 +13,12 @@ import FactoryCity.View.Details as Details
 import FactoryCity.View.Settings as Settings
 import FactoryCity.View.Shop as Shop
 import Framework.Grid as Grid
-import Framework.Heading as Heading
 import Grid.Position exposing (Position)
+import Set exposing (Set)
 
 
 view :
-    { counter : Int
-    , money : Int
+    { money : Int
     , shop : Bag String
     , scale : Float
     , selected : Maybe ContainerSort
@@ -27,16 +26,19 @@ view :
     , positionSelectedMsg : Position -> msg
     , selectedMsg : ContainerSort -> msg
     , buyMsg : Item -> Int -> msg
-    , sellMsg : ContainerSort -> Int -> msg
+    , sellMsg : ContainerSort -> msg
     , changedLoopLengthMsg : Int -> msg
     , craftMsg : ContainerSort -> msg
-    , nextBugIn : Int
-    , hasPower : Bool
-    , togglePowerMsg : msg
+    , speed : Int
+    , clickedChangeSpeedMsg : Int -> msg
+    , toggledBuyRegularlyMsg : Item -> msg
+    , toggledSellRegularlyMsg : Item -> msg
+    , shoppingList : Set String
+    , sellingList : Set String
     }
     -> Game
     -> List (List ( String, Element msg ))
-view { counter, hasPower, togglePowerMsg, money, shop, nextBugIn, scale, selected, loopLength, craftMsg, changedLoopLengthMsg, positionSelectedMsg, selectedMsg, buyMsg, sellMsg } { board, deck } =
+view { toggledBuyRegularlyMsg, toggledSellRegularlyMsg, shoppingList, sellingList, speed, clickedChangeSpeedMsg, money, shop, scale, selected, loopLength, craftMsg, changedLoopLengthMsg, positionSelectedMsg, selectedMsg, buyMsg, sellMsg } { board, deck } =
     [ [ ( "Shop"
         , Shop.view
             { shop = shop
@@ -63,8 +65,12 @@ view { counter, hasPower, togglePowerMsg, money, shop, nextBugIn, scale, selecte
         , Settings.view
             { changedLoopLengthMsg = changedLoopLengthMsg
             , loopLength = loopLength
-            , hasPower = hasPower
-            , togglePowerMsg = togglePowerMsg
+            , speed = speed
+            , clickedChangeSpeedMsg = clickedChangeSpeedMsg
+            , toggledBuyRegularlyMsg = toggledBuyRegularlyMsg
+            , toggledSellRegularlyMsg = toggledSellRegularlyMsg
+            , shoppingList = shoppingList
+            , sellingList = sellingList
             }
         )
       , ( "Details"

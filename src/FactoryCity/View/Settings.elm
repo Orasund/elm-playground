@@ -2,26 +2,34 @@ module FactoryCity.View.Settings exposing (view)
 
 import Element exposing (Element)
 import Element.Input as Input
+import FactoryCity.Data.Item as Item exposing (Item)
+import FactoryCity.View.Text as Text
 import Framework.Button as Button
 import Framework.Color as Color
 import Framework.Grid as Grid
+import Framework.Group as Group
 import Framework.Input as Input
+import Set exposing (Set)
 
 
 view :
     { changedLoopLengthMsg : Int -> msg
     , loopLength : Int
-    , hasPower : Bool
-    , togglePowerMsg : msg
+    , speed : Int
+    , clickedChangeSpeedMsg : Int -> msg
+    , toggledBuyRegularlyMsg : Item -> msg
+    , toggledSellRegularlyMsg : Item -> msg
+    , shoppingList : Set String
+    , sellingList : Set String
     }
     -> Element msg
-view { changedLoopLengthMsg, loopLength, hasPower, togglePowerMsg } =
+view { shoppingList, sellingList, changedLoopLengthMsg, loopLength, speed, clickedChangeSpeedMsg, toggledSellRegularlyMsg, toggledBuyRegularlyMsg } =
     Element.column Grid.section <|
         [ Element.row Grid.spaceEvenly <|
             [ Element.paragraph [] <|
                 List.singleton <|
                     Element.text <|
-                        "Loop Length"
+                        "Cycle Length"
             , [ 5, 10, 15, 20 ]
                 |> List.indexedMap
                     (\i n ->
@@ -52,24 +60,97 @@ view { changedLoopLengthMsg, loopLength, hasPower, togglePowerMsg } =
             [ Element.paragraph [] <|
                 List.singleton <|
                     Element.text <|
-                        "Power"
-            , Input.button
-                (Button.simple
-                    ++ (if hasPower then
-                            Color.primary
+                        "Speed"
+            , [ ( 0, "Pause" ), ( 1, "1" ), ( 2, "2" ) ]
+                |> List.indexedMap
+                    (\i ( n, label ) ->
+                        Input.button
+                            (List.concat
+                                [ Button.simple
+                                , if speed == n then
+                                    Color.primary
 
-                        else
-                            []
-                       )
-                )
-                { onPress = Just <| togglePowerMsg
-                , label =
-                    Element.text <|
-                        if hasPower then
-                            "on"
+                                  else
+                                    []
+                                , if i == 0 then
+                                    Group.left
 
-                        else
-                            "off"
-                }
+                                  else if i == 2 then
+                                    Group.right
+
+                                  else
+                                    Group.center
+                                ]
+                            )
+                            { onPress = Just <| clickedChangeSpeedMsg n
+                            , label =
+                                Text.view 16 <| label
+                            }
+                    )
+                |> Element.row (Grid.compact ++ [ Element.width <| Element.fill ])
             ]
+        , Element.paragraph [] <|
+            List.singleton <|
+                Element.text <|
+                    "Buy each cycle"
+        , Item.itemList
+            |> List.map
+                (\item ->
+                    Input.button
+                        (List.concat
+                            [ Button.simple
+                            , if
+                                shoppingList
+                                    |> Set.member
+                                        (item |> Item.itemToString)
+                              then
+                                Color.primary
+
+                              else
+                                []
+                            ]
+                        )
+                        { onPress =
+                            Just <|
+                                toggledBuyRegularlyMsg <|
+                                    item
+                        , label =
+                            Text.view 16 <|
+                                Item.itemToString <|
+                                    item
+                        }
+                )
+            |> Element.wrappedRow Grid.simple
+        , Element.paragraph [] <|
+            List.singleton <|
+                Element.text <|
+                    "Sell each cycle"
+        , Item.itemList
+            |> List.map
+                (\item ->
+                    Input.button
+                        (List.concat
+                            [ Button.simple
+                            , if
+                                sellingList
+                                    |> Set.member
+                                        (item |> Item.itemToString)
+                              then
+                                Color.primary
+
+                              else
+                                []
+                            ]
+                        )
+                        { onPress =
+                            Just <|
+                                toggledSellRegularlyMsg <|
+                                    item
+                        , label =
+                            Text.view 16 <|
+                                Item.itemToString <|
+                                    item
+                        }
+                )
+            |> Element.wrappedRow Grid.simple
         ]
