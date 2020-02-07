@@ -133,41 +133,6 @@ type alias CellType =
     }
 
 
-directionToString : Direction -> String
-directionToString dir =
-    case dir of
-        Up ->
-            "🔼"
-
-        Left ->
-            "◀"
-
-        Right ->
-            "▶"
-
-        Down ->
-            "🔽"
-
-
-stringToDirection : String -> Maybe Direction
-stringToDirection string =
-    case string of
-        "🔼" ->
-            Just Up
-
-        "◀" ->
-            Just Left
-
-        "▶" ->
-            Just Right
-
-        "🔽" ->
-            Just Down
-
-        _ ->
-            Nothing
-
-
 movableToString : { from : Direction, to : Direction } -> Maybe String
 movableToString { from, to } =
     case ( from, to ) of
@@ -175,7 +140,7 @@ movableToString { from, to } =
             Just "⤶"
 
         ( Up, Down ) ->
-            Just "↓"
+            Just "⬇"
 
         ( Up, Right ) ->
             Just "⤷"
@@ -184,13 +149,13 @@ movableToString { from, to } =
             Just "⤴"
 
         ( Left, Right ) ->
-            Just "→"
+            Just "➡"
 
         ( Left, Down ) ->
             Just "⤵"
 
         ( Down, Up ) ->
-            Just "↑"
+            Just "⬆"
 
         ( Down, Left ) ->
             Just "↰"
@@ -202,7 +167,7 @@ movableToString { from, to } =
             Just "⬑"
 
         ( Right, Left ) ->
-            Just "←"
+            Just "⬅"
 
         ( Right, Down ) ->
             Just "⬐"
@@ -217,7 +182,7 @@ stringToMovable string =
         "⤶" ->
             Just ( Up, Left )
 
-        "↓" ->
+        "⬇" ->
             Just ( Up, Down )
 
         "⤷" ->
@@ -226,13 +191,13 @@ stringToMovable string =
         "⤴" ->
             Just ( Left, Up )
 
-        "→" ->
+        "➡" ->
             Just ( Left, Right )
 
         "⤵" ->
             Just ( Left, Down )
 
-        "↑" ->
+        "⬆" ->
             Just ( Down, Up )
 
         "↰" ->
@@ -244,7 +209,7 @@ stringToMovable string =
         "⬑" ->
             Just ( Right, Up )
 
-        "←" ->
+        "⬅" ->
             Just ( Right, Left )
 
         "⬐" ->
@@ -289,31 +254,34 @@ containerSortToString : ContainerSort -> String
 containerSortToString containerSort =
     case containerSort of
         Movable movableSort { from, to } ->
-            case movableSort of
-                Belt ->
-                    { from = from, to = to }
-                        |> movableToString
-                        |> Maybe.withDefault ""
+            { from = from, to = to }
+                |> movableToString
+                |> Maybe.map
+                    ((++)
+                        (case movableSort of
+                            Belt ->
+                                "🚂"
 
-                Merger ->
-                    [ from |> Direction.flip, to ]
-                        |> List.map directionToString
-                        |> String.concat
+                            Merger ->
+                                "🏗"
+                        )
+                    )
+                |> Maybe.withDefault ""
 
         Crate item ->
             "📦" ++ (item |> Item.itemToString)
 
         Machine machineSort { isWarm } ->
-            (if isWarm then
-                "🔄"
+            (machineSort |> machineToString)
+                ++ (if isWarm then
+                        "🔄"
 
-             else
-                "❌"
-            )
-                ++ (machineSort |> machineToString)
+                    else
+                        "❌"
+                   )
 
         Output ->
-            "🚛"
+            "📥"
 
         Removable removableSort ->
             case removableSort of
@@ -326,49 +294,51 @@ containerSortToString containerSort =
 
 stringToContainerSort : String -> Maybe ContainerSort
 stringToContainerSort string =
-    case string |> stringToMovable of
-        Just { from, to } ->
-            Just <| Movable Belt { from = from, to = to }
+    case string |> String.uncons of
+        Just ( '🚂', dir ) ->
+            dir
+                |> stringToMovable
+                |> Maybe.map (Movable Belt)
 
-        Nothing ->
-            case string |> String.uncons of
-                Just ( '📦', item ) ->
-                    item
-                        |> Item.stringToItem
-                        |> Maybe.map Crate
+        Just ( '🏗', dir ) ->
+            dir
+                |> stringToMovable
+                |> Maybe.map
+                    (\{ to } ->
+                        Movable Merger
+                            { from = to |> Direction.flip, to = to }
+                    )
 
-                Just ( '🔄', machine ) ->
-                    machine
-                        |> stringToMachine
-                        |> Maybe.map (\m -> Machine m { isWarm = True })
+        Just ( '📦', item ) ->
+            item
+                |> Item.stringToItem
+                |> Maybe.map Crate
 
-                Just ( '❌', machine ) ->
-                    machine
-                        |> stringToMachine
-                        |> Maybe.map (\m -> Machine m { isWarm = False })
+        Just ( machine, "🔄" ) ->
+            machine
+                |> String.fromChar
+                |> stringToMachine
+                |> Maybe.map (\m -> Machine m { isWarm = True })
+
+        Just ( machine, "❌" ) ->
+            machine
+                |> String.fromChar
+                |> stringToMachine
+                |> Maybe.map (\m -> Machine m { isWarm = False })
+
+        _ ->
+            case string of
+                "📥" ->
+                    Just <| Output
+
+                "🐞" ->
+                    Just <| Removable Bug
+
+                "🗑" ->
+                    Just <| Removable Trash
 
                 _ ->
-                    case
-                        string
-                            |> String.toList
-                            |> List.map (String.fromChar >> stringToDirection)
-                    of
-                        [ Just from, Just to ] ->
-                            Just <| Movable Merger { from = from |> Direction.flip, to = to }
-
-                        _ ->
-                            case string of
-                                "🚛" ->
-                                    Just <| Output
-
-                                "🐞" ->
-                                    Just <| Removable Bug
-
-                                "🗑" ->
-                                    Just <| Removable Trash
-
-                                _ ->
-                                    Nothing
+                    Nothing
 
 
 toString : CellType -> ( String, String )
@@ -502,7 +472,7 @@ tierTwoList =
 
 tierThree : List ( Item, Int )
 tierThree =
-    [ ( Iron, 2 ), ( Chipboard, 5 ) ]
+    [ ( Chipboard, 5 ) ]
 
 
 tierThreeList : List ContainerSort

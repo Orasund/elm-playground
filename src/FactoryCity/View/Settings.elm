@@ -54,7 +54,12 @@ view { shoppingList, sellingList, changedLoopLengthMsg, loopLength, speed, click
                             , label = Element.text <| String.fromInt <| n
                             }
                     )
-                |> Element.row Grid.compact
+                |> Element.row
+                    (Grid.compact
+                        ++ [ Element.alignRight
+                           , Element.width Element.shrink
+                           ]
+                    )
             ]
         , Element.row Grid.spaceEvenly <|
             [ Element.paragraph [] <|
@@ -84,10 +89,15 @@ view { shoppingList, sellingList, changedLoopLengthMsg, loopLength, speed, click
                             )
                             { onPress = Just <| clickedChangeSpeedMsg n
                             , label =
-                                Text.view 16 <| label
+                                Text.colored 16 <| label
                             }
                     )
-                |> Element.row (Grid.compact ++ [ Element.width <| Element.fill ])
+                |> Element.row
+                    (Grid.compact
+                        ++ [ Element.alignRight
+                           , Element.width Element.shrink
+                           ]
+                    )
             ]
         , Element.paragraph [] <|
             List.singleton <|
@@ -115,7 +125,7 @@ view { shoppingList, sellingList, changedLoopLengthMsg, loopLength, speed, click
                                 toggledBuyRegularlyMsg <|
                                     item
                         , label =
-                            Text.view 16 <|
+                            Text.colored 16 <|
                                 Item.itemToString <|
                                     item
                         }
@@ -124,7 +134,7 @@ view { shoppingList, sellingList, changedLoopLengthMsg, loopLength, speed, click
         , Element.paragraph [] <|
             List.singleton <|
                 Element.text <|
-                    "Sell each cycle"
+                    "Sell all"
         , Item.itemList
             |> List.map
                 (\item ->
@@ -147,7 +157,7 @@ view { shoppingList, sellingList, changedLoopLengthMsg, loopLength, speed, click
                                 toggledSellRegularlyMsg <|
                                     item
                         , label =
-                            Text.view 16 <|
+                            Text.colored 16 <|
                                 Item.itemToString <|
                                     item
                         }

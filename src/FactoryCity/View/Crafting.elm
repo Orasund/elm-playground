@@ -43,7 +43,7 @@ view { craftMsg } =
                                     Input.button Button.simple
                                         { onPress = Just <| craftMsg <| card
                                         , label =
-                                            Text.view 16 <|
+                                            Text.colored 16 <|
                                                 CellType.containerSortToString <|
                                                     card
                                         }

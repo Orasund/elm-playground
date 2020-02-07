@@ -2,7 +2,7 @@ module FactoryCity.State.Prepairing exposing (Model, Msg(..), init, update, view
 
 import Action
 import Bag exposing (Bag)
-import Browser.Dom as Dom
+import Browser.Dom as Dom exposing (Viewport)
 import Element exposing (Element)
 import Element.Font as Font
 import FactoryCity.Data.RemoteShop as RemoteShop
@@ -28,43 +28,39 @@ type alias Model =
     , seed : Maybe Seed
     , shop : Maybe (Bag String)
     , error : Maybe Http.Error
+    , scrollPos : Maybe Int
     }
 
 
 type Msg
     = GotSeed Seed
     | GotShopResponse (Result Http.Error (Bag String))
-    | GotScale Float
+    | GotViewport Viewport
 
 
 type alias Action =
     Action.Action Model
         Never
         { scale : Float
+        , scrollPos : Int
         , seed : Seed
         , shop : Bag String
         }
         Never
 
 
-init : ({ height : Float, width : Float } -> Float) -> ( Model, Cmd Msg )
-init calcScale =
+init : ( Model, Cmd Msg )
+init =
     ( { scale = Nothing
       , seed = Nothing
       , shop = Nothing
       , error = Nothing
+      , scrollPos = Nothing
       }
     , Cmd.batch
         [ Random.generate GotSeed Random.independentSeed
         , Task.attempt GotShopResponse RemoteShop.sync
-        , Task.perform
-            (\{ viewport } ->
-                { width = viewport.width, height = viewport.height }
-                    |> (\dim ->
-                            GotScale <| calcScale dim
-                       )
-            )
-            Dom.getViewport
+        , Task.perform GotViewport Dom.getViewport
         ]
     )
 
@@ -77,22 +73,24 @@ init calcScale =
 
 validate : Model -> Action
 validate model =
-    Maybe.map3
-        (\scale seed shop ->
+    Maybe.map4
+        (\scale seed shop scrollPos ->
             Action.transitioning
                 { scale = scale
                 , seed = seed
                 , shop = shop
+                , scrollPos = scrollPos
                 }
         )
         model.scale
         model.seed
         model.shop
+        model.scrollPos
         |> Maybe.withDefault (Action.updating ( model, Cmd.none ))
 
 
-update : Msg -> Model -> Action
-update msg model =
+update : ({ height : Float, width : Float } -> Float) -> Msg -> Model -> Action
+update calcScale msg model =
     case msg of
         GotSeed seed ->
             { model | seed = Just seed }
@@ -107,8 +105,14 @@ update msg model =
                 Err error ->
                     Action.updating ( { model | error = Just error }, Cmd.none )
 
-        GotScale scale ->
-            { model | scale = Just scale }
+        GotViewport v ->
+            { model
+                | scale =
+                    { width = v.viewport.width, height = v.viewport.height }
+                        |> calcScale
+                        |> Just
+                , scrollPos = Just <| round <| v.viewport.y
+            }
                 |> validate
 
 
@@ -124,7 +128,7 @@ view model =
                    , Element.centerY
                    ]
             )
-            [ Text.view (round <| 150) "🏭"
+            [ Text.colored (round <| 150) "🏭"
             , Element.column
                 (Heading.h1
                     ++ [ Element.centerX

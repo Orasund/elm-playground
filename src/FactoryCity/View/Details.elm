@@ -95,7 +95,7 @@ display containerSort =
             }
 
         Movable Belt _ ->
-            { name = "Conveyor Belt"
+            { name = "Railroad"
             , desc =
                 List.singleton <|
                     [ Element.text <| "Transports an item. If an output has multiple conveyor belts attached, it will turn into "
@@ -114,7 +114,7 @@ display containerSort =
             }
 
         Output ->
-            { name = "Lorry"
+            { name = "Output"
             , desc =
                 List.singleton <|
                     List.singleton <|
@@ -320,7 +320,11 @@ view :
 view { selected, sellMsg, price, amount } =
     Element.column Grid.section <|
         List.singleton <|
-            Element.column Card.large <|
+            Element.column
+                (Card.large
+                    ++ [ Element.centerX ]
+                )
+            <|
                 case selected of
                     Just card ->
                         let
@@ -329,7 +333,7 @@ view { selected, sellMsg, price, amount } =
                         in
                         List.concat
                             [ [ Element.paragraph Heading.h3 <|
-                                    [ Text.view 24 <|
+                                    [ Text.colored 24 <|
                                         CellType.containerSortToString <|
                                             card
                                     , Element.text <| " - " ++ name
@@ -342,7 +346,7 @@ view { selected, sellMsg, price, amount } =
                                 [ Element.row Grid.spaceEvenly
                                     [ Input.button Button.simple <|
                                         { label =
-                                            Text.view 16 <|
+                                            Text.colored 16 <|
                                                 "💲 sell for "
                                                     ++ (price
                                                             |> String.fromInt

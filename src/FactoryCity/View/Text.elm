@@ -1,4 +1,4 @@
-module FactoryCity.View.Text exposing (view)
+module FactoryCity.View.Text exposing (black, colored)
 
 import Element exposing (Element)
 import Emoji
@@ -6,21 +6,35 @@ import Html
 import Html.Attributes as Attributes
 
 
-view : Int -> String -> Element msg
-view int string =
+black : Int -> String -> Element msg
+black size text =
+    view
+        { sort = "black"
+        , text = text
+        , size = size
+        }
+
+
+colored : Int -> String -> Element msg
+colored size text =
+    view
+        { sort = "color"
+        , text = text
+        , size = size
+        }
+
+
+view : { sort : String, size : Int, text : String } -> Element msg
+view { sort, size, text } =
     let
         scale : Float
         scale =
             1.17
-
-        diff : Float -> Float
-        diff =
-            (*) (scale - 1)
     in
     Element.html <|
         Html.span
             [ Attributes.class "elm-emoji"
-            , Attributes.style "height" (String.fromInt int ++ "px")
+            , Attributes.style "height" (String.fromInt size ++ "px")
             ]
         <|
             Emoji.textWith
@@ -28,14 +42,14 @@ view int string =
                     Html.img
                         [ Attributes.src <|
                             "https://openmoji.org/data/"
-                                ++ "color"
+                                ++ sort
                                 ++ "/svg/"
                                 ++ (List.intersperse "-" list |> String.join "" |> String.toUpper)
                                 ++ ".svg"
-                        , Attributes.height <| round <| (*) scale <| toFloat int
+                        , Attributes.height <| round <| (*) scale <| toFloat size
                         , Attributes.style "vertical-align" "middle"
                         ]
                         []
                 )
             <|
-                string
+                text

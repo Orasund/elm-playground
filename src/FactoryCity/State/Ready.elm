@@ -23,12 +23,10 @@ import Time exposing (Month(..))
 ----------------------
 
 
-type alias State =
-    Bag String
-
-
 type alias Model =
-    ( State, Seed )
+    { shop : Bag String
+    , seed : Seed
+    }
 
 
 type Msg
@@ -45,63 +43,19 @@ type alias Action =
 ----------------------
 
 
-initialState : Bag String -> State
-initialState =
-    identity
-
-
-init : Bag String -> Seed -> ( Model, Cmd Msg )
-init shop seed =
-    ( ( initialState shop, seed ), Cmd.none )
+init : Model -> ( Model, Cmd Msg )
+init model =
+    ( model, Cmd.none )
 
 
 
 ----------------------
 -- Update
 ----------------------
-{- monthToInt : Month -> Int
-   monthToInt month =
-       case month of
-           Jan ->
-               1
-
-           Feb ->
-               2
-
-           Mar ->
-               3
-
-           Apr ->
-               4
-
-           May ->
-               5
-
-           Jun ->
-               6
-
-           Jul ->
-               7
-
-           Aug ->
-               8
-
-           Sep ->
-               9
-
-           Oct ->
-               10
-
-           Nov ->
-               11
-
-           Dec ->
-               12
--}
 
 
 update : Msg -> Model -> Action
-update msg ( shop, seed ) =
+update msg { shop, seed } =
     case msg of
         ClickedStart item ->
             Action.transitioning
@@ -120,13 +74,11 @@ update msg ( shop, seed ) =
 viewMode : msg -> { title : String, desc : String } -> Element msg
 viewMode msg { title, desc } =
     Input.button
-        (Button.simple
-            ++ Card.large
-            ++ [ Font.family
-                    [ Font.sansSerif ]
+        (Card.large
+            ++ Button.simple
+            ++ [ Font.family [ Font.sansSerif ]
                , Element.centerX
                , Element.centerY
-               , Font.color <| Element.rgb255 0 0 0
                ]
         )
     <|
@@ -152,7 +104,7 @@ view :
     -> (Msg -> msg)
     -> Model
     -> ( Maybe ( Element msg, Element msg ), List (Element msg) )
-view scale msgMapper ( shop, _ ) =
+view scale msgMapper { shop } =
     ( Nothing
     , List.singleton <|
         Element.wrappedRow (Grid.simple ++ [ Element.height <| Element.fill ])
@@ -163,7 +115,7 @@ view scale msgMapper ( shop, _ ) =
                            , Element.centerY
                            ]
                     )
-                    [ Text.view (round <| scale * 150) "🏭"
+                    [ Text.colored (round <| scale * 150) "🏭"
                     , Element.column
                         [ Font.size <| floor <| scale * 80
                         , Element.centerX

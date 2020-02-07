@@ -6,11 +6,12 @@ import Element.Border as Border
 import Element.Events as Events
 import Element.Font as Font
 import FactoryCity.Data.CellType as CellType exposing (CellType)
+import FactoryCity.Data.Item as Item
 import FactoryCity.View.Text as Text
 import Framework.Grid as Grid
 import Grid.Bordered as Grid exposing (Grid)
 import Grid.Position exposing (Position)
-import FactoryCity.Data.Item as Item
+
 
 viewCell : Float -> Position -> Maybe (Position -> msg) -> Maybe CellType -> Element msg
 viewCell scale position maybeMsg maybeCellType =
@@ -18,8 +19,8 @@ viewCell scale position maybeMsg maybeCellType =
         ([ Element.centerX
          , Border.width 1
          , Border.color <| Element.rgba255 219 219 219 1
-         , Element.width <| Element.px <| floor <| scale * 100
-         , Element.height <| Element.px <| floor <| scale * 100
+         , Element.width <| Element.px <| round <| scale * 100
+         , Element.height <| Element.px <| round <| scale * 100
          ]
             ++ (case maybeMsg of
                     Just msg ->
@@ -57,7 +58,7 @@ viewCell scale position maybeMsg maybeCellType =
                     cellType
                         |> (CellType.toString
                                 >> (\( sort, item ) ->
-                                        [ Text.view 16 <| sort
+                                        [ Text.colored 16 <| sort
                                         , Element.text <| item
                                         ]
                                    )

@@ -4,6 +4,7 @@ import Action
 import Bag exposing (Bag)
 import Browser.Dom as Dom
 import Element exposing (Element)
+import Element.Font as Font
 import Element.Input as Input
 import FactoryCity.Data as Data
 import FactoryCity.Data.Board as Board
@@ -14,14 +15,17 @@ import FactoryCity.Data.Item as Item exposing (Item(..))
 import FactoryCity.Data.RemoteShop as RemoteShop
 import FactoryCity.View.Game as GameView
 import Framework.Button as Button
+import Framework.Card as Card
 import Framework.Color as Color
 import Framework.Grid as Grid
+import Framework.Group as Group
 import Framework.Heading as Heading
 import Grid.Bordered as Grid
 import Grid.Direction exposing (Direction(..))
 import Grid.Position as Position exposing (Position)
 import Html.Attributes as Attributes
 import Http exposing (Error(..))
+import IntDict exposing (IntDict)
 import Random exposing (Seed)
 import Set exposing (Set)
 import Task
@@ -50,6 +54,7 @@ type alias State =
     , bugCycle : Int
     , shoppingList : Set String
     , sellingList : Set String
+    , headerTable : IntDict String
     }
 
 
@@ -74,6 +79,7 @@ type Msg
     | ClickedChangeSpeed Int
     | ToggledBuyRegularly Item
     | ToggledSellRegularly Item
+    | GotHeaderPos String (Result Dom.Error Int)
 
 
 type alias TransitionData =
@@ -110,6 +116,7 @@ init { shop, seed, source } =
         , bugCycle = Data.maxBugCycle
         , shoppingList = Set.empty
         , sellingList = Set.empty
+        , headerTable = IntDict.empty
         }
       , seed
       )
@@ -341,7 +348,7 @@ tick ( { stepCount, loopEvery, source, nextBugIn, shoppingList, sellingList } as
                         ( s, seed )
                )
         , if state.stepCount <= 1 then
-            [ shoppingList
+            shoppingList
                 |> Set.toList
                 |> List.filterMap
                     (\string ->
@@ -354,7 +361,10 @@ tick ( { stepCount, loopEvery, source, nextBugIn, shoppingList, sellingList } as
                                         (Task.succeed ())
                                 )
                     )
-            , sellingList
+                |> Cmd.batch
+
+          else
+            sellingList
                 |> Set.toList
                 |> List.filterMap
                     (\string ->
@@ -366,12 +376,7 @@ tick ( { stepCount, loopEvery, source, nextBugIn, shoppingList, sellingList } as
                                         (Task.succeed ())
                                 )
                     )
-            ]
-                |> List.concat
                 |> Cmd.batch
-
-          else
-            Cmd.none
         )
 
 
@@ -590,17 +595,45 @@ update msg (( { selected, shop, money } as state, seed ) as model) =
                 )
 
         GotShopResponse result ->
-            case result of
-                Ok s ->
-                    Action.updating
-                        ( ( { state | shop = s }
-                          , seed
-                          )
-                        , Cmd.none
+            Action.updating
+                ( case result of
+                    Ok s ->
+                        ( { state | shop = s }
+                        , seed
                         )
 
-                Err _ ->
-                    defaultCase
+                    Err _ ->
+                        model
+                , [ "Shop", "Craft", "Game", "Machine", "Details" ]
+                    |> List.map
+                        (\string ->
+                            Dom.getElement string
+                                |> Task.map
+                                    (.element
+                                        >> .y
+                                        >> round
+                                    )
+                                |> Task.attempt (GotHeaderPos string)
+                        )
+                    |> Cmd.batch
+                )
+
+        GotHeaderPos string result ->
+            Action.updating
+                ( case result of
+                    Ok pos ->
+                        ( { state
+                            | headerTable =
+                                state.headerTable
+                                    |> IntDict.insert pos string
+                          }
+                        , seed
+                        )
+
+                    Err _ ->
+                        model
+                , Cmd.none
+                )
 
         Sync ->
             Action.updating
@@ -699,12 +732,17 @@ subscriptions ( state, _ ) =
 
 
 view :
-    Float
+    { scale : Float, scrollPos : Int }
     -> (Msg -> msg)
     -> Model
     -> ( Maybe ( Element msg, Element msg ), List (Element msg) )
-view scale msgMapper ( { speed, shoppingList, sellingList, stepCount, nextBugIn, shop, money, game, selected, loopEvery }, _ ) =
+view { scale, scrollPos } msgMapper ( { headerTable, speed, shoppingList, sellingList, stepCount, nextBugIn, shop, money, game, selected, loopEvery }, _ ) =
     let
+        currentHeader =
+            headerTable
+                |> IntDict.before (scrollPos + 1)
+                |> Maybe.map Tuple.second
+
         list =
             GameView.view
                 { shop = shop
@@ -734,7 +772,15 @@ view scale msgMapper ( { speed, shoppingList, sellingList, stepCount, nextBugIn,
                 ++ [ Element.height <| Element.px <| Data.yOffset ]
             )
           <|
-            [ Element.el [ Element.width <| Element.fill ] <| Element.none
+            [ Element.el
+                [ Element.width <| Element.fill
+                , Element.alignBottom
+                , Font.alignRight
+                ]
+              <|
+                Element.text <|
+                    String.fromInt money
+                        ++ " Money"
             , Element.el
                 (Heading.h1
                     ++ [ Element.width <| Element.fill
@@ -761,17 +807,29 @@ view scale msgMapper ( { speed, shoppingList, sellingList, stepCount, nextBugIn,
             |> List.concat
             |> List.map
                 (\( name, _ ) ->
-                    Input.button Button.simple
+                    Input.button
+                        (Button.fill
+                            ++ Group.center
+                            ++ (if Just name == currentHeader then
+                                    Color.primary
+
+                                else
+                                    []
+                               )
+                            ++ [ Element.height <| Element.fill
+                               , Font.size <| 10
+                               ]
+                        )
                         { onPress = Just <| msgMapper <| ClickedChangeTab <| name
                         , label = Element.text <| name
                         }
                 )
-            |> Element.wrappedRow
-                (Color.light
-                    ++ [ Element.paddingXY 16 2
-                       , Element.width <| Element.fill
-                       , Element.spaceEvenly
-                       , Element.alignBottom
+            |> Element.row
+                (Card.large
+                    ++ Group.top
+                    ++ [ Element.alignBottom
+                       , Element.padding 0
+                       , Element.centerX
                        ]
                 )
         )

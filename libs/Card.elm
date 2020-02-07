@@ -1,9 +1,11 @@
 module Card exposing (card, hand)
 
 import Element exposing (Attribute, Element)
-import Element.Background as Background
 import Element.Border as Border
+import Element.Font as Font
 import Element.Input as Input
+import Framework.Button as Button
+import Framework.Color as Color
 
 
 type alias Card msg =
@@ -25,49 +27,44 @@ card { attributes, selected, onPress, content } =
     }
 
 
-view : Int -> ( Float, Float ) -> Card msg -> Element msg
-view amount ( width, height ) { attributes, selected, onPress, content } =
+view : { availableSpace : Float, amount : Int, dim : ( Float, Float ) } -> Card msg -> Element msg
+view { availableSpace, amount, dim } { attributes, selected, onPress, content } =
     let
-        att : List (Attribute msg)
-        att =
-            List.concat
-                [ [ Element.width <| Element.px <| floor <| width
-                  , Element.height <| Element.px <| floor <| height
-                  , Border.width 1
-                  , Border.color <| Element.rgba255 219 219 219 1
-                  , Border.rounded <| floor <| 4
-                  , Element.padding <| floor <| 5
-                  , Background.color <| Element.rgb255 255 255 255
-                  ]
-                , attributes
-                ]
+        ( width, height ) =
+            dim
     in
     Element.el
         [ Element.height <| Element.px <| floor <| height * 1.1
         , Element.width <|
             Element.px <|
                 if selected then
-                    floor <| width
+                    round <| width
 
-                else if amount < 5 then
-                    floor <| width
+                else if availableSpace / toFloat amount >= width then
+                    round <| width
 
                 else
-                    (floor <| width) * 3 // amount
+                    -- used a geometric series: s - 2w + c / (a - 1 ) = c
+                    (availableSpace - 2 * width)
+                        / toFloat (amount - 2)
+                        |> round
         ]
     <|
         Input.button
             (List.concat
-                [ [ Element.mouseOver
-                        [ Border.color <| Element.rgb255 155 203 255
-                        ]
-                  ]
+                [ Button.simple
+                , Color.light
                 , if selected then
                     [ Element.alignTop ]
 
                   else
                     [ Element.alignBottom ]
-                , att
+                , [ Element.width <| Element.px <| floor <| width
+                  , Element.height <| Element.px <| floor <| height
+                  , Font.alignLeft
+                  , Border.color <| Color.lightGrey
+                  ]
+                , attributes
                 ]
             )
             { label = content
@@ -84,23 +81,26 @@ hand attributes { dimensions, width, cards } =
 
         ( cardWidth, _ ) =
             dimensions
-
-        spacing =
-            if cardsAmount - 1 <= 0 then
-                0
-
-            else
-                (width - toFloat cardsAmount * cardWidth)
-                    / (toFloat cardsAmount - 1)
-                    |> clamp -(cardWidth / 5) (cardWidth / 5)
     in
     cards
-        |> List.map (view cardsAmount dimensions)
+        |> List.map
+            (view
+                { amount = cardsAmount
+                , availableSpace = width
+                , dim = dimensions
+                }
+            )
         |> Element.row
-            ([ Element.width <| Element.shrink
-             , Element.height <| Element.shrink
-             , Element.spacing <| round <| spacing
+            ([ Element.width <| Element.px <| round <| width
+             , Element.height <| Element.fill
              , Element.centerX
              ]
+                ++ (if width / toFloat cardsAmount >= cardWidth then
+                        [ Element.spaceEvenly
+                        ]
+
+                    else
+                        []
+                   )
                 ++ attributes
             )

@@ -2,6 +2,7 @@ module FactoryCity.Main exposing (main)
 
 import Action
 import Browser
+import Browser.Dom as Dom
 import Browser.Events exposing (onResize)
 import Element
 import Element.Background as Background
@@ -11,16 +12,8 @@ import FactoryCity.State.Ready as ReadyState
 import Framework
 import Html
 import Html.Attributes as Attributes
-
-
-height : Float
-height =
-    925
-
-
-width : Float
-width =
-    608
+import Task
+import Time
 
 
 
@@ -31,6 +24,7 @@ width =
 
 type alias Config =
     { scale : Float
+    , scrollPos : Int
     }
 
 
@@ -44,19 +38,22 @@ type Msg
     = PlayingSpecific PlayingState.Msg
     | ReadySpecific ReadyState.Msg
     | PreparingSpecific PreparingState.Msg
-    | Resized Config
+    | Resized Float
+    | GotScrollPos Int
+    | TimePassed
 
 
 calcScale : { height : Float, width : Float } -> Float
 calcScale dim =
-    if dim.width / dim.height > width / height then
+    dim.width / 400 |> clamp 0.1 1
+
+
+
+{--if dim.width / dim.height > width / height then
         dim.height / height
 
     else
-        dim.width / width
-
-
-
+        dim.width / width--}
 ----------------------
 -- Init
 ----------------------
@@ -64,7 +61,7 @@ calcScale dim =
 
 init : () -> ( Model, Cmd Msg )
 init _ =
-    PreparingState.init calcScale
+    PreparingState.init
         |> Tuple.mapBoth Preparing (Cmd.map PreparingSpecific)
 
 
@@ -78,15 +75,19 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case ( msg, model ) of
         ( PreparingSpecific preparingMsg, Preparing preparingModel ) ->
-            PreparingState.update preparingMsg preparingModel
+            PreparingState.update calcScale preparingMsg preparingModel
                 |> Action.config
                 |> Action.withUpdate Preparing never
                 |> Action.withTransition
-                    (\{ scale, shop, seed } ->
-                        ReadyState.init shop seed
+                    (\{ scale, shop, seed, scrollPos } ->
+                        ReadyState.init
+                            { shop = shop
+                            , seed = seed
+                            }
                             |> (\( m, c ) ->
                                     ( ( m
                                       , { scale = scale
+                                        , scrollPos = scrollPos
                                         }
                                       )
                                     , c
@@ -120,7 +121,7 @@ update msg model =
                 |> Action.withExit (init ())
                 |> Action.apply
 
-        ( Resized { scale }, _ ) ->
+        ( Resized scale, _ ) ->
             ( case model of
                 Playing ( playingModel, config ) ->
                     Playing
@@ -137,6 +138,32 @@ update msg model =
                 Preparing _ ->
                     model
             , Cmd.none
+            )
+
+        ( GotScrollPos scrollPos, _ ) ->
+            ( case model of
+                Playing ( playingModel, config ) ->
+                    Playing
+                        ( playingModel
+                        , { config | scrollPos = scrollPos }
+                        )
+
+                Ready ( readyModel, config ) ->
+                    Ready
+                        ( readyModel
+                        , { config | scrollPos = scrollPos }
+                        )
+
+                Preparing _ ->
+                    model
+            , Cmd.none
+            )
+
+        ( TimePassed, _ ) ->
+            ( model
+            , Dom.getViewport
+                |> Task.map (.viewport >> .y >> round)
+                |> Task.perform GotScrollPos
             )
 
         _ ->
@@ -156,20 +183,18 @@ subscriptions model =
             [ [ onResize
                     (\w h ->
                         { width = toFloat w, height = toFloat h }
-                            |> (\dim ->
-                                    Resized
-                                        { scale = calcScale dim
-                                        }
-                               )
+                            |> calcScale
+                            |> Resized
                     )
               ]
             , case model of
                 Playing playingModel ->
-                    List.singleton <|
-                        Sub.map PlayingSpecific <|
-                            PlayingState.subscriptions <|
-                                Tuple.first <|
-                                    playingModel
+                    [ Sub.map PlayingSpecific <|
+                        PlayingState.subscriptions <|
+                            Tuple.first <|
+                                playingModel
+                    , Time.every 100 (always TimePassed)
+                    ]
 
                 _ ->
                     []
@@ -188,8 +213,13 @@ view model =
     let
         ( maybeInfrontContent, content ) =
             case model of
-                Playing ( playingModel, { scale } ) ->
-                    PlayingState.view scale PlayingSpecific playingModel
+                Playing ( playingModel, { scale, scrollPos } ) ->
+                    PlayingState.view
+                        { scale = scale
+                        , scrollPos = scrollPos
+                        }
+                        PlayingSpecific
+                        playingModel
 
                 Ready ( readyModel, { scale } ) ->
                     ReadyState.view scale ReadySpecific readyModel

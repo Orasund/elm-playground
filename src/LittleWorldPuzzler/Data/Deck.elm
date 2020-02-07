@@ -83,7 +83,7 @@ moveTofirst ((Zipper ls x rs) as zipper) =
             zipper
 
         y :: ys ->
-            Zipper [] y (ys ++ [ x ] ++ rs)
+            Zipper [] y (List.concat [ ys, [ x ], rs ])
 
 
 playFirst : { shuffle : Bool } -> Deck -> Generator Deck

@@ -48,7 +48,7 @@ view { toggledBuyRegularlyMsg, toggledSellRegularlyMsg, shoppingList, sellingLis
             , deck = deck
             }
         )
-      , ( "Crafting", Crafting.view { craftMsg = craftMsg } )
+      , ( "Craft", Crafting.view { craftMsg = craftMsg } )
       ]
     , List.singleton <|
         ( "Game"

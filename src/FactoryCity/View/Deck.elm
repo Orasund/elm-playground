@@ -17,7 +17,7 @@ viewContent containerSort n =
     <|
         [ Element.paragraph [] <|
             List.singleton <|
-                Text.view 16 <|
+                Text.colored 16 <|
                     CellType.containerSortToString containerSort
         , Element.text <| String.fromInt <| n
         ]
@@ -40,10 +40,7 @@ view :
     -> Element msg
 view scale maybeSelectedMsg maybeSelected deck =
     Element.row (viewAttributes scale) <|
-        [ Card.hand
-            [ Element.centerX
-            , Element.height <| Element.px <| floor <| 200 * scale
-            ]
+        [ Card.hand []
             { width = 400 * scale
             , dimensions = ( 120 * scale, 176 * scale )
             , cards =
