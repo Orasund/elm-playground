@@ -2,34 +2,26 @@ module FactoryCity.State.Playing exposing (Model, Msg, TransitionData, init, sub
 
 import Action
 import Bag exposing (Bag)
-import Browser.Dom as Dom
 import Element exposing (Element)
 import Element.Font as Font
-import Element.Input as Input
 import FactoryCity.Data as Data
-import FactoryCity.Data.Board as Board
-import FactoryCity.Data.CellType as CellType exposing (CellType, ContainerSort(..), RemovableSort(..))
-import FactoryCity.Data.Deck as Deck
-import FactoryCity.Data.Game as Game exposing (EndCondition(..), Game)
+import FactoryCity.Data.CellType exposing (ContainerSort(..), RemovableSort(..))
+import FactoryCity.Data.Game as Game exposing (Game, Tab(..))
 import FactoryCity.Data.Item as Item exposing (Item(..))
 import FactoryCity.Data.RemoteShop as RemoteShop
-import FactoryCity.View.Game as GameView
-import Framework.Button as Button
-import Framework.Card as Card
+import FactoryCity.View.Game as Game
 import Framework.Color as Color
 import Framework.Grid as Grid
-import Framework.Group as Group
 import Framework.Heading as Heading
 import Grid.Bordered as Grid
 import Grid.Direction exposing (Direction(..))
-import Grid.Position as Position exposing (Position)
-import Html.Attributes as Attributes
+import Grid.Position exposing (Position)
 import Http exposing (Error(..))
-import IntDict exposing (IntDict)
+import Maybe.Extra as Maybe
 import Random exposing (Seed)
-import Set exposing (Set)
 import Task
 import Time
+import View.WrappedColumn as WrappedColumn
 
 
 
@@ -38,48 +30,36 @@ import Time
 ----------------------
 
 
-type alias State =
-    { game : Game
-    , selected : Maybe ContainerSort
-    , viewedCard : Maybe ContainerSort
-    , initialSeed : Seed
+type alias Ui =
+    { selected : Maybe ContainerSort
     , running : Bool
-    , source : Item
-    , loopEvery : Int
-    , stepCount : Int
-    , shop : Bag String
-    , money : Int
-    , nextBugIn : Int
     , speed : Int
-    , bugCycle : Int
-    , shoppingList : Set String
-    , sellingList : Set String
-    , headerTable : IntDict String
+    , displayedTier : Int
+    , wrappedColumn : WrappedColumn.Model Game.Tab
     }
 
 
 type alias Model =
-    ( State, Seed )
+    { game : Game
+    , ui : Ui
+    , seed : Seed
+    }
+
+
+type UiMsg
+    = ClickedChangeSpeed Int
+    | ClickedTierTab Int
+    | Selected (Maybe ContainerSort)
+    | ClickedViewInfo ContainerSort
+    | WrappedColumnSpecific (WrappedColumn.Msg Game.Tab)
 
 
 type Msg
-    = Selected ContainerSort
+    = UiSpecific UiMsg
+    | GameSpecific Game.Msg
     | PositionSelected Position
-    | CardPlaced
-    | CardSelected ContainerSort
     | TimePassed
-    | ClickedBuy Item Int
-    | ClickedSell ContainerSort
-    | ChangedLoopLength Int
     | ClickedCraft ContainerSort
-    | GotShopResponse (Result Http.Error (Bag String))
-    | Sync
-    | ClickedChangeTab String
-    | ChangedViewport (Result Dom.Error ())
-    | ClickedChangeSpeed Int
-    | ToggledBuyRegularly Item
-    | ToggledSellRegularly Item
-    | GotHeaderPos String (Result Dom.Error Int)
 
 
 type alias TransitionData =
@@ -101,33 +81,35 @@ type alias Action =
 
 init : TransitionData -> ( Model, Cmd Msg )
 init { shop, seed, source } =
-    ( ( { game = Game.init source
-        , selected = Nothing
-        , running = False
-        , viewedCard = Nothing
-        , initialSeed = seed
-        , source = source
-        , loopEvery = 5
-        , stepCount = 5
-        , nextBugIn = Data.maxBugCycle
-        , shop = shop
-        , money = 0
-        , speed = 1
-        , bugCycle = Data.maxBugCycle
-        , shoppingList = Set.empty
-        , sellingList = Set.empty
-        , headerTable = IntDict.empty
-        }
-      , seed
-      )
-    , Item.itemList
-        |> List.map (\i -> RemoteShop.remove i 5)
-        |> Task.sequence
-        |> Task.andThen
-            (\_ ->
-                RemoteShop.sync
-            )
-        |> Task.attempt GotShopResponse
+    let
+        ( wrappedColumn, cmd ) =
+            WrappedColumn.init
+                { labels = Game.tabToLabel
+                , arrangement = Game.arrangement
+                }
+    in
+    ( { game = Game.init source shop
+      , ui =
+            { selected = Nothing
+            , running = False
+            , speed = 1
+            , wrappedColumn = wrappedColumn
+            , displayedTier = 0
+            }
+      , seed = seed
+      }
+    , Cmd.batch
+        [ Item.itemList
+            |> List.map (\i -> RemoteShop.remove i 5)
+            |> Task.sequence
+            |> Task.andThen
+                (\_ ->
+                    RemoteShop.sync
+                )
+            |> Task.attempt (Game.GotShopResponse >> GameSpecific)
+        , cmd
+            |> Cmd.map (WrappedColumnSpecific >> UiSpecific)
+        ]
     )
 
 
@@ -137,588 +119,134 @@ init { shop, seed, source } =
 ----------------------
 
 
-play : Model -> Action
-play ( { game } as state, seed ) =
-    Action.updating
-        ( ( { state
-                | game = game
-                , selected = Nothing
-            }
-          , seed
-          )
-        , Cmd.none
-        )
+updateUi : UiMsg -> Ui -> ( Ui, Cmd UiMsg )
+updateUi msg ui =
+    case msg of
+        ClickedChangeSpeed n ->
+            ( { ui | speed = n }
+            , Cmd.none
+            )
 
+        Selected maybeSelect ->
+            ( { ui
+                | selected =
+                    maybeSelect
+                        |> Maybe.andThen
+                            (\select ->
+                                if ui.selected == Just select then
+                                    Nothing
 
-playCard : ContainerSort -> Position -> Model -> Action
-playCard containerSort position ( { game } as state, seed ) =
-    play
-        ( case game.deck |> Deck.remove containerSort 1 of
-            Ok deck ->
-                case game.board |> Board.get position of
-                    Just _ ->
-                        state
+                                else
+                                    Just select
+                            )
+              }
+            , Cmd.none
+            )
 
-                    Nothing ->
-                        { state
-                            | game =
-                                { game
-                                    | deck = deck
-                                    , board =
-                                        game.board
-                                            |> Board.place position (containerSort |> CellType.fromCard)
-                                }
+        ClickedTierTab n ->
+            ( { ui | displayedTier = n }
+            , Cmd.none
+            )
+
+        ClickedViewInfo card ->
+            ( { ui | selected = Just <| card }
+            , ui.wrappedColumn
+                |> WrappedColumn.jumpTo DetailsTab
+                |> Cmd.map WrappedColumnSpecific
+            )
+
+        WrappedColumnSpecific specificMsg ->
+            ui.wrappedColumn
+                |> WrappedColumn.update specificMsg
+                |> Tuple.mapBoth
+                    (\wrappedColumn ->
+                        { ui
+                            | wrappedColumn = wrappedColumn
                         }
-
-            Err () ->
-                state
-        , seed
-        )
-
-
-removeCard : Position -> Model -> Action
-removeCard position ( { game } as state, seed ) =
-    let
-        maybeCellType : Maybe CellType
-        maybeCellType =
-            game.board
-                |> Board.get position
-    in
-    play
-        ( { state
-            | game =
-                case maybeCellType of
-                    Just cellType ->
-                        { game
-                            | deck =
-                                game.deck
-                                    |> Deck.add (cellType |> CellType.toCard)
-                            , board = game.board |> Board.remove position
-                        }
-
-                    Nothing ->
-                        game
-          }
-        , seed
-        )
-
-
-tick : Model -> Action
-tick ( { stepCount, loopEvery, source, nextBugIn, shoppingList, sellingList } as state, seed ) =
-    Action.updating
-        ( state
-            |> (\{ game } ->
-                    { state
-                        | stepCount = stepCount - 1
-                        , nextBugIn = nextBugIn - 1
-                        , game =
-                            { game
-                                | deck =
-                                    game.board
-                                        |> Board.getOutput
-                                        |> List.foldl Deck.add game.deck
-                                , board = game.board |> Board.unload
-                            }
-                    }
-               )
-            |> (\({ game } as x) ->
-                    if x.stepCount <= 0 then
-                        case
-                            game.board
-                                |> Board.getInput source
-                                |> List.foldl
-                                    (\cell ->
-                                        Result.andThen
-                                            (Deck.remove cell 1)
-                                    )
-                                    (Ok game.deck)
-                        of
-                            Ok deck ->
-                                { x
-                                    | stepCount = loopEvery
-                                    , game =
-                                        { game
-                                            | deck =
-                                                deck
-                                            , board =
-                                                game.board
-                                                    |> Board.refill
-                                        }
-                                }
-
-                            Err () ->
-                                { x
-                                    | stepCount = loopEvery
-                                    , game =
-                                        { game
-                                            | deck =
-                                                game.deck
-                                        }
-                                }
-
-                    else
-                        x
-               )
-            |> (\({ game } as x) ->
-                    { x
-                        | game =
-                            { game
-                                | board =
-                                    game.board
-                                        |> Grid.map
-                                            (\pos ->
-                                                Maybe.map
-                                                    (\cell ->
-                                                        if
-                                                            ([ Up, Left, Right, Down ]
-                                                                |> List.filterMap
-                                                                    (\dir ->
-                                                                        case
-                                                                            game.board
-                                                                                |> Grid.get
-                                                                                    (pos
-                                                                                        |> Position.move 1
-                                                                                            (case dir of
-                                                                                                Right ->
-                                                                                                    Up
-
-                                                                                                Up ->
-                                                                                                    Right
-
-                                                                                                Down ->
-                                                                                                    Left
-
-                                                                                                Left ->
-                                                                                                    Down
-                                                                                            )
-                                                                                    )
-                                                                        of
-                                                                            Ok (Just { sort }) ->
-                                                                                case sort of
-                                                                                    Movable _ { from } ->
-                                                                                        if from == dir then
-                                                                                            Just ()
-
-                                                                                        else
-                                                                                            Nothing
-
-                                                                                    _ ->
-                                                                                        Nothing
-
-                                                                            _ ->
-                                                                                Nothing
-                                                                    )
-                                                                |> List.length
-                                                            )
-                                                                > 1
-                                                        then
-                                                            CellType.fromCard <| Removable Trash
-
-                                                        else
-                                                            cell
-                                                    )
-                                            )
-                            }
-                    }
-               )
-            |> (\x -> { x | game = x.game |> Game.step })
-            |> (\({ game } as s) ->
-                    if s.nextBugIn <= 0 then
-                        seed
-                            |> Random.step
-                                (Random.map2
-                                    (\x y ->
-                                        { s
-                                            | nextBugIn = state.bugCycle - 1
-                                            , bugCycle = state.bugCycle - 1
-                                            , game =
-                                                { game
-                                                    | board =
-                                                        game.board
-                                                            |> Grid.ignoringErrors
-                                                                (Grid.update ( x, y ) (always <| Ok <| Just <| { item = Nothing, sort = Removable Bug }))
-                                                }
-                                        }
-                                    )
-                                    (Random.int 0 3)
-                                    (Random.int 0 3)
-                                )
-
-                    else
-                        ( s, seed )
-               )
-        , if state.stepCount <= 1 then
-            shoppingList
-                |> Set.toList
-                |> List.filterMap
-                    (\string ->
-                        string
-                            |> Item.stringToItem
-                            |> Maybe.map
-                                (\a ->
-                                    Task.perform
-                                        (\() -> ClickedBuy a 1)
-                                        (Task.succeed ())
-                                )
                     )
-                |> Cmd.batch
-
-          else
-            sellingList
-                |> Set.toList
-                |> List.filterMap
-                    (\string ->
-                        string
-                            |> Item.stringToItem
-                            |> Maybe.map
-                                (\a ->
-                                    Task.perform (\() -> ClickedSell (Crate a))
-                                        (Task.succeed ())
-                                )
-                    )
-                |> Cmd.batch
-        )
+                    (Cmd.map WrappedColumnSpecific)
 
 
 update : Msg -> Model -> Action
-update msg (( { selected, shop, money } as state, seed ) as model) =
-    let
-        defaultCase : Action
-        defaultCase =
-            Action.updating ( ( state, seed ), Cmd.none )
-    in
+update msg ({ ui, game, seed } as model) =
     case msg of
         TimePassed ->
-            tick model
-
-        Selected select ->
-            Action.updating
-                ( ( { state
-                        | selected =
-                            if selected == Just select then
-                                Nothing
-
-                            else
-                                Just select
-                    }
-                  , seed
-                  )
-                , Cmd.none
-                )
+            seed
+                |> Random.step (Game.tick game)
+                |> (\( ( g, cmd ), s ) ->
+                        ( { model | game = g, seed = s }
+                        , cmd |> Cmd.map GameSpecific
+                        )
+                   )
+                |> Action.updating
 
         PositionSelected position ->
-            case selected of
-                Just cellType ->
-                    playCard cellType position model
+            updateUi (Selected <| Nothing) ui
+                |> (\( u, cmd ) ->
+                        ( { model
+                            | game =
+                                game
+                                    |> (case ui.selected of
+                                            Just cellType ->
+                                                Game.playCard cellType position
 
-                Nothing ->
-                    removeCard position model
-
-        CardPlaced ->
-            Action.updating
-                ( ( { state
-                        | game = state.game |> Game.step
-                    }
-                  , seed
-                  )
-                , Cmd.none
-                )
-
-        CardSelected cellType ->
-            Action.updating
-                ( ( { state
-                        | viewedCard = Just cellType
-                    }
-                  , seed
-                  )
-                , Cmd.none
-                )
-
-        ClickedSell card ->
-            case state.game.deck |> Deck.remove card 1 of
-                Ok deck ->
-                    case card of
-                        Crate i ->
-                            let
-                                key : String
-                                key =
-                                    i |> Item.itemToString
-
-                                price : Int
-                                price =
-                                    Data.maxPrice // (shop |> Bag.count key |> (+) 1)
-
-                                game : Game
-                                game =
-                                    state.game
-                            in
-                            Action.updating
-                                ( ( { state
-                                        | money = money + price
-                                        , shop = shop |> Bag.insert 1 key
-                                        , game = { game | deck = deck }
-                                    }
-                                  , seed
-                                  )
-                                , Task.attempt GotShopResponse
-                                    (RemoteShop.insert i 1
-                                        |> Task.andThen
-                                            (\() ->
-                                                RemoteShop.sync
-                                            )
-                                    )
-                                )
-
-                        _ ->
-                            let
-                                key : String
-                                key =
-                                    Scrap |> Item.itemToString
-
-                                price : Int
-                                price =
-                                    Data.maxPrice // (shop |> Bag.count key |> (+) 1)
-
-                                game : Game
-                                game =
-                                    state.game
-                            in
-                            Action.updating
-                                ( ( { state
-                                        | money = money + price
-                                        , shop =
-                                            shop
-                                                |> Bag.insert 1 key
-                                        , game = { game | deck = deck }
-                                    }
-                                  , seed
-                                  )
-                                , Task.attempt GotShopResponse
-                                    (RemoteShop.insert Scrap 1
-                                        |> Task.andThen
-                                            (\() ->
-                                                RemoteShop.sync
-                                            )
-                                    )
-                                )
-
-                Err () ->
-                    defaultCase
-
-        ClickedBuy item n ->
-            let
-                key : String
-                key =
-                    item |> Item.itemToString
-
-                price : Int
-                price =
-                    Data.maxPrice // (shop |> Bag.count key)
-
-                game : Game
-                game =
-                    state.game
-            in
-            if price <= money then
-                Action.updating
-                    ( ( { state
-                            | money = money - price
-                            , shop = shop |> Bag.remove 1 key
-                            , game = { game | deck = game.deck |> Deck.add (Crate item) }
-                        }
-                      , seed
-                      )
-                    , Task.attempt GotShopResponse
-                        (RemoteShop.remove item n
-                            |> Task.andThen
-                                (\() ->
-                                    RemoteShop.sync
-                                )
+                                            Nothing ->
+                                                Game.removeCard position
+                                       )
+                            , ui = u
+                          }
+                        , cmd |> Cmd.map UiSpecific
                         )
-                    )
-
-            else
-                defaultCase
-
-        ChangedLoopLength int ->
-            Action.updating
-                ( ( { state | loopEvery = int }
-                  , seed
-                  )
-                , Cmd.none
-                )
+                   )
+                |> Action.updating
 
         ClickedCraft card ->
-            let
-                cost : Bag String
-                cost =
-                    card |> CellType.craftingCost
-
-                game =
-                    state.game
-            in
-            Action.updating
-                ( ( case
-                        cost
-                            |> Bag.toList
-                            |> List.foldl
-                                (\( cell, n ) ->
-                                    Result.andThen
-                                        (\d ->
-                                            if n <= (d |> Bag.count cell) then
-                                                d
-                                                    |> Bag.remove n cell
-                                                    |> Ok
-
-                                            else
-                                                Err ()
-                                        )
-                                )
-                                (Ok game.deck)
-                    of
-                        Ok deck ->
-                            { state
-                                | game =
-                                    { game
-                                        | deck =
-                                            deck
-                                                |> Deck.add card
-                                    }
-                                , selected = Just card
-                            }
-
-                        Err () ->
-                            { state | selected = Just card }
-                  , seed
-                  )
-                , Cmd.none
-                )
-
-        GotShopResponse result ->
-            Action.updating
-                ( case result of
-                    Ok s ->
-                        ( { state | shop = s }
-                        , seed
-                        )
-
-                    Err _ ->
-                        model
-                , [ "Shop", "Craft", "Game", "Machine", "Details" ]
-                    |> List.map
-                        (\string ->
-                            Dom.getElement string
-                                |> Task.map
-                                    (.element
-                                        >> .y
-                                        >> round
-                                    )
-                                |> Task.attempt (GotHeaderPos string)
-                        )
-                    |> Cmd.batch
-                )
-
-        GotHeaderPos string result ->
-            Action.updating
-                ( case result of
-                    Ok pos ->
-                        ( { state
-                            | headerTable =
-                                state.headerTable
-                                    |> IntDict.insert pos string
+            updateUi (Selected <| Just card) ui
+                |> (\( u, cmd ) ->
+                        ( { model
+                            | game = game |> Game.craft card
+                            , ui = u
                           }
-                        , seed
+                        , Cmd.batch
+                            [ cmd
+                            , ui.wrappedColumn
+                                |> WrappedColumn.jumpTo GameTab
+                                |> Cmd.map WrappedColumnSpecific
+                            ]
+                            |> Cmd.map UiSpecific
                         )
+                   )
+                |> Action.updating
 
-                    Err _ ->
-                        model
-                , Cmd.none
-                )
+        UiSpecific uiMsg ->
+            ui
+                |> updateUi uiMsg
+                |> (\( u, cmd ) ->
+                        Action.updating
+                            ( { model | ui = u }
+                            , cmd |> Cmd.map UiSpecific
+                            )
+                   )
 
-        Sync ->
-            Action.updating
-                ( ( state
-                  , seed
-                  )
-                , RemoteShop.sync
-                    |> Task.attempt GotShopResponse
-                )
-
-        ClickedChangeTab string ->
-            Action.updating
-                ( ( state, seed )
-                , Dom.getElement string
-                    |> Task.andThen
-                        (\{ element } ->
-                            Dom.setViewport 0 element.y
-                        )
-                    |> Task.attempt ChangedViewport
-                )
-
-        ClickedChangeSpeed n ->
-            Action.updating
-                ( ( { state | speed = n }, seed ), Cmd.none )
-
-        ToggledBuyRegularly item ->
-            if state.shoppingList |> Set.member (item |> Item.itemToString) then
-                Action.updating
-                    ( ( { state
-                            | shoppingList =
-                                state.shoppingList
-                                    |> Set.remove (item |> Item.itemToString)
-                        }
-                      , seed
-                      )
-                    , Cmd.none
-                    )
-
-            else
-                Action.updating
-                    ( ( { state
-                            | shoppingList =
-                                state.shoppingList
-                                    |> Set.insert (item |> Item.itemToString)
-                        }
-                      , seed
-                      )
-                    , Cmd.none
-                    )
-
-        ToggledSellRegularly item ->
-            if state.sellingList |> Set.member (item |> Item.itemToString) then
-                Action.updating
-                    ( ( { state
-                            | sellingList =
-                                state.sellingList
-                                    |> Set.remove (item |> Item.itemToString)
-                        }
-                      , seed
-                      )
-                    , Cmd.none
-                    )
-
-            else
-                Action.updating
-                    ( ( { state
-                            | sellingList =
-                                state.sellingList
-                                    |> Set.insert (item |> Item.itemToString)
-                        }
-                      , seed
-                      )
-                    , Cmd.none
-                    )
-
-        ChangedViewport _ ->
-            defaultCase
+        GameSpecific gameMsg ->
+            game
+                |> Game.update gameMsg
+                |> (\( g, cmd ) ->
+                        Action.updating
+                            ( { model | game = g }
+                            , cmd |> Cmd.map GameSpecific
+                            )
+                   )
 
 
 subscriptions : Model -> Sub Msg
-subscriptions ( state, _ ) =
-    if state.speed /= 0 then
+subscriptions { ui } =
+    if ui.speed /= 0 then
         Sub.batch
-            [ Time.every (toFloat <| 1000 // state.speed) (always TimePassed)
-            , Time.every 10000 (always Sync)
+            [ Time.every (toFloat <| 1000 // ui.speed) (always TimePassed)
+            , Time.every 10000 (always (GameSpecific Game.Sync))
+            , WrappedColumn.subscriptions ui.wrappedColumn
+                |> Sub.map (WrappedColumnSpecific >> UiSpecific)
             ]
 
     else
@@ -732,39 +260,11 @@ subscriptions ( state, _ ) =
 
 
 view :
-    { scale : Float, scrollPos : Int }
+    { scale : Float }
     -> (Msg -> msg)
     -> Model
     -> ( Maybe ( Element msg, Element msg ), List (Element msg) )
-view { scale, scrollPos } msgMapper ( { headerTable, speed, shoppingList, sellingList, stepCount, nextBugIn, shop, money, game, selected, loopEvery }, _ ) =
-    let
-        currentHeader =
-            headerTable
-                |> IntDict.before (scrollPos + 1)
-                |> Maybe.map Tuple.second
-
-        list =
-            GameView.view
-                { shop = shop
-                , money = money
-                , scale = scale
-                , selected = selected
-                , loopLength = loopEvery
-                , positionSelectedMsg = msgMapper << PositionSelected
-                , selectedMsg = msgMapper << Selected
-                , buyMsg = \a b -> ClickedBuy a b |> msgMapper
-                , sellMsg = \a -> ClickedSell a |> msgMapper
-                , changedLoopLengthMsg = msgMapper << ChangedLoopLength
-                , craftMsg = msgMapper << ClickedCraft
-                , speed = speed
-                , clickedChangeSpeedMsg = ClickedChangeSpeed >> msgMapper
-                , toggledBuyRegularlyMsg = ToggledBuyRegularly >> msgMapper
-                , toggledSellRegularlyMsg = ToggledSellRegularly >> msgMapper
-                , shoppingList = shoppingList
-                , sellingList = sellingList
-                }
-                game
-    in
+view { scale } msgMapper { ui, game } =
     ( Just <|
         ( Element.row
             (Grid.simple
@@ -779,7 +279,7 @@ view { scale, scrollPos } msgMapper ( { headerTable, speed, shoppingList, sellin
                 ]
               <|
                 Element.text <|
-                    String.fromInt money
+                    String.fromInt game.money
                         ++ " Money"
             , Element.el
                 (Heading.h1
@@ -791,7 +291,7 @@ view { scale, scrollPos } msgMapper ( { headerTable, speed, shoppingList, sellin
                 Element.el [ Element.centerX ] <|
                     Element.text <|
                         String.fromInt <|
-                            stepCount
+                            game.stepCount
             , Element.paragraph
                 [ Element.width <| Element.fill
                 , Element.alignBottom
@@ -800,54 +300,31 @@ view { scale, scrollPos } msgMapper ( { headerTable, speed, shoppingList, sellin
                 List.singleton <|
                     Element.text <|
                         "Next bug in "
-                            ++ (String.fromInt <| nextBugIn)
+                            ++ (String.fromInt <| game.nextBugIn)
                             ++ " turns"
             ]
-        , list
-            |> List.concat
-            |> List.map
-                (\( name, _ ) ->
-                    Input.button
-                        (Button.fill
-                            ++ Group.center
-                            ++ (if Just name == currentHeader then
-                                    Color.primary
-
-                                else
-                                    []
-                               )
-                            ++ [ Element.height <| Element.fill
-                               , Font.size <| 10
-                               ]
-                        )
-                        { onPress = Just <| msgMapper <| ClickedChangeTab <| name
-                        , label = Element.text <| name
-                        }
-                )
-            |> Element.row
-                (Card.large
-                    ++ Group.top
-                    ++ [ Element.alignBottom
-                       , Element.padding 0
-                       , Element.centerX
-                       ]
-                )
+        , ui.wrappedColumn
+            |> WrappedColumn.viewButtonRow
+            |> Element.map (msgMapper << UiSpecific << WrappedColumnSpecific)
         )
     , [ Element.el [ Element.height <| Element.px <| Data.yOffset ] <| Element.none
-      , list
-            |> List.map
-                (List.map
-                    (\( name, content ) ->
-                        Element.column Grid.simple <|
-                            [ Element.el (Heading.h2 ++ [ Element.htmlAttribute <| Attributes.id <| name ]) <|
-                                Element.text <|
-                                    name
-                            , content
-                            ]
-                    )
-                    >> Element.column Grid.simple
+      , ui.wrappedColumn
+            |> WrappedColumn.view
+                (Game.view
+                    { scale = scale
+                    , selected = ui.selected
+                    , positionSelectedMsg = msgMapper << PositionSelected
+                    , selectedMsg = Just >> Selected >> UiSpecific >> msgMapper
+                    , craftMsg = msgMapper << ClickedCraft
+                    , speed = ui.speed
+                    , clickedChangeSpeedMsg = ClickedChangeSpeed >> UiSpecific >> msgMapper
+                    , clickedTierTabMsg = ClickedTierTab >> UiSpecific >> msgMapper
+                    , msgMapper = GameSpecific >> msgMapper
+                    , clickedViewInfoMsg = ClickedViewInfo >> UiSpecific >> msgMapper
+                    , displayedTier = ui.displayedTier
+                    }
+                    game
                 )
-            |> Element.wrappedRow Grid.simple
       , Element.el [ Element.height <| Element.px <| 50 ] <| Element.none
       ]
     )

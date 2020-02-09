@@ -1,10 +1,10 @@
-module FactoryCity.View.Game exposing (view)
+module FactoryCity.View.Game exposing (arrangement, view)
 
-import Bag as Bag exposing (Bag)
+import Bag
 import Element exposing (Element)
 import FactoryCity.Data as Data
 import FactoryCity.Data.CellType exposing (ContainerSort(..))
-import FactoryCity.Data.Game exposing (EndCondition(..), Game)
+import FactoryCity.Data.Game exposing (Game, Msg(..), Tab(..))
 import FactoryCity.Data.Item as Item exposing (Item(..))
 import FactoryCity.View.Board as BoardView
 import FactoryCity.View.Crafting as Crafting
@@ -14,90 +14,100 @@ import FactoryCity.View.Settings as Settings
 import FactoryCity.View.Shop as Shop
 import Framework.Grid as Grid
 import Grid.Position exposing (Position)
-import Set exposing (Set)
+
+
+arrangement : List (List Tab)
+arrangement =
+    [ [ ShopTab, MachineTab ]
+    , [ GameTab ]
+    , [ CraftingTab, DetailsTab ]
+    ]
 
 
 view :
-    { money : Int
-    , shop : Bag String
-    , scale : Float
+    { scale : Float
     , selected : Maybe ContainerSort
-    , loopLength : Int
     , positionSelectedMsg : Position -> msg
     , selectedMsg : ContainerSort -> msg
-    , buyMsg : Item -> Int -> msg
-    , sellMsg : ContainerSort -> msg
-    , changedLoopLengthMsg : Int -> msg
     , craftMsg : ContainerSort -> msg
     , speed : Int
     , clickedChangeSpeedMsg : Int -> msg
-    , toggledBuyRegularlyMsg : Item -> msg
-    , toggledSellRegularlyMsg : Item -> msg
-    , shoppingList : Set String
-    , sellingList : Set String
+    , msgMapper : Msg -> msg
+    , clickedTierTabMsg : Int -> msg
+    , displayedTier : Int
+    , clickedViewInfoMsg : ContainerSort -> msg
     }
     -> Game
-    -> List (List ( String, Element msg ))
-view { toggledBuyRegularlyMsg, toggledSellRegularlyMsg, shoppingList, sellingList, speed, clickedChangeSpeedMsg, money, shop, scale, selected, loopLength, craftMsg, changedLoopLengthMsg, positionSelectedMsg, selectedMsg, buyMsg, sellMsg } { board, deck } =
-    [ [ ( "Shop"
-        , Shop.view
-            { shop = shop
-            , buyMsg = Just buyMsg
-            , sellMsg = Just sellMsg
-            , money = money
-            , deck = deck
-            }
-        )
-      , ( "Craft", Crafting.view { craftMsg = craftMsg } )
-      ]
-    , List.singleton <|
-        ( "Game"
-        , Element.column Grid.section <|
-            [ board
-                |> BoardView.view
-                    { scale = scale
-                    , maybePositionMsg = Just positionSelectedMsg
-                    }
-            , deck |> DeckView.view scale (Just selectedMsg) selected
-            ]
-        )
-    , [ ( "Machine"
-        , Settings.view
-            { changedLoopLengthMsg = changedLoopLengthMsg
-            , loopLength = loopLength
-            , speed = speed
-            , clickedChangeSpeedMsg = clickedChangeSpeedMsg
-            , toggledBuyRegularlyMsg = toggledBuyRegularlyMsg
-            , toggledSellRegularlyMsg = toggledSellRegularlyMsg
-            , shoppingList = shoppingList
-            , sellingList = sellingList
-            }
-        )
-      , ( "Details"
-        , let
-            price : Int
-            price =
-                (case selected of
-                    Just (Crate item) ->
-                        item
+    -> Tab
+    -> Element msg
+view { clickedViewInfoMsg, displayedTier, clickedTierTabMsg, msgMapper, scale, clickedChangeSpeedMsg, speed, selected, positionSelectedMsg, selectedMsg, craftMsg } game tab =
+    case tab of
+        ShopTab ->
+            Shop.view
+                { shop = game.shop
+                , buyMsg = Just <| ClickedBuy
+                , sellMsg = Just <| ClickedSell
+                , money = game.money
+                , deck = game.deck
+                }
+                |> Element.map msgMapper
 
-                    _ ->
-                        Scrap
-                )
-                    |> (\item -> max 1 <| Data.maxPrice // ((shop |> Bag.count (item |> Item.itemToString)) + 1))
-          in
-          Details.view
-            { amount =
-                selected
-                    |> Maybe.map
-                        (\card ->
-                            deck |> Bag.count (card |> FactoryCity.Data.CellType.containerSortToString)
-                        )
-                    |> Maybe.withDefault 0
-            , selected = selected
-            , sellMsg = sellMsg
-            , price = price
-            }
-        )
-      ]
-    ]
+        MachineTab ->
+            Settings.view
+                { changedLoopLengthMsg = ChangedLoopLength >> msgMapper
+                , loopLength = game.loopEvery
+                , speed = speed
+                , clickedChangeSpeedMsg = clickedChangeSpeedMsg
+                , toggledBuyRegularlyMsg = ToggledBuyRegularly >> msgMapper
+                , toggledSellRegularlyMsg =
+                    ToggledSellRegularly
+                        >> msgMapper
+                , shoppingList = game.shoppingList
+                , sellingList = game.sellingList
+                }
+
+        GameTab ->
+            Element.column Grid.section <|
+                [ game.board
+                    |> BoardView.view
+                        { scale = scale
+                        , maybePositionMsg = Just positionSelectedMsg
+                        }
+                , game.deck |> DeckView.view scale (Just selectedMsg) selected
+                ]
+
+        CraftingTab ->
+            Crafting.view
+                { displayedTier = displayedTier
+                , craftMsg = craftMsg
+                , clickedTierTabMsg = clickedTierTabMsg
+                , clickedViewInfoMsg = clickedViewInfoMsg
+                }
+
+        DetailsTab ->
+            let
+                price : Int
+                price =
+                    (case selected of
+                        Just (Crate item) ->
+                            item
+
+                        _ ->
+                            Scrap
+                    )
+                        |> (\item -> max 1 <| Data.maxPrice // ((game.shop |> Bag.count (item |> Item.itemToString)) + 1))
+            in
+            Details.view
+                { amount =
+                    selected
+                        |> Maybe.map
+                            (\card ->
+                                game.deck
+                                    |> Bag.count (card |> FactoryCity.Data.CellType.containerSortToString)
+                            )
+                        |> Maybe.withDefault 0
+                , selected = selected
+                , sellMsg = ClickedSell
+                , price = price
+                }
+                |> Element.map msgMapper

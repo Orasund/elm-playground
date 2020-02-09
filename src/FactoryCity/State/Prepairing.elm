@@ -28,7 +28,6 @@ type alias Model =
     , seed : Maybe Seed
     , shop : Maybe (Bag String)
     , error : Maybe Http.Error
-    , scrollPos : Maybe Int
     }
 
 
@@ -42,7 +41,6 @@ type alias Action =
     Action.Action Model
         Never
         { scale : Float
-        , scrollPos : Int
         , seed : Seed
         , shop : Bag String
         }
@@ -55,7 +53,6 @@ init =
       , seed = Nothing
       , shop = Nothing
       , error = Nothing
-      , scrollPos = Nothing
       }
     , Cmd.batch
         [ Random.generate GotSeed Random.independentSeed
@@ -73,19 +70,17 @@ init =
 
 validate : Model -> Action
 validate model =
-    Maybe.map4
-        (\scale seed shop scrollPos ->
+    Maybe.map3
+        (\scale seed shop ->
             Action.transitioning
                 { scale = scale
                 , seed = seed
                 , shop = shop
-                , scrollPos = scrollPos
                 }
         )
         model.scale
         model.seed
         model.shop
-        model.scrollPos
         |> Maybe.withDefault (Action.updating ( model, Cmd.none ))
 
 
@@ -111,7 +106,6 @@ update calcScale msg model =
                     { width = v.viewport.width, height = v.viewport.height }
                         |> calcScale
                         |> Just
-                , scrollPos = Just <| round <| v.viewport.y
             }
                 |> validate
 

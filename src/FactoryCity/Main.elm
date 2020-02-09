@@ -2,7 +2,6 @@ module FactoryCity.Main exposing (main)
 
 import Action
 import Browser
-import Browser.Dom as Dom
 import Browser.Events exposing (onResize)
 import Element
 import Element.Background as Background
@@ -12,8 +11,6 @@ import FactoryCity.State.Ready as ReadyState
 import Framework
 import Html
 import Html.Attributes as Attributes
-import Task
-import Time
 
 
 
@@ -24,7 +21,6 @@ import Time
 
 type alias Config =
     { scale : Float
-    , scrollPos : Int
     }
 
 
@@ -39,8 +35,6 @@ type Msg
     | ReadySpecific ReadyState.Msg
     | PreparingSpecific PreparingState.Msg
     | Resized Float
-    | GotScrollPos Int
-    | TimePassed
 
 
 calcScale : { height : Float, width : Float } -> Float
@@ -79,7 +73,7 @@ update msg model =
                 |> Action.config
                 |> Action.withUpdate Preparing never
                 |> Action.withTransition
-                    (\{ scale, shop, seed, scrollPos } ->
+                    (\{ scale, shop, seed } ->
                         ReadyState.init
                             { shop = shop
                             , seed = seed
@@ -87,7 +81,6 @@ update msg model =
                             |> (\( m, c ) ->
                                     ( ( m
                                       , { scale = scale
-                                        , scrollPos = scrollPos
                                         }
                                       )
                                     , c
@@ -140,32 +133,6 @@ update msg model =
             , Cmd.none
             )
 
-        ( GotScrollPos scrollPos, _ ) ->
-            ( case model of
-                Playing ( playingModel, config ) ->
-                    Playing
-                        ( playingModel
-                        , { config | scrollPos = scrollPos }
-                        )
-
-                Ready ( readyModel, config ) ->
-                    Ready
-                        ( readyModel
-                        , { config | scrollPos = scrollPos }
-                        )
-
-                Preparing _ ->
-                    model
-            , Cmd.none
-            )
-
-        ( TimePassed, _ ) ->
-            ( model
-            , Dom.getViewport
-                |> Task.map (.viewport >> .y >> round)
-                |> Task.perform GotScrollPos
-            )
-
         _ ->
             ( model, Cmd.none )
 
@@ -193,7 +160,6 @@ subscriptions model =
                         PlayingState.subscriptions <|
                             Tuple.first <|
                                 playingModel
-                    , Time.every 100 (always TimePassed)
                     ]
 
                 _ ->
@@ -213,10 +179,9 @@ view model =
     let
         ( maybeInfrontContent, content ) =
             case model of
-                Playing ( playingModel, { scale, scrollPos } ) ->
+                Playing ( playingModel, { scale } ) ->
                     PlayingState.view
                         { scale = scale
-                        , scrollPos = scrollPos
                         }
                         PlayingSpecific
                         playingModel
