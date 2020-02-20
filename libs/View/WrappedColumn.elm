@@ -1,5 +1,8 @@
 module View.WrappedColumn exposing (Model, Msg, init, jumpTo, subscriptions, syncPositions, update, view, viewButtonRow)
 
+{-| Alternative Name: Scrolling Nav
+-}
+
 import Browser.Dom as Dom
 import Element exposing (Element)
 import Element.Font as Font

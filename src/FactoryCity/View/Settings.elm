@@ -9,6 +9,7 @@ import Framework.Color as Color
 import Framework.Grid as Grid
 import Framework.Group as Group
 import Framework.Input as Input
+import Framework.Slider as Slider
 import Set exposing (Set)
 
 
@@ -30,36 +31,18 @@ view { shoppingList, sellingList, changedLoopLengthMsg, loopLength, speed, click
                 List.singleton <|
                     Element.text <|
                         "Cycle Length"
-            , [ 5, 10, 15, 20 ]
-                |> List.indexedMap
-                    (\i n ->
-                        Input.button
-                            ((if i == 0 then
-                                Button.groupLeft
-
-                              else if i == 3 then
-                                Button.groupRight
-
-                              else
-                                Button.groupCenter
-                             )
-                                ++ (if loopLength == n then
-                                        Color.primary
-
-                                    else
-                                        []
-                                   )
-                            )
-                            { onPress = Just <| changedLoopLengthMsg <| n
-                            , label = Element.text <| String.fromInt <| n
-                            }
-                    )
-                |> Element.row
-                    (Grid.compact
-                        ++ [ Element.alignRight
-                           , Element.width Element.shrink
-                           ]
-                    )
+            , Element.row Grid.simple <|
+                [ Element.el [Element.width <| Element.px <| 20] 
+                    <| Element.text <| String.fromInt <| loopLength
+                , Input.slider (Slider.withSteps <| 20 - 5 + 1 )
+                { label = Input.labelHidden "Cycle Length"
+                , max = 20
+                , min = 5
+                , onChange = round >> changedLoopLengthMsg
+                , step = Just 1
+                , thumb = Input.thumb (Slider.thumb ++ Color.primary)
+                , value = loopLength |> toFloat
+                }]
             ]
         , Element.row Grid.spaceEvenly <|
             [ Element.paragraph [] <|
