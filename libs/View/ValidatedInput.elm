@@ -1,11 +1,15 @@
-module View.ValidatedInput exposing (Model)
+module View.ValidatedInput exposing (Model,getRaw,getValue,getError,Msg,init,update,view)
 
-type alias Model err a =
+import Element exposing (Element,Attribute)
+import Element.Input as Input exposing (Placeholder)
+import Element.Events as Events
+
+type Model err a =
     Model
         { raw : String
         , value : a
         , err : Maybe err
-        , validator : String -> Error err a
+        , validator : String -> Result err a
         , toString : a -> String
         }
 
@@ -17,7 +21,7 @@ getValue : Model err a -> a
 getValue (Model {value}) =
     value
 
-getError : Maybe err
+getError : Model err a -> Maybe err
 getError (Model {err}) =
     err
 
@@ -25,16 +29,17 @@ type Msg
     = ChangedRaw String
     | LostFocus
 
-init : { value : a, validator : String -> Error err a, toString : a -> String } -> Model a
-init (Model { validator,toString,value }) =
-    { raw = value |> toString
-    , value = value
-    , err = Nothing
-    , validator = validator
-    , toString = toString
-    }
+init : { value : a, validator : String -> Result err a, toString : a -> String } -> Model err a
+init  { validator,toString,value } =
+    Model
+        { raw = value |> toString
+        , value = value
+        , err = Nothing
+        , validator = validator
+        , toString = toString
+        }
 
-update : Msg -> Model -> Model
+update : Msg -> Model err a -> Model err a
 update msg (Model model) =
     case msg of
         ChangedRaw string ->
@@ -54,11 +59,11 @@ update msg (Model model) =
                 Err err ->
                     Model
                     { model
-                    , raw = value |> model.toString
-                    | err = Just err
+                    | raw = model.value |> model.toString
+                    , err = Just err
                     }
 
-view : List (Attribute msg) -> Model 
+view : List (Attribute msg) -> Model err a
     -> { msgMapper : Msg -> msg
        , placeholder : Maybe (Placeholder msg)
        , label : String
@@ -66,8 +71,8 @@ view : List (Attribute msg) -> Model
        -> Element msg
 view attributes (Model model) {msgMapper,placeholder,label} =
     Input.text (attributes ++ [Events.onLoseFocus <| msgMapper <| LostFocus])
-        { onChange = ChangedRaw
+        { onChange = ChangedRaw >> msgMapper
         , text = model.raw
         , placeholder = placeholder
-        , label = Input.hiddenLabel label
+        , label = Input.labelHidden label
         }

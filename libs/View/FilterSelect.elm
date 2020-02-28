@@ -1,10 +1,10 @@
-module View.FilterSelect exposing (Model,Msg,init,update,viewInput, viewOptions)
+module View.FilterSelect exposing (Model,Msg(..),init,update,viewInput, viewOptions)
 
 import Element exposing (Attribute, Element)
-import Element.Input as Input
+import Element.Input as Input exposing (Placeholder )
 import Set exposing (Set)
 
-type Model =
+type alias Model =
     { raw : String
     , selected : Maybe String
     , options : Set String
@@ -19,7 +19,7 @@ init : Set String -> Model
 init options =
     { raw = ""
     , selected = Nothing
-    , options = Set String
+    , options = options
     }
 
 update : Msg -> Model -> Model
@@ -31,12 +31,12 @@ update msg model =
             }
         Selected maybe ->
             { model 
-            | selected = Just string
+            | selected = maybe
             }
                 |> case maybe of
                     Just string -> 
                         (\m -> { m | raw = string })
-                    Nothing 
+                    Nothing -> 
                         identity
 
 viewInput : List (Attribute msg) -> Model 
@@ -45,18 +45,20 @@ viewInput : List (Attribute msg) -> Model
        , label : String
        }
        -> Element msg
-viewInput attributes model =
+viewInput attributes model {msgMapper,placeholder,label}=
     Input.text attributes
-        { onChange = ChangedRaw
+        { onChange = ChangedRaw >> msgMapper
         , text = model.raw
-        , placeholder = model.placeholder
-        , label = Input.hiddenLabel model.label
+        , placeholder = placeholder
+        , label = Input.labelHidden label
         }
 
 
 viewOptions : Model -> List String
-viewOptions { selected, options } =
-    options
-        |> Set.filter
-            (String.toUpper >> String.contains (selected |> String.toUpper))
+viewOptions { raw, options } =
+    if raw == "" then
+        []
+    else
+        options
+        |> Set.filter (String.toUpper >> String.contains (raw |> String.toUpper))
         |> Set.toList

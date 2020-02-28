@@ -4,7 +4,7 @@ import Element exposing (Attribute, Element)
 import Element.Events as Events
 import Element.Input as Input
 import Framework.Grid as Grid
-import Set expsoing (Set)
+import Set exposing (Set)
 
 select :
     List (Attribute msg)
@@ -27,10 +27,10 @@ select attributes { selected, options, label, onChange } =
 
 multiSelect : List (Attribute msg)
     ->
-        { selected : Set a
-        , options : List a
-        , label : a -> Bool -> Element msg
-        , onChange : a -> msg
+        { selected : Set comparable
+        , options : List comparable
+        , label : comparable -> Bool -> Element msg
+        , onChange : comparable -> msg
         }
     -> List (Element msg)
 multiSelect attributes { selected, options, label, onChange } =
@@ -59,18 +59,14 @@ dropDownContent attributes { onToggle, isDropped, label, content } =
          , Events.onLoseFocus <| onToggle False
          ]
             ++ (if isDropped then
-                    [ Element.below <|
-                        Element.row
-                            [ Element.height <| Element.shrink
-                            ]
-                        <|
-                            content
+                    [ Element.below <| content
                     ]
 
                 else
                     []
-                        ++ attributes
+                        
                )
+            ++ attributes
         )
     <|
         label
