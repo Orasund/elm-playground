@@ -1,7 +1,14 @@
-module Katakomben.Data.Effect exposing (Effect(..), toString)
+module Katakomben.Data.Effect exposing (ConditionType(..), Effect(..), toString)
 
+import Element exposing (Color)
+import Framework.Color as Color
 import Katakomben.Data.Card exposing (Card)
 import Katakomben.Data.Monster exposing (Monster)
+
+
+type ConditionType
+    = HasMoney Int
+    | HasHealth Int
 
 
 type Effect
@@ -19,78 +26,117 @@ type Effect
     | AddHealth Int
     | Attack
     | AddMoney Int
-    | PayForHeal
     | SetMaxHealth Int
+    | Conditional ConditionType Effect
 
 
-toString : Effect -> String
+conditionToString : ConditionType -> String
+conditionToString cond =
+    case cond of
+        HasMoney int ->
+            "MONEY>=" ++ String.fromInt int
+
+        HasHealth int ->
+            "HEALTH>=" ++ String.fromInt int
+
+
+toString : Effect -> ( String, Maybe Color )
 toString effect =
     case effect of
         Restart ->
-            "Restart"
+            ( "Restart", Just Color.green )
 
         NextCard ->
-            "Next Card"
+            ( "Next Card", Nothing )
 
         AddRandomWeapon int ->
-            "Add random Weapon"
+            ( "Add random Weapon", Nothing )
 
         AddRandomHealItem int ->
-            "Add random healing item"
+            ( "Add random healing item", Nothing )
 
         AddLoot int ->
-            "Add random loot"
+            ( "Add random loot", Nothing )
 
         AddRandomUndead int ->
-            "Add random undead monster"
+            ( "Add random undead monster", Just Color.red )
 
         AddRandomVermin int ->
-            "Add random vermin monster"
+            ( "Add random vermin monster", Just Color.red )
 
         RemoveCard ->
-            "Remove this card"
+            ( "Remove this card", Nothing )
 
         SetAttack int ->
-            String.fromInt int ++ " Attack "
+            ( String.fromInt int ++ " Attack ", Just Color.green )
 
         SetMaxHealth int ->
-            String.fromInt (2 + int) ++ " Max Health"
+            ( String.fromInt (2 + int) ++ " Max Health", Just Color.green )
 
         AddAttack int ->
-            (if int > 0 then
+            ( (if int > 0 then
                 "+"
 
-             else
+               else
                 ""
-            )
+              )
                 ++ String.fromInt int
                 ++ " Attack "
+            , if int > 0 then
+                Just Color.green
+
+              else
+                Just Color.red
+            )
 
         AddHealth int ->
-            (if int > 0 then
+            ( (if int > 0 then
                 "+"
 
-             else
+               else
                 ""
-            )
+              )
                 ++ String.fromInt int
                 ++ " Health"
+            , if int > 0 then
+                Just Color.green
+
+              else
+                Just Color.red
+            )
 
         Attack ->
-            "Damage the monster"
+            ( "Damage the monster"
+            , Nothing
+            )
 
         AddMoney int ->
-            (if int > 0 then
+            ( (if int > 0 then
                 "+"
 
-             else
+               else
                 ""
-            )
+              )
                 ++ String.fromInt int
                 ++ " Money"
+            , if int > 0 then
+                Just Color.green
 
-        PayForHeal ->
-            "Pay for full heal"
+              else
+                Just Color.red
+            )
+
 
         AddPreviousCard card ->
-            "Add a card under the stack"
+            ( "Add a card under the stack"
+            , Nothing
+            )
+
+        Conditional cond e ->
+            let
+                ( string, color ) =
+                    e |> toString
+            in
+            ( "if " ++ (cond |> conditionToString) ++ ": " ++ string
+            , color
+            )

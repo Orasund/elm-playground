@@ -105,7 +105,7 @@ view model =
                    ]
             )
           <|
-            Element.column Framework.container <|
+            Element.column (Framework.container ++ [ Element.height <| Element.fill ]) <|
                 content
         ]
     }

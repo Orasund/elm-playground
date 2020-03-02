@@ -19,10 +19,10 @@ type alias Item =
 
 generateLoot : Int -> Generator Item
 generateLoot quality =
-    Random.weighted ( 2, generateArmor quality )
-        [ ( 3, generateWeapon quality )
-        , ( 3, generateHealing quality )
-        , ( 6, generateValue quality )
+    Random.weighted ( 1, generateArmor quality )
+        [ ( 1, generateWeapon quality )
+        , ( 1, generateHealing quality )
+        , ( 3, generateValue quality )
         ]
         |> Random.andThen identity
 

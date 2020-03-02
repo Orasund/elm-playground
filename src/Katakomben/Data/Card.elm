@@ -17,4 +17,5 @@ type Card
     | Death
     | Loot Item
     | Enemy Monster
+    | Camp
     | Shrine Level

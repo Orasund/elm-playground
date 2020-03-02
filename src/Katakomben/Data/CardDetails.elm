@@ -3,7 +3,7 @@ module Katakomben.Data.CardDetails exposing (CardDetails, getDetails)
 import Element exposing (Attribute, Color)
 import Framework.Color as Color
 import Katakomben.Data.Card exposing (Card(..), Level(..))
-import Katakomben.Data.Effect exposing (Effect(..))
+import Katakomben.Data.Effect exposing (ConditionType(..), Effect(..))
 import Katakomben.Data.Item exposing (Item, ItemSort(..))
 import Katakomben.Data.Monster exposing (Monster)
 
@@ -58,10 +58,10 @@ getDetails card =
                 ( "Open"
                 , case level of
                     CatacombsOfDunkelhall ->
-                        [ AddRandomWeapon 0
-                        , AddRandomUndead 0
-                        , AddRandomHealItem 0
+                        [ AddLoot 0
                         , AddLoot 0
+                        , AddRandomHealItem 0
+                        , AddRandomUndead 0
                         , RemoveCard
                         ]
 
@@ -107,7 +107,7 @@ getDetails card =
                           , RemoveCard
                           ]
                         )
-            , color = Color.simple
+            , color = Color.primary
             }
 
         Enemy monster ->
@@ -133,6 +133,24 @@ getDetails card =
             , color = Color.danger
             }
 
+        Camp ->
+            { name = "Camp"
+            , desc = ""
+            , left =
+                ( "Rest"
+                , [ AddHealth 1
+                  , NextCard
+                  ]
+                )
+            , right =
+                ( "Equip basic weapon"
+                , [ SetAttack 1
+                  , NextCard
+                  ]
+                )
+            , color = Color.success
+            }
+
         Shrine level ->
             case level of
                 GraveyardChapel ->
@@ -140,14 +158,13 @@ getDetails card =
                     , desc = "The Chapel demands a donation. Heal yourself for 1 Health/Money."
                     , left =
                         ( "Continue"
-                        , [ AddMoney -1
-                          , NextCard
+                        , [ NextCard
                           ]
                         )
                     , right =
-                        ( "Pay for full heal"
-                        , [ PayForHeal
-                          , NextCard
+                        ( "Pay for heal"
+                        , [ Conditional (HasMoney 1) (AddHealth 1)
+                          , Conditional (HasMoney 1) (AddMoney -1)
                           ]
                         )
                     , color = Color.success
@@ -164,7 +181,7 @@ getDetails card =
                           ]
                         )
                     , right =
-                        ( "Continue"
+                        ( "Open"
                         , [ AddPreviousCard
                                 (Tomb CatacombsOfDunkelhall)
                           , AddLoot 1
@@ -174,5 +191,5 @@ getDetails card =
                           , NextCard
                           ]
                         )
-                    , color = Color.simple
+                    , color = Color.warning
                     }

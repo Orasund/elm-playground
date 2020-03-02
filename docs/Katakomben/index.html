@@ -5929,6 +5929,7 @@ var $Orasund$elm_action$Action$config = function (action) {
 		action,
 		{exitFun: $elm$core$Basics$never, modelMapper: $elm$core$Basics$never, msgMapper: $elm$core$Basics$never, transitionFun: $elm$core$Basics$never});
 };
+var $author$project$Katakomben$Data$Card$Camp = {$: 'Camp'};
 var $author$project$Katakomben$Data$Card$CatacombsOfDunkelhall = {$: 'CatacombsOfDunkelhall'};
 var $author$project$Katakomben$Data$Card$Entrence = function (a) {
 	return {$: 'Entrence', a: a};
@@ -6010,6 +6011,7 @@ var $author$project$Katakomben$Data$Game$init = function (maybeDeck) {
 				_List_fromArray(
 					[
 						$author$project$Katakomben$Data$Card$Entrence($author$project$Katakomben$Data$Card$CatacombsOfDunkelhall),
+						$author$project$Katakomben$Data$Card$Camp,
 						$author$project$Katakomben$Data$Card$Tomb($author$project$Katakomben$Data$Card$CatacombsOfDunkelhall),
 						$author$project$Katakomben$Data$Card$Tomb($author$project$Katakomben$Data$Card$CatacombsOfDunkelhall),
 						$author$project$Katakomben$Data$Card$Tomb($author$project$Katakomben$Data$Card$CatacombsOfDunkelhall),
@@ -6350,18 +6352,18 @@ var $author$project$Katakomben$Data$Item$generateLoot = function (quality) {
 		A2(
 			$elm$random$Random$weighted,
 			_Utils_Tuple2(
-				2,
+				1,
 				$author$project$Katakomben$Data$Item$generateArmor(quality)),
 			_List_fromArray(
 				[
 					_Utils_Tuple2(
-					3,
+					1,
 					$author$project$Katakomben$Data$Item$generateWeapon(quality)),
 					_Utils_Tuple2(
-					3,
+					1,
 					$author$project$Katakomben$Data$Item$generateHealing(quality)),
 					_Utils_Tuple2(
-					6,
+					3,
 					$author$project$Katakomben$Data$Item$generateValue(quality))
 				])));
 };
@@ -6437,177 +6439,192 @@ var $author$project$Katakomben$Data$Deck$remove = function (deck) {
 };
 var $author$project$Katakomben$Data$Game$applyEffect = F2(
 	function (effect, game) {
-		switch (effect.$) {
-			case 'Restart':
-				return $elm$random$Random$constant(
-					$author$project$Katakomben$Data$Game$init(
-						$elm$core$Maybe$Just(game.deck)));
-			case 'NextCard':
-				return $elm$random$Random$constant(
-					_Utils_update(
-						game,
-						{
-							deck: $author$project$Katakomben$Data$Deck$next(game.deck)
-						}));
-			case 'AddRandomWeapon':
-				var quality = effect.a;
-				return A2(
-					$elm$random$Random$map,
-					function (item) {
-						return _Utils_update(
-							game,
-							{
-								deck: A2(
-									$author$project$Katakomben$Data$Deck$addNext,
-									$author$project$Katakomben$Data$Card$Loot(item),
-									game.deck)
-							});
-					},
-					$author$project$Katakomben$Data$Item$generateWeapon(quality));
-			case 'AddRandomHealItem':
-				var quality = effect.a;
-				return A2(
-					$elm$random$Random$map,
-					function (item) {
-						return _Utils_update(
-							game,
-							{
-								deck: A2(
-									$author$project$Katakomben$Data$Deck$addNext,
-									$author$project$Katakomben$Data$Card$Loot(item),
-									game.deck)
-							});
-					},
-					$author$project$Katakomben$Data$Item$generateHealing(quality));
-			case 'AddLoot':
-				var quality = effect.a;
-				return A2(
-					$elm$random$Random$map,
-					function (item) {
-						return _Utils_update(
-							game,
-							{
-								deck: A2(
-									$author$project$Katakomben$Data$Deck$addNext,
-									$author$project$Katakomben$Data$Card$Loot(item),
-									game.deck)
-							});
-					},
-					$author$project$Katakomben$Data$Item$generateLoot(quality));
-			case 'AddRandomUndead':
-				var quality = effect.a;
-				return A2(
-					$elm$random$Random$map,
-					function (monster) {
-						return _Utils_update(
-							game,
-							{
-								deck: A2(
-									$author$project$Katakomben$Data$Deck$addNext,
-									$author$project$Katakomben$Data$Card$Enemy(monster),
-									game.deck)
-							});
-					},
-					$author$project$Katakomben$Data$Monster$generateUndead(quality));
-			case 'AddRandomVermin':
-				var quality = effect.a;
-				return A2(
-					$elm$random$Random$map,
-					function (monster) {
-						return _Utils_update(
-							game,
-							{
-								deck: A2(
-									$author$project$Katakomben$Data$Deck$addNext,
-									$author$project$Katakomben$Data$Card$Enemy(monster),
-									game.deck)
-							});
-					},
-					$author$project$Katakomben$Data$Monster$generateVermin(quality));
-			case 'RemoveCard':
-				return $elm$random$Random$constant(
-					_Utils_update(
-						game,
-						{
-							deck: $author$project$Katakomben$Data$Deck$remove(game.deck)
-						}));
-			case 'AddPreviousCard':
-				var card = effect.a;
-				return $elm$random$Random$constant(
-					_Utils_update(
-						game,
-						{
-							deck: A2($author$project$Katakomben$Data$Deck$addPrevious, card, game.deck)
-						}));
-			case 'AddHealth':
-				var amount = effect.a;
-				return $elm$random$Random$constant(
-					_Utils_update(
-						game,
-						{
-							deck: (((game.health + amount) <= 0) ? A2(
-								$elm$core$Basics$composeR,
-								$author$project$Katakomben$Data$Deck$addNext($author$project$Katakomben$Data$Card$Death),
-								$author$project$Katakomben$Data$Deck$next) : $elm$core$Basics$identity)(game.deck),
-							health: A3($elm$core$Basics$clamp, 0, game.maxHealth, game.health + amount)
-						}));
-			case 'SetAttack':
-				var amount = effect.a;
-				return $elm$random$Random$constant(
-					_Utils_update(
-						game,
-						{attack: amount}));
-			case 'SetMaxHealth':
-				var amount = effect.a;
-				return $elm$random$Random$constant(
-					_Utils_update(
-						game,
-						{maxHealth: amount + 2}));
-			case 'AddAttack':
-				var amount = effect.a;
-				return $elm$random$Random$constant(
-					_Utils_update(
-						game,
-						{
-							attack: A2($elm$core$Basics$max, 0, game.attack + amount)
-						}));
-			case 'AddMoney':
-				var amount = effect.a;
-				return $elm$random$Random$constant(
-					_Utils_update(
-						game,
-						{
-							money: A2($elm$core$Basics$max, 0, game.money + amount)
-						}));
-			case 'PayForHeal':
-				var amount = game.maxHealth - game.health;
-				return $elm$random$Random$constant(
-					(_Utils_cmp(game.money, amount) > -1) ? _Utils_update(
-						game,
-						{health: game.maxHealth, money: game.money - amount}) : _Utils_update(
-						game,
-						{health: game.health + game.money, maxHealth: game.health + game.money, money: 0}));
-			default:
-				var _v1 = $author$project$Katakomben$Data$Game$current(game);
-				if (_v1.$ === 'Enemy') {
-					var monster = _v1.a;
+		applyEffect:
+		while (true) {
+			switch (effect.$) {
+				case 'Restart':
+					return $elm$random$Random$constant(
+						$author$project$Katakomben$Data$Game$init(
+							$elm$core$Maybe$Just(game.deck)));
+				case 'NextCard':
 					return $elm$random$Random$constant(
 						_Utils_update(
 							game,
 							{
-								deck: $author$project$Katakomben$Data$Deck$remove(
-									(((monster.health - game.attack) > 0) ? $author$project$Katakomben$Data$Deck$addNext(
-										$author$project$Katakomben$Data$Card$Enemy(
-											_Utils_update(
-												monster,
-												{
-													attack: A3($elm$core$Basics$clamp, 1, monster.attack, monster.attack - 1),
-													health: A3($elm$core$Basics$clamp, 0, monster.health, monster.health - game.attack)
-												}))) : $elm$core$Basics$identity)(game.deck))
+								deck: $author$project$Katakomben$Data$Deck$next(game.deck)
 							}));
-				} else {
-					return $elm$random$Random$constant(game);
-				}
+				case 'AddRandomWeapon':
+					var quality = effect.a;
+					return A2(
+						$elm$random$Random$map,
+						function (item) {
+							return _Utils_update(
+								game,
+								{
+									deck: A2(
+										$author$project$Katakomben$Data$Deck$addNext,
+										$author$project$Katakomben$Data$Card$Loot(item),
+										game.deck)
+								});
+						},
+						$author$project$Katakomben$Data$Item$generateWeapon(quality));
+				case 'AddRandomHealItem':
+					var quality = effect.a;
+					return A2(
+						$elm$random$Random$map,
+						function (item) {
+							return _Utils_update(
+								game,
+								{
+									deck: A2(
+										$author$project$Katakomben$Data$Deck$addNext,
+										$author$project$Katakomben$Data$Card$Loot(item),
+										game.deck)
+								});
+						},
+						$author$project$Katakomben$Data$Item$generateHealing(quality));
+				case 'AddLoot':
+					var quality = effect.a;
+					return A2(
+						$elm$random$Random$map,
+						function (item) {
+							return _Utils_update(
+								game,
+								{
+									deck: A2(
+										$author$project$Katakomben$Data$Deck$addNext,
+										$author$project$Katakomben$Data$Card$Loot(item),
+										game.deck)
+								});
+						},
+						$author$project$Katakomben$Data$Item$generateLoot(quality));
+				case 'AddRandomUndead':
+					var quality = effect.a;
+					return A2(
+						$elm$random$Random$map,
+						function (monster) {
+							return _Utils_update(
+								game,
+								{
+									deck: A2(
+										$author$project$Katakomben$Data$Deck$addNext,
+										$author$project$Katakomben$Data$Card$Enemy(monster),
+										game.deck)
+								});
+						},
+						$author$project$Katakomben$Data$Monster$generateUndead(quality));
+				case 'AddRandomVermin':
+					var quality = effect.a;
+					return A2(
+						$elm$random$Random$map,
+						function (monster) {
+							return _Utils_update(
+								game,
+								{
+									deck: A2(
+										$author$project$Katakomben$Data$Deck$addNext,
+										$author$project$Katakomben$Data$Card$Enemy(monster),
+										game.deck)
+								});
+						},
+						$author$project$Katakomben$Data$Monster$generateVermin(quality));
+				case 'RemoveCard':
+					return $elm$random$Random$constant(
+						_Utils_update(
+							game,
+							{
+								deck: $author$project$Katakomben$Data$Deck$remove(game.deck)
+							}));
+				case 'AddPreviousCard':
+					var card = effect.a;
+					return $elm$random$Random$constant(
+						_Utils_update(
+							game,
+							{
+								deck: A2($author$project$Katakomben$Data$Deck$addPrevious, card, game.deck)
+							}));
+				case 'AddHealth':
+					var amount = effect.a;
+					return $elm$random$Random$constant(
+						_Utils_update(
+							game,
+							{
+								deck: (((game.health + amount) <= 0) ? A2(
+									$elm$core$Basics$composeR,
+									$author$project$Katakomben$Data$Deck$addNext($author$project$Katakomben$Data$Card$Death),
+									$author$project$Katakomben$Data$Deck$next) : $elm$core$Basics$identity)(game.deck),
+								health: A3($elm$core$Basics$clamp, 0, game.maxHealth, game.health + amount)
+							}));
+				case 'SetAttack':
+					var amount = effect.a;
+					return $elm$random$Random$constant(
+						_Utils_update(
+							game,
+							{attack: amount}));
+				case 'SetMaxHealth':
+					var amount = effect.a;
+					return $elm$random$Random$constant(
+						_Utils_update(
+							game,
+							{maxHealth: amount + 2}));
+				case 'AddAttack':
+					var amount = effect.a;
+					return $elm$random$Random$constant(
+						_Utils_update(
+							game,
+							{
+								attack: A2($elm$core$Basics$max, 0, game.attack + amount)
+							}));
+				case 'AddMoney':
+					var amount = effect.a;
+					return $elm$random$Random$constant(
+						_Utils_update(
+							game,
+							{
+								money: A2($elm$core$Basics$max, 0, game.money + amount)
+							}));
+				case 'Attack':
+					var _v1 = $author$project$Katakomben$Data$Game$current(game);
+					if (_v1.$ === 'Enemy') {
+						var monster = _v1.a;
+						return $elm$random$Random$constant(
+							_Utils_update(
+								game,
+								{
+									deck: $author$project$Katakomben$Data$Deck$remove(
+										(((monster.health - game.attack) > 0) ? $author$project$Katakomben$Data$Deck$addNext(
+											$author$project$Katakomben$Data$Card$Enemy(
+												_Utils_update(
+													monster,
+													{
+														attack: A3($elm$core$Basics$clamp, 1, monster.attack, monster.attack - 1),
+														health: A3($elm$core$Basics$clamp, 0, monster.health, monster.health - game.attack)
+													}))) : $elm$core$Basics$identity)(game.deck))
+								}));
+					} else {
+						return $elm$random$Random$constant(game);
+					}
+				default:
+					var cond = effect.a;
+					var e = effect.b;
+					if (function () {
+						if (cond.$ === 'HasHealth') {
+							var amount = cond.a;
+							return _Utils_cmp(game.health, amount) > -1;
+						} else {
+							var amount = cond.a;
+							return _Utils_cmp(game.money, amount) > -1;
+						}
+					}()) {
+						var $temp$effect = e,
+							$temp$game = game;
+						effect = $temp$effect;
+						game = $temp$game;
+						continue applyEffect;
+					} else {
+						return $elm$random$Random$constant(game);
+					}
+			}
 		}
 	});
 var $author$project$Katakomben$Data$Effect$AddAttack = function (a) {
@@ -6634,12 +6651,15 @@ var $author$project$Katakomben$Data$Effect$AddRandomUndead = function (a) {
 var $author$project$Katakomben$Data$Effect$AddRandomVermin = function (a) {
 	return {$: 'AddRandomVermin', a: a};
 };
-var $author$project$Katakomben$Data$Effect$AddRandomWeapon = function (a) {
-	return {$: 'AddRandomWeapon', a: a};
-};
 var $author$project$Katakomben$Data$Effect$Attack = {$: 'Attack'};
+var $author$project$Katakomben$Data$Effect$Conditional = F2(
+	function (a, b) {
+		return {$: 'Conditional', a: a, b: b};
+	});
+var $author$project$Katakomben$Data$Effect$HasMoney = function (a) {
+	return {$: 'HasMoney', a: a};
+};
 var $author$project$Katakomben$Data$Effect$NextCard = {$: 'NextCard'};
-var $author$project$Katakomben$Data$Effect$PayForHeal = {$: 'PayForHeal'};
 var $author$project$Katakomben$Data$Effect$RemoveCard = {$: 'RemoveCard'};
 var $author$project$Katakomben$Data$Effect$Restart = {$: 'Restart'};
 var $author$project$Katakomben$Data$Effect$SetAttack = function (a) {
@@ -6739,6 +6759,12 @@ var $Orasund$elm_ui_framework$Framework$Color$light = _List_fromArray(
 		$mdgriffith$elm_ui$Element$Background$color($Orasund$elm_ui_framework$Framework$Color$lighterGrey),
 		$mdgriffith$elm_ui$Element$Border$color($Orasund$elm_ui_framework$Framework$Color$lighterGrey)
 	]);
+var $Orasund$elm_ui_framework$Framework$Color$turquoise = A3($mdgriffith$elm_ui$Element$rgb255, 0, 209, 178);
+var $Orasund$elm_ui_framework$Framework$Color$primary = _List_fromArray(
+	[
+		$mdgriffith$elm_ui$Element$Background$color($Orasund$elm_ui_framework$Framework$Color$turquoise),
+		$mdgriffith$elm_ui$Element$Border$color($Orasund$elm_ui_framework$Framework$Color$turquoise)
+	]);
 var $Orasund$elm_ui_framework$Framework$Color$lightGrey = A3($mdgriffith$elm_ui$Element$rgb255, 219, 219, 219);
 var $Orasund$elm_ui_framework$Framework$Color$simple = _List_fromArray(
 	[
@@ -6750,6 +6776,12 @@ var $Orasund$elm_ui_framework$Framework$Color$success = _List_fromArray(
 	[
 		$mdgriffith$elm_ui$Element$Background$color($Orasund$elm_ui_framework$Framework$Color$green),
 		$mdgriffith$elm_ui$Element$Border$color($Orasund$elm_ui_framework$Framework$Color$green)
+	]);
+var $Orasund$elm_ui_framework$Framework$Color$yellow = A3($mdgriffith$elm_ui$Element$rgb255, 255, 221, 87);
+var $Orasund$elm_ui_framework$Framework$Color$warning = _List_fromArray(
+	[
+		$mdgriffith$elm_ui$Element$Background$color($Orasund$elm_ui_framework$Framework$Color$yellow),
+		$mdgriffith$elm_ui$Element$Border$color($Orasund$elm_ui_framework$Framework$Color$yellow)
 	]);
 var $author$project$Katakomben$Data$CardDetails$getDetails = function (card) {
 	switch (card.$) {
@@ -6807,10 +6839,10 @@ var $author$project$Katakomben$Data$CardDetails$getDetails = function (card) {
 						if (level.$ === 'CatacombsOfDunkelhall') {
 							return _List_fromArray(
 								[
-									$author$project$Katakomben$Data$Effect$AddRandomWeapon(0),
-									$author$project$Katakomben$Data$Effect$AddRandomUndead(0),
-									$author$project$Katakomben$Data$Effect$AddRandomHealItem(0),
 									$author$project$Katakomben$Data$Effect$AddLoot(0),
+									$author$project$Katakomben$Data$Effect$AddLoot(0),
+									$author$project$Katakomben$Data$Effect$AddRandomHealItem(0),
+									$author$project$Katakomben$Data$Effect$AddRandomUndead(0),
 									$author$project$Katakomben$Data$Effect$RemoveCard
 								]);
 						} else {
@@ -6826,7 +6858,7 @@ var $author$project$Katakomben$Data$CardDetails$getDetails = function (card) {
 		case 'Loot':
 			var item = card.a;
 			return {
-				color: $Orasund$elm_ui_framework$Framework$Color$simple,
+				color: $Orasund$elm_ui_framework$Framework$Color$primary,
 				desc: item.desc,
 				left: _Utils_Tuple2(
 					'Continue',
@@ -6897,6 +6929,26 @@ var $author$project$Katakomben$Data$CardDetails$getDetails = function (card) {
 							$author$project$Katakomben$Data$Effect$AddAttack(-1)
 						]))
 			};
+		case 'Camp':
+			return {
+				color: $Orasund$elm_ui_framework$Framework$Color$success,
+				desc: '',
+				left: _Utils_Tuple2(
+					'Rest',
+					_List_fromArray(
+						[
+							$author$project$Katakomben$Data$Effect$AddHealth(1),
+							$author$project$Katakomben$Data$Effect$NextCard
+						])),
+				name: 'Camp',
+				right: _Utils_Tuple2(
+					'Equip basic weapon',
+					_List_fromArray(
+						[
+							$author$project$Katakomben$Data$Effect$SetAttack(1),
+							$author$project$Katakomben$Data$Effect$NextCard
+						]))
+			};
 		default:
 			var level = card.a;
 			if (level.$ === 'GraveyardChapel') {
@@ -6906,19 +6958,25 @@ var $author$project$Katakomben$Data$CardDetails$getDetails = function (card) {
 					left: _Utils_Tuple2(
 						'Continue',
 						_List_fromArray(
-							[
-								$author$project$Katakomben$Data$Effect$AddMoney(-1),
-								$author$project$Katakomben$Data$Effect$NextCard
-							])),
+							[$author$project$Katakomben$Data$Effect$NextCard])),
 					name: 'Altar',
 					right: _Utils_Tuple2(
-						'Pay for full heal',
+						'Pay for heal',
 						_List_fromArray(
-							[$author$project$Katakomben$Data$Effect$PayForHeal, $author$project$Katakomben$Data$Effect$NextCard]))
+							[
+								A2(
+								$author$project$Katakomben$Data$Effect$Conditional,
+								$author$project$Katakomben$Data$Effect$HasMoney(1),
+								$author$project$Katakomben$Data$Effect$AddHealth(1)),
+								A2(
+								$author$project$Katakomben$Data$Effect$Conditional,
+								$author$project$Katakomben$Data$Effect$HasMoney(1),
+								$author$project$Katakomben$Data$Effect$AddMoney(-1))
+							]))
 				};
 			} else {
 				return {
-					color: $Orasund$elm_ui_framework$Framework$Color$simple,
+					color: $Orasund$elm_ui_framework$Framework$Color$warning,
 					desc: 'The old tomb sits at the end of the hall. It\'s the only Tomb that looks like it might contain something of value.',
 					left: _Utils_Tuple2(
 						'Continue',
@@ -6930,7 +6988,7 @@ var $author$project$Katakomben$Data$CardDetails$getDetails = function (card) {
 							])),
 					name: 'Tomb of Pater Erhard',
 					right: _Utils_Tuple2(
-						'Continue',
+						'Open',
 						_List_fromArray(
 							[
 								$author$project$Katakomben$Data$Effect$AddPreviousCard(
@@ -12642,7 +12700,6 @@ var $elm$core$List$singleton = function (value) {
 	return _List_fromArray(
 		[value]);
 };
-var $Orasund$elm_ui_framework$Framework$Color$turquoise = A3($mdgriffith$elm_ui$Element$rgb255, 0, 209, 178);
 var $Orasund$elm_ui_framework$Framework$layoutOptions = $elm$core$List$singleton(
 	$mdgriffith$elm_ui$Element$focusStyle(
 		{
@@ -13191,6 +13248,7 @@ var $mdgriffith$elm_ui$Internal$Model$mapAttr = F2(
 		}
 	});
 var $mdgriffith$elm_ui$Element$mapAttribute = $mdgriffith$elm_ui$Internal$Model$mapAttr;
+var $mdgriffith$elm_ui$Element$none = $mdgriffith$elm_ui$Internal$Model$Empty;
 var $mdgriffith$elm_ui$Internal$Model$Px = function (a) {
 	return {$: 'Px', a: a};
 };
@@ -13341,51 +13399,83 @@ var $mdgriffith$elm_ui$Element$textColumn = F2(
 				attrs),
 			$mdgriffith$elm_ui$Internal$Model$Unkeyed(children));
 	});
+var $author$project$Katakomben$Data$Effect$conditionToString = function (cond) {
+	if (cond.$ === 'HasMoney') {
+		var _int = cond.a;
+		return 'MONEY>=' + $elm$core$String$fromInt(_int);
+	} else {
+		var _int = cond.a;
+		return 'HEALTH>=' + $elm$core$String$fromInt(_int);
+	}
+};
 var $author$project$Katakomben$Data$Effect$toString = function (effect) {
 	switch (effect.$) {
 		case 'Restart':
-			return 'Restart';
+			return _Utils_Tuple2(
+				'Restart',
+				$elm$core$Maybe$Just($Orasund$elm_ui_framework$Framework$Color$green));
 		case 'NextCard':
-			return 'Next Card';
+			return _Utils_Tuple2('Next Card', $elm$core$Maybe$Nothing);
 		case 'AddRandomWeapon':
 			var _int = effect.a;
-			return 'Add random Weapon';
+			return _Utils_Tuple2('Add random Weapon', $elm$core$Maybe$Nothing);
 		case 'AddRandomHealItem':
 			var _int = effect.a;
-			return 'Add random healing item';
+			return _Utils_Tuple2('Add random healing item', $elm$core$Maybe$Nothing);
 		case 'AddLoot':
 			var _int = effect.a;
-			return 'Add random loot';
+			return _Utils_Tuple2('Add random loot', $elm$core$Maybe$Nothing);
 		case 'AddRandomUndead':
 			var _int = effect.a;
-			return 'Add random undead monster';
+			return _Utils_Tuple2(
+				'Add random undead monster',
+				$elm$core$Maybe$Just($Orasund$elm_ui_framework$Framework$Color$red));
 		case 'AddRandomVermin':
 			var _int = effect.a;
-			return 'Add random vermin monster';
+			return _Utils_Tuple2(
+				'Add random vermin monster',
+				$elm$core$Maybe$Just($Orasund$elm_ui_framework$Framework$Color$red));
 		case 'RemoveCard':
-			return 'Remove this card';
+			return _Utils_Tuple2('Remove this card', $elm$core$Maybe$Nothing);
 		case 'SetAttack':
 			var _int = effect.a;
-			return $elm$core$String$fromInt(_int) + ' Attack ';
+			return _Utils_Tuple2(
+				$elm$core$String$fromInt(_int) + ' Attack ',
+				$elm$core$Maybe$Just($Orasund$elm_ui_framework$Framework$Color$green));
 		case 'SetMaxHealth':
 			var _int = effect.a;
-			return $elm$core$String$fromInt(2 + _int) + ' Max Health';
+			return _Utils_Tuple2(
+				$elm$core$String$fromInt(2 + _int) + ' Max Health',
+				$elm$core$Maybe$Just($Orasund$elm_ui_framework$Framework$Color$green));
 		case 'AddAttack':
 			var _int = effect.a;
-			return ((_int > 0) ? '+' : '') + ($elm$core$String$fromInt(_int) + ' Attack ');
+			return _Utils_Tuple2(
+				((_int > 0) ? '+' : '') + ($elm$core$String$fromInt(_int) + ' Attack '),
+				(_int > 0) ? $elm$core$Maybe$Just($Orasund$elm_ui_framework$Framework$Color$green) : $elm$core$Maybe$Just($Orasund$elm_ui_framework$Framework$Color$red));
 		case 'AddHealth':
 			var _int = effect.a;
-			return ((_int > 0) ? '+' : '') + ($elm$core$String$fromInt(_int) + ' Health');
+			return _Utils_Tuple2(
+				((_int > 0) ? '+' : '') + ($elm$core$String$fromInt(_int) + ' Health'),
+				(_int > 0) ? $elm$core$Maybe$Just($Orasund$elm_ui_framework$Framework$Color$green) : $elm$core$Maybe$Just($Orasund$elm_ui_framework$Framework$Color$red));
 		case 'Attack':
-			return 'Damage the monster';
+			return _Utils_Tuple2('Damage the monster', $elm$core$Maybe$Nothing);
 		case 'AddMoney':
 			var _int = effect.a;
-			return ((_int > 0) ? '+' : '') + ($elm$core$String$fromInt(_int) + ' Money');
-		case 'PayForHeal':
-			return 'Pay for full heal';
-		default:
+			return _Utils_Tuple2(
+				((_int > 0) ? '+' : '') + ($elm$core$String$fromInt(_int) + ' Money'),
+				(_int > 0) ? $elm$core$Maybe$Just($Orasund$elm_ui_framework$Framework$Color$green) : $elm$core$Maybe$Just($Orasund$elm_ui_framework$Framework$Color$red));
+		case 'AddPreviousCard':
 			var card = effect.a;
-			return 'Add a card under the stack';
+			return _Utils_Tuple2('Add a card under the stack', $elm$core$Maybe$Nothing);
+		default:
+			var cond = effect.a;
+			var e = effect.b;
+			var _v1 = $author$project$Katakomben$Data$Effect$toString(e);
+			var string = _v1.a;
+			var color = _v1.b;
+			return _Utils_Tuple2(
+				'if ' + ($author$project$Katakomben$Data$Effect$conditionToString(cond) + (': ' + string)),
+				color);
 	}
 };
 var $author$project$Katakomben$View$Card$view = function (card) {
@@ -13396,144 +13486,210 @@ var $author$project$Katakomben$View$Card$view = function (card) {
 	var desc = _v0.desc;
 	var color = _v0.color;
 	return A2(
-		$mdgriffith$elm_ui$Element$row,
-		$Orasund$elm_ui_framework$Framework$Grid$spaceEvenly,
+		$mdgriffith$elm_ui$Element$column,
+		$Orasund$elm_ui_framework$Framework$Grid$simple,
 		_List_fromArray(
 			[
 				A2(
-				$mdgriffith$elm_ui$Element$Input$button,
+				$mdgriffith$elm_ui$Element$row,
+				$Orasund$elm_ui_framework$Framework$Grid$spaceEvenly,
 				_List_fromArray(
 					[
-						$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
-						$mdgriffith$elm_ui$Element$padding(10),
-						$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill)
-					]),
-				{
-					label: A2(
-						$mdgriffith$elm_ui$Element$column,
+						A2(
+						$mdgriffith$elm_ui$Element$Input$button,
+						_List_fromArray(
+							[
+								$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
+								$mdgriffith$elm_ui$Element$padding(10),
+								$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill)
+							]),
+						{
+							label: $mdgriffith$elm_ui$Element$none,
+							onPress: $elm$core$Maybe$Just($author$project$Katakomben$Data$Game$Left)
+						}),
+						A2(
+						$mdgriffith$elm_ui$Element$textColumn,
 						_Utils_ap(
-							$Orasund$elm_ui_framework$Framework$Grid$compact,
-							_List_fromArray(
-								[
-									$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$shrink),
-									$mdgriffith$elm_ui$Element$alignRight,
-									$mdgriffith$elm_ui$Element$Font$alignRight
-								])),
-						$elm$core$List$concat(
-							_List_fromArray(
-								[
+							$Orasund$elm_ui_framework$Framework$Grid$simple,
+							_Utils_ap(
+								$Orasund$elm_ui_framework$Framework$Card$simple,
+								_Utils_ap(
 									_List_fromArray(
-									[
-										A2(
-										$mdgriffith$elm_ui$Element$el,
-										_List_fromArray(
+										[
+											$mdgriffith$elm_ui$Element$width(
+											$mdgriffith$elm_ui$Element$px(200)),
+											$mdgriffith$elm_ui$Element$height(
+											$mdgriffith$elm_ui$Element$px(300))
+										]),
+									A2(
+										$elm$core$List$map,
+										$mdgriffith$elm_ui$Element$mapAttribute($elm$core$Basics$never),
+										color)))),
+						A2(
+							$elm$core$List$map,
+							A2(
+								$elm$core$Basics$composeR,
+								$elm$core$List$singleton,
+								$mdgriffith$elm_ui$Element$paragraph(_List_Nil)),
+							_List_fromArray(
+								[
+									A2(
+									$mdgriffith$elm_ui$Element$el,
+									_List_fromArray(
+										[$mdgriffith$elm_ui$Element$Font$bold]),
+									$mdgriffith$elm_ui$Element$text(name)),
+									A2(
+									$mdgriffith$elm_ui$Element$el,
+									_List_fromArray(
+										[$mdgriffith$elm_ui$Element$Font$italic]),
+									$mdgriffith$elm_ui$Element$text(desc))
+								]))),
+						A2(
+						$mdgriffith$elm_ui$Element$Input$button,
+						_List_fromArray(
+							[
+								$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
+								$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill)
+							]),
+						{
+							label: $mdgriffith$elm_ui$Element$none,
+							onPress: $elm$core$Maybe$Just($author$project$Katakomben$Data$Game$Right)
+						})
+					])),
+				A2(
+				$mdgriffith$elm_ui$Element$row,
+				$Orasund$elm_ui_framework$Framework$Grid$spaceEvenly,
+				_List_fromArray(
+					[
+						A2(
+						$mdgriffith$elm_ui$Element$Input$button,
+						_List_fromArray(
+							[
+								$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
+								$mdgriffith$elm_ui$Element$padding(10),
+								$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill)
+							]),
+						{
+							label: A2(
+								$mdgriffith$elm_ui$Element$column,
+								_Utils_ap(
+									$Orasund$elm_ui_framework$Framework$Grid$compact,
+									_List_fromArray(
+										[
+											$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$shrink),
+											$mdgriffith$elm_ui$Element$alignRight,
+											$mdgriffith$elm_ui$Element$Font$alignRight
+										])),
+								$elm$core$List$concat(
+									_List_fromArray(
+										[
+											_List_fromArray(
 											[
-												$mdgriffith$elm_ui$Element$Font$bold,
-												$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
+												A2(
+												$mdgriffith$elm_ui$Element$el,
+												_List_fromArray(
+													[
+														$mdgriffith$elm_ui$Element$Font$bold,
+														$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
+													]),
+												$mdgriffith$elm_ui$Element$text('<- ' + left.a))
 											]),
-										$mdgriffith$elm_ui$Element$text('<- ' + left.a))
-									]),
-									A2(
-									$elm$core$List$map,
-									A2(
-										$elm$core$Basics$composeR,
-										$author$project$Katakomben$Data$Effect$toString,
-										A2(
-											$elm$core$Basics$composeR,
-											$mdgriffith$elm_ui$Element$text,
-											$mdgriffith$elm_ui$Element$el(
-												_List_fromArray(
-													[
-														$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
-														$mdgriffith$elm_ui$Element$Font$size(11)
-													])))),
-									left.b)
-								]))),
-					onPress: $elm$core$Maybe$Just($author$project$Katakomben$Data$Game$Left)
-				}),
-				A2(
-				$mdgriffith$elm_ui$Element$textColumn,
-				_Utils_ap(
-					$Orasund$elm_ui_framework$Framework$Grid$simple,
-					_Utils_ap(
-						$Orasund$elm_ui_framework$Framework$Card$simple,
-						_Utils_ap(
-							_List_fromArray(
-								[
-									$mdgriffith$elm_ui$Element$width(
-									$mdgriffith$elm_ui$Element$px(200)),
-									$mdgriffith$elm_ui$Element$height(
-									$mdgriffith$elm_ui$Element$px(300))
-								]),
-							A2(
-								$elm$core$List$map,
-								$mdgriffith$elm_ui$Element$mapAttribute($elm$core$Basics$never),
-								color)))),
-				A2(
-					$elm$core$List$map,
-					A2(
-						$elm$core$Basics$composeR,
-						$elm$core$List$singleton,
-						$mdgriffith$elm_ui$Element$paragraph(_List_Nil)),
-					_List_fromArray(
-						[
-							A2(
-							$mdgriffith$elm_ui$Element$el,
-							_List_fromArray(
-								[$mdgriffith$elm_ui$Element$Font$bold]),
-							$mdgriffith$elm_ui$Element$text(name)),
-							A2(
-							$mdgriffith$elm_ui$Element$el,
-							_List_fromArray(
-								[$mdgriffith$elm_ui$Element$Font$italic]),
-							$mdgriffith$elm_ui$Element$text(desc))
-						]))),
-				A2(
-				$mdgriffith$elm_ui$Element$Input$button,
-				_List_fromArray(
-					[
-						$mdgriffith$elm_ui$Element$Font$alignLeft,
-						$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
-						$mdgriffith$elm_ui$Element$padding(10),
-						$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill)
-					]),
-				{
-					label: A2(
-						$mdgriffith$elm_ui$Element$column,
-						$Orasund$elm_ui_framework$Framework$Grid$compact,
-						$elm$core$List$concat(
-							_List_fromArray(
-								[
+											A2(
+											$elm$core$List$map,
+											A2(
+												$elm$core$Basics$composeR,
+												$author$project$Katakomben$Data$Effect$toString,
+												function (_v1) {
+													var text = _v1.a;
+													var maybeColor = _v1.b;
+													return A2(
+														$mdgriffith$elm_ui$Element$el,
+														_Utils_ap(
+															_List_fromArray(
+																[
+																	$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
+																	$mdgriffith$elm_ui$Element$Font$size(11)
+																]),
+															function () {
+																if (maybeColor.$ === 'Just') {
+																	var c = maybeColor.a;
+																	return _List_fromArray(
+																		[
+																			$mdgriffith$elm_ui$Element$Font$color(c),
+																			$mdgriffith$elm_ui$Element$Font$bold
+																		]);
+																} else {
+																	return _List_Nil;
+																}
+															}()),
+														$mdgriffith$elm_ui$Element$text(text));
+												}),
+											left.b)
+										]))),
+							onPress: $elm$core$Maybe$Just($author$project$Katakomben$Data$Game$Left)
+						}),
+						A2(
+						$mdgriffith$elm_ui$Element$Input$button,
+						_List_fromArray(
+							[
+								$mdgriffith$elm_ui$Element$Font$alignLeft,
+								$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
+								$mdgriffith$elm_ui$Element$padding(10),
+								$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill)
+							]),
+						{
+							label: A2(
+								$mdgriffith$elm_ui$Element$column,
+								$Orasund$elm_ui_framework$Framework$Grid$compact,
+								$elm$core$List$concat(
 									_List_fromArray(
-									[
-										A2(
-										$mdgriffith$elm_ui$Element$el,
-										_List_fromArray(
-											[$mdgriffith$elm_ui$Element$Font$bold]),
-										$mdgriffith$elm_ui$Element$text(right.a + ' ->'))
-									]),
-									A2(
-									$elm$core$List$map,
-									A2(
-										$elm$core$Basics$composeR,
-										$author$project$Katakomben$Data$Effect$toString,
-										A2(
-											$elm$core$Basics$composeR,
-											$mdgriffith$elm_ui$Element$text,
-											$mdgriffith$elm_ui$Element$el(
+										[
+											_List_fromArray(
+											[
+												A2(
+												$mdgriffith$elm_ui$Element$el,
 												_List_fromArray(
-													[
-														$mdgriffith$elm_ui$Element$Font$size(11)
-													])))),
-									right.b)
-								]))),
-					onPress: $elm$core$Maybe$Just($author$project$Katakomben$Data$Game$Right)
-				})
+													[$mdgriffith$elm_ui$Element$Font$bold]),
+												$mdgriffith$elm_ui$Element$text(right.a + ' ->'))
+											]),
+											A2(
+											$elm$core$List$map,
+											A2(
+												$elm$core$Basics$composeR,
+												$author$project$Katakomben$Data$Effect$toString,
+												function (_v3) {
+													var text = _v3.a;
+													var maybeColor = _v3.b;
+													return A2(
+														$mdgriffith$elm_ui$Element$el,
+														_Utils_ap(
+															_List_fromArray(
+																[
+																	$mdgriffith$elm_ui$Element$Font$size(11)
+																]),
+															function () {
+																if (maybeColor.$ === 'Just') {
+																	var c = maybeColor.a;
+																	return _List_fromArray(
+																		[
+																			$mdgriffith$elm_ui$Element$Font$color(c),
+																			$mdgriffith$elm_ui$Element$Font$bold
+																		]);
+																} else {
+																	return _List_Nil;
+																}
+															}()),
+														$mdgriffith$elm_ui$Element$text(text));
+												}),
+											right.b)
+										]))),
+							onPress: $elm$core$Maybe$Just($author$project$Katakomben$Data$Game$Right)
+						})
+					]))
 			]));
 };
 var $mdgriffith$elm_ui$Internal$Flag$overflow = $mdgriffith$elm_ui$Internal$Flag$flag(20);
 var $mdgriffith$elm_ui$Element$clipX = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$overflow, $mdgriffith$elm_ui$Internal$Style$classes.clipX);
-var $mdgriffith$elm_ui$Element$none = $mdgriffith$elm_ui$Internal$Model$Empty;
 var $author$project$Katakomben$Data$Deck$toList = $lovasoa$elm_rolling_list$RollingList$toList;
 var $author$project$Katakomben$View$Deck$view = function (deck) {
 	return A2(
@@ -13804,9 +13960,9 @@ var $author$project$Katakomben$View$Game$view = function (game) {
 						$mdgriffith$elm_ui$Element$text(
 						'Attack:' + $elm$core$String$fromInt(game.attack))
 					])),
+				$author$project$Katakomben$View$Deck$view(game.deck),
 				$author$project$Katakomben$View$Card$view(
 				$author$project$Katakomben$Data$Game$current(game)),
-				$author$project$Katakomben$View$Deck$view(game.deck),
 				A2(
 				$mdgriffith$elm_ui$Element$paragraph,
 				_List_fromArray(
@@ -13876,7 +14032,15 @@ var $author$project$Katakomben$Main$view = function (model) {
 							_List_fromArray(
 								[$mdgriffith$elm_ui$Element$Font$monospace]))
 						])),
-				A2($mdgriffith$elm_ui$Element$column, $Orasund$elm_ui_framework$Framework$container, content))
+				A2(
+					$mdgriffith$elm_ui$Element$column,
+					_Utils_ap(
+						$Orasund$elm_ui_framework$Framework$container,
+						_List_fromArray(
+							[
+								$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill)
+							])),
+					content))
 			]),
 		title: 'Die Katakomben von Dunkelhall'
 	};

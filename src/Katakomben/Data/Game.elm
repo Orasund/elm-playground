@@ -3,10 +3,9 @@ module Katakomben.Data.Game exposing (Direction(..), Game, Msg(..), current, ini
 import Katakomben.Data.Card exposing (Card(..), Level(..))
 import Katakomben.Data.CardDetails as CardDetails
 import Katakomben.Data.Deck as Deck exposing (Deck)
-import Katakomben.Data.Effect exposing (Effect(..))
+import Katakomben.Data.Effect exposing (ConditionType(..), Effect(..))
 import Katakomben.Data.Item as Item
 import Katakomben.Data.Monster as Monster
-import Katakomben.Data.Name as Name
 import Random exposing (Generator)
 
 
@@ -46,6 +45,7 @@ init maybeDeck =
 
                 Nothing ->
                     [ Entrence CatacombsOfDunkelhall
+                    , Camp
                     , Tomb CatacombsOfDunkelhall
                     , Tomb CatacombsOfDunkelhall
                     , Tomb CatacombsOfDunkelhall
@@ -68,7 +68,7 @@ applyEffect : Effect -> Game -> Generator Game
 applyEffect effect game =
     case effect of
         Restart ->
-            init (Just game.deck)|> Random.constant
+            init (Just game.deck) |> Random.constant
 
         NextCard ->
             { game
@@ -183,25 +183,6 @@ applyEffect effect game =
             }
                 |> Random.constant
 
-        PayForHeal ->
-            let
-                amount =
-                    game.maxHealth - game.health
-            in
-            Random.constant <|
-                if game.money >= amount then
-                    { game
-                        | money = game.money - amount
-                        , health = game.maxHealth
-                    }
-
-                else
-                    { game
-                        | health = game.health + game.money
-                        , maxHealth = game.health + game.money
-                        , money = 0
-                    }
-
         Attack ->
             case game |> current of
                 Enemy monster ->
@@ -232,6 +213,20 @@ applyEffect effect game =
 
                 _ ->
                     game |> Random.constant
+
+        Conditional cond e ->
+            if
+                case cond of
+                    HasHealth amount ->
+                        game.health >= amount
+
+                    HasMoney amount ->
+                        game.money >= amount
+            then
+                applyEffect e game
+
+            else
+                game |> Random.constant
 
 
 update : Msg -> Game -> Generator Game
