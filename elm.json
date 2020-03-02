@@ -32,6 +32,7 @@
             "elm-community/undo-redo": "3.0.0",
             "ianmackenzie/elm-geometry": "1.2.1",
             "ianmackenzie/elm-geometry-svg": "1.0.2",
+            "lovasoa/elm-rolling-list": "1.1.4",
             "mdgriffith/elm-ui": "1.1.5",
             "stephenreddek/elm-emoji": "1.0.0",
             "wernerdegroot/listzipper": "3.1.1"

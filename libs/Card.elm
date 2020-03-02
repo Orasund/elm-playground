@@ -1,4 +1,4 @@
-module Card exposing (card, hand)
+module Card exposing (card, hand, view)
 
 import Element exposing (Attribute, Element)
 import Element.Border as Border
