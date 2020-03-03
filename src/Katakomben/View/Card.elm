@@ -10,6 +10,7 @@ import Element.Input as Input
 import Framework.Card as Card
 import Framework.Grid as Grid
 import Html.Attributes as Attributes
+import Html.Events
 import Katakomben.Data.Card as Card exposing (Card)
 import Katakomben.Data.CardDetails as CardDetails
 import Katakomben.Data.Effect as Effect
@@ -41,7 +42,7 @@ view { selected, card, maybeNextCard, showAnimation } =
                 , Element.height <| Element.fill
                 , Events.onMouseUp <| Selected Left
                 , Events.onMouseEnter <| Over (Just Left)
-                , Events.onMouseDown <| Over (Just Left)
+                , Events.onMouseMove <| Over (Just Left)
                 , Events.onMouseLeave <| Over Nothing
                 , Element.focused <|
                     [ Border.shadow
@@ -124,7 +125,7 @@ view { selected, card, maybeNextCard, showAnimation } =
                 , Element.height <| Element.fill
                 , Events.onMouseUp <| Selected Right
                 , Events.onMouseEnter <| Over (Just Right)
-                , Events.onMouseDown <| Over (Just Right)
+                , Events.onMouseMove <| Over (Just Right)
                 , Events.onMouseLeave <| Over Nothing
                 , Element.focused <|
                     [ Border.shadow

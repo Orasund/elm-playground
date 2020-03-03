@@ -13459,6 +13459,12 @@ var $elm$html$Html$Events$onMouseLeave = function (msg) {
 		$elm$json$Json$Decode$succeed(msg));
 };
 var $mdgriffith$elm_ui$Element$Events$onMouseLeave = A2($elm$core$Basics$composeL, $mdgriffith$elm_ui$Internal$Model$Attr, $elm$html$Html$Events$onMouseLeave);
+var $elm$html$Html$Events$onMouseOver = function (msg) {
+	return A2(
+		$elm$html$Html$Events$on,
+		'mouseover',
+		$elm$json$Json$Decode$succeed(msg));
+};
 var $elm$html$Html$Events$onMouseUp = function (msg) {
 	return A2(
 		$elm$html$Html$Events$on,
@@ -13735,6 +13741,10 @@ var $author$project$Katakomben$View$Card$view = function (_v0) {
 									$elm$core$Maybe$Just($author$project$Katakomben$Data$Game$Left))),
 								$mdgriffith$elm_ui$Element$Events$onMouseLeave(
 								$author$project$Katakomben$View$Card$Over($elm$core$Maybe$Nothing)),
+								$mdgriffith$elm_ui$Element$htmlAttribute(
+								$elm$html$Html$Events$onMouseOver(
+									$author$project$Katakomben$View$Card$Over(
+										$elm$core$Maybe$Just($author$project$Katakomben$Data$Game$Left)))),
 								$mdgriffith$elm_ui$Element$focused(
 								_List_fromArray(
 									[
@@ -13866,6 +13876,10 @@ var $author$project$Katakomben$View$Card$view = function (_v0) {
 								$mdgriffith$elm_ui$Element$Events$onMouseDown(
 								$author$project$Katakomben$View$Card$Over(
 									$elm$core$Maybe$Just($author$project$Katakomben$Data$Game$Right))),
+								$mdgriffith$elm_ui$Element$htmlAttribute(
+								$elm$html$Html$Events$onMouseOver(
+									$author$project$Katakomben$View$Card$Over(
+										$elm$core$Maybe$Just($author$project$Katakomben$Data$Game$Right)))),
 								$mdgriffith$elm_ui$Element$Events$onMouseLeave(
 								$author$project$Katakomben$View$Card$Over($elm$core$Maybe$Nothing)),
 								$mdgriffith$elm_ui$Element$focused(
