@@ -41,17 +41,17 @@ init maybeDeck =
             case maybeDeck of
                 Just d ->
                     d
-                        |> Deck.jumpTo (Entrence CatacombsOfDunkelhall)
+                        |> Deck.jumpTo (Entrance CatacombsOfDunkelhall)
 
                 Nothing ->
-                    [ Entrence CatacombsOfDunkelhall
+                    [ Entrance CatacombsOfDunkelhall
                     , Camp
                     , Tomb CatacombsOfDunkelhall
                     , Tomb CatacombsOfDunkelhall
                     , Tomb CatacombsOfDunkelhall
                     , Tomb CatacombsOfDunkelhall
                     , Shrine CatacombsOfDunkelhall
-                    , Entrence GraveyardChapel
+                    , Entrance GraveyardChapel
                     , Shrine GraveyardChapel
                     ]
                         |> Deck.fromList
@@ -158,13 +158,13 @@ applyEffect effect game =
 
         SetAttack amount ->
             { game
-                | attack = amount
+                | attack = max amount game.attack
             }
                 |> Random.constant
 
         SetMaxHealth amount ->
             { game
-                | maxHealth = amount + 2
+                | maxHealth = max (amount + 2) game.maxHealth
             }
                 |> Random.constant
 

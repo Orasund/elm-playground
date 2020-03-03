@@ -5,6 +5,7 @@ import Browser.Events as Events
 import Element exposing (Element)
 import Json.Decode as Decode
 import Katakomben.Data.Game as Game exposing (Direction(..), Game, Msg(..))
+import Katakomben.View.Card as Card
 import Katakomben.View.Game as Game
 import Random exposing (Seed)
 
@@ -12,11 +13,13 @@ import Random exposing (Seed)
 type alias Model =
     { seed : Seed
     , game : Game
+    , selected : Maybe Direction
     }
 
 
 type Msg
     = Pressed (Maybe Direction)
+    | MouseOver (Maybe Direction)
 
 
 type alias TansitionData =
@@ -31,6 +34,7 @@ init : TansitionData -> ( Model, Cmd Msg )
 init seed =
     ( { seed = seed
       , game = Game.init Nothing
+      , selected = Nothing
       }
     , Cmd.none
     )
@@ -56,6 +60,12 @@ update msg model =
 
                 Nothing ->
                     Action.updating ( model, Cmd.none )
+
+        MouseOver maybeDir ->
+            Action.updating
+                ( { model | selected = maybeDir }
+                , Cmd.none
+                )
 
 
 subscriptions : Model -> Sub Msg
@@ -90,8 +100,16 @@ subscriptions model =
 
 
 view : Model -> List (Element Msg)
-view { game } =
+view { game, selected } =
     [ game
-        |> Game.view
-        |> Element.map (Just >> Pressed)
+        |> Game.view selected
+        |> Element.map
+            (\msg ->
+                case msg of
+                    Card.Selected dir ->
+                        Pressed <| Just dir
+
+                    Card.Over dir ->
+                        MouseOver dir
+            )
     ]

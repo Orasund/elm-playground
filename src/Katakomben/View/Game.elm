@@ -15,8 +15,8 @@ bold =
     Element.text >> Element.el [ Font.bold ]
 
 
-view : Game -> Element Direction
-view game =
+view : Maybe Direction -> Game -> Element Card.Msg
+view selected game =
     Element.column Grid.simple
         [ Element.wrappedRow Grid.spaceEvenly
             [ Element.text <|
@@ -32,9 +32,7 @@ view game =
                     ++ String.fromInt game.attack
             ]
         , game.deck |> Deck.view
-        , game
-            |> Game.current
-            |> Card.view
+        , Card.view selected ( game |> Game.current, game.deck |> Deck.next |> Deck.current )
         , [ "Use your " |> Element.text
           , "left" |> bold
           , " and " |> Element.text

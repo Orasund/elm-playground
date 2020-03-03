@@ -12,7 +12,7 @@ type Level
 
 
 type Card
-    = Entrence Level
+    = Entrance Level
     | Tomb Level
     | Death
     | Loot Item

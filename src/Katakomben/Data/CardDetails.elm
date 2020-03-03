@@ -20,9 +20,9 @@ type alias CardDetails =
 getDetails : Card -> CardDetails
 getDetails card =
     case card of
-        Entrence name ->
+        Entrance name ->
             { name =
-                "Entrence to "
+                "Entrance to "
                     ++ (case name of
                             CatacombsOfDunkelhall ->
                                 "the catacombs of Dunkelhall"
