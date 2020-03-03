@@ -6030,13 +6030,19 @@ var $author$project$Katakomben$Page$Playing$init = function (seed) {
 		{
 			game: $author$project$Katakomben$Data$Game$init($elm$core$Maybe$Nothing),
 			seed: seed,
-			selected: $elm$core$Maybe$Nothing
+			selected: $elm$core$Maybe$Nothing,
+			showAnimation: true
 		},
 		$elm$core$Platform$Cmd$none);
 };
+var $author$project$Katakomben$Page$Playing$ActivateAnimation = {$: 'ActivateAnimation'};
 var $author$project$Katakomben$Data$Game$Chosen = function (a) {
 	return {$: 'Chosen', a: a};
 };
+var $author$project$Katakomben$Page$Playing$MouseOver = function (a) {
+	return {$: 'MouseOver', a: a};
+};
+var $elm$core$Process$sleep = _Process_sleep;
 var $elm$random$Random$andThen = F2(
 	function (callback, _v0) {
 		var genA = _v0.a;
@@ -7044,37 +7050,70 @@ var $Orasund$elm_action$Action$updating = function (tuple) {
 };
 var $author$project$Katakomben$Page$Playing$update = F2(
 	function (msg, model) {
-		if (msg.$ === 'Pressed') {
-			var maybeDir = msg.a;
-			if (maybeDir.$ === 'Just') {
-				var dir = maybeDir.a;
-				var _v2 = A2(
-					$elm$random$Random$step,
-					A2(
-						$author$project$Katakomben$Data$Game$update,
-						$author$project$Katakomben$Data$Game$Chosen(dir),
-						model.game),
-					model.seed);
-				var game = _v2.a;
-				var seed = _v2.b;
+		var select = function (dir) {
+			var _v2 = A2(
+				$elm$random$Random$step,
+				A2(
+					$author$project$Katakomben$Data$Game$update,
+					$author$project$Katakomben$Data$Game$Chosen(dir),
+					model.game),
+				model.seed);
+			var game = _v2.a;
+			var seed = _v2.b;
+			return _Utils_update(
+				model,
+				{game: game, seed: seed, selected: $elm$core$Maybe$Nothing, showAnimation: false});
+		};
+		switch (msg.$) {
+			case 'Pressed':
+				var maybeDir = msg.a;
+				if (maybeDir.$ === 'Just') {
+					var dir = maybeDir.a;
+					return $Orasund$elm_action$Action$updating(
+						_Utils_Tuple2(
+							select(dir),
+							A2(
+								$elm$core$Task$perform,
+								$elm$core$Basics$always($author$project$Katakomben$Page$Playing$ActivateAnimation),
+								$elm$core$Process$sleep(10))));
+				} else {
+					return $Orasund$elm_action$Action$updating(
+						_Utils_Tuple2(model, $elm$core$Platform$Cmd$none));
+				}
+			case 'Selected':
+				var dir = msg.a;
+				return $Orasund$elm_action$Action$updating(
+					_Utils_Tuple2(
+						select(dir),
+						$elm$core$Platform$Cmd$batch(
+							_List_fromArray(
+								[
+									A2(
+									$elm$core$Task$perform,
+									$elm$core$Basics$always($author$project$Katakomben$Page$Playing$ActivateAnimation),
+									$elm$core$Process$sleep(10)),
+									A2(
+									$elm$core$Task$perform,
+									$elm$core$Basics$always(
+										$author$project$Katakomben$Page$Playing$MouseOver(
+											$elm$core$Maybe$Just(dir))),
+									$elm$core$Process$sleep(100))
+								]))));
+			case 'MouseOver':
+				var maybeDir = msg.a;
 				return $Orasund$elm_action$Action$updating(
 					_Utils_Tuple2(
 						_Utils_update(
 							model,
-							{game: game, seed: seed}),
+							{selected: maybeDir}),
 						$elm$core$Platform$Cmd$none));
-			} else {
+			default:
 				return $Orasund$elm_action$Action$updating(
-					_Utils_Tuple2(model, $elm$core$Platform$Cmd$none));
-			}
-		} else {
-			var maybeDir = msg.a;
-			return $Orasund$elm_action$Action$updating(
-				_Utils_Tuple2(
-					_Utils_update(
-						model,
-						{selected: maybeDir}),
-					$elm$core$Platform$Cmd$none));
+					_Utils_Tuple2(
+						_Utils_update(
+							model,
+							{showAnimation: true}),
+						$elm$core$Platform$Cmd$none));
 		}
 	});
 var $Orasund$elm_action$Action$Transition = function (a) {
@@ -12979,8 +13018,8 @@ var $elm$html$Html$Attributes$tabindex = function (n) {
 		'tabIndex',
 		$elm$core$String$fromInt(n));
 };
-var $author$project$Katakomben$Page$Playing$MouseOver = function (a) {
-	return {$: 'MouseOver', a: a};
+var $author$project$Katakomben$Page$Playing$Selected = function (a) {
+	return {$: 'Selected', a: a};
 };
 var $mdgriffith$elm_ui$Internal$Model$Class = F2(
 	function (a, b) {
@@ -13399,6 +13438,13 @@ var $mdgriffith$elm_ui$Element$moveRight = function (x) {
 		$mdgriffith$elm_ui$Internal$Model$MoveX(x));
 };
 var $mdgriffith$elm_ui$Element$none = $mdgriffith$elm_ui$Internal$Model$Empty;
+var $elm$html$Html$Events$onMouseDown = function (msg) {
+	return A2(
+		$elm$html$Html$Events$on,
+		'mousedown',
+		$elm$json$Json$Decode$succeed(msg));
+};
+var $mdgriffith$elm_ui$Element$Events$onMouseDown = A2($elm$core$Basics$composeL, $mdgriffith$elm_ui$Internal$Model$Attr, $elm$html$Html$Events$onMouseDown);
 var $elm$html$Html$Events$onMouseEnter = function (msg) {
 	return A2(
 		$elm$html$Html$Events$on,
@@ -13651,110 +13697,124 @@ var $author$project$Katakomben$Data$Effect$toString = function (effect) {
 				color);
 	}
 };
-var $author$project$Katakomben$View$Card$view = F2(
-	function (selected, _v0) {
-		var card = _v0.a;
-		var maybeNextCard = _v0.b;
-		var _v1 = $author$project$Katakomben$Data$CardDetails$getDetails(card);
-		var name = _v1.name;
-		var left = _v1.left;
-		var right = _v1.right;
-		var desc = _v1.desc;
-		var color = _v1.color;
-		return A2(
-			$mdgriffith$elm_ui$Element$column,
-			$Orasund$elm_ui_framework$Framework$Grid$simple,
-			_List_fromArray(
-				[
-					A2(
-					$mdgriffith$elm_ui$Element$row,
-					$Orasund$elm_ui_framework$Framework$Grid$spaceEvenly,
-					_List_fromArray(
-						[
-							A2(
-							$mdgriffith$elm_ui$Element$Input$button,
-							_List_fromArray(
-								[
-									$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
-									$mdgriffith$elm_ui$Element$padding(10),
-									$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill),
-									$mdgriffith$elm_ui$Element$Events$onMouseUp(
-									$author$project$Katakomben$View$Card$Selected($author$project$Katakomben$Data$Game$Left)),
-									$mdgriffith$elm_ui$Element$Events$onMouseEnter(
-									$author$project$Katakomben$View$Card$Over(
-										$elm$core$Maybe$Just($author$project$Katakomben$Data$Game$Left))),
-									$mdgriffith$elm_ui$Element$Events$onMouseLeave(
-									$author$project$Katakomben$View$Card$Over($elm$core$Maybe$Nothing)),
-									$mdgriffith$elm_ui$Element$focused(
-									_List_fromArray(
-										[
-											$mdgriffith$elm_ui$Element$Border$shadow(
-											{
-												blur: 0,
-												color: A3($mdgriffith$elm_ui$Element$rgb255, 0, 0, 0),
-												offset: _Utils_Tuple2(0, 0),
-												size: 0
-											})
-										]))
-								]),
-							{label: $mdgriffith$elm_ui$Element$none, onPress: $elm$core$Maybe$Nothing}),
-							A2(
-							$mdgriffith$elm_ui$Element$el,
-							_List_fromArray(
-								[
-									$mdgriffith$elm_ui$Element$behindContent(
-									function () {
-										if (maybeNextCard.$ === 'Just') {
-											var nextCard = maybeNextCard.a;
-											var nextDetails = $author$project$Katakomben$Data$CardDetails$getDetails(nextCard);
-											return A2(
-												$mdgriffith$elm_ui$Element$textColumn,
+var $author$project$Katakomben$View$Card$view = function (_v0) {
+	var selected = _v0.selected;
+	var card = _v0.card;
+	var maybeNextCard = _v0.maybeNextCard;
+	var showAnimation = _v0.showAnimation;
+	var _v1 = $author$project$Katakomben$Data$CardDetails$getDetails(card);
+	var name = _v1.name;
+	var left = _v1.left;
+	var right = _v1.right;
+	var desc = _v1.desc;
+	var color = _v1.color;
+	return A2(
+		$mdgriffith$elm_ui$Element$column,
+		$Orasund$elm_ui_framework$Framework$Grid$simple,
+		_List_fromArray(
+			[
+				A2(
+				$mdgriffith$elm_ui$Element$row,
+				$Orasund$elm_ui_framework$Framework$Grid$spaceEvenly,
+				_List_fromArray(
+					[
+						A2(
+						$mdgriffith$elm_ui$Element$Input$button,
+						_List_fromArray(
+							[
+								$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
+								$mdgriffith$elm_ui$Element$padding(10),
+								$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill),
+								$mdgriffith$elm_ui$Element$Events$onMouseUp(
+								$author$project$Katakomben$View$Card$Selected($author$project$Katakomben$Data$Game$Left)),
+								$mdgriffith$elm_ui$Element$Events$onMouseEnter(
+								$author$project$Katakomben$View$Card$Over(
+									$elm$core$Maybe$Just($author$project$Katakomben$Data$Game$Left))),
+								$mdgriffith$elm_ui$Element$Events$onMouseDown(
+								$author$project$Katakomben$View$Card$Over(
+									$elm$core$Maybe$Just($author$project$Katakomben$Data$Game$Left))),
+								$mdgriffith$elm_ui$Element$Events$onMouseLeave(
+								$author$project$Katakomben$View$Card$Over($elm$core$Maybe$Nothing)),
+								$mdgriffith$elm_ui$Element$focused(
+								_List_fromArray(
+									[
+										$mdgriffith$elm_ui$Element$Border$shadow(
+										{
+											blur: 0,
+											color: A3($mdgriffith$elm_ui$Element$rgb255, 0, 0, 0),
+											offset: _Utils_Tuple2(0, 0),
+											size: 0
+										})
+									]))
+							]),
+						{label: $mdgriffith$elm_ui$Element$none, onPress: $elm$core$Maybe$Nothing}),
+						A2(
+						$mdgriffith$elm_ui$Element$el,
+						_List_fromArray(
+							[
+								$mdgriffith$elm_ui$Element$behindContent(
+								function () {
+									if (maybeNextCard.$ === 'Just') {
+										var nextCard = maybeNextCard.a;
+										var nextDetails = $author$project$Katakomben$Data$CardDetails$getDetails(nextCard);
+										return A2(
+											$mdgriffith$elm_ui$Element$textColumn,
+											_Utils_ap(
+												$Orasund$elm_ui_framework$Framework$Grid$simple,
 												_Utils_ap(
-													$Orasund$elm_ui_framework$Framework$Grid$simple,
+													$Orasund$elm_ui_framework$Framework$Card$simple,
 													_Utils_ap(
-														$Orasund$elm_ui_framework$Framework$Card$simple,
-														_Utils_ap(
-															_List_fromArray(
-																[
-																	$mdgriffith$elm_ui$Element$width(
-																	$mdgriffith$elm_ui$Element$px(200)),
-																	$mdgriffith$elm_ui$Element$height(
-																	$mdgriffith$elm_ui$Element$px(300))
-																]),
-															A2(
-																$elm$core$List$map,
-																$mdgriffith$elm_ui$Element$mapAttribute($elm$core$Basics$never),
-																nextDetails.color)))),
+														_List_fromArray(
+															[
+																$mdgriffith$elm_ui$Element$width(
+																$mdgriffith$elm_ui$Element$px(200)),
+																$mdgriffith$elm_ui$Element$height(
+																$mdgriffith$elm_ui$Element$px(300))
+															]),
+														A2(
+															$elm$core$List$map,
+															$mdgriffith$elm_ui$Element$mapAttribute($elm$core$Basics$never),
+															nextDetails.color)))),
+											A2(
+												$elm$core$List$map,
 												A2(
-													$elm$core$List$map,
-													A2(
-														$elm$core$Basics$composeR,
-														$elm$core$List$singleton,
-														$mdgriffith$elm_ui$Element$paragraph(_List_Nil)),
-													_List_fromArray(
-														[
-															$mdgriffith$elm_ui$Element$text(nextDetails.name)
-														])));
-										} else {
-											return $mdgriffith$elm_ui$Element$none;
-										}
-									}())
-								]),
-							A2(
-								$mdgriffith$elm_ui$Element$textColumn,
+													$elm$core$Basics$composeR,
+													$elm$core$List$singleton,
+													$mdgriffith$elm_ui$Element$paragraph(_List_Nil)),
+												_List_fromArray(
+													[
+														$mdgriffith$elm_ui$Element$text(nextDetails.name)
+													])));
+									} else {
+										return $mdgriffith$elm_ui$Element$none;
+									}
+								}())
+							]),
+						A2(
+							$mdgriffith$elm_ui$Element$textColumn,
+							_Utils_ap(
+								$Orasund$elm_ui_framework$Framework$Grid$simple,
 								_Utils_ap(
-									$Orasund$elm_ui_framework$Framework$Grid$simple,
+									$Orasund$elm_ui_framework$Framework$Card$simple,
 									_Utils_ap(
-										$Orasund$elm_ui_framework$Framework$Card$simple,
+										_List_fromArray(
+											[
+												$mdgriffith$elm_ui$Element$width(
+												$mdgriffith$elm_ui$Element$px(200)),
+												$mdgriffith$elm_ui$Element$height(
+												$mdgriffith$elm_ui$Element$px(300))
+											]),
 										_Utils_ap(
-											_List_fromArray(
+											showAnimation ? _List_fromArray(
 												[
-													$mdgriffith$elm_ui$Element$width(
-													$mdgriffith$elm_ui$Element$px(200)),
-													$mdgriffith$elm_ui$Element$height(
-													$mdgriffith$elm_ui$Element$px(300)),
 													$mdgriffith$elm_ui$Element$htmlAttribute(
 													A2($elm$html$Html$Attributes$style, 'transition', 'transform 1s')),
+													$mdgriffith$elm_ui$Element$htmlAttribute(
+													A2($elm$html$Html$Attributes$style, 'transition-timing-function', 'ease'))
+												]) : _List_fromArray(
+												[
+													$mdgriffith$elm_ui$Element$htmlAttribute(
+													A2($elm$html$Html$Attributes$style, 'transition', 'transform 0s')),
 													$mdgriffith$elm_ui$Element$htmlAttribute(
 													A2($elm$html$Html$Attributes$style, 'transition-timing-function', 'ease'))
 												]),
@@ -13781,188 +13841,191 @@ var $author$project$Katakomben$View$Card$view = F2(
 													} else {
 														return _List_Nil;
 													}
-												}())))),
+												}()))))),
+							A2(
+								$elm$core$List$map,
 								A2(
-									$elm$core$List$map,
-									A2(
-										$elm$core$Basics$composeR,
-										$elm$core$List$singleton,
-										$mdgriffith$elm_ui$Element$paragraph(_List_Nil)),
-									_List_fromArray(
-										[
-											$mdgriffith$elm_ui$Element$text(name)
-										])))),
-							A2(
-							$mdgriffith$elm_ui$Element$Input$button,
-							_List_fromArray(
-								[
-									$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
-									$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill),
-									$mdgriffith$elm_ui$Element$Events$onMouseUp(
-									$author$project$Katakomben$View$Card$Selected($author$project$Katakomben$Data$Game$Right)),
-									$mdgriffith$elm_ui$Element$Events$onMouseEnter(
-									$author$project$Katakomben$View$Card$Over(
-										$elm$core$Maybe$Just($author$project$Katakomben$Data$Game$Right))),
-									$mdgriffith$elm_ui$Element$Events$onMouseLeave(
-									$author$project$Katakomben$View$Card$Over($elm$core$Maybe$Nothing)),
-									$mdgriffith$elm_ui$Element$focused(
-									_List_fromArray(
-										[
-											$mdgriffith$elm_ui$Element$Border$shadow(
-											{
-												blur: 0,
-												color: A3($mdgriffith$elm_ui$Element$rgb255, 0, 0, 0),
-												offset: _Utils_Tuple2(0, 0),
-												size: 0
-											})
-										]))
-								]),
-							{label: $mdgriffith$elm_ui$Element$none, onPress: $elm$core$Maybe$Nothing})
-						])),
-					A2(
-					$mdgriffith$elm_ui$Element$row,
-					$Orasund$elm_ui_framework$Framework$Grid$spaceEvenly,
-					_List_fromArray(
-						[
-							A2(
-							$mdgriffith$elm_ui$Element$Input$button,
-							_List_fromArray(
-								[
-									$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
-									$mdgriffith$elm_ui$Element$padding(10),
-									$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill),
-									$mdgriffith$elm_ui$Element$Events$onMouseEnter(
-									$author$project$Katakomben$View$Card$Over(
-										$elm$core$Maybe$Just($author$project$Katakomben$Data$Game$Left))),
-									$mdgriffith$elm_ui$Element$Events$onMouseLeave(
-									$author$project$Katakomben$View$Card$Over($elm$core$Maybe$Nothing))
-								]),
-							{
-								label: A2(
-									$mdgriffith$elm_ui$Element$column,
-									_Utils_ap(
-										$Orasund$elm_ui_framework$Framework$Grid$compact,
-										_List_fromArray(
-											[
-												$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$shrink),
-												$mdgriffith$elm_ui$Element$alignRight,
-												$mdgriffith$elm_ui$Element$Font$alignRight
-											])),
-									$elm$core$List$concat(
-										_List_fromArray(
-											[
-												_List_fromArray(
-												[
-													A2(
-													$mdgriffith$elm_ui$Element$el,
-													_List_fromArray(
-														[
-															$mdgriffith$elm_ui$Element$Font$bold,
-															$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
-														]),
-													$mdgriffith$elm_ui$Element$text('<- ' + left.a))
-												]),
-												A2(
-												$elm$core$List$map,
-												A2(
-													$elm$core$Basics$composeR,
-													$author$project$Katakomben$Data$Effect$toString,
-													function (_v6) {
-														var text = _v6.a;
-														var maybeColor = _v6.b;
-														return A2(
-															$mdgriffith$elm_ui$Element$el,
-															_Utils_ap(
-																_List_fromArray(
-																	[
-																		$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
-																		$mdgriffith$elm_ui$Element$Font$size(11)
-																	]),
-																function () {
-																	if (maybeColor.$ === 'Just') {
-																		var c = maybeColor.a;
-																		return _List_fromArray(
-																			[
-																				$mdgriffith$elm_ui$Element$Font$color(c),
-																				$mdgriffith$elm_ui$Element$Font$bold
-																			]);
-																	} else {
-																		return _List_Nil;
-																	}
-																}()),
-															$mdgriffith$elm_ui$Element$text(text));
-													}),
-												left.b)
-											]))),
-								onPress: $elm$core$Maybe$Just(
-									$author$project$Katakomben$View$Card$Selected($author$project$Katakomben$Data$Game$Left))
-							}),
-							A2(
-							$mdgriffith$elm_ui$Element$Input$button,
-							_List_fromArray(
-								[
-									$mdgriffith$elm_ui$Element$Font$alignLeft,
-									$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
-									$mdgriffith$elm_ui$Element$padding(10),
-									$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill),
-									$mdgriffith$elm_ui$Element$Events$onMouseEnter(
-									$author$project$Katakomben$View$Card$Over(
-										$elm$core$Maybe$Just($author$project$Katakomben$Data$Game$Right))),
-									$mdgriffith$elm_ui$Element$Events$onMouseLeave(
-									$author$project$Katakomben$View$Card$Over($elm$core$Maybe$Nothing))
-								]),
-							{
-								label: A2(
-									$mdgriffith$elm_ui$Element$column,
+									$elm$core$Basics$composeR,
+									$elm$core$List$singleton,
+									$mdgriffith$elm_ui$Element$paragraph(_List_Nil)),
+								_List_fromArray(
+									[
+										$mdgriffith$elm_ui$Element$text(name)
+									])))),
+						A2(
+						$mdgriffith$elm_ui$Element$Input$button,
+						_List_fromArray(
+							[
+								$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
+								$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill),
+								$mdgriffith$elm_ui$Element$Events$onMouseUp(
+								$author$project$Katakomben$View$Card$Selected($author$project$Katakomben$Data$Game$Right)),
+								$mdgriffith$elm_ui$Element$Events$onMouseEnter(
+								$author$project$Katakomben$View$Card$Over(
+									$elm$core$Maybe$Just($author$project$Katakomben$Data$Game$Right))),
+								$mdgriffith$elm_ui$Element$Events$onMouseDown(
+								$author$project$Katakomben$View$Card$Over(
+									$elm$core$Maybe$Just($author$project$Katakomben$Data$Game$Right))),
+								$mdgriffith$elm_ui$Element$Events$onMouseLeave(
+								$author$project$Katakomben$View$Card$Over($elm$core$Maybe$Nothing)),
+								$mdgriffith$elm_ui$Element$focused(
+								_List_fromArray(
+									[
+										$mdgriffith$elm_ui$Element$Border$shadow(
+										{
+											blur: 0,
+											color: A3($mdgriffith$elm_ui$Element$rgb255, 0, 0, 0),
+											offset: _Utils_Tuple2(0, 0),
+											size: 0
+										})
+									]))
+							]),
+						{label: $mdgriffith$elm_ui$Element$none, onPress: $elm$core$Maybe$Nothing})
+					])),
+				A2(
+				$mdgriffith$elm_ui$Element$row,
+				$Orasund$elm_ui_framework$Framework$Grid$spaceEvenly,
+				_List_fromArray(
+					[
+						A2(
+						$mdgriffith$elm_ui$Element$Input$button,
+						_List_fromArray(
+							[
+								$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
+								$mdgriffith$elm_ui$Element$padding(10),
+								$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill),
+								$mdgriffith$elm_ui$Element$Events$onMouseEnter(
+								$author$project$Katakomben$View$Card$Over(
+									$elm$core$Maybe$Just($author$project$Katakomben$Data$Game$Left))),
+								$mdgriffith$elm_ui$Element$Events$onMouseLeave(
+								$author$project$Katakomben$View$Card$Over($elm$core$Maybe$Nothing))
+							]),
+						{
+							label: A2(
+								$mdgriffith$elm_ui$Element$column,
+								_Utils_ap(
 									$Orasund$elm_ui_framework$Framework$Grid$compact,
-									$elm$core$List$concat(
-										_List_fromArray(
+									_List_fromArray(
+										[
+											$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$shrink),
+											$mdgriffith$elm_ui$Element$alignRight,
+											$mdgriffith$elm_ui$Element$Font$alignRight
+										])),
+								$elm$core$List$concat(
+									_List_fromArray(
+										[
+											_List_fromArray(
 											[
+												A2(
+												$mdgriffith$elm_ui$Element$el,
 												_List_fromArray(
-												[
-													A2(
-													$mdgriffith$elm_ui$Element$el,
-													_List_fromArray(
-														[$mdgriffith$elm_ui$Element$Font$bold]),
-													$mdgriffith$elm_ui$Element$text(right.a + ' ->'))
-												]),
+													[
+														$mdgriffith$elm_ui$Element$Font$bold,
+														$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
+													]),
+												$mdgriffith$elm_ui$Element$text('<- ' + left.a))
+											]),
+											A2(
+											$elm$core$List$map,
+											A2(
+												$elm$core$Basics$composeR,
+												$author$project$Katakomben$Data$Effect$toString,
+												function (_v6) {
+													var text = _v6.a;
+													var maybeColor = _v6.b;
+													return A2(
+														$mdgriffith$elm_ui$Element$el,
+														_Utils_ap(
+															_List_fromArray(
+																[
+																	$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
+																	$mdgriffith$elm_ui$Element$Font$size(11)
+																]),
+															function () {
+																if (maybeColor.$ === 'Just') {
+																	var c = maybeColor.a;
+																	return _List_fromArray(
+																		[
+																			$mdgriffith$elm_ui$Element$Font$color(c),
+																			$mdgriffith$elm_ui$Element$Font$bold
+																		]);
+																} else {
+																	return _List_Nil;
+																}
+															}()),
+														$mdgriffith$elm_ui$Element$text(text));
+												}),
+											left.b)
+										]))),
+							onPress: $elm$core$Maybe$Just(
+								$author$project$Katakomben$View$Card$Selected($author$project$Katakomben$Data$Game$Left))
+						}),
+						A2(
+						$mdgriffith$elm_ui$Element$Input$button,
+						_List_fromArray(
+							[
+								$mdgriffith$elm_ui$Element$Font$alignLeft,
+								$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
+								$mdgriffith$elm_ui$Element$padding(10),
+								$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill),
+								$mdgriffith$elm_ui$Element$Events$onMouseEnter(
+								$author$project$Katakomben$View$Card$Over(
+									$elm$core$Maybe$Just($author$project$Katakomben$Data$Game$Right))),
+								$mdgriffith$elm_ui$Element$Events$onMouseLeave(
+								$author$project$Katakomben$View$Card$Over($elm$core$Maybe$Nothing))
+							]),
+						{
+							label: A2(
+								$mdgriffith$elm_ui$Element$column,
+								$Orasund$elm_ui_framework$Framework$Grid$compact,
+								$elm$core$List$concat(
+									_List_fromArray(
+										[
+											_List_fromArray(
+											[
 												A2(
-												$elm$core$List$map,
-												A2(
-													$elm$core$Basics$composeR,
-													$author$project$Katakomben$Data$Effect$toString,
-													function (_v8) {
-														var text = _v8.a;
-														var maybeColor = _v8.b;
-														return A2(
-															$mdgriffith$elm_ui$Element$el,
-															_Utils_ap(
-																_List_fromArray(
-																	[
-																		$mdgriffith$elm_ui$Element$Font$size(11)
-																	]),
-																function () {
-																	if (maybeColor.$ === 'Just') {
-																		var c = maybeColor.a;
-																		return _List_fromArray(
-																			[
-																				$mdgriffith$elm_ui$Element$Font$color(c),
-																				$mdgriffith$elm_ui$Element$Font$bold
-																			]);
-																	} else {
-																		return _List_Nil;
-																	}
-																}()),
-															$mdgriffith$elm_ui$Element$text(text));
-													}),
-												right.b)
-											]))),
-								onPress: $elm$core$Maybe$Just(
-									$author$project$Katakomben$View$Card$Selected($author$project$Katakomben$Data$Game$Right))
-							})
-						]))
-				]));
-	});
+												$mdgriffith$elm_ui$Element$el,
+												_List_fromArray(
+													[$mdgriffith$elm_ui$Element$Font$bold]),
+												$mdgriffith$elm_ui$Element$text(right.a + ' ->'))
+											]),
+											A2(
+											$elm$core$List$map,
+											A2(
+												$elm$core$Basics$composeR,
+												$author$project$Katakomben$Data$Effect$toString,
+												function (_v8) {
+													var text = _v8.a;
+													var maybeColor = _v8.b;
+													return A2(
+														$mdgriffith$elm_ui$Element$el,
+														_Utils_ap(
+															_List_fromArray(
+																[
+																	$mdgriffith$elm_ui$Element$Font$size(11)
+																]),
+															function () {
+																if (maybeColor.$ === 'Just') {
+																	var c = maybeColor.a;
+																	return _List_fromArray(
+																		[
+																			$mdgriffith$elm_ui$Element$Font$color(c),
+																			$mdgriffith$elm_ui$Element$Font$bold
+																		]);
+																} else {
+																	return _List_Nil;
+																}
+															}()),
+														$mdgriffith$elm_ui$Element$text(text));
+												}),
+											right.b)
+										]))),
+							onPress: $elm$core$Maybe$Just(
+								$author$project$Katakomben$View$Card$Selected($author$project$Katakomben$Data$Game$Right))
+						})
+					]))
+			]));
+};
 var $mdgriffith$elm_ui$Internal$Flag$overflow = $mdgriffith$elm_ui$Internal$Flag$flag(20);
 var $mdgriffith$elm_ui$Element$clipX = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$overflow, $mdgriffith$elm_ui$Internal$Style$classes.clipX);
 var $author$project$Katakomben$Data$Deck$toList = $lovasoa$elm_rolling_list$RollingList$toList;
@@ -14216,7 +14279,9 @@ var $mdgriffith$elm_ui$Element$wrappedRow = F2(
 		}
 	});
 var $author$project$Katakomben$View$Game$view = F2(
-	function (selected, game) {
+	function (_v0, game) {
+		var selected = _v0.selected;
+		var showAnimation = _v0.showAnimation;
 		return A2(
 			$mdgriffith$elm_ui$Element$column,
 			$Orasund$elm_ui_framework$Framework$Grid$simple,
@@ -14235,13 +14300,14 @@ var $author$project$Katakomben$View$Game$view = F2(
 							'Attack:' + $elm$core$String$fromInt(game.attack))
 						])),
 					$author$project$Katakomben$View$Deck$view(game.deck),
-					A2(
-					$author$project$Katakomben$View$Card$view,
-					selected,
-					_Utils_Tuple2(
-						$author$project$Katakomben$Data$Game$current(game),
-						$author$project$Katakomben$Data$Deck$current(
-							$author$project$Katakomben$Data$Deck$next(game.deck)))),
+					$author$project$Katakomben$View$Card$view(
+					{
+						card: $author$project$Katakomben$Data$Game$current(game),
+						maybeNextCard: $author$project$Katakomben$Data$Deck$current(
+							$author$project$Katakomben$Data$Deck$next(game.deck)),
+						selected: selected,
+						showAnimation: showAnimation
+					}),
 					A2(
 					$mdgriffith$elm_ui$Element$paragraph,
 					_List_fromArray(
@@ -14263,6 +14329,7 @@ var $author$project$Katakomben$View$Game$view = F2(
 var $author$project$Katakomben$Page$Playing$view = function (_v0) {
 	var game = _v0.game;
 	var selected = _v0.selected;
+	var showAnimation = _v0.showAnimation;
 	return _List_fromArray(
 		[
 			A2(
@@ -14270,14 +14337,16 @@ var $author$project$Katakomben$Page$Playing$view = function (_v0) {
 			function (msg) {
 				if (msg.$ === 'Selected') {
 					var dir = msg.a;
-					return $author$project$Katakomben$Page$Playing$Pressed(
-						$elm$core$Maybe$Just(dir));
+					return $author$project$Katakomben$Page$Playing$Selected(dir);
 				} else {
 					var dir = msg.a;
 					return $author$project$Katakomben$Page$Playing$MouseOver(dir);
 				}
 			},
-			A2($author$project$Katakomben$View$Game$view, selected, game))
+			A2(
+				$author$project$Katakomben$View$Game$view,
+				{selected: selected, showAnimation: showAnimation},
+				game))
 		]);
 };
 var $author$project$Katakomben$Page$Prepairing$view = function (model) {

@@ -15,8 +15,13 @@ bold =
     Element.text >> Element.el [ Font.bold ]
 
 
-view : Maybe Direction -> Game -> Element Card.Msg
-view selected game =
+view :
+    { selected : Maybe Direction
+    , showAnimation : Bool
+    }
+    -> Game
+    -> Element Card.Msg
+view { selected, showAnimation } game =
     Element.column Grid.simple
         [ Element.wrappedRow Grid.spaceEvenly
             [ Element.text <|
@@ -32,7 +37,12 @@ view selected game =
                     ++ String.fromInt game.attack
             ]
         , game.deck |> Deck.view
-        , Card.view selected ( game |> Game.current, game.deck |> Deck.next |> Deck.current )
+        , Card.view
+            { selected = selected
+            , card = game |> Game.current
+            , maybeNextCard = game.deck |> Deck.next |> Deck.current
+            , showAnimation = showAnimation
+            }
         , [ "Use your " |> Element.text
           , "left" |> bold
           , " and " |> Element.text

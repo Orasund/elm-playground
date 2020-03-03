@@ -22,10 +22,13 @@ type Msg
 
 
 view :
-    Maybe Direction
-    -> ( Card, Maybe Card )
+    { selected : Maybe Direction
+    , card : Card
+    , maybeNextCard : Maybe Card
+    , showAnimation : Bool
+    }
     -> Element Msg
-view selected ( card, maybeNextCard ) =
+view { selected, card, maybeNextCard, showAnimation } =
     let
         { name, left, right, desc, color } =
             card |> CardDetails.getDetails
@@ -38,6 +41,7 @@ view selected ( card, maybeNextCard ) =
                 , Element.height <| Element.fill
                 , Events.onMouseUp <| Selected Left
                 , Events.onMouseEnter <| Over (Just Left)
+                , Events.onMouseDown <| Over (Just Left)
                 , Events.onMouseLeave <| Over Nothing
                 , Element.focused <|
                     [ Border.shadow
@@ -62,11 +66,21 @@ view selected ( card, maybeNextCard ) =
                         ++ Card.simple
                         ++ [ Element.width <| Element.px <| 200
                            , Element.height <| Element.px <| 300
-                           , Element.htmlAttribute <|
-                                Attributes.style "transition" "transform 1s"
-                           , Element.htmlAttribute <|
-                                Attributes.style "transition-timing-function" "ease"
                            ]
+                        ++ (if showAnimation then
+                                [ Element.htmlAttribute <|
+                                    Attributes.style "transition" "transform 1s"
+                                , Element.htmlAttribute <|
+                                    Attributes.style "transition-timing-function" "ease"
+                                ]
+
+                            else
+                                [ Element.htmlAttribute <|
+                                    Attributes.style "transition" "transform 0s"
+                                , Element.htmlAttribute <|
+                                    Attributes.style "transition-timing-function" "ease"
+                                ]
+                           )
                         ++ (color |> List.map (Element.mapAttribute never))
                         ++ (case selected of
                                 Just Left ->
@@ -110,6 +124,7 @@ view selected ( card, maybeNextCard ) =
                 , Element.height <| Element.fill
                 , Events.onMouseUp <| Selected Right
                 , Events.onMouseEnter <| Over (Just Right)
+                , Events.onMouseDown <| Over (Just Right)
                 , Events.onMouseLeave <| Over Nothing
                 , Element.focused <|
                     [ Border.shadow
