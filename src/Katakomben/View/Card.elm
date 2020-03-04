@@ -11,6 +11,7 @@ import Framework.Card as Card
 import Framework.Grid as Grid
 import Html.Attributes as Attributes
 import Html.Events
+import Html.Events.Extra.Touch as Touch
 import Katakomben.Data.Card as Card exposing (Card)
 import Katakomben.Data.CardDetails as CardDetails
 import Katakomben.Data.Effect as Effect
@@ -42,8 +43,10 @@ view { selected, card, maybeNextCard, showAnimation } =
                 , Element.height <| Element.fill
                 , Events.onMouseUp <| Selected Left
                 , Events.onMouseEnter <| Over (Just Left)
-                , Events.onMouseMove <| Over (Just Left)
                 , Events.onMouseLeave <| Over Nothing
+                , Element.htmlAttribute <|
+                    Touch.onStart <|
+                        always (Over (Just Left))
                 , Element.focused <|
                     [ Border.shadow
                         { offset = ( 0, 0 )
@@ -56,7 +59,8 @@ view { selected, card, maybeNextCard, showAnimation } =
                 { onPress = Nothing
                 , label = Element.none
                 }
-            , [ name |> Element.text
+            , [ name |> Element.text |> Element.el [ Font.bold ]
+              , desc |> Element.text
               ]
                 |> List.map
                     (List.singleton
@@ -125,8 +129,10 @@ view { selected, card, maybeNextCard, showAnimation } =
                 , Element.height <| Element.fill
                 , Events.onMouseUp <| Selected Right
                 , Events.onMouseEnter <| Over (Just Right)
-                , Events.onMouseMove <| Over (Just Right)
                 , Events.onMouseLeave <| Over Nothing
+                , Element.htmlAttribute <|
+                    Touch.onStart <|
+                        always (Over (Just Right))
                 , Element.focused <|
                     [ Border.shadow
                         { offset = ( 0, 0 )
@@ -214,8 +220,11 @@ view { selected, card, maybeNextCard, showAnimation } =
                                 >> (\( text, maybeColor ) ->
                                         text
                                             |> Element.text
-                                            |> Element.el
-                                                ([ Font.size 11 ]
+                                            |> List.singleton
+                                            |> Element.paragraph
+                                                ([ Font.size 11
+                                                 , Element.spacing 0
+                                                 ]
                                                     ++ (case maybeColor of
                                                             Just c ->
                                                                 [ Font.color c

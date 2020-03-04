@@ -9,6 +9,9 @@ import Katakomben.Data.Monster exposing (Monster)
 type ConditionType
     = HasMoney Int
     | HasHealth Int
+    | HasMaxHealth Int
+    | HasAttack Int
+    | HasFullHealth
 
 
 type Effect
@@ -21,9 +24,11 @@ type Effect
     | AddRandomVermin Int
     | RemoveCard
     | AddPreviousCard Card
+    | AddCard Card
     | SetAttack Int
     | AddAttack Int
     | AddHealth Int
+    | AddMaxHealth Int
     | Attack
     | AddMoney Int
     | SetMaxHealth Int
@@ -38,6 +43,15 @@ conditionToString cond =
 
         HasHealth int ->
             "HEALTH>=" ++ String.fromInt int
+
+        HasMaxHealth int ->
+            "MAXHEALTH>=" ++ String.fromInt int
+
+        HasAttack int ->
+            "ATTACK>=" ++ String.fromInt int
+
+        HasFullHealth ->
+            "full health"
 
 
 toString : Effect -> ( String, Maybe Color )
@@ -110,6 +124,22 @@ toString effect =
             , Nothing
             )
 
+        AddMaxHealth int ->
+            ( (if int > 0 then
+                "+"
+
+               else
+                ""
+              )
+                ++ String.fromInt int
+                ++ " Max Health"
+            , if int > 0 then
+                Just Color.green
+
+              else
+                Just Color.red
+            )
+
         AddMoney int ->
             ( (if int > 0 then
                 "+"
@@ -126,9 +156,13 @@ toString effect =
                 Just Color.red
             )
 
-
         AddPreviousCard card ->
-            ( "Add a card under the stack"
+            ( "Add a card under the deck"
+            , Nothing
+            )
+
+        AddCard card ->
+            ( "Add a card on top of the deck"
             , Nothing
             )
 

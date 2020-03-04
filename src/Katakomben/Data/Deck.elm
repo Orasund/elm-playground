@@ -1,4 +1,4 @@
-module Katakomben.Data.Deck exposing (Deck, addNext,toList, addPrevious, current, fromList, jumpTo, next, remove)
+module Katakomben.Data.Deck exposing (Deck, add, addPrevious, current, fromList, jumpTo, next, remove, toList)
 
 import RollingList exposing (RollingList)
 
@@ -27,24 +27,21 @@ fromList : List a -> Deck a
 fromList =
     RollingList.fromList
 
+
 toList : Deck a -> List a
 toList =
     RollingList.toList
 
-addNext : a -> Deck a -> Deck a
-addNext a deck =
-    (case deck |> RollingList.toList of
-        b :: list ->
-            b :: a :: list
-
-        [] ->
-            [ a ]
-    )
-        |> RollingList.fromList
-
 
 addPrevious : a -> Deck a -> Deck a
 addPrevious a deck =
+    deck
+        |> add a
+        |> RollingList.roll
+
+
+add : a -> Deck a -> Deck a
+add a deck =
     (case deck |> RollingList.toList of
         b :: list ->
             a :: b :: list
@@ -53,7 +50,6 @@ addPrevious a deck =
             [ a ]
     )
         |> RollingList.fromList
-        |> RollingList.roll
 
 
 next : Deck a -> Deck a

@@ -5929,18 +5929,25 @@ var $Orasund$elm_action$Action$config = function (action) {
 		action,
 		{exitFun: $elm$core$Basics$never, modelMapper: $elm$core$Basics$never, msgMapper: $elm$core$Basics$never, transitionFun: $elm$core$Basics$never});
 };
+var $author$project$Katakomben$Data$Item$Armor = function (a) {
+	return {$: 'Armor', a: a};
+};
 var $author$project$Katakomben$Data$Card$Camp = {$: 'Camp'};
 var $author$project$Katakomben$Data$Card$CatacombsOfDunkelhall = {$: 'CatacombsOfDunkelhall'};
 var $author$project$Katakomben$Data$Card$Entrance = function (a) {
 	return {$: 'Entrance', a: a};
 };
-var $author$project$Katakomben$Data$Card$GraveyardChapel = {$: 'GraveyardChapel'};
+var $author$project$Katakomben$Data$Card$Shop = F2(
+	function (a, b) {
+		return {$: 'Shop', a: a, b: b};
+	});
 var $author$project$Katakomben$Data$Card$Shrine = function (a) {
 	return {$: 'Shrine', a: a};
 };
 var $author$project$Katakomben$Data$Card$Tomb = function (a) {
 	return {$: 'Tomb', a: a};
 };
+var $author$project$Katakomben$Data$Card$Village = {$: 'Village'};
 var $lovasoa$elm_rolling_list$RollingList$fromList = function (l) {
 	return {next: l, previous: _List_Nil};
 };
@@ -6017,8 +6024,16 @@ var $author$project$Katakomben$Data$Game$init = function (maybeDeck) {
 						$author$project$Katakomben$Data$Card$Tomb($author$project$Katakomben$Data$Card$CatacombsOfDunkelhall),
 						$author$project$Katakomben$Data$Card$Tomb($author$project$Katakomben$Data$Card$CatacombsOfDunkelhall),
 						$author$project$Katakomben$Data$Card$Shrine($author$project$Katakomben$Data$Card$CatacombsOfDunkelhall),
-						$author$project$Katakomben$Data$Card$Entrance($author$project$Katakomben$Data$Card$GraveyardChapel),
-						$author$project$Katakomben$Data$Card$Shrine($author$project$Katakomben$Data$Card$GraveyardChapel)
+						$author$project$Katakomben$Data$Card$Entrance($author$project$Katakomben$Data$Card$Village),
+						A2(
+						$author$project$Katakomben$Data$Card$Shop,
+						10,
+						{
+							desc: '',
+							name: 'Old Lether Armor',
+							sort: $author$project$Katakomben$Data$Item$Armor(2)
+						}),
+						$author$project$Katakomben$Data$Card$Shrine($author$project$Katakomben$Data$Card$Village)
 					]));
 		}
 	}();
@@ -6060,6 +6075,9 @@ var $author$project$Katakomben$Data$Card$Death = {$: 'Death'};
 var $author$project$Katakomben$Data$Card$Enemy = function (a) {
 	return {$: 'Enemy', a: a};
 };
+var $author$project$Katakomben$Data$Card$Info = function (a) {
+	return {$: 'Info', a: a};
+};
 var $author$project$Katakomben$Data$Card$Loot = function (a) {
 	return {$: 'Loot', a: a};
 };
@@ -6070,7 +6088,7 @@ var $lovasoa$elm_rolling_list$RollingList$toList = function (_v0) {
 		next,
 		$elm$core$List$reverse(previous));
 };
-var $author$project$Katakomben$Data$Deck$addNext = F2(
+var $author$project$Katakomben$Data$Deck$add = F2(
 	function (a, deck) {
 		return $lovasoa$elm_rolling_list$RollingList$fromList(
 			function () {
@@ -6080,8 +6098,8 @@ var $author$project$Katakomben$Data$Deck$addNext = F2(
 					var list = _v0.b;
 					return A2(
 						$elm$core$List$cons,
-						b,
-						A2($elm$core$List$cons, a, list));
+						a,
+						A2($elm$core$List$cons, b, list));
 				} else {
 					return _List_fromArray(
 						[a]);
@@ -6091,30 +6109,11 @@ var $author$project$Katakomben$Data$Deck$addNext = F2(
 var $author$project$Katakomben$Data$Deck$addPrevious = F2(
 	function (a, deck) {
 		return $lovasoa$elm_rolling_list$RollingList$roll(
-			$lovasoa$elm_rolling_list$RollingList$fromList(
-				function () {
-					var _v0 = $lovasoa$elm_rolling_list$RollingList$toList(deck);
-					if (_v0.b) {
-						var b = _v0.a;
-						var list = _v0.b;
-						return A2(
-							$elm$core$List$cons,
-							a,
-							A2($elm$core$List$cons, b, list));
-					} else {
-						return _List_fromArray(
-							[a]);
-					}
-				}()));
+			A2($author$project$Katakomben$Data$Deck$add, a, deck));
 	});
 var $elm$core$Basics$clamp = F3(
 	function (low, high, number) {
 		return (_Utils_cmp(number, low) < 0) ? low : ((_Utils_cmp(number, high) > 0) ? high : number);
-	});
-var $elm$core$Basics$composeR = F3(
-	function (f, g, x) {
-		return g(
-			f(x));
 	});
 var $elm$random$Random$constant = function (value) {
 	return $elm$random$Random$Generator(
@@ -6122,6 +6121,11 @@ var $elm$random$Random$constant = function (value) {
 			return _Utils_Tuple2(value, seed);
 		});
 };
+var $elm$core$Basics$composeR = F3(
+	function (f, g, x) {
+		return g(
+			f(x));
+	});
 var $author$project$Katakomben$Data$Deck$current = $lovasoa$elm_rolling_list$RollingList$current;
 var $elm$core$Maybe$withDefault = F2(
 	function (_default, maybe) {
@@ -6228,9 +6232,6 @@ var $author$project$Katakomben$Data$Item$generateHealing = function (quality) {
 					sort: $author$project$Katakomben$Data$Item$Healing(1)
 				})
 			]));
-};
-var $author$project$Katakomben$Data$Item$Armor = function (a) {
-	return {$: 'Armor', a: a};
 };
 var $author$project$Katakomben$Data$Item$generateArmor = function (quality) {
 	if (!quality) {
@@ -6359,15 +6360,15 @@ var $author$project$Katakomben$Data$Item$generateLoot = function (quality) {
 		A2(
 			$elm$random$Random$weighted,
 			_Utils_Tuple2(
-				1,
+				2,
 				$author$project$Katakomben$Data$Item$generateArmor(quality)),
 			_List_fromArray(
 				[
 					_Utils_Tuple2(
-					1,
+					3,
 					$author$project$Katakomben$Data$Item$generateWeapon(quality)),
 					_Utils_Tuple2(
-					1,
+					3,
 					$author$project$Katakomben$Data$Item$generateHealing(quality)),
 					_Utils_Tuple2(
 					3,
@@ -6469,7 +6470,7 @@ var $author$project$Katakomben$Data$Game$applyEffect = F2(
 								game,
 								{
 									deck: A2(
-										$author$project$Katakomben$Data$Deck$addNext,
+										$author$project$Katakomben$Data$Deck$add,
 										$author$project$Katakomben$Data$Card$Loot(item),
 										game.deck)
 								});
@@ -6484,7 +6485,7 @@ var $author$project$Katakomben$Data$Game$applyEffect = F2(
 								game,
 								{
 									deck: A2(
-										$author$project$Katakomben$Data$Deck$addNext,
+										$author$project$Katakomben$Data$Deck$add,
 										$author$project$Katakomben$Data$Card$Loot(item),
 										game.deck)
 								});
@@ -6499,7 +6500,7 @@ var $author$project$Katakomben$Data$Game$applyEffect = F2(
 								game,
 								{
 									deck: A2(
-										$author$project$Katakomben$Data$Deck$addNext,
+										$author$project$Katakomben$Data$Deck$add,
 										$author$project$Katakomben$Data$Card$Loot(item),
 										game.deck)
 								});
@@ -6514,7 +6515,7 @@ var $author$project$Katakomben$Data$Game$applyEffect = F2(
 								game,
 								{
 									deck: A2(
-										$author$project$Katakomben$Data$Deck$addNext,
+										$author$project$Katakomben$Data$Deck$add,
 										$author$project$Katakomben$Data$Card$Enemy(monster),
 										game.deck)
 								});
@@ -6529,7 +6530,7 @@ var $author$project$Katakomben$Data$Game$applyEffect = F2(
 								game,
 								{
 									deck: A2(
-										$author$project$Katakomben$Data$Deck$addNext,
+										$author$project$Katakomben$Data$Deck$add,
 										$author$project$Katakomben$Data$Card$Enemy(monster),
 										game.deck)
 								});
@@ -6550,16 +6551,22 @@ var $author$project$Katakomben$Data$Game$applyEffect = F2(
 							{
 								deck: A2($author$project$Katakomben$Data$Deck$addPrevious, card, game.deck)
 							}));
+				case 'AddCard':
+					var card = effect.a;
+					return $elm$random$Random$constant(
+						_Utils_update(
+							game,
+							{
+								deck: A2($author$project$Katakomben$Data$Deck$add, card, game.deck)
+							}));
 				case 'AddHealth':
 					var amount = effect.a;
 					return $elm$random$Random$constant(
 						_Utils_update(
 							game,
 							{
-								deck: (((game.health + amount) <= 0) ? A2(
-									$elm$core$Basics$composeR,
-									$author$project$Katakomben$Data$Deck$addNext($author$project$Katakomben$Data$Card$Death),
-									$author$project$Katakomben$Data$Deck$next) : $elm$core$Basics$identity)(game.deck),
+								deck: (((game.health + amount) <= 0) ? $author$project$Katakomben$Data$Deck$add($author$project$Katakomben$Data$Card$Death) : ((_Utils_eq(game.health, game.maxHealth) && (amount > 0)) ? $author$project$Katakomben$Data$Deck$add(
+									$author$project$Katakomben$Data$Card$Info('You are on full health. The healing effect did nothing.')) : $elm$core$Basics$identity))(game.deck),
 								health: A3($elm$core$Basics$clamp, 0, game.maxHealth, game.health + amount)
 							}));
 				case 'SetAttack':
@@ -6568,7 +6575,9 @@ var $author$project$Katakomben$Data$Game$applyEffect = F2(
 						_Utils_update(
 							game,
 							{
-								attack: A2($elm$core$Basics$max, amount, game.attack)
+								attack: A2($elm$core$Basics$max, amount, game.attack),
+								deck: ((_Utils_cmp(game.attack, amount) > 0) ? $author$project$Katakomben$Data$Deck$add(
+									$author$project$Katakomben$Data$Card$Info('You have a better Weapon equipped.')) : $elm$core$Basics$identity)(game.deck)
 							}));
 				case 'SetMaxHealth':
 					var amount = effect.a;
@@ -6577,6 +6586,14 @@ var $author$project$Katakomben$Data$Game$applyEffect = F2(
 							game,
 							{
 								maxHealth: A2($elm$core$Basics$max, amount + 2, game.maxHealth)
+							}));
+				case 'AddMaxHealth':
+					var amount = effect.a;
+					return $elm$random$Random$constant(
+						_Utils_update(
+							game,
+							{
+								maxHealth: A2($elm$core$Basics$max, 2, game.maxHealth + amount)
 							}));
 				case 'AddAttack':
 					var amount = effect.a;
@@ -6602,15 +6619,15 @@ var $author$project$Katakomben$Data$Game$applyEffect = F2(
 							_Utils_update(
 								game,
 								{
-									deck: $author$project$Katakomben$Data$Deck$remove(
-										(((monster.health - game.attack) > 0) ? $author$project$Katakomben$Data$Deck$addNext(
-											$author$project$Katakomben$Data$Card$Enemy(
-												_Utils_update(
-													monster,
-													{
-														attack: A3($elm$core$Basics$clamp, 1, monster.attack, monster.attack - 1),
-														health: A3($elm$core$Basics$clamp, 0, monster.health, monster.health - game.attack)
-													}))) : $elm$core$Basics$identity)(game.deck))
+									deck: (((monster.health - game.attack) > 0) ? $author$project$Katakomben$Data$Deck$add(
+										$author$project$Katakomben$Data$Card$Enemy(
+											_Utils_update(
+												monster,
+												{
+													attack: A3($elm$core$Basics$clamp, 1, monster.attack, monster.attack - 1),
+													health: A3($elm$core$Basics$clamp, 0, monster.health, monster.health - game.attack)
+												}))) : $elm$core$Basics$identity)(
+										$author$project$Katakomben$Data$Deck$remove(game.deck))
 								}));
 					} else {
 						return $elm$random$Random$constant(game);
@@ -6619,12 +6636,21 @@ var $author$project$Katakomben$Data$Game$applyEffect = F2(
 					var cond = effect.a;
 					var e = effect.b;
 					if (function () {
-						if (cond.$ === 'HasHealth') {
-							var amount = cond.a;
-							return _Utils_cmp(game.health, amount) > -1;
-						} else {
-							var amount = cond.a;
-							return _Utils_cmp(game.money, amount) > -1;
+						switch (cond.$) {
+							case 'HasHealth':
+								var amount = cond.a;
+								return _Utils_cmp(game.health, amount) > -1;
+							case 'HasMoney':
+								var amount = cond.a;
+								return _Utils_cmp(game.money, amount) > -1;
+							case 'HasMaxHealth':
+								var amount = cond.a;
+								return _Utils_cmp(game.maxHealth, amount) > -1;
+							case 'HasAttack':
+								var amount = cond.a;
+								return _Utils_cmp(game.attack, amount) > -1;
+							default:
+								return _Utils_cmp(game.health, game.maxHealth) > -1;
 						}
 					}()) {
 						var $temp$effect = e,
@@ -6641,11 +6667,17 @@ var $author$project$Katakomben$Data$Game$applyEffect = F2(
 var $author$project$Katakomben$Data$Effect$AddAttack = function (a) {
 	return {$: 'AddAttack', a: a};
 };
+var $author$project$Katakomben$Data$Effect$AddCard = function (a) {
+	return {$: 'AddCard', a: a};
+};
 var $author$project$Katakomben$Data$Effect$AddHealth = function (a) {
 	return {$: 'AddHealth', a: a};
 };
 var $author$project$Katakomben$Data$Effect$AddLoot = function (a) {
 	return {$: 'AddLoot', a: a};
+};
+var $author$project$Katakomben$Data$Effect$AddMaxHealth = function (a) {
+	return {$: 'AddMaxHealth', a: a};
 };
 var $author$project$Katakomben$Data$Effect$AddMoney = function (a) {
 	return {$: 'AddMoney', a: a};
@@ -6667,6 +6699,13 @@ var $author$project$Katakomben$Data$Effect$Conditional = F2(
 	function (a, b) {
 		return {$: 'Conditional', a: a, b: b};
 	});
+var $author$project$Katakomben$Data$Effect$HasAttack = function (a) {
+	return {$: 'HasAttack', a: a};
+};
+var $author$project$Katakomben$Data$Effect$HasFullHealth = {$: 'HasFullHealth'};
+var $author$project$Katakomben$Data$Effect$HasMaxHealth = function (a) {
+	return {$: 'HasMaxHealth', a: a};
+};
 var $author$project$Katakomben$Data$Effect$HasMoney = function (a) {
 	return {$: 'HasMoney', a: a};
 };
@@ -6765,6 +6804,12 @@ var $Orasund$elm_ui_framework$Framework$Color$dark = _List_fromArray(
 		$mdgriffith$elm_ui$Element$Border$color($Orasund$elm_ui_framework$Framework$Color$darkerGrey),
 		$mdgriffith$elm_ui$Element$Font$color($Orasund$elm_ui_framework$Framework$Color$lighterGrey)
 	]);
+var $Orasund$elm_ui_framework$Framework$Color$cyan = A3($mdgriffith$elm_ui$Element$rgb255, 32, 156, 238);
+var $Orasund$elm_ui_framework$Framework$Color$info = _List_fromArray(
+	[
+		$mdgriffith$elm_ui$Element$Background$color($Orasund$elm_ui_framework$Framework$Color$cyan),
+		$mdgriffith$elm_ui$Element$Border$color($Orasund$elm_ui_framework$Framework$Color$cyan)
+	]);
 var $Orasund$elm_ui_framework$Framework$Color$light = _List_fromArray(
 	[
 		$mdgriffith$elm_ui$Element$Background$color($Orasund$elm_ui_framework$Framework$Color$lighterGrey),
@@ -6782,12 +6827,6 @@ var $Orasund$elm_ui_framework$Framework$Color$simple = _List_fromArray(
 		$mdgriffith$elm_ui$Element$Background$color($Orasund$elm_ui_framework$Framework$Color$lightGrey),
 		$mdgriffith$elm_ui$Element$Border$color($Orasund$elm_ui_framework$Framework$Color$lightGrey)
 	]);
-var $Orasund$elm_ui_framework$Framework$Color$green = A3($mdgriffith$elm_ui$Element$rgb255, 35, 209, 96);
-var $Orasund$elm_ui_framework$Framework$Color$success = _List_fromArray(
-	[
-		$mdgriffith$elm_ui$Element$Background$color($Orasund$elm_ui_framework$Framework$Color$green),
-		$mdgriffith$elm_ui$Element$Border$color($Orasund$elm_ui_framework$Framework$Color$green)
-	]);
 var $Orasund$elm_ui_framework$Framework$Color$yellow = A3($mdgriffith$elm_ui$Element$rgb255, 255, 221, 87);
 var $Orasund$elm_ui_framework$Framework$Color$warning = _List_fromArray(
 	[
@@ -6799,23 +6838,17 @@ var $author$project$Katakomben$Data$CardDetails$getDetails = function (card) {
 		case 'Entrance':
 			var name = card.a;
 			return {
-				color: $Orasund$elm_ui_framework$Framework$Color$light,
-				desc: function () {
-					if (name.$ === 'CatacombsOfDunkelhall') {
-						return 'The Catacombs of the lords and ladys of Dunkelhall: Many have entered, but none have returned.';
-					} else {
-						return 'The chapel above the catacombs is sparly visited and has definitely seen better days.';
-					}
-				}(),
+				color: $Orasund$elm_ui_framework$Framework$Color$warning,
+				desc: 'Entrance',
 				left: _Utils_Tuple2(
 					'Continue',
 					_List_fromArray(
 						[$author$project$Katakomben$Data$Effect$NextCard])),
-				name: 'Entrance to ' + function () {
+				name: function () {
 					if (name.$ === 'CatacombsOfDunkelhall') {
-						return 'the catacombs of Dunkelhall';
+						return 'Catacombs of Dunkelhall';
 					} else {
-						return 'the graveyard chapel';
+						return 'Village';
 					}
 				}(),
 				right: _Utils_Tuple2(
@@ -6826,7 +6859,7 @@ var $author$project$Katakomben$Data$CardDetails$getDetails = function (card) {
 		case 'Death':
 			return {
 				color: $Orasund$elm_ui_framework$Framework$Color$dark,
-				desc: 'You are Dead',
+				desc: '',
 				left: _Utils_Tuple2('', _List_Nil),
 				name: 'Death',
 				right: _Utils_Tuple2(
@@ -6838,7 +6871,7 @@ var $author$project$Katakomben$Data$CardDetails$getDetails = function (card) {
 			var level = card.a;
 			return {
 				color: $Orasund$elm_ui_framework$Framework$Color$simple,
-				desc: 'Rest in Peace. It might be best to not desturb the dead.',
+				desc: '',
 				left: _Utils_Tuple2(
 					'Continue',
 					_List_fromArray(
@@ -6850,18 +6883,18 @@ var $author$project$Katakomben$Data$CardDetails$getDetails = function (card) {
 						if (level.$ === 'CatacombsOfDunkelhall') {
 							return _List_fromArray(
 								[
+									$author$project$Katakomben$Data$Effect$RemoveCard,
 									$author$project$Katakomben$Data$Effect$AddLoot(0),
 									$author$project$Katakomben$Data$Effect$AddLoot(0),
 									$author$project$Katakomben$Data$Effect$AddRandomHealItem(0),
-									$author$project$Katakomben$Data$Effect$AddRandomUndead(0),
-									$author$project$Katakomben$Data$Effect$RemoveCard
+									$author$project$Katakomben$Data$Effect$AddRandomUndead(0)
 								]);
 						} else {
 							return _List_fromArray(
 								[
+									$author$project$Katakomben$Data$Effect$RemoveCard,
 									$author$project$Katakomben$Data$Effect$AddRandomVermin(0),
-									$author$project$Katakomben$Data$Effect$AddLoot(0),
-									$author$project$Katakomben$Data$Effect$RemoveCard
+									$author$project$Katakomben$Data$Effect$AddLoot(0)
 								]);
 						}
 					}())
@@ -6870,7 +6903,23 @@ var $author$project$Katakomben$Data$CardDetails$getDetails = function (card) {
 			var item = card.a;
 			return {
 				color: $Orasund$elm_ui_framework$Framework$Color$primary,
-				desc: item.desc,
+				desc: function () {
+					var _v3 = item.sort;
+					switch (_v3.$) {
+						case 'Weapon':
+							var amount = _v3.a;
+							return 'Attack ' + $elm$core$String$fromInt(amount);
+						case 'Healing':
+							var amount = _v3.a;
+							return 'Health +' + $elm$core$String$fromInt(amount);
+						case 'Value':
+							var amount = _v3.a;
+							return $elm$core$String$fromInt(amount) + ' Money';
+						default:
+							var amount = _v3.a;
+							return 'Max Health ' + $elm$core$String$fromInt(amount + 2);
+					}
+				}(),
 				left: _Utils_Tuple2(
 					'Continue',
 					_List_fromArray(
@@ -6885,8 +6934,13 @@ var $author$project$Katakomben$Data$CardDetails$getDetails = function (card) {
 								'Equip',
 								_List_fromArray(
 									[
-										$author$project$Katakomben$Data$Effect$SetAttack(amount),
-										$author$project$Katakomben$Data$Effect$RemoveCard
+										$author$project$Katakomben$Data$Effect$RemoveCard,
+										A2(
+										$author$project$Katakomben$Data$Effect$Conditional,
+										$author$project$Katakomben$Data$Effect$HasAttack(amount),
+										$author$project$Katakomben$Data$Effect$AddCard(
+											$author$project$Katakomben$Data$Card$Loot(item))),
+										$author$project$Katakomben$Data$Effect$SetAttack(amount)
 									]));
 						case 'Healing':
 							var amount = _v4.a;
@@ -6894,8 +6948,13 @@ var $author$project$Katakomben$Data$CardDetails$getDetails = function (card) {
 								'Use',
 								_List_fromArray(
 									[
-										$author$project$Katakomben$Data$Effect$AddHealth(amount),
-										$author$project$Katakomben$Data$Effect$RemoveCard
+										$author$project$Katakomben$Data$Effect$RemoveCard,
+										A2(
+										$author$project$Katakomben$Data$Effect$Conditional,
+										$author$project$Katakomben$Data$Effect$HasFullHealth,
+										$author$project$Katakomben$Data$Effect$AddCard(
+											$author$project$Katakomben$Data$Card$Loot(item))),
+										$author$project$Katakomben$Data$Effect$AddHealth(amount)
 									]));
 						case 'Value':
 							var amount = _v4.a;
@@ -6903,8 +6962,8 @@ var $author$project$Katakomben$Data$CardDetails$getDetails = function (card) {
 								'Sell',
 								_List_fromArray(
 									[
-										$author$project$Katakomben$Data$Effect$AddMoney(amount),
-										$author$project$Katakomben$Data$Effect$RemoveCard
+										$author$project$Katakomben$Data$Effect$RemoveCard,
+										$author$project$Katakomben$Data$Effect$AddMoney(amount)
 									]));
 						default:
 							var amount = _v4.a;
@@ -6912,8 +6971,13 @@ var $author$project$Katakomben$Data$CardDetails$getDetails = function (card) {
 								'Equip',
 								_List_fromArray(
 									[
-										$author$project$Katakomben$Data$Effect$SetMaxHealth(amount),
-										$author$project$Katakomben$Data$Effect$RemoveCard
+										$author$project$Katakomben$Data$Effect$RemoveCard,
+										A2(
+										$author$project$Katakomben$Data$Effect$Conditional,
+										$author$project$Katakomben$Data$Effect$HasMaxHealth(amount + 2),
+										$author$project$Katakomben$Data$Effect$AddCard(
+											$author$project$Katakomben$Data$Card$Loot(item))),
+										$author$project$Katakomben$Data$Effect$SetMaxHealth(amount)
 									]));
 					}
 				}()
@@ -6922,7 +6986,7 @@ var $author$project$Katakomben$Data$CardDetails$getDetails = function (card) {
 			var monster = card.a;
 			return {
 				color: $Orasund$elm_ui_framework$Framework$Color$danger,
-				desc: monster.desc,
+				desc: 'Attack: ' + $elm$core$String$fromInt(monster.attack),
 				left: _Utils_Tuple2(
 					'Continue',
 					_List_fromArray(
@@ -6935,42 +6999,43 @@ var $author$project$Katakomben$Data$CardDetails$getDetails = function (card) {
 					'Attack',
 					_List_fromArray(
 						[
-							$author$project$Katakomben$Data$Effect$AddHealth(-monster.attack),
 							$author$project$Katakomben$Data$Effect$Attack,
-							$author$project$Katakomben$Data$Effect$AddAttack(-1)
+							$author$project$Katakomben$Data$Effect$AddHealth(-monster.attack),
+							$author$project$Katakomben$Data$Effect$AddAttack(-1),
+							$author$project$Katakomben$Data$Effect$AddMaxHealth(-1)
 						]))
 			};
 		case 'Camp':
 			return {
-				color: $Orasund$elm_ui_framework$Framework$Color$success,
-				desc: '',
+				color: $Orasund$elm_ui_framework$Framework$Color$light,
+				desc: '+1 Health or +1 Attack',
 				left: _Utils_Tuple2(
 					'Rest',
 					_List_fromArray(
 						[
-							$author$project$Katakomben$Data$Effect$AddHealth(1),
-							$author$project$Katakomben$Data$Effect$NextCard
+							$author$project$Katakomben$Data$Effect$NextCard,
+							$author$project$Katakomben$Data$Effect$AddHealth(1)
 						])),
 				name: 'Camp',
 				right: _Utils_Tuple2(
 					'Equip basic weapon',
 					_List_fromArray(
 						[
-							$author$project$Katakomben$Data$Effect$SetAttack(1),
-							$author$project$Katakomben$Data$Effect$NextCard
+							$author$project$Katakomben$Data$Effect$NextCard,
+							$author$project$Katakomben$Data$Effect$SetAttack(1)
 						]))
 			};
-		default:
+		case 'Shrine':
 			var level = card.a;
-			if (level.$ === 'GraveyardChapel') {
+			if (level.$ === 'Village') {
 				return {
-					color: $Orasund$elm_ui_framework$Framework$Color$success,
-					desc: 'The Chapel demands a donation. Heal yourself for 1 Health/Money.',
+					color: $Orasund$elm_ui_framework$Framework$Color$light,
+					desc: 'Sleep for 1 Health/Money',
 					left: _Utils_Tuple2(
 						'Continue',
 						_List_fromArray(
 							[$author$project$Katakomben$Data$Effect$NextCard])),
-					name: 'Altar',
+					name: 'Tavern',
 					right: _Utils_Tuple2(
 						'Pay for heal',
 						_List_fromArray(
@@ -6987,8 +7052,8 @@ var $author$project$Katakomben$Data$CardDetails$getDetails = function (card) {
 				};
 			} else {
 				return {
-					color: $Orasund$elm_ui_framework$Framework$Color$warning,
-					desc: 'The old tomb sits at the end of the hall. It\'s the only Tomb that looks like it might contain something of value.',
+					color: $Orasund$elm_ui_framework$Framework$Color$light,
+					desc: '',
 					left: _Utils_Tuple2(
 						'Continue',
 						_List_fromArray(
@@ -7004,14 +7069,55 @@ var $author$project$Katakomben$Data$CardDetails$getDetails = function (card) {
 							[
 								$author$project$Katakomben$Data$Effect$AddPreviousCard(
 								$author$project$Katakomben$Data$Card$Tomb($author$project$Katakomben$Data$Card$CatacombsOfDunkelhall)),
+								$author$project$Katakomben$Data$Effect$RemoveCard,
 								$author$project$Katakomben$Data$Effect$AddLoot(1),
 								$author$project$Katakomben$Data$Effect$AddLoot(1),
 								$author$project$Katakomben$Data$Effect$AddLoot(1),
-								$author$project$Katakomben$Data$Effect$AddRandomUndead(1),
-								$author$project$Katakomben$Data$Effect$NextCard
+								$author$project$Katakomben$Data$Effect$AddRandomUndead(1)
 							]))
 				};
 			}
+		case 'Shop':
+			var cost = card.a;
+			var item = card.b;
+			return {
+				color: $Orasund$elm_ui_framework$Framework$Color$light,
+				desc: item.name + (' for ' + ($elm$core$String$fromInt(cost) + ' Money')),
+				left: _Utils_Tuple2(
+					'Continue',
+					_List_fromArray(
+						[$author$project$Katakomben$Data$Effect$NextCard])),
+				name: 'Shop ',
+				right: _Utils_Tuple2(
+					'Buy',
+					_List_fromArray(
+						[
+							A2(
+							$author$project$Katakomben$Data$Effect$Conditional,
+							$author$project$Katakomben$Data$Effect$HasMoney(cost),
+							$author$project$Katakomben$Data$Effect$AddCard(
+								$author$project$Katakomben$Data$Card$Loot(item))),
+							A2(
+							$author$project$Katakomben$Data$Effect$Conditional,
+							$author$project$Katakomben$Data$Effect$HasMoney(cost),
+							$author$project$Katakomben$Data$Effect$AddMoney(-cost))
+						]))
+			};
+		default:
+			var string = card.a;
+			return {
+				color: $Orasund$elm_ui_framework$Framework$Color$info,
+				desc: '',
+				left: _Utils_Tuple2(
+					'Continue',
+					_List_fromArray(
+						[$author$project$Katakomben$Data$Effect$RemoveCard])),
+				name: string,
+				right: _Utils_Tuple2(
+					'Continue',
+					_List_fromArray(
+						[$author$project$Katakomben$Data$Effect$RemoveCard]))
+			};
 	}
 };
 var $elm$core$Tuple$second = function (_v0) {
@@ -7097,7 +7203,7 @@ var $author$project$Katakomben$Page$Playing$update = F2(
 									$elm$core$Basics$always(
 										$author$project$Katakomben$Page$Playing$MouseOver(
 											$elm$core$Maybe$Just(dir))),
-									$elm$core$Process$sleep(100))
+									$elm$core$Process$sleep(200))
 								]))));
 			case 'MouseOver':
 				var maybeDir = msg.a;
@@ -13438,13 +13544,6 @@ var $mdgriffith$elm_ui$Element$moveRight = function (x) {
 		$mdgriffith$elm_ui$Internal$Model$MoveX(x));
 };
 var $mdgriffith$elm_ui$Element$none = $mdgriffith$elm_ui$Internal$Model$Empty;
-var $elm$html$Html$Events$onMouseDown = function (msg) {
-	return A2(
-		$elm$html$Html$Events$on,
-		'mousedown',
-		$elm$json$Json$Decode$succeed(msg));
-};
-var $mdgriffith$elm_ui$Element$Events$onMouseDown = A2($elm$core$Basics$composeL, $mdgriffith$elm_ui$Internal$Model$Attr, $elm$html$Html$Events$onMouseDown);
 var $elm$html$Html$Events$onMouseEnter = function (msg) {
 	return A2(
 		$elm$html$Html$Events$on,
@@ -13459,12 +13558,6 @@ var $elm$html$Html$Events$onMouseLeave = function (msg) {
 		$elm$json$Json$Decode$succeed(msg));
 };
 var $mdgriffith$elm_ui$Element$Events$onMouseLeave = A2($elm$core$Basics$composeL, $mdgriffith$elm_ui$Internal$Model$Attr, $elm$html$Html$Events$onMouseLeave);
-var $elm$html$Html$Events$onMouseOver = function (msg) {
-	return A2(
-		$elm$html$Html$Events$on,
-		'mouseover',
-		$elm$json$Json$Decode$succeed(msg));
-};
 var $elm$html$Html$Events$onMouseUp = function (msg) {
 	return A2(
 		$elm$html$Html$Events$on,
@@ -13472,6 +13565,128 @@ var $elm$html$Html$Events$onMouseUp = function (msg) {
 		$elm$json$Json$Decode$succeed(msg));
 };
 var $mdgriffith$elm_ui$Element$Events$onMouseUp = A2($elm$core$Basics$composeL, $mdgriffith$elm_ui$Internal$Model$Attr, $elm$html$Html$Events$onMouseUp);
+var $mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$defaultOptions = {preventDefault: true, stopPropagation: false};
+var $elm$virtual_dom$VirtualDom$Custom = function (a) {
+	return {$: 'Custom', a: a};
+};
+var $elm$html$Html$Events$custom = F2(
+	function (event, decoder) {
+		return A2(
+			$elm$virtual_dom$VirtualDom$on,
+			event,
+			$elm$virtual_dom$VirtualDom$Custom(decoder));
+	});
+var $mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$Event = F4(
+	function (keys, changedTouches, targetTouches, touches) {
+		return {changedTouches: changedTouches, keys: keys, targetTouches: targetTouches, touches: touches};
+	});
+var $mpizenberg$elm_pointer_events$Internal$Decode$Keys = F3(
+	function (alt, ctrl, shift) {
+		return {alt: alt, ctrl: ctrl, shift: shift};
+	});
+var $elm$json$Json$Decode$bool = _Json_decodeBool;
+var $elm$json$Json$Decode$map3 = _Json_map3;
+var $mpizenberg$elm_pointer_events$Internal$Decode$keys = A4(
+	$elm$json$Json$Decode$map3,
+	$mpizenberg$elm_pointer_events$Internal$Decode$Keys,
+	A2($elm$json$Json$Decode$field, 'altKey', $elm$json$Json$Decode$bool),
+	A2($elm$json$Json$Decode$field, 'ctrlKey', $elm$json$Json$Decode$bool),
+	A2($elm$json$Json$Decode$field, 'shiftKey', $elm$json$Json$Decode$bool));
+var $elm$json$Json$Decode$map4 = _Json_map4;
+var $mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$Touch = F4(
+	function (identifier, clientPos, pagePos, screenPos) {
+		return {clientPos: clientPos, identifier: identifier, pagePos: pagePos, screenPos: screenPos};
+	});
+var $elm$json$Json$Decode$float = _Json_decodeFloat;
+var $mpizenberg$elm_pointer_events$Internal$Decode$clientPos = A3(
+	$elm$json$Json$Decode$map2,
+	F2(
+		function (a, b) {
+			return _Utils_Tuple2(a, b);
+		}),
+	A2($elm$json$Json$Decode$field, 'clientX', $elm$json$Json$Decode$float),
+	A2($elm$json$Json$Decode$field, 'clientY', $elm$json$Json$Decode$float));
+var $elm$json$Json$Decode$int = _Json_decodeInt;
+var $mpizenberg$elm_pointer_events$Internal$Decode$pagePos = A3(
+	$elm$json$Json$Decode$map2,
+	F2(
+		function (a, b) {
+			return _Utils_Tuple2(a, b);
+		}),
+	A2($elm$json$Json$Decode$field, 'pageX', $elm$json$Json$Decode$float),
+	A2($elm$json$Json$Decode$field, 'pageY', $elm$json$Json$Decode$float));
+var $mpizenberg$elm_pointer_events$Internal$Decode$screenPos = A3(
+	$elm$json$Json$Decode$map2,
+	F2(
+		function (a, b) {
+			return _Utils_Tuple2(a, b);
+		}),
+	A2($elm$json$Json$Decode$field, 'screenX', $elm$json$Json$Decode$float),
+	A2($elm$json$Json$Decode$field, 'screenY', $elm$json$Json$Decode$float));
+var $mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$touchDecoder = A5(
+	$elm$json$Json$Decode$map4,
+	$mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$Touch,
+	A2($elm$json$Json$Decode$field, 'identifier', $elm$json$Json$Decode$int),
+	$mpizenberg$elm_pointer_events$Internal$Decode$clientPos,
+	$mpizenberg$elm_pointer_events$Internal$Decode$pagePos,
+	$mpizenberg$elm_pointer_events$Internal$Decode$screenPos);
+var $mpizenberg$elm_pointer_events$Internal$Decode$all = A2(
+	$elm$core$List$foldr,
+	$elm$json$Json$Decode$map2($elm$core$List$cons),
+	$elm$json$Json$Decode$succeed(_List_Nil));
+var $mpizenberg$elm_pointer_events$Internal$Decode$dynamicListOf = function (itemDecoder) {
+	var decodeOne = function (n) {
+		return A2(
+			$elm$json$Json$Decode$field,
+			$elm$core$String$fromInt(n),
+			itemDecoder);
+	};
+	var decodeN = function (n) {
+		return $mpizenberg$elm_pointer_events$Internal$Decode$all(
+			A2(
+				$elm$core$List$map,
+				decodeOne,
+				A2($elm$core$List$range, 0, n - 1)));
+	};
+	return A2(
+		$elm$json$Json$Decode$andThen,
+		decodeN,
+		A2($elm$json$Json$Decode$field, 'length', $elm$json$Json$Decode$int));
+};
+var $mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$touchListDecoder = $mpizenberg$elm_pointer_events$Internal$Decode$dynamicListOf;
+var $mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$eventDecoder = A5(
+	$elm$json$Json$Decode$map4,
+	$mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$Event,
+	$mpizenberg$elm_pointer_events$Internal$Decode$keys,
+	A2(
+		$elm$json$Json$Decode$field,
+		'changedTouches',
+		$mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$touchListDecoder($mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$touchDecoder)),
+	A2(
+		$elm$json$Json$Decode$field,
+		'targetTouches',
+		$mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$touchListDecoder($mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$touchDecoder)),
+	A2(
+		$elm$json$Json$Decode$field,
+		'touches',
+		$mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$touchListDecoder($mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$touchDecoder)));
+var $mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$onWithOptions = F3(
+	function (event, options, tag) {
+		return A2(
+			$elm$html$Html$Events$custom,
+			event,
+			A2(
+				$elm$json$Json$Decode$map,
+				function (ev) {
+					return {
+						message: tag(ev),
+						preventDefault: options.preventDefault,
+						stopPropagation: options.stopPropagation
+					};
+				},
+				$mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$eventDecoder));
+	});
+var $mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$onStart = A2($mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$onWithOptions, 'touchstart', $mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$defaultOptions);
 var $mdgriffith$elm_ui$Internal$Model$Px = function (a) {
 	return {$: 'Px', a: a};
 };
@@ -13625,14 +13840,24 @@ var $mdgriffith$elm_ui$Element$textColumn = F2(
 			$mdgriffith$elm_ui$Internal$Model$Unkeyed(children));
 	});
 var $author$project$Katakomben$Data$Effect$conditionToString = function (cond) {
-	if (cond.$ === 'HasMoney') {
-		var _int = cond.a;
-		return 'MONEY>=' + $elm$core$String$fromInt(_int);
-	} else {
-		var _int = cond.a;
-		return 'HEALTH>=' + $elm$core$String$fromInt(_int);
+	switch (cond.$) {
+		case 'HasMoney':
+			var _int = cond.a;
+			return 'MONEY>=' + $elm$core$String$fromInt(_int);
+		case 'HasHealth':
+			var _int = cond.a;
+			return 'HEALTH>=' + $elm$core$String$fromInt(_int);
+		case 'HasMaxHealth':
+			var _int = cond.a;
+			return 'MAXHEALTH>=' + $elm$core$String$fromInt(_int);
+		case 'HasAttack':
+			var _int = cond.a;
+			return 'ATTACK>=' + $elm$core$String$fromInt(_int);
+		default:
+			return 'full health';
 	}
 };
+var $Orasund$elm_ui_framework$Framework$Color$green = A3($mdgriffith$elm_ui$Element$rgb255, 35, 209, 96);
 var $author$project$Katakomben$Data$Effect$toString = function (effect) {
 	switch (effect.$) {
 		case 'Restart':
@@ -13684,6 +13909,11 @@ var $author$project$Katakomben$Data$Effect$toString = function (effect) {
 				(_int > 0) ? $elm$core$Maybe$Just($Orasund$elm_ui_framework$Framework$Color$green) : $elm$core$Maybe$Just($Orasund$elm_ui_framework$Framework$Color$red));
 		case 'Attack':
 			return _Utils_Tuple2('Damage the monster', $elm$core$Maybe$Nothing);
+		case 'AddMaxHealth':
+			var _int = effect.a;
+			return _Utils_Tuple2(
+				((_int > 0) ? '+' : '') + ($elm$core$String$fromInt(_int) + ' Max Health'),
+				(_int > 0) ? $elm$core$Maybe$Just($Orasund$elm_ui_framework$Framework$Color$green) : $elm$core$Maybe$Just($Orasund$elm_ui_framework$Framework$Color$red));
 		case 'AddMoney':
 			var _int = effect.a;
 			return _Utils_Tuple2(
@@ -13691,7 +13921,10 @@ var $author$project$Katakomben$Data$Effect$toString = function (effect) {
 				(_int > 0) ? $elm$core$Maybe$Just($Orasund$elm_ui_framework$Framework$Color$green) : $elm$core$Maybe$Just($Orasund$elm_ui_framework$Framework$Color$red));
 		case 'AddPreviousCard':
 			var card = effect.a;
-			return _Utils_Tuple2('Add a card under the stack', $elm$core$Maybe$Nothing);
+			return _Utils_Tuple2('Add a card under the deck', $elm$core$Maybe$Nothing);
+		case 'AddCard':
+			var card = effect.a;
+			return _Utils_Tuple2('Add a card on top of the deck', $elm$core$Maybe$Nothing);
 		default:
 			var cond = effect.a;
 			var e = effect.b;
@@ -13736,15 +13969,13 @@ var $author$project$Katakomben$View$Card$view = function (_v0) {
 								$mdgriffith$elm_ui$Element$Events$onMouseEnter(
 								$author$project$Katakomben$View$Card$Over(
 									$elm$core$Maybe$Just($author$project$Katakomben$Data$Game$Left))),
-								$mdgriffith$elm_ui$Element$Events$onMouseDown(
-								$author$project$Katakomben$View$Card$Over(
-									$elm$core$Maybe$Just($author$project$Katakomben$Data$Game$Left))),
 								$mdgriffith$elm_ui$Element$Events$onMouseLeave(
 								$author$project$Katakomben$View$Card$Over($elm$core$Maybe$Nothing)),
 								$mdgriffith$elm_ui$Element$htmlAttribute(
-								$elm$html$Html$Events$onMouseOver(
-									$author$project$Katakomben$View$Card$Over(
-										$elm$core$Maybe$Just($author$project$Katakomben$Data$Game$Left)))),
+								$mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$onStart(
+									$elm$core$Basics$always(
+										$author$project$Katakomben$View$Card$Over(
+											$elm$core$Maybe$Just($author$project$Katakomben$Data$Game$Left))))),
 								$mdgriffith$elm_ui$Element$focused(
 								_List_fromArray(
 									[
@@ -13860,7 +14091,12 @@ var $author$project$Katakomben$View$Card$view = function (_v0) {
 									$mdgriffith$elm_ui$Element$paragraph(_List_Nil)),
 								_List_fromArray(
 									[
-										$mdgriffith$elm_ui$Element$text(name)
+										A2(
+										$mdgriffith$elm_ui$Element$el,
+										_List_fromArray(
+											[$mdgriffith$elm_ui$Element$Font$bold]),
+										$mdgriffith$elm_ui$Element$text(name)),
+										$mdgriffith$elm_ui$Element$text(desc)
 									])))),
 						A2(
 						$mdgriffith$elm_ui$Element$Input$button,
@@ -13873,15 +14109,13 @@ var $author$project$Katakomben$View$Card$view = function (_v0) {
 								$mdgriffith$elm_ui$Element$Events$onMouseEnter(
 								$author$project$Katakomben$View$Card$Over(
 									$elm$core$Maybe$Just($author$project$Katakomben$Data$Game$Right))),
-								$mdgriffith$elm_ui$Element$Events$onMouseDown(
-								$author$project$Katakomben$View$Card$Over(
-									$elm$core$Maybe$Just($author$project$Katakomben$Data$Game$Right))),
-								$mdgriffith$elm_ui$Element$htmlAttribute(
-								$elm$html$Html$Events$onMouseOver(
-									$author$project$Katakomben$View$Card$Over(
-										$elm$core$Maybe$Just($author$project$Katakomben$Data$Game$Right)))),
 								$mdgriffith$elm_ui$Element$Events$onMouseLeave(
 								$author$project$Katakomben$View$Card$Over($elm$core$Maybe$Nothing)),
+								$mdgriffith$elm_ui$Element$htmlAttribute(
+								$mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$onStart(
+									$elm$core$Basics$always(
+										$author$project$Katakomben$View$Card$Over(
+											$elm$core$Maybe$Just($author$project$Katakomben$Data$Game$Right))))),
 								$mdgriffith$elm_ui$Element$focused(
 								_List_fromArray(
 									[
@@ -14012,11 +14246,12 @@ var $author$project$Katakomben$View$Card$view = function (_v0) {
 													var text = _v8.a;
 													var maybeColor = _v8.b;
 													return A2(
-														$mdgriffith$elm_ui$Element$el,
+														$mdgriffith$elm_ui$Element$paragraph,
 														_Utils_ap(
 															_List_fromArray(
 																[
-																	$mdgriffith$elm_ui$Element$Font$size(11)
+																	$mdgriffith$elm_ui$Element$Font$size(11),
+																	$mdgriffith$elm_ui$Element$spacing(0)
 																]),
 															function () {
 																if (maybeColor.$ === 'Just') {
@@ -14030,7 +14265,8 @@ var $author$project$Katakomben$View$Card$view = function (_v0) {
 																	return _List_Nil;
 																}
 															}()),
-														$mdgriffith$elm_ui$Element$text(text));
+														$elm$core$List$singleton(
+															$mdgriffith$elm_ui$Element$text(text)));
 												}),
 											right.b)
 										]))),

@@ -7,7 +7,6 @@ import Katakomben.Data.Effect exposing (ConditionType(..), Effect(..))
 import Katakomben.Data.Item exposing (Item, ItemSort(..))
 import Katakomben.Data.Monster exposing (Monster)
 
-
 type alias CardDetails =
     { name : String
     , desc : String
@@ -22,29 +21,21 @@ getDetails card =
     case card of
         Entrance name ->
             { name =
-                "Entrance to "
-                    ++ (case name of
-                            CatacombsOfDunkelhall ->
-                                "the catacombs of Dunkelhall"
-
-                            GraveyardChapel ->
-                                "the graveyard chapel"
-                       )
-            , desc =
                 case name of
                     CatacombsOfDunkelhall ->
-                        "The Catacombs of the lords and ladys of Dunkelhall: Many have entered, but none have returned."
+                        "Catacombs of Dunkelhall"
 
-                    GraveyardChapel ->
-                        "The chapel above the catacombs is sparly visited and has definitely seen better days."
+                    Village ->
+                        "Village"
+            , desc = "Entrance"
             , left = ( "Continue", [ NextCard ] )
             , right = ( "Continue", [ NextCard ] )
-            , color = Color.light
+            , color = Color.warning
             }
 
         Death ->
             { name = "Death"
-            , desc = "You are Dead"
+            , desc = ""
             , left = ( "", [] )
             , right = ( "Restart", [ RemoveCard, Restart ] )
             , color = Color.dark
@@ -52,23 +43,23 @@ getDetails card =
 
         Tomb level ->
             { name = "Tomb"
-            , desc = "Rest in Peace. It might be best to not desturb the dead."
+            , desc = ""
             , left = ( "Continue", [ NextCard ] )
             , right =
                 ( "Open"
                 , case level of
                     CatacombsOfDunkelhall ->
-                        [ AddLoot 0
+                        [ RemoveCard
+                        , AddLoot 0
                         , AddLoot 0
                         , AddRandomHealItem 0
                         , AddRandomUndead 0
-                        , RemoveCard
                         ]
 
-                    GraveyardChapel ->
-                        [ AddRandomVermin 0
+                    Village ->
+                        [ RemoveCard
+                        , AddRandomVermin 0
                         , AddLoot 0
-                        , RemoveCard
                         ]
                 )
             , color = Color.simple
@@ -76,35 +67,53 @@ getDetails card =
 
         Loot item ->
             { name = item.name
-            , desc = item.desc
+            , desc =
+                case item.sort of
+                    Weapon amount ->
+                        "Attack " ++ String.fromInt amount
+
+                    Healing amount ->
+                        "Health +" ++ String.fromInt amount
+
+                    Value amount ->
+                        String.fromInt amount ++ " Money"
+
+                    Armor amount ->
+                        "Max Health " ++ String.fromInt (amount + 2)
             , left = ( "Continue", [ NextCard ] )
             , right =
                 case item.sort of
                     Weapon amount ->
                         ( "Equip"
-                        , [ SetAttack amount
-                          , RemoveCard
+                        , [ RemoveCard
+                          , Conditional (HasAttack amount) <|
+                                AddCard (Loot item)
+                          , SetAttack amount
                           ]
                         )
 
                     Healing amount ->
                         ( "Use"
-                        , [ AddHealth amount
-                          , RemoveCard
+                        , [ RemoveCard
+                          , Conditional HasFullHealth <|
+                                AddCard (Loot item)
+                          , AddHealth amount
                           ]
                         )
 
                     Value amount ->
                         ( "Sell"
-                        , [ AddMoney amount
-                          , RemoveCard
+                        , [ RemoveCard
+                          , AddMoney amount
                           ]
                         )
 
                     Armor amount ->
                         ( "Equip"
-                        , [ SetMaxHealth amount
-                          , RemoveCard
+                        , [ RemoveCard
+                          , Conditional (HasMaxHealth (amount + 2)) <|
+                                AddCard (Loot item)
+                          , SetMaxHealth amount
                           ]
                         )
             , color = Color.primary
@@ -116,7 +125,7 @@ getDetails card =
                     ++ " (Health: "
                     ++ String.fromInt monster.health
                     ++ ")"
-            , desc = monster.desc
+            , desc = "Attack: " ++ String.fromInt monster.attack
             , left =
                 ( "Continue"
                 , [ NextCard
@@ -125,9 +134,10 @@ getDetails card =
                 )
             , right =
                 ( "Attack"
-                , [ AddHealth -monster.attack
-                  , Attack
+                , [ Attack
+                  , AddHealth -monster.attack
                   , AddAttack -1
+                  , AddMaxHealth -1
                   ]
                 )
             , color = Color.danger
@@ -135,27 +145,27 @@ getDetails card =
 
         Camp ->
             { name = "Camp"
-            , desc = ""
+            , desc = "+1 Health or +1 Attack"
             , left =
                 ( "Rest"
-                , [ AddHealth 1
-                  , NextCard
+                , [ NextCard
+                  , AddHealth 1
                   ]
                 )
             , right =
                 ( "Equip basic weapon"
-                , [ SetAttack 1
-                  , NextCard
+                , [ NextCard
+                  , SetAttack 1
                   ]
                 )
-            , color = Color.success
+            , color = Color.light
             }
 
         Shrine level ->
             case level of
-                GraveyardChapel ->
-                    { name = "Altar"
-                    , desc = "The Chapel demands a donation. Heal yourself for 1 Health/Money."
+                Village ->
+                    { name = "Tavern"
+                    , desc = "Sleep for 1 Health/Money"
                     , left =
                         ( "Continue"
                         , [ NextCard
@@ -167,29 +177,60 @@ getDetails card =
                           , Conditional (HasMoney 1) (AddMoney -1)
                           ]
                         )
-                    , color = Color.success
+                    , color = Color.light
                     }
 
                 CatacombsOfDunkelhall ->
                     { name = "Tomb of Pater Erhard"
-                    , desc = "The old tomb sits at the end of the hall. It's the only Tomb that looks like it might contain something of value."
+                    , desc = ""
                     , left =
                         ( "Continue"
-                        , [ AddPreviousCard
-                                (Tomb CatacombsOfDunkelhall)
+                        , [ AddPreviousCard (Tomb CatacombsOfDunkelhall)
                           , NextCard
                           ]
                         )
                     , right =
                         ( "Open"
-                        , [ AddPreviousCard
-                                (Tomb CatacombsOfDunkelhall)
+                        , [ AddPreviousCard (Tomb CatacombsOfDunkelhall)
+                          , RemoveCard
                           , AddLoot 1
                           , AddLoot 1
                           , AddLoot 1
                           , AddRandomUndead 1
-                          , NextCard
                           ]
                         )
-                    , color = Color.warning
+                    , color = Color.light
                     }
+
+        Shop cost item ->
+            { name = "Shop "
+            , desc = item.name ++ " for " ++ String.fromInt cost ++ " Money"
+            , left =
+                ( "Continue"
+                , [ NextCard
+                  ]
+                )
+            , right =
+                ( "Buy"
+                , [ Conditional (HasMoney cost) (AddCard (Loot item))
+                  , Conditional (HasMoney cost) (AddMoney -cost)
+                  ]
+                )
+            , color = Color.light
+            }
+
+        Info string ->
+            { name = string
+            , desc = ""
+            , left =
+                ( "Continue"
+                , [ RemoveCard
+                  ]
+                )
+            , right =
+                ( "Continue"
+                , [ RemoveCard
+                  ]
+                )
+            , color = Color.info
+            }

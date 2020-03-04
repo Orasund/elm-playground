@@ -196,7 +196,7 @@ view model =
     , body =
         [ Html.node "meta"
             [ Attributes.attribute "name" "viewport"
-            , Attributes.attribute "content" "width=device-width, initial-scale=1.0"
+            , Attributes.attribute "content" "width=device-width, initial-scale=1.0, user-scalable=no"
             ]
             []
         , Element.layoutWith

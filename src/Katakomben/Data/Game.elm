@@ -4,7 +4,7 @@ import Katakomben.Data.Card exposing (Card(..), Level(..))
 import Katakomben.Data.CardDetails as CardDetails
 import Katakomben.Data.Deck as Deck exposing (Deck)
 import Katakomben.Data.Effect exposing (ConditionType(..), Effect(..))
-import Katakomben.Data.Item as Item
+import Katakomben.Data.Item as Item exposing (ItemSort(..))
 import Katakomben.Data.Monster as Monster
 import Random exposing (Generator)
 
@@ -51,8 +51,13 @@ init maybeDeck =
                     , Tomb CatacombsOfDunkelhall
                     , Tomb CatacombsOfDunkelhall
                     , Shrine CatacombsOfDunkelhall
-                    , Entrance GraveyardChapel
-                    , Shrine GraveyardChapel
+                    , Entrance Village
+                    , Shop 10
+                        { name = "Old Lether Armor"
+                        , sort = Armor 2
+                        , desc = ""
+                        }
+                    , Shrine Village
                     ]
                         |> Deck.fromList
     in
@@ -83,7 +88,7 @@ applyEffect effect game =
                 |> Random.map
                     (\item ->
                         { game
-                            | deck = game.deck |> Deck.addNext (Loot item)
+                            | deck = game.deck |> Deck.add (Loot item)
                         }
                     )
 
@@ -92,7 +97,7 @@ applyEffect effect game =
                 |> Random.map
                     (\item ->
                         { game
-                            | deck = game.deck |> Deck.addNext (Loot item)
+                            | deck = game.deck |> Deck.add (Loot item)
                         }
                     )
 
@@ -101,7 +106,7 @@ applyEffect effect game =
                 |> Random.map
                     (\item ->
                         { game
-                            | deck = game.deck |> Deck.addNext (Loot item)
+                            | deck = game.deck |> Deck.add (Loot item)
                         }
                     )
 
@@ -110,7 +115,7 @@ applyEffect effect game =
                 |> Random.map
                     (\monster ->
                         { game
-                            | deck = game.deck |> Deck.addNext (Enemy monster)
+                            | deck = game.deck |> Deck.add (Enemy monster)
                         }
                     )
 
@@ -119,7 +124,7 @@ applyEffect effect game =
                 |> Random.map
                     (\monster ->
                         { game
-                            | deck = game.deck |> Deck.addNext (Enemy monster)
+                            | deck = game.deck |> Deck.add (Enemy monster)
                         }
                     )
 
@@ -139,6 +144,14 @@ applyEffect effect game =
             }
                 |> Random.constant
 
+        AddCard card ->
+            { game
+                | deck =
+                    game.deck
+                        |> Deck.add card
+            }
+                |> Random.constant
+
         AddHealth amount ->
             { game
                 | health =
@@ -148,7 +161,10 @@ applyEffect effect game =
                 , deck =
                     game.deck
                         |> (if game.health + amount <= 0 then
-                                Deck.addNext Death >> Deck.next
+                                Deck.add Death
+
+                            else if (game.health == game.maxHealth) && (amount > 0) then
+                                Deck.add <| Info "You are on full health. The healing effect did nothing."
 
                             else
                                 identity
@@ -159,12 +175,26 @@ applyEffect effect game =
         SetAttack amount ->
             { game
                 | attack = max amount game.attack
+                , deck =
+                    game.deck
+                        |> (if game.attack > amount then
+                                Deck.add <| Info "You have a better Weapon equipped."
+
+                            else
+                                identity
+                           )
             }
                 |> Random.constant
 
         SetMaxHealth amount ->
             { game
                 | maxHealth = max (amount + 2) game.maxHealth
+            }
+                |> Random.constant
+
+        AddMaxHealth amount ->
+            { game
+                | maxHealth = max 2 (game.maxHealth + amount)
             }
                 |> Random.constant
 
@@ -189,8 +219,9 @@ applyEffect effect game =
                     { game
                         | deck =
                             game.deck
+                                |> Deck.remove
                                 |> (if monster.health - game.attack > 0 then
-                                        Deck.addNext
+                                        Deck.add
                                             (Enemy
                                                 { monster
                                                     | health =
@@ -207,7 +238,6 @@ applyEffect effect game =
                                     else
                                         identity
                                    )
-                                |> Deck.remove
                     }
                         |> Random.constant
 
@@ -222,6 +252,15 @@ applyEffect effect game =
 
                     HasMoney amount ->
                         game.money >= amount
+
+                    HasMaxHealth amount ->
+                        game.maxHealth >= amount
+
+                    HasAttack amount ->
+                        game.attack >= amount
+
+                    HasFullHealth ->
+                        game.health >= game.maxHealth
             then
                 applyEffect e game
 

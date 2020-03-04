@@ -8,7 +8,7 @@ import Katakomben.Data.Monster exposing (Monster)
 
 type Level
     = CatacombsOfDunkelhall
-    | GraveyardChapel
+    | Village
 
 
 type Card
@@ -19,3 +19,5 @@ type Card
     | Enemy Monster
     | Camp
     | Shrine Level
+    | Shop Int Item
+    | Info String

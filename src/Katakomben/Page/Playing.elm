@@ -84,7 +84,7 @@ update msg model =
                 , Cmd.batch
                     [ Process.sleep 10
                         |> Task.perform (always ActivateAnimation)
-                    , Process.sleep 100
+                    , Process.sleep 200
                         |> Task.perform (always (MouseOver (Just dir)))
                     ]
                 )
