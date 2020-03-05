@@ -16,11 +16,21 @@ import Katakomben.Data.Card as Card exposing (Card)
 import Katakomben.Data.CardDetails as CardDetails
 import Katakomben.Data.Effect as Effect
 import Katakomben.Data.Game exposing (Direction(..))
+import Tuple
 
 
 type Msg
     = Selected Direction
     | Over (Maybe Direction)
+    | Swiping (Maybe Float)
+
+
+touchCoordinates : Touch.Event -> Float
+touchCoordinates touchEvent =
+    List.head touchEvent.changedTouches
+        |> Maybe.map .clientPos
+        |> Maybe.withDefault ( 0, 0 )
+        |> Tuple.first
 
 
 view :
@@ -35,7 +45,14 @@ view { selected, card, maybeNextCard, showAnimation } =
         { name, left, right, desc, color } =
             card |> CardDetails.getDetails
     in
-    Element.column Grid.simple
+    Element.column
+        (Grid.simple
+            ++ [ Element.htmlAttribute <|
+                    Touch.onMove (touchCoordinates >> Just >> Swiping)
+               , Element.htmlAttribute <|
+                    Touch.onEnd (always (Swiping Nothing))
+               ]
+        )
         [ Element.row Grid.spaceEvenly
             [ Input.button
                 [ Element.width <| Element.fill
@@ -44,9 +61,6 @@ view { selected, card, maybeNextCard, showAnimation } =
                 , Events.onMouseUp <| Selected Left
                 , Events.onMouseEnter <| Over (Just Left)
                 , Events.onMouseLeave <| Over Nothing
-                , Element.htmlAttribute <|
-                    Touch.onStart <|
-                        always (Over (Just Left))
                 , Element.focused <|
                     [ Border.shadow
                         { offset = ( 0, 0 )
@@ -130,9 +144,6 @@ view { selected, card, maybeNextCard, showAnimation } =
                 , Events.onMouseUp <| Selected Right
                 , Events.onMouseEnter <| Over (Just Right)
                 , Events.onMouseLeave <| Over Nothing
-                , Element.htmlAttribute <|
-                    Touch.onStart <|
-                        always (Over (Just Right))
                 , Element.focused <|
                     [ Border.shadow
                         { offset = ( 0, 0 )

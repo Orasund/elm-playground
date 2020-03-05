@@ -5944,9 +5944,7 @@ var $author$project$Katakomben$Data$Card$Shop = F2(
 var $author$project$Katakomben$Data$Card$Shrine = function (a) {
 	return {$: 'Shrine', a: a};
 };
-var $author$project$Katakomben$Data$Card$Tomb = function (a) {
-	return {$: 'Tomb', a: a};
-};
+var $author$project$Katakomben$Data$Card$Tomb = {$: 'Tomb'};
 var $author$project$Katakomben$Data$Card$Village = {$: 'Village'};
 var $lovasoa$elm_rolling_list$RollingList$fromList = function (l) {
 	return {next: l, previous: _List_Nil};
@@ -6019,10 +6017,10 @@ var $author$project$Katakomben$Data$Game$init = function (maybeDeck) {
 					[
 						$author$project$Katakomben$Data$Card$Entrance($author$project$Katakomben$Data$Card$CatacombsOfDunkelhall),
 						$author$project$Katakomben$Data$Card$Camp,
-						$author$project$Katakomben$Data$Card$Tomb($author$project$Katakomben$Data$Card$CatacombsOfDunkelhall),
-						$author$project$Katakomben$Data$Card$Tomb($author$project$Katakomben$Data$Card$CatacombsOfDunkelhall),
-						$author$project$Katakomben$Data$Card$Tomb($author$project$Katakomben$Data$Card$CatacombsOfDunkelhall),
-						$author$project$Katakomben$Data$Card$Tomb($author$project$Katakomben$Data$Card$CatacombsOfDunkelhall),
+						$author$project$Katakomben$Data$Card$Tomb,
+						$author$project$Katakomben$Data$Card$Tomb,
+						$author$project$Katakomben$Data$Card$Tomb,
+						$author$project$Katakomben$Data$Card$Tomb,
 						$author$project$Katakomben$Data$Card$Shrine($author$project$Katakomben$Data$Card$CatacombsOfDunkelhall),
 						$author$project$Katakomben$Data$Card$Entrance($author$project$Katakomben$Data$Card$Village),
 						A2(
@@ -6046,7 +6044,8 @@ var $author$project$Katakomben$Page$Playing$init = function (seed) {
 			game: $author$project$Katakomben$Data$Game$init($elm$core$Maybe$Nothing),
 			seed: seed,
 			selected: $elm$core$Maybe$Nothing,
-			showAnimation: true
+			showAnimation: true,
+			swipPos: $elm$core$Maybe$Nothing
 		},
 		$elm$core$Platform$Cmd$none);
 };
@@ -6057,6 +6056,20 @@ var $author$project$Katakomben$Data$Game$Chosen = function (a) {
 var $author$project$Katakomben$Page$Playing$MouseOver = function (a) {
 	return {$: 'MouseOver', a: a};
 };
+var $elm$core$Basics$abs = function (n) {
+	return (n < 0) ? (-n) : n;
+};
+var $elm$core$Basics$ge = _Utils_ge;
+var $elm$core$Maybe$map = F2(
+	function (f, maybe) {
+		if (maybe.$ === 'Just') {
+			var value = maybe.a;
+			return $elm$core$Maybe$Just(
+				f(value));
+		} else {
+			return $elm$core$Maybe$Nothing;
+		}
+	});
 var $elm$core$Process$sleep = _Process_sleep;
 var $elm$random$Random$andThen = F2(
 	function (callback, _v0) {
@@ -6145,12 +6158,8 @@ var $author$project$Katakomben$Data$Game$current = A2(
 		$elm$core$Basics$composeR,
 		$author$project$Katakomben$Data$Deck$current,
 		$elm$core$Maybe$withDefault($author$project$Katakomben$Data$Card$Death)));
-var $elm$core$Basics$ge = _Utils_ge;
 var $author$project$Katakomben$Data$Item$Healing = function (a) {
 	return {$: 'Healing', a: a};
-};
-var $elm$core$Basics$abs = function (n) {
-	return (n < 0) ? (-n) : n;
 };
 var $elm$random$Random$float = F2(
 	function (a, b) {
@@ -6416,16 +6425,6 @@ var $author$project$Katakomben$Data$Monster$generateVermin = function (quality) 
 			]));
 };
 var $author$project$Katakomben$Data$Deck$next = $lovasoa$elm_rolling_list$RollingList$roll;
-var $elm$core$Maybe$map = F2(
-	function (f, maybe) {
-		if (maybe.$ === 'Just') {
-			var value = maybe.a;
-			return $elm$core$Maybe$Just(
-				f(value));
-		} else {
-			return $elm$core$Maybe$Nothing;
-		}
-	});
 var $elm$core$List$tail = function (list) {
 	if (list.b) {
 		var x = list.a;
@@ -6691,9 +6690,6 @@ var $author$project$Katakomben$Data$Effect$AddRandomHealItem = function (a) {
 var $author$project$Katakomben$Data$Effect$AddRandomUndead = function (a) {
 	return {$: 'AddRandomUndead', a: a};
 };
-var $author$project$Katakomben$Data$Effect$AddRandomVermin = function (a) {
-	return {$: 'AddRandomVermin', a: a};
-};
 var $author$project$Katakomben$Data$Effect$Attack = {$: 'Attack'};
 var $author$project$Katakomben$Data$Effect$Conditional = F2(
 	function (a, b) {
@@ -6845,10 +6841,13 @@ var $author$project$Katakomben$Data$CardDetails$getDetails = function (card) {
 					_List_fromArray(
 						[$author$project$Katakomben$Data$Effect$NextCard])),
 				name: function () {
-					if (name.$ === 'CatacombsOfDunkelhall') {
-						return 'Catacombs of Dunkelhall';
-					} else {
-						return 'Village';
+					switch (name.$) {
+						case 'CatacombsOfDunkelhall':
+							return 'Catacombs of Dunkelhall';
+						case 'Village':
+							return 'Village';
+						default:
+							return 'Forest';
 					}
 				}(),
 				right: _Utils_Tuple2(
@@ -6868,7 +6867,6 @@ var $author$project$Katakomben$Data$CardDetails$getDetails = function (card) {
 						[$author$project$Katakomben$Data$Effect$RemoveCard, $author$project$Katakomben$Data$Effect$Restart]))
 			};
 		case 'Tomb':
-			var level = card.a;
 			return {
 				color: $Orasund$elm_ui_framework$Framework$Color$simple,
 				desc: '',
@@ -6879,44 +6877,33 @@ var $author$project$Katakomben$Data$CardDetails$getDetails = function (card) {
 				name: 'Tomb',
 				right: _Utils_Tuple2(
 					'Open',
-					function () {
-						if (level.$ === 'CatacombsOfDunkelhall') {
-							return _List_fromArray(
-								[
-									$author$project$Katakomben$Data$Effect$RemoveCard,
-									$author$project$Katakomben$Data$Effect$AddLoot(0),
-									$author$project$Katakomben$Data$Effect$AddLoot(0),
-									$author$project$Katakomben$Data$Effect$AddRandomHealItem(0),
-									$author$project$Katakomben$Data$Effect$AddRandomUndead(0)
-								]);
-						} else {
-							return _List_fromArray(
-								[
-									$author$project$Katakomben$Data$Effect$RemoveCard,
-									$author$project$Katakomben$Data$Effect$AddRandomVermin(0),
-									$author$project$Katakomben$Data$Effect$AddLoot(0)
-								]);
-						}
-					}())
+					_List_fromArray(
+						[
+							$author$project$Katakomben$Data$Effect$RemoveCard,
+							$author$project$Katakomben$Data$Effect$AddLoot(0),
+							$author$project$Katakomben$Data$Effect$AddLoot(0),
+							$author$project$Katakomben$Data$Effect$AddRandomHealItem(0),
+							$author$project$Katakomben$Data$Effect$AddRandomUndead(0)
+						]))
 			};
 		case 'Loot':
 			var item = card.a;
 			return {
 				color: $Orasund$elm_ui_framework$Framework$Color$primary,
 				desc: function () {
-					var _v3 = item.sort;
-					switch (_v3.$) {
+					var _v2 = item.sort;
+					switch (_v2.$) {
 						case 'Weapon':
-							var amount = _v3.a;
+							var amount = _v2.a;
 							return 'Attack ' + $elm$core$String$fromInt(amount);
 						case 'Healing':
-							var amount = _v3.a;
+							var amount = _v2.a;
 							return 'Health +' + $elm$core$String$fromInt(amount);
 						case 'Value':
-							var amount = _v3.a;
+							var amount = _v2.a;
 							return $elm$core$String$fromInt(amount) + ' Money';
 						default:
-							var amount = _v3.a;
+							var amount = _v2.a;
 							return 'Max Health ' + $elm$core$String$fromInt(amount + 2);
 					}
 				}(),
@@ -6926,10 +6913,10 @@ var $author$project$Katakomben$Data$CardDetails$getDetails = function (card) {
 						[$author$project$Katakomben$Data$Effect$NextCard])),
 				name: item.name,
 				right: function () {
-					var _v4 = item.sort;
-					switch (_v4.$) {
+					var _v3 = item.sort;
+					switch (_v3.$) {
 						case 'Weapon':
-							var amount = _v4.a;
+							var amount = _v3.a;
 							return _Utils_Tuple2(
 								'Equip',
 								_List_fromArray(
@@ -6943,7 +6930,7 @@ var $author$project$Katakomben$Data$CardDetails$getDetails = function (card) {
 										$author$project$Katakomben$Data$Effect$SetAttack(amount)
 									]));
 						case 'Healing':
-							var amount = _v4.a;
+							var amount = _v3.a;
 							return _Utils_Tuple2(
 								'Use',
 								_List_fromArray(
@@ -6957,7 +6944,7 @@ var $author$project$Katakomben$Data$CardDetails$getDetails = function (card) {
 										$author$project$Katakomben$Data$Effect$AddHealth(amount)
 									]));
 						case 'Value':
-							var amount = _v4.a;
+							var amount = _v3.a;
 							return _Utils_Tuple2(
 								'Sell',
 								_List_fromArray(
@@ -6966,7 +6953,7 @@ var $author$project$Katakomben$Data$CardDetails$getDetails = function (card) {
 										$author$project$Katakomben$Data$Effect$AddMoney(amount)
 									]));
 						default:
-							var amount = _v4.a;
+							var amount = _v3.a;
 							return _Utils_Tuple2(
 								'Equip',
 								_List_fromArray(
@@ -7027,55 +7014,76 @@ var $author$project$Katakomben$Data$CardDetails$getDetails = function (card) {
 			};
 		case 'Shrine':
 			var level = card.a;
-			if (level.$ === 'Village') {
-				return {
-					color: $Orasund$elm_ui_framework$Framework$Color$light,
-					desc: 'Sleep for 1 Health/Money',
-					left: _Utils_Tuple2(
-						'Continue',
-						_List_fromArray(
-							[$author$project$Katakomben$Data$Effect$NextCard])),
-					name: 'Tavern',
-					right: _Utils_Tuple2(
-						'Pay for heal',
-						_List_fromArray(
-							[
-								A2(
-								$author$project$Katakomben$Data$Effect$Conditional,
-								$author$project$Katakomben$Data$Effect$HasMoney(1),
-								$author$project$Katakomben$Data$Effect$AddHealth(1)),
-								A2(
-								$author$project$Katakomben$Data$Effect$Conditional,
-								$author$project$Katakomben$Data$Effect$HasMoney(1),
-								$author$project$Katakomben$Data$Effect$AddMoney(-1))
-							]))
-				};
-			} else {
-				return {
-					color: $Orasund$elm_ui_framework$Framework$Color$light,
-					desc: '',
-					left: _Utils_Tuple2(
-						'Continue',
-						_List_fromArray(
-							[
-								$author$project$Katakomben$Data$Effect$AddPreviousCard(
-								$author$project$Katakomben$Data$Card$Tomb($author$project$Katakomben$Data$Card$CatacombsOfDunkelhall)),
-								$author$project$Katakomben$Data$Effect$NextCard
-							])),
-					name: 'Tomb of Pater Erhard',
-					right: _Utils_Tuple2(
-						'Open',
-						_List_fromArray(
-							[
-								$author$project$Katakomben$Data$Effect$AddPreviousCard(
-								$author$project$Katakomben$Data$Card$Tomb($author$project$Katakomben$Data$Card$CatacombsOfDunkelhall)),
-								$author$project$Katakomben$Data$Effect$RemoveCard,
-								$author$project$Katakomben$Data$Effect$AddLoot(1),
-								$author$project$Katakomben$Data$Effect$AddLoot(1),
-								$author$project$Katakomben$Data$Effect$AddLoot(1),
-								$author$project$Katakomben$Data$Effect$AddRandomUndead(1)
-							]))
-				};
+			switch (level.$) {
+				case 'Village':
+					return {
+						color: $Orasund$elm_ui_framework$Framework$Color$light,
+						desc: 'Sleep for 1 Health/Money',
+						left: _Utils_Tuple2(
+							'Continue',
+							_List_fromArray(
+								[$author$project$Katakomben$Data$Effect$NextCard])),
+						name: 'Tavern',
+						right: _Utils_Tuple2(
+							'Pay for heal',
+							_List_fromArray(
+								[
+									A2(
+									$author$project$Katakomben$Data$Effect$Conditional,
+									$author$project$Katakomben$Data$Effect$HasMoney(1),
+									$author$project$Katakomben$Data$Effect$AddHealth(1)),
+									A2(
+									$author$project$Katakomben$Data$Effect$Conditional,
+									$author$project$Katakomben$Data$Effect$HasMoney(1),
+									$author$project$Katakomben$Data$Effect$AddMoney(-1))
+								]))
+					};
+				case 'Forest':
+					return {
+						color: $Orasund$elm_ui_framework$Framework$Color$light,
+						desc: 'Pay 1 Money or fight',
+						left: _Utils_Tuple2(
+							'Spawn Bandit',
+							_List_fromArray(
+								[
+									$author$project$Katakomben$Data$Effect$AddPreviousCard(
+									$author$project$Katakomben$Data$Card$Enemy(
+										{attack: 1, desc: '', health: 2, name: 'Bandit'})),
+									$author$project$Katakomben$Data$Effect$NextCard
+								])),
+						name: 'Bandit Hideout',
+						right: _Utils_Tuple2(
+							'Pay',
+							_List_fromArray(
+								[
+									$author$project$Katakomben$Data$Effect$NextCard,
+									$author$project$Katakomben$Data$Effect$AddMoney(-1)
+								]))
+					};
+				default:
+					return {
+						color: $Orasund$elm_ui_framework$Framework$Color$light,
+						desc: '',
+						left: _Utils_Tuple2(
+							'Continue',
+							_List_fromArray(
+								[
+									$author$project$Katakomben$Data$Effect$AddPreviousCard($author$project$Katakomben$Data$Card$Tomb),
+									$author$project$Katakomben$Data$Effect$NextCard
+								])),
+						name: 'Tomb of Pater Erhard',
+						right: _Utils_Tuple2(
+							'Open',
+							_List_fromArray(
+								[
+									$author$project$Katakomben$Data$Effect$AddPreviousCard($author$project$Katakomben$Data$Card$Tomb),
+									$author$project$Katakomben$Data$Effect$RemoveCard,
+									$author$project$Katakomben$Data$Effect$AddLoot(1),
+									$author$project$Katakomben$Data$Effect$AddLoot(1),
+									$author$project$Katakomben$Data$Effect$AddLoot(1),
+									$author$project$Katakomben$Data$Effect$AddRandomUndead(1)
+								]))
+					};
 			}
 		case 'Shop':
 			var cost = card.a;
@@ -7157,15 +7165,15 @@ var $Orasund$elm_action$Action$updating = function (tuple) {
 var $author$project$Katakomben$Page$Playing$update = F2(
 	function (msg, model) {
 		var select = function (dir) {
-			var _v2 = A2(
+			var _v5 = A2(
 				$elm$random$Random$step,
 				A2(
 					$author$project$Katakomben$Data$Game$update,
 					$author$project$Katakomben$Data$Game$Chosen(dir),
 					model.game),
 				model.seed);
-			var game = _v2.a;
-			var seed = _v2.b;
+			var game = _v5.a;
+			var seed = _v5.b;
 			return _Utils_update(
 				model,
 				{game: game, seed: seed, selected: $elm$core$Maybe$Nothing, showAnimation: false});
@@ -7213,6 +7221,62 @@ var $author$project$Katakomben$Page$Playing$update = F2(
 							model,
 							{selected: maybeDir}),
 						$elm$core$Platform$Cmd$none));
+			case 'Swiping':
+				var maybeX = msg.a;
+				return $Orasund$elm_action$Action$updating(
+					function () {
+						var _v2 = _Utils_Tuple2(maybeX, model.swipPos);
+						if (_v2.a.$ === 'Nothing') {
+							var _v3 = _v2.a;
+							return A2(
+								$elm$core$Maybe$withDefault,
+								_Utils_Tuple2(model, $elm$core$Platform$Cmd$none),
+								A2(
+									$elm$core$Maybe$map,
+									function (dir) {
+										return _Utils_Tuple2(
+											function (m) {
+												return _Utils_update(
+													m,
+													{swipPos: $elm$core$Maybe$Nothing});
+											}(
+												select(dir)),
+											$elm$core$Platform$Cmd$batch(
+												_List_fromArray(
+													[
+														A2(
+														$elm$core$Task$perform,
+														$elm$core$Basics$always($author$project$Katakomben$Page$Playing$ActivateAnimation),
+														$elm$core$Process$sleep(10))
+													])));
+									},
+									model.selected));
+						} else {
+							if (_v2.b.$ === 'Just') {
+								var x = _v2.a.a;
+								var oldX = _v2.b.a;
+								return ($elm$core$Basics$abs(oldX - x) >= 10) ? _Utils_Tuple2(
+									_Utils_update(
+										model,
+										{
+											selected: $elm$core$Maybe$Just(
+												((oldX - x) > 0) ? $author$project$Katakomben$Data$Game$Left : $author$project$Katakomben$Data$Game$Right),
+											swipPos: $elm$core$Maybe$Just(x)
+										}),
+									$elm$core$Platform$Cmd$none) : _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+							} else {
+								var x = _v2.a.a;
+								var _v4 = _v2.b;
+								return _Utils_Tuple2(
+									_Utils_update(
+										model,
+										{
+											swipPos: $elm$core$Maybe$Just(x)
+										}),
+									$elm$core$Platform$Cmd$none);
+							}
+						}
+					}());
 			default:
 				return $Orasund$elm_action$Action$updating(
 					_Utils_Tuple2(
@@ -13127,6 +13191,9 @@ var $elm$html$Html$Attributes$tabindex = function (n) {
 var $author$project$Katakomben$Page$Playing$Selected = function (a) {
 	return {$: 'Selected', a: a};
 };
+var $author$project$Katakomben$Page$Playing$Swiping = function (a) {
+	return {$: 'Swiping', a: a};
+};
 var $mdgriffith$elm_ui$Internal$Model$Class = F2(
 	function (a, b) {
 		return {$: 'Class', a: a, b: b};
@@ -13220,6 +13287,9 @@ var $author$project$Katakomben$View$Card$Over = function (a) {
 };
 var $author$project$Katakomben$View$Card$Selected = function (a) {
 	return {$: 'Selected', a: a};
+};
+var $author$project$Katakomben$View$Card$Swiping = function (a) {
+	return {$: 'Swiping', a: a};
 };
 var $mdgriffith$elm_ui$Internal$Flag$fontAlignment = $mdgriffith$elm_ui$Internal$Flag$flag(12);
 var $mdgriffith$elm_ui$Element$Font$alignLeft = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$fontAlignment, $mdgriffith$elm_ui$Internal$Style$classes.textLeft);
@@ -13544,27 +13614,6 @@ var $mdgriffith$elm_ui$Element$moveRight = function (x) {
 		$mdgriffith$elm_ui$Internal$Model$MoveX(x));
 };
 var $mdgriffith$elm_ui$Element$none = $mdgriffith$elm_ui$Internal$Model$Empty;
-var $elm$html$Html$Events$onMouseEnter = function (msg) {
-	return A2(
-		$elm$html$Html$Events$on,
-		'mouseenter',
-		$elm$json$Json$Decode$succeed(msg));
-};
-var $mdgriffith$elm_ui$Element$Events$onMouseEnter = A2($elm$core$Basics$composeL, $mdgriffith$elm_ui$Internal$Model$Attr, $elm$html$Html$Events$onMouseEnter);
-var $elm$html$Html$Events$onMouseLeave = function (msg) {
-	return A2(
-		$elm$html$Html$Events$on,
-		'mouseleave',
-		$elm$json$Json$Decode$succeed(msg));
-};
-var $mdgriffith$elm_ui$Element$Events$onMouseLeave = A2($elm$core$Basics$composeL, $mdgriffith$elm_ui$Internal$Model$Attr, $elm$html$Html$Events$onMouseLeave);
-var $elm$html$Html$Events$onMouseUp = function (msg) {
-	return A2(
-		$elm$html$Html$Events$on,
-		'mouseup',
-		$elm$json$Json$Decode$succeed(msg));
-};
-var $mdgriffith$elm_ui$Element$Events$onMouseUp = A2($elm$core$Basics$composeL, $mdgriffith$elm_ui$Internal$Model$Attr, $elm$html$Html$Events$onMouseUp);
 var $mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$defaultOptions = {preventDefault: true, stopPropagation: false};
 var $elm$virtual_dom$VirtualDom$Custom = function (a) {
 	return {$: 'Custom', a: a};
@@ -13686,7 +13735,29 @@ var $mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$onWithOptions = F3(
 				},
 				$mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$eventDecoder));
 	});
-var $mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$onStart = A2($mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$onWithOptions, 'touchstart', $mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$defaultOptions);
+var $mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$onEnd = A2($mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$onWithOptions, 'touchend', $mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$defaultOptions);
+var $elm$html$Html$Events$onMouseEnter = function (msg) {
+	return A2(
+		$elm$html$Html$Events$on,
+		'mouseenter',
+		$elm$json$Json$Decode$succeed(msg));
+};
+var $mdgriffith$elm_ui$Element$Events$onMouseEnter = A2($elm$core$Basics$composeL, $mdgriffith$elm_ui$Internal$Model$Attr, $elm$html$Html$Events$onMouseEnter);
+var $elm$html$Html$Events$onMouseLeave = function (msg) {
+	return A2(
+		$elm$html$Html$Events$on,
+		'mouseleave',
+		$elm$json$Json$Decode$succeed(msg));
+};
+var $mdgriffith$elm_ui$Element$Events$onMouseLeave = A2($elm$core$Basics$composeL, $mdgriffith$elm_ui$Internal$Model$Attr, $elm$html$Html$Events$onMouseLeave);
+var $elm$html$Html$Events$onMouseUp = function (msg) {
+	return A2(
+		$elm$html$Html$Events$on,
+		'mouseup',
+		$elm$json$Json$Decode$succeed(msg));
+};
+var $mdgriffith$elm_ui$Element$Events$onMouseUp = A2($elm$core$Basics$composeL, $mdgriffith$elm_ui$Internal$Model$Attr, $elm$html$Html$Events$onMouseUp);
+var $mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$onMove = A2($mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$onWithOptions, 'touchmove', $mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$defaultOptions);
 var $mdgriffith$elm_ui$Internal$Model$Px = function (a) {
 	return {$: 'Px', a: a};
 };
@@ -13936,6 +14007,17 @@ var $author$project$Katakomben$Data$Effect$toString = function (effect) {
 				color);
 	}
 };
+var $author$project$Katakomben$View$Card$touchCoordinates = function (touchEvent) {
+	return A2(
+		$elm$core$Maybe$withDefault,
+		_Utils_Tuple2(0, 0),
+		A2(
+			$elm$core$Maybe$map,
+			function ($) {
+				return $.clientPos;
+			},
+			$elm$core$List$head(touchEvent.changedTouches))).a;
+};
 var $author$project$Katakomben$View$Card$view = function (_v0) {
 	var selected = _v0.selected;
 	var card = _v0.card;
@@ -13949,7 +14031,21 @@ var $author$project$Katakomben$View$Card$view = function (_v0) {
 	var color = _v1.color;
 	return A2(
 		$mdgriffith$elm_ui$Element$column,
-		$Orasund$elm_ui_framework$Framework$Grid$simple,
+		_Utils_ap(
+			$Orasund$elm_ui_framework$Framework$Grid$simple,
+			_List_fromArray(
+				[
+					$mdgriffith$elm_ui$Element$htmlAttribute(
+					$mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$onMove(
+						A2(
+							$elm$core$Basics$composeR,
+							$author$project$Katakomben$View$Card$touchCoordinates,
+							A2($elm$core$Basics$composeR, $elm$core$Maybe$Just, $author$project$Katakomben$View$Card$Swiping)))),
+					$mdgriffith$elm_ui$Element$htmlAttribute(
+					$mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$onEnd(
+						$elm$core$Basics$always(
+							$author$project$Katakomben$View$Card$Swiping($elm$core$Maybe$Nothing))))
+				])),
 		_List_fromArray(
 			[
 				A2(
@@ -13971,11 +14067,6 @@ var $author$project$Katakomben$View$Card$view = function (_v0) {
 									$elm$core$Maybe$Just($author$project$Katakomben$Data$Game$Left))),
 								$mdgriffith$elm_ui$Element$Events$onMouseLeave(
 								$author$project$Katakomben$View$Card$Over($elm$core$Maybe$Nothing)),
-								$mdgriffith$elm_ui$Element$htmlAttribute(
-								$mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$onStart(
-									$elm$core$Basics$always(
-										$author$project$Katakomben$View$Card$Over(
-											$elm$core$Maybe$Just($author$project$Katakomben$Data$Game$Left))))),
 								$mdgriffith$elm_ui$Element$focused(
 								_List_fromArray(
 									[
@@ -14111,11 +14202,6 @@ var $author$project$Katakomben$View$Card$view = function (_v0) {
 									$elm$core$Maybe$Just($author$project$Katakomben$Data$Game$Right))),
 								$mdgriffith$elm_ui$Element$Events$onMouseLeave(
 								$author$project$Katakomben$View$Card$Over($elm$core$Maybe$Nothing)),
-								$mdgriffith$elm_ui$Element$htmlAttribute(
-								$mpizenberg$elm_pointer_events$Html$Events$Extra$Touch$onStart(
-									$elm$core$Basics$always(
-										$author$project$Katakomben$View$Card$Over(
-											$elm$core$Maybe$Just($author$project$Katakomben$Data$Game$Right))))),
 								$mdgriffith$elm_ui$Element$focused(
 								_List_fromArray(
 									[
@@ -14585,12 +14671,16 @@ var $author$project$Katakomben$Page$Playing$view = function (_v0) {
 			A2(
 			$mdgriffith$elm_ui$Element$map,
 			function (msg) {
-				if (msg.$ === 'Selected') {
-					var dir = msg.a;
-					return $author$project$Katakomben$Page$Playing$Selected(dir);
-				} else {
-					var dir = msg.a;
-					return $author$project$Katakomben$Page$Playing$MouseOver(dir);
+				switch (msg.$) {
+					case 'Selected':
+						var dir = msg.a;
+						return $author$project$Katakomben$Page$Playing$Selected(dir);
+					case 'Over':
+						var dir = msg.a;
+						return $author$project$Katakomben$Page$Playing$MouseOver(dir);
+					default:
+						var x = msg.a;
+						return $author$project$Katakomben$Page$Playing$Swiping(x);
 				}
 			},
 			A2(

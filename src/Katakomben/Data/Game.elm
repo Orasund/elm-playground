@@ -46,10 +46,10 @@ init maybeDeck =
                 Nothing ->
                     [ Entrance CatacombsOfDunkelhall
                     , Camp
-                    , Tomb CatacombsOfDunkelhall
-                    , Tomb CatacombsOfDunkelhall
-                    , Tomb CatacombsOfDunkelhall
-                    , Tomb CatacombsOfDunkelhall
+                    , Tomb
+                    , Tomb
+                    , Tomb
+                    , Tomb
                     , Shrine CatacombsOfDunkelhall
                     , Entrance Village
                     , Shop 10

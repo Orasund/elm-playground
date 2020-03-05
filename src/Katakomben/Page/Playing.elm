@@ -9,6 +9,7 @@ import Katakomben.View.Card as Card
 import Katakomben.View.Game as Game
 import Process
 import Random exposing (Seed)
+import Swiper exposing (SwipeEvent, SwipingState)
 import Task
 
 
@@ -17,6 +18,7 @@ type alias Model =
     , game : Game
     , selected : Maybe Direction
     , showAnimation : Bool
+    , swipPos : Maybe Float
     }
 
 
@@ -24,6 +26,7 @@ type Msg
     = Pressed (Maybe Direction)
     | Selected Direction
     | MouseOver (Maybe Direction)
+    | Swiping (Maybe Float)
     | ActivateAnimation
 
 
@@ -41,6 +44,7 @@ init seed =
       , game = Game.init Nothing
       , selected = Nothing
       , showAnimation = True
+      , swipPos = Nothing
       }
     , Cmd.none
     )
@@ -95,6 +99,44 @@ update msg model =
                 , Cmd.none
                 )
 
+        Swiping maybeX ->
+            Action.updating <|
+                case ( maybeX, model.swipPos ) of
+                    ( Nothing, _ ) ->
+                        model.selected
+                            |> Maybe.map
+                                (\dir ->
+                                    ( select dir
+                                        |> (\m -> { m | swipPos = Nothing })
+                                    , Cmd.batch
+                                        [ Process.sleep 10
+                                            |> Task.perform (always ActivateAnimation)
+                                        ]
+                                    )
+                                )
+                            |> Maybe.withDefault ( model, Cmd.none )
+
+                    ( Just x, Just oldX ) ->
+                        if abs (oldX - x) >= 10 then
+                            ( { model
+                                | selected =
+                                    Just <|
+                                        if oldX - x > 0 then
+                                            Left
+
+                                        else
+                                            Right
+                                , swipPos = Just x
+                              }
+                            , Cmd.none
+                            )
+
+                        else
+                            ( model, Cmd.none )
+
+                    ( Just x, Nothing ) ->
+                        ( { model | swipPos = Just x }, Cmd.none )
+
         ActivateAnimation ->
             Action.updating
                 ( { model | showAnimation = True }
@@ -148,5 +190,8 @@ view { game, selected, showAnimation } =
 
                     Card.Over dir ->
                         MouseOver dir
+
+                    Card.Swiping x ->
+                        Swiping x
             )
     ]

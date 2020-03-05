@@ -7,6 +7,7 @@ import Katakomben.Data.Effect exposing (ConditionType(..), Effect(..))
 import Katakomben.Data.Item exposing (Item, ItemSort(..))
 import Katakomben.Data.Monster exposing (Monster)
 
+
 type alias CardDetails =
     { name : String
     , desc : String
@@ -27,6 +28,9 @@ getDetails card =
 
                     Village ->
                         "Village"
+
+                    Forest ->
+                        "Forest"
             , desc = "Entrance"
             , left = ( "Continue", [ NextCard ] )
             , right = ( "Continue", [ NextCard ] )
@@ -41,26 +45,18 @@ getDetails card =
             , color = Color.dark
             }
 
-        Tomb level ->
+        Tomb ->
             { name = "Tomb"
             , desc = ""
             , left = ( "Continue", [ NextCard ] )
             , right =
                 ( "Open"
-                , case level of
-                    CatacombsOfDunkelhall ->
-                        [ RemoveCard
-                        , AddLoot 0
-                        , AddLoot 0
-                        , AddRandomHealItem 0
-                        , AddRandomUndead 0
-                        ]
-
-                    Village ->
-                        [ RemoveCard
-                        , AddRandomVermin 0
-                        , AddLoot 0
-                        ]
+                , [ RemoveCard
+                  , AddLoot 0
+                  , AddLoot 0
+                  , AddRandomHealItem 0
+                  , AddRandomUndead 0
+                  ]
                 )
             , color = Color.simple
             }
@@ -180,18 +176,43 @@ getDetails card =
                     , color = Color.light
                     }
 
+                Forest ->
+                    { name = "Bandit Hideout"
+                    , desc = "Pay 1 Money or fight"
+                    , left =
+                        ( "Spawn Bandit"
+                        , [ AddPreviousCard
+                                (Enemy
+                                    { name = "Bandit"
+                                    , attack = 1
+                                    , health = 2
+                                    , desc = ""
+                                    }
+                                )
+                          , NextCard
+                          ]
+                        )
+                    , right =
+                        ( "Pay"
+                        , [ NextCard
+                          , AddMoney -1
+                          ]
+                        )
+                    , color = Color.light
+                    }
+
                 CatacombsOfDunkelhall ->
                     { name = "Tomb of Pater Erhard"
                     , desc = ""
                     , left =
                         ( "Continue"
-                        , [ AddPreviousCard (Tomb CatacombsOfDunkelhall)
+                        , [ AddPreviousCard Tomb
                           , NextCard
                           ]
                         )
                     , right =
                         ( "Open"
-                        , [ AddPreviousCard (Tomb CatacombsOfDunkelhall)
+                        , [ AddPreviousCard (Tomb)
                           , RemoveCard
                           , AddLoot 1
                           , AddLoot 1

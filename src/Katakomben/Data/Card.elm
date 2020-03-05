@@ -9,11 +9,12 @@ import Katakomben.Data.Monster exposing (Monster)
 type Level
     = CatacombsOfDunkelhall
     | Village
+    | Forest
 
 
 type Card
     = Entrance Level
-    | Tomb Level
+    | Tomb
     | Death
     | Loot Item
     | Enemy Monster
