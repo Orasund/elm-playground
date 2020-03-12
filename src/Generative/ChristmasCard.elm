@@ -3,7 +3,6 @@ module Generative.ChristmasCard exposing (main)
 import Color
 import Generative
 import Generative.Distribution as Distribution
-import Generative.Point as Point exposing (Point)
 import Generative.Shape as Shape exposing (Shape, Surface(..))
 import Html exposing (Html)
 import Html.Attributes as Attributes
@@ -44,7 +43,7 @@ wood =
 leaf : Generator Shape
 leaf =
     Random.map4
-        (\isLeaf angle size color ->
+        (\isLeaf angle size _ ->
             if isLeaf < 2 then
                 Shape.circle 10 ( 0, 0 )
                     |> Shape.withColor (Color.hsla 0.3 0.2 1 1)
@@ -154,53 +153,12 @@ tree =
         |> Generative.toSvg
 
 
-f : List Point
-f =
-    [ ( 7, 2 )
-    , ( 0, 3 )
-    , ( 2, 1 )
-    , ( 1, 9 )
-    , ( 2, 9 )
-    , ( 0, 5 )
-    , ( 7, 6 )
-    ]
-
-
 main : Html msg
 main =
     Random.step
         ([ tree
          , stem
          ]
-            |> List.append
-                ([]
-                    --f
-                    |> Point.smoothen 5
-                    |> (\list ->
-                            list
-                                |> List.foldl
-                                    (\_ ( l, out ) ->
-                                        case l of
-                                            p1 :: p2 :: tail ->
-                                                ( p2 :: tail
-                                                , (Shape.fromPoints [ p1, p2 ] |> Generative.toSvg)
-                                                    :: out
-                                                )
-
-                                            _ ->
-                                                ( [], out )
-                                    )
-                                    ( list
-                                        |> List.map
-                                            (Tuple.mapBoth
-                                                ((*) (toFloat <| height // 16))
-                                                ((*) (toFloat <| height // 16))
-                                            )
-                                    , []
-                                    )
-                                |> Tuple.second
-                       )
-                )
             |> Generative.toHtml [ Attributes.width width, Attributes.height height ]
         )
         (Random.initialSeed 66)

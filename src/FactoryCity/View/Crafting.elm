@@ -1,6 +1,6 @@
 module FactoryCity.View.Crafting exposing (view)
 
-import Array exposing (Array)
+import Array
 import Element exposing (Element)
 import Element.Input as Input
 import FactoryCity.Data.CellType as CellType exposing (ContainerSort(..), MachineSort(..), MovableSort(..))

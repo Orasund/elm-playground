@@ -1,4 +1,4 @@
-module FactoryCity.Data.Item exposing (..)
+module FactoryCity.Data.Item exposing (Item(..), burnable, color, itemList, itemToString, pressable, shreddable, smeltable, stringToItem)
 
 
 type Item
@@ -36,6 +36,7 @@ color item =
         Chipboard ->
             ( 255, 226, 170 )
 
+
 burnable : List Item
 burnable =
     [ Wood, Chips, Chipboard ]
@@ -53,7 +54,7 @@ shreddable =
     [ ( Stone, Scrap )
     , ( Wood, Chips )
     , ( Iron, Scrap )
-    , ( Scrap, Chips)
+    , ( Scrap, Chips )
     ]
 
 
@@ -62,6 +63,7 @@ pressable =
     [ ( Scrap, Stone )
     , ( Chips, Chipboard )
     ]
+
 
 itemToString : Item -> String
 itemToString item =

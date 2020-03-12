@@ -86,14 +86,14 @@ moveTofirst ((Zipper ls x rs) as zipper) =
             Zipper [] y (List.concat [ ys, [ x ], rs ])
 
 
-playFirst : { shuffle : Bool } -> Deck -> Generator Deck
-playFirst options deck =
+playFirst : Bool -> Deck -> Generator Deck
+playFirst optionShuffle deck =
     case deck |> Zipper.next of
         Just newDeck ->
             Random.constant newDeck
 
         Nothing ->
-            if options.shuffle then
+            if optionShuffle then
                 deck |> shuffle
 
             else

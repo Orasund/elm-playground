@@ -47,29 +47,24 @@ init { game, history, challenge } =
 ----------------------
 
 
-type alias Basic =
+type alias EndState =
     { game : Game
+    , history : UndoList Game
+    , challenge : Bool
+    , error : Maybe Error
     }
 
 
-type alias EndState basic =
-    { basic
-        | history : UndoList Game
-        , challenge : Bool
-        , error : Maybe Error
-    }
-
-
-type alias LeaderboardState basic =
-    { basic
-        | highscore : Entry
-        , newHighscore : Bool
+type alias LeaderboardState =
+    { game : Game
+    , highscore : Entry
+    , newHighscore : Bool
     }
 
 
 type Model
-    = End (EndState Basic)
-    | Highscore (LeaderboardState Basic)
+    = End EndState
+    | Highscore LeaderboardState
 
 
 type Msg

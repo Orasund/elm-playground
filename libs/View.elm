@@ -1,10 +1,10 @@
-module View exposing (select,dropDownContent, multiSelect)
+module View exposing (dropDownContent, multiSelect, select)
 
 import Element exposing (Attribute, Element)
 import Element.Events as Events
 import Element.Input as Input
-import Framework.Grid as Grid
 import Set exposing (Set)
+
 
 select :
     List (Attribute msg)
@@ -25,7 +25,9 @@ select attributes { selected, options, label, onChange } =
                     }
             )
 
-multiSelect : List (Attribute msg)
+
+multiSelect :
+    List (Attribute msg)
     ->
         { selected : Set comparable
         , options : List comparable
@@ -39,10 +41,12 @@ multiSelect attributes { selected, options, label, onChange } =
             (\a ->
                 Input.button attributes
                     { onPress = a |> onChange |> Just
-                    , label = label a 
-                        (selected |> Set.member a )
+                    , label =
+                        label a
+                            (selected |> Set.member a)
                     }
             )
+
 
 dropDownContent :
     List (Attribute msg)
@@ -64,7 +68,6 @@ dropDownContent attributes { onToggle, isDropped, label, content } =
 
                 else
                     []
-                        
                )
             ++ attributes
         )

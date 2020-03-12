@@ -111,6 +111,9 @@ toList neighbors =
 
                     Anything ->
                         list
+
+                    OneOf _ ->
+                        list
             )
             []
 
@@ -180,6 +183,9 @@ toString { north, east, south, west } =
                 --"⭕"
                 Anything ->
                     "▪"
+
+                OneOf _ ->
+                    ""
 
         --"❓"
     in

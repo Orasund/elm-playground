@@ -1,15 +1,14 @@
-module Katakomben.Main exposing (main)
+module HeroForge.Main exposing (main)
 
 import Action
 import Browser
-import Browser.Events exposing (onResize)
 import Element
 import Element.Font as Font
 import Framework
+import HeroForge.Page.Playing as Playing
+import HeroForge.Page.Prepairing as Prepairing
 import Html
 import Html.Attributes as Attributes
-import Katakomben.Page.Playing as Playing
-import Katakomben.Page.Prepairing as Prepairing
 
 
 type Model
@@ -87,7 +86,7 @@ view model =
                     prepairingModel
                         |> Prepairing.view
     in
-    { title = "Die Katakomben von Dunkelhall"
+    { title = "HeroForge"
     , body =
         [ Html.node "meta"
             [ Attributes.attribute "name" "viewport"

@@ -85,17 +85,17 @@ output =
 
 furnace : ContainerSort
 furnace =
-    Machine Furnace { isWarm = False }
+    Machine Furnace False
 
 
 shredder : ContainerSort
 shredder =
-    Machine Shredder { isWarm = False }
+    Machine Shredder False
 
 
 press : ContainerSort
 press =
-    Machine Press { isWarm = False }
+    Machine Press False
 
 
 belt : { from : Direction, to : Direction } -> ContainerSort
@@ -112,9 +112,9 @@ containerList : List ContainerSort
 containerList =
     List.concat
         [ Item.itemList |> List.map Crate
-        , [ Machine Furnace { isWarm = True }
-          , Machine Shredder { isWarm = True }
-          , Machine Press { isWarm = False }
+        , [ Machine Furnace True
+          , Machine Shredder True
+          , Machine Press False
           ]
         ]
 
@@ -122,7 +122,7 @@ containerList =
 type ContainerSort
     = Movable MovableSort { from : Direction, to : Direction }
     | Crate Item
-    | Machine MachineSort { isWarm : Bool }
+    | Machine MachineSort Bool
     | Output
     | Removable RemovableSort
 
@@ -271,7 +271,7 @@ containerSortToString containerSort =
         Crate item ->
             "📦" ++ (item |> Item.itemToString)
 
-        Machine machineSort { isWarm } ->
+        Machine machineSort isWarm ->
             (machineSort |> machineToString)
                 ++ (if isWarm then
                         "🔄"
@@ -318,13 +318,13 @@ stringToContainerSort string =
             machine
                 |> String.fromChar
                 |> stringToMachine
-                |> Maybe.map (\m -> Machine m { isWarm = True })
+                |> Maybe.map (\m -> Machine m True)
 
         Just ( machine, "❌" ) ->
             machine
                 |> String.fromChar
                 |> stringToMachine
-                |> Maybe.map (\m -> Machine m { isWarm = False })
+                |> Maybe.map (\m -> Machine m False)
 
         _ ->
             case string of
@@ -440,7 +440,7 @@ tierOne =
 
 tierOneList : List ContainerSort
 tierOneList =
-    [ Machine Furnace { isWarm = False }
+    [ Machine Furnace False
     , Movable Belt { from = Up, to = Down }
     ]
 
@@ -453,8 +453,8 @@ tierTwo =
 tierTwoList : List ContainerSort
 tierTwoList =
     List.concat
-        [ [ Machine Shredder { isWarm = False }
-          , Machine Press { isWarm = False }
+        [ [ Machine Shredder False
+          , Machine Press False
           , output
           , Movable Merger { from = Up, to = Down }
           ]

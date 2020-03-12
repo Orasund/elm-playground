@@ -1,4 +1,4 @@
-module Katakomben.Data.Item exposing (Item, ItemSort(..), generateArmor, generateHealing, generateLoot, generateValue, generateWeapon)
+module HeroForge.Data.Item exposing (Item, ItemSort(..), generateArmor, generateHealing, generateLoot, generateValue, generateWeapon)
 
 import Random exposing (Generator)
 
@@ -19,10 +19,10 @@ type alias Item =
 
 generateLoot : Int -> Generator Item
 generateLoot quality =
-    Random.weighted ( 2, generateArmor quality )
+    Random.weighted ( 1, generateArmor quality )
         [ ( 3, generateWeapon quality )
         , ( 3, generateHealing quality )
-        , ( 3, generateValue quality )
+        , ( 6, generateValue quality )
         ]
         |> Random.andThen identity
 
@@ -66,34 +66,18 @@ generateArmor quality =
 generateWeapon : Int -> Generator Item
 generateWeapon quality =
     case quality of
-        0 ->
-            Random.weighted
-                ( 1
-                , { name = "Rusty Knife"
-                  , sort = Weapon 2
-                  , desc = "A rusty Knife with the emblem of the Dunkelhall family on it."
-                  }
-                )
-                [ ( 2
-                  , { name = "Sharp Bone"
-                    , sort = Weapon 1
-                    , desc = "A sharp bone. You can't quite tell which part of the body this belongs to."
-                    }
-                  )
-                ]
-
         _ ->
             Random.weighted
                 ( 1
                 , { name = "Rusty Short Sword"
                   , sort = Weapon 3
-                  , desc = "An old short sword. It even has some ingravings."
+                  , desc = ""
                   }
                 )
                 [ ( 3
                   , { name = "Rusty Dagger"
                     , sort = Weapon 2
-                    , desc = "A rusty little dager, this might come handy"
+                    , desc = ""
                     }
                   )
                 ]

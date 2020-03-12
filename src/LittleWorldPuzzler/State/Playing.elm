@@ -122,7 +122,7 @@ play ( { game, history } as state, seed ) =
 playFirst : Position -> Model -> Action
 playFirst position ( { game, mode, initialSeed } as state, seed ) =
     Random.step
-        (Deck.playFirst { shuffle = mode /= Challenge } game.deck
+        (Deck.playFirst (mode /= Challenge) game.deck
             |> Random.map
                 (\deck ->
                     { state
@@ -294,7 +294,7 @@ view :
 view scale restartMsg msgMapper ( { game, selected, mode, viewCollection, collection, viewedCard }, _ ) =
     ( Nothing
     , [ if mode == Challenge then
-            HeaderView.viewWithUndo scale
+            HeaderView.viewWithUndo
                 { restartMsg = restartMsg
                 , previousMsg = msgMapper Undo
                 , nextMsg = msgMapper Redo

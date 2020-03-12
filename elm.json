@@ -33,10 +33,10 @@
             "ianmackenzie/elm-geometry": "1.2.1",
             "ianmackenzie/elm-geometry-svg": "1.0.2",
             "lovasoa/elm-rolling-list": "1.1.4",
-            "marshallformula/elm-swiper": "1.0.2",
             "mdgriffith/elm-ui": "1.1.5",
             "mpizenberg/elm-pointer-events": "4.0.1",
             "stephenreddek/elm-emoji": "1.0.0",
+            "turboMaCk/any-set": "1.4.0",
             "wernerdegroot/listzipper": "3.1.1"
         },
         "indirect": {
@@ -49,7 +49,8 @@
             "ianmackenzie/elm-triangular-mesh": "1.0.2",
             "owanturist/elm-union-find": "1.0.0",
             "rtfeldman/elm-css": "16.0.1",
-            "rtfeldman/elm-hex": "1.0.0"
+            "rtfeldman/elm-hex": "1.0.0",
+            "turboMaCk/any-dict": "2.3.0"
         }
     },
     "test-dependencies": {

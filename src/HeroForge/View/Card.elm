@@ -1,21 +1,19 @@
-module Katakomben.View.Card exposing (Msg(..), view)
+module HeroForge.View.Card exposing (Msg(..), view)
 
 import Card
 import Element exposing (Element)
-import Element.Background as Background
 import Element.Border as Border
 import Element.Events as Events
 import Element.Font as Font
 import Element.Input as Input
 import Framework.Card as Card
 import Framework.Grid as Grid
+import HeroForge.Data.Card as Card exposing (Card)
+import HeroForge.Data.CardDetails as CardDetails
+import HeroForge.Data.Effect as Effect
+import HeroForge.Data.Game exposing (Direction(..))
 import Html.Attributes as Attributes
-import Html.Events
 import Html.Events.Extra.Touch as Touch
-import Katakomben.Data.Card as Card exposing (Card)
-import Katakomben.Data.CardDetails as CardDetails
-import Katakomben.Data.Effect as Effect
-import Katakomben.Data.Game exposing (Direction(..))
 import Tuple
 
 
@@ -33,6 +31,26 @@ touchCoordinates touchEvent =
         |> Tuple.first
 
 
+single : Card -> List (Element Msg)
+single card =
+    let
+        { desc } =
+            card |> CardDetails.getDetails
+
+        { name } =
+            card |> Card.toString
+    in
+    [ name |> Element.text |> Element.el [ Font.bold ]
+    , desc
+        |> List.map (Element.text >> List.singleton >> Element.paragraph [])
+        |> Element.column Grid.simple
+    ]
+        |> List.map
+            (List.singleton
+                >> Element.paragraph []
+            )
+
+
 view :
     { selected : Maybe Direction
     , card : Card
@@ -42,8 +60,11 @@ view :
     -> Element Msg
 view { selected, card, maybeNextCard, showAnimation } =
     let
-        { name, left, right, desc, color } =
+        { left, right } =
             card |> CardDetails.getDetails
+
+        { color } =
+            card |> Card.toString
     in
     Element.column
         (Grid.simple
@@ -73,13 +94,8 @@ view { selected, card, maybeNextCard, showAnimation } =
                 { onPress = Nothing
                 , label = Element.none
                 }
-            , [ name |> Element.text |> Element.el [ Font.bold ]
-              , desc |> Element.text
-              ]
-                |> List.map
-                    (List.singleton
-                        >> Element.paragraph []
-                    )
+            , card
+                |> single
                 |> Element.textColumn
                     (Grid.simple
                         ++ Card.simple
@@ -117,22 +133,18 @@ view { selected, card, maybeNextCard, showAnimation } =
                         case maybeNextCard of
                             Just nextCard ->
                                 let
-                                    nextDetails =
-                                        nextCard |> CardDetails.getDetails
+                                    nextColor =
+                                        nextCard |> Card.toString |> .color
                                 in
-                                [ nextDetails.name |> Element.text
-                                ]
-                                    |> List.map
-                                        (List.singleton
-                                            >> Element.paragraph []
-                                        )
+                                nextCard
+                                    |> single
                                     |> Element.textColumn
                                         (Grid.simple
                                             ++ Card.simple
                                             ++ [ Element.width <| Element.px <| 200
                                                , Element.height <| Element.px <| 300
                                                ]
-                                            ++ (nextDetails.color |> List.map (Element.mapAttribute never))
+                                            ++ (nextColor |> List.map (Element.mapAttribute never))
                                         )
 
                             Nothing ->

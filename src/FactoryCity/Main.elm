@@ -20,8 +20,7 @@ import Html.Attributes as Attributes
 
 
 type alias Config =
-    { scale : Float
-    }
+    Float
 
 
 type Model
@@ -78,14 +77,7 @@ update msg model =
                             { shop = shop
                             , seed = seed
                             }
-                            |> (\( m, c ) ->
-                                    ( ( m
-                                      , { scale = scale
-                                        }
-                                      )
-                                    , c
-                                    )
-                               )
+                            |> Tuple.mapFirst (\m -> ( m, scale ))
                     )
                     Ready
                     ReadySpecific
@@ -116,16 +108,16 @@ update msg model =
 
         ( Resized scale, _ ) ->
             ( case model of
-                Playing ( playingModel, config ) ->
+                Playing ( playingModel, _ ) ->
                     Playing
                         ( playingModel
-                        , { config | scale = scale }
+                        , scale
                         )
 
-                Ready ( readyModel, config ) ->
+                Ready ( readyModel, _ ) ->
                     Ready
                         ( readyModel
-                        , { config | scale = scale }
+                        , scale
                         )
 
                 Preparing _ ->
@@ -179,14 +171,10 @@ view model =
     let
         ( maybeInfrontContent, content ) =
             case model of
-                Playing ( playingModel, { scale } ) ->
-                    PlayingState.view
-                        { scale = scale
-                        }
-                        PlayingSpecific
-                        playingModel
+                Playing ( playingModel, scale ) ->
+                    PlayingState.view scale PlayingSpecific playingModel
 
-                Ready ( readyModel, { scale } ) ->
+                Ready ( readyModel, scale ) ->
                     ReadyState.view scale ReadySpecific readyModel
 
                 Preparing preparingModel ->

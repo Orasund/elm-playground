@@ -91,7 +91,7 @@ refill =
                             { sort = CellType.merger to, item = Nothing }
 
                         Machine machineSort _ ->
-                            { sort = Machine machineSort { isWarm = False }, item = Nothing }
+                            { sort = Machine machineSort False, item = Nothing }
 
                         _ ->
                             { sort = cellType.sort, item = Nothing }

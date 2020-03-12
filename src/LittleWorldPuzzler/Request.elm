@@ -53,7 +53,7 @@ getHighscore { score, challenge } =
                 Err error ->
                     case error of
                         BadBody _ ->
-                            (error |> Debug.log "Error")
+                            error
                                 |> always AchievedNewHighscore
 
                         _ ->

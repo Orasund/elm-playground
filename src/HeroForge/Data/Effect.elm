@@ -1,58 +1,27 @@
-module Katakomben.Data.Effect exposing (ConditionType(..), Effect(..), toString)
+module HeroForge.Data.Effect exposing (Effect(..), toString)
 
 import Element exposing (Color)
 import Framework.Color as Color
-import Katakomben.Data.Card exposing (Card)
-import Katakomben.Data.Monster exposing (Monster)
-
-
-type ConditionType
-    = HasMoney Int
-    | HasHealth Int
-    | HasMaxHealth Int
-    | HasAttack Int
-    | HasFullHealth
+import HeroForge.Data.Card as Card exposing (Card, Level)
+import HeroForge.Data.ConditionType as ConditionType exposing (ConditionType)
 
 
 type Effect
     = Restart
     | NextCard
-    | AddRandomWeapon Int
-    | AddRandomHealItem Int
-    | AddLoot Int
-    | AddRandomUndead Int
-    | AddRandomVermin Int
     | RemoveCard
     | AddPreviousCard Card
     | AddCard Card
-    | SetAttack Int
     | AddAttack Int
     | AddHealth Int
     | AddMaxHealth Int
+    | SetAttack Int
+    | SetMaxHealth Int
+    | SetCurrentLevel Level
     | Attack
     | AddMoney Int
-    | SetMaxHealth Int
     | Conditional ConditionType Effect
-
-
-conditionToString : ConditionType -> String
-conditionToString cond =
-    case cond of
-        HasMoney int ->
-            "MONEY>=" ++ String.fromInt int
-
-        HasHealth int ->
-            "HEALTH>=" ++ String.fromInt int
-
-        HasMaxHealth int ->
-            "MAXHEALTH>=" ++ String.fromInt int
-
-        HasAttack int ->
-            "ATTACK>=" ++ String.fromInt int
-
-        HasFullHealth ->
-            "full health"
-
+    | ExitArea
 
 toString : Effect -> ( String, Maybe Color )
 toString effect =
@@ -62,21 +31,6 @@ toString effect =
 
         NextCard ->
             ( "Next Card", Nothing )
-
-        AddRandomWeapon int ->
-            ( "Add random Weapon", Nothing )
-
-        AddRandomHealItem int ->
-            ( "Add random healing item", Nothing )
-
-        AddLoot int ->
-            ( "Add random loot", Nothing )
-
-        AddRandomUndead int ->
-            ( "Add random undead monster", Just Color.red )
-
-        AddRandomVermin int ->
-            ( "Add random vermin monster", Just Color.red )
 
         RemoveCard ->
             ( "Remove this card", Nothing )
@@ -157,12 +111,17 @@ toString effect =
             )
 
         AddPreviousCard card ->
-            ( "Add a card under the deck"
+            ( "Add " ++ (card |> Card.toString |> .name) ++ " under the deck"
             , Nothing
             )
 
         AddCard card ->
-            ( "Add a card on top of the deck"
+            ( "Add " ++ (card |> Card.toString |> .name) ++ " on top of the deck"
+            , Nothing
+            )
+
+        SetCurrentLevel level ->
+            ( "Entering " ++ (level |> Card.levelToString)
             , Nothing
             )
 
@@ -171,6 +130,11 @@ toString effect =
                 ( string, color ) =
                     e |> toString
             in
-            ( "if " ++ (cond |> conditionToString) ++ ": " ++ string
+            ( "if " ++ (cond |> ConditionType.toString) ++ ": " ++ string
             , color
+            )
+
+        ExitArea ->
+            ( "Exit the Area"
+            , Nothing
             )

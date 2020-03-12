@@ -7,7 +7,7 @@ import LittleWorldPuzzler.Automata.Rule as Rule
 import LittleWorldPuzzler.Data.CellType as CellType exposing (CellType)
 
 
-order : Order CellType
+order : Order CellType Int
 order =
     Maybe.map CellType.toInt
         >> Maybe.withDefault 0
@@ -20,7 +20,7 @@ rules =
         |> List.concat
 
 
-automata : Automata CellType
+automata : Automata CellType Int
 automata =
     CellAutomata.automata
         Neighborhood.fullSymmetry

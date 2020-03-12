@@ -20,8 +20,8 @@ viewInactiveCard scale content =
         content
 
 
-viewCardList : Float -> { sort : Bool } -> List CellType -> Element msg
-viewCardList scale { sort } =
+viewCardList : Float -> Bool -> List CellType -> Element msg
+viewCardList scale sort =
     List.map CellType.toString
         >> (if sort then
                 List.sort
@@ -78,7 +78,6 @@ viewOne scale maybeCellType =
                 Card.hand []
                     { width = 100 * scale
                     , dimensions = ( 120, 176 )
-                    , scale = scale
                     , cards =
                         List.singleton <|
                             Card.card
@@ -102,7 +101,7 @@ viewOne scale maybeCellType =
                     Element.text "please select a card"
 
 
-view : Float -> { sort : Bool } -> Maybe (Selected -> msg) -> Maybe Selected -> Deck -> Element msg
+view : Float -> Bool -> Maybe (Selected -> msg) -> Maybe Selected -> Deck -> Element msg
 view scale sort maybeSelectedMsg maybeSelected deck =
     Element.row (viewAttributes scale) <|
         [ viewInactiveCard scale <|
@@ -130,7 +129,6 @@ view scale sort maybeSelectedMsg maybeSelected deck =
             ]
             { width = 250 * scale
             , dimensions = ( 120, 176 )
-            , scale = scale
             , cards =
                 List.concat
                     [ [ Card.card

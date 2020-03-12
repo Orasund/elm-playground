@@ -260,11 +260,11 @@ subscriptions { ui } =
 
 
 view :
-    { scale : Float }
+    Float
     -> (Msg -> msg)
     -> Model
     -> ( Maybe ( Element msg, Element msg ), List (Element msg) )
-view { scale } msgMapper { ui, game } =
+view scale msgMapper { ui, game } =
     ( Just <|
         ( Element.row
             (Grid.simple

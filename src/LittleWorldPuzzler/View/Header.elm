@@ -8,8 +8,8 @@ import Framework.Grid as Grid
 import LittleWorldPuzzler.Data exposing (devMode, gameVersion, updateName)
 
 
-display : Float -> msg -> Int -> Element msg -> Element msg
-display scale restartMsg score content =
+display : msg -> Int -> Element msg -> Element msg
+display restartMsg score content =
     Element.row
         (Grid.spaceEvenly
             ++ [ Element.height <| Element.shrink
@@ -31,9 +31,9 @@ display scale restartMsg score content =
         ]
 
 
-viewWithUndo : Float -> { previousMsg : msg, nextMsg : msg, restartMsg : msg } -> Int -> Element msg
-viewWithUndo scale { previousMsg, nextMsg, restartMsg } score =
-    display scale restartMsg score <|
+viewWithUndo : { previousMsg : msg, nextMsg : msg, restartMsg : msg } -> Int -> Element msg
+viewWithUndo { previousMsg, nextMsg, restartMsg } score =
+    display restartMsg score <|
         Element.row
             (Grid.compact
                 ++ [ Element.width Element.shrink ]
@@ -60,7 +60,7 @@ viewWithUndo scale { previousMsg, nextMsg, restartMsg } score =
 
 view : Float -> msg -> Int -> Element msg
 view scale restartMsg score =
-    display scale restartMsg score <|
+    display restartMsg score <|
         Element.el
             [ Element.width <| Element.px <| floor <| 150 * scale
             , Element.alignBottom

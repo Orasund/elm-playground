@@ -1,15 +1,14 @@
-module Katakomben.Page.Playing exposing (Model, Msg, TansitionData, init, subscriptions, update, view)
+module HeroForge.Page.Playing exposing (Model, Msg, TansitionData, init, subscriptions, update, view)
 
 import Action
 import Browser.Events as Events
 import Element exposing (Element)
+import HeroForge.Data.Game as Game exposing (Direction(..), Game, Msg(..))
+import HeroForge.View.Card as Card
+import HeroForge.View.Game as Game
 import Json.Decode as Decode
-import Katakomben.Data.Game as Game exposing (Direction(..), Game, Msg(..))
-import Katakomben.View.Card as Card
-import Katakomben.View.Game as Game
 import Process
 import Random exposing (Seed)
-import Swiper exposing (SwipeEvent, SwipingState)
 import Task
 
 
@@ -145,7 +144,7 @@ update msg model =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Decode.field "key" Decode.string
         |> Decode.map
             (\string ->

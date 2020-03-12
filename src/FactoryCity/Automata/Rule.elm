@@ -3,8 +3,9 @@ module FactoryCity.Automata.Rule exposing (burnable, container, merger, movables
 import CellAutomata exposing (Rule, RuleExpression(..))
 import FactoryCity.Automata.Neighborhood as Neighborhood
 import FactoryCity.Data.CellType as CellType exposing (CellType, ContainerSort(..), MachineSort(..), MovableSort(..))
-import Grid.Direction as Direction exposing (Direction(..))
 import FactoryCity.Data.Item as Item exposing (Item(..))
+import Grid.Direction as Direction exposing (Direction(..))
+
 
 directionList : List Direction
 directionList =
@@ -129,12 +130,12 @@ pressable =
             [ { from =
                     Just
                         { item = Nothing
-                        , sort = Machine Press { isWarm = True }
+                        , sort = Machine Press True
                         }
               , to =
                     Just
                         { item = Just itemTo
-                        , sort = Machine Press { isWarm = False }
+                        , sort = Machine Press False
                         }
               , neighbors =
                     CellAutomata.anyNeighborhood
@@ -162,7 +163,7 @@ pressable =
                                 Exactly <|
                                     Just
                                         { item = Nothing
-                                        , sort = Machine Press { isWarm = True }
+                                        , sort = Machine Press True
                                         }
                            )
               }
@@ -194,12 +195,12 @@ shreddable =
                 [ [ { from =
                         Just
                             { item = Nothing
-                            , sort = Machine Shredder { isWarm = True }
+                            , sort = Machine Shredder True
                             }
                     , to =
                         Just
                             { item = Just itemTo
-                            , sort = Machine Shredder { isWarm = True }
+                            , sort = Machine Shredder True
                             }
                     , neighbors =
                         CellAutomata.anyNeighborhood
@@ -214,12 +215,12 @@ shreddable =
                   , { from =
                         Just
                             { item = Just itemTo
-                            , sort = Machine Shredder { isWarm = True }
+                            , sort = Machine Shredder True
                             }
                     , to =
                         Just
                             { item = Nothing
-                            , sort = Machine Shredder { isWarm = True }
+                            , sort = Machine Shredder True
                             }
                     , neighbors =
                         CellAutomata.anyNeighborhood
@@ -240,7 +241,7 @@ shreddable =
                                     Exactly <|
                                         Just
                                             { item = Nothing
-                                            , sort = Machine Shredder { isWarm = True }
+                                            , sort = Machine Shredder True
                                             }
                                )
                     }
@@ -265,7 +266,7 @@ shreddable =
                                                 Exactly <|
                                                     Just
                                                         { item = Just itemTo
-                                                        , sort = Machine Shredder { isWarm = True }
+                                                        , sort = Machine Shredder True
                                                         }
                                            )
                                 }
@@ -300,12 +301,12 @@ smeltable =
             [ { from =
                     Just
                         { item = Nothing
-                        , sort = Machine Furnace { isWarm = True }
+                        , sort = Machine Furnace True
                         }
               , to =
                     Just
                         { item = Just itemTo
-                        , sort = Machine Furnace { isWarm = True }
+                        , sort = Machine Furnace True
                         }
               , neighbors =
                     CellAutomata.anyNeighborhood
@@ -333,7 +334,7 @@ smeltable =
                                 Exactly <|
                                     Just
                                         { item = Nothing
-                                        , sort = Machine Furnace { isWarm = True }
+                                        , sort = Machine Furnace True
                                         }
                            )
               }
@@ -364,12 +365,12 @@ burnable =
             [ { from =
                     Just
                         { item = Nothing
-                        , sort = Machine machineSort { isWarm = False }
+                        , sort = Machine machineSort False
                         }
               , to =
                     Just
                         { item = Nothing
-                        , sort = Machine machineSort { isWarm = True }
+                        , sort = Machine machineSort True
                         }
               , neighbors =
                     CellAutomata.anyNeighborhood
@@ -397,7 +398,7 @@ burnable =
                                 Exactly <|
                                     Just
                                         { item = Nothing
-                                        , sort = Machine machineSort { isWarm = False }
+                                        , sort = Machine machineSort False
                                         }
                            )
               }

@@ -18,7 +18,7 @@ viewFinished : Float -> Game -> Element msg
 viewFinished scale { board, deck } =
     Element.column Grid.simple
         [ BoardView.view scale Nothing board
-        , DeckView.view scale { sort = False } Nothing Nothing deck
+        , DeckView.view scale False Nothing Nothing deck
         ]
 
 
@@ -54,7 +54,7 @@ viewReplay scale { board, deck } =
         )
     <|
         [ BoardView.view scale Nothing board
-        , DeckView.view scale { sort = False } Nothing Nothing deck
+        , DeckView.view scale False Nothing Nothing deck
         ]
 
 
@@ -62,7 +62,7 @@ viewHome : Float -> Game -> Element msg
 viewHome scale { board, deck } =
     Element.column Grid.simple <|
         [ BoardView.view scale Nothing board
-        , DeckView.view scale { sort = False } Nothing Nothing deck
+        , DeckView.view scale False Nothing Nothing deck
         ]
 
 
@@ -70,5 +70,5 @@ view : { scale : Float, selected : Maybe Selected, sort : Bool } -> { positionSe
 view { scale, selected, sort } { positionSelectedMsg, selectedMsg } { board, deck } =
     Element.column Grid.simple <|
         [ BoardView.view scale (Just positionSelectedMsg) board
-        , DeckView.view scale { sort = sort } (Just selectedMsg) selected deck
+        , DeckView.view scale sort (Just selectedMsg) selected deck
         ]

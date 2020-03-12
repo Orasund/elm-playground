@@ -1,9 +1,9 @@
-module Katakomben.Page.Prepairing exposing (Model, Msg, init, update, view)
+module HeroForge.Page.Prepairing exposing (Model, Msg, init, update, view)
 
 import Action
 import Browser.Dom as Dom
 import Element exposing (Element)
-import Katakomben.Page.Playing exposing (TansitionData)
+import HeroForge.Page.Playing exposing (TansitionData)
 import Random exposing (Seed)
 import Task
 
@@ -45,5 +45,5 @@ update msg model =
 view :
     Model
     -> List (Element msg)
-view model =
+view _ =
     []

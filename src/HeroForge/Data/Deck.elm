@@ -1,4 +1,4 @@
-module Katakomben.Data.Deck exposing (Deck, add, addPrevious, current, fromList, jumpTo, next, remove, toList)
+module HeroForge.Data.Deck exposing (Deck, add, addPrevious, current, fromList, findNext, next, remove, toList)
 
 import RollingList exposing (RollingList)
 
@@ -7,17 +7,17 @@ type alias Deck a =
     RollingList a
 
 
-jumpTo : a -> Deck a -> Deck a
-jumpTo target deck =
+findNext : (a -> Bool) -> Deck a -> Deck a
+findNext cond deck =
     case deck |> RollingList.current of
         Just card ->
-            if card == target then
+            if cond card then
                 deck
 
             else
                 deck
                     |> RollingList.roll
-                    |> jumpTo target
+                    |> findNext cond
 
         Nothing ->
             deck

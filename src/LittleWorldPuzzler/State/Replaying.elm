@@ -65,7 +65,7 @@ view scale restartMsg msgMapper model =
             model.present
     in
     ( Nothing
-    , [ HeaderView.viewWithUndo scale
+    , [ HeaderView.viewWithUndo
             { restartMsg = restartMsg
             , previousMsg = msgMapper Previous
             , nextMsg = msgMapper Next
