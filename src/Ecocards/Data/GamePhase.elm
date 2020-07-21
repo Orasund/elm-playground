@@ -1,4 +1,4 @@
-module Ecocards.Data.GamePhase exposing (GamePhase(..), Model)
+module Ecocards.Data.GamePhase exposing (GamePhase(..), end)
 
 import Ecocards.Data.Game as Game exposing (Game)
 import Ecocards.Data.Move as Move exposing (Move)
@@ -9,12 +9,11 @@ type GamePhase
     = WaitingForOpponent
     | Thinking { played : Set Int }
     | Tapping Move
-    | Won
-    | Lost
+    | Finished Bool
 
 
-endPhase : ( GamePhase, Game ) -> ( GamePhase, Game )
-endPhase ( gamePhase, game ) =
+end : ( GamePhase, Game ) -> ( GamePhase, Game )
+end ( gamePhase, game ) =
     case gamePhase of
         WaitingForOpponent ->
             ( Thinking { played = Set.empty }, game )
@@ -28,18 +27,5 @@ endPhase ( gamePhase, game ) =
                 |> Result.withDefault game
             )
 
-        Won ->
-            ( Won, game )
-
-        Lost ->
-            ( Lost, game )
-
-
-
---------------------------------------------------------------------------------
-
-
-type alias Model =
-    { game : Game
-    , phase : GamePhase
-    }
+        Finished bool ->
+            ( Finished bool, game )

@@ -1,4 +1,4 @@
-module Ecocards.Data.Game exposing (Game, tapAnimal)
+module Ecocards.Data.Game exposing (Game, endTurn, tapAnimal)
 
 import Array exposing (Array)
 import Array.Extra as Array

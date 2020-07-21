@@ -1,6 +1,7 @@
-module Ecocards.Data.Move exposing (Move)
+module Ecocards.Data.Move exposing (Move, toggle)
 
 import Set exposing (Set)
+import Set.Extra as Set
 
 
 type alias Move =
@@ -9,4 +10,11 @@ type alias Move =
     , played : Set Int
     , maxAmount : Int
     , minAmount : Int
+    }
+
+
+toggle : Int -> Move -> Move
+toggle id move =
+    { move
+        | selected = move.selected |> Set.toggle id
     }
