@@ -1,8 +1,10 @@
-module Ecocards.Data.GameArea exposing (GameArea, removeSet, add, draw, remove, tap)
+module Ecocards.Data.GameArea exposing (GameArea, add, draw, endTurn, remove, removeSet, tap)
 
 import Array exposing (Array)
 import Dict exposing (Dict)
+import Dict.Extra as Dict
 import Ecocards.Data.Animal exposing (Animal)
+import List.Extra as List
 import Set exposing (Set)
 
 
@@ -45,4 +47,27 @@ tap : Int -> GameArea -> GameArea
 tap id gameArea =
     { gameArea
         | placed = gameArea.placed |> Dict.update id (Maybe.map (always { isTapped = True }))
+    }
+
+
+endTurn : GameArea -> GameArea
+endTurn gameArea =
+    let
+        ( freshDraw, deck ) =
+            gameArea.deck
+                |> List.splitAt (3 - (gameArea.hand |> Array.length))
+    in
+    { gameArea
+        | placed =
+            gameArea.placed
+                |> Dict.filterMap
+                    (\_ { isTapped } ->
+                        if isTapped then
+                            Just { isTapped = False }
+
+                        else
+                            Nothing
+                    )
+        , deck = deck
+        , hand = Array.append gameArea.hand (freshDraw |> Array.fromList)
     }

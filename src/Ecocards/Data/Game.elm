@@ -1,20 +1,12 @@
-module Ecocards.Data.Game exposing (Game)
+module Ecocards.Data.Game exposing (Game, tapAnimal)
 
 import Array exposing (Array)
 import Array.Extra as Array
 import Dict exposing (Dict)
-import Ecocards.Data.Animal exposing (Animal, Biome)
+import Ecocards.Data.Animal exposing (Animal, Behaviour(..), Biome)
 import Ecocards.Data.GameArea as GameArea exposing (GameArea)
+import Ecocards.Data.Move exposing (Move)
 import Set exposing (Set)
-
-
-type alias Move =
-    { card : Int
-    , selected : Set Int
-    , played : Set Int
-    , maxAmount : Int
-    , minAmount : Int
-    }
 
 
 
@@ -59,25 +51,26 @@ remove { id } ({ yourArea } as game) =
     }
 
 
-tapHerbivores : { amount : Int } -> Move -> Game -> Game
+tapHerbivores : { amount : Int } -> Move -> Game -> Result () Game
 tapHerbivores { amount } move game =
     if amount <= (move.played |> Set.size) then
-        { game
-            | yourArea =
-                game.yourArea
-                    |> GameArea.tap move.card
-                    |> (game.animals
-                            |> Dict.get move.card
-                            |> Maybe.map GameArea.add
-                            |> Maybe.withDefault identity
-                       )
-        }
+        Ok
+            { game
+                | yourArea =
+                    game.yourArea
+                        |> GameArea.tap move.card
+                        |> (game.animals
+                                |> Dict.get move.card
+                                |> Maybe.map GameArea.add
+                                |> Maybe.withDefault identity
+                           )
+            }
 
     else
-        game
+        Err ()
 
 
-tapOmnivorous : { minAmount : Int, maxAmount : Int } -> Move -> Game -> Game
+tapOmnivorous : { minAmount : Int, maxAmount : Int } -> Move -> Game -> Result () Game
 tapOmnivorous { minAmount, maxAmount } move game =
     let
         amount =
@@ -93,35 +86,36 @@ tapOmnivorous { minAmount, maxAmount } move game =
                     0
     in
     if (minAmount <= amount) && (amount <= maxAmount) then
-        { game
-            | yourArea =
-                game.yourArea
-                    |> GameArea.tap move.card
-                    |> GameArea.removeSet move.selected
-                    |> (if minAmount == amount then
-                            game.animals
-                                |> Dict.get move.card
-                                |> Maybe.map GameArea.add
-                                |> Maybe.withDefault identity
+        Ok
+            { game
+                | yourArea =
+                    game.yourArea
+                        |> GameArea.tap move.card
+                        |> GameArea.removeSet move.selected
+                        |> (if minAmount == amount then
+                                game.animals
+                                    |> Dict.get move.card
+                                    |> Maybe.map GameArea.add
+                                    |> Maybe.withDefault identity
 
-                        else
-                            identity
-                       )
-        }
+                            else
+                                identity
+                           )
+            }
 
     else
-        game
+        Err ()
 
 
-tabPredator :
+tapPredator :
     { minAmount : Int
     , maxAmount : Int
     , biome : Biome
     }
     -> Move
     -> Game
-    -> Game
-tabPredator { minAmount, maxAmount, biome } move game =
+    -> Result () Game
+tapPredator { minAmount, maxAmount, biome } move game =
     if
         move.selected
             |> Set.toList
@@ -133,22 +127,45 @@ tabPredator { minAmount, maxAmount, biome } move game =
         tapOmnivorous { minAmount = minAmount, maxAmount = maxAmount } move game
 
     else
-        game
+        Err ()
 
 
+tapAnimal : Int -> Move -> Game -> Result () Game
+tapAnimal id move game =
+    game.animals
+        |> Dict.get id
+        |> Maybe.map
+            (\{ behaviour } ->
+                (case behaviour of
+                    Predator biome ( minAmount, maxAmount ) ->
+                        tapPredator
+                            { minAmount = minAmount
+                            , maxAmount = maxAmount
+                            , biome = biome
+                            }
 
---------------------------------------------------------------------------------
+                    Herbivores amount ->
+                        tapHerbivores { amount = amount }
+
+                    Omnivorous ( minAmount, maxAmount ) ->
+                        tapOmnivorous
+                            { minAmount = minAmount
+                            , maxAmount = maxAmount
+                            }
+                )
+                    move
+                    game
+            )
+        |> Maybe.withDefault (Err ())
 
 
-type GamePhase
-    = WaitingForOpponent
-    | Thinking { played : Set Int }
-    | Tapping Move
-    | Won
-    | Lost
-
-
-type alias Model =
-    { game : Game
-    , phase : GamePhase
+endTurn : Game -> Game
+endTurn game =
+    { game
+        | yourArea = game.yourArea |> GameArea.endTurn
+        , animals =
+            game.yourArea.placed
+                |> Dict.filter (\_ { isTapped } -> not isTapped)
+                |> Dict.keys
+                |> List.foldl Dict.remove game.animals
     }

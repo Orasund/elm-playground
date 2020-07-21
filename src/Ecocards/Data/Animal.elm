@@ -1,4 +1,4 @@
-module Ecocards.Data.Animal exposing (Animal, Biome, bear, cat, deer, fish, mouse, otter, wolf)
+module Ecocards.Data.Animal exposing (Animal, Behaviour(..), Biome, bear, cat, deer, fish, mouse, otter, wolf)
 
 
 type Biome
