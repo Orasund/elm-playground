@@ -1,4 +1,4 @@
-module Ecocards.Data.Game exposing (Game, endTurn, tapAnimal)
+module Ecocards.Data.Game exposing (Game, isFinished, endTurn, play, swapAreas, tapAnimal)
 
 import Array exposing (Array)
 import Array.Extra as Array
@@ -21,25 +21,33 @@ type alias Game =
     }
 
 
-play : { index : Int } -> Game -> Game
+play : { index : Int } -> Game -> Result String Game
 play { index } ({ yourArea } as game) =
     yourArea.hand
         |> Array.get index
         |> Maybe.map
             (\animal ->
-                { game
-                    | yourArea =
-                        { yourArea
-                            | hand = yourArea.hand |> Array.removeAt index
-                            , placed =
-                                yourArea.placed
-                                    |> Dict.insert game.nextId { isTapped = False }
-                        }
-                    , animals = game.animals |> Dict.insert game.nextId animal
-                    , nextId = game.nextId + 1
-                }
+                Ok
+                    { game
+                        | yourArea =
+                            { yourArea
+                                | hand = yourArea.hand |> Array.removeAt index
+                                , placed =
+                                    yourArea.placed
+                                        |> Dict.insert game.nextId { isTapped = False }
+                            }
+                        , animals = game.animals |> Dict.insert game.nextId animal
+                        , nextId = game.nextId + 1
+                    }
             )
-        |> Maybe.withDefault game
+        |> Maybe.withDefault
+            (Err
+                ("index out of bounds:"
+                    ++ String.fromInt index
+                    ++ " of "
+                    ++ String.fromInt (yourArea.hand |> Array.length)
+                )
+            )
 
 
 remove : { id : Int } -> Game -> Game
@@ -51,7 +59,7 @@ remove { id } ({ yourArea } as game) =
     }
 
 
-tapHerbivores : { amount : Int } -> Move -> Game -> Result () Game
+tapHerbivores : { amount : Int } -> Move -> Game -> Result String Game
 tapHerbivores { amount } move game =
     if amount <= (move.played |> Set.size) then
         Ok
@@ -67,10 +75,16 @@ tapHerbivores { amount } move game =
             }
 
     else
-        Err ()
+        Err
+            ("Wrong amount: "
+                ++ String.fromInt amount
+                ++ ", expected "
+                ++ String.fromInt (move.played |> Set.size)
+                ++ " or less"
+            )
 
 
-tapOmnivorous : { minAmount : Int, maxAmount : Int } -> Move -> Game -> Result () Game
+tapOmnivorous : { minAmount : Int, maxAmount : Int } -> Move -> Game -> Result String Game
 tapOmnivorous { minAmount, maxAmount } move game =
     let
         amount =
@@ -92,7 +106,7 @@ tapOmnivorous { minAmount, maxAmount } move game =
                     game.yourArea
                         |> GameArea.tap move.card
                         |> GameArea.removeSet move.selected
-                        |> (if minAmount == amount then
+                        |> (if maxAmount == amount then
                                 game.animals
                                     |> Dict.get move.card
                                     |> Maybe.map GameArea.add
@@ -101,10 +115,20 @@ tapOmnivorous { minAmount, maxAmount } move game =
                             else
                                 identity
                            )
+                , oppArea =
+                    game.oppArea
+                        |> GameArea.removeSet move.selected
             }
 
     else
-        Err ()
+        Err
+            ("wrong amount:"
+                ++ String.fromInt amount
+                ++ ", expected between "
+                ++ String.fromInt minAmount
+                ++ " and "
+                ++ String.fromInt maxAmount
+            )
 
 
 tapPredator :
@@ -114,7 +138,7 @@ tapPredator :
     }
     -> Move
     -> Game
-    -> Result () Game
+    -> Result String Game
 tapPredator { minAmount, maxAmount, biome } move game =
     if
         move.selected
@@ -127,10 +151,10 @@ tapPredator { minAmount, maxAmount, biome } move game =
         tapOmnivorous { minAmount = minAmount, maxAmount = maxAmount } move game
 
     else
-        Err ()
+        Err "not all selected have the expected biome."
 
 
-tapAnimal : Int -> Move -> Game -> Result () Game
+tapAnimal : Int -> Move -> Game -> Result String Game
 tapAnimal id move game =
     game.animals
         |> Dict.get id
@@ -156,7 +180,7 @@ tapAnimal id move game =
                     move
                     game
             )
-        |> Maybe.withDefault (Err ())
+        |> Maybe.withDefault (Err ("Id not found in game.animals: " ++ String.fromInt id))
 
 
 endTurn : Game -> Game
@@ -169,3 +193,23 @@ endTurn game =
                 |> Dict.keys
                 |> List.foldl Dict.remove game.animals
     }
+
+
+swapAreas : Game -> Game
+swapAreas game =
+    { game
+        | yourArea = game.oppArea
+        , oppArea = game.yourArea
+    }
+
+
+isFinished : Game -> Maybe Bool
+isFinished game =
+    if (game.yourArea.deck |> List.length) >= 6 then
+        Just True
+
+    else if (game.yourArea.hand |> Array.length) < 3 then
+        Just False
+
+    else
+        Nothing
