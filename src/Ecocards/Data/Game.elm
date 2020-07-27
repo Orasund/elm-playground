@@ -1,4 +1,4 @@
-module Ecocards.Data.Game exposing (Game, isFinished, endTurn, play, swapAreas, tapAnimal)
+module Ecocards.Data.Game exposing (Game, endTurn, isFinished, isValidMove, play, swapAreas, tapAnimal)
 
 import Array exposing (Array)
 import Array.Extra as Array
@@ -6,6 +6,7 @@ import Dict exposing (Dict)
 import Ecocards.Data.Animal exposing (Animal, Behaviour(..), Biome)
 import Ecocards.Data.GameArea as GameArea exposing (GameArea)
 import Ecocards.Data.Move exposing (Move)
+import Result.Extra as Result
 import Set exposing (Set)
 
 
@@ -213,3 +214,112 @@ isFinished game =
 
     else
         Nothing
+
+
+isValidMove : Move -> Game -> Result (List String) ()
+isValidMove move game =
+    game.animals
+        |> Dict.get move.card
+        |> Maybe.map
+            (\animal ->
+                let
+                    isAnimalOwned =
+                        if
+                            game.yourArea.placed
+                                |> Dict.get move.card
+                                |> Maybe.map (\{ isTapped } -> not isTapped)
+                                |> Maybe.withDefault False
+                        then
+                            Ok ()
+
+                        else
+                            Err "Bug: Animal is not Owned"
+
+                    areBoundsValid =
+                        if
+                            ( move.minAmount, move.maxAmount )
+                                == (case animal.behaviour of
+                                        Predator _ amounts ->
+                                            amounts
+
+                                        Herbivores _ ->
+                                            ( 0, 0 )
+
+                                        Omnivorous amounts ->
+                                            amounts
+                                   )
+                        then
+                            Ok ()
+
+                        else
+                            Err "Bug: Bounds are not valid"
+
+                    isAmountValid =
+                        if
+                            move.selected
+                                |> Set.size
+                                |> (\n -> (move.minAmount <= n) && (move.maxAmount >= n))
+                        then
+                            Ok ()
+
+                        else
+                            Err <| "Amount is not valid, should be between " ++ String.fromInt move.minAmount ++ " and " ++ String.fromInt move.maxAmount
+
+                    isSelectedValid =
+                        if
+                            move.selected
+                                |> Set.toList
+                                |> List.all
+                                    (\id ->
+                                        game.animals
+                                            |> Dict.get id
+                                            |> Maybe.map
+                                                (\{ biome } ->
+                                                    case animal.behaviour of
+                                                        Predator b _ ->
+                                                            b == biome
+
+                                                        _ ->
+                                                            True
+                                                )
+                                            |> Maybe.withDefault False
+                                    )
+                        then
+                            Ok ()
+
+                        else
+                            Err "Selected animals are now valid"
+
+                    isPlayedAmountValid =
+                        let
+                            remaining =
+                                case animal.behaviour of
+                                    Herbivores amount ->
+                                        amount - (move.played |> Set.size)
+
+                                    _ ->
+                                        0
+                        in
+                        if remaining <= 0 then
+                            Ok ()
+
+                        else
+                            Err <| "not enough animals played yet, you need to play " ++ String.fromInt remaining ++ " more"
+                in
+                [ isAnimalOwned
+                , areBoundsValid
+                , isAmountValid
+                , isSelectedValid
+                , isPlayedAmountValid
+                ]
+                    |> Result.partition
+                    |> Tuple.second
+            )
+        |> Maybe.withDefault [ "Bug: Animal Id not valid" ]
+        |> (\list ->
+                if list |> List.isEmpty then
+                    Ok ()
+
+                else
+                    Err list
+           )

@@ -13,8 +13,8 @@ import Html.Attributes exposing (selected)
 import Set exposing (Set)
 import Set.Extra as Set
 import Widget
-import Widget.Style exposing (ButtonStyle, ColumnStyle, RowStyle)
-import Widget.Style.Material as Material
+import Widget.Style exposing (ButtonStyle, ColumnStyle, DialogStyle, ExpansionPanelStyle, LayoutStyle, RowStyle, SortTableStyle, TabStyle, TextInputStyle)
+import Widget.Style.Material as Material exposing (Palette)
 
 
 type alias Model =
@@ -27,6 +27,7 @@ type alias Model =
 type Msg
     = ClickedCard { id : Int }
     | PlayedCard { index : Int }
+    | Canceled
     | Confirmed
 
 
@@ -85,8 +86,8 @@ update msg model =
                                                 { card = id
                                                 , selected = Set.empty
                                                 , played = played
-                                                , maxAmount = minAnimal
-                                                , minAmount = maxAnimal
+                                                , minAmount = minAnimal
+                                                , maxAmount = maxAnimal
                                                 }
                                     }
 
@@ -106,6 +107,18 @@ update msg model =
                                 model
                     )
                 |> Maybe.withDefault model
+            , Cmd.none
+            )
+
+        Canceled ->
+            ( case model.phase of
+                Tapping move ->
+                    { model
+                        | phase = Thinking { played = move.played }
+                    }
+
+                _ ->
+                    model
             , Cmd.none
             )
 
@@ -155,25 +168,43 @@ update msg model =
 --------------------------------------------------------------------------------
 
 
-type alias Style style msg =
-    { style
-        | chip : ButtonStyle msg
-        , column : ColumnStyle msg
-        , row : RowStyle msg
-        , buttonRow : RowStyle msg
-        , textButton : ButtonStyle msg
-        , cardColumn : ColumnStyle msg
+type alias Style msg =
+    { dialog : DialogStyle msg
+    , expansionPanel : ExpansionPanelStyle msg
+    , button : ButtonStyle msg
+    , primaryButton : ButtonStyle msg
+    , tab : TabStyle msg
+    , textInput : TextInputStyle msg
+    , chipButton : ButtonStyle msg
+    , row : RowStyle msg
+    , buttonRow : RowStyle msg
+    , column : ColumnStyle msg
+    , cardColumn : ColumnStyle msg
+    , selectButton : ButtonStyle msg
+    , layout : LayoutStyle msg
     }
 
 
-style : Style {} msg
+palette : Palette
+palette =
+    Material.defaultPalette
+
+
+style : Style msg
 style =
-    { chip = Material.toggleButton Material.defaultPalette
-    , column = Material.column
-    , row = Material.row
+    { row = Material.row
     , buttonRow = Material.buttonRow
-    , textButton = Material.textButton Material.defaultPalette
-    , cardColumn = Material.cardColumn Material.defaultPalette
+    , cardColumn = Material.cardColumn palette
+    , column = Material.column
+    , button = Material.outlinedButton palette
+    , primaryButton = Material.containedButton palette
+    , selectButton = Material.toggleButton palette
+    , tab = Material.tab palette
+    , textInput = Material.textInput palette
+    , chipButton = Material.chip palette
+    , expansionPanel = Material.expansionPanel palette
+    , dialog = Material.alertDialog palette
+    , layout = Material.layout palette
     }
 
 
@@ -196,7 +227,7 @@ viewArea { gameArea, animals, phase, move } =
             |> Array.toList
             |> List.indexedMap
                 (\index animal ->
-                    Widget.button style.chip
+                    Widget.button style.chipButton
                         { text = animal.symbol
                         , icon = Element.none
                         , onPress =
@@ -278,7 +309,7 @@ viewArea { gameArea, animals, phase, move } =
                 )
             |> Widget.buttonRow
                 { list = style.buttonRow
-                , button = style.chip
+                , button = style.chipButton
                 }
       ]
         |> Widget.row style.row
@@ -290,6 +321,20 @@ viewArea { gameArea, animals, phase, move } =
 -}
 view : Model -> Element Msg
 view model =
+    let
+        invalidRestrictions =
+            case model.phase of
+                Tapping move ->
+                    case model.game |> Game.isValidMove move of
+                        Ok () ->
+                            []
+
+                        Err list ->
+                            list
+
+                _ ->
+                    []
+    in
     [ [ [ Element.text "Your Area"
         , viewArea
             { gameArea = model.game.yourArea
@@ -323,8 +368,11 @@ view model =
             |> Widget.column style.column
       ]
         |> Widget.row style.row
-    , Element.text "Aditional Functions"
-    , [ Widget.textButton style.textButton
+    , [ Widget.textButton style.button
+            { text = "Cancel"
+            , onPress = Just <| Canceled
+            }
+      , Widget.textButton style.primaryButton
             { text =
                 case model.phase of
                     WaitingForOpponent ->
@@ -341,15 +389,28 @@ view model =
 
                     Finished False ->
                         "You Lost"
-            , onPress = Just Confirmed
+            , onPress =
+                case model.phase of
+                    Tapping move ->
+                        if invalidRestrictions |> List.isEmpty then
+                            Just Confirmed
+
+                        else
+                            Nothing
+
+                    _ ->
+                        Just Confirmed
             }
       , model.error
             |> Maybe.withDefault ""
             |> Element.text
       ]
         |> Widget.row style.row
-    , Debug.toString model.game |> Element.text
-    , Debug.toString model.phase |> Element.text
+    , invalidRestrictions
+        |> List.map Element.text
+        |> Widget.column style.column
+    , Debug.toString model.game |> Element.text |> List.singleton |> Element.paragraph []
+    , Debug.toString model.phase |> Element.text |> List.singleton |> Element.paragraph []
     ]
         |> Widget.column style.column
 
