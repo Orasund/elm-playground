@@ -155,33 +155,43 @@ tapPredator { minAmount, maxAmount, biome } move game =
         Err "not all selected have the expected biome."
 
 
-tapAnimal : Int -> Move -> Game -> Result String Game
-tapAnimal id move game =
-    game.animals
-        |> Dict.get id
-        |> Maybe.map
-            (\{ behaviour } ->
-                (case behaviour of
-                    Predator biome ( minAmount, maxAmount ) ->
-                        tapPredator
-                            { minAmount = minAmount
-                            , maxAmount = maxAmount
-                            , biome = biome
-                            }
+tapAnimal : Move -> Game -> Result String Game
+tapAnimal move game =
+    case game |> isValidMove move of
+        Err _ ->
+            Err "Move is not valid"
 
-                    Herbivores amount ->
-                        tapHerbivores { amount = amount }
+        Ok () ->
+            game.animals
+                |> Dict.get move.card
+                |> Maybe.map
+                    (\{ behaviour } ->
+                        (case behaviour of
+                            Predator biome ( minAmount, maxAmount ) ->
+                                tapPredator
+                                    { minAmount = minAmount
+                                    , maxAmount = maxAmount
+                                    , biome = biome
+                                    }
 
-                    Omnivorous ( minAmount, maxAmount ) ->
-                        tapOmnivorous
-                            { minAmount = minAmount
-                            , maxAmount = maxAmount
-                            }
-                )
-                    move
-                    game
-            )
-        |> Maybe.withDefault (Err ("Id not found in game.animals: " ++ String.fromInt id))
+                            Herbivores amount ->
+                                tapHerbivores { amount = amount }
+
+                            Omnivorous ( minAmount, maxAmount ) ->
+                                tapOmnivorous
+                                    { minAmount = minAmount
+                                    , maxAmount = maxAmount
+                                    }
+                        )
+                            move
+                            game
+                    )
+                |> Maybe.withDefault
+                    (Err
+                        ("Id not found in game.animals: "
+                            ++ String.fromInt move.card
+                        )
+                    )
 
 
 endTurn : Game -> Game

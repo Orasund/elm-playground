@@ -9,7 +9,9 @@ import Ecocards.Data.GameArea as GameArea exposing (GameArea)
 import Ecocards.Data.GamePhase as GamePhase exposing (GamePhase(..))
 import Ecocards.Data.Move as Move exposing (Move)
 import Element exposing (Element)
+import Form.Decoder exposing (errors)
 import Html.Attributes exposing (selected)
+import PixelEngine exposing (game)
 import Set exposing (Set)
 import Set.Extra as Set
 import Widget
@@ -54,59 +56,51 @@ init =
     )
 
 
+applyChange : Result String { game : Game, gamePhase : GamePhase } -> Model -> Model
+applyChange result model =
+    case result of
+        Ok { gamePhase, game } ->
+            { model
+                | game = game
+                , phase = gamePhase
+                , error = Nothing
+            }
+
+        Err error ->
+            { model | error = Just error }
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         ClickedCard { id } ->
-            ( model.game.animals
-                |> Dict.get id
-                |> Maybe.map
-                    (\animal ->
-                        case model.phase of
-                            WaitingForOpponent ->
-                                model
+            ( case model.phase of
+                WaitingForOpponent ->
+                    model
 
-                            Thinking { played } ->
-                                if model.game.yourArea.placed |> Dict.member id then
-                                    { model
-                                        | phase =
-                                            let
-                                                ( minAnimal, maxAnimal ) =
-                                                    case animal.behaviour of
-                                                        Predator _ amounts ->
-                                                            amounts
+                Thinking { played } ->
+                    model
+                        |> (GamePhase.emptyMove { id = id, played = played, game = model.game }
+                                |> Maybe.map
+                                    (\move ->
+                                        { gamePhase = model.phase, game = model.game }
+                                            |> GamePhase.tap move
+                                            |> applyChange
+                                    )
+                                |> Maybe.withDefault identity
+                           )
 
-                                                        Herbivores _ ->
-                                                            ( 0, 0 )
+                Tapping move ->
+                    if move.card == id then
+                        model
 
-                                                        Omnivorous amounts ->
-                                                            amounts
-                                            in
-                                            Tapping
-                                                { card = id
-                                                , selected = Set.empty
-                                                , played = played
-                                                , minAmount = minAnimal
-                                                , maxAmount = maxAnimal
-                                                }
-                                    }
+                    else
+                        { model
+                            | phase = Tapping (move |> Move.toggle id)
+                        }
 
-                                else
-                                    model
-
-                            Tapping move ->
-                                if move.card == id then
-                                    model
-
-                                else
-                                    { model
-                                        | phase = Tapping (move |> Move.toggle id)
-                                    }
-
-                            Finished _ ->
-                                model
-                    )
-                |> Maybe.withDefault model
+                Finished _ ->
+                    model
             , Cmd.none
             )
 
@@ -123,45 +117,41 @@ update msg model =
             )
 
         Confirmed ->
-            ( case GamePhase.end ( model.phase, model.game ) of
-                Ok ( phase, game ) ->
-                    if phase == WaitingForOpponent then
-                        { model
-                            | phase = Thinking { played = Set.empty }
-                            , game = game |> Game.swapAreas
-                            , error = Nothing
-                        }
+            ( model
+                |> ({ gamePhase = model.phase, game = model.game }
+                        |> GamePhase.end
+                        |> Result.map
+                            (\result ->
+                                if result.gamePhase == WaitingForOpponent then
+                                    { gamePhase = Thinking { played = Set.empty }
+                                    , game = result.game |> Game.swapAreas
+                                    }
 
-                    else
-                        { model
-                            | phase = phase
-                            , game = game
-                            , error = Nothing
-                        }
-
-                Err error ->
-                    { model | error = Just error }
+                                else
+                                    result
+                            )
+                        |> applyChange
+                   )
             , Cmd.none
             )
 
-        PlayedCard { index } ->
-            case model.phase of
-                Thinking { played } ->
-                    ( case model.game |> Game.play { index = index } of
-                        Ok game ->
-                            { model
-                                | game = game
-                                , phase = Thinking { played = played |> Set.insert (game.nextId - 1) }
-                                , error = Nothing
-                            }
+        PlayedCard index ->
+            ( { gamePhase = model.phase, game = model.game }
+                |> GamePhase.play index
+                |> (\result ->
+                        case result of
+                            Ok { gamePhase, game } ->
+                                { model
+                                    | game = game
+                                    , phase = gamePhase
+                                    , error = Nothing
+                                }
 
-                        Err error ->
-                            { model | error = Just error }
-                    , Cmd.none
-                    )
-
-                _ ->
-                    ( model, Cmd.none )
+                            Err error ->
+                                { model | error = Just error }
+                   )
+            , Cmd.none
+            )
 
 
 
@@ -219,7 +209,7 @@ viewArea { gameArea, animals, phase, move } =
     [ [ Element.text "Deck"
       , gameArea.deck
             |> List.map (.symbol >> Element.text)
-            |> Element.wrappedRow []
+            |> Widget.row style.row
       ]
         |> Widget.row style.row
     , [ Element.text "Hand"
@@ -239,7 +229,7 @@ viewArea { gameArea, animals, phase, move } =
                                     Nothing
                         }
                 )
-            |> Element.wrappedRow []
+            |> Widget.row style.row
       ]
         |> Widget.row style.row
     , [ Element.text "Animals"
