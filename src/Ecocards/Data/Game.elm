@@ -3,7 +3,7 @@ module Ecocards.Data.Game exposing (Game, endTurn, isFinished, isValidMove, play
 import Array exposing (Array)
 import Array.Extra as Array
 import Dict exposing (Dict)
-import Ecocards.Data.Animal exposing (Animal, Behaviour(..), Biome)
+import Ecocards.Data.Animal as Animal exposing (Animal, Behaviour(..), Biome)
 import Ecocards.Data.GameArea as GameArea exposing (GameArea)
 import Ecocards.Data.Move exposing (Move)
 import Result.Extra as Result
@@ -67,9 +67,9 @@ tapHerbivores { amount } move game =
             { game
                 | yourArea =
                     game.yourArea
-                        |> GameArea.tap move.card
+                        |> GameArea.tap move.animalId
                         |> (game.animals
-                                |> Dict.get move.card
+                                |> Dict.get move.animalId
                                 |> Maybe.map GameArea.add
                                 |> Maybe.withDefault identity
                            )
@@ -105,11 +105,11 @@ tapOmnivorous { minAmount, maxAmount } move game =
             { game
                 | yourArea =
                     game.yourArea
-                        |> GameArea.tap move.card
+                        |> GameArea.tap move.animalId
                         |> GameArea.removeSet move.selected
                         |> (if maxAmount == amount then
                                 game.animals
-                                    |> Dict.get move.card
+                                    |> Dict.get move.animalId
                                     |> Maybe.map GameArea.add
                                     |> Maybe.withDefault identity
 
@@ -163,7 +163,7 @@ tapAnimal move game =
 
         Ok () ->
             game.animals
-                |> Dict.get move.card
+                |> Dict.get move.animalId
                 |> Maybe.map
                     (\{ behaviour } ->
                         (case behaviour of
@@ -189,7 +189,7 @@ tapAnimal move game =
                 |> Maybe.withDefault
                     (Err
                         ("Id not found in game.animals: "
-                            ++ String.fromInt move.card
+                            ++ String.fromInt move.animalId
                         )
                     )
 
@@ -229,14 +229,17 @@ isFinished game =
 isValidMove : Move -> Game -> Result (List String) ()
 isValidMove move game =
     game.animals
-        |> Dict.get move.card
+        |> Dict.get move.animalId
         |> Maybe.map
             (\animal ->
                 let
+                    ( minAmount, maxAmount ) =
+                        animal |> Animal.getAmounts
+
                     isAnimalOwned =
                         if
                             game.yourArea.placed
-                                |> Dict.get move.card
+                                |> Dict.get move.animalId
                                 |> Maybe.map (\{ isTapped } -> not isTapped)
                                 |> Maybe.withDefault False
                         then
@@ -245,35 +248,31 @@ isValidMove move game =
                         else
                             Err "Bug: Animal is not Owned"
 
-                    areBoundsValid =
-                        if
-                            ( move.minAmount, move.maxAmount )
-                                == (case animal.behaviour of
-                                        Predator _ amounts ->
-                                            amounts
-
-                                        Herbivores _ ->
-                                            ( 0, 0 )
-
-                                        Omnivorous amounts ->
-                                            amounts
-                                   )
-                        then
-                            Ok ()
-
-                        else
-                            Err "Bug: Bounds are not valid"
-
                     isAmountValid =
-                        if
-                            move.selected
-                                |> Set.size
-                                |> (\n -> (move.minAmount <= n) && (move.maxAmount >= n))
-                        then
+                        let
+                            n =
+                                move.selected
+                                    |> Set.foldl
+                                        (\id out ->
+                                            game.animals
+                                                |> Dict.get id
+                                                |> Maybe.map .strength
+                                                |> Maybe.withDefault 0
+                                                |> (+) out
+                                        )
+                                        0
+                        in
+                        if (minAmount <= n) && (maxAmount >= n) then
                             Ok ()
 
                         else
-                            Err <| "Amount is not valid, should be between " ++ String.fromInt move.minAmount ++ " and " ++ String.fromInt move.maxAmount
+                            Err <|
+                                "Amount is not valid, should be between "
+                                    ++ String.fromInt minAmount
+                                    ++ " and "
+                                    ++ String.fromInt maxAmount
+                                    ++ " but is "
+                                    ++ String.fromInt n
 
                     isSelectedValid =
                         if
@@ -298,7 +297,7 @@ isValidMove move game =
                             Ok ()
 
                         else
-                            Err "Selected animals are now valid"
+                            Err "Selected animals are not valid"
 
                     isPlayedAmountValid =
                         let
@@ -317,7 +316,6 @@ isValidMove move game =
                             Err <| "not enough animals played yet, you need to play " ++ String.fromInt remaining ++ " more"
                 in
                 [ isAnimalOwned
-                , areBoundsValid
                 , isAmountValid
                 , isSelectedValid
                 , isPlayedAmountValid

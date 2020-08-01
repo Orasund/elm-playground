@@ -1,16 +1,21 @@
 module Ecocards.Page.Playground exposing (Model)
 
 import Array
+import Bag exposing (Bag)
 import Browser
 import Dict exposing (Dict)
+import Dict.Extra as Dict
 import Ecocards.Data.Animal as Animal exposing (Animal, Behaviour(..))
+import Ecocards.Data.Bag as Bag
 import Ecocards.Data.Game as Game exposing (Game)
 import Ecocards.Data.GameArea as GameArea exposing (GameArea)
 import Ecocards.Data.GamePhase as GamePhase exposing (GamePhase(..))
 import Ecocards.Data.Move as Move exposing (Move)
 import Element exposing (Element)
+import Element.Input as Input
 import Form.Decoder exposing (errors)
 import Html.Attributes exposing (selected)
+import List.Extra as List
 import PixelEngine exposing (game)
 import Set exposing (Set)
 import Set.Extra as Set
@@ -23,6 +28,7 @@ type alias Model =
     { game : Game
     , phase : GamePhase
     , error : Maybe String
+    , useAutoTap : Bool
     }
 
 
@@ -31,19 +37,20 @@ type Msg
     | PlayedCard { index : Int }
     | Canceled
     | Confirmed
+    | ToggleAutoTap
 
 
 init : ( Model, Cmd Msg )
 init =
     ( { game =
             { yourArea =
-                { deck = [ Animal.fish, Animal.fish, Animal.fish ]
-                , hand = [ Animal.cat, Animal.fish, Animal.fish ] |> Array.fromList
+                { deck = [ Animal.wolf, Animal.fish, Animal.mouse ]
+                , hand = [ Animal.otter, Animal.mouse, Animal.fish ] |> Array.fromList
                 , placed = Dict.empty
                 }
             , oppArea =
-                { deck = [ Animal.fish, Animal.fish, Animal.fish ]
-                , hand = [ Animal.fish, Animal.fish, Animal.fish ] |> Array.fromList
+                { deck = [ Animal.bear, Animal.wolf, Animal.deer ]
+                , hand = [ Animal.cat, Animal.mouse, Animal.deer ] |> Array.fromList
                 , placed = Dict.empty
                 }
             , animals = Dict.empty
@@ -51,6 +58,7 @@ init =
             }
       , phase = Thinking { played = Set.empty }
       , error = Nothing
+      , useAutoTap = True
       }
     , Cmd.none
     )
@@ -80,18 +88,24 @@ update msg model =
 
                 Thinking { played } ->
                     model
-                        |> (GamePhase.emptyMove { id = id, played = played, game = model.game }
-                                |> Maybe.map
-                                    (\move ->
-                                        { gamePhase = model.phase, game = model.game }
-                                            |> GamePhase.tap move
-                                            |> applyChange
-                                    )
-                                |> Maybe.withDefault identity
+                        |> (if model.useAutoTap then
+                                { gamePhase = model.phase, game = model.game }
+                                    |> GamePhase.autoTap { id = id }
+                                    |> applyChange
+
+                            else
+                                GamePhase.emptyMove { id = id, played = played, game = model.game }
+                                    |> Maybe.map
+                                        (\move ->
+                                            { gamePhase = model.phase, game = model.game }
+                                                |> GamePhase.tap move
+                                                |> applyChange
+                                        )
+                                    |> Maybe.withDefault identity
                            )
 
                 Tapping move ->
-                    if move.card == id then
+                    if move.animalId == id then
                         model
 
                     else
@@ -150,6 +164,11 @@ update msg model =
                             Err error ->
                                 { model | error = Just error }
                    )
+            , Cmd.none
+            )
+
+        ToggleAutoTap ->
+            ( { model | useAutoTap = not model.useAutoTap }
             , Cmd.none
             )
 
@@ -399,8 +418,19 @@ view model =
     , invalidRestrictions
         |> List.map Element.text
         |> Widget.column style.column
-    , Debug.toString model.game |> Element.text |> List.singleton |> Element.paragraph []
-    , Debug.toString model.phase |> Element.text |> List.singleton |> Element.paragraph []
+    , [ Input.checkbox []
+            { onChange = always ToggleAutoTap
+            , icon = Input.defaultCheckbox
+            , checked = model.useAutoTap
+            , label = Input.labelHidden "use Auto Tap"
+            }
+      , Element.text "Use Auto Tap"
+      ]
+        |> Widget.row style.row
+    , "animals: " ++ Debug.toString model.game.animals |> Element.text |> List.singleton |> Element.paragraph []
+    , "yourArea: " ++ Debug.toString model.game.yourArea |> Element.text |> List.singleton |> Element.paragraph []
+    , "oppArea: " ++ Debug.toString model.game.oppArea |> Element.text |> List.singleton |> Element.paragraph []
+    , "phase: " ++ Debug.toString model.phase |> Element.text |> List.singleton |> Element.paragraph []
     ]
         |> Widget.column style.column
 

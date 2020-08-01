@@ -1,9 +1,13 @@
-module Ecocards.Data.GamePhase exposing (GamePhase(..), emptyMove, end, play, tap)
+module Ecocards.Data.GamePhase exposing (GamePhase(..), autoTap, emptyMove, end, play, tap)
 
+import Bag
 import Dict exposing (Dict)
-import Ecocards.Data.Animal as Animal exposing (Behaviour(..))
+import Dict.Extra as Dict
+import Ecocards.Data.Animal as Animal exposing (Animal, Behaviour(..))
+import Ecocards.Data.Bag as Bag
 import Ecocards.Data.Game as Game exposing (Game)
 import Ecocards.Data.Move as Move exposing (Move)
+import List.Extra as List
 import Set exposing (Set)
 
 
@@ -93,34 +97,15 @@ tap move { gamePhase, game } =
 
 emptyMove : { id : Int, played : Set Int, game : Game } -> Maybe Move
 emptyMove { id, played, game } =
-    game.animals
-        |> Dict.get id
-        |> Maybe.andThen
-            (\animal ->
-                if game.yourArea.placed |> Dict.member id then
-                    let
-                        ( minAnimal, maxAnimal ) =
-                            case animal.behaviour of
-                                Predator _ amounts ->
-                                    amounts
+    if game.yourArea.placed |> Dict.member id then
+        Just
+            { animalId = id
+            , selected = Set.empty
+            , played = played
+            }
 
-                                Herbivores _ ->
-                                    ( 0, 0 )
-
-                                Omnivorous amounts ->
-                                    amounts
-                    in
-                    Just
-                        { card = id
-                        , selected = Set.empty
-                        , played = played
-                        , minAmount = minAnimal
-                        , maxAmount = maxAnimal
-                        }
-
-                else
-                    Nothing
-            )
+    else
+        Nothing
 
 
 autoTap :
@@ -128,11 +113,97 @@ autoTap :
     -> { gamePhase : GamePhase, game : Game }
     -> Result String { gamePhase : GamePhase, game : Game }
 autoTap { id } { gamePhase, game } =
-    case gamePhase of
-        Thinking { played } ->
-            emptyMove { id = id, played = played, game = game }
-                |> Maybe.map (\move -> { gamePhase = gamePhase, game = game } |> tap move)
-                |> Maybe.withDefault (Err "Bug: Animal Id not found")
+    case game.animals |> Dict.get id of
+        Just tappingAnimal ->
+            let
+                selected : Set Int
+                selected =
+                    let
+                        amounts =
+                            tappingAnimal |> Animal.getAmounts
 
-        _ ->
+                        toAnimals : Dict Int a -> Dict Int Animal
+                        toAnimals =
+                            Dict.filterMap
+                                (\i _ ->
+                                    game.animals
+                                        |> Dict.get i
+                                        |> Maybe.andThen
+                                            (\animal ->
+                                                if
+                                                    animal.strength
+                                                        < tappingAnimal.strength
+                                                        && (case tappingAnimal.behaviour of
+                                                                Predator biome _ ->
+                                                                    animal.biome == biome
+
+                                                                _ ->
+                                                                    True
+                                                           )
+                                                then
+                                                    Just animal
+
+                                                else
+                                                    Nothing
+                                            )
+                                )
+
+                        yourAnimalList =
+                            game.yourArea.placed
+                                |> Dict.remove id
+                                |> toAnimals
+
+                        oppAnimalList =
+                            game.oppArea.placed
+                                |> toAnimals
+
+                        toBag =
+                            Dict.toList
+                                >> List.map (\( _, { strength } ) -> strength)
+                                >> List.group
+                                >> List.map (Tuple.mapSecond (List.length >> (+) 1))
+                                >> Bag.fromList
+                    in
+                    case tappingAnimal.behaviour of
+                        Herbivores _ ->
+                            Set.empty
+
+                        _ ->
+                            Bag.findMinMaxSubset amounts
+                                { maxBag =
+                                    oppAnimalList
+                                        |> toBag
+                                        |> Debug.log "opp Bag"
+                                , minBag =
+                                    yourAnimalList
+                                        |> toBag
+                                        |> Debug.log "your Bag"
+                                }
+                                |> Maybe.map
+                                    (\{ maxBag, minBag } ->
+                                        Set.union
+                                            (yourAnimalList |> Move.getSubset minBag)
+                                            (oppAnimalList |> Move.getSubset maxBag)
+                                    )
+                                |> Maybe.withDefault Set.empty
+            in
+            case gamePhase of
+                Thinking { played } ->
+                    emptyMove { id = id, played = played, game = game }
+                        |> Maybe.map
+                            (\move ->
+                                { gamePhase = gamePhase, game = game }
+                                    |> tap
+                                        { move
+                                            | selected =
+                                                selected |> Debug.log "result"
+                                        }
+                                    |> Result.andThen end
+                            )
+                        |> Maybe.withDefault (Err "Bug: Animal Id not found")
+
+                _ ->
+                    Ok { gamePhase = gamePhase, game = game }
+
+        Nothing ->
             Ok { gamePhase = gamePhase, game = game }

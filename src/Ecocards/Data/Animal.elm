@@ -1,4 +1,16 @@
-module Ecocards.Data.Animal exposing (Animal, Behaviour(..), Biome, bear, cat, deer, fish, mouse, otter, wolf)
+module Ecocards.Data.Animal exposing
+    ( Animal
+    , Behaviour(..)
+    , Biome
+    , bear
+    , cat
+    , deer
+    , fish
+    , getAmounts
+    , mouse
+    , otter
+    , wolf
+    )
 
 
 type Biome
@@ -18,6 +30,19 @@ type alias Animal =
     , biome : Biome
     , behaviour : Behaviour
     }
+
+
+getAmounts : Animal -> ( Int, Int )
+getAmounts animal =
+    case animal.behaviour of
+        Predator _ amounts ->
+            amounts
+
+        Herbivores _ ->
+            ( 0, 0 )
+
+        Omnivorous amounts ->
+            amounts
 
 
 fish : Animal
