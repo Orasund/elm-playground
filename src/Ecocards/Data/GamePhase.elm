@@ -46,7 +46,22 @@ end { gamePhase, game } =
             Game.tapAnimal move game
                 |> Result.map
                     (\g ->
-                        { gamePhase = Thinking { played = move.played }
+                        { gamePhase =
+                            Thinking
+                                { played =
+                                    move.played
+                                        |> (case
+                                                g.animals
+                                                    |> Dict.get (g.nextId - 1)
+                                                    |> Maybe.map .behaviour
+                                            of
+                                                Just (Herbivores _) ->
+                                                    Set.insert (g.nextId - 1)
+
+                                                _ ->
+                                                    identity
+                                           )
+                                }
                         , game = g
                         }
                     )
@@ -66,7 +81,7 @@ play { index } { gamePhase, game } =
                 |> Game.play { index = index }
                 |> Result.map
                     (\g ->
-                        { gamePhase = Thinking { played = played |> Set.insert (g.nextId - 1) }
+                        { gamePhase = gamePhase
                         , game = g
                         }
                     )
@@ -108,11 +123,8 @@ emptyMove { id, played, game } =
         Nothing
 
 
-autoTap :
-    { id : Int }
-    -> { gamePhase : GamePhase, game : Game }
-    -> Result String { gamePhase : GamePhase, game : Game }
-autoTap { id } { gamePhase, game } =
+calcMove : { id : Int, played : Set Int, game : Game } -> Maybe Move
+calcMove { id, played, game } =
     case game.animals |> Dict.get id of
         Just tappingAnimal ->
             let
@@ -187,23 +199,34 @@ autoTap { id } { gamePhase, game } =
                                     )
                                 |> Maybe.withDefault Set.empty
             in
-            case gamePhase of
-                Thinking { played } ->
-                    emptyMove { id = id, played = played, game = game }
-                        |> Maybe.map
-                            (\move ->
-                                { gamePhase = gamePhase, game = game }
-                                    |> tap
-                                        { move
-                                            | selected =
-                                                selected |> Debug.log "result"
-                                        }
-                                    |> Result.andThen end
-                            )
-                        |> Maybe.withDefault (Err "Bug: Animal Id not found")
-
-                _ ->
-                    Ok { gamePhase = gamePhase, game = game }
+            emptyMove { id = id, played = played, game = game }
+                |> Maybe.map
+                    (\move ->
+                        { move
+                            | selected =
+                                selected |> Debug.log "result"
+                        }
+                    )
 
         Nothing ->
+            Nothing
+
+
+autoTap :
+    { id : Int }
+    -> { gamePhase : GamePhase, game : Game }
+    -> Result String { gamePhase : GamePhase, game : Game }
+autoTap { id } { gamePhase, game } =
+    case gamePhase of
+        Thinking { played } ->
+            calcMove { id = id, played = played, game = game }
+                |> Maybe.map
+                    (\move ->
+                        { gamePhase = gamePhase, game = game }
+                            |> tap move
+                            |> Result.andThen end
+                    )
+                |> Maybe.withDefault (Err "Bug: Animal Id not found")
+
+        _ ->
             Ok { gamePhase = gamePhase, game = game }

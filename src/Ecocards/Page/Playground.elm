@@ -45,12 +45,12 @@ init =
     ( { game =
             { yourArea =
                 { deck = [ Animal.wolf, Animal.fish, Animal.mouse ]
-                , hand = [ Animal.otter, Animal.mouse, Animal.fish ] |> Array.fromList
+                , hand = [ Animal.cat, Animal.mouse, Animal.fish ] |> Array.fromList
                 , placed = Dict.empty
                 }
             , oppArea =
                 { deck = [ Animal.bear, Animal.wolf, Animal.deer ]
-                , hand = [ Animal.cat, Animal.mouse, Animal.deer ] |> Array.fromList
+                , hand = [ Animal.otter, Animal.mouse, Animal.deer ] |> Array.fromList
                 , placed = Dict.empty
                 }
             , animals = Dict.empty
@@ -376,12 +376,12 @@ view model =
         ]
             |> Widget.column style.column
       ]
-        |> Widget.row style.row
-    , [ Widget.textButton style.button
+        |> Element.wrappedRow [ Element.spaceEvenly, Element.width <| Element.fill ]
+    , [ [ Widget.textButton style.button
             { text = "Cancel"
             , onPress = Just <| Canceled
             }
-      , Widget.textButton style.primaryButton
+        , Widget.textButton style.primaryButton
             { text =
                 case model.phase of
                     WaitingForOpponent ->
@@ -410,29 +410,33 @@ view model =
                     _ ->
                         Just Confirmed
             }
-      , model.error
+        , model.error
             |> Maybe.withDefault ""
             |> Element.text
-      ]
-        |> Widget.row style.row
-    , invalidRestrictions
-        |> List.map Element.text
-        |> Widget.column style.column
-    , [ Input.checkbox []
+        ]
+            |> Widget.row style.row
+      , invalidRestrictions
+            |> List.map Element.text
+            |> Widget.column style.column
+      , [ Input.checkbox []
             { onChange = always ToggleAutoTap
             , icon = Input.defaultCheckbox
             , checked = model.useAutoTap
             , label = Input.labelHidden "use Auto Tap"
             }
-      , Element.text "Use Auto Tap"
+        , Element.text "Use Auto Tap"
+        ]
+            |> Widget.row style.row
       ]
         |> Widget.row style.row
-    , "animals: " ++ Debug.toString model.game.animals |> Element.text |> List.singleton |> Element.paragraph []
-    , "yourArea: " ++ Debug.toString model.game.yourArea |> Element.text |> List.singleton |> Element.paragraph []
-    , "oppArea: " ++ Debug.toString model.game.oppArea |> Element.text |> List.singleton |> Element.paragraph []
-    , "phase: " ++ Debug.toString model.phase |> Element.text |> List.singleton |> Element.paragraph []
+    , [ "animals: " ++ Debug.toString model.game.animals |> Element.text |> List.singleton |> Element.paragraph []
+      , "yourArea: " ++ Debug.toString model.game.yourArea |> Element.text |> List.singleton |> Element.paragraph []
+      , "oppArea: " ++ Debug.toString model.game.oppArea |> Element.text |> List.singleton |> Element.paragraph []
+      , "phase: " ++ Debug.toString model.phase |> Element.text |> List.singleton |> Element.paragraph []
+      ]
+        |> Element.column [ Element.width <| Element.fill ]
     ]
-        |> Widget.column style.column
+        |> Element.column [ Element.width <| Element.fill ]
 
 
 main : Program () Model Msg

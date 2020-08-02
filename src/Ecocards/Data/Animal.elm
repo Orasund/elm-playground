@@ -50,7 +50,7 @@ fish =
     { symbol = "🐟"
     , strength = 1
     , biome = River
-    , behaviour = Herbivores 1
+    , behaviour = Herbivores 0
     }
 
 
@@ -59,7 +59,7 @@ mouse =
     { symbol = "🐁"
     , strength = 1
     , biome = Plain
-    , behaviour = Herbivores 1
+    , behaviour = Herbivores 0
     }
 
 
@@ -95,7 +95,7 @@ deer =
     { symbol = "\u{1F98C}"
     , strength = 2
     , biome = Plain
-    , behaviour = Herbivores 2
+    , behaviour = Herbivores 1
     }
 
 
