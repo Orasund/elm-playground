@@ -56,7 +56,7 @@ init =
             , animals = Dict.empty
             , nextId = 1
             }
-      , phase = Thinking { played = Set.empty }
+      , phase = Thinking { played = Nothing }
       , error = Nothing
       , useAutoTap = True
       }
@@ -94,7 +94,11 @@ update msg model =
                                     |> applyChange
 
                             else
-                                GamePhase.emptyMove { id = id, played = played, game = model.game }
+                                GamePhase.emptyMove
+                                    { id = id
+                                    , played = played |> Maybe.withDefault Set.empty
+                                    , game = model.game
+                                    }
                                     |> Maybe.map
                                         (\move ->
                                             { gamePhase = model.phase, game = model.game }
@@ -122,7 +126,7 @@ update msg model =
             ( case model.phase of
                 Tapping move ->
                     { model
-                        | phase = Thinking { played = move.played }
+                        | phase = Thinking { played = Just move.played }
                     }
 
                 _ ->
@@ -137,7 +141,7 @@ update msg model =
                         |> Result.map
                             (\result ->
                                 if result.gamePhase == WaitingForOpponent then
-                                    { gamePhase = Thinking { played = Set.empty }
+                                    { gamePhase = Thinking { played = Nothing }
                                     , game = result.game |> Game.swapAreas
                                     }
 

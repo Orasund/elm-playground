@@ -13,7 +13,7 @@ import Set exposing (Set)
 
 type GamePhase
     = WaitingForOpponent
-    | Thinking { played : Set Int }
+    | Thinking { played : Maybe (Set Int) }
     | Tapping Move
     | Finished Bool
 
@@ -24,10 +24,10 @@ end :
 end { gamePhase, game } =
     case gamePhase of
         WaitingForOpponent ->
-            Ok { gamePhase = Thinking { played = Set.empty }, game = game }
+            Ok { gamePhase = Thinking { played = Nothing }, game = game }
 
         Thinking { played } ->
-            if played |> Set.isEmpty then
+            if played == Nothing then
                 Err "Nothing played yet"
 
             else
@@ -61,6 +61,7 @@ end { gamePhase, game } =
                                                 _ ->
                                                     identity
                                            )
+                                        |> Just
                                 }
                         , game = g
                         }
@@ -97,7 +98,7 @@ tap :
 tap move { gamePhase, game } =
     case gamePhase of
         Thinking { played } ->
-            if played == move.played then
+            if (played |> Maybe.withDefault Set.empty) == move.played then
                 Ok
                     { gamePhase = Tapping move
                     , game = game
@@ -219,10 +220,10 @@ autoTap :
 autoTap { id } { gamePhase, game } =
     case gamePhase of
         Thinking { played } ->
-            calcMove { id = id, played = played, game = game }
+            calcMove { id = id, played = played |> Maybe.withDefault Set.empty, game = game }
                 |> Maybe.map
                     (\move ->
-                        { gamePhase = gamePhase, game = game }
+                        { gamePhase = Thinking { played = played |> Maybe.withDefault Set.empty |> Just }, game = game }
                             |> tap move
                             |> Result.andThen end
                     )
