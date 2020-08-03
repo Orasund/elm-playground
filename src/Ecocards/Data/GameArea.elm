@@ -1,10 +1,12 @@
-module Ecocards.Data.GameArea exposing (GameArea, add, draw, endTurn, remove, removeSet, tap)
+module Ecocards.Data.GameArea exposing (GameArea, add, draw, endTurn, generate, remove, removeSet, tap)
 
 import Array exposing (Array)
 import Dict exposing (Dict)
 import Dict.Extra as Dict
 import Ecocards.Data.Animal exposing (Animal)
 import List.Extra as List
+import Random exposing (Generator)
+import Random.List as Random
 import Set exposing (Set)
 
 
@@ -13,6 +15,21 @@ type alias GameArea =
     , hand : Array Animal
     , placed : Dict Int { isTapped : Bool }
     }
+
+
+generate : List Animal -> Generator GameArea
+generate =
+    Random.shuffle
+        >> Random.map
+            (\deck ->
+                { deck = deck
+                , hand = Array.empty
+                , placed = Dict.empty
+                }
+                    |> draw
+                    |> draw
+                    |> draw
+            )
 
 
 add : Animal -> GameArea -> GameArea

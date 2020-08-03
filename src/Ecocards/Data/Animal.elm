@@ -3,6 +3,8 @@ module Ecocards.Data.Animal exposing
     , Behaviour(..)
     , Biome
     , bear
+    , behaviourToString
+    , biomeToString
     , cat
     , deer
     , fish
@@ -18,10 +20,33 @@ type Biome
     | River
 
 
+biomeToString : Biome -> String
+biomeToString biome =
+    case biome of
+        Plain ->
+            "🌄"
+
+        River ->
+            "🌊"
+
+
 type Behaviour
     = Predator Biome ( Int, Int )
     | Herbivores Int
     | Omnivorous ( Int, Int )
+
+
+behaviourToString : Behaviour -> String
+behaviourToString behaviour =
+    case behaviour of
+        Predator biome ( min, max ) ->
+            (biome |> biomeToString) ++ "Pred." ++ String.fromInt min ++ "-" ++ String.fromInt max
+
+        Herbivores int ->
+            "Herb." ++ String.fromInt int
+
+        Omnivorous ( min, max ) ->
+            "Omni." ++ String.fromInt min ++ "-" ++ String.fromInt max
 
 
 type alias Animal =
@@ -59,7 +84,7 @@ mouse =
     { symbol = "🐁"
     , strength = 1
     , biome = Plain
-    , behaviour = Herbivores 0
+    , behaviour = Herbivores 1
     }
 
 
@@ -86,7 +111,7 @@ wolf =
     { symbol = "🐺"
     , strength = 3
     , biome = Plain
-    , behaviour = Omnivorous ( 3, 6 )
+    , behaviour = Predator Plain ( 3, 6 )
     }
 
 
@@ -95,7 +120,7 @@ deer =
     { symbol = "\u{1F98C}"
     , strength = 2
     , biome = Plain
-    , behaviour = Herbivores 1
+    , behaviour = Herbivores 2
     }
 
 

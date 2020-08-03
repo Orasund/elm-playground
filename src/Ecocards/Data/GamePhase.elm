@@ -50,17 +50,7 @@ end { gamePhase, game } =
                             Thinking
                                 { played =
                                     move.played
-                                        |> (case
-                                                g.animals
-                                                    |> Dict.get (g.nextId - 1)
-                                                    |> Maybe.map .behaviour
-                                            of
-                                                Just (Herbivores _) ->
-                                                    Set.insert (g.nextId - 1)
-
-                                                _ ->
-                                                    identity
-                                           )
+                                        |> Set.insert move.animalId
                                         |> Just
                                 }
                         , game = g
@@ -82,7 +72,13 @@ play { index } { gamePhase, game } =
                 |> Game.play { index = index }
                 |> Result.map
                     (\g ->
-                        { gamePhase = gamePhase
+                        { gamePhase =
+                            Thinking
+                                { played =
+                                    played
+                                        |> Maybe.withDefault Set.empty
+                                        |> Just
+                                }
                         , game = g
                         }
                     )
@@ -220,10 +216,16 @@ autoTap :
 autoTap { id } { gamePhase, game } =
     case gamePhase of
         Thinking { played } ->
-            calcMove { id = id, played = played |> Maybe.withDefault Set.empty, game = game }
+            calcMove
+                { id = id
+                , played = played |> Maybe.withDefault Set.empty
+                , game = game
+                }
                 |> Maybe.map
                     (\move ->
-                        { gamePhase = Thinking { played = played |> Maybe.withDefault Set.empty |> Just }, game = game }
+                        { gamePhase = Thinking { played = played }
+                        , game = game
+                        }
                             |> tap move
                             |> Result.andThen end
                     )

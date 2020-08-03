@@ -1,4 +1,4 @@
-module Ecocards.Page.Playground exposing (Model)
+module Ecocards.Page.LocalGame exposing (Model, Msg, init, update, view)
 
 import Array
 import Bag exposing (Bag)
@@ -11,12 +11,15 @@ import Ecocards.Data.Game as Game exposing (Game)
 import Ecocards.Data.GameArea as GameArea exposing (GameArea)
 import Ecocards.Data.GamePhase as GamePhase exposing (GamePhase(..))
 import Ecocards.Data.Move as Move exposing (Move)
+import Ecocards.View as View
+import Ecocards.View.Color as Color
 import Element exposing (Element)
 import Element.Input as Input
 import Form.Decoder exposing (errors)
 import Html.Attributes exposing (selected)
 import List.Extra as List
 import PixelEngine exposing (game)
+import Random exposing (Seed)
 import Set exposing (Set)
 import Set.Extra as Set
 import Widget
@@ -29,6 +32,7 @@ type alias Model =
     , phase : GamePhase
     , error : Maybe String
     , useAutoTap : Bool
+    , seed : Seed
     }
 
 
@@ -40,28 +44,34 @@ type Msg
     | ToggleAutoTap
 
 
-init : ( Model, Cmd Msg )
+init : Seed -> ( Model, Cmd Msg )
 init =
-    ( { game =
-            { yourArea =
-                { deck = [ Animal.wolf, Animal.fish, Animal.mouse ]
-                , hand = [ Animal.cat, Animal.mouse, Animal.fish ] |> Array.fromList
-                , placed = Dict.empty
+    Random.step
+        (Random.map2
+            (\yourArea oppArea ->
+                { yourArea = yourArea
+                , oppArea = oppArea
+                , animals = Dict.empty
+                , nextId = 1
                 }
-            , oppArea =
-                { deck = [ Animal.bear, Animal.wolf, Animal.deer ]
-                , hand = [ Animal.otter, Animal.mouse, Animal.deer ] |> Array.fromList
-                , placed = Dict.empty
-                }
-            , animals = Dict.empty
-            , nextId = 1
-            }
-      , phase = Thinking { played = Nothing }
-      , error = Nothing
-      , useAutoTap = True
-      }
-    , Cmd.none
-    )
+            )
+            ([ Animal.wolf, Animal.fish, Animal.mouse, Animal.cat, Animal.mouse, Animal.fish ]
+                |> GameArea.generate
+            )
+            ([ Animal.bear, Animal.wolf, Animal.deer, Animal.otter, Animal.fish, Animal.deer ]
+                |> GameArea.generate
+            )
+        )
+        >> (\( game, seed ) ->
+                ( { game = game
+                  , phase = Thinking { played = Nothing }
+                  , error = Nothing
+                  , useAutoTap = False
+                  , seed = seed
+                  }
+                , Cmd.none
+                )
+           )
 
 
 applyChange : Result String { game : Game, gamePhase : GamePhase } -> Model -> Model
@@ -234,15 +244,19 @@ viewArea { gameArea, animals, phase, move } =
             |> List.map (.symbol >> Element.text)
             |> Widget.row style.row
       ]
-        |> Widget.row style.row
+        |> Element.column []
     , [ Element.text "Hand"
       , gameArea.hand
             |> Array.toList
             |> List.indexedMap
                 (\index animal ->
-                    Widget.button style.chipButton
-                        { text = animal.symbol
-                        , icon = Element.none
+                    View.squareCard
+                        { color = Nothing
+                        , text = animal.symbol
+                        , header = ( animal.biome |> Animal.biomeToString, String.fromInt animal.strength )
+                        , footer =
+                            animal.behaviour
+                                |> Animal.behaviourToString
                         , onPress =
                             case phase of
                                 Thinking _ ->
@@ -254,78 +268,111 @@ viewArea { gameArea, animals, phase, move } =
                 )
             |> Widget.row style.row
       ]
-        |> Widget.row style.row
-    , [ Element.text "Animals"
+        |> Element.column []
+    , [ Element.text "Battleground"
       , gameArea.placed
             |> Dict.toList
             |> List.map
                 (\( id, { isTapped } ) ->
-                    case phase of
-                        Tapping { selected } ->
-                            ( selected |> Set.member id
-                            , { text =
-                                    animals
-                                        |> Dict.get id
-                                        |> Maybe.map .symbol
-                                        |> Maybe.withDefault ("Id:" ++ String.fromInt id)
-                              , icon = Element.none
-                              , onPress = Just (ClickedCard { id = id })
-                              }
-                            )
+                    (case
+                        animals
+                            |> Dict.get id
+                     of
+                        Nothing ->
+                            { color = Nothing
+                            , text = "Id:" ++ String.fromInt id
+                            , header =
+                                ( "", "" )
+                            , footer = ""
+                            , onPress = Nothing
+                            }
 
-                        Thinking _ ->
-                            if isTapped then
-                                ( False
-                                , { text =
-                                        animals
-                                            |> Dict.get id
-                                            |> Maybe.map .symbol
-                                            |> Maybe.withDefault ("Id:" ++ String.fromInt id)
-                                  , icon = Element.none
-                                  , onPress = Nothing
-                                  }
-                                )
+                        Just animal ->
+                            case phase of
+                                Tapping { selected, animalId } ->
+                                    { color =
+                                        if selected |> Set.member id then
+                                            Just Color.blue
 
-                            else
-                                ( False
-                                , { text =
-                                        animals
-                                            |> Dict.get id
-                                            |> Maybe.map .symbol
-                                            |> Maybe.withDefault ("Id:" ++ String.fromInt id)
-                                  , icon = Element.none
-                                  , onPress = Just (ClickedCard { id = id })
-                                  }
-                                )
+                                        else if animalId == id then
+                                            Just Color.gray
 
-                        _ ->
-                            ( case move of
-                                Just m ->
-                                    m.selected |> Set.member id
+                                        else
+                                            Nothing
+                                    , text = animal.symbol
+                                    , header =
+                                        ( animal.biome |> Animal.biomeToString
+                                        , animal.strength |> String.fromInt
+                                        )
+                                    , footer =
+                                        animal.behaviour
+                                            |> Animal.behaviourToString
+                                    , onPress = Just (ClickedCard { id = id })
+                                    }
 
-                                Nothing ->
-                                    False
-                            , { text =
-                                    animals
-                                        |> Dict.get id
-                                        |> Maybe.map .symbol
-                                        |> Maybe.withDefault ("Id:" ++ String.fromInt id)
-                              , icon = Element.none
-                              , onPress =
-                                    if move == Nothing then
-                                        Nothing
+                                Thinking _ ->
+                                    if isTapped then
+                                        { color = Nothing
+                                        , text =
+                                            animals
+                                                |> Dict.get id
+                                                |> Maybe.map .symbol
+                                                |> Maybe.withDefault ("Id:" ++ String.fromInt id)
+                                        , header = ( animal.biome |> Animal.biomeToString, String.fromInt animal.strength )
+                                        , footer =
+                                            animal.behaviour
+                                                |> Animal.behaviourToString
+                                        , onPress = Nothing
+                                        }
 
                                     else
-                                        Just (ClickedCard { id = id })
-                              }
-                            )
+                                        { color = Nothing
+                                        , text =
+                                            animals
+                                                |> Dict.get id
+                                                |> Maybe.map .symbol
+                                                |> Maybe.withDefault ("Id:" ++ String.fromInt id)
+                                        , header = ( animal.biome |> Animal.biomeToString, String.fromInt animal.strength )
+                                        , footer =
+                                            animal.behaviour
+                                                |> Animal.behaviourToString
+                                        , onPress = Just (ClickedCard { id = id })
+                                        }
+
+                                _ ->
+                                    { color =
+                                        case move of
+                                            Just m ->
+                                                if m.selected |> Set.member id then
+                                                    Just Color.blue
+
+                                                else
+                                                    Nothing
+
+                                            Nothing ->
+                                                Nothing
+                                    , text =
+                                        animals
+                                            |> Dict.get id
+                                            |> Maybe.map .symbol
+                                            |> Maybe.withDefault ("Id:" ++ String.fromInt id)
+                                    , header = ( animal.biome |> Animal.biomeToString, String.fromInt animal.strength )
+                                    , footer =
+                                        animal.behaviour
+                                            |> Animal.behaviourToString
+                                    , onPress =
+                                        if move == Nothing then
+                                            Nothing
+
+                                        else
+                                            Just (ClickedCard { id = id })
+                                    }
+                    )
+                        |> View.squareCard
                 )
-            |> Widget.buttonRow
-                { list = style.buttonRow
-                , button = style.chipButton
-                }
+            |> Element.wrappedRow [ Element.spacing 10 ]
       ]
-        |> Widget.row style.row
+        |> Element.column []
     ]
         |> Widget.column style.cardColumn
 
@@ -380,7 +427,7 @@ view model =
         ]
             |> Widget.column style.column
       ]
-        |> Element.wrappedRow [ Element.spaceEvenly, Element.width <| Element.fill ]
+        |> Element.wrappedRow [ Element.spacing 10, Element.width <| Element.shrink, Element.centerX ]
     , [ [ Widget.textButton style.button
             { text = "Cancel"
             , onPress = Just <| Canceled
@@ -432,13 +479,7 @@ view model =
         ]
             |> Widget.row style.row
       ]
-        |> Widget.row style.row
-    , [ "animals: " ++ Debug.toString model.game.animals |> Element.text |> List.singleton |> Element.paragraph []
-      , "yourArea: " ++ Debug.toString model.game.yourArea |> Element.text |> List.singleton |> Element.paragraph []
-      , "oppArea: " ++ Debug.toString model.game.oppArea |> Element.text |> List.singleton |> Element.paragraph []
-      , "phase: " ++ Debug.toString model.phase |> Element.text |> List.singleton |> Element.paragraph []
-      ]
-        |> Element.column [ Element.width <| Element.fill ]
+        |> Element.row [ Element.centerX ]
     ]
         |> Element.column [ Element.width <| Element.fill ]
 
@@ -446,7 +487,7 @@ view model =
 main : Program () Model Msg
 main =
     Browser.element
-        { init = always init
+        { init = always (init (Random.initialSeed 42))
         , view = view >> Element.layout []
         , update = update
         , subscriptions = always Sub.none
