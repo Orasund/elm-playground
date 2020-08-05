@@ -50,8 +50,17 @@ view m =
 
         LocalGameModel model ->
             LocalGame.view model
-                |> Element.layout []
                 |> Html.map LocalGameMsg
+
+
+subscriptions : Model -> Sub Msg
+subscriptions m =
+    case m of
+        Waiting ->
+            Sub.none
+
+        LocalGameModel model ->
+            LocalGame.subscriptions model |> Sub.map LocalGameMsg
 
 
 main : Program () Model Msg
@@ -60,5 +69,5 @@ main =
         { init = always init
         , view = view
         , update = update
-        , subscriptions = always Sub.none
+        , subscriptions = subscriptions
         }

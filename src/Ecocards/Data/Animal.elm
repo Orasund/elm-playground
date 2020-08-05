@@ -3,6 +3,7 @@ module Ecocards.Data.Animal exposing
     , Behaviour(..)
     , Biome
     , bear
+    , behaviourDescription
     , behaviourToString
     , biomeToString
     , cat
@@ -31,7 +32,7 @@ biomeToString biome =
 
 
 type Behaviour
-    = Predator Biome ( Int, Int )
+    = Predator ( Int, Int )
     | Herbivores Int
     | Omnivorous ( Int, Int )
 
@@ -39,14 +40,50 @@ type Behaviour
 behaviourToString : Behaviour -> String
 behaviourToString behaviour =
     case behaviour of
-        Predator biome ( min, max ) ->
-            (biome |> biomeToString) ++ "Pred." ++ String.fromInt min ++ "-" ++ String.fromInt max
+        Predator ( min, max ) ->
+            "Pred." ++ String.fromInt min ++ "-" ++ String.fromInt max
 
         Herbivores int ->
             "Herb." ++ String.fromInt int
 
         Omnivorous ( min, max ) ->
             "Omni." ++ String.fromInt min ++ "-" ++ String.fromInt max
+
+
+behaviourDescription : Behaviour -> { title : String, desc : String }
+behaviourDescription behaviour =
+    case behaviour of
+        Predator ( min, max ) ->
+            { title = "Predator " ++ String.fromInt min ++ " - " ++ String.fromInt max
+            , desc =
+                "Remove animals such that the total strength lyes within "
+                    ++ String.fromInt min
+                    ++ " and "
+                    ++ String.fromInt max
+                    ++ ". Removed animals need to be weaker and of the same Biome. "
+                    ++ "If the total strength of all removed animals is "
+                    ++ String.fromInt max
+                    ++ ", add a copy of your card to the top of your deck. Tap your card."
+            }
+
+        Herbivores int ->
+            { title = "Herbivores " ++ String.fromInt int
+            , desc =
+                "Tap your card if " ++ String.fromInt int ++ " or more cards have been tapped."
+            }
+
+        Omnivorous ( min, max ) ->
+            { title = "Omnivorous " ++ String.fromInt min ++ " - " ++ String.fromInt max
+            , desc =
+                "Remove animals such that the total strength lyes within "
+                    ++ String.fromInt min
+                    ++ " and "
+                    ++ String.fromInt max
+                    ++ ". Removed animals need to be weaker. "
+                    ++ "If the total strength of all removed animals is "
+                    ++ String.fromInt max
+                    ++ ", add a copy of your card to the top of your deck. Tap your card."
+            }
 
 
 type alias Animal =
@@ -60,7 +97,7 @@ type alias Animal =
 getAmounts : Animal -> ( Int, Int )
 getAmounts animal =
     case animal.behaviour of
-        Predator _ amounts ->
+        Predator amounts ->
             amounts
 
         Herbivores _ ->
@@ -92,8 +129,8 @@ otter : Animal
 otter =
     { symbol = "\u{1F9A6}"
     , strength = 2
-    , biome = Plain
-    , behaviour = Predator River ( 1, 2 )
+    , biome = River
+    , behaviour = Predator ( 1, 2 )
     }
 
 
@@ -111,7 +148,7 @@ wolf =
     { symbol = "🐺"
     , strength = 3
     , biome = Plain
-    , behaviour = Predator Plain ( 3, 6 )
+    , behaviour = Predator ( 3, 6 )
     }
 
 

@@ -1,5 +1,6 @@
-module Ecocards.Data.GamePhase exposing (GamePhase(..), autoTap, emptyMove, end, play, tap)
+module Ecocards.Data.GamePhase exposing (GamePhase(..), autoPlay, autoTap, emptyMove, end, play, tap)
 
+import Array
 import Bag
 import Dict exposing (Dict)
 import Dict.Extra as Dict
@@ -87,6 +88,45 @@ play { index } { gamePhase, game } =
             Ok { gamePhase = gamePhase, game = game }
 
 
+autoPlay :
+    { gamePhase : GamePhase, game : Game }
+    -> Result String { gamePhase : GamePhase, game : Game }
+autoPlay { gamePhase, game } =
+    if game.yourArea.hand |> Array.isEmpty then
+        --all cards are played
+        game.yourArea.placed
+            |> Dict.toList
+            |> List.sortBy
+                (\( id, _ ) ->
+                    game.animals
+                        |> Dict.get id
+                        |> Maybe.map .strength
+                        |> Maybe.withDefault 0
+                )
+            |> List.filterMap
+                (\( id, { isTapped } ) ->
+                    if isTapped then
+                        Nothing
+
+                    else
+                        case
+                            { gamePhase = gamePhase, game = game }
+                                |> autoTap { id = id }
+                        of
+                            Ok ok ->
+                                Just <| Ok ok
+
+                            Err _ ->
+                                Nothing
+                )
+            |> List.head
+            |> Maybe.withDefault ({ gamePhase = gamePhase, game = game } |> end)
+
+    else
+        { gamePhase = gamePhase, game = game }
+            |> play { index = 0 }
+
+
 tap :
     Move
     -> { gamePhase : GamePhase, game : Game }
@@ -143,8 +183,8 @@ calcMove { id, played, game } =
                                                     animal.strength
                                                         < tappingAnimal.strength
                                                         && (case tappingAnimal.behaviour of
-                                                                Predator biome _ ->
-                                                                    animal.biome == biome
+                                                                Predator _ ->
+                                                                    animal.biome == tappingAnimal.biome
 
                                                                 _ ->
                                                                     True
@@ -182,11 +222,9 @@ calcMove { id, played, game } =
                                 { maxBag =
                                     oppAnimalList
                                         |> toBag
-                                        |> Debug.log "opp Bag"
                                 , minBag =
                                     yourAnimalList
                                         |> toBag
-                                        |> Debug.log "your Bag"
                                 }
                                 |> Maybe.map
                                     (\{ maxBag, minBag } ->
@@ -201,7 +239,7 @@ calcMove { id, played, game } =
                     (\move ->
                         { move
                             | selected =
-                                selected |> Debug.log "result"
+                                selected
                         }
                     )
 

@@ -6,6 +6,7 @@ import Dict exposing (Dict)
 import Ecocards.Data.Animal as Animal exposing (Animal, Behaviour(..), Biome)
 import Ecocards.Data.GameArea as GameArea exposing (GameArea)
 import Ecocards.Data.Move exposing (Move)
+import Maybe
 import Result.Extra as Result
 import Set exposing (Set)
 
@@ -152,22 +153,25 @@ tapPredator { minAmount, maxAmount, biome } move game =
         tapOmnivorous { minAmount = minAmount, maxAmount = maxAmount } move game
 
     else
-        Err "not all selected have the expected biome."
+        Err "Not all selected have the expected biome."
 
 
 tapAnimal : Move -> Game -> Result String Game
 tapAnimal move game =
     case game |> isValidMove move of
-        Err _ ->
-            Err "Move is not valid"
+        Err err ->
+            err
+                |> List.head
+                |> Maybe.withDefault "Move is not valid"
+                |> Err
 
         Ok () ->
             game.animals
                 |> Dict.get move.animalId
                 |> Maybe.map
-                    (\{ behaviour } ->
+                    (\{ behaviour, biome } ->
                         (case behaviour of
-                            Predator biome ( minAmount, maxAmount ) ->
+                            Predator ( minAmount, maxAmount ) ->
                                 tapPredator
                                     { minAmount = minAmount
                                     , maxAmount = maxAmount
@@ -285,8 +289,8 @@ isValidMove move game =
                                             |> Maybe.map
                                                 (\{ biome } ->
                                                     case animal.behaviour of
-                                                        Predator b _ ->
-                                                            b == biome
+                                                        Predator _ ->
+                                                            animal.biome == biome
 
                                                         _ ->
                                                             True
@@ -313,7 +317,7 @@ isValidMove move game =
                             Ok ()
 
                         else
-                            Err <| "not enough animals played yet, you need to play " ++ String.fromInt remaining ++ " more"
+                            Err <| "Not enough animals played yet, you need to play " ++ String.fromInt remaining ++ " more"
                 in
                 [ isAnimalOwned
                 , isAmountValid

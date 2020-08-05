@@ -1,4 +1,4 @@
-module Ecocards.Page.LocalGame exposing (Model, Msg, init, update, view)
+module Ecocards.Page.LocalGame exposing (Model, Msg, init, subscriptions, update, view)
 
 import Array
 import Bag exposing (Bag)
@@ -14,16 +14,20 @@ import Ecocards.Data.Move as Move exposing (Move)
 import Ecocards.View as View
 import Ecocards.View.Color as Color
 import Element exposing (Element)
+import Element.Font as Font
 import Element.Input as Input
 import Form.Decoder exposing (errors)
+import Html exposing (Html)
 import Html.Attributes exposing (selected)
 import List.Extra as List
 import PixelEngine exposing (game)
 import Random exposing (Seed)
 import Set exposing (Set)
 import Set.Extra as Set
+import Time
 import Widget
-import Widget.Style exposing (ButtonStyle, ColumnStyle, DialogStyle, ExpansionPanelStyle, LayoutStyle, RowStyle, SortTableStyle, TabStyle, TextInputStyle)
+import Widget.Snackbar as Snackbar exposing (Snackbar)
+import Widget.Style exposing (ButtonStyle, ColumnStyle, DialogStyle, ExpansionPanelStyle, LayoutStyle, RowStyle, SnackbarStyle, SortTableStyle, TabStyle, TextInputStyle)
 import Widget.Style.Material as Material exposing (Palette)
 
 
@@ -33,6 +37,10 @@ type alias Model =
     , error : Maybe String
     , useAutoTap : Bool
     , seed : Seed
+    , snackbar : Snackbar { title : String, desc : String }
+    , showDialog : Bool
+    , useAutoPlay : Bool
+    , useAutoOpp : Bool
     }
 
 
@@ -42,6 +50,12 @@ type Msg
     | Canceled
     | Confirmed
     | ToggleAutoTap
+    | ToggleAutoPlay
+    | ToggleAutoOpp
+    | GetInfo { title : String, desc : String }
+    | TimePassed Int
+    | CloseDialog Bool
+    | AutoPlay
 
 
 init : Seed -> ( Model, Cmd Msg )
@@ -67,7 +81,11 @@ init =
                   , phase = Thinking { played = Nothing }
                   , error = Nothing
                   , useAutoTap = False
+                  , useAutoPlay = False
+                  , useAutoOpp = False
                   , seed = seed
+                  , snackbar = Snackbar.init
+                  , showDialog = False
                   }
                 , Cmd.none
                 )
@@ -113,6 +131,18 @@ update msg model =
                                         (\move ->
                                             { gamePhase = model.phase, game = model.game }
                                                 |> GamePhase.tap move
+                                                |> (case model.game.animals |> Dict.get id of
+                                                        Just { behaviour } ->
+                                                            case behaviour of
+                                                                Herbivores _ ->
+                                                                    Result.andThen GamePhase.end
+
+                                                                _ ->
+                                                                    identity
+
+                                                        Nothing ->
+                                                            identity
+                                                   )
                                                 |> applyChange
                                         )
                                     |> Maybe.withDefault identity
@@ -145,23 +175,72 @@ update msg model =
             )
 
         Confirmed ->
-            ( model
-                |> ({ gamePhase = model.phase, game = model.game }
-                        |> GamePhase.end
-                        |> Result.map
-                            (\result ->
-                                if result.gamePhase == WaitingForOpponent then
-                                    { gamePhase = Thinking { played = Nothing }
-                                    , game = result.game |> Game.swapAreas
-                                    }
+            case model.phase of
+                Finished _ ->
+                    init model.seed
 
-                                else
-                                    result
-                            )
-                        |> applyChange
-                   )
-            , Cmd.none
-            )
+                Thinking _ ->
+                    ( if
+                        model.game.yourArea.placed
+                            |> Dict.filter (\id { isTapped } -> not isTapped)
+                            |> Dict.isEmpty
+                      then
+                        { gamePhase = model.phase, game = model.game }
+                            |> GamePhase.end
+                            |> (\result ->
+                                    case result of
+                                        Ok ok ->
+                                            if ok.gamePhase == WaitingForOpponent then
+                                                model
+                                                    |> applyChange
+                                                        (Ok
+                                                            { gamePhase = Thinking { played = Nothing }
+                                                            , game = ok.game |> Game.swapAreas
+                                                            }
+                                                        )
+                                                    |> (\m ->
+                                                            { m
+                                                                | useAutoPlay =
+                                                                    model.useAutoPlay
+                                                                        |> (if model.useAutoOpp then
+                                                                                not
+
+                                                                            else
+                                                                                identity
+                                                                           )
+                                                            }
+                                                       )
+
+                                            else
+                                                model |> applyChange (Ok ok)
+
+                                        Err err ->
+                                            model |> applyChange (Err err)
+                               )
+
+                      else
+                        { model | showDialog = True }
+                    , Cmd.none
+                    )
+
+                _ ->
+                    ( model
+                        |> ({ gamePhase = model.phase, game = model.game }
+                                |> GamePhase.end
+                                |> Result.map
+                                    (\result ->
+                                        if result.gamePhase == WaitingForOpponent then
+                                            { gamePhase = Thinking { played = Nothing }
+                                            , game = result.game |> Game.swapAreas
+                                            }
+
+                                        else
+                                            result
+                                    )
+                                |> applyChange
+                           )
+                    , Cmd.none
+                    )
 
         PlayedCard index ->
             ( { gamePhase = model.phase, game = model.game }
@@ -186,6 +265,115 @@ update msg model =
             , Cmd.none
             )
 
+        ToggleAutoPlay ->
+            ( { model | useAutoPlay = not model.useAutoPlay }
+            , Cmd.none
+            )
+
+        ToggleAutoOpp ->
+            ( { model | useAutoOpp = not model.useAutoOpp }
+            , Cmd.none
+            )
+
+        GetInfo behaviour ->
+            ( { model | snackbar = model.snackbar |> Snackbar.insert behaviour }
+            , Cmd.none
+            )
+
+        TimePassed int ->
+            ( { model | snackbar = model.snackbar |> Snackbar.timePassed int }
+            , Cmd.none
+            )
+
+        CloseDialog shouldContinue ->
+            if shouldContinue then
+                ( { gamePhase = model.phase, game = model.game }
+                    |> GamePhase.end
+                    |> (\result ->
+                            case result of
+                                Ok ok ->
+                                    if ok.gamePhase == WaitingForOpponent then
+                                        model
+                                            |> applyChange
+                                                (Ok
+                                                    { gamePhase = Thinking { played = Nothing }
+                                                    , game = ok.game |> Game.swapAreas
+                                                    }
+                                                )
+                                            |> (\m ->
+                                                    { m
+                                                        | useAutoPlay =
+                                                            model.useAutoPlay
+                                                                |> (if model.useAutoOpp then
+                                                                        not
+
+                                                                    else
+                                                                        identity
+                                                                   )
+                                                    }
+                                               )
+
+                                    else
+                                        model |> applyChange (Ok ok)
+
+                                Err err ->
+                                    model |> applyChange (Err err)
+                       )
+                    |> (\m -> { m | showDialog = False })
+                , Cmd.none
+                )
+
+            else
+                ( { model | showDialog = False }, Cmd.none )
+
+        AutoPlay ->
+            ( { gamePhase = model.phase, game = model.game }
+                |> GamePhase.autoPlay
+                |> (\result ->
+                        case result of
+                            Ok ok ->
+                                if ok.gamePhase == WaitingForOpponent then
+                                    model
+                                        |> applyChange
+                                            (Ok
+                                                { gamePhase = Thinking { played = Nothing }
+                                                , game = ok.game |> Game.swapAreas
+                                                }
+                                            )
+                                        |> (\m ->
+                                                { m
+                                                    | useAutoPlay =
+                                                        model.useAutoPlay
+                                                            |> (if model.useAutoOpp then
+                                                                    not
+
+                                                                else
+                                                                    identity
+                                                               )
+                                                }
+                                           )
+
+                                else
+                                    model |> applyChange (Ok ok)
+
+                            Err err ->
+                                model |> applyChange (Err err)
+                   )
+            , Cmd.none
+            )
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
+    Sub.batch
+        [ Time.every 50 (always (TimePassed 50))
+        , if model.useAutoPlay then
+            Time.every 700 (always AutoPlay)
+
+          else
+            Sub.none
+        ]
+
 
 
 --------------------------------------------------------------------------------
@@ -205,6 +393,8 @@ type alias Style msg =
     , cardColumn : ColumnStyle msg
     , selectButton : ButtonStyle msg
     , layout : LayoutStyle msg
+    , snackbar : SnackbarStyle msg
+    , textButton : ButtonStyle msg
     }
 
 
@@ -228,6 +418,8 @@ style =
     , expansionPanel = Material.expansionPanel palette
     , dialog = Material.alertDialog palette
     , layout = Material.layout palette
+    , snackbar = Material.snackbar palette
+    , textButton = Material.textButton palette
     }
 
 
@@ -239,12 +431,22 @@ viewArea :
     }
     -> Element Msg
 viewArea { gameArea, animals, phase, move } =
-    [ [ Element.text "Deck"
-      , gameArea.deck
+    [ [ [ Element.text "Next Cards "
+        , gameArea.deck
+            |> List.take (3 - (gameArea.hand |> Array.length))
             |> List.map (.symbol >> Element.text)
-            |> Widget.row style.row
+            |> Element.row [ Element.alignRight, Element.spacing 8 ]
+        ]
+            |> Element.column [ Element.alignTop, Element.spacing 8 ]
+      , [ Element.text "Deck"
+        , gameArea.deck
+            |> List.drop (3 - (gameArea.hand |> Array.length))
+            |> List.map (.symbol >> Element.text)
+            |> Element.row [ Element.spacing 8 ]
+        ]
+            |> Element.column [ Element.spacing 8 ]
       ]
-        |> Element.column []
+        |> Element.row [ Element.spacing 10 ]
     , [ Element.text "Hand"
       , gameArea.hand
             |> Array.toList
@@ -264,12 +466,14 @@ viewArea { gameArea, animals, phase, move } =
 
                                 _ ->
                                     Nothing
+                        , getInfoMsg =
+                            Just <| GetInfo <| Animal.behaviourDescription <| animal.behaviour
                         }
                 )
             |> Widget.row style.row
       ]
         |> Element.column []
-    , [ Element.text "Battleground"
+    , [ Element.text "Battle Area"
       , gameArea.placed
             |> Dict.toList
             |> List.map
@@ -285,6 +489,8 @@ viewArea { gameArea, animals, phase, move } =
                                 ( "", "" )
                             , footer = ""
                             , onPress = Nothing
+                            , getInfoMsg =
+                                Nothing
                             }
 
                         Just animal ->
@@ -308,6 +514,8 @@ viewArea { gameArea, animals, phase, move } =
                                         animal.behaviour
                                             |> Animal.behaviourToString
                                     , onPress = Just (ClickedCard { id = id })
+                                    , getInfoMsg =
+                                        Just <| GetInfo <| Animal.behaviourDescription <| animal.behaviour
                                     }
 
                                 Thinking _ ->
@@ -323,6 +531,8 @@ viewArea { gameArea, animals, phase, move } =
                                             animal.behaviour
                                                 |> Animal.behaviourToString
                                         , onPress = Nothing
+                                        , getInfoMsg =
+                                            Just <| GetInfo <| Animal.behaviourDescription <| animal.behaviour
                                         }
 
                                     else
@@ -337,6 +547,8 @@ viewArea { gameArea, animals, phase, move } =
                                             animal.behaviour
                                                 |> Animal.behaviourToString
                                         , onPress = Just (ClickedCard { id = id })
+                                        , getInfoMsg =
+                                            Just <| GetInfo <| Animal.behaviourDescription <| animal.behaviour
                                         }
 
                                 _ ->
@@ -366,6 +578,8 @@ viewArea { gameArea, animals, phase, move } =
 
                                         else
                                             Just (ClickedCard { id = id })
+                                    , getInfoMsg =
+                                        Just <| GetInfo <| Animal.behaviourDescription <| animal.behaviour
                                     }
                     )
                         |> View.squareCard
@@ -379,7 +593,7 @@ viewArea { gameArea, animals, phase, move } =
 
 {-| You can remove the msgMapper. But by doing so, make sure to also change `msg` to `Msg` in the line below.
 -}
-view : Model -> Element Msg
+view : Model -> Html Msg
 view model =
     let
         invalidRestrictions =
@@ -410,7 +624,7 @@ view model =
                         Nothing
             }
         ]
-            |> Widget.column style.column
+            |> Element.column [ Element.spacing 8, Element.alignTop ]
       , [ Element.text "Opponent's Area"
         , viewArea
             { gameArea = model.game.oppArea
@@ -425,12 +639,45 @@ view model =
                         Nothing
             }
         ]
-            |> Widget.column style.column
+            |> Element.column [ Element.spacing 8, Element.alignTop ]
       ]
         |> Element.wrappedRow [ Element.spacing 10, Element.width <| Element.shrink, Element.centerX ]
+    , (case model.phase of
+        WaitingForOpponent ->
+            "Wait for opponent players"
+
+        Thinking _ ->
+            "Play cards from your hand, tap cards on the battle area or end your turn"
+
+        Tapping _ ->
+            "Choose animals to remove before tapping your card"
+
+        Finished True ->
+            "You Won"
+
+        Finished False ->
+            "You Lost"
+      )
+        |> Element.text
+        |> Element.el [ Element.centerX ]
     , [ [ Widget.textButton style.button
             { text = "Cancel"
-            , onPress = Just <| Canceled
+            , onPress =
+                case model.phase of
+                    WaitingForOpponent ->
+                        Nothing
+
+                    Thinking _ ->
+                        Nothing
+
+                    Tapping _ ->
+                        Just <| Canceled
+
+                    Finished True ->
+                        Nothing
+
+                    Finished False ->
+                        Nothing
             }
         , Widget.textButton style.primaryButton
             { text =
@@ -442,13 +689,10 @@ view model =
                         "End Turn"
 
                     Tapping _ ->
-                        "Confirm"
+                        "Tap Card"
 
-                    Finished True ->
-                        "You Won"
-
-                    Finished False ->
-                        "You Lost"
+                    Finished _ ->
+                        "Replay"
             , onPress =
                 case model.phase of
                     Tapping move ->
@@ -461,34 +705,118 @@ view model =
                     _ ->
                         Just Confirmed
             }
-        , model.error
-            |> Maybe.withDefault ""
-            |> Element.text
-        ]
-            |> Widget.row style.row
-      , invalidRestrictions
-            |> List.map Element.text
-            |> Widget.column style.column
-      , [ Input.checkbox []
-            { onChange = always ToggleAutoTap
-            , icon = Input.defaultCheckbox
-            , checked = model.useAutoTap
-            , label = Input.labelHidden "use Auto Tap"
+        , Widget.textButton style.textButton
+            { text = "Help"
+            , onPress =
+                case model.phase of
+                    WaitingForOpponent ->
+                        Nothing
+
+                    Thinking _ ->
+                        { title = "Your Turn"
+                        , desc = "Play a card from your hand by clicking on it. Tap a played card on the battle area by clicking on it. You may end your turn once you have played at least one card. Once your turn is over ALL CARDS THAT HAVE NOT BEEN TAPPED GET REMOVED!"
+                        }
+                            |> GetInfo
+                            |> Just
+
+                    Tapping _ ->
+                        { title = "Tapping Action"
+                        , desc = "Select a set of animals that should be removed. For more detail, checkout the info of the selected card."
+                        }
+                            |> GetInfo
+                            |> Just
+
+                    Finished True ->
+                        Nothing
+
+                    Finished False ->
+                        Nothing
             }
-        , Element.text "Use Auto Tap"
         ]
             |> Widget.row style.row
       ]
         |> Element.row [ Element.centerX ]
+    , [ [ Input.checkbox []
+            { onChange = always ToggleAutoTap
+            , icon = Input.defaultCheckbox
+            , checked = model.useAutoTap
+            , label = Input.labelHidden "Use Auto Tap"
+            }
+        , Element.text "Use Auto Tap"
+        ]
+            |> Widget.row style.row
+      , [ Input.checkbox []
+            { onChange = always ToggleAutoPlay
+            , icon = Input.defaultCheckbox
+            , checked = model.useAutoPlay
+            , label = Input.labelHidden "Use Auto Play"
+            }
+        , Element.text "Use Auto Play"
+        ]
+            |> Widget.row style.row
+      , [ Input.checkbox []
+            { onChange = always ToggleAutoOpp
+            , icon = Input.defaultCheckbox
+            , checked = model.useAutoOpp
+            , label = Input.labelHidden "Computer Opponent"
+            }
+        , Element.text "Computer Opponent"
+        ]
+            |> Widget.row style.row
+      ]
+        |> Element.row [ Element.spacing 10, Element.centerX ]
+    , model.error
+        |> Maybe.withDefault ""
+        |> Element.text
+    , invalidRestrictions
+        |> List.map Element.text
+        |> Element.column [ Element.centerX ]
     ]
         |> Element.column [ Element.width <| Element.fill ]
+        |> Element.layout
+            ([ Snackbar.view style.snackbar
+                (\{ title, desc } ->
+                    { text = desc
+                    , button = Nothing
+                    }
+                )
+                model.snackbar
+                |> Maybe.withDefault Element.none
+                |> Element.el
+                    [ Element.alignBottom
+                    , Element.alignRight
+                    , Element.padding 5
+                    , Font.size 14
+                    ]
+                |> Element.inFront
+             ]
+                ++ (if model.showDialog then
+                        Widget.dialog style.dialog
+                            { title = Just "Untapped Animals"
+                            , text = "Some of the animals in your battle area have not been tapped. If you continue these animals will die."
+                            , accept =
+                                Just
+                                    { text = "Continue"
+                                    , onPress = Just <| CloseDialog True
+                                    }
+                            , dismiss =
+                                Just
+                                    { text = "Cancel"
+                                    , onPress = Just <| CloseDialog False
+                                    }
+                            }
+
+                    else
+                        []
+                   )
+            )
 
 
 main : Program () Model Msg
 main =
     Browser.element
         { init = always (init (Random.initialSeed 42))
-        , view = view >> Element.layout []
+        , view = view
         , update = update
         , subscriptions = always Sub.none
         }
