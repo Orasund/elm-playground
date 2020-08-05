@@ -8879,9 +8879,22 @@ var $author$project$Ecocards$Main$update = F2(
 		}
 		return _Utils_Tuple2(b, $elm$core$Platform$Cmd$none);
 	});
+var $elm$virtual_dom$VirtualDom$attribute = F2(
+	function (key, value) {
+		return A2(
+			_VirtualDom_attribute,
+			_VirtualDom_noOnOrFormAction(key),
+			_VirtualDom_noJavaScriptOrHtmlUri(value));
+	});
+var $elm$html$Html$Attributes$attribute = $elm$virtual_dom$VirtualDom$attribute;
 var $elm$html$Html$div = _VirtualDom_node('div');
 var $elm$virtual_dom$VirtualDom$map = _VirtualDom_map;
 var $elm$html$Html$map = $elm$virtual_dom$VirtualDom$map;
+var $elm$virtual_dom$VirtualDom$node = function (tag) {
+	return _VirtualDom_node(
+		_VirtualDom_noScript(tag));
+};
+var $elm$html$Html$node = $elm$virtual_dom$VirtualDom$node;
 var $author$project$Ecocards$Page$LocalGame$Canceled = {$: 'Canceled'};
 var $author$project$Ecocards$Page$LocalGame$CloseDialog = function (a) {
 	return {$: 'CloseDialog', a: a};
@@ -9360,10 +9373,6 @@ var $mdgriffith$elm_ui$Internal$Model$renderFocusStyle = function (focus) {
 						A2($mdgriffith$elm_ui$Internal$Model$Property, 'outline', 'none'))
 					])))
 		]);
-};
-var $elm$virtual_dom$VirtualDom$node = function (tag) {
-	return _VirtualDom_node(
-		_VirtualDom_noScript(tag));
 };
 var $elm$virtual_dom$VirtualDom$property = F2(
 	function (key, value) {
@@ -13040,13 +13049,6 @@ var $mdgriffith$elm_ui$Internal$Model$alignYName = function (align) {
 			return $mdgriffith$elm_ui$Internal$Style$classes.alignedVertically + (' ' + $mdgriffith$elm_ui$Internal$Style$classes.alignCenterY);
 	}
 };
-var $elm$virtual_dom$VirtualDom$attribute = F2(
-	function (key, value) {
-		return A2(
-			_VirtualDom_attribute,
-			_VirtualDom_noOnOrFormAction(key),
-			_VirtualDom_noJavaScriptOrHtmlUri(value));
-	});
 var $mdgriffith$elm_ui$Internal$Model$FullTransform = F4(
 	function (a, b, c, d) {
 		return {$: 'FullTransform', a: a, b: b, c: c, d: d};
@@ -14347,7 +14349,6 @@ var $mdgriffith$elm_ui$Element$Input$applyLabel = F3(
 			}
 		}
 	});
-var $elm$html$Html$Attributes$attribute = $elm$virtual_dom$VirtualDom$attribute;
 var $mdgriffith$elm_ui$Internal$Model$CenterY = {$: 'CenterY'};
 var $mdgriffith$elm_ui$Element$centerY = $mdgriffith$elm_ui$Internal$Model$AlignY($mdgriffith$elm_ui$Internal$Model$CenterY);
 var $mdgriffith$elm_ui$Element$Input$enter = 'Enter';
@@ -18071,15 +18072,34 @@ var $author$project$Ecocards$Page$LocalGame$view = function (model) {
 				])));
 };
 var $author$project$Ecocards$Main$view = function (m) {
-	if (m.$ === 'Waiting') {
-		return A2($elm$html$Html$div, _List_Nil, _List_Nil);
-	} else {
-		var model = m.a;
-		return A2(
-			$elm$html$Html$map,
-			$author$project$Ecocards$Main$LocalGameMsg,
-			$author$project$Ecocards$Page$LocalGame$view(model));
-	}
+	return A2(
+		$elm$html$Html$div,
+		_List_Nil,
+		A2(
+			$elm$core$List$cons,
+			A3(
+				$elm$html$Html$node,
+				'meta',
+				_List_fromArray(
+					[
+						A2($elm$html$Html$Attributes$attribute, 'name', 'viewport'),
+						A2($elm$html$Html$Attributes$attribute, 'content', 'width=device-width, initial-scale=1.0, user-scalable=no')
+					]),
+				_List_Nil),
+			function () {
+				if (m.$ === 'Waiting') {
+					return _List_Nil;
+				} else {
+					var model = m.a;
+					return _List_fromArray(
+						[
+							A2(
+							$elm$html$Html$map,
+							$author$project$Ecocards$Main$LocalGameMsg,
+							$author$project$Ecocards$Page$LocalGame$view(model))
+						]);
+				}
+			}()));
 };
 var $author$project$Ecocards$Main$main = $elm$browser$Browser$element(
 	{

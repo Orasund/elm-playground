@@ -4,6 +4,7 @@ import Browser
 import Ecocards.Page.LocalGame as LocalGame
 import Element
 import Html exposing (Html)
+import Html.Attributes as Attributes
 import Random exposing (Seed)
 
 
@@ -44,13 +45,22 @@ update a b =
 
 view : Model -> Html Msg
 view m =
-    case m of
-        Waiting ->
-            Html.div [] []
+    Html.div []
+        (Html.node "meta"
+            [ Attributes.attribute "name" "viewport"
+            , Attributes.attribute "content" "width=device-width, initial-scale=1.0, user-scalable=no"
+            ]
+            []
+            :: (case m of
+                    Waiting ->
+                        []
 
-        LocalGameModel model ->
-            LocalGame.view model
-                |> Html.map LocalGameMsg
+                    LocalGameModel model ->
+                        [ LocalGame.view model
+                            |> Html.map LocalGameMsg
+                        ]
+               )
+        )
 
 
 subscriptions : Model -> Sub Msg
