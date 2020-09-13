@@ -56,6 +56,9 @@ viewCard card =
             ]
     ]
         ++ (case card of
+                Joker ->
+                    []
+
                 Trump n ->
                     [ n
                         |> String.fromInt
@@ -193,25 +196,29 @@ viewCard card =
                     ]
 
                 _ ->
-                    [ Circle2d.atPoint (Point2d.pixels View.padding (View.padding + View.relative 6))
-                        (Pixels.pixels <| View.relative 1)
-                        |> Svg.circle2d
-                            [ Attributes.stroke <|
-                                if isWhite then
-                                    "black"
+                    if Card.value card == 7 then
+                        []
 
-                                else
-                                    "white"
-                            , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 0.5
-                            , Attributes.fill <|
-                                if isWhite then
-                                    "white"
+                    else
+                        [ Circle2d.atPoint (Point2d.pixels View.padding (View.padding + View.relative 6))
+                            (Pixels.pixels <| View.relative 1)
+                            |> Svg.circle2d
+                                [ Attributes.stroke <|
+                                    if isWhite then
+                                        "black"
 
-                                else
-                                    View.blackBackground
-                            ]
-                    , viewValue
-                    ]
+                                    else
+                                        "white"
+                                , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 0.5
+                                , Attributes.fill <|
+                                    if isWhite then
+                                        "white"
+
+                                    else
+                                        View.blackBackground
+                                ]
+                        , viewValue
+                        ]
            )
         ++ (case card of
                 Trump _ ->
@@ -279,25 +286,29 @@ viewCard card =
            ]
 
 
-main : Html msg
-main =
-    --[ White, Black ]
-    [ Black ]
-        |> List.concatMap
-            (\fun ->
-                --List.range 1 7
-                List.range 4 7
-                    |> List.map fun
-            )
-        {- |> List.append
-           (List.range 1 21
-               |> List.map Trump
-           )
+smallSet : List Card
+smallSet =
+    [ White 7, Black 7, Joker ]
+        {- [ White, Black ]
+           |> List.concatMap
+               (\fun ->
+                   List.range 1 7
+                       |> List.map fun
+               )
         -}
+        |> List.append
+            (List.range 1 21
+                |> List.map Trump
+            )
         |> List.append
             ([ Direction, Season, Animal, Emotion ]
                 |> List.concatMap (\fun -> List.range 1 4 |> List.map fun)
             )
+
+
+main : Html msg
+main =
+    smallSet
         |> List.map
             (\card ->
                 viewCard card

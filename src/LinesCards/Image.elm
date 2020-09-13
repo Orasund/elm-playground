@@ -100,10 +100,10 @@ viewHBackground { color, vMirror, hMirror } =
             View.relative 1
     in
     Polygon2d.singleLoop
-        [ Point2d.pixels 0 (zoom * (-(View.relative 15) / 2))
-        , Point2d.pixels 0 (zoom * (View.relative 15 / 2))
-        , Point2d.pixels (View.width / 2) (View.height / 2 + zoom * (View.relative 15 / 2))
-        , Point2d.pixels (View.width / 2) (View.height / 2 + zoom * (-(View.relative 15) / 2))
+        [ Point2d.pixels 0 (zoom * (-(View.relative 7) / 2))
+        , Point2d.pixels 0 (zoom * (View.relative 7 / 2))
+        , Point2d.pixels (View.width / 2) (View.height / 2 + zoom * (View.relative 7 / 2))
+        , Point2d.pixels (View.width / 2) (View.height / 2 + zoom * (-(View.relative 7) / 2))
         ]
         |> (if hMirror then
                 Polygon2d.mirrorAcross
@@ -124,8 +124,98 @@ viewHBackground { color, vMirror, hMirror } =
                 identity
            )
         |> Svg.polygon2d
-            [ Attributes.fillOpacity <| "0.4"
+            [ Attributes.fillOpacity <| "0.6"
             , Attributes.fill <| color
+            ]
+
+
+viewHCircle : { dashes : String, color : String, mirror : Bool, size : Float } -> Svg msg
+viewHCircle { dashes, color, mirror, size } =
+    let
+        yOffset =
+            View.width / 2 + View.relative 5
+    in
+    Arc2d.with
+        { centerPoint = Point2d.pixels (View.width / 2) (((View.height / 2) ^ 2 + yOffset ^ 2) / (2 * yOffset) - yOffset)
+        , radius = Pixels.pixels <| ((View.width / 2) ^ 2 + yOffset ^ 2) / (2 * yOffset) - View.relative 1.5
+        , startAngle = Angle.radians <| 0
+        , sweptAngle = Angle.radians <| 2 * pi
+        }
+        |> (if mirror then
+                Arc2d.mirrorAcross
+                    (Axis2d.x
+                        |> Axis2d.moveTo (Point2d.pixels (View.width / 2) (View.height / 2))
+                    )
+
+            else
+                identity
+           )
+        |> Svg.arc2d
+            [ Attributes.strokeDasharray <| dashes
+            , Attributes.stroke <| color
+            , Attributes.strokeWidth <| String.fromFloat <| size
+            , Attributes.fill "transparent"
+            , Attributes.strokeLinecap <| "round"
+            ]
+
+
+viewVCircle : { dashes : String, color : String, mirror : Bool, size : Float } -> Svg msg
+viewVCircle { dashes, color, mirror, size } =
+    let
+        xOffset =
+            View.width / 2 - View.relative 5 - View.relative 1.5
+    in
+    Arc2d.with
+        { centerPoint = Point2d.pixels -(((View.height / 2) ^ 2 + xOffset ^ 2) / (2 * xOffset) - xOffset) (View.height / 2)
+        , radius = Pixels.pixels <| ((View.height / 2) ^ 2 + xOffset ^ 2) / (2 * xOffset)
+        , startAngle = Angle.radians <| -pi / 2
+        , sweptAngle = Angle.radians <| 2 * pi
+        }
+        |> (if mirror then
+                Arc2d.mirrorAcross
+                    (Axis2d.y
+                        |> Axis2d.moveTo (Point2d.pixels (View.width / 2) (View.height / 2))
+                    )
+
+            else
+                identity
+           )
+        |> Svg.arc2d
+            [ Attributes.strokeDasharray <| dashes
+            , Attributes.stroke <| color
+            , Attributes.strokeWidth <| String.fromFloat <| size
+            , Attributes.fill "transparent"
+            , Attributes.strokeLinecap <| "round"
+            ]
+
+
+viewLine : { color : Color, vMirror : Bool, hMirror : Bool } -> Svg msg
+viewLine { color, vMirror, hMirror } =
+    LineSegment2d.from (Point2d.pixels 0 0) (Point2d.pixels (View.width / 2) (View.height / 2))
+        |> (if hMirror then
+                LineSegment2d.mirrorAcross
+                    (Axis2d.x
+                        |> Axis2d.moveTo (Point2d.pixels (View.width / 2) (View.height / 2))
+                    )
+
+            else
+                identity
+           )
+        |> (if vMirror then
+                LineSegment2d.mirrorAcross
+                    (Axis2d.y
+                        |> Axis2d.moveTo (Point2d.pixels (View.width / 2) (View.height / 2))
+                    )
+
+            else
+                identity
+           )
+        |> Svg.lineSegment2d
+            [ Attributes.strokeDasharray <| Card.dashes color
+            , Attributes.strokeWidth <| String.fromFloat <| View.relative 1
+            , Attributes.stroke <| "black"
+            , Attributes.strokeLinecap <| "round"
+            , Attributes.fill <| "none"
             ]
 
 
@@ -136,10 +226,10 @@ viewVBackground { color, vMirror, hMirror } =
             1
     in
     Polygon2d.singleLoop
-        [ Point2d.pixels (zoom * (-(View.relative 15) / 2)) 0
-        , Point2d.pixels (zoom * (View.relative 15 / 2)) 0
-        , Point2d.pixels (View.width / 2 + zoom * (View.relative 15 / 2)) (View.height / 2)
-        , Point2d.pixels (View.width / 2 + zoom * (-(View.relative 15) / 2)) (View.height / 2)
+        [ Point2d.pixels (zoom * (-(View.relative 7) / 2)) 0
+        , Point2d.pixels (zoom * (View.relative 7 / 2)) 0
+        , Point2d.pixels (View.width / 2 + zoom * (View.relative 7 / 2)) (View.height / 2)
+        , Point2d.pixels (View.width / 2 + zoom * (-(View.relative 7) / 2)) (View.height / 2)
         ]
         |> (if hMirror then
                 Polygon2d.mirrorAcross
@@ -160,7 +250,7 @@ viewVBackground { color, vMirror, hMirror } =
                 identity
            )
         |> Svg.polygon2d
-            [ Attributes.fillOpacity <| "0.4"
+            [ Attributes.fillOpacity <| "0.6"
             , Attributes.fill <| color
             ]
 
@@ -184,75 +274,31 @@ viewVEdges c1 c2 =
                     View.red
 
         form =
-            [ viewVBackground
-                { color = colorName c1
-                , vMirror = False
-                , hMirror = False
+            [ viewVCircle
+                { dashes = ""
+                , color = colorName c1
+                , mirror = False
+                , size = View.relative 6
                 }
-            , viewVBackground
-                { color = colorName c2
-                , vMirror = True
-                , hMirror = True
+            , viewVCircle
+                { dashes = Card.dashes c1
+                , color = "black"
+                , mirror = False
+                , size = View.relative 1
                 }
-            , viewVBackground
-                { color = colorName c1
-                , vMirror = False
-                , hMirror = True
+            , viewVCircle
+                { dashes = ""
+                , color = colorName c2
+                , mirror = True
+                , size = View.relative 6
                 }
-            , viewVBackground
-                { color = colorName c2
-                , vMirror = True
-                , hMirror = False
+            , viewVCircle
+                { dashes = Card.dashes c2
+                , color = "black"
+                , mirror = True
+                , size = View.relative 1
                 }
             ]
-                ++ (Card.lines c1
-                        |> List.map
-                            (\{ offset, stroke, color } ->
-                                viewVertical
-                                    { offset = offset
-                                    , stroke = stroke
-                                    , vMirror = False
-                                    , hMirror = False
-                                    , color = color
-                                    }
-                            )
-                   )
-                ++ (Card.lines c2
-                        |> List.map
-                            (\{ offset, stroke, color } ->
-                                viewVertical
-                                    { offset = offset
-                                    , stroke = stroke
-                                    , vMirror = True
-                                    , hMirror = True
-                                    , color = color
-                                    }
-                            )
-                   )
-                ++ (Card.lines c1
-                        |> List.map
-                            (\{ offset, stroke, color } ->
-                                viewVertical
-                                    { offset = offset
-                                    , stroke = stroke
-                                    , vMirror = False
-                                    , hMirror = True
-                                    , color = color
-                                    }
-                            )
-                   )
-                ++ (Card.lines c2
-                        |> List.map
-                            (\{ offset, stroke, color } ->
-                                viewVertical
-                                    { offset = offset
-                                    , stroke = stroke
-                                    , vMirror = True
-                                    , hMirror = False
-                                    , color = color
-                                    }
-                            )
-                   )
     in
     form ++ form
 
@@ -276,75 +322,31 @@ viewHEdges c1 c2 =
                     View.red
 
         form =
-            [ viewHBackground
-                { color = colorName c2
-                , vMirror = False
-                , hMirror = False
+            [ viewHCircle
+                { dashes = ""
+                , color = colorName c1
+                , mirror = True
+                , size = View.relative 6
                 }
-            , viewHBackground
-                { color = colorName c1
-                , vMirror = True
-                , hMirror = True
+            , viewHCircle
+                { dashes = Card.dashes c1
+                , color = "black"
+                , mirror = True
+                , size = View.relative 1
                 }
-            , viewHBackground
-                { color = colorName c1
-                , vMirror = False
-                , hMirror = True
+            , viewHCircle
+                { dashes = ""
+                , color = colorName c2
+                , mirror = False
+                , size = View.relative 6
                 }
-            , viewHBackground
-                { color = colorName c2
-                , vMirror = True
-                , hMirror = False
+            , viewHCircle
+                { dashes = Card.dashes c2
+                , color = "black"
+                , mirror = False
+                , size = View.relative 1
                 }
             ]
-                ++ (Card.lines c2
-                        |> List.map
-                            (\{ offset, stroke, color } ->
-                                viewHorizontal
-                                    { offset = offset
-                                    , stroke = stroke
-                                    , vMirror = False
-                                    , hMirror = False
-                                    , color = color
-                                    }
-                            )
-                   )
-                ++ (Card.lines c1
-                        |> List.map
-                            (\{ offset, stroke, color } ->
-                                viewHorizontal
-                                    { offset = offset
-                                    , stroke = stroke
-                                    , vMirror = True
-                                    , hMirror = True
-                                    , color = color
-                                    }
-                            )
-                   )
-                ++ (Card.lines c1
-                        |> List.map
-                            (\{ offset, stroke, color } ->
-                                viewHorizontal
-                                    { offset = offset
-                                    , stroke = stroke
-                                    , vMirror = False
-                                    , hMirror = True
-                                    , color = color
-                                    }
-                            )
-                   )
-                ++ (Card.lines c2
-                        |> List.map
-                            (\{ offset, stroke, color } ->
-                                viewHorizontal
-                                    { offset = offset
-                                    , stroke = stroke
-                                    , vMirror = True
-                                    , hMirror = False
-                                    , color = color
-                                    }
-                            )
-                   )
     in
     form ++ form
 
@@ -388,55 +390,27 @@ viewCross c1 c2 =
                 , vMirror = True
                 , hMirror = True
                 }
+            , viewLine
+                { color = c1
+                , vMirror = False
+                , hMirror = False
+                }
+            , viewLine
+                { color = c2
+                , vMirror = False
+                , hMirror = True
+                }
+            , viewLine
+                { color = c2
+                , vMirror = True
+                , hMirror = False
+                }
+            , viewLine
+                { color = c1
+                , vMirror = True
+                , hMirror = True
+                }
             ]
-                ++ (Card.lines c1
-                        |> List.map
-                            (\{ offset, stroke, color } ->
-                                viewVertical
-                                    { offset = offset
-                                    , stroke = stroke
-                                    , vMirror = False
-                                    , hMirror = False
-                                    , color = color
-                                    }
-                            )
-                   )
-                ++ (Card.lines c2
-                        |> List.map
-                            (\{ offset, stroke, color } ->
-                                viewVertical
-                                    { offset = offset
-                                    , stroke = stroke
-                                    , vMirror = False
-                                    , hMirror = True
-                                    , color = color
-                                    }
-                            )
-                   )
-                ++ (Card.lines c2
-                        |> List.map
-                            (\{ offset, stroke, color } ->
-                                viewVertical
-                                    { offset = offset
-                                    , stroke = stroke
-                                    , vMirror = True
-                                    , hMirror = False
-                                    , color = color
-                                    }
-                            )
-                   )
-                ++ (Card.lines c1
-                        |> List.map
-                            (\{ offset, stroke, color } ->
-                                viewVertical
-                                    { offset = offset
-                                    , stroke = stroke
-                                    , vMirror = True
-                                    , hMirror = True
-                                    , color = color
-                                    }
-                            )
-                   )
     in
     form ++ form
 

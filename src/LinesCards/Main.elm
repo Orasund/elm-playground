@@ -2,6 +2,7 @@ module LinesCards.Main exposing (main)
 
 import Angle exposing (Angle)
 import Circle2d exposing (Circle2d)
+import Element
 import Frame2d exposing (Frame2d)
 import Geometry.Svg as Svg
 import Html exposing (Html)
@@ -50,7 +51,7 @@ main =
                             |> List.indexedMap
                                 (\i c1 ->
                                     colors
-                                        |> List.drop (i + 1)
+                                        |> List.drop i
                                         |> List.map (\c2 -> f c1 c2)
                                 )
                             |> List.concat

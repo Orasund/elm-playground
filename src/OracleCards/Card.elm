@@ -11,6 +11,7 @@ type Card
     | Animal Int
     | Season Int
     | Direction Int
+    | Joker
 
 
 color : Card -> String
@@ -39,6 +40,9 @@ color card =
 title : Card -> String
 title card =
     case card of
+        Joker ->
+            "Joker"
+
         Black _ ->
             "Yin"
 
@@ -173,10 +177,10 @@ title card =
                     "Ostwind"
 
                 3 ->
-                    "Sommerwind"
+                    "Südwind"
 
                 4 ->
-                    "Herbstwind"
+                    "Westwind"
 
                 _ ->
                     "Jahreszeit"
@@ -185,6 +189,9 @@ title card =
 description : Card -> String
 description card =
     case card of
+        Joker ->
+            "Sorglosigkeit"
+
         Black _ ->
             "Böse"
 
@@ -279,16 +286,16 @@ description card =
         Animal n ->
             case n of
                 1 ->
-                    "Einhorn"
+                    "Mut"
 
                 2 ->
-                    "Drache"
+                    "Glück"
 
                 3 ->
-                    "Phönix"
+                    "Bestimmung"
 
                 4 ->
-                    "Schildkröte"
+                    "Ausdauer"
 
                 _ ->
                     "Tier"
@@ -305,7 +312,7 @@ description card =
                     "Kalkuliert"
 
                 4 ->
-                    "Pesimistisch"
+                    "Realistisch"
 
                 _ ->
                     "Jahreszeit"
@@ -331,6 +338,9 @@ description card =
 value : Card -> Int
 value card =
     case card of
+        Joker ->
+            0
+
         Black v ->
             v
 

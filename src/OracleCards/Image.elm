@@ -88,6 +88,27 @@ viewSeason n =
             []
 
 
+viewDirection : Int -> List (Svg msg)
+viewDirection n =
+    [ View.regularPolygon
+        { n = 4, scale = View.radius * 2, standing = False }
+        ( View.width / 2, View.height / 2 )
+        |> Svg.polygon2d
+            [ Attributes.stroke <| "black"
+            , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
+            , Attributes.fill "transparent"
+            ]
+    , Circle2d.atPoint
+        (Point2d.pixels (View.width / 2 + bigRadius * 2) (View.height / 2)
+            |> Point2d.rotateAround (Point2d.pixels (View.width / 2) (View.height / 2)) (Angle.radians <| pi * toFloat n / 2)
+        )
+        (Pixels.pixels <| View.relative <| 1 / 2)
+        |> Svg.circle2d
+            [ Attributes.fill <| "black"
+            ]
+    ]
+
+
 viewAnimal : Int -> List (Svg msg)
 viewAnimal n =
     case n of
@@ -329,7 +350,7 @@ viewTrump n =
             , Circle2d.atPoint (Point2d.pixels (View.width / 2) (View.height / 2 - View.radius * 4 / 2))
                 (Pixels.pixels <| View.radius / 2)
                 |> Svg.circle2d
-                    [ Attributes.stroke <| "black"
+                    [ Attributes.stroke <| Card.color <| Trump n
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
                     , Attributes.fill <| "transparent"
                     ]
@@ -338,7 +359,7 @@ viewTrump n =
                 , Point2d.pixels (View.width / 2) (View.height / 2)
                 ]
                 |> Svg.polygon2d
-                    [ Attributes.stroke <| "black"
+                    [ Attributes.stroke <| Card.color <| Trump n
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
                     ]
             ]
@@ -360,12 +381,12 @@ viewTrump n =
             , Circle2d.atPoint (Point2d.pixels (View.width / 2) (View.height / 2 - bigRadius))
                 (Pixels.pixels <| View.relative <| 1 / 2)
                 |> Svg.circle2d
-                    [ Attributes.fill <| "black"
+                    [ Attributes.fill <| Card.color <| Trump n
                     ]
             , Circle2d.atPoint (Point2d.pixels (View.width / 2) (View.height / 2 - bigRadius * 2))
                 (Pixels.pixels <| View.relative <| 1 / 2)
                 |> Svg.circle2d
-                    [ Attributes.fill <| "black"
+                    [ Attributes.fill <| Card.color <| Trump n
                     ]
             ]
 
@@ -391,11 +412,16 @@ viewTrump n =
                                 Circle2d.atPoint
                                     (Point2d.pixels (View.width / 2) (View.height / 2 - bigRadius * 2)
                                         |> Point2d.rotateAround (Point2d.pixels (View.width / 2) (View.height / 2))
-                                            (Angle.radians <| pi * 2 * toFloat r / 3)
+                                            (Angle.radians <| pi * 2 * toFloat (1 + r) / 3)
                                     )
                                     (Pixels.pixels <| View.relative <| 1 / 2)
                                     |> Svg.circle2d
-                                        [ Attributes.fill <| "black"
+                                        [ Attributes.fill <|
+                                            if r |> modBy 2 |> (==) 0 then
+                                                Card.color <| Trump n
+
+                                            else
+                                                "black"
                                         ]
                             )
                    )
@@ -424,7 +450,12 @@ viewTrump n =
                                     )
                                     (Pixels.pixels <| View.relative <| 1 / 2)
                                     |> Svg.circle2d
-                                        [ Attributes.fill <| "black"
+                                        [ Attributes.fill <|
+                                            if r |> modBy 2 |> (==) 0 then
+                                                Card.color <| Trump n
+
+                                            else
+                                                "black"
                                         ]
                             )
                    )
@@ -465,7 +496,7 @@ viewTrump n =
                 , Point2d.pixels (View.width * 3 / 4) (View.height / 2 - View.radius - View.relative 1)
                 ]
                 |> Svg.polygon2d
-                    [ Attributes.stroke <| "black"
+                    [ Attributes.stroke <| Card.color <| Trump n
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
                     ]
             ]
@@ -495,7 +526,7 @@ viewTrump n =
                                     )
                                     (Pixels.pixels <| View.relative <| 1 / 2)
                                     |> Svg.circle2d
-                                        [ Attributes.fill <| "black"
+                                        [ Attributes.fill <| Card.color <| Trump n
                                         ]
                             )
                    )
@@ -512,7 +543,7 @@ viewTrump n =
             , Circle2d.atPoint (Point2d.pixels (View.width / 2) (View.height / 2 - View.radius * 4 / 2))
                 (Pixels.pixels <| View.radius * 1 / 2)
                 |> Svg.circle2d
-                    [ Attributes.stroke <| "black"
+                    [ Attributes.stroke <| Card.color <| Trump n
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
                     , Attributes.fill <| "transparent"
                     ]
@@ -521,7 +552,7 @@ viewTrump n =
                 , Point2d.pixels (View.width / 2) (View.height / 2)
                 ]
                 |> Svg.polygon2d
-                    [ Attributes.stroke <| "black"
+                    [ Attributes.stroke <| Card.color <| Trump n
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
                     ]
             ]
@@ -542,12 +573,12 @@ viewTrump n =
             , Circle2d.atPoint (Point2d.pixels (View.width / 2 + bigRadius) (View.height / 2))
                 (Pixels.pixels <| View.relative <| 1 / 2)
                 |> Svg.circle2d
-                    [ Attributes.fill <| "black"
+                    [ Attributes.fill <| Card.color <| Trump n
                     ]
             , Circle2d.atPoint (Point2d.pixels (View.width / 2 + bigRadius * 2) (View.height / 2))
                 (Pixels.pixels <| View.relative <| 1 / 2)
                 |> Svg.circle2d
-                    [ Attributes.fill <| "black"
+                    [ Attributes.fill <| Card.color <| Trump n
                     ]
             ]
 
@@ -563,7 +594,7 @@ viewTrump n =
             , Circle2d.atPoint (Point2d.pixels (View.width / 2 + View.radius * 4 / 2) (View.height / 2))
                 (Pixels.pixels <| View.radius * 1 / 2)
                 |> Svg.circle2d
-                    [ Attributes.stroke <| "black"
+                    [ Attributes.stroke <| Card.color <| Trump n
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
                     , Attributes.fill <| "transparent"
                     ]
@@ -572,7 +603,7 @@ viewTrump n =
                 , Point2d.pixels (View.width / 2) (View.height / 2)
                 ]
                 |> Svg.polygon2d
-                    [ Attributes.stroke <| "black"
+                    [ Attributes.stroke <| Card.color <| Trump n
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
                     ]
             ]
@@ -621,7 +652,7 @@ viewTrump n =
                 , Point2d.pixels (View.width / 2 + View.radius) (View.height / 2)
                 ]
                 |> Svg.polygon2d
-                    [ Attributes.stroke <| "black"
+                    [ Attributes.stroke <| Card.color <| Trump n
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
                     ]
             , View.regularPolygon
@@ -629,7 +660,7 @@ viewTrump n =
                 ( View.width / 2, View.height / 2 - View.radius * 3 / 2 )
                 |> Polygon2d.rotateAround (Point2d.pixels (View.width / 2) (View.height / 2)) (Angle.radians <| pi / 2)
                 |> Svg.polygon2d
-                    [ Attributes.stroke <| "black"
+                    [ Attributes.stroke <| Card.color <| Trump n
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
                     , Attributes.fill "transparent"
                     ]
@@ -638,7 +669,7 @@ viewTrump n =
                 ( View.width / 2, View.height / 2 - View.radius * 3 / 2 )
                 |> Polygon2d.rotateAround (Point2d.pixels (View.width / 2) (View.height / 2)) (Angle.radians <| -(pi / 2))
                 |> Svg.polygon2d
-                    [ Attributes.stroke <| "black"
+                    [ Attributes.stroke <| Card.color <| Trump n
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
                     , Attributes.fill "transparent"
                     ]
@@ -669,7 +700,7 @@ viewTrump n =
                                     )
                                     (Pixels.pixels <| View.relative <| 1 / 2)
                                     |> Svg.circle2d
-                                        [ Attributes.fill <| "black"
+                                        [ Attributes.fill <| Card.color <| Trump n
                                         ]
                             )
                    )
@@ -687,7 +718,7 @@ viewTrump n =
                 { n = 4, scale = View.radius, standing = True }
                 ( View.width / 2, View.height / 2 - View.radius * 3 / 2 - View.radius / sqrt 2 )
                 |> Svg.polygon2d
-                    [ Attributes.stroke <| "black"
+                    [ Attributes.stroke <| Card.color <| Trump n
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
                     , Attributes.fill "transparent"
                     ]
@@ -696,7 +727,7 @@ viewTrump n =
                 , Point2d.pixels (View.width / 2) (View.height / 2)
                 ]
                 |> Svg.polygon2d
-                    [ Attributes.stroke <| "black"
+                    [ Attributes.stroke <| Card.color <| Trump n
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
                     ]
             ]
@@ -714,16 +745,16 @@ viewTrump n =
                 { n = 4, scale = View.relative 1, standing = True }
                 ( View.width / 2 + View.radius * 3 / 2, View.height / 2 )
                 |> Svg.polygon2d
-                    [ Attributes.stroke <| "black"
+                    [ Attributes.stroke <| Card.color <| Trump n
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "black"
+                    , Attributes.fill <| Card.color <| Trump n
                     ]
             , Polygon2d.singleLoop
                 [ Point2d.pixels (View.width / 2 + View.radius * 3 / 2) (View.height / 2)
                 , Point2d.pixels (View.width / 2) (View.height / 2)
                 ]
                 |> Svg.polygon2d
-                    [ Attributes.stroke <| "black"
+                    [ Attributes.stroke <| Card.color <| Trump n
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
                     ]
             ]
@@ -745,12 +776,12 @@ viewTrump n =
             , Circle2d.atPoint (Point2d.pixels (View.width / 2 + bigRadius) (View.height / 2))
                 (Pixels.pixels <| View.relative <| 1 / 2)
                 |> Svg.circle2d
-                    [ Attributes.fill <| "black"
+                    [ Attributes.fill <| Card.color <| Trump n
                     ]
             , Circle2d.atPoint (Point2d.pixels (View.width / 2 + bigRadius * 2) (View.height / 2))
                 (Pixels.pixels <| View.relative <| 1 / 2)
                 |> Svg.circle2d
-                    [ Attributes.fill <| "black"
+                    [ Attributes.fill <| Card.color <| Trump n
                     ]
             ]
 
@@ -768,7 +799,7 @@ viewTrump n =
                 , Point2d.pixels (View.width / 2) (View.height / 2)
                 ]
                 |> Svg.polygon2d
-                    [ Attributes.stroke <| "black"
+                    [ Attributes.stroke <| Card.color <| Trump n
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
                     ]
             ]
@@ -797,7 +828,12 @@ viewTrump n =
                                     )
                                     (Pixels.pixels <| View.relative <| 1 / 2)
                                     |> Svg.circle2d
-                                        [ Attributes.fill <| "black"
+                                        [ Attributes.fill <|
+                                            if r + 1 |> modBy 2 |> (==) 0 then
+                                                Card.color <| Trump n
+
+                                            else
+                                                "black"
                                         ]
                             )
                    )
@@ -846,12 +882,12 @@ viewTrump n =
             , Circle2d.atPoint (Point2d.pixels (View.width / 2) (View.height / 2 + bigRadius))
                 (Pixels.pixels <| View.relative <| 1 / 2)
                 |> Svg.circle2d
-                    [ Attributes.fill <| "black"
+                    [ Attributes.fill <| Card.color <| Trump n
                     ]
             , Circle2d.atPoint (Point2d.pixels (View.width / 2) (View.height / 2 + bigRadius * 2))
                 (Pixels.pixels <| View.relative <| 1 / 2)
                 |> Svg.circle2d
-                    [ Attributes.fill <| "black"
+                    [ Attributes.fill <| Card.color <| Trump n
                     ]
             ]
 
@@ -875,30 +911,15 @@ view card =
             viewSeason n
 
         Direction n ->
-            [ (case n of
-                1 ->
-                    "N"
+            viewDirection n
 
-                2 ->
-                    "O"
-
-                3 ->
-                    "S"
-
-                4 ->
-                    "W"
-
-                _ ->
-                    ""
-              )
-                |> Svg.text
-                |> List.singleton
-                |> Svg.text_
-                    [ Attributes.x <| String.fromFloat <| View.width / 2
-                    , Attributes.y <| String.fromFloat <| View.height / 2 + View.width / 4
-                    , Attributes.textAnchor <| "middle"
-                    , Attributes.style <| "font: " ++ (String.fromFloat <| View.width / 2) ++ "px sans-serif"
-                    , Attributes.fill "black"
+        Joker ->
+            [ Circle2d.atPoint (Point2d.pixels (View.width / 2) (View.height / 2))
+                (Pixels.pixels <| View.radius * 2)
+                |> Svg.circle2d
+                    [ Attributes.stroke <| "black"
+                    , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
+                    , Attributes.fill "transparent"
                     ]
             ]
 
