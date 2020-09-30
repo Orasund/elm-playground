@@ -306,13 +306,13 @@ description card =
                     "Optimistisch"
 
                 2 ->
-                    "Emotional"
+                    "Realistisch"
 
                 3 ->
                     "Kalkuliert"
 
                 4 ->
-                    "Realistisch"
+                    "Emotional"
 
                 _ ->
                     "Jahreszeit"
