@@ -133,7 +133,18 @@ view list =
                 { color = b1
                 , withXOffset = False
                 , withYOffset = False
-                , content = Nothing
+                , content =
+                    if b3 == Y then
+                        Just <|
+                            Rule <|
+                                if b2 == B then
+                                    1
+
+                                else
+                                    2
+
+                    else
+                        Nothing
                 }
             , Box.draw
                 { color = b2
@@ -167,7 +178,28 @@ view list =
                 { color = b2
                 , withXOffset = True
                 , withYOffset = False
-                , content = Nothing
+                , content =
+                    Just <|
+                        Rule <|
+                            if b1 == Y then
+                                if b2 == B then
+                                    5
+
+                                else
+                                    6
+
+                            else if b1 == R then
+                                if b2 == B then
+                                    7
+
+                                else
+                                    8
+
+                            else if b2 == R then
+                                13
+
+                            else
+                                14
                 }
             , Box.draw
                 { color = b3
@@ -195,7 +227,18 @@ view list =
                 { color = b2
                 , withXOffset = True
                 , withYOffset = False
-                , content = Nothing
+                , content =
+                    if b3 == Y then
+                        Just <|
+                            Rule <|
+                                if b1 == B then
+                                    3
+
+                                else
+                                    4
+
+                    else
+                        Nothing
                 }
             , Box.draw
                 { color = b3
@@ -217,7 +260,28 @@ view list =
                 { color = b1
                 , withXOffset = False
                 , withYOffset = False
-                , content = Nothing
+                , content =
+                    Just <|
+                        Rule <|
+                            if b1 == Y then
+                                if b2 == B then
+                                    9
+
+                                else
+                                    10
+
+                            else if b1 == R then
+                                if b2 == B then
+                                    11
+
+                                else
+                                    12
+
+                            else if b2 == R then
+                                15
+
+                            else
+                                16
                 }
             , Box.draw
                 { color = b2

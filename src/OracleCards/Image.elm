@@ -26,7 +26,28 @@ viewSeason : Int -> List (Svg msg)
 viewSeason n =
     case n of
         1 ->
+            --Earth
             [ View.regularPolygon
+                { n = 4, scale = View.radius * 2, standing = False }
+                ( View.width / 2, View.height / 2 )
+                |> Svg.polygon2d
+                    [ Attributes.stroke <| "black"
+                    , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
+                    , Attributes.fill "transparent"
+                    ]
+            , Polyline2d.fromVertices
+                [ Point2d.pixels (View.width / 2 + View.radius * 2) (View.height / 2 + View.radius * 2)
+                , Point2d.pixels (View.width / 2) (View.height / 2)
+                , Point2d.pixels (View.width / 2 - View.radius * 2) (View.height / 2 + View.radius * 2)
+                ]
+                |> Svg.polyline2d
+                    [ Attributes.stroke <| "black"
+                    , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
+                    , Attributes.fill <| "none"
+                    ]
+            ]
+
+        {--[ View.regularPolygon
                 { n = 3, scale = View.radius * 2, standing = False }
                 ( View.width / 2, View.height / 2 )
                 |> Svg.polygon2d
@@ -42,10 +63,30 @@ viewSeason n =
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
                     ]
+            ]--}
+        2 ->
+            --Fire
+            [ View.regularPolygon
+                { n = 4, scale = View.radius * 2, standing = False }
+                ( View.width / 2, View.height / 2 )
+                |> Svg.polygon2d
+                    [ Attributes.stroke <| "black"
+                    , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
+                    , Attributes.fill "transparent"
+                    ]
+            , Polyline2d.fromVertices
+                [ Point2d.pixels (View.width / 2 + View.radius * 2) (View.height / 2 + View.radius * 2 - bigRadius * 2)
+                , Point2d.pixels (View.width / 2) (View.height / 2 - bigRadius * 2)
+                , Point2d.pixels (View.width / 2 - View.radius * 2) (View.height / 2 + View.radius * 2 - bigRadius * 2)
+                ]
+                |> Svg.polyline2d
+                    [ Attributes.stroke <| "black"
+                    , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
+                    , Attributes.fill <| "none"
+                    ]
             ]
 
-        2 ->
-            [ View.regularPolygon
+        {--[ View.regularPolygon
                 { n = 3, scale = View.radius * 2, standing = True }
                 ( View.width / 2, View.height / 2 )
                 |> Svg.polygon2d
@@ -61,10 +102,10 @@ viewSeason n =
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
                     ]
-            ]
-
+            ]--}
         3 ->
-            [ View.regularPolygon
+            --Air
+            {--[ View.regularPolygon
                 { n = 3, scale = View.radius * 2, standing = True }
                 ( View.width / 2, View.height / 2 )
                 |> Svg.polygon2d
@@ -79,11 +120,31 @@ viewSeason n =
                 |> Svg.polygon2d
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
+                    ]
+            ]--}
+            [ View.regularPolygon
+                { n = 4, scale = View.radius * 2, standing = False }
+                ( View.width / 2, View.height / 2 )
+                |> Svg.polygon2d
+                    [ Attributes.stroke <| "black"
+                    , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
+                    , Attributes.fill "transparent"
+                    ]
+            , Polyline2d.fromVertices
+                [ Point2d.pixels (View.width / 2 + View.radius * 2) (View.height / 2 - View.radius * 2)
+                , Point2d.pixels (View.width / 2) (View.height / 2)
+                , Point2d.pixels (View.width / 2 - View.radius * 2) (View.height / 2 - View.radius * 2)
+                ]
+                |> Svg.polyline2d
+                    [ Attributes.stroke <| "black"
+                    , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
+                    , Attributes.fill <| "none"
                     ]
             ]
 
         4 ->
-            [ View.regularPolygon
+            --Water
+            {--[ View.regularPolygon
                 { n = 3, scale = View.radius * 2, standing = False }
                 ( View.width / 2, View.height / 2 )
                 |> Svg.polygon2d
@@ -98,6 +159,25 @@ viewSeason n =
                 |> Svg.polygon2d
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
+                    ]
+            ]--}
+            [ View.regularPolygon
+                { n = 4, scale = View.radius * 2, standing = False }
+                ( View.width / 2, View.height / 2 )
+                |> Svg.polygon2d
+                    [ Attributes.stroke <| "black"
+                    , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
+                    , Attributes.fill "transparent"
+                    ]
+            , Polyline2d.fromVertices
+                [ Point2d.pixels (View.width / 2 + View.radius * 2) (View.height / 2 - View.radius * 2 + bigRadius * 2)
+                , Point2d.pixels (View.width / 2) (View.height / 2 + bigRadius * 2)
+                , Point2d.pixels (View.width / 2 - View.radius * 2) (View.height / 2 - View.radius * 2 + bigRadius * 2)
+                ]
+                |> Svg.polyline2d
+                    [ Attributes.stroke <| "black"
+                    , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
+                    , Attributes.fill <| "none"
                     ]
             ]
 

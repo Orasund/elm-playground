@@ -1,11 +1,14 @@
 module Sprawlopolis.Box exposing (Box, BoxContent(..), draw)
 
+import Circle2d
 import Geometry.Svg as Svg
 import LineSegment2d
+import Pixels
 import Point2d
 import Polygon2d
 import Polyline2d exposing (Polyline2d)
 import Sprawlopolis.Color as Color exposing (Color(..))
+import Sprawlopolis.Rule as Rule
 import Sprawlopolis.View as View
 import Svg exposing (Svg)
 import Svg.Attributes as Attributes
@@ -18,6 +21,7 @@ type BoxContent
     | SECurve
     | SWCurve
     | NWCurve
+    | Rule Int
 
 
 type alias Box =
@@ -119,6 +123,90 @@ draw { color, withXOffset, withYOffset, content } =
                                     , Point2d.pixels xOffset (yOffset + View.height / 4)
                                     ]
                                     |> street
+
+                            Rule int ->
+                                let
+                                    circleSize =
+                                        View.width / 4 - View.relative 1
+                                in
+                                Rule.view int
+                                    |> (\( rule1, rule2 ) ->
+                                            if rule2 == [] then
+                                                [ [ Circle2d.atPoint
+                                                        (Point2d.pixels (xOffset + View.width / 4) (yOffset + (View.height / 4)))
+                                                        (Pixels.pixels <| circleSize)
+                                                        |> Svg.circle2d
+                                                            [ Attributes.fill <|
+                                                                "white"
+                                                            , Attributes.fillOpacity <| "0.8"
+                                                            ]
+                                                  ]
+                                                , rule1
+                                                    |> List.indexedMap
+                                                        (\i string ->
+                                                            string
+                                                                |> Svg.text
+                                                                |> List.singleton
+                                                                |> Svg.text_
+                                                                    [ Attributes.x <| String.fromFloat <| xOffset + View.width / 4
+                                                                    , Attributes.y <| String.fromFloat <| yOffset + View.height / 4 - View.relative 5 + View.relative 2 * toFloat i
+                                                                    , Attributes.textAnchor <| "middle"
+                                                                    , Attributes.style <| "font: " ++ (String.fromFloat <| View.relative 2) ++ "px sans-serif"
+                                                                    , Attributes.fill <| "black"
+                                                                    ]
+                                                        )
+                                                ]
+                                                    |> List.concat
+
+                                            else
+                                                [ [ Circle2d.atPoint
+                                                        (Point2d.pixels (xOffset + View.width / 4) (yOffset + (View.height / 4) + circleSize))
+                                                        (Pixels.pixels <| circleSize)
+                                                        |> Svg.circle2d
+                                                            [ Attributes.fill <|
+                                                                "white"
+                                                            , Attributes.fillOpacity <| "0.8"
+                                                            ]
+                                                  , Circle2d.atPoint
+                                                        (Point2d.pixels (xOffset + View.width / 4) (yOffset + (View.height / 4) - circleSize))
+                                                        (Pixels.pixels <| circleSize)
+                                                        |> Svg.circle2d
+                                                            [ Attributes.fill <|
+                                                                "white"
+                                                            , Attributes.fillOpacity <| "0.8"
+                                                            ]
+                                                  ]
+                                                , rule1
+                                                    |> List.indexedMap
+                                                        (\i string ->
+                                                            string
+                                                                |> Svg.text
+                                                                |> List.singleton
+                                                                |> Svg.text_
+                                                                    [ Attributes.x <| String.fromFloat <| xOffset + View.width / 4
+                                                                    , Attributes.y <| String.fromFloat <| yOffset + View.relative 2 * toFloat (i + 2)
+                                                                    , Attributes.textAnchor <| "middle"
+                                                                    , Attributes.style <| "font: " ++ (String.fromFloat <| View.relative 2) ++ "px sans-serif"
+                                                                    , Attributes.fill <| "black"
+                                                                    ]
+                                                        )
+                                                , rule2
+                                                    |> List.indexedMap
+                                                        (\i string ->
+                                                            string
+                                                                |> Svg.text
+                                                                |> List.singleton
+                                                                |> Svg.text_
+                                                                    [ Attributes.x <| String.fromFloat <| xOffset + View.width / 4
+                                                                    , Attributes.y <| String.fromFloat <| yOffset + View.height / 2 - View.relative 14 + View.relative 2 * toFloat (i + 2)
+                                                                    , Attributes.textAnchor <| "middle"
+                                                                    , Attributes.style <| "font: " ++ (String.fromFloat <| View.relative 2) ++ "px sans-serif"
+                                                                    , Attributes.fill <| "black"
+                                                                    ]
+                                                        )
+                                                ]
+                                                    |> List.concat
+                                       )
                     )
                 |> Maybe.withDefault []
            )
