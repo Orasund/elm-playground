@@ -36,9 +36,9 @@ viewSeason n =
                     , Attributes.fill "transparent"
                     ]
             , Polyline2d.fromVertices
-                [ Point2d.pixels (View.width / 2 + View.radius * 2) (View.height / 2 + View.radius * 2)
-                , Point2d.pixels (View.width / 2) (View.height / 2)
-                , Point2d.pixels (View.width / 2 - View.radius * 2) (View.height / 2 + View.radius * 2)
+                [ Point2d.pixels (View.width / 2 + View.radius * 2) (View.height / 2 - View.radius * 2 + bigRadius * 2)
+                , Point2d.pixels (View.width / 2) (View.height / 2 + bigRadius * 2 - View.radius * 4)
+                , Point2d.pixels (View.width / 2 - View.radius * 2) (View.height / 2 - View.radius * 2 + bigRadius * 2)
                 ]
                 |> Svg.polyline2d
                     [ Attributes.stroke <| "black"
@@ -131,9 +131,9 @@ viewSeason n =
                     , Attributes.fill "transparent"
                     ]
             , Polyline2d.fromVertices
-                [ Point2d.pixels (View.width / 2 + View.radius * 2) (View.height / 2 - View.radius * 2)
-                , Point2d.pixels (View.width / 2) (View.height / 2)
-                , Point2d.pixels (View.width / 2 - View.radius * 2) (View.height / 2 - View.radius * 2)
+                [ Point2d.pixels (View.width / 2 + View.radius * 2) (View.height / 2 + View.radius * 2 - bigRadius * 2)
+                , Point2d.pixels (View.width / 2) (View.height / 2 - bigRadius * 2 + View.radius * 4)
+                , Point2d.pixels (View.width / 2 - View.radius * 2) (View.height / 2 + View.radius * 2 - bigRadius * 2)
                 ]
                 |> Svg.polyline2d
                     [ Attributes.stroke <| "black"
