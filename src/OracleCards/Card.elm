@@ -154,19 +154,19 @@ title card =
         Season n ->
             case n of
                 1 ->
-                    "Frühling"
+                    "Erde"
 
                 2 ->
-                    "Sommer"
+                    "Feuer"
 
                 3 ->
-                    "Herbst"
+                    "Luft"
 
                 4 ->
-                    "Winter"
+                    "Wasser"
 
                 _ ->
-                    "Jahreszeit"
+                    "Elemente"
 
         Direction n ->
             case n of
@@ -306,13 +306,13 @@ description card =
                     "Optimistisch"
 
                 2 ->
-                    "Realistisch"
+                    "Emotional"
 
                 3 ->
-                    "Kalkuliert"
+                    "Realistisch"
 
                 4 ->
-                    "Emotional"
+                    "Kalkuliert"
 
                 _ ->
                     "Jahreszeit"

@@ -309,7 +309,7 @@ smallSet =
 main : Html msg
 main =
     --smallSet
-    [ Season 1, Season 2, Season 3, Season 4 ]
+    [ Season 1, Season 2, Season 3, Season 4, Animal 1, Animal 2, Animal 3, Animal 4, White 7, Trump 5 ]
         |> List.map
             (\card ->
                 viewCard card
