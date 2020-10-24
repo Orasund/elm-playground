@@ -8,9 +8,8 @@ type Card
     | White Int
     | Trump Int
     | Emotion Int
-    | Animal Int
     | Season Int
-    | Direction Int
+    | Planet Int
     | Joker
 
 
@@ -18,10 +17,10 @@ color : Card -> String
 color card =
     case card of
         Black _ ->
-            "white"
+            "none"
 
         White _ ->
-            "black"
+            "none"
 
         Trump n ->
             if n <= 7 then
@@ -33,8 +32,17 @@ color card =
             else
                 View.green
 
+        Emotion _ ->
+            "white"
+
+        Planet _ ->
+            "white"
+
+        Season _ ->
+            "white"
+
         _ ->
-            "transparent"
+            "none"
 
 
 title : Card -> String
@@ -44,10 +52,10 @@ title card =
             "Joker"
 
         Black _ ->
-            "Yin"
+            "Dunkelheit"
 
         White _ ->
-            "Yang"
+            "Licht"
 
         Trump n ->
             case n of
@@ -134,23 +142,6 @@ title card =
                 _ ->
                     "Emotion"
 
-        Animal n ->
-            case n of
-                1 ->
-                    "Einhorn"
-
-                2 ->
-                    "Drache"
-
-                3 ->
-                    "Phönix"
-
-                4 ->
-                    "Schildkröte"
-
-                _ ->
-                    "Tier"
-
         Season n ->
             case n of
                 1 ->
@@ -168,22 +159,34 @@ title card =
                 _ ->
                     "Elemente"
 
-        Direction n ->
+        Planet n ->
             case n of
                 1 ->
-                    "Nordwind"
+                    "Merkur"
 
                 2 ->
-                    "Ostwind"
+                    "Venus"
 
                 3 ->
-                    "Südwind"
+                    "Erde"
 
                 4 ->
-                    "Westwind"
+                    "Mars"
+
+                5 ->
+                    "Jupiter"
+
+                6 ->
+                    "Saturn"
+
+                7 ->
+                    "Uranus"
+
+                8 ->
+                    "Neptum"
 
                 _ ->
-                    "Jahreszeit"
+                    "Planet"
 
 
 description : Card -> String
@@ -193,10 +196,10 @@ description card =
             "Sorglosigkeit"
 
         Black _ ->
-            "Böse"
+            "Revolution"
 
         White _ ->
-            "Gut"
+            "Sicherheit"
 
         Trump n ->
             case n of
@@ -283,23 +286,6 @@ description card =
                 _ ->
                     "Emotion"
 
-        Animal n ->
-            case n of
-                1 ->
-                    "Mut"
-
-                2 ->
-                    "Glück"
-
-                3 ->
-                    "Bestimmung"
-
-                4 ->
-                    "Ausdauer"
-
-                _ ->
-                    "Tier"
-
         Season n ->
             case n of
                 1 ->
@@ -317,19 +303,31 @@ description card =
                 _ ->
                     "Jahreszeit"
 
-        Direction n ->
+        Planet n ->
             case n of
                 1 ->
-                    "Beruf"
+                    "Wissen"
 
                 2 ->
-                    "Gesundheit"
+                    "Familie"
 
                 3 ->
-                    "Liebe"
+                    "Gesundheit"
 
                 4 ->
-                    "Geld"
+                    "Reichtum"
+
+                5 ->
+                    "Verwirklichung"
+
+                6 ->
+                    "Annerkennung"
+
+                7 ->
+                    "Eigentum"
+
+                8 ->
+                    "Freiheit"
 
                 _ ->
                     "Jahreszeit"
@@ -361,11 +359,8 @@ value card =
         Emotion v ->
             v
 
-        Animal v ->
-            v
-
         Season v ->
             v
 
-        Direction v ->
+        Planet v ->
             v

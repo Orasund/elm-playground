@@ -26,8 +26,17 @@ viewCard card =
                 Black _ ->
                     False
 
-                _ ->
+                White _ ->
                     True
+
+                Trump _ ->
+                    True
+
+                Joker ->
+                    True
+
+                _ ->
+                    False
 
         viewValue =
             Card.value card
@@ -60,7 +69,7 @@ viewCard card =
                     []
 
                 Trump n ->
-                    [ n
+                    [ {--n
                         |> String.fromInt
                         |> Svg.text
                         |> List.singleton
@@ -76,7 +85,8 @@ viewCard card =
                                 else
                                     "white"
                             ]
-                    , viewValue
+                    , --}
+                      viewValue
                     ]
 
                 Emotion _ ->
@@ -102,13 +112,52 @@ viewCard card =
                         , Point2d.pixels (View.padding + View.relative 3) (View.padding + View.relative 1)
                         ]
                         |> Svg.polygon2d
-                            [ Attributes.stroke <| "black"
+                            [ Attributes.stroke <|
+                                if isWhite then
+                                    "black"
+
+                                else
+                                    "white"
                             , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 0.5
                             ]
                     ]
 
-                Animal _ ->
-                    [ Circle2d.atPoint (Point2d.pixels (View.padding + View.relative 1) (View.padding + View.relative 1))
+                Season n ->
+                    [ Circle2d.atPoint (Point2d.pixels (View.padding + View.relative 1) (View.padding + (View.relative <| -1 + 3 / 4)))
+                        (Pixels.pixels <| View.relative <| 3 / 4)
+                        |> Svg.circle2d
+                            [ Attributes.stroke <|
+                                if n == 1 || n == 4 then
+                                    View.blackBackground
+
+                                else
+                                    "white"
+                            , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 0.5
+                            , Attributes.fill <|
+                                if n == 1 || n == 4 then
+                                    "white"
+
+                                else
+                                    View.blackBackground
+                            ]
+                    , Circle2d.atPoint (Point2d.pixels (View.padding + View.relative 1) (View.padding + (View.relative <| 3 - 3 / 4)))
+                        (Pixels.pixels <| View.relative <| 3 / 4)
+                        |> Svg.circle2d
+                            [ Attributes.stroke <|
+                                if n == 3 || n == 4 then
+                                    View.blackBackground
+
+                                else
+                                    "white"
+                            , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 0.5
+                            , Attributes.fill <|
+                                if n == 3 || n == 4 then
+                                    "white"
+
+                                else
+                                    View.blackBackground
+                            ]
+                    , Circle2d.atPoint (Point2d.pixels (View.padding + View.relative 1) (View.padding + View.relative 1))
                         (Pixels.pixels <| View.relative 2)
                         |> Svg.circle2d
                             [ Attributes.stroke <|
@@ -118,27 +167,15 @@ viewCard card =
                                 else
                                     "white"
                             , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 0.5
-                            , Attributes.fill <|
-                                if isWhite then
-                                    "white"
-
-                                else
-                                    View.blackBackground
-                            ]
-                    , Polygon2d.singleLoop
-                        [ Point2d.pixels (View.padding + View.relative 1) (View.padding - View.relative 1)
-                        , Point2d.pixels (View.padding + View.relative 1) (View.padding + View.relative 3)
-                        ]
-                        |> Svg.polygon2d
-                            [ Attributes.stroke <| "black"
-                            , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 0.5
+                            , Attributes.fill <| "none"
                             ]
                     ]
 
-                Season _ ->
-                    [ Circle2d.atPoint (Point2d.pixels (View.padding + View.relative 1) (View.padding + View.relative 1))
-                        (Pixels.pixels <| View.relative 2)
-                        |> Svg.circle2d
+                Planet n ->
+                    [ View.regularPolygon
+                        { n = 4, scale = View.relative 2, standing = True }
+                        ( View.padding + View.relative 1, View.padding + View.relative 1 )
+                        |> Svg.polygon2d
                             [ Attributes.stroke <|
                                 if isWhite then
                                     "black"
@@ -146,52 +183,17 @@ viewCard card =
                                 else
                                     "white"
                             , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 0.5
-                            , Attributes.fill <|
-                                if isWhite then
-                                    "white"
-
-                                else
-                                    View.blackBackground
+                            , Attributes.fill "transparent"
                             ]
-                    , Polygon2d.singleLoop
-                        [ Point2d.pixels (View.padding + View.relative 1) (View.padding - View.relative 1)
-                        , Point2d.pixels (View.padding + View.relative 1) (View.padding + View.relative 3)
-                        ]
-                        |> Polygon2d.rotateAround (Point2d.pixels (View.padding + View.relative 1) (View.padding + View.relative 1))
-                            (Angle.radians <| pi / 4)
-                        |> Svg.polygon2d
-                            [ Attributes.stroke <| "black"
-                            , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 0.5
-                            ]
-                    ]
-
-                Direction n ->
-                    [ Circle2d.atPoint (Point2d.pixels (View.padding + View.relative 1) (View.padding + View.relative 1))
-                        (Pixels.pixels <| View.relative 2)
+                    , Circle2d.atPoint (Point2d.pixels (View.padding + View.relative 1) (View.padding + View.relative 1))
+                        (Pixels.pixels <| View.relative 0.25)
                         |> Svg.circle2d
-                            [ Attributes.stroke <|
+                            [ Attributes.fill <|
                                 if isWhite then
                                     "black"
 
                                 else
                                     "white"
-                            , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 0.5
-                            , Attributes.fill <|
-                                if isWhite then
-                                    "white"
-
-                                else
-                                    View.blackBackground
-                            ]
-                    , Polygon2d.singleLoop
-                        [ Point2d.pixels (View.padding + View.relative 1) (View.padding - View.relative 1)
-                        , Point2d.pixels (View.padding + View.relative 1) (View.padding + View.relative 3)
-                        ]
-                        |> Polygon2d.rotateAround (Point2d.pixels (View.padding + View.relative 1) (View.padding + View.relative 1))
-                            (Angle.radians <| -(pi / 4))
-                        |> Svg.polygon2d
-                            [ Attributes.stroke <| "black"
-                            , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 0.5
                             ]
                     ]
 
@@ -220,21 +222,15 @@ viewCard card =
                         , viewValue
                         ]
            )
-        ++ (case card of
-                Trump _ ->
-                    [ Rectangle2d.from
-                        (Point2d.pixels (View.padding / 2) (View.padding / 2))
-                        (Point2d.pixels (View.width - View.padding / 2) (View.height - View.padding / 2))
-                        |> Svg.rectangle2d
-                            [ Attributes.stroke <| Card.color card
-                            , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 0.1
-                            , Attributes.fill <| "transparent"
-                            ]
+        ++ [ Rectangle2d.from
+                (Point2d.pixels (View.padding / 2) (View.padding / 2))
+                (Point2d.pixels (View.width - View.padding / 2) (View.height - View.padding / 2))
+                |> Svg.rectangle2d
+                    [ Attributes.stroke <| Card.color card
+                    , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 0.1
+                    , Attributes.fill <| "none"
                     ]
-
-                _ ->
-                    []
-           )
+           ]
         ++ Image.view card
         ++ [ card
                 |> Card.description
@@ -301,15 +297,37 @@ smallSet =
                 |> List.map Trump
             )
         |> List.append
-            ([ Direction, Season, Animal, Emotion ]
+            ([ Season, Emotion ]
                 |> List.concatMap (\fun -> List.range 1 4 |> List.map fun)
+            )
+        |> List.append
+            ([ Planet ]
+                |> List.concatMap (\fun -> List.range 1 8 |> List.map fun)
             )
 
 
 main : Html msg
 main =
-    --smallSet
-    [ Season 1, Season 2, Season 3, Season 4, Animal 1, Animal 2, Animal 3, Animal 4, White 7, Trump 5 ]
+    [ Season 1
+    , Season 2
+    , Season 3
+    , Season 4
+    , Planet 1
+    , Planet 2
+    , Planet 3
+    , Planet 4
+    , Planet 5
+    , Planet 6
+    , Planet 7
+    , Planet 8
+    , Emotion 1
+    , Emotion 2
+    , Emotion 3
+    , Emotion 4
+    , White 7
+    , Black 7
+    , Joker
+    ]
         |> List.map
             (\card ->
                 viewCard card
