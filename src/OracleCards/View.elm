@@ -35,17 +35,31 @@ red =
 
 zoom : Float
 zoom =
-    4
+    4 * 0.63
+
+
+
+--0.73
 
 
 width : Float
 width =
-    52
+    70
+
+
+
+--52
+-- 70
 
 
 height : Float
 height =
-    74
+    120
+
+
+
+--86
+--120
 
 
 padding : Float

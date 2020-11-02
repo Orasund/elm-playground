@@ -8,7 +8,7 @@ type Card
     | White Int
     | Trump Int
     | Emotion Int
-    | Season Int
+    | Element Int
     | Planet Int
     | Joker
 
@@ -17,10 +17,10 @@ color : Card -> String
 color card =
     case card of
         Black _ ->
-            "none"
+            "white"
 
         White _ ->
-            "none"
+            "black"
 
         Trump n ->
             if n <= 7 then
@@ -33,13 +33,13 @@ color card =
                 View.green
 
         Emotion _ ->
-            "white"
+            "none"
 
         Planet _ ->
-            "white"
+            "black"
 
-        Season _ ->
-            "white"
+        Element _ ->
+            "black"
 
         _ ->
             "none"
@@ -142,7 +142,7 @@ title card =
                 _ ->
                     "Emotion"
 
-        Season n ->
+        Element n ->
             case n of
                 1 ->
                     "Erde"
@@ -168,7 +168,7 @@ title card =
                     "Venus"
 
                 3 ->
-                    "Erde"
+                    "Planet Erde"
 
                 4 ->
                     "Mars"
@@ -286,19 +286,19 @@ description card =
                 _ ->
                     "Emotion"
 
-        Season n ->
+        Element n ->
             case n of
                 1 ->
-                    "Optimistisch"
+                    "Traum"
 
                 2 ->
-                    "Emotional"
+                    "Emotion"
 
                 3 ->
-                    "Realistisch"
+                    "Realität"
 
                 4 ->
-                    "Kalkuliert"
+                    "Taktik"
 
                 _ ->
                     "Jahreszeit"
@@ -359,7 +359,7 @@ value card =
         Emotion v ->
             v
 
-        Season v ->
+        Element v ->
             v
 
         Planet v ->
