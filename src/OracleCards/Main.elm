@@ -8,6 +8,7 @@ import Html exposing (Html)
 import Length exposing (Length)
 import OracleCards.Card as Card exposing (Card(..))
 import OracleCards.Image as Image
+import OracleCards.Sigil as Sigil
 import OracleCards.View as View
 import Pixels exposing (Pixels)
 import Point2d exposing (Point2d)
@@ -76,26 +77,33 @@ viewCard card =
                     []
 
                 Trump n ->
-                    [ {--n
-                        |> String.fromInt
-                        |> Svg.text
-                        |> List.singleton
-                        |> Svg.text_
-                            [ Attributes.x <| String.fromFloat <| View.padding
-                            , Attributes.y <| String.fromFloat <| View.padding + View.relative 6.5
-                            , Attributes.textAnchor <| "middle"
-                            , Attributes.style <| "font: bold " ++ (String.fromFloat <| View.relative 2.5) ++ "px serif"
-                            , Attributes.fill <|
-                                if isWhite then
-                                    "black"
+                    {- [ {--n
+                           |> String.fromInt
+                           |> Svg.text
+                           |> List.singleton
+                           |> Svg.text_
+                               [ Attributes.x <| String.fromFloat <| View.padding
+                               , Attributes.y <| String.fromFloat <| View.padding + View.relative 6.5
+                               , Attributes.textAnchor <| "middle"
+                               , Attributes.style <| "font: bold " ++ (String.fromFloat <| View.relative 2.5) ++ "px serif"
+                               , Attributes.fill <|
+                                   if isWhite then
+                                       "black"
 
-                                else
-                                    "white"
-                            ]
-                    , --}
-                      viewValue
-                    ]
+                                   else
+                                       "white"
+                               ]
+                       , --}
+                         --viewValue
 
+                       --]
+                    -}
+                    []
+
+                {--{ value = n
+                    , size = 4
+                    }
+                        |> Sigil.view (Point2d.pixels (View.width / 2) View.padding)--}
                 Emotion _ ->
                     {--[ Circle2d.atPoint (Point2d.pixels (View.padding + View.relative 1) (View.padding + View.relative 1))
                         (Pixels.pixels <| View.relative 2)
@@ -204,7 +212,25 @@ viewCard card =
                                     View.blackBackground
                             ]
                     ]--}
-                    []
+                    { value =
+                        case n of
+                            1 ->
+                                2
+
+                            2 ->
+                                3
+
+                            3 ->
+                                1
+
+                            4 ->
+                                0
+
+                            _ ->
+                                0
+                    , size = 2
+                    }
+                        |> Sigil.view (Point2d.pixels (View.width / 2) View.padding)
 
                 Planet n ->
                     {--[ View.regularPolygon
@@ -231,7 +257,10 @@ viewCard card =
                                     "white"
                             ]
                     ]--}
-                    [ viewValue ]
+                    { value = Card.value card - 1
+                    , size = 3
+                    }
+                        |> Sigil.view (Point2d.pixels (View.width / 2) View.padding)
 
                 _ ->
                     if Card.value card == 7 then
@@ -401,6 +430,7 @@ smallSet =
 main : Html msg
 main =
     smallSet
+        --[ Planet 1, Planet 3, Planet 4, Planet 5, Planet 6, Planet 7, Planet 8, White 7, Black 7, Trump 19 ]
         |> List.map
             (\card ->
                 viewCard card

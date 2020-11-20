@@ -15,22 +15,34 @@ import Vector2d exposing (Vector2d)
 
 blackBackground : String
 blackBackground =
-    "LightGray"
+    "black"
+
+
+
+--"LightGray"
 
 
 green : String
 green =
-    "#00F600"
+    "#12BE52"
+
+
+
+--"#00F600"
 
 
 blue : String
 blue =
-    "#3D04F2"
+    "#1E88E5"
+
+
+
+--"#3D04F2"
 
 
 red : String
 red =
-    "#FF0000"
+    "#DC2626"
 
 
 zoom : Float
@@ -39,6 +51,7 @@ zoom =
 
 
 
+--0.63
 --0.73
 
 

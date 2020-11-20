@@ -38,6 +38,7 @@
             "ianmackenzie/elm-geometry": "3.6.0",
             "ianmackenzie/elm-geometry-svg": "3.0.0",
             "ianmackenzie/elm-units": "2.6.0",
+            "icidasset/elm-binary": "2.1.0",
             "lovasoa/elm-rolling-list": "1.1.4",
             "mdgriffith/elm-ui": "1.1.7",
             "mpizenberg/elm-pointer-events": "4.0.2",
