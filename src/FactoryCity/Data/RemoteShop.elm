@@ -1,4 +1,4 @@
-module FactoryCity.Data.RemoteShop exposing (insert, json, remove, sync)
+module FactoryCity.Data.RemoteShop exposing (default, json, sync)
 
 import Bag exposing (Bag)
 import FactoryCity.Data.CellType exposing (ContainerSort(..))
@@ -17,6 +17,18 @@ type alias RemoteShop =
     , wood : Maybe Int
     , chipboard : Maybe Int
     }
+
+
+default : Bag String
+default =
+    { chips = Just 500
+    , iron = Just 500
+    , scrap = Just 500
+    , stone = Just 500
+    , wood = Just 500
+    , chipboard = Just 500
+    }
+        |> toBag
 
 
 toBag : RemoteShop -> Bag String
@@ -55,7 +67,8 @@ sync =
         |> Task.map (Maybe.map toBag >> Maybe.withDefault Bag.empty)
 
 
-remove : Item -> Int -> Task Http.Error ()
+
+{--remove : Item -> Int -> Task Http.Error ()
 remove item amount =
     Jsonstore.update
         { url = String.url ++ "/" ++ (item |> Item.itemToString)
@@ -83,3 +96,4 @@ insert item amount =
                 >> Jsonstore.encode Jsonstore.int
                 >> Just
         }
+--}

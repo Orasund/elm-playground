@@ -30,7 +30,7 @@ viewCell scale position maybeMsg maybeCellType =
             <|
                 Element.el
                     [ Element.centerY
-                    , Font.size <| floor <| scale * 100
+                    , Font.size <| floor <| scale * 90
                     , Element.centerX
                     , Font.center
                     ]

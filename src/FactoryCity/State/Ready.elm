@@ -58,11 +58,11 @@ update : Msg -> Model -> Action
 update msg { shop, seed } =
     case msg of
         ClickedStart item ->
-            Action.transitioning
-                { seed = seed
-                , shop = shop
-                , source = item
-                }
+                Action.transitioning
+                    { seed = seed
+                    , shop = shop
+                    , source = item
+                    }
 
 
 

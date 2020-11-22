@@ -182,12 +182,14 @@ view model =
     in
     { title = "Factory City"
     , body =
-        [ Html.node "meta"
+        [ {--Html.node "meta"
             [ Attributes.attribute "name" "viewport"
+
             , Attributes.attribute "content" "width=device-width, initial-scale=1.0, user-scalable=no"
             ]
             []
-        , Element.layoutWith
+        , --}
+          Element.layoutWith
             { options = Framework.layoutOptions }
             (List.concat
                 [ [ Background.color <| Element.rgb255 44 48 51

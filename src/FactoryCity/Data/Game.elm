@@ -49,9 +49,9 @@ tabToLabel tab =
 type Msg
     = ClickedSell ContainerSort
     | ClickedBuy Item Int
-    | GotShopResponse (Result Http.Error (Bag String))
+      --| GotShopResponse (Result Http.Error (Bag String))
     | ChangedLoopLength Int
-    | Sync
+      --| Sync
     | ToggledBuyRegularly Item
     | ToggledSellRegularly Item
 
@@ -404,13 +404,14 @@ update msg game =
                                 , money = game.money + price
                                 , deck = deck
                               }
-                            , Task.attempt GotShopResponse
+                            , {--Task.attempt GotShopResponse
                                 (RemoteShop.insert i 1
                                     |> Task.andThen
                                         (\() ->
                                             RemoteShop.sync
                                         )
-                                )
+                                )--}
+                              Cmd.none
                             )
 
                         _ ->
@@ -428,13 +429,14 @@ update msg game =
                                 , deck = deck
                                 , money = game.money + price
                               }
-                            , Task.attempt GotShopResponse
+                            , {--Task.attempt GotShopResponse
                                 (RemoteShop.insert Scrap 1
                                     |> Task.andThen
                                         (\() ->
                                             RemoteShop.sync
                                         )
-                                )
+                                )--}
+                              Cmd.none
                             )
 
                 Err () ->
@@ -456,19 +458,20 @@ update msg game =
                     , money = game.money - price
                     , deck = game.deck |> Deck.add (Crate item)
                   }
-                , Task.attempt GotShopResponse
+                , {--Task.attempt GotShopResponse
                     (RemoteShop.remove item n
                         |> Task.andThen
                             (\() ->
                                 RemoteShop.sync
                             )
-                    )
+                    )--}
+                  Cmd.none
                 )
 
             else
                 defaultCase
 
-        GotShopResponse result ->
+        {--GotShopResponse result ->
             ( case result of
                 Ok s ->
                     { game | shop = s }
@@ -476,19 +479,17 @@ update msg game =
                 Err _ ->
                     game
             , Cmd.none
-            )
-
+            )--}
         ChangedLoopLength int ->
             ( { game | loopEvery = int }
             , Cmd.none
             )
 
-        Sync ->
+        {--Sync ->
             ( game
             , RemoteShop.sync
                 |> Task.attempt GotShopResponse
-            )
-
+            )--}
         ToggledBuyRegularly item ->
             if game.shoppingList |> Set.member (item |> Item.itemToString) then
                 ( { game

@@ -17,6 +17,7 @@ import Svg.Attributes as Attributes
 import Vector2d exposing (Vector2d)
 
 
+bigRadius : Float
 bigRadius =
     --View.radius * 5 / 4
     2 * View.radius / sqrt 2
@@ -137,14 +138,14 @@ viewPlanet n =
                 { n = 4, scale = View.radius / 2, standing = True }
                 ( View.width / 2, View.height / 2 - bigRadius - View.radius / 2 )
                 |> Svg.polygon2d
-                    [ Attributes.stroke <| View.blue
+                    [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
                     , Attributes.fill "transparent"
                     ]
             , Circle2d.atPoint (Point2d.pixels (View.width / 2) (View.height / 2))
                 (Pixels.pixels <| bigRadius / 2)
                 |> Svg.circle2d
-                    [ Attributes.stroke <| View.red
+                    [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
                     , Attributes.fill <| "transparent"
                     ]
@@ -153,7 +154,7 @@ viewPlanet n =
                 , Point2d.pixels (View.width / 2) (View.height / 2 - bigRadius - View.relative 0.5)
                 ]
                 |> Svg.polyline2d
-                    [ Attributes.stroke <| View.blue
+                    [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
                     , Attributes.fill "transparent"
                     ]
@@ -165,7 +166,7 @@ viewPlanet n =
                 { n = 3, scale = View.radius * 2 + View.relative 1, standing = True }
                 ( View.width / 2, View.height / 2 )
                 |> Svg.polygon2d
-                    [ Attributes.stroke <| View.blue
+                    [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
                     , Attributes.fill "transparent"
                     ]
@@ -173,7 +174,7 @@ viewPlanet n =
                 { n = 3, scale = View.radius, standing = False }
                 ( View.width / 2, View.height / 2 )
                 |> Svg.polygon2d
-                    [ Attributes.stroke <| View.green
+                    [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
                     , Attributes.fill "transparent"
                     ]
@@ -185,7 +186,7 @@ viewPlanet n =
                 { n = 3, scale = View.radius, standing = True }
                 ( View.width / 2, View.height / 2 )
                 |> Svg.polygon2d
-                    [ Attributes.stroke <| View.blue
+                    [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
                     , Attributes.fill "transparent"
                     ]
@@ -193,7 +194,7 @@ viewPlanet n =
                 (Point2d.pixels (View.width / 2) (View.height / 2))
                 (Pixels.pixels <| View.relative <| 1 / 2)
                 |> Svg.circle2d
-                    [ Attributes.fill <| View.blue
+                    [ Attributes.fill <| "black"
                     ]
             ]
                 ++ (List.range 1 4
@@ -205,7 +206,7 @@ viewPlanet n =
                                     )
                                     (Pixels.pixels <| View.relative <| 1 / 2)
                                     |> Svg.circle2d
-                                        [ Attributes.fill <| View.green
+                                        [ Attributes.fill <| "black"
                                         ]
                             )
                    )
@@ -216,7 +217,7 @@ viewPlanet n =
                 { n = 4, scale = View.radius, standing = True }
                 ( View.width / 2, View.height / 2 )
                 |> Svg.polygon2d
-                    [ Attributes.stroke <| View.green
+                    [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
                     , Attributes.fill "transparent"
                     ]
@@ -224,7 +225,7 @@ viewPlanet n =
                 { n = 4, scale = View.radius * 2, standing = True }
                 ( View.width / 2, View.height / 2 )
                 |> Svg.polygon2d
-                    [ Attributes.stroke <| View.red
+                    [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
                     , Attributes.fill "transparent"
                     ]
@@ -236,7 +237,7 @@ viewPlanet n =
                 { n = 4, scale = View.radius, standing = True }
                 ( View.width / 2, View.height / 2 )
                 |> Svg.polygon2d
-                    [ Attributes.stroke <| View.red
+                    [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
                     , Attributes.fill "transparent"
                     ]
@@ -244,7 +245,7 @@ viewPlanet n =
                 (Point2d.pixels (View.width / 2) (View.height / 2))
                 (Pixels.pixels <| View.relative <| 1 / 2)
                 |> Svg.circle2d
-                    [ Attributes.fill <| View.red
+                    [ Attributes.fill <| "black"
                     ]
             ]
                 ++ (List.range 1 8
@@ -257,7 +258,7 @@ viewPlanet n =
                                     )
                                     (Pixels.pixels <| View.relative <| 1 / 2)
                                     |> Svg.circle2d
-                                        [ Attributes.fill <| View.green
+                                        [ Attributes.fill <| "black"
                                         ]
                             )
                    )
@@ -268,7 +269,7 @@ viewPlanet n =
                 { n = 4, scale = View.radius, standing = True }
                 ( View.width / 2, View.height / 2 )
                 |> Svg.polygon2d
-                    [ Attributes.stroke <| View.green
+                    [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
                     , Attributes.fill "transparent"
                     ]
@@ -276,19 +277,19 @@ viewPlanet n =
                 (Point2d.pixels (View.width / 2) (View.height / 2))
                 (Pixels.pixels <| View.relative <| 1 / 2)
                 |> Svg.circle2d
-                    [ Attributes.fill <| View.green
+                    [ Attributes.fill <| "black"
                     ]
             , Circle2d.atPoint
                 (Point2d.pixels (View.width / 2 + bigRadius) (View.height / 2))
                 (Pixels.pixels <| View.relative <| 1 / 2)
                 |> Svg.circle2d
-                    [ Attributes.fill <| View.red
+                    [ Attributes.fill <| "black"
                     ]
             , Circle2d.atPoint
                 (Point2d.pixels (View.width / 2 + bigRadius * 2) (View.height / 2))
                 (Pixels.pixels <| View.relative <| 1 / 2)
                 |> Svg.circle2d
-                    [ Attributes.fill <| View.red
+                    [ Attributes.fill <| "black"
                     ]
             ]
 
@@ -298,7 +299,7 @@ viewPlanet n =
                 { n = 4, scale = View.radius, standing = True }
                 ( View.width / 2, View.height / 2 )
                 |> Svg.polygon2d
-                    [ Attributes.stroke <| View.blue
+                    [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
                     , Attributes.fill "transparent"
                     ]
@@ -306,31 +307,31 @@ viewPlanet n =
                 (Point2d.pixels (View.width / 2) (View.height / 2))
                 (Pixels.pixels <| View.relative <| 1 / 2)
                 |> Svg.circle2d
-                    [ Attributes.fill <| View.blue
+                    [ Attributes.fill <| "black"
                     ]
             , Circle2d.atPoint
                 (Point2d.pixels (View.width / 2 - bigRadius * 2) (View.height / 2 - bigRadius * 2))
                 (Pixels.pixels <| View.relative <| 1 / 2)
                 |> Svg.circle2d
-                    [ Attributes.fill <| View.red
+                    [ Attributes.fill <| "black"
                     ]
             , Circle2d.atPoint
                 (Point2d.pixels (View.width / 2 - bigRadius * 2) (View.height / 2 + bigRadius * 2))
                 (Pixels.pixels <| View.relative <| 1 / 2)
                 |> Svg.circle2d
-                    [ Attributes.fill <| View.red
+                    [ Attributes.fill <| "black"
                     ]
             , Circle2d.atPoint
                 (Point2d.pixels (View.width / 2 + bigRadius * 2) (View.height / 2 - bigRadius * 2))
                 (Pixels.pixels <| View.relative <| 1 / 2)
                 |> Svg.circle2d
-                    [ Attributes.fill <| View.red
+                    [ Attributes.fill <| "black"
                     ]
             , Circle2d.atPoint
                 (Point2d.pixels (View.width / 2 + bigRadius * 2) (View.height / 2 + bigRadius * 2))
                 (Pixels.pixels <| View.relative <| 1 / 2)
                 |> Svg.circle2d
-                    [ Attributes.fill <| View.red
+                    [ Attributes.fill <| "black"
                     ]
             ]
                 ++ (List.range 1 4
@@ -343,7 +344,7 @@ viewPlanet n =
                                     )
                                     (Pixels.pixels <| View.relative <| 1 / 2)
                                     |> Svg.circle2d
-                                        [ Attributes.fill <| View.red
+                                        [ Attributes.fill <| "black"
                                         ]
                             )
                    )
@@ -354,7 +355,7 @@ viewPlanet n =
                 { n = 4, scale = View.radius, standing = True }
                 ( View.width / 2, View.height / 2 )
                 |> Svg.polygon2d
-                    [ Attributes.stroke <| View.green
+                    [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
                     , Attributes.fill "transparent"
                     ]
@@ -363,7 +364,7 @@ viewPlanet n =
                 , Point2d.pixels (View.width / 2) (View.height / 2 + bigRadius)
                 ]
                 |> Svg.polyline2d
-                    [ Attributes.stroke <| View.blue
+                    [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
                     , Attributes.fill "transparent"
                     ]
@@ -1101,13 +1102,28 @@ view card =
             viewPlanet n
 
         Joker ->
-            [{--Circle2d.atPoint (Point2d.pixels (View.width / 2) (View.height / 2))
+            [ {--Circle2d.atPoint (Point2d.pixels (View.width / 2) (View.height / 2))
                 (Pixels.pixels <| View.radius * 2)
                 |> Svg.circle2d
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
                     , Attributes.fill "transparent"
                     ]--}
+              View.regularPolygon
+                { n = 3, scale = View.radius * 2, standing = True }
+                ( View.width / 2, View.height / 2 )
+                |> Svg.polygon2d
+                    [ Attributes.stroke <| "black"
+                    , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
+                    , Attributes.fill "transparent"
+                    ]
+            , Circle2d.atPoint (Point2d.pixels (View.width / 2) (View.height / 2))
+                (Pixels.pixels <| bigRadius / 2)
+                |> Svg.circle2d
+                    [ Attributes.stroke <| "black"
+                    , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
+                    , Attributes.fill "transparent"
+                    ]
             ]
 
         _ ->

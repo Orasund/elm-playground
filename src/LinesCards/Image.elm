@@ -18,6 +18,7 @@ import Svg.Attributes as Attributes
 import Vector2d exposing (Vector2d)
 
 
+bigRadius : Float
 bigRadius =
     --View.radius * 5 / 4
     2 * View.radius / sqrt 2

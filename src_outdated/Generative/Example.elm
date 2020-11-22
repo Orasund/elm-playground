@@ -1,4 +1,4 @@
-module Example exposing (main)
+module Generative.Example exposing (main)
 
 import Color
 import Generative

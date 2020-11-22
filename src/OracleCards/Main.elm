@@ -430,13 +430,12 @@ smallSet =
 main : Html msg
 main =
     smallSet
-        --[ Planet 1, Planet 3, Planet 4, Planet 5, Planet 6, Planet 7, Planet 8, White 7, Black 7, Trump 19 ]
         |> List.map
             (\card ->
                 viewCard card
                     |> Svg.svg
-                        [ Attributes.width <| String.fromFloat <| View.zoom * View.width
-                        , Attributes.height <| String.fromFloat <| View.zoom * View.height
+                        [ Attributes.width <| (String.fromFloat <| View.zoom * View.width) ++ "px"
+                        , Attributes.height <| (String.fromFloat <| View.zoom * View.height) ++ "px"
                         , Attributes.viewBox <|
                             "0 0 "
                                 ++ String.fromFloat View.width

@@ -1,4 +1,4 @@
-module EmojiAnalysis exposing (main)
+module EmojiAnalysis.Main exposing (main)
 
 import Browser
 import Char

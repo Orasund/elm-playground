@@ -15,7 +15,7 @@ module LittleWorldPuzzler.Data.Deck exposing
     )
 
 import Jsonstore exposing (Json)
-import List.Zipper as Zipper exposing (Zipper(..))
+import List.Zipper as Zipper exposing (Zipper)
 import LittleWorldPuzzler.Data.CellType as CellType exposing (CellType(..))
 import Random exposing (Generator)
 import Random.List as RandomList
@@ -77,13 +77,19 @@ second =
 {-| Move the focus to the first element of the list.
 -}
 moveTofirst : Zipper a -> Zipper a
+moveTofirst =
+    Zipper.first
+
+
+
+{--moveTofirst : Zipper a -> Zipper a
 moveTofirst ((Zipper ls x rs) as zipper) =
     case List.reverse ls of
         [] ->
             zipper
 
         y :: ys ->
-            Zipper [] y (List.concat [ ys, [ x ], rs ])
+            Zipper [] y (List.concat [ ys, [ x ], rs ])--}
 
 
 playFirst : Bool -> Deck -> Generator Deck
