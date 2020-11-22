@@ -1,23 +1,18 @@
 module OracleCards.Main exposing (main)
 
-import Angle exposing (Angle)
-import Circle2d exposing (Circle2d)
-import Frame2d exposing (Frame2d)
+import Circle2d
 import Geometry.Svg as Svg
 import Html exposing (Html)
-import Length exposing (Length)
 import OracleCards.Card as Card exposing (Card(..))
 import OracleCards.Image as Image
 import OracleCards.Sigil as Sigil
 import OracleCards.View as View
-import Pixels exposing (Pixels)
-import Point2d exposing (Point2d)
-import Polygon2d exposing (Polygon2d)
+import Pixels
+import Point2d
 import Polyline2d
-import Rectangle2d exposing (Rectangle2d)
+import Rectangle2d
 import Svg exposing (Svg)
 import Svg.Attributes as Attributes
-import Vector2d exposing (Vector2d)
 
 
 viewCard : Card -> List (Svg msg)
@@ -60,7 +55,7 @@ viewCard card =
                         Card.color card
                     ]
     in
-    [ Rectangle2d.from Point2d.origin (Point2d.pixels View.width View.height)
+    (Rectangle2d.from Point2d.origin (Point2d.pixels View.width View.height)
         |> Svg.rectangle2d
             [ Attributes.stroke "black"
             , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
@@ -71,12 +66,12 @@ viewCard card =
                 else
                     View.blackBackground
             ]
-    ]
-        ++ (case card of
+    )
+        :: (case card of
                 Joker ->
                     []
 
-                Trump n ->
+                Trump _ ->
                     {- [ {--n
                            |> String.fromInt
                            |> Svg.text
@@ -232,7 +227,7 @@ viewCard card =
                     }
                         |> Sigil.view (Point2d.pixels (View.width / 2) View.padding)
 
-                Planet n ->
+                Planet _ ->
                     {--[ View.regularPolygon
                         { n = 4, scale = View.relative 2, standing = True }
                         ( View.padding + View.relative 1, View.padding + View.relative 1 )

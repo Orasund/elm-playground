@@ -1,33 +1,27 @@
-module Ecocards.Page.LocalGame exposing (Model, Msg, init, subscriptions, update, view)
+module Ecocards.Page.LocalGame exposing (Model, Msg, init, main, subscriptions, update, view)
 
 import Array
-import Bag exposing (Bag)
 import Browser
 import Dict exposing (Dict)
 import Dict.Extra as Dict
 import Ecocards.Data.Animal as Animal exposing (Animal, Behaviour(..))
-import Ecocards.Data.Bag as Bag
 import Ecocards.Data.Game as Game exposing (Game)
 import Ecocards.Data.GameArea as GameArea exposing (GameArea)
 import Ecocards.Data.GamePhase as GamePhase exposing (GamePhase(..))
 import Ecocards.Data.Move as Move exposing (Move)
 import Ecocards.View as View
-import Ecocards.View.Color as Color
 import Element exposing (Element)
 import Element.Font as Font
 import Element.Input as Input
-import Form.Decoder exposing (errors)
 import Html exposing (Html)
-import Html.Attributes exposing (selected)
 import List.Extra as List
-import PixelEngine exposing (game)
 import Random exposing (Seed)
-import Set exposing (Set)
+import Set
 import Set.Extra as Set
 import Time
 import Widget
 import Widget.Snackbar as Snackbar exposing (Snackbar)
-import Widget.Style exposing (ButtonStyle, ColumnStyle, DialogStyle, ExpansionPanelStyle, LayoutStyle, RowStyle, SnackbarStyle, SortTableStyle, TabStyle, TextInputStyle)
+import Widget.Style exposing (ButtonStyle, ColumnStyle, DialogStyle, ExpansionPanelStyle, LayoutStyle, RowStyle, SnackbarStyle, TabStyle, TextInputStyle)
 import Widget.Style.Material as Material exposing (Palette)
 
 
@@ -37,7 +31,11 @@ type alias Model =
     , error : Maybe String
     , useAutoTap : Bool
     , seed : Seed
-    , snackbar : Snackbar { title : String, desc : String }
+    , snackbar :
+        Snackbar
+            { title : String
+            , desc : String
+            }
     , showDialog : Bool
     , useAutoPlay : Bool
     , useAutoOpp : Bool
@@ -182,7 +180,7 @@ update msg model =
                 Thinking _ ->
                     ( if
                         model.game.yourArea.placed
-                            |> Dict.filter (\id { isTapped } -> not isTapped)
+                            |> Dict.filter (\_ { isTapped } -> not isTapped)
                             |> Dict.isEmpty
                       then
                         { gamePhase = model.phase, game = model.game }
@@ -498,10 +496,10 @@ viewArea { gameArea, animals, phase, move } =
                                 Tapping { selected, animalId } ->
                                     { color =
                                         if selected |> Set.member id then
-                                            Just Color.blue
+                                            Just View.blue
 
                                         else if animalId == id then
-                                            Just Color.gray
+                                            Just View.gray
 
                                         else
                                             Nothing
@@ -556,7 +554,7 @@ viewArea { gameArea, animals, phase, move } =
                                         case move of
                                             Just m ->
                                                 if m.selected |> Set.member id then
-                                                    Just Color.blue
+                                                    Just View.blue
 
                                                 else
                                                     Nothing
@@ -695,7 +693,7 @@ view model =
                         "Replay"
             , onPress =
                 case model.phase of
-                    Tapping move ->
+                    Tapping _ ->
                         if invalidRestrictions |> List.isEmpty then
                             Just Confirmed
 
@@ -774,8 +772,8 @@ view model =
     ]
         |> Element.column [ Element.width <| Element.fill ]
         |> Element.layout
-            ([ Snackbar.view style.snackbar
-                (\{ title, desc } ->
+            ((Snackbar.view style.snackbar
+                (\{ desc } ->
                     { text = desc
                     , button = Nothing
                     }
@@ -789,8 +787,8 @@ view model =
                     , Font.size 14
                     ]
                 |> Element.inFront
-             ]
-                ++ (if model.showDialog then
+             )
+                :: (if model.showDialog then
                         Widget.dialog style.dialog
                             { title = Just "Untapped Animals"
                             , text = "Some of the animals in your battle area have not been tapped. If you continue these animals will die."

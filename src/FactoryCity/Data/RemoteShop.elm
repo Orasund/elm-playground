@@ -1,32 +1,37 @@
-module FactoryCity.Data.RemoteShop exposing (default, json, sync)
+module FactoryCity.Data.RemoteShop exposing (default, insert, remove, sync)
 
 import Bag exposing (Bag)
+import FactoryCity.Data as Data
 import FactoryCity.Data.CellType exposing (ContainerSort(..))
 import FactoryCity.Data.Item as Item exposing (Item(..))
 import FactoryCity.String as String
+import Firestore exposing (Error(..))
+import Firestore.Decode as D exposing (Decoder)
+import Firestore.Encode as E exposing (Encoder)
 import Http
+import Json.Encode
 import Jsonstore exposing (Json)
 import Task exposing (Task)
 
 
 type alias RemoteShop =
-    { chips : Maybe Int
-    , iron : Maybe Int
-    , scrap : Maybe Int
-    , stone : Maybe Int
-    , wood : Maybe Int
-    , chipboard : Maybe Int
+    { chips : Int
+    , iron : Int
+    , scrap : Int
+    , stone : Int
+    , wood : Int
+    , chipboard : Int
     }
 
 
 default : Bag String
 default =
-    { chips = Just 500
-    , iron = Just 500
-    , scrap = Just 500
-    , stone = Just 500
-    , wood = Just 500
-    , chipboard = Just 500
+    { chips = 500
+    , iron = 500
+    , scrap = 500
+    , stone = 500
+    , wood = 500
+    , chipboard = 500
     }
         |> toBag
 
@@ -41,36 +46,106 @@ toBag { chips, iron, scrap, stone, wood, chipboard } =
     , ( Chipboard, chipboard )
     ]
         |> List.map
-            (Tuple.mapBoth Item.itemToString
-                (Maybe.withDefault 0)
-            )
+            (Tuple.mapFirst Item.itemToString)
         |> Bag.fromList
 
 
-json : Json RemoteShop
-json =
-    Jsonstore.object RemoteShop
-        |> Jsonstore.withMaybe (Chips |> Item.itemToString) Jsonstore.int .chips
-        |> Jsonstore.withMaybe (Iron |> Item.itemToString) Jsonstore.int .iron
-        |> Jsonstore.withMaybe (Scrap |> Item.itemToString) Jsonstore.int .scrap
-        |> Jsonstore.withMaybe (Stone |> Item.itemToString) Jsonstore.int .stone
-        |> Jsonstore.withMaybe (Wood |> Item.itemToString) Jsonstore.int .wood
-        |> Jsonstore.withMaybe (Chipboard |> Item.itemToString) Jsonstore.int .chipboard
-        |> Jsonstore.toJson
+decoder : Decoder RemoteShop
+decoder =
+    D.document RemoteShop
+        |> D.optional (Chips |> Item.itemToString) D.int 0
+        |> D.optional (Iron |> Item.itemToString) D.int 0
+        |> D.optional (Scrap |> Item.itemToString) D.int 0
+        |> D.optional (Stone |> Item.itemToString) D.int 0
+        |> D.optional (Wood |> Item.itemToString) D.int 0
+        |> D.optional (Chipboard |> Item.itemToString) D.int 0
+
+
+encoder : RemoteShop -> Encoder
+encoder shop =
+    [ ( Chips, .chips )
+    , ( Iron, .iron )
+    , ( Scrap, .scrap )
+    , ( Stone, .stone )
+    , ( Wood, .wood )
+    , ( Chipboard, .chipboard )
+    ]
+        |> List.filterMap
+            (\( item, fun ) ->
+                shop
+                    |> fun
+                    |> (\amount ->
+                            Just ( item |> Item.itemToString, E.int amount )
+                       )
+            )
+        |> E.document
+
+
+mapTask :
+    Task Firestore.Error (Firestore.Document RemoteShop)
+    -> Task Http.Error (Bag String)
+mapTask =
+    Task.map (.fields >> toBag)
+        >> Task.onError
+            (\err ->
+                case err of
+                    Http_ httpError ->
+                        httpError
+                            |> Task.fail
+
+                    Response response ->
+                        let
+                            _ =
+                                response
+                                    |> Debug.log "Response"
+                        in
+                        default
+                            |> Task.succeed
+            )
 
 
 sync : Task Http.Error (Bag String)
 sync =
-    json
-        |> Jsonstore.decode
-        |> Jsonstore.get String.url
-        |> Task.map (Maybe.map toBag >> Maybe.withDefault Bag.empty)
+    Data.firestore
+        |> Firestore.get decoder
+        |> mapTask
 
 
-
-{--remove : Item -> Int -> Task Http.Error ()
+remove : Item -> Int -> Task Http.Error (Bag String)
 remove item amount =
-    Jsonstore.update
+    Data.firestore
+        |> Firestore.get decoder
+        |> Task.andThen
+            (\{ fields } ->
+                Data.firestore
+                    |> Firestore.patch decoder
+                        ((case item of
+                            Chips ->
+                                { fields | chips = fields.chips - amount |> max 0 }
+
+                            Iron ->
+                                { fields | iron = fields.iron - amount |> max 0 }
+
+                            Scrap ->
+                                { fields | scrap = fields.scrap - amount |> max 0 }
+
+                            Stone ->
+                                { fields | stone = fields.stone - amount |> max 0 }
+
+                            Wood ->
+                                { fields | wood = fields.wood - amount |> max 0 }
+
+                            Chipboard ->
+                                { fields | chipboard = fields.chipboard - amount |> max 0 }
+                         )
+                            |> encoder
+                        )
+            )
+        |> mapTask
+
+
+
+{--Jsonstore.update
         { url = String.url ++ "/" ++ (item |> Item.itemToString)
         , decoder = Jsonstore.int |> Jsonstore.decode
         , value =
@@ -82,12 +157,44 @@ remove item amount =
                     else
                         Just <| Jsonstore.encode Jsonstore.int <| n - amount
                 )
-        }
+        }--}
 
 
-insert : Item -> Int -> Task Http.Error ()
+insert : Item -> Int -> Task Http.Error (Bag String)
 insert item amount =
-    Jsonstore.update
+    Data.firestore
+        |> Firestore.get decoder
+        |> Task.andThen
+            (\{ fields } ->
+                Data.firestore
+                    |> Firestore.patch decoder
+                        ((case item of
+                            Chips ->
+                                { fields | chips = fields.chips + amount }
+
+                            Iron ->
+                                { fields | iron = fields.iron + amount }
+
+                            Scrap ->
+                                { fields | scrap = fields.scrap + amount }
+
+                            Stone ->
+                                { fields | stone = fields.stone + amount }
+
+                            Wood ->
+                                { fields | wood = fields.wood + amount }
+
+                            Chipboard ->
+                                { fields | chipboard = fields.chipboard + amount }
+                         )
+                            |> encoder
+                        )
+            )
+        |> mapTask
+
+
+
+{--Jsonstore.update
         { url = String.url ++ "/" ++ (item |> Item.itemToString)
         , decoder = Jsonstore.int |> Jsonstore.decode
         , value =
@@ -95,5 +202,4 @@ insert item amount =
                 >> Maybe.withDefault amount
                 >> Jsonstore.encode Jsonstore.int
                 >> Just
-        }
---}
+        }--}

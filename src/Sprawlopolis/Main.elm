@@ -1,26 +1,16 @@
 module Sprawlopolis.Main exposing (main)
 
-import Angle exposing (Angle)
-import Array
-import Circle2d exposing (Circle2d)
-import Element
-import Frame2d exposing (Frame2d)
 import Geometry.Svg as Svg
 import Html exposing (Html)
-import Length exposing (Length)
 import List.Extra as List
-import Pixels exposing (Pixels)
-import Point2d exposing (Point2d)
-import Polygon2d exposing (Polygon2d)
+import Point2d
 import Polyline2d
-import Rectangle2d exposing (Rectangle2d)
 import Sprawlopolis.Card as Card
-import Sprawlopolis.Color as Color exposing (Color(..))
+import Sprawlopolis.Color exposing (Color(..))
 import Sprawlopolis.Pattern as Pattern
 import Sprawlopolis.View as View
-import Svg exposing (Svg)
+import Svg
 import Svg.Attributes as Attributes
-import Vector2d exposing (Vector2d, cross)
 
 
 main : Html msg

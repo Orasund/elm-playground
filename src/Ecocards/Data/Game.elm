@@ -1,6 +1,6 @@
 module Ecocards.Data.Game exposing (Game, endTurn, isFinished, isValidMove, play, swapAreas, tapAnimal)
 
-import Array exposing (Array)
+import Array
 import Array.Extra as Array
 import Dict exposing (Dict)
 import Ecocards.Data.Animal as Animal exposing (Animal, Behaviour(..), Biome)
@@ -8,7 +8,7 @@ import Ecocards.Data.GameArea as GameArea exposing (GameArea)
 import Ecocards.Data.Move exposing (Move)
 import Maybe
 import Result.Extra as Result
-import Set exposing (Set)
+import Set
 
 
 
@@ -53,7 +53,7 @@ play { index } ({ yourArea } as game) =
 
 
 remove : { id : Int } -> Game -> Game
-remove { id } ({ yourArea } as game) =
+remove { id } game =
     { game
         | yourArea = game.yourArea |> GameArea.remove id
         , oppArea = game.oppArea |> GameArea.remove id

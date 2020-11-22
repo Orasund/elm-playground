@@ -1,4 +1,18 @@
-module FactoryCity.Data exposing (devMode, gameVersion, maxBugCycle, maxHistorySize, maxPrice, updateName, yOffset)
+module FactoryCity.Data exposing (devMode, firestore, gameVersion, maxBugCycle, maxHistorySize, maxPrice, updateName, yOffset)
+
+import Firestore exposing (Firestore)
+import Firestore.Config
+
+
+firestore : Firestore
+firestore =
+    Firestore.Config.new
+        { apiKey = "AIzaSyAxnPNLsLdrme25S8aOcJgCe42Uy0UQ64A"
+        , project = "lovefinderzz"
+        }
+        |> Firestore.init
+        |> Firestore.withCollection "test"
+        |> Firestore.withCollection "shop"
 
 
 yOffset : Int

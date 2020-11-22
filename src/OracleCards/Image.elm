@@ -1,20 +1,16 @@
 module OracleCards.Image exposing (view)
 
-import Angle exposing (Angle)
-import Arc2d exposing (Arc2d)
-import Circle2d exposing (Circle2d)
-import Frame2d exposing (Frame2d)
+import Angle
+import Circle2d
 import Geometry.Svg as Svg
 import OracleCards.Card as Card exposing (Card(..))
 import OracleCards.View as View
-import Pixels exposing (Pixels)
-import Point2d exposing (Point2d)
-import Polygon2d exposing (Polygon2d)
-import Polyline2d exposing (Polyline2d)
-import Rectangle2d exposing (Rectangle2d)
+import Pixels
+import Point2d
+import Polygon2d
+import Polyline2d
 import Svg exposing (Svg)
 import Svg.Attributes as Attributes
-import Vector2d exposing (Vector2d)
 
 
 bigRadius : Float

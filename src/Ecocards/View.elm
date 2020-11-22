@@ -1,21 +1,27 @@
-module Ecocards.View exposing (squareCard)
+module Ecocards.View exposing (blue, gray, squareCard)
 
 import Color exposing (Color)
-import Ecocards.View.Material exposing (..)
+import Ecocards.View.Material as Material
 import Element exposing (Element)
 import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
-import Element.Region as Region
 import Html.Attributes as Attributes
-import Widget
-import Widget.Style exposing (ButtonStyle, ColumnStyle, DialogStyle, ExpansionPanelStyle, LayoutStyle, RowStyle, SortTableStyle, TabStyle, TextInputStyle)
-import Widget.Style.Material as Material exposing (Palette)
 
 
 
 ---
+
+
+blue : Color
+blue =
+    Color.rgb255 0x62 0x00 0xEE
+
+
+gray : Color
+gray =
+    Color.rgb255 127 127 127
 
 
 squareCard :
@@ -33,26 +39,26 @@ squareCard { header, footer, onPress, getInfoMsg, text, color } =
             header
 
         attributes =
-            buttonFont
+            Material.buttonFont
                 ++ (if onPress == Nothing then
                         [ Color.rgb255 127 127 127
-                            |> scaleOpacity 0.12
-                            |> fromColor
+                            |> Material.scaleOpacity 0.12
+                            |> Material.fromColor
                             |> Border.color
                         ]
 
                     else
                         color
                             |> Maybe.map
-                                (scaleOpacity 0.36
-                                    >> fromColor
+                                (Material.scaleOpacity 0.36
+                                    >> Material.fromColor
                                     >> Background.color
                                     >> List.singleton
                                 )
                             |> Maybe.withDefault
                                 [ Color.rgb255 127 127 127
-                                    |> scaleOpacity 0.12
-                                    |> fromColor
+                                    |> Material.scaleOpacity 0.12
+                                    |> Material.fromColor
                                     |> Background.color
                                 ]
                    )

@@ -99,15 +99,14 @@ init { shop, seed, source } =
       , seed = seed
       }
     , Cmd.batch
-        [ {--Item.itemList
+        [ Item.itemList
             |> List.map (\i -> RemoteShop.remove i 5)
             |> Task.sequence
             |> Task.andThen
                 (\_ ->
                     RemoteShop.sync
                 )
-            |> Task.attempt (Game.GotShopResponse >> GameSpecific)--}
-          Cmd.none
+            |> Task.attempt (Game.GotShopResponse >> GameSpecific)
         , cmd
             |> Cmd.map (WrappedColumnSpecific >> UiSpecific)
         ]
@@ -245,8 +244,7 @@ subscriptions { ui } =
     if ui.speed /= 0 then
         Sub.batch
             [ Time.every (toFloat <| 1000 // ui.speed) (always TimePassed)
-
-            --, Time.every 10000 (always (GameSpecific Game.Sync))
+            , Time.every 10000 (always (GameSpecific Game.Sync))
             , WrappedColumn.subscriptions ui.wrappedColumn
                 |> Sub.map (WrappedColumnSpecific >> UiSpecific)
             ]

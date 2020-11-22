@@ -1,97 +1,17 @@
 module LinesCards.Image exposing (view)
 
-import Angle exposing (Angle)
-import Arc2d exposing (Arc2d)
+import Angle
+import Arc2d
 import Axis2d
-import Circle2d exposing (Circle2d)
-import Frame2d exposing (Frame2d)
 import Geometry.Svg as Svg
-import LineSegment2d exposing (LineSegment2d)
+import LineSegment2d
 import LinesCards.Card as Card exposing (Card(..), Color(..))
 import LinesCards.View as View
-import Pixels exposing (Pixels)
-import Point2d exposing (Point2d)
-import Polygon2d exposing (Polygon2d)
-import Rectangle2d exposing (Rectangle2d)
+import Pixels
+import Point2d
+import Polygon2d
 import Svg exposing (Svg)
 import Svg.Attributes as Attributes
-import Vector2d exposing (Vector2d)
-
-
-bigRadius : Float
-bigRadius =
-    --View.radius * 5 / 4
-    2 * View.radius / sqrt 2
-
-
-viewVertical : { color : String, vMirror : Bool, hMirror : Bool, offset : Float, stroke : Float } -> Svg msg
-viewVertical { color, vMirror, hMirror, offset, stroke } =
-    Polygon2d.singleLoop
-        [ Point2d.pixels (offset - stroke / 2) 0
-        , Point2d.pixels (offset + stroke / 2) 0
-        , Point2d.pixels (View.width / 2 + offset + stroke / 2) (View.height / 2)
-        , Point2d.pixels (View.width / 2 + offset - stroke / 2) (View.height / 2)
-        ]
-        |> (if hMirror then
-                Polygon2d.mirrorAcross
-                    (Axis2d.x
-                        |> Axis2d.moveTo (Point2d.pixels (View.width / 2) (View.height / 2))
-                    )
-
-            else
-                identity
-           )
-        |> (if vMirror then
-                Polygon2d.mirrorAcross
-                    (Axis2d.y
-                        |> Axis2d.moveTo (Point2d.pixels (View.width / 2) (View.height / 2))
-                    )
-
-            else
-                identity
-           )
-        |> Svg.polygon2d
-            [ Attributes.strokeLinecap <| "round"
-            , Attributes.fillOpacity <| "0.8"
-            , Attributes.fill <| color
-            ]
-
-
-viewHorizontal : { color : String, vMirror : Bool, hMirror : Bool, offset : Float, stroke : Float } -> Svg msg
-viewHorizontal { color, vMirror, hMirror, offset, stroke } =
-    let
-        zoom =
-            View.relative 1
-    in
-    Polygon2d.singleLoop
-        [ Point2d.pixels 0 (zoom * (offset - stroke / 2))
-        , Point2d.pixels 0 (zoom * (offset + stroke / 2))
-        , Point2d.pixels (View.width / 2) (View.height / 2 + zoom * (offset + stroke / 2))
-        , Point2d.pixels (View.width / 2) (View.height / 2 + zoom * (offset - stroke / 2))
-        ]
-        |> (if hMirror then
-                Polygon2d.mirrorAcross
-                    (Axis2d.x
-                        |> Axis2d.moveTo (Point2d.pixels (View.width / 2) (View.height / 2))
-                    )
-
-            else
-                identity
-           )
-        |> (if vMirror then
-                Polygon2d.mirrorAcross
-                    (Axis2d.y
-                        |> Axis2d.moveTo (Point2d.pixels (View.width / 2) (View.height / 2))
-                    )
-
-            else
-                identity
-           )
-        |> Svg.polygon2d
-            [ Attributes.strokeLinecap <| "round"
-            , Attributes.fillOpacity <| "0.8"
-            , Attributes.fill <| color
-            ]
 
 
 viewHBackground : { color : String, vMirror : Bool, hMirror : Bool } -> Svg msg
@@ -167,7 +87,7 @@ viewVCircle { dashes, color, mirror, size } =
             View.width / 2 - View.relative 5 - View.relative 1.5
     in
     Arc2d.with
-        { centerPoint = Point2d.pixels -(((View.height / 2) ^ 2 + xOffset ^ 2) / (2 * xOffset) - xOffset) (View.height / 2)
+        { centerPoint = Point2d.pixels -(View.height / 2 ^ 2 + xOffset ^ 2 / (2 * xOffset) - xOffset) (View.height / 2)
         , radius = Pixels.pixels <| ((View.height / 2) ^ 2 + xOffset ^ 2) / (2 * xOffset)
         , startAngle = Angle.radians <| -pi / 2
         , sweptAngle = Angle.radians <| 2 * pi
@@ -217,42 +137,6 @@ viewLine { color, vMirror, hMirror } =
             , Attributes.stroke <| "black"
             , Attributes.strokeLinecap <| "round"
             , Attributes.fill <| "none"
-            ]
-
-
-viewVBackground : { color : String, vMirror : Bool, hMirror : Bool } -> Svg msg
-viewVBackground { color, vMirror, hMirror } =
-    let
-        zoom =
-            1
-    in
-    Polygon2d.singleLoop
-        [ Point2d.pixels (zoom * (-(View.relative 7) / 2)) 0
-        , Point2d.pixels (zoom * (View.relative 7 / 2)) 0
-        , Point2d.pixels (View.width / 2 + zoom * (View.relative 7 / 2)) (View.height / 2)
-        , Point2d.pixels (View.width / 2 + zoom * (-(View.relative 7) / 2)) (View.height / 2)
-        ]
-        |> (if hMirror then
-                Polygon2d.mirrorAcross
-                    (Axis2d.x
-                        |> Axis2d.moveTo (Point2d.pixels (View.width / 2) (View.height / 2))
-                    )
-
-            else
-                identity
-           )
-        |> (if vMirror then
-                Polygon2d.mirrorAcross
-                    (Axis2d.y
-                        |> Axis2d.moveTo (Point2d.pixels (View.width / 2) (View.height / 2))
-                    )
-
-            else
-                identity
-           )
-        |> Svg.polygon2d
-            [ Attributes.fillOpacity <| "0.6"
-            , Attributes.fill <| color
             ]
 
 

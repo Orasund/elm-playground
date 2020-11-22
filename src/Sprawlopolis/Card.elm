@@ -1,8 +1,7 @@
 module Sprawlopolis.Card exposing (normalView, view)
 
 import Sprawlopolis.Box as Box exposing (BoxContent(..))
-import Sprawlopolis.Color as Color exposing (Color(..))
-import Sprawlopolis.View as View
+import Sprawlopolis.Color exposing (Color(..))
 import Svg exposing (Svg)
 
 

@@ -9,8 +9,6 @@ import FactoryCity.State.Playing as PlayingState
 import FactoryCity.State.Prepairing as PreparingState
 import FactoryCity.State.Ready as ReadyState
 import Framework
-import Html
-import Html.Attributes as Attributes
 
 
 

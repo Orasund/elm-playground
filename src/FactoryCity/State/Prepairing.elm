@@ -5,15 +5,16 @@ import Bag exposing (Bag)
 import Browser.Dom as Dom exposing (Viewport)
 import Element exposing (Element)
 import Element.Font as Font
+import FactoryCity.Data as Data
 import FactoryCity.Data.RemoteShop as RemoteShop
 import FactoryCity.View.Text as Text
+import Firestore exposing (Firestore)
 import Framework.Card as Card
 import Framework.Color as Color
 import Framework.Grid as Grid
 import Framework.Heading as Heading
 import Http exposing (Error(..))
 import Random exposing (Seed)
-import Result exposing (Result)
 import Task
 
 
@@ -26,15 +27,14 @@ import Task
 type alias Model =
     { scale : Maybe Float
     , seed : Maybe Seed
-
-    --, shop : Maybe (Bag String)
+    , shop : Maybe (Bag String)
     , error : Maybe Http.Error
     }
 
 
 type Msg
     = GotSeed Seed
-      --| GotShopResponse (Result Http.Error (Bag String))
+    | GotShopResponse (Result Http.Error (Bag String))
     | GotViewport Viewport
 
 
@@ -52,14 +52,12 @@ init : ( Model, Cmd Msg )
 init =
     ( { scale = Nothing
       , seed = Nothing
-
-      --, shop = Nothing
+      , shop = Nothing
       , error = Nothing
       }
     , Cmd.batch
         [ Random.generate GotSeed Random.independentSeed
-
-        --, Task.attempt GotShopResponse RemoteShop.sync
+        , Task.attempt GotShopResponse RemoteShop.sync
         , Task.perform GotViewport Dom.getViewport
         ]
     )
@@ -73,19 +71,17 @@ init =
 
 validate : Model -> Action
 validate model =
-    Maybe.map2
-        (\scale seed ->
+    Maybe.map3
+        (\scale seed shop ->
             Action.transitioning
                 { scale = scale
                 , seed = seed
-                , shop = RemoteShop.default
-
-                --, shop = shop
+                , shop = shop
                 }
         )
         model.scale
         model.seed
-        --model.shop
+        model.shop
         |> Maybe.withDefault (Action.updating ( model, Cmd.none ))
 
 
@@ -96,14 +92,15 @@ update calcScale msg model =
             { model | seed = Just seed }
                 |> validate
 
-        {--GotShopResponse result ->
+        GotShopResponse result ->
             case result of
                 Ok shop ->
                     { model | shop = Just shop }
                         |> validate
 
                 Err error ->
-                    Action.updating ( { model | error = Just error }, Cmd.none )--}
+                    Action.updating ( { model | error = Just error }, Cmd.none )
+
         GotViewport v ->
             { model
                 | scale =

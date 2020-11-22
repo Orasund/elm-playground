@@ -1,46 +1,6 @@
 module Ecocards.Data.Bag exposing (findMinMaxSubset)
 
 import Bag exposing (Bag)
-import Html exposing (a)
-
-
-changeMakingRec : Int -> Bag Int -> Bag Int -> Maybe (Bag Int)
-changeMakingRec remSum remBag out =
-    remBag
-        |> Bag.foldr
-            (\value _ maybeOut ->
-                let
-                    newRemaining =
-                        remSum
-                            - value
-                            |> Debug.log "remaining"
-                in
-                case maybeOut of
-                    Just a ->
-                        Just a
-
-                    Nothing ->
-                        if newRemaining == 0 then
-                            --Solution Found
-                            out |> Bag.insert 1 value |> Just
-
-                        else if newRemaining < 0 then
-                            --No Solution -> Skip
-                            Nothing
-
-                        else
-                            --take another
-                            changeMakingRec (remSum - value)
-                                (remBag |> Bag.remove 1 value)
-                                (out |> Bag.insert 1 value |> Debug.log "bag")
-            )
-            Nothing
-        |> Debug.log "result"
-
-
-changeMaking : Int -> Bag Int -> Maybe (Bag Int)
-changeMaking sum bag =
-    Bag.empty |> changeMakingRec sum (bag |> Debug.log "input")
 
 
 findMinSubsetRec : ( Int, Int ) -> Bag Int -> Bag Int -> Maybe (Bag Int)
@@ -52,10 +12,9 @@ findMinSubsetRec ( minAmount, maxAmount ) remBag out =
                     newMin =
                         minAmount
                             - value
-                            |> Debug.log "min"
 
                     newMax =
-                        maxAmount - value |> Debug.log "max"
+                        maxAmount - value
                 in
                 case maybeOut of
                     Just a ->
@@ -64,7 +23,7 @@ findMinSubsetRec ( minAmount, maxAmount ) remBag out =
                     Nothing ->
                         if newMin <= 0 && newMax >= 0 then
                             --Solution Found
-                            out |> Bag.insert 1 value |> Just |> Debug.log "min Solution found"
+                            out |> Bag.insert 1 value |> Just
 
                         else if newMax < 0 then
                             --No Solution -> Skip
@@ -88,15 +47,14 @@ findMinMaxSubsetRec : Bag Int -> ( Int, Int ) -> Bag Int -> Bag Int -> Maybe { m
 findMinMaxSubsetRec minBag ( minAmount, maxAmount ) remBag out =
     if remBag |> Bag.isEmpty then
         --continue with minBag
-        findMinSubset (( minAmount, maxAmount ) |> Debug.log "Intervall for MinSubset")
-            (minBag |> Debug.log "minBag")
+        findMinSubset ( minAmount, maxAmount )
+            minBag
             |> Maybe.map
                 (\minSolution ->
                     { maxBag = out
                     , minBag = minSolution
                     }
                 )
-            |> Debug.log "Conintue in minBag"
 
     else
         remBag
@@ -110,7 +68,7 @@ findMinMaxSubsetRec minBag ( minAmount, maxAmount ) remBag out =
                         newMax =
                             maxAmount - value
                     in
-                    case maybeOut |> Debug.log "current result" of
+                    case maybeOut of
                         Just a ->
                             Just a
 

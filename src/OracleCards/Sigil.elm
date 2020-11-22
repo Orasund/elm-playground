@@ -3,21 +3,14 @@ module OracleCards.Sigil exposing (view)
 import Angle
 import Arc2d
 import Binary
-import Browser
 import Circle2d
 import Geometry.Svg as Svg
-import Html exposing (Html, button, div, text)
-import Html.Attributes
-import Html.Events exposing (onClick)
-import Length
 import LineSegment2d
 import OracleCards.View as View
 import Pixels exposing (Pixels)
 import Point2d exposing (Point2d)
-import Polyline2d
 import Svg exposing (Svg)
 import Svg.Attributes as Attributes
-import Tuple
 import Vector2d exposing (Vector2d)
 
 
@@ -663,7 +656,7 @@ boolListToShapeList l =
                 [] ->
                     []
 
-                [ a ] ->
+                [ _ ] ->
                     [ End ]
 
                 [ True, False ] ->
@@ -684,7 +677,7 @@ boolListToShapeList l =
                 False :: ((False :: _) as tail) ->
                     SemiCircle :: rec tail
 
-                a :: ((b :: _) as tail) ->
+                _ :: ((_ :: _) as tail) ->
                     LineLoop :: rec tail
     in
     ( case l |> List.head of

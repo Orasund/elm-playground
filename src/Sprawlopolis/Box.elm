@@ -2,12 +2,11 @@ module Sprawlopolis.Box exposing (Box, BoxContent(..), draw)
 
 import Circle2d
 import Geometry.Svg as Svg
-import LineSegment2d
 import Pixels
 import Point2d
 import Polygon2d
 import Polyline2d exposing (Polyline2d)
-import Sprawlopolis.Color as Color exposing (Color(..))
+import Sprawlopolis.Color exposing (Color(..))
 import Sprawlopolis.Rule as Rule
 import Sprawlopolis.View as View
 import Svg exposing (Svg)
@@ -48,9 +47,6 @@ draw { color, withXOffset, withYOffset, content } =
 
             else
                 0
-
-        streetWidth =
-            View.relative 4
     in
     (Polygon2d.singleLoop
         [ Point2d.pixels xOffset yOffset

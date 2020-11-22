@@ -1,22 +1,14 @@
 module LinesCards.Main exposing (main)
 
-import Angle exposing (Angle)
-import Circle2d exposing (Circle2d)
-import Element
-import Frame2d exposing (Frame2d)
 import Geometry.Svg as Svg
 import Html exposing (Html)
-import Length exposing (Length)
-import LinesCards.Card as Card exposing (Card(..), Color(..))
+import LinesCards.Card exposing (Card(..), Color(..))
 import LinesCards.Image as Image
 import LinesCards.View as View
-import Pixels exposing (Pixels)
-import Point2d exposing (Point2d)
-import Polygon2d exposing (Polygon2d)
-import Rectangle2d exposing (Rectangle2d)
+import Point2d
+import Rectangle2d
 import Svg exposing (Svg)
 import Svg.Attributes as Attributes
-import Vector2d exposing (Vector2d, cross)
 
 
 viewCard : Card -> List (Svg msg)

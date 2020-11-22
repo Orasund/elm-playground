@@ -2,7 +2,6 @@ module Ecocards.Main exposing (main)
 
 import Browser
 import Ecocards.Page.LocalGame as LocalGame
-import Element
 import Html exposing (Html)
 import Html.Attributes as Attributes
 import Random exposing (Seed)
