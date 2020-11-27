@@ -41,16 +41,12 @@ viewCell scale position maybeMsg maybeCellType =
                             |> Maybe.withDefault ""
                         )
          ]
-            |> (if maybeCellType == Nothing then
-                    case maybeMsg of
+            |> (case maybeMsg of
                         Just msg ->
                             (::) (Events.onClick <| msg position)
 
                         Nothing ->
                             identity
-
-                else
-                    identity
                )
         )
     <|

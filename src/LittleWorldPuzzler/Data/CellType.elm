@@ -21,11 +21,12 @@ type CellType
     | Ice
     | Snow
     | Evergreen
+    | Bug
 
 
 list : List CellType
 list =
-    [ Snow, Desert, Fire, Glacier, Volcano, Stone, Evergreen, Ice, Fog, Water, Wood ]
+    [ Snow, Desert, Fire, Glacier, Volcano, Stone, Evergreen, Ice, Fog, Water, Wood, Bug ]
 
 
 fromInt : Int -> CellType
@@ -63,6 +64,9 @@ fromInt n =
 
         11 ->
             Evergreen
+
+        12 ->
+            Bug
 
         _ ->
             Wood
@@ -104,6 +108,9 @@ toInt cellType =
         Evergreen ->
             11
 
+        Bug ->
+            12
+
 
 toString : CellType -> String
 toString cellType =
@@ -142,11 +149,11 @@ toString cellType =
             Evergreen ->
                 '🌲'
 
+            Bug ->
+                '🌿'
 
 
-{- Bug ->
-   '🐞'
--}
+
 {------------------------
    Json
 ------------------------}

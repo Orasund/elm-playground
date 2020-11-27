@@ -7,11 +7,11 @@ import Firestore.Config
 firestore : Firestore
 firestore =
     Firestore.Config.new
-        { apiKey = "AIzaSyAxnPNLsLdrme25S8aOcJgCe42Uy0UQ64A"
-        , project = "lovefinderzz"
+        { apiKey = "AIzaSyAHNxt048Q4BFwbt_ehv4t4rxydqdc0QNc"
+        , project = "elm-games"
         }
         |> Firestore.init
-        |> Firestore.withCollection "test"
+        |> Firestore.withCollection "factory-city"
         |> Firestore.withCollection "shop"
 
 

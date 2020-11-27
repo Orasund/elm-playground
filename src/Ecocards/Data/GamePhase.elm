@@ -8,6 +8,7 @@ import Ecocards.Data.Animal as Animal exposing (Animal, Behaviour(..))
 import Ecocards.Data.Bag as Bag
 import Ecocards.Data.Game as Game exposing (Game)
 import Ecocards.Data.Move as Move exposing (Move)
+import Html.Attributes exposing (id)
 import List.Extra as List
 import Set exposing (Set)
 
@@ -162,89 +163,89 @@ emptyMove { id, played, game } =
 
 calcMove : { id : Int, played : Set Int, game : Game } -> Maybe Move
 calcMove { id, played, game } =
-    case game.animals |> Dict.get id of
-        Just tappingAnimal ->
-            let
-                selected : Set Int
-                selected =
-                    let
-                        amounts =
-                            tappingAnimal |> Animal.getAmounts
+    game.animals
+        |> Dict.get id
+        |> Maybe.andThen
+            (\tappingAnimal ->
+                let
+                    selected : Set Int
+                    selected =
+                        let
+                            amounts =
+                                tappingAnimal |> Animal.getAmounts
 
-                        toAnimals : Dict Int a -> Dict Int Animal
-                        toAnimals =
-                            Dict.filterMap
-                                (\i _ ->
-                                    game.animals
-                                        |> Dict.get i
-                                        |> Maybe.andThen
-                                            (\animal ->
-                                                if
-                                                    animal.strength
-                                                        < tappingAnimal.strength
-                                                        && (case tappingAnimal.behaviour of
-                                                                Predator _ ->
-                                                                    animal.biome == tappingAnimal.biome
+                            toAnimals : Dict Int a -> Dict Int Animal
+                            toAnimals =
+                                Dict.filterMap
+                                    (\i _ ->
+                                        game.animals
+                                            |> Dict.get i
+                                            |> Maybe.andThen
+                                                (\animal ->
+                                                    if
+                                                        animal.strength
+                                                            < tappingAnimal.strength
+                                                            && (case tappingAnimal.behaviour of
+                                                                    Predator _ ->
+                                                                        animal.biome == tappingAnimal.biome
 
-                                                                _ ->
-                                                                    True
-                                                           )
-                                                then
-                                                    Just animal
+                                                                    _ ->
+                                                                        True
+                                                               )
+                                                    then
+                                                        Just animal
 
-                                                else
-                                                    Nothing
-                                            )
-                                )
-
-                        yourAnimalList =
-                            game.yourArea.placed
-                                |> Dict.remove id
-                                |> toAnimals
-
-                        oppAnimalList =
-                            game.oppArea.placed
-                                |> toAnimals
-
-                        toBag =
-                            Dict.toList
-                                >> List.map (\( _, { strength } ) -> strength)
-                                >> List.group
-                                >> List.map (Tuple.mapSecond (List.length >> (+) 1))
-                                >> Bag.fromList
-                    in
-                    case tappingAnimal.behaviour of
-                        Herbivores _ ->
-                            Set.empty
-
-                        _ ->
-                            Bag.findMinMaxSubset amounts
-                                { maxBag =
-                                    oppAnimalList
-                                        |> toBag
-                                , minBag =
-                                    yourAnimalList
-                                        |> toBag
-                                }
-                                |> Maybe.map
-                                    (\{ maxBag, minBag } ->
-                                        Set.union
-                                            (yourAnimalList |> Move.getSubset minBag)
-                                            (oppAnimalList |> Move.getSubset maxBag)
+                                                    else
+                                                        Nothing
+                                                )
                                     )
-                                |> Maybe.withDefault Set.empty
-            in
-            emptyMove { id = id, played = played, game = game }
-                |> Maybe.map
-                    (\move ->
-                        { move
-                            | selected =
-                                selected
-                        }
-                    )
 
-        Nothing ->
-            Nothing
+                            yourAnimalList =
+                                game.yourArea.placed
+                                    |> Dict.remove id
+                                    |> toAnimals
+
+                            oppAnimalList =
+                                game.oppArea.placed
+                                    |> toAnimals
+
+                            toBag =
+                                Dict.toList
+                                    >> List.map (\( _, { strength } ) -> strength)
+                                    >> List.group
+                                    >> List.map (Tuple.mapSecond (List.length >> (+) 1))
+                                    >> Bag.fromList
+                        in
+                        case tappingAnimal.behaviour of
+                            Herbivores _ ->
+                                Set.empty
+
+                            _ ->
+                                Bag.findMinMaxSubset amounts
+                                    { maxBag =
+                                        oppAnimalList
+                                            |> toBag
+                                    , minBag =
+                                        yourAnimalList
+                                            |> toBag
+                                    }
+                                    |> Maybe.map
+                                        (\{ maxBag, minBag } ->
+                                            Set.union
+                                                (yourAnimalList |> Move.getSubset minBag)
+                                                (oppAnimalList |> Move.getSubset maxBag)
+                                        )
+                                    |> Maybe.withDefault Set.empty
+                in
+                emptyMove { id = id, played = played, game = game }
+                    |> Maybe.map
+                        (\move ->
+                            { move
+                                | selected =
+                                    selected
+                            }
+                        )
+            )
 
 
 autoTap :

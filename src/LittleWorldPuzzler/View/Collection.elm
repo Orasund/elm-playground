@@ -75,9 +75,10 @@ tree scale msgMapper set =
                 )
             , Water |> viewCell scale msgMapper set
             , Element.column (attributes scale) <|
-                ([ Wood, Evergreen ]
-                    |> List.map (viewCell scale msgMapper set)
-                )
+                [ Wood |> viewCell scale msgMapper set
+                , Element.row (attributes scale) <|
+                    ([ Evergreen, Bug ] |> List.map (viewCell scale msgMapper set))
+                ]
             , Element.column (attributes scale) <|
                 [ Fire |> viewCell scale msgMapper set
                 , Element.row (attributes scale) <|

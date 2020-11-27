@@ -5,10 +5,8 @@ import Bag exposing (Bag)
 import Browser.Dom as Dom exposing (Viewport)
 import Element exposing (Element)
 import Element.Font as Font
-import FactoryCity.Data as Data
 import FactoryCity.Data.RemoteShop as RemoteShop
 import FactoryCity.View.Text as Text
-import Firestore exposing (Firestore)
 import Framework.Card as Card
 import Framework.Color as Color
 import Framework.Grid as Grid

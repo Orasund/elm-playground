@@ -74,4 +74,4 @@ view scale restartMsg score =
                 [ Font.sansSerif ]
             ]
         <|
-            Element.text ("Version " ++ String.fromInt gameVersion ++ ": " ++ updateName ++ " Update")
+            Element.text ("Version 2." ++ String.fromInt gameVersion ++ ": " ++ updateName ++ " Update")

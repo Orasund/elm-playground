@@ -1,22 +1,20 @@
-module LittleWorldPuzzler.Data.Entry exposing (Entry, json, new)
+module LittleWorldPuzzler.Data.Entry exposing (Entry, codec, new)
 
-import Jsonstore exposing (Json)
-import LittleWorldPuzzler.Data as Data exposing (gameVersion)
-import LittleWorldPuzzler.Data.Game as Game exposing (EndCondition(..), Game)
+import Firestore.Codec as Codec exposing (Codec)
+import LittleWorldPuzzler.Data as Data
+import LittleWorldPuzzler.Data.Game exposing (Game)
 import UndoList exposing (UndoList)
 
 
 type alias Entry =
-    { history : UndoList Game
-    , version : Int
+    { version : Int
     , score : Int
     }
 
 
 new : UndoList Game -> Entry
 new history =
-    { history = history
-    , version = gameVersion
+    { version = Data.gameVersion
     , score = history.present.score
     }
 
@@ -25,21 +23,27 @@ new history =
 {------------------------
    Json
 ------------------------}
-
-
-jsonUndoList : Json (UndoList Game)
+{--jsonUndoList : Json (UndoList Game)
 jsonUndoList =
     Jsonstore.object UndoList
         |> Jsonstore.withList "past" Game.json (.past >> List.take Data.maxHistorySize)
         |> Jsonstore.with "present" Game.json .present
         |> Jsonstore.withList "future" Game.json .future
         |> Jsonstore.toJson
-
-
-json : Json Entry
+--}
+{--json : Json Entry
 json =
     Jsonstore.object Entry
         |> Jsonstore.with "history" jsonUndoList .history
         |> Jsonstore.with "version" Jsonstore.int .version
         |> Jsonstore.with "score" Jsonstore.int .score
         |> Jsonstore.toJson
+--}
+
+
+codec : Codec Entry
+codec =
+    Codec.document Entry
+        |> Codec.required "version" .version Codec.int
+        |> Codec.required "score" .score Codec.int
+        |> Codec.build

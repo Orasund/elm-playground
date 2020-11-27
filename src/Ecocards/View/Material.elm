@@ -3,25 +3,10 @@ module Ecocards.View.Material exposing (Palette, accessibleTextColor, accessible
 import Color exposing (Color)
 import Color.Accessibility as Accessibility
 import Color.Convert as Convert
-import Element exposing (Attribute, Element)
+import Element exposing (Attribute)
 import Element.Background as Background
-import Element.Border as Border
 import Element.Font as Font
 import Html.Attributes as Attributes
-import Svg exposing (Svg)
-import Svg.Attributes
-import Widget.Style
-    exposing
-        ( ButtonStyle
-        , ColumnStyle
-        , DialogStyle
-        , ExpansionPanelStyle
-        , LayoutStyle
-        , RowStyle
-        , SnackbarStyle
-        , TabStyle
-        , TextInputStyle
-        )
 
 
 

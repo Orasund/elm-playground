@@ -4,10 +4,11 @@ module LittleWorldPuzzler.Request exposing
     , setHighscore
     )
 
+import Firestore exposing (Document)
+import Firestore.Codec as Codec
+import Firestore.Encode exposing (Encoder)
 import Http exposing (Error(..))
-import Json.Encode exposing (Value)
-import Jsonstore
-import LittleWorldPuzzler.Data exposing (devMode, gameVersion)
+import LittleWorldPuzzler.Data as Data exposing (gameVersion)
 import LittleWorldPuzzler.Data.Entry as Entry exposing (Entry)
 import Task
 
@@ -15,76 +16,59 @@ import Task
 type Response
     = GotHighscore Entry
     | AchievedNewHighscore
-    | GotError Error
+    | GotError Firestore.Error
     | Done
 
 
-url : String
-url =
-    if devMode then
-        "https://www.jsonstore.io/af03b4dff8d40b568fb0a32885b718ba9de323f3e68b395cc0980fa3e73e0e88/dev"
-
-    else
-        "https://www.jsonstore.io/af03b4dff8d40b568fb0a32885b718ba9de323f3e68b395cc0980fa3e73e0e88"
-
-
 getHighscore : { score : Int, challenge : Bool } -> Cmd Response
-getHighscore { score, challenge } =
+getHighscore { score } =
     let
-        response : Result Error (Maybe Entry) -> Response
+        response : Result Firestore.Error (Document Entry) -> Response
         response result =
             case result of
-                Ok maybeEntry ->
-                    case maybeEntry of
-                        Just entry ->
-                            if
-                                entry.version
-                                    > gameVersion
-                                    || (entry.version == gameVersion && entry.score > score)
-                            then
-                                GotHighscore entry
+                Ok { fields } ->
+                    if
+                        fields.version
+                            > gameVersion
+                            || (fields.version == gameVersion && fields.score > score)
+                    then
+                        GotHighscore fields
 
-                            else
-                                AchievedNewHighscore
-
-                        Nothing ->
-                            AchievedNewHighscore
+                    else
+                        AchievedNewHighscore
 
                 Err error ->
                     case error of
-                        BadBody _ ->
-                            error
-                                |> always AchievedNewHighscore
+                        Firestore.Http_ err ->
+                            case err of
+                                BadBody _ ->
+                                    AchievedNewHighscore
 
-                        _ ->
-                            error |> GotError
+                                _ ->
+                                    error |> GotError
+
+                        Firestore.Response _ ->
+                            AchievedNewHighscore
     in
     Task.attempt
         response
-        (Jsonstore.get
-            (url
-                ++ (if challenge then
-                        "/challenge"
-
-                    else
-                        "/highscore"
-                   )
-            )
-            (Jsonstore.decode <| Entry.json)
+        (Firestore.get
+            (Entry.codec |> Codec.asDecoder)
+            Data.firestore
         )
 
 
 setHighscore : { entry : Entry, challenge : Bool } -> Cmd Response
-setHighscore { entry, challenge } =
+setHighscore { entry } =
     let
-        value : Value
+        value : Encoder
         value =
-            (Entry.json |> Jsonstore.encode) entry
+            (Entry.codec |> Codec.asEncoder) entry
 
-        response : Result Error () -> Response
+        response : Result Firestore.Error (Document Entry) -> Response
         response result =
             case result of
-                Ok () ->
+                Ok _ ->
                     Done
 
                 Err error ->
@@ -92,14 +76,8 @@ setHighscore { entry, challenge } =
     in
     Task.attempt
         response
-        (Jsonstore.insert
-            (url
-                ++ (if challenge then
-                        "/challenge"
-
-                    else
-                        "/highscore"
-                   )
-            )
+        (Firestore.override
+            (Entry.codec |> Codec.asDecoder)
             value
+            Data.firestore
         )

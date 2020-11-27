@@ -160,6 +160,36 @@ playSecond position cellType ( { game } as state, seed ) =
         )
 
 
+pickUp : CellType -> Position -> Model -> Action
+pickUp cellType position ( { game, history } as state, seed ) =
+    let
+        seconds : Float
+        seconds =
+            1000
+    in
+    Action.updating
+        ( ( { state
+                | game =
+                    { game
+                        | board =
+                            case game.board |> Grid.remove position of
+                                Ok board ->
+                                    board
+
+                                Err _ ->
+                                    game.board
+                        , deck = game.deck |> Deck.placeOnDiscard cellType
+                        , score = game.score - 2
+                    }
+                , selected = Nothing
+                , history = history |> UndoList.new game
+            }
+          , seed
+          )
+        , Task.perform (always CardPlaced) <| Process.sleep (0.1 * seconds)
+        )
+
+
 update : Msg -> Model -> Action
 update msg (( { game, history, selected, mode, viewCollection, collection } as state, seed ) as model) =
     let
@@ -178,19 +208,27 @@ update msg (( { game, history, selected, mode, viewCollection, collection } as s
                 )
 
         PositionSelected position ->
-            case selected of
-                Just First ->
-                    playFirst position model
-
-                Just Second ->
-                    case game.deck |> Deck.second of
-                        Just second ->
-                            playSecond position second model
-
-                        Nothing ->
+            case game.board |> Grid.get position of
+                Ok Nothing ->
+                    case selected of
+                        Just First ->
                             playFirst position model
 
-                Nothing ->
+                        Just Second ->
+                            case game.deck |> Deck.second of
+                                Just second ->
+                                    playSecond position second model
+
+                                Nothing ->
+                                    playFirst position model
+
+                        Nothing ->
+                            defaultCase
+
+                Ok (Just cell) ->
+                    pickUp cell position model
+
+                Err _ ->
                     defaultCase
 
         CardPlaced ->

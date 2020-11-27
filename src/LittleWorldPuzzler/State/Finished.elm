@@ -4,9 +4,10 @@ import Action
 import Element exposing (Element)
 import Element.Font as Font
 import Element.Input as Input
+import Firestore exposing (Error(..))
 import Framework.Button as Button
 import Framework.Heading as Heading
-import Http exposing (Error(..))
+import Http
 import LittleWorldPuzzler.Data.Entry as Entry exposing (Entry)
 import LittleWorldPuzzler.Data.Game exposing (EndCondition(..), Game)
 import LittleWorldPuzzler.Request as Request exposing (Response(..))
@@ -59,6 +60,7 @@ type alias LeaderboardState =
     { game : Game
     , highscore : Entry
     , newHighscore : Bool
+    , error : Maybe Error
     }
 
 
@@ -68,8 +70,7 @@ type Model
 
 
 type Msg
-    = RequestedReplay
-    | RequestedHighscore Response
+    = RequestedHighscore Response
 
 
 type alias Action =
@@ -91,20 +92,6 @@ update msg model =
                 ( model, Cmd.none )
     in
     case msg of
-        RequestedReplay ->
-            case model of
-                Highscore { highscore } ->
-                    case highscore.history |> UndoList.toList of
-                        present :: future ->
-                            Action.transitioning <|
-                                UndoList.fromList present future
-
-                        _ ->
-                            defaultCase
-
-                _ ->
-                    defaultCase
-
         RequestedHighscore response ->
             case model of
                 End ({ history, game, challenge } as endState) ->
@@ -115,6 +102,7 @@ update msg model =
                                     { game = game
                                     , highscore = entry
                                     , newHighscore = False
+                                    , error = Nothing
                                     }
                                 , Cmd.none
                                 )
@@ -130,6 +118,7 @@ update msg model =
                                     { game = game
                                     , highscore = newEntry
                                     , newHighscore = True
+                                    , error = Nothing
                                     }
                                 , Request.setHighscore { entry = newEntry, challenge = challenge }
                                     |> Cmd.map RequestedHighscore
@@ -145,8 +134,17 @@ update msg model =
                         Done ->
                             defaultCase
 
-                _ ->
-                    defaultCase
+                Highscore highscoreState ->
+                    case response of
+                        GotError error ->
+                            Action.updating
+                                ( Highscore
+                                    { highscoreState | error = Just error }
+                                , Cmd.none
+                                )
+
+                        _ ->
+                            defaultCase
 
 
 
@@ -155,8 +153,8 @@ update msg model =
 ----------------------
 
 
-viewScore : { requestedReplayMsg : msg, restartMsg : msg } -> { score : Int, response : Maybe (Result Error ( Int, Bool )) } -> List (Element msg)
-viewScore { requestedReplayMsg, restartMsg } { score, response } =
+viewScore : { restartMsg : msg } -> { score : Int, response : Maybe (Result Error ( Int, Bool )) } -> List (Element msg)
+viewScore { restartMsg } { score, response } =
     List.concat
         [ [ Element.el (Heading.h2 ++ [ Element.centerX ]) <|
                 Element.text <|
@@ -182,18 +180,6 @@ viewScore { requestedReplayMsg, restartMsg } { score, response } =
                     Element.text <|
                         String.fromInt <|
                             highscore
-                , Input.button
-                    (Button.simple
-                        ++ [ Font.family [ Font.sansSerif ]
-                           , Element.centerX
-                           , Font.color <| Element.rgb 0 0 0
-                           ]
-                    )
-                  <|
-                    { onPress = Just requestedReplayMsg
-                    , label =
-                        Element.text "Replay Highscore"
-                    }
                 ]
 
             Just (Err error) ->
@@ -230,20 +216,25 @@ viewScore { requestedReplayMsg, restartMsg } { score, response } =
 viewError : Error -> String
 viewError e =
     case e of
-        BadUrl string ->
-            "BadUrl: " ++ string
+        Http_ err ->
+            case err of
+                Http.BadUrl string ->
+                    "BadUrl: " ++ string
 
-        Timeout ->
-            "Timeout"
+                Http.Timeout ->
+                    "Timeout"
 
-        NetworkError ->
-            "Network Error"
+                Http.NetworkError ->
+                    "Network Error"
 
-        BadStatus int ->
-            "Response Status: " ++ String.fromInt int
+                Http.BadStatus int ->
+                    "Response Status: " ++ String.fromInt int
 
-        BadBody string ->
-            string
+                Http.BadBody string ->
+                    string
+
+        Response err ->
+            err.message
 
 
 view :
@@ -272,8 +263,7 @@ view scale restartMsg msgMapper model =
                     newHighscore
         , shade =
             viewScore
-                { requestedReplayMsg = msgMapper RequestedReplay
-                , restartMsg = restartMsg
+                { restartMsg = restartMsg
                 }
                 { score = score
                 , response =
@@ -281,12 +271,17 @@ view scale restartMsg msgMapper model =
                         End { error } ->
                             error |> Maybe.map Err
 
-                        Highscore { highscore, newHighscore } ->
-                            Just <|
-                                Ok <|
-                                    ( highscore.history.present.score
-                                    , newHighscore
-                                    )
+                        Highscore { highscore, newHighscore, error } ->
+                            case error of
+                                Just err ->
+                                    Just (Err err)
+
+                                Nothing ->
+                                    Just <|
+                                        Ok <|
+                                            ( highscore.score
+                                            , newHighscore
+                                            )
                 }
         }
     , [ HeaderView.view scale restartMsg game.score

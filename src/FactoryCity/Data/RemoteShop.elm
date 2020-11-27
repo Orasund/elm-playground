@@ -4,13 +4,10 @@ import Bag exposing (Bag)
 import FactoryCity.Data as Data
 import FactoryCity.Data.CellType exposing (ContainerSort(..))
 import FactoryCity.Data.Item as Item exposing (Item(..))
-import FactoryCity.String as String
 import Firestore exposing (Error(..))
-import Firestore.Decode as D exposing (Decoder)
-import Firestore.Encode as E exposing (Encoder)
+import Firestore.Codec as Codec exposing (Codec)
+import Firestore.Encode as E
 import Http
-import Json.Encode
-import Jsonstore exposing (Json)
 import Task exposing (Task)
 
 
@@ -50,35 +47,16 @@ toBag { chips, iron, scrap, stone, wood, chipboard } =
         |> Bag.fromList
 
 
-decoder : Decoder RemoteShop
-decoder =
-    D.document RemoteShop
-        |> D.optional (Chips |> Item.itemToString) D.int 0
-        |> D.optional (Iron |> Item.itemToString) D.int 0
-        |> D.optional (Scrap |> Item.itemToString) D.int 0
-        |> D.optional (Stone |> Item.itemToString) D.int 0
-        |> D.optional (Wood |> Item.itemToString) D.int 0
-        |> D.optional (Chipboard |> Item.itemToString) D.int 0
-
-
-encoder : RemoteShop -> Encoder
-encoder shop =
-    [ ( Chips, .chips )
-    , ( Iron, .iron )
-    , ( Scrap, .scrap )
-    , ( Stone, .stone )
-    , ( Wood, .wood )
-    , ( Chipboard, .chipboard )
-    ]
-        |> List.filterMap
-            (\( item, fun ) ->
-                shop
-                    |> fun
-                    |> (\amount ->
-                            Just ( item |> Item.itemToString, E.int amount )
-                       )
-            )
-        |> E.document
+codec : Codec RemoteShop
+codec =
+    Codec.document RemoteShop
+        |> Codec.optional (Chips |> Item.itemToString) .chips Codec.int 0
+        |> Codec.optional (Iron |> Item.itemToString) .iron Codec.int 0
+        |> Codec.optional (Scrap |> Item.itemToString) .scrap Codec.int 0
+        |> Codec.optional (Stone |> Item.itemToString) .stone Codec.int 0
+        |> Codec.optional (Wood |> Item.itemToString) .wood Codec.int 0
+        |> Codec.optional (Chipboard |> Item.itemToString) .chipboard Codec.int 0
+        |> Codec.build
 
 
 mapTask :
@@ -97,7 +75,6 @@ mapTask =
                         let
                             _ =
                                 response
-                                    |> Debug.log "Response"
                         in
                         default
                             |> Task.succeed
@@ -107,39 +84,47 @@ mapTask =
 sync : Task Http.Error (Bag String)
 sync =
     Data.firestore
-        |> Firestore.get decoder
+        |> Firestore.get (codec |> Codec.asDecoder)
         |> mapTask
 
 
 remove : Item -> Int -> Task Http.Error (Bag String)
 remove item amount =
     Data.firestore
-        |> Firestore.get decoder
+        |> Firestore.get (codec |> Codec.asDecoder)
         |> Task.andThen
             (\{ fields } ->
                 Data.firestore
-                    |> Firestore.patch decoder
-                        ((case item of
-                            Chips ->
-                                { fields | chips = fields.chips - amount |> max 0 }
+                    |> Firestore.patch (codec |> Codec.asDecoder)
+                        { updateFields =
+                            [ ( item |> Item.itemToString
+                              , fields
+                                    |> (case item of
+                                            Chips ->
+                                                .chips
 
-                            Iron ->
-                                { fields | iron = fields.iron - amount |> max 0 }
+                                            Iron ->
+                                                .iron
 
-                            Scrap ->
-                                { fields | scrap = fields.scrap - amount |> max 0 }
+                                            Scrap ->
+                                                .scrap
 
-                            Stone ->
-                                { fields | stone = fields.stone - amount |> max 0 }
+                                            Stone ->
+                                                .stone
 
-                            Wood ->
-                                { fields | wood = fields.wood - amount |> max 0 }
+                                            Wood ->
+                                                .wood
 
-                            Chipboard ->
-                                { fields | chipboard = fields.chipboard - amount |> max 0 }
-                         )
-                            |> encoder
-                        )
+                                            Chipboard ->
+                                                .chipboard
+                                       )
+                                    |> (+) -amount
+                                    |> max 0
+                                    |> E.int
+                              )
+                            ]
+                        , deleteFields = []
+                        }
             )
         |> mapTask
 
@@ -163,32 +148,39 @@ remove item amount =
 insert : Item -> Int -> Task Http.Error (Bag String)
 insert item amount =
     Data.firestore
-        |> Firestore.get decoder
+        |> Firestore.get (codec |> Codec.asDecoder)
         |> Task.andThen
             (\{ fields } ->
                 Data.firestore
-                    |> Firestore.patch decoder
-                        ((case item of
-                            Chips ->
-                                { fields | chips = fields.chips + amount }
+                    |> Firestore.patch (codec |> Codec.asDecoder)
+                        { updateFields =
+                            [ ( item |> Item.itemToString
+                              , fields
+                                    |> (case item of
+                                            Chips ->
+                                                .chips
 
-                            Iron ->
-                                { fields | iron = fields.iron + amount }
+                                            Iron ->
+                                                .iron
 
-                            Scrap ->
-                                { fields | scrap = fields.scrap + amount }
+                                            Scrap ->
+                                                .scrap
 
-                            Stone ->
-                                { fields | stone = fields.stone + amount }
+                                            Stone ->
+                                                .stone
 
-                            Wood ->
-                                { fields | wood = fields.wood + amount }
+                                            Wood ->
+                                                .wood
 
-                            Chipboard ->
-                                { fields | chipboard = fields.chipboard + amount }
-                         )
-                            |> encoder
-                        )
+                                            Chipboard ->
+                                                .chipboard
+                                       )
+                                    |> (+) amount
+                                    |> E.int
+                              )
+                            ]
+                        , deleteFields = []
+                        }
             )
         |> mapTask
 

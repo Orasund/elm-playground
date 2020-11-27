@@ -6,6 +6,7 @@ module LittleWorldPuzzler.Data.Deck exposing
     , generator
     , json
     , moveTofirst
+    , placeOnDiscard
     , playFirst
     , playSecond
     , played
@@ -94,16 +95,21 @@ moveTofirst ((Zipper ls x rs) as zipper) =
 
 playFirst : Bool -> Deck -> Generator Deck
 playFirst optionShuffle deck =
-    case deck |> Zipper.next of
-        Just newDeck ->
-            Random.constant newDeck
+    case deck |> Zipper.after of
+        b :: tail ->
+            deck
+                |> Zipper.mapCurrent (always b)
+                |> Zipper.mapAfter (always tail)
+                |> Random.constant
 
-        Nothing ->
-            if optionShuffle then
-                deck |> shuffle
+        [] ->
+            generator
+                |> (if optionShuffle then
+                        Random.andThen shuffle
 
-            else
-                generator
+                    else
+                        identity
+                   )
 
 
 playSecond : Deck -> Deck
@@ -111,11 +117,16 @@ playSecond deck =
     case deck |> Zipper.after of
         b :: tail ->
             deck
-                |> Zipper.mapBefore (\list -> [ b ] |> List.append list)
+                --|> Zipper.mapBefore (\list -> [ b ] |> List.append list)
                 |> Zipper.mapAfter (always tail)
 
         [] ->
             deck
+
+
+placeOnDiscard : CellType -> Deck -> Deck
+placeOnDiscard cellType deck =
+    deck |> Zipper.mapAfter ((::) cellType)
 
 
 shuffle : Deck -> Generator Deck

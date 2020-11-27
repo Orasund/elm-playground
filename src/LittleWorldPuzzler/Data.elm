@@ -1,14 +1,17 @@
-module LittleWorldPuzzler.Data exposing (devMode, gameVersion, maxHistorySize, updateName)
+module LittleWorldPuzzler.Data exposing (devMode, firestore, gameVersion, maxHistorySize, updateName)
+
+import Firestore exposing (Firestore)
+import Firestore.Config
 
 
 gameVersion : Int
 gameVersion =
-    5
+    0
 
 
 devMode : Bool
 devMode =
-    True
+    False
 
 
 updateName : String
@@ -19,3 +22,14 @@ updateName =
 maxHistorySize : Int
 maxHistorySize =
     2 * 100
+
+
+firestore : Firestore
+firestore =
+    Firestore.Config.new
+        { apiKey = "AIzaSyAHNxt048Q4BFwbt_ehv4t4rxydqdc0QNc"
+        , project = "elm-games"
+        }
+        |> Firestore.init
+        |> Firestore.withCollection "little-world-puzzler"
+        |> Firestore.withCollection "highscore"

@@ -33,7 +33,6 @@ type alias Model =
 
 type Msg
     = NormalModeSelected
-    | ChallengeModeSelected
     | ObtainedData ( Month, Int )
 
 
@@ -112,16 +111,6 @@ update msg (( game, seed ) as model) =
                 , seed = seed
                 , mode = Normal
                 }
-
-        ChallengeModeSelected ->
-            Action.updating
-                ( model
-                , Task.perform
-                    (\t ->
-                        ObtainedData ( t |> Time.toMonth Time.utc, t |> Time.toYear Time.utc )
-                    )
-                    Time.now
-                )
 
         ObtainedData ( month, year ) ->
             let
@@ -211,13 +200,8 @@ view scale restartMsg msgMapper ( game, _ ) =
                 , Element.column (Grid.simple ++ [ Element.centerY ]) <|
                     [ viewMode
                         (msgMapper <| NormalModeSelected)
-                        { title = "Normal"
-                        , desc = "Random cards, one life. If you loose you can blame RNG."
-                        }
-                    , viewMode
-                        (msgMapper <| ChallengeModeSelected)
-                        { title = "Monthly Challenge"
-                        , desc = "No randomness. Fixed card order. Comes with an undo button."
+                        { title = "Play"
+                        , desc = ""
                         }
                     ]
                 ]
