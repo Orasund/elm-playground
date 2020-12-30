@@ -76,7 +76,7 @@ setHighscore { entry } =
     in
     Task.attempt
         response
-        (Firestore.override
+        (Firestore.upsert
             (Entry.codec |> Codec.asDecoder)
             value
             Data.firestore

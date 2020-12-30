@@ -243,7 +243,7 @@ view :
     -> (Msg -> msg)
     -> Model
     -> ( Maybe { isWon : Bool, shade : List (Element msg) }, List (Element msg) )
-view scale restartMsg msgMapper model =
+view scale restartMsg _ model =
     let
         ({ score } as game) =
             case model of

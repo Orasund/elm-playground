@@ -30,7 +30,7 @@ viewElement n =
                 |> Svg.polygon2d
                     [ Attributes.stroke <| View.green
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]
             , Circle2d.atPoint
                 (Point2d.pixels (View.width / 2) (View.height / 2))
@@ -60,7 +60,7 @@ viewElement n =
                 |> Svg.polygon2d
                     [ Attributes.stroke <| View.red
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]
             , Circle2d.atPoint
                 (Point2d.pixels (View.width / 2) (View.height / 2))
@@ -78,7 +78,7 @@ viewElement n =
                 |> Svg.polygon2d
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]
             , Polyline2d.fromVertices
                 [ Point2d.pixels (View.width / 2) (View.height / 2 + (View.radius / 2))
@@ -87,7 +87,7 @@ viewElement n =
                 |> Svg.polyline2d
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]
             ]
 
@@ -99,7 +99,7 @@ viewElement n =
                 |> Svg.polygon2d
                     [ Attributes.stroke <| View.blue
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]
             , Polyline2d.fromVertices
                 [ Point2d.pixels 0 (View.height / 2)
@@ -108,7 +108,7 @@ viewElement n =
                 |> Svg.polyline2d
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]
             , Polyline2d.fromVertices
                 [ Point2d.pixels (View.width / 2) (View.height / 2 + (bigRadius / 2))
@@ -117,7 +117,7 @@ viewElement n =
                 |> Svg.polyline2d
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]
             ]
 
@@ -136,14 +136,14 @@ viewPlanet n =
                 |> Svg.polygon2d
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]
             , Circle2d.atPoint (Point2d.pixels (View.width / 2) (View.height / 2))
                 (Pixels.pixels <| bigRadius / 2)
                 |> Svg.circle2d
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill <| "transparent"
+                    , Attributes.fill <| "none"
                     ]
             , Polyline2d.fromVertices
                 [ Point2d.pixels (View.width / 2) (View.height / 2)
@@ -152,7 +152,7 @@ viewPlanet n =
                 |> Svg.polyline2d
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]
             ]
 
@@ -164,7 +164,7 @@ viewPlanet n =
                 |> Svg.polygon2d
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]
             , View.regularPolygon
                 { n = 3, scale = View.radius, standing = False }
@@ -172,7 +172,7 @@ viewPlanet n =
                 |> Svg.polygon2d
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]
             ]
 
@@ -184,7 +184,7 @@ viewPlanet n =
                 |> Svg.polygon2d
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]
             , Circle2d.atPoint
                 (Point2d.pixels (View.width / 2) (View.height / 2))
@@ -215,7 +215,7 @@ viewPlanet n =
                 |> Svg.polygon2d
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]
             , View.regularPolygon
                 { n = 4, scale = View.radius * 2, standing = True }
@@ -223,7 +223,7 @@ viewPlanet n =
                 |> Svg.polygon2d
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]
             ]
 
@@ -235,7 +235,7 @@ viewPlanet n =
                 |> Svg.polygon2d
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]
             , Circle2d.atPoint
                 (Point2d.pixels (View.width / 2) (View.height / 2))
@@ -267,7 +267,7 @@ viewPlanet n =
                 |> Svg.polygon2d
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]
             , Circle2d.atPoint
                 (Point2d.pixels (View.width / 2) (View.height / 2))
@@ -297,7 +297,7 @@ viewPlanet n =
                 |> Svg.polygon2d
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]
             , Circle2d.atPoint
                 (Point2d.pixels (View.width / 2) (View.height / 2))
@@ -353,7 +353,7 @@ viewPlanet n =
                 |> Svg.polygon2d
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]
             , Polyline2d.fromVertices
                 [ Point2d.pixels (View.width / 2) (View.height / 2)
@@ -362,7 +362,7 @@ viewPlanet n =
                 |> Svg.polyline2d
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]
             ]
 
@@ -380,7 +380,7 @@ viewEmotion n =
                 |> Svg.polygon2d
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]
             , Circle2d.atPoint (Point2d.pixels (View.width / 2) (View.height / 2))
                 (Pixels.pixels <| View.relative <| 1 / 2)
@@ -410,7 +410,7 @@ viewEmotion n =
                 |> Svg.polygon2d
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]
             , Circle2d.atPoint (Point2d.pixels (View.width / 2) (View.height / 2))
                 (Pixels.pixels <| View.relative <| 1 / 2)
@@ -440,7 +440,7 @@ viewEmotion n =
                 |> Svg.polygon2d
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]
             , Circle2d.atPoint (Point2d.pixels (View.width / 2) (View.height / 2))
                 (Pixels.pixels <| View.relative <| 1 / 2)
@@ -486,7 +486,7 @@ viewEmotion n =
                 |> Svg.polygon2d
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]
             , Circle2d.atPoint (Point2d.pixels (View.width / 2) (View.height / 2))
                 (Pixels.pixels <| View.relative <| 1 / 2)
@@ -538,7 +538,7 @@ viewTrump n =
                 |> Svg.circle2d
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill <| "transparent"
+                    , Attributes.fill <| "none"
                     ]
             , Polygon2d.singleLoop
                 [ Point2d.pixels (View.width / 2) (View.height / 2 - bigRadius)
@@ -557,7 +557,7 @@ viewTrump n =
                 |> Svg.polygon2d
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]
             , Circle2d.atPoint (Point2d.pixels (View.width / 2) (View.height / 2))
                 (Pixels.pixels <| View.relative <| 1 / 2)
@@ -583,7 +583,7 @@ viewTrump n =
                 |> Svg.polygon2d
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]
             , Circle2d.atPoint
                 (Point2d.pixels (View.width / 2) (View.height / 2))
@@ -619,7 +619,7 @@ viewTrump n =
                 |> Svg.polygon2d
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]
             , Circle2d.atPoint (Point2d.pixels (View.width / 2) (View.height / 2))
                 (Pixels.pixels <| View.relative <| 1 / 2)
@@ -652,7 +652,7 @@ viewTrump n =
                 |> Svg.circle2d
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill <| "transparent"
+                    , Attributes.fill <| "none"
                     ]
             , Circle2d.atPoint
                 (Point2d.pixels (View.width / 2) (View.height / 2))
@@ -669,7 +669,7 @@ viewTrump n =
                 |> Svg.polygon2d
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]
             , View.regularPolygon
                 { n = 3, scale = View.radius, standing = True }
@@ -677,7 +677,7 @@ viewTrump n =
                 |> Svg.polygon2d
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]
             , Polygon2d.singleLoop
                 [ Point2d.pixels (View.width / 4) (View.height / 2 - View.radius - View.relative 1)
@@ -696,7 +696,7 @@ viewTrump n =
                 |> Svg.polygon2d
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]
             , Circle2d.atPoint
                 (Point2d.pixels (View.width / 2) (View.height / 2))
@@ -726,7 +726,7 @@ viewTrump n =
                 |> Svg.polygon2d
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]
             , View.regularPolygon
                 { n = 4, scale = View.radius / 2, standing = True }
@@ -734,7 +734,7 @@ viewTrump n =
                 |> Svg.polygon2d
                     [ Attributes.stroke <| Card.color <| Trump n
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]
             , Polygon2d.singleLoop
                 [ Point2d.pixels (View.width / 2) (View.height / 2 - bigRadius - View.relative 1 / 2)
@@ -752,7 +752,7 @@ viewTrump n =
                 |> Svg.circle2d
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]
             , Circle2d.atPoint (Point2d.pixels (View.width / 2) (View.height / 2))
                 (Pixels.pixels <| View.relative <| 1 / 2)
@@ -778,14 +778,14 @@ viewTrump n =
                 |> Svg.polygon2d
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]
             , Circle2d.atPoint (Point2d.pixels (View.width / 2 + bigRadius + View.radius / 2) (View.height / 2))
                 (Pixels.pixels <| View.radius * 1 / 2)
                 |> Svg.circle2d
                     [ Attributes.stroke <| Card.color <| Trump n
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill <| "transparent"
+                    , Attributes.fill <| "none"
                     ]
             , Polygon2d.singleLoop
                 [ Point2d.pixels (View.width / 2 + bigRadius) (View.height / 2)
@@ -804,7 +804,7 @@ viewTrump n =
                 |> Svg.polygon2d
                     [ Attributes.stroke <| Card.color <| Trump n
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]
             , Polygon2d.singleLoop
                 [ Point2d.pixels 0 (View.height / 2)
@@ -823,7 +823,7 @@ viewTrump n =
                 |> Svg.polygon2d
                     [ Attributes.stroke <| Card.color <| Trump n
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]
             , Polygon2d.singleLoop
                 [ Point2d.pixels 0 (View.height / 2)
@@ -842,7 +842,7 @@ viewTrump n =
                 |> Svg.polygon2d
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]
             , View.regularPolygon
                 { n = 3, scale = View.radius * 1 / 2, standing = True }
@@ -851,7 +851,7 @@ viewTrump n =
                 |> Svg.polygon2d
                     [ Attributes.stroke <| Card.color <| Trump n
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]
             , Polygon2d.singleLoop
                 [ Point2d.pixels (View.width / 2) (View.height / 2)
@@ -870,7 +870,7 @@ viewTrump n =
                 |> Svg.polygon2d
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]
             , Circle2d.atPoint
                 (Point2d.pixels (View.width / 2) (View.height / 2))
@@ -900,7 +900,7 @@ viewTrump n =
                 |> Svg.polygon2d
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]
             , View.regularPolygon
                 { n = 4, scale = View.radius / 2, standing = True }
@@ -908,7 +908,7 @@ viewTrump n =
                 |> Svg.polygon2d
                     [ Attributes.stroke <| Card.color <| Trump n
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]
             , Polygon2d.singleLoop
                 [ Point2d.pixels (View.width / 2) (View.height / 2 - bigRadius)
@@ -927,7 +927,7 @@ viewTrump n =
                 |> Svg.polygon2d
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]
             , View.regularPolygon
                 { n = 4, scale = View.radius * 2, standing = True }
@@ -935,7 +935,7 @@ viewTrump n =
                 |> Svg.polygon2d
                     [ Attributes.stroke <| Card.color <| Trump n
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]
             , Polygon2d.singleLoop
                 [ Point2d.pixels (View.width / 2 + bigRadius) (View.height / 2)
@@ -954,7 +954,7 @@ viewTrump n =
                 |> Svg.polygon2d
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]
             , Circle2d.atPoint (Point2d.pixels (View.width / 2) (View.height / 2))
                 (Pixels.pixels <| View.relative <| 1 / 2)
@@ -980,7 +980,7 @@ viewTrump n =
                 |> Svg.polygon2d
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]
             , Polygon2d.singleLoop
                 [ Point2d.pixels (View.width / 2) (View.height / 2 - bigRadius)
@@ -998,7 +998,7 @@ viewTrump n =
                 |> Svg.circle2d
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill <| "transparent"
+                    , Attributes.fill <| "none"
                     ]
             , Circle2d.atPoint (Point2d.pixels (View.width / 2) (View.height / 2))
                 (Pixels.pixels <| View.relative <| 1 / 2)
@@ -1059,7 +1059,7 @@ viewTrump n =
                 |> Svg.polygon2d
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]
             , Circle2d.atPoint (Point2d.pixels (View.width / 2) (View.height / 2))
                 (Pixels.pixels <| View.relative <| 1 / 2)
@@ -1080,6 +1080,18 @@ viewTrump n =
 
         _ ->
             []
+
+
+viewBack : List (Svg msg)
+viewBack =
+    [ Circle2d.atPoint (Point2d.pixels (View.width / 2) (View.height / 2))
+        (Pixels.pixels <| View.radius)
+        |> Svg.circle2d
+            [ Attributes.stroke <| "white"
+            , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
+            , Attributes.fill <| "none"
+            ]
+    ]
 
 
 view : Card -> List (Svg msg)
@@ -1103,7 +1115,7 @@ view card =
                 |> Svg.circle2d
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]--}
               View.regularPolygon
                 { n = 3, scale = View.radius * 2, standing = True }
@@ -1111,19 +1123,25 @@ view card =
                 |> Svg.polygon2d
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]
             , Circle2d.atPoint (Point2d.pixels (View.width / 2) (View.height / 2))
                 (Pixels.pixels <| bigRadius / 2)
                 |> Svg.circle2d
                     [ Attributes.stroke <| "black"
                     , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "transparent"
+                    , Attributes.fill "none"
                     ]
             ]
 
-        _ ->
+        Black _ ->
             []
+
+        White _ ->
+            []
+
+        Back ->
+            viewBack
 
 
 

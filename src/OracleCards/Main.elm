@@ -41,6 +41,9 @@ viewCard card =
                 Emotion _ ->
                     True
 
+                Back ->
+                    False
+
         viewValue =
             Card.value card
                 |> String.fromInt
@@ -57,8 +60,8 @@ viewCard card =
     in
     (Rectangle2d.from Point2d.origin (Point2d.pixels View.width View.height)
         |> Svg.rectangle2d
-            [ Attributes.stroke "black"
-            , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
+            [ Attributes.stroke "none"
+            , Attributes.strokeWidth <| String.fromFloat <| 0
             , Attributes.fill <|
                 if isWhite then
                     "white"
@@ -69,144 +72,19 @@ viewCard card =
     )
         :: (case card of
                 Joker ->
-                    []
+                    { value = 0
+                    , size = 0
+                    , color = "black"
+                    }
+                        |> Sigil.view (Point2d.pixels (View.width / 2) View.padding)
 
                 Trump _ ->
-                    {- [ {--n
-                           |> String.fromInt
-                           |> Svg.text
-                           |> List.singleton
-                           |> Svg.text_
-                               [ Attributes.x <| String.fromFloat <| View.padding
-                               , Attributes.y <| String.fromFloat <| View.padding + View.relative 6.5
-                               , Attributes.textAnchor <| "middle"
-                               , Attributes.style <| "font: bold " ++ (String.fromFloat <| View.relative 2.5) ++ "px serif"
-                               , Attributes.fill <|
-                                   if isWhite then
-                                       "black"
-
-                                   else
-                                       "white"
-                               ]
-                       , --}
-                         --viewValue
-
-                       --]
-                    -}
                     []
 
-                {--{ value = n
-                    , size = 4
-                    }
-                        |> Sigil.view (Point2d.pixels (View.width / 2) View.padding)--}
                 Emotion _ ->
-                    {--[ Circle2d.atPoint (Point2d.pixels (View.padding + View.relative 1) (View.padding + View.relative 1))
-                        (Pixels.pixels <| View.relative 2)
-                        |> Svg.circle2d
-                            [ Attributes.stroke <|
-                                if isWhite then
-                                    "black"
-
-                                else
-                                    "white"
-                            , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 0.5
-                            , Attributes.fill <|
-                                if isWhite then
-                                    "white"
-
-                                else
-                                    View.blackBackground
-                            ]
-                    , Polygon2d.singleLoop
-                        [ Point2d.pixels (View.padding - View.relative 1) (View.padding + View.relative 1)
-                        , Point2d.pixels (View.padding + View.relative 3) (View.padding + View.relative 1)
-                        ]
-                        |> Svg.polygon2d
-                            [ Attributes.stroke <|
-                                if isWhite then
-                                    "black"
-
-                                else
-                                    "white"
-                            , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 0.5
-                            ]
-                    ]--}
-                    {--[ View.regularPolygon
-                        { n = 3, scale = View.relative 2, standing = True }
-                        ( View.width / 2, View.height - View.padding + View.relative 1 )
-                        |> Svg.polygon2d
-                            [ Attributes.stroke <|
-                                if isWhite then
-                                    "black"
-
-                                else
-                                    "white"
-                            , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 0.5
-                            , Attributes.fill "transparent"
-                            ]
-                    , Circle2d.atPoint (Point2d.pixels (View.width / 2) (View.height - View.padding + View.relative 1))
-                        (Pixels.pixels <| View.relative 0.25)
-                        |> Svg.circle2d
-                            [ Attributes.fill <|
-                                if isWhite then
-                                    "black"
-
-                                else
-                                    "white"
-                            ]
-                    ]--}
                     []
 
                 Element n ->
-                    {--[ Circle2d.atPoint (Point2d.pixels (View.padding + View.relative 1) (View.padding + (View.relative <| -1 + 1)))
-                        (Pixels.pixels <|
-                            View.relative <|
-                                if n == 1 || n == 4 then
-                                    3 / 4
-
-                                else
-                                    1
-                        )
-                        |> Svg.circle2d
-                            [ Attributes.stroke <|
-                                if n == 1 || n == 4 then
-                                    "none"
-
-                                else
-                                    "white"
-                            , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 0.5
-                            , Attributes.fill <|
-                                if n == 1 || n == 4 then
-                                    "white"
-
-                                else
-                                    View.blackBackground
-                            ]
-                    , Circle2d.atPoint (Point2d.pixels (View.padding + View.relative 1) (View.padding + (View.relative <| 3 - 1)))
-                        (Pixels.pixels <|
-                            View.relative <|
-                                if n == 3 || n == 4 then
-                                    3 / 4
-
-                                else
-                                    1
-                        )
-                        |> Svg.circle2d
-                            [ Attributes.stroke <|
-                                if n == 3 || n == 4 then
-                                    "none"
-
-                                else
-                                    "white"
-                            , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 0.5
-                            , Attributes.fill <|
-                                if n == 3 || n == 4 then
-                                    "white"
-
-                                else
-                                    View.blackBackground
-                            ]
-                    ]--}
                     { value =
                         case n of
                             1 ->
@@ -224,63 +102,33 @@ viewCard card =
                             _ ->
                                 0
                     , size = 2
+                    , color = "black"
                     }
                         |> Sigil.view (Point2d.pixels (View.width / 2) View.padding)
 
                 Planet _ ->
-                    {--[ View.regularPolygon
-                        { n = 4, scale = View.relative 2, standing = True }
-                        ( View.padding + View.relative 1, View.padding + View.relative 1 )
-                        |> Svg.polygon2d
-                            [ Attributes.stroke <|
-                                if isWhite then
-                                    "black"
-
-                                else
-                                    "white"
-                            , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 0.5
-                            , Attributes.fill "transparent"
-                            ]
-                    , Circle2d.atPoint (Point2d.pixels (View.padding + View.relative 1) (View.padding + View.relative 1))
-                        (Pixels.pixels <| View.relative 0.25)
-                        |> Svg.circle2d
-                            [ Attributes.fill <|
-                                if isWhite then
-                                    "black"
-
-                                else
-                                    "white"
-                            ]
-                    ]--}
                     { value = Card.value card - 1
                     , size = 3
+                    , color = "black"
+                    }
+                        |> Sigil.view (Point2d.pixels (View.width / 2) View.padding)
+
+                Black _ ->
+                    { value = 1
+                    , size = 1
+                    , color = "white"
+                    }
+                        |> Sigil.view (Point2d.pixels (View.width / 2) View.padding)
+
+                White _ ->
+                    { value = 0
+                    , size = 1
+                    , color = "black"
                     }
                         |> Sigil.view (Point2d.pixels (View.width / 2) View.padding)
 
                 _ ->
-                    if Card.value card == 7 then
-                        []
-
-                    else
-                        [ Circle2d.atPoint (Point2d.pixels View.padding (View.padding + View.relative 6))
-                            (Pixels.pixels <| View.relative 1)
-                            |> Svg.circle2d
-                                [ Attributes.stroke <|
-                                    if isWhite then
-                                        "black"
-
-                                    else
-                                        "white"
-                                , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 0.5
-                                , Attributes.fill <|
-                                    if isWhite then
-                                        "white"
-
-                                    else
-                                        View.blackBackground
-                                ]
-                        , viewValue
-                        ]
+                    []
            )
         ++ (case card of
                 Planet _ ->
@@ -288,9 +136,9 @@ viewCard card =
 
                 Element _ ->
                     [ Polyline2d.fromVertices
-                        [ Point2d.pixels (View.padding / 2) (View.padding / 2 + View.radius)
-                        , Point2d.pixels (View.padding / 2) (View.padding / 2)
-                        , Point2d.pixels (View.padding / 2 + View.radius) (View.padding / 2)
+                        [ Point2d.pixels 0 (View.padding + View.radius)
+                        , Point2d.pixels 0 0
+                        , Point2d.pixels (View.padding + View.radius) 0
                         ]
                         |> Svg.polyline2d
                             [ Attributes.stroke <| "none"
@@ -298,9 +146,9 @@ viewCard card =
                             , Attributes.fill "black"
                             ]
                     , Polyline2d.fromVertices
-                        [ Point2d.pixels (View.width - View.padding / 2 - View.radius) (View.padding / 2)
-                        , Point2d.pixels (View.width - View.padding / 2) (View.padding / 2)
-                        , Point2d.pixels (View.width - View.padding / 2) (View.padding / 2 + View.radius)
+                        [ Point2d.pixels (View.width - View.padding - View.radius) 0
+                        , Point2d.pixels View.width 0
+                        , Point2d.pixels View.width (View.padding + View.radius)
                         ]
                         |> Svg.polyline2d
                             [ Attributes.stroke <| "none"
@@ -308,9 +156,9 @@ viewCard card =
                             , Attributes.fill "black"
                             ]
                     , Polyline2d.fromVertices
-                        [ Point2d.pixels (View.width - View.padding / 2) (View.height - View.padding / 2 - View.radius)
-                        , Point2d.pixels (View.width - View.padding / 2) (View.height - View.padding / 2)
-                        , Point2d.pixels (View.width - View.padding / 2 - View.radius) (View.height - View.padding / 2)
+                        [ Point2d.pixels View.width (View.height - View.padding - View.radius)
+                        , Point2d.pixels View.width View.height
+                        , Point2d.pixels (View.width - View.padding - View.radius) View.height
                         ]
                         |> Svg.polyline2d
                             [ Attributes.stroke <| "none"
@@ -318,9 +166,9 @@ viewCard card =
                             , Attributes.fill "black"
                             ]
                     , Polyline2d.fromVertices
-                        [ Point2d.pixels (View.padding / 2 + View.radius) (View.height - View.padding / 2)
-                        , Point2d.pixels (View.padding / 2) (View.height - View.padding / 2)
-                        , Point2d.pixels (View.padding / 2) (View.height - View.padding / 2 - View.radius)
+                        [ Point2d.pixels (View.padding + View.radius) View.height
+                        , Point2d.pixels 0 View.height
+                        , Point2d.pixels 0 (View.height - View.padding - View.radius)
                         ]
                         |> Svg.polyline2d
                             [ Attributes.stroke <| "none"
@@ -331,8 +179,8 @@ viewCard card =
 
                 _ ->
                     Rectangle2d.from
-                        (Point2d.pixels (View.padding / 2) (View.padding / 2))
-                        (Point2d.pixels (View.width - View.padding / 2) (View.height - View.padding / 2))
+                        (Point2d.pixels (12 * 7) (12 * 7))
+                        (Point2d.pixels (View.width - 12 * 7) (View.height - 12 * 7))
                         |> Svg.rectangle2d
                             [ Attributes.stroke <| Card.color card
                             , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 0.1
@@ -341,7 +189,7 @@ viewCard card =
                         |> List.singleton
            )
         ++ Image.view card
-        ++ [ card
+        ++ ((card
                 |> Card.description
                 |> Svg.text
                 |> List.singleton
@@ -349,7 +197,7 @@ viewCard card =
                     [ Attributes.x <| String.fromFloat <| View.width / 2
                     , Attributes.y <| String.fromFloat <| View.height - View.padding - View.relative 3
                     , Attributes.textAnchor <| "middle"
-                    , Attributes.style <| "font: " ++ (String.fromFloat <| View.relative <| (3 / 70) * View.width) ++ "px sans-serif"
+                    , Attributes.style <| "font: " ++ (String.fromFloat <| View.relative <| 3) ++ "px sans-serif"
                     , Attributes.fill <|
                         case card of
                             Black 2 ->
@@ -365,49 +213,37 @@ viewCard card =
                                 else
                                     "white"
                     ]
-           , Rectangle2d.from Point2d.origin (Point2d.pixels View.width View.height)
-                |> Svg.rectangle2d
-                    [ Attributes.stroke "black"
-                    , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 2
-                    , Attributes.fill <| "transparent"
-                    ]
-           ]
-        ++ (case card of
-                Emotion _ ->
-                    []
+            )
+                :: (case card of
+                        Emotion _ ->
+                            []
 
-                _ ->
-                    card
-                        |> Card.title
-                        |> Svg.text
-                        |> List.singleton
-                        |> Svg.text_
-                            [ Attributes.x <| String.fromFloat <| View.width - View.padding
-                            , Attributes.y <| String.fromFloat <| View.padding
-                            , Attributes.textAnchor <| "start"
-                            , Attributes.style <| "font: " ++ (String.fromFloat <| View.relative <| (1.8 / 70) * View.width) ++ "px sans-serif"
-                            , Attributes.writingMode <| "tb"
-                            , Attributes.fill <|
-                                if isWhite then
-                                    "black"
+                        _ ->
+                            card
+                                |> Card.title
+                                |> Svg.text
+                                |> List.singleton
+                                |> Svg.text_
+                                    [ Attributes.x <| String.fromFloat <| View.width - View.padding - (View.relative <| 0.6)
+                                    , Attributes.y <| String.fromFloat <| View.padding
+                                    , Attributes.textAnchor <| "start"
+                                    , Attributes.style <| "font: " ++ (String.fromFloat <| View.relative <| 1.8) ++ "px sans-serif"
+                                    , Attributes.writingMode <| "tb"
+                                    , Attributes.fill <|
+                                        if isWhite then
+                                            "black"
 
-                                else
-                                    "white"
-                            ]
-                        |> List.singleton
+                                        else
+                                            "white"
+                                    ]
+                                |> List.singleton
+                   )
            )
 
 
 smallSet : List Card
 smallSet =
-    [ White 7, Black 7, Joker ]
-        {- [ White, Black ]
-           |> List.concatMap
-               (\fun ->
-                   List.range 1 7
-                       |> List.map fun
-               )
-        -}
+    [ White 7, Black 7, Joker, Back ]
         |> List.append
             (List.range 1 21
                 |> List.map Trump
@@ -431,6 +267,7 @@ main =
                     |> Svg.svg
                         [ Attributes.width <| (String.fromFloat <| View.zoom * View.width) ++ "px"
                         , Attributes.height <| (String.fromFloat <| View.zoom * View.height) ++ "px"
+                        , Attributes.version <| "1.1"
                         , Attributes.viewBox <|
                             "0 0 "
                                 ++ String.fromFloat View.width

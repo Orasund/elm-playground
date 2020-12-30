@@ -11,6 +11,7 @@ type Card
     | Element Int
     | Planet Int
     | Joker
+    | Back
 
 
 color : Card -> String
@@ -49,13 +50,13 @@ title : Card -> String
 title card =
     case card of
         Joker ->
-            "Joker"
+            "Narr"
 
         Black _ ->
-            "Dunkelheit"
+            "Ende"
 
         White _ ->
-            "Licht"
+            "Anfang"
 
         Trump n ->
             case n of
@@ -187,6 +188,9 @@ title card =
 
                 _ ->
                     "Planet"
+
+        Back ->
+            ""
 
 
 description : Card -> String
@@ -321,7 +325,7 @@ description card =
                     "Verwirklichung"
 
                 6 ->
-                    "Annerkennung"
+                    "Anerkennung"
 
                 7 ->
                     "Eigentum"
@@ -331,6 +335,9 @@ description card =
 
                 _ ->
                     "Jahreszeit"
+
+        Back ->
+            ""
 
 
 value : Card -> Int
@@ -364,3 +371,6 @@ value card =
 
         Planet v ->
             v
+
+        Back ->
+            -1

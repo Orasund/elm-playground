@@ -41,17 +41,18 @@ red =
 
 zoom : Float
 zoom =
-    4 * 0.63
+    0.36
 
 
 
+--4 * 0.63
 --0.63
 --0.73
 
 
 width : Float
 width =
-    70
+    898
 
 
 
@@ -61,7 +62,7 @@ width =
 
 height : Float
 height =
-    120
+    1488
 
 
 
@@ -71,7 +72,11 @@ height =
 
 padding : Float
 padding =
-    relative 7
+    12 * (3 + (4 * 2))
+
+
+
+--relative 7
 
 
 radius : Float
@@ -93,7 +98,11 @@ relative =
             else
                 width / height
     in
-    (*) factor
+    (*) (factor * width / 70)
+
+
+
+--factor
 
 
 regularPolygon : { n : Int, scale : Float, standing : Bool } -> ( Float, Float ) -> Polygon2d Pixels coordinates

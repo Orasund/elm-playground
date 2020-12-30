@@ -13,7 +13,6 @@ import LittleWorldPuzzler.State.Playing as PlayingState exposing (Mode(..))
 import LittleWorldPuzzler.View.Game as GameView
 import LittleWorldPuzzler.View.Header as HeaderView
 import Random exposing (Generator, Seed)
-import Task
 import Time exposing (Month(..))
 
 
@@ -33,7 +32,6 @@ type alias Model =
 
 type Msg
     = NormalModeSelected
-    | ObtainedData ( Month, Int )
 
 
 type alias Action =
@@ -62,66 +60,14 @@ init seed =
 ----------------------
 
 
-monthToInt : Month -> Int
-monthToInt month =
-    case month of
-        Jan ->
-            1
-
-        Feb ->
-            2
-
-        Mar ->
-            3
-
-        Apr ->
-            4
-
-        May ->
-            5
-
-        Jun ->
-            6
-
-        Jul ->
-            7
-
-        Aug ->
-            8
-
-        Sep ->
-            9
-
-        Oct ->
-            10
-
-        Nov ->
-            11
-
-        Dec ->
-            12
-
-
 update : Msg -> Model -> Action
-update msg (( game, seed ) as model) =
+update msg ( game, seed ) =
     case msg of
         NormalModeSelected ->
             Action.transitioning
                 { game = game
                 , seed = seed
                 , mode = Normal
-                }
-
-        ObtainedData ( month, year ) ->
-            let
-                newSeed : Seed
-                newSeed =
-                    Random.initialSeed <| year * 100 + monthToInt month
-            in
-            Action.transitioning
-                { game = Random.step Game.generator newSeed |> Tuple.first
-                , seed = newSeed
-                , mode = Challenge
                 }
 
 

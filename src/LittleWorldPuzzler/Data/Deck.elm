@@ -115,7 +115,7 @@ playFirst optionShuffle deck =
 playSecond : Deck -> Deck
 playSecond deck =
     case deck |> Zipper.after of
-        b :: tail ->
+        _ :: tail ->
             deck
                 --|> Zipper.mapBefore (\list -> [ b ] |> List.append list)
                 |> Zipper.mapAfter (always tail)

@@ -3,7 +3,7 @@ module OracleCards.Sigil exposing (view)
 import Angle
 import Arc2d
 import Binary
-import Circle2d
+import Circle2d exposing (radius)
 import Geometry.Svg as Svg
 import LineSegment2d
 import OracleCards.View as View
@@ -39,11 +39,113 @@ type Shape
     | DoubleLoop
     | LineLoop
     | LineDoubleLoop
+    | Spiral
+    | Singleton
 
 
-shapeToSvg : Vector2d Pixels coord -> Direction -> Shape -> ( Point2d Pixels coord -> List (Svg msg), Vector2d Pixels coord, Direction )
-shapeToSvg p direction shape =
+shapeToSvg : String -> Vector2d Pixels coord -> Direction -> Shape -> ( Point2d Pixels coord -> List (Svg msg), Vector2d Pixels coord, Direction )
+shapeToSvg color p direction shape =
     case ( direction, shape ) of
+        ( d, Singleton ) ->
+            ( \offset ->
+                let
+                    point =
+                        offset |> Point2d.translateBy p
+                in
+                [ (point
+                    |> Point2d.translateBy (Vector2d.pixels -radius 0)
+                  )
+                    |> Circle2d.withRadius (Pixels.pixels (radius / 2))
+                    |> Svg.circle2d
+                        [ Attributes.stroke color
+                        , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
+                        , Attributes.fill "none"
+                        ]
+                , point
+                    |> Point2d.translateBy (Vector2d.pixels -(radius / 2) 0)
+                    |> LineSegment2d.from (point |> Point2d.translateBy (Vector2d.pixels (radius / 2) 0))
+                    |> Svg.lineSegment2d
+                        [ Attributes.stroke color
+                        , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
+                        , Attributes.fill "none"
+                        ]
+                , (point
+                    |> Point2d.translateBy (Vector2d.pixels radius 0)
+                  )
+                    |> Circle2d.withRadius (Pixels.pixels (radius / 2))
+                    |> Svg.circle2d
+                        [ Attributes.stroke color
+                        , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
+                        , Attributes.fill "none"
+                        ]
+                ]
+            , p
+            , d
+            )
+
+        ( Up, Spiral ) ->
+            ( \offset ->
+                let
+                    point =
+                        offset |> Point2d.translateBy p
+                in
+                [ point
+                    |> Point2d.translateBy (Vector2d.pixels -(radius * 4) 0)
+                    |> Arc2d.sweptAround
+                        (point
+                            |> Point2d.translateBy (Vector2d.pixels -(radius * 4) 0)
+                            |> Point2d.translateBy (Vector2d.pixels (radius * 2) 0)
+                        )
+                        (Angle.degrees -180)
+                    |> Svg.arc2d
+                        [ Attributes.stroke color
+                        , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
+                        , Attributes.fill "none"
+                        ]
+                , point
+                    |> Point2d.translateBy (Vector2d.pixels 0 -(radius / 2))
+                    |> Circle2d.withRadius (Pixels.pixels (radius / 2))
+                    |> Svg.circle2d
+                        [ Attributes.stroke color
+                        , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
+                        , Attributes.fill "none"
+                        ]
+                ]
+            , p |> Vector2d.plus (Vector2d.pixels -(radius * 4) 0)
+            , Up
+            )
+
+        ( Down, Spiral ) ->
+            ( \offset ->
+                let
+                    point =
+                        offset |> Point2d.translateBy p
+                in
+                [ point
+                    |> Point2d.translateBy (Vector2d.pixels (radius * 4) 0)
+                    |> Arc2d.sweptAround
+                        (point
+                            |> Point2d.translateBy (Vector2d.pixels (radius * 4) 0)
+                            |> Point2d.translateBy (Vector2d.pixels -(radius * 2) 0)
+                        )
+                        (Angle.degrees -180)
+                    |> Svg.arc2d
+                        [ Attributes.stroke color
+                        , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
+                        , Attributes.fill "none"
+                        ]
+                , (point |> Point2d.translateBy (Vector2d.pixels 0 (radius / 2)))
+                    |> Circle2d.withRadius (Pixels.pixels (radius / 2))
+                    |> Svg.circle2d
+                        [ Attributes.stroke color
+                        , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
+                        , Attributes.fill "none"
+                        ]
+                ]
+            , p |> Vector2d.plus (Vector2d.pixels (radius * 4) 0)
+            , Down
+            )
+
         ( Up, Start ) ->
             ( \offset ->
                 let
@@ -55,14 +157,14 @@ shapeToSvg p direction shape =
                         (point |> Point2d.translateBy (Vector2d.pixels (radius * 2) 0))
                         (Angle.degrees 90)
                     |> Svg.arc2d
-                        [ Attributes.stroke "black"
+                        [ Attributes.stroke color
                         , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
                         , Attributes.fill "none"
                         ]
                 , (point |> Point2d.translateBy (Vector2d.pixels (radius * 2.5) -(radius * 2)))
                     |> Circle2d.withRadius (Pixels.pixels (radius / 2))
                     |> Svg.circle2d
-                        [ Attributes.stroke "black"
+                        [ Attributes.stroke color
                         , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
                         , Attributes.fill "none"
                         ]
@@ -80,7 +182,7 @@ shapeToSvg p direction shape =
                 (point |> Point2d.translateBy (Vector2d.pixels 0 (radius / 2)))
                     |> Circle2d.withRadius (Pixels.pixels (radius / 2))
                     |> Svg.circle2d
-                        [ Attributes.stroke "black"
+                        [ Attributes.stroke color
                         , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
                         , Attributes.fill "none"
                         ]
@@ -95,14 +197,25 @@ shapeToSvg p direction shape =
                     point =
                         offset |> Point2d.translateBy p
                 in
-                (point |> Point2d.translateBy (Vector2d.pixels 0 -(radius / 2)))
-                    |> Circle2d.withRadius (Pixels.pixels (radius / 2))
-                    |> Svg.circle2d
-                        [ Attributes.stroke "black"
+                [ point
+                    |> Point2d.translateBy (Vector2d.pixels radius 0)
+                    |> LineSegment2d.from point
+                    |> Svg.lineSegment2d
+                        [ Attributes.stroke color
                         , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
                         , Attributes.fill "none"
                         ]
-                    |> List.singleton
+                , (point
+                    |> Point2d.translateBy (Vector2d.pixels radius 0)
+                    |> Point2d.translateBy (Vector2d.pixels (radius / 2) 0)
+                  )
+                    |> Circle2d.withRadius (Pixels.pixels (radius / 2))
+                    |> Svg.circle2d
+                        [ Attributes.stroke color
+                        , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
+                        , Attributes.fill "none"
+                        ]
+                ]
             , p
             , Up
             )
@@ -114,18 +227,27 @@ shapeToSvg p direction shape =
                         offset |> Point2d.translateBy p
                 in
                 [ point
-                    |> Arc2d.sweptAround
-                        (point |> Point2d.translateBy (Vector2d.pixels -(radius * 2) 0))
-                        (Angle.degrees 90)
-                    |> Svg.arc2d
-                        [ Attributes.stroke "black"
+                    |> Point2d.translateBy (Vector2d.pixels 0 radius)
+                    |> LineSegment2d.from point
+                    |> Svg.lineSegment2d
+                        [ Attributes.stroke color
                         , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
                         , Attributes.fill "none"
                         ]
-                , (point |> Point2d.translateBy (Vector2d.pixels -(radius * 2.5) (radius * 2)))
+                , point
+                    |> Point2d.translateBy (Vector2d.pixels 0 radius)
+                    |> Arc2d.sweptAround
+                        (point |> Point2d.translateBy (Vector2d.pixels radius radius))
+                        (Angle.degrees -90)
+                    |> Svg.arc2d
+                        [ Attributes.stroke color
+                        , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
+                        , Attributes.fill "none"
+                        ]
+                , (point |> Point2d.translateBy (Vector2d.pixels (radius * 1.5) (radius * 2)))
                     |> Circle2d.withRadius (Pixels.pixels (radius / 2))
                     |> Svg.circle2d
-                        [ Attributes.stroke "black"
+                        [ Attributes.stroke color
                         , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
                         , Attributes.fill "none"
                         ]
@@ -143,7 +265,7 @@ shapeToSvg p direction shape =
                 (point |> Point2d.translateBy (Vector2d.pixels 0 -(radius / 2)))
                     |> Circle2d.withRadius (Pixels.pixels (radius / 2))
                     |> Svg.circle2d
-                        [ Attributes.stroke "black"
+                        [ Attributes.stroke color
                         , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
                         , Attributes.fill "none"
                         ]
@@ -161,7 +283,7 @@ shapeToSvg p direction shape =
                 (point |> Point2d.translateBy (Vector2d.pixels 0 (radius / 2)))
                     |> Circle2d.withRadius (Pixels.pixels (radius / 2))
                     |> Svg.circle2d
-                        [ Attributes.stroke "black"
+                        [ Attributes.stroke color
                         , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
                         , Attributes.fill "none"
                         ]
@@ -181,7 +303,7 @@ shapeToSvg p direction shape =
                         (point |> Point2d.translateBy (Vector2d.pixels radius 0))
                         (Angle.degrees -180)
                     |> Svg.arc2d
-                        [ Attributes.stroke "black"
+                        [ Attributes.stroke color
                         , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
                         , Attributes.fill "none"
                         ]
@@ -201,7 +323,7 @@ shapeToSvg p direction shape =
                         (point |> Point2d.translateBy (Vector2d.pixels radius 0))
                         (Angle.degrees 180)
                     |> Svg.arc2d
-                        [ Attributes.stroke "black"
+                        [ Attributes.stroke color
                         , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
                         , Attributes.fill "none"
                         ]
@@ -221,14 +343,14 @@ shapeToSvg p direction shape =
                         (point |> Point2d.translateBy (Vector2d.pixels (radius * 1.5) 0))
                         (Angle.degrees -180)
                     |> Svg.arc2d
-                        [ Attributes.stroke "black"
+                        [ Attributes.stroke color
                         , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
                         , Attributes.fill "none"
                         ]
                 , (point |> Point2d.translateBy (Vector2d.pixels (radius * 1.5) (2 * radius)))
                     |> Circle2d.withRadius (Pixels.pixels (radius / 2))
                     |> Svg.circle2d
-                        [ Attributes.stroke "black"
+                        [ Attributes.stroke color
                         , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
                         , Attributes.fill "none"
                         ]
@@ -248,14 +370,14 @@ shapeToSvg p direction shape =
                         (point |> Point2d.translateBy (Vector2d.pixels (radius * 1.5) 0))
                         (Angle.degrees 180)
                     |> Svg.arc2d
-                        [ Attributes.stroke "black"
+                        [ Attributes.stroke color
                         , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
                         , Attributes.fill "none"
                         ]
                 , (point |> Point2d.translateBy (Vector2d.pixels (radius * 1.5) -(2 * radius)))
                     |> Circle2d.withRadius (Pixels.pixels (radius / 2))
                     |> Svg.circle2d
-                        [ Attributes.stroke "black"
+                        [ Attributes.stroke color
                         , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
                         , Attributes.fill "none"
                         ]
@@ -274,7 +396,7 @@ shapeToSvg p direction shape =
                     |> Point2d.translateBy (Vector2d.pixels 0 (radius * 4))
                     |> LineSegment2d.from point
                     |> Svg.lineSegment2d
-                        [ Attributes.stroke "black"
+                        [ Attributes.stroke color
                         , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
                         , Attributes.fill "none"
                         ]
@@ -284,7 +406,7 @@ shapeToSvg p direction shape =
                         (point |> Point2d.translateBy (Vector2d.pixels -(radius / 2) (radius * 4)))
                         (Angle.degrees 180)
                     |> Svg.arc2d
-                        [ Attributes.stroke "black"
+                        [ Attributes.stroke color
                         , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
                         , Attributes.fill "none"
                         ]
@@ -294,7 +416,7 @@ shapeToSvg p direction shape =
                         (point |> Point2d.translateBy (Vector2d.pixels radius (radius * 4)))
                         (Angle.degrees 180)
                     |> Svg.arc2d
-                        [ Attributes.stroke "black"
+                        [ Attributes.stroke color
                         , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
                         , Attributes.fill "none"
                         ]
@@ -304,7 +426,7 @@ shapeToSvg p direction shape =
                         (point |> Point2d.translateBy (Vector2d.pixels (radius * 2.5) (radius * 4)))
                         (Angle.degrees 180)
                     |> Svg.arc2d
-                        [ Attributes.stroke "black"
+                        [ Attributes.stroke color
                         , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
                         , Attributes.fill "none"
                         ]
@@ -312,7 +434,7 @@ shapeToSvg p direction shape =
                     |> Point2d.translateBy (Vector2d.pixels (radius * 2) (radius * 4))
                     |> LineSegment2d.from (point |> Point2d.translateBy (Vector2d.pixels (radius * 2) 0))
                     |> Svg.lineSegment2d
-                        [ Attributes.stroke "black"
+                        [ Attributes.stroke color
                         , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
                         , Attributes.fill "none"
                         ]
@@ -331,7 +453,7 @@ shapeToSvg p direction shape =
                     |> Point2d.translateBy (Vector2d.pixels 0 -(radius * 4))
                     |> LineSegment2d.from point
                     |> Svg.lineSegment2d
-                        [ Attributes.stroke "black"
+                        [ Attributes.stroke color
                         , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
                         , Attributes.fill "none"
                         ]
@@ -341,7 +463,7 @@ shapeToSvg p direction shape =
                         (point |> Point2d.translateBy (Vector2d.pixels -(radius / 2) -(radius * 4)))
                         (Angle.degrees -180)
                     |> Svg.arc2d
-                        [ Attributes.stroke "black"
+                        [ Attributes.stroke color
                         , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
                         , Attributes.fill "none"
                         ]
@@ -351,7 +473,7 @@ shapeToSvg p direction shape =
                         (point |> Point2d.translateBy (Vector2d.pixels radius -(radius * 4)))
                         (Angle.degrees -180)
                     |> Svg.arc2d
-                        [ Attributes.stroke "black"
+                        [ Attributes.stroke color
                         , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
                         , Attributes.fill "none"
                         ]
@@ -361,7 +483,7 @@ shapeToSvg p direction shape =
                         (point |> Point2d.translateBy (Vector2d.pixels (radius * 2.5) -(radius * 4)))
                         (Angle.degrees -180)
                     |> Svg.arc2d
-                        [ Attributes.stroke "black"
+                        [ Attributes.stroke color
                         , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
                         , Attributes.fill "none"
                         ]
@@ -369,7 +491,7 @@ shapeToSvg p direction shape =
                     |> Point2d.translateBy (Vector2d.pixels (radius * 2) -(radius * 4))
                     |> LineSegment2d.from (point |> Point2d.translateBy (Vector2d.pixels (radius * 2) 0))
                     |> Svg.lineSegment2d
-                        [ Attributes.stroke "black"
+                        [ Attributes.stroke color
                         , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
                         , Attributes.fill "none"
                         ]
@@ -388,7 +510,7 @@ shapeToSvg p direction shape =
                     |> Point2d.translateBy (Vector2d.pixels 0 (radius * 4))
                     |> LineSegment2d.from point
                     |> Svg.lineSegment2d
-                        [ Attributes.stroke "black"
+                        [ Attributes.stroke color
                         , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
                         , Attributes.fill "none"
                         ]
@@ -406,7 +528,7 @@ shapeToSvg p direction shape =
                 (point |> Point2d.translateBy (Vector2d.pixels 0 (-radius * 4)))
                     |> LineSegment2d.from point
                     |> Svg.lineSegment2d
-                        [ Attributes.stroke "black"
+                        [ Attributes.stroke color
                         , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
                         , Attributes.fill "none"
                         ]
@@ -425,7 +547,7 @@ shapeToSvg p direction shape =
                     |> Point2d.translateBy (Vector2d.pixels 0 (radius * 4))
                     |> LineSegment2d.from (point |> Point2d.translateBy (Vector2d.pixels 0 0))
                     |> Svg.lineSegment2d
-                        [ Attributes.stroke "black"
+                        [ Attributes.stroke color
                         , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
                         , Attributes.fill "none"
                         ]
@@ -438,7 +560,7 @@ shapeToSvg p direction shape =
                         )
                         (Angle.degrees 180)
                     |> Svg.arc2d
-                        [ Attributes.stroke "black"
+                        [ Attributes.stroke color
                         , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
                         , Attributes.fill "none"
                         ]
@@ -448,7 +570,7 @@ shapeToSvg p direction shape =
                         (point |> Point2d.translateBy (Vector2d.pixels 0 (radius * 4)))
                         (Angle.degrees 180)
                     |> Svg.arc2d
-                        [ Attributes.stroke "black"
+                        [ Attributes.stroke color
                         , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
                         , Attributes.fill "none"
                         ]
@@ -467,7 +589,7 @@ shapeToSvg p direction shape =
                     |> Point2d.translateBy (Vector2d.pixels 0 -(radius * 4))
                     |> LineSegment2d.from (point |> Point2d.translateBy (Vector2d.pixels 0 0))
                     |> Svg.lineSegment2d
-                        [ Attributes.stroke "black"
+                        [ Attributes.stroke color
                         , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
                         , Attributes.fill "none"
                         ]
@@ -480,7 +602,7 @@ shapeToSvg p direction shape =
                         )
                         (Angle.degrees -180)
                     |> Svg.arc2d
-                        [ Attributes.stroke "black"
+                        [ Attributes.stroke color
                         , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
                         , Attributes.fill "none"
                         ]
@@ -490,7 +612,7 @@ shapeToSvg p direction shape =
                         (point |> Point2d.translateBy (Vector2d.pixels 0 -(radius * 4)))
                         (Angle.degrees -180)
                     |> Svg.arc2d
-                        [ Attributes.stroke "black"
+                        [ Attributes.stroke color
                         , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
                         , Attributes.fill "none"
                         ]
@@ -510,7 +632,7 @@ shapeToSvg p direction shape =
                         (point |> Point2d.translateBy (Vector2d.pixels radius 0))
                         (Angle.degrees 180)
                     |> Svg.arc2d
-                        [ Attributes.stroke "black"
+                        [ Attributes.stroke color
                         , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
                         , Attributes.fill "none"
                         ]
@@ -523,7 +645,7 @@ shapeToSvg p direction shape =
                         )
                         (Angle.degrees 180)
                     |> Svg.arc2d
-                        [ Attributes.stroke "black"
+                        [ Attributes.stroke color
                         , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
                         , Attributes.fill "none"
                         ]
@@ -531,7 +653,7 @@ shapeToSvg p direction shape =
                     |> Point2d.translateBy (Vector2d.pixels radius -(radius * 4))
                     |> LineSegment2d.from (point |> Point2d.translateBy (Vector2d.pixels radius 0))
                     |> Svg.lineSegment2d
-                        [ Attributes.stroke "black"
+                        [ Attributes.stroke color
                         , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
                         , Attributes.fill "none"
                         ]
@@ -544,7 +666,7 @@ shapeToSvg p direction shape =
                         )
                         (Angle.degrees -180)
                     |> Svg.arc2d
-                        [ Attributes.stroke "black"
+                        [ Attributes.stroke color
                         , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
                         , Attributes.fill "none"
                         ]
@@ -556,7 +678,7 @@ shapeToSvg p direction shape =
                         )
                         (Angle.degrees -180)
                     |> Svg.arc2d
-                        [ Attributes.stroke "black"
+                        [ Attributes.stroke color
                         , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
                         , Attributes.fill "none"
                         ]
@@ -576,7 +698,7 @@ shapeToSvg p direction shape =
                         (point |> Point2d.translateBy (Vector2d.pixels radius 0))
                         (Angle.degrees -180)
                     |> Svg.arc2d
-                        [ Attributes.stroke "black"
+                        [ Attributes.stroke color
                         , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
                         , Attributes.fill "none"
                         ]
@@ -589,7 +711,7 @@ shapeToSvg p direction shape =
                         )
                         (Angle.degrees -180)
                     |> Svg.arc2d
-                        [ Attributes.stroke "black"
+                        [ Attributes.stroke color
                         , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
                         , Attributes.fill "none"
                         ]
@@ -597,7 +719,7 @@ shapeToSvg p direction shape =
                     |> Point2d.translateBy (Vector2d.pixels radius (radius * 4))
                     |> LineSegment2d.from (point |> Point2d.translateBy (Vector2d.pixels radius 0))
                     |> Svg.lineSegment2d
-                        [ Attributes.stroke "black"
+                        [ Attributes.stroke color
                         , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
                         , Attributes.fill "none"
                         ]
@@ -610,7 +732,7 @@ shapeToSvg p direction shape =
                         )
                         (Angle.degrees 180)
                     |> Svg.arc2d
-                        [ Attributes.stroke "black"
+                        [ Attributes.stroke color
                         , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
                         , Attributes.fill "none"
                         ]
@@ -622,7 +744,7 @@ shapeToSvg p direction shape =
                         )
                         (Angle.degrees 180)
                     |> Svg.arc2d
-                        [ Attributes.stroke "black"
+                        [ Attributes.stroke color
                         , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
                         , Attributes.fill "none"
                         ]
@@ -632,13 +754,13 @@ shapeToSvg p direction shape =
             )
 
 
-shapeListToSvg : Vector2d Pixels coord -> Direction -> List Shape -> ( Point2d Pixels coord -> List (Svg msg), Vector2d Pixels coord, Direction )
-shapeListToSvg p d =
+shapeListToSvg : String -> Vector2d Pixels coord -> Direction -> List Shape -> ( Point2d Pixels coord -> List (Svg msg), Vector2d Pixels coord, Direction )
+shapeListToSvg color p d =
     List.foldl
         (\a ( out, point, direction ) ->
             let
                 ( svg, newPoint, newDirection ) =
-                    a |> shapeToSvg point direction
+                    a |> shapeToSvg color point direction
             in
             ( \offset -> svg offset ++ out offset
             , newPoint
@@ -690,11 +812,20 @@ boolListToShapeList l =
         Nothing ->
             Up
     , case l of
+        [] ->
+            [ Singleton ]
+
+        [ True ] ->
+            [ Spiral, End ]
+
+        [ False ] ->
+            [ Spiral, End ]
+
         [ True, False ] ->
-            [ Circle, LineLoop, Circle ]
+            [ Start, LineLoop, End ]
 
         [ False, True ] ->
-            [ Circle, LineLoop, Circle ]
+            [ Start, LineLoop, End ]
 
         [ True, False, True ] ->
             [ Start, Loop, End ]
@@ -719,8 +850,8 @@ boolListToShapeList l =
     )
 
 
-view : Point2d Pixels coord -> { value : Int, size : Int } -> List (Svg msg)
-view point { value, size } =
+view : Point2d Pixels coord -> { value : Int, size : Int, color : String } -> List (Svg msg)
+view point { value, size, color } =
     let
         ( direction, shapeList ) =
             value
@@ -731,7 +862,8 @@ view point { value, size } =
 
         ( list, dimensions, _ ) =
             shapeList
-                |> shapeListToSvg Vector2d.zero
+                |> shapeListToSvg color
+                    Vector2d.zero
                     direction
 
         dim =
@@ -743,10 +875,10 @@ view point { value, size } =
             |> Point2d.translateBy
                 (case direction of
                     Up ->
-                        Vector2d.pixels 0 -(0 * radius)
+                        Vector2d.pixels 0 (1 * radius)
 
                     Down ->
-                        Vector2d.pixels 0 (4 * radius)
+                        Vector2d.pixels 0 (5 * radius)
                 )
             |> Point2d.translateBy (Vector2d.pixels (-dim.x / 2) 0)
         )
