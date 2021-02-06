@@ -800,7 +800,7 @@ boolListToShapeList l =
                     SemiCircle :: rec tail
 
                 _ :: ((_ :: _) as tail) ->
-                    LineLoop :: rec tail
+                    Line :: rec tail
     in
     ( case l |> List.head of
         Just True ->

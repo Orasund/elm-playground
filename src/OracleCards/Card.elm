@@ -4,12 +4,11 @@ import OracleCards.View as View
 
 
 type Card
-    = Black Int
-    | White Int
+    = Binary Int
     | Trump Int
-    | Emotion Int
     | Element Int
     | Planet Int
+    | Virtue Int
     | Joker
     | Back
 
@@ -17,30 +16,33 @@ type Card
 color : Card -> String
 color card =
     case card of
-        Black _ ->
+        Binary 1 ->
             "white"
 
-        White _ ->
+        Binary 0 ->
             "black"
 
         Trump n ->
-            if n <= 7 then
-                View.blue
-
-            else if n <= 14 then
-                View.red
-
-            else
-                View.green
-
-        Emotion _ ->
-            "none"
+            View.gray
 
         Planet _ ->
             "black"
 
         Element _ ->
             "black"
+
+        Virtue n ->
+            if n <= 4 then
+                View.blue
+
+            else if n <= 8 then
+                View.red
+
+            else if n <= 12 then
+                View.green
+
+            else
+                View.yellow
 
         _ ->
             "none"
@@ -52,96 +54,84 @@ title card =
         Joker ->
             "Narr"
 
-        Black _ ->
-            "Ende"
+        Binary n ->
+            case n of
+                0 ->
+                    "Anfang"
 
-        White _ ->
-            "Anfang"
+                1 ->
+                    "Ende"
+
+                _ ->
+                    "Binary"
 
         Trump n ->
             case n of
                 1 ->
-                    "I - Der Magier"
+                    "Der Magier"
 
                 2 ->
-                    "II - Die Hohepriesterin"
+                    "Die Hohepriesterin"
 
                 3 ->
-                    "III - Die Herrscherin"
+                    "Die Herrscherin"
 
                 4 ->
-                    "IV - Der Herrscher"
+                    "Der Herrscher"
 
                 5 ->
-                    "V - Der Hierophant"
+                    "Der Hierophant"
 
                 6 ->
-                    "VI - Die Liebenden"
+                    "Die Liebenden"
 
                 7 ->
-                    "VII - Der Wagen"
+                    "Der Wagen"
 
                 8 ->
-                    "VIII - Die Gerechtigkeit"
+                    "Die Gerechtigkeit"
 
                 9 ->
-                    "IX - Der Eremit"
+                    "Der Eremit"
 
                 10 ->
-                    "X - Das Rad des Schicksals"
+                    "Das Rad des Schicksals"
 
                 11 ->
-                    "XI - Die Kraft"
+                    "Die Kraft"
 
                 12 ->
-                    "XII - Der Gehängte"
+                    "Der Gehängte"
 
                 13 ->
-                    "XIII - Der Tod"
+                    "Der Tod"
 
                 14 ->
-                    "XIV - Die Mäßigkeit"
+                    "Die Mäßigkeit"
 
                 15 ->
-                    "XV - Der Teufel"
+                    "Der Teufel"
 
                 16 ->
-                    "XVI - Der Turm"
+                    "Der Turm"
 
                 17 ->
-                    "XVII - Der Stern"
+                    "Der Stern"
 
                 18 ->
-                    "XVIII - Der Mond"
+                    "Der Mond"
 
                 19 ->
-                    "XIX - Die Sonne"
+                    "Die Sonne"
 
                 20 ->
-                    "XX - Das Gericht"
+                    "Das Gericht"
 
                 21 ->
-                    "XXI - Die Welt"
+                    "Die Welt"
 
                 _ ->
                     "Trumpf"
-
-        Emotion n ->
-            case n of
-                1 ->
-                    "Freude"
-
-                2 ->
-                    "Trauer"
-
-                3 ->
-                    "Angst"
-
-                4 ->
-                    "Wut"
-
-                _ ->
-                    "Emotion"
 
         Element n ->
             case n of
@@ -189,6 +179,59 @@ title card =
                 _ ->
                     "Planet"
 
+        Virtue n ->
+            case n of
+                1 ->
+                    "Mitgefühl"
+
+                2 ->
+                    "Freundlichkeit"
+
+                3 ->
+                    "Offenheit"
+
+                4 ->
+                    "Vergebung"
+
+                5 ->
+                    "Geduld"
+
+                6 ->
+                    "Treue"
+
+                7 ->
+                    "Selbstbeherrschung"
+
+                8 ->
+                    "Ausdauer"
+
+                9 ->
+                    "Selbsterkenntnis"
+
+                10 ->
+                    "Autentizität"
+
+                11 ->
+                    "Ehrlichkeit"
+
+                12 ->
+                    "Mäßigkeit"
+
+                13 ->
+                    "Humor"
+
+                14 ->
+                    "Hoffnung"
+
+                15 ->
+                    "Mut"
+
+                16 ->
+                    "Fleiß"
+
+                _ ->
+                    "Tugend"
+
         Back ->
             ""
 
@@ -199,11 +242,16 @@ description card =
         Joker ->
             "Sorglosigkeit"
 
-        Black _ ->
-            "Revolution"
+        Binary n ->
+            case n of
+                0 ->
+                    "Geborgenheit"
 
-        White _ ->
-            "Sicherheit"
+                1 ->
+                    "Wandel"
+
+                _ ->
+                    "Binary"
 
         Trump n ->
             case n of
@@ -273,23 +321,6 @@ description card =
                 _ ->
                     "Trumpf"
 
-        Emotion n ->
-            case n of
-                1 ->
-                    "Freude"
-
-                2 ->
-                    "Trauer"
-
-                3 ->
-                    "Angst"
-
-                4 ->
-                    "Wut"
-
-                _ ->
-                    "Emotion"
-
         Element n ->
             case n of
                 1 ->
@@ -328,13 +359,66 @@ description card =
                     "Anerkennung"
 
                 7 ->
-                    "Eigentum"
+                    "Erfolg"
 
                 8 ->
                     "Freiheit"
 
                 _ ->
                     "Jahreszeit"
+
+        Virtue n ->
+            case n of
+                1 ->
+                    "Verbindung"
+
+                2 ->
+                    "Freundlichkeit"
+
+                3 ->
+                    "Offenheit"
+
+                4 ->
+                    "Neubeginn"
+
+                5 ->
+                    "Geduld"
+
+                6 ->
+                    "Treue"
+
+                7 ->
+                    "Selbstbeherrschung"
+
+                8 ->
+                    "Ausdauer"
+
+                9 ->
+                    "Selbsterkenntnis"
+
+                10 ->
+                    "Autentizität"
+
+                11 ->
+                    "Konfrontation"
+
+                12 ->
+                    "Mäßigkeit"
+
+                13 ->
+                    "Positivität"
+
+                14 ->
+                    "Hoffnung"
+
+                15 ->
+                    "Kraft"
+
+                16 ->
+                    "Fleiß"
+
+                _ ->
+                    "Tugend"
 
         Back ->
             ""
@@ -346,11 +430,8 @@ value card =
         Joker ->
             0
 
-        Black v ->
-            v
-
-        White v ->
-            v
+        Binary n ->
+            n
 
         Trump v ->
             v
@@ -363,14 +444,14 @@ value card =
                             n
                    )
 
-        Emotion v ->
-            v
-
         Element v ->
             v
 
         Planet v ->
             v
+
+        Virtue n ->
+            n
 
         Back ->
             -1

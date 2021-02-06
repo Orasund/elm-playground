@@ -1,4 +1,4 @@
-module OracleCards.View exposing (blackBackground, blue, green, height, padding, radius, red, regularPolygon, relative, width, zoom)
+module OracleCards.View exposing (blackBackground, blue, gray, green, height, padding, radius, red, regularPolygon, relative, width, yellow, zoom)
 
 import Angle
 import Pixels exposing (Pixels)
@@ -14,6 +14,11 @@ blackBackground =
 
 
 --"LightGray"
+
+
+gray : String
+gray =
+    "#666666"
 
 
 green : String
@@ -36,7 +41,12 @@ blue =
 
 red : String
 red =
-    "#DC2626"
+    "#DB4646"
+
+
+yellow : String
+yellow =
+    "#D8D815"
 
 
 zoom : Float

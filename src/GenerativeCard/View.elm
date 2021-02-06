@@ -8,7 +8,11 @@ import Svg.Attributes as Attributes
 
 
 color : { iteration : Int, maxIter : Int } -> String
-color { iteration, maxIter } =
+color { iteration } =
+    let
+        maxIter =
+            30
+    in
     Color.hsl (toFloat iteration / toFloat maxIter) 0.7 0.5
         |> Color.toCssString
 

@@ -5,16 +5,21 @@ import Axis2d exposing (Axis2d)
 import Browser
 import Dict exposing (Dict)
 import Direction2d
+import GenerativeCard.Computation as Computation exposing (Computation(..))
 import GenerativeCard.View as View
 import Html exposing (Html)
 import Html.Events as Events
+import Html.Events.Extra.Mouse as Mouse exposing (Event)
 import LineSegment2d exposing (LineSegment2d)
 import Pixels exposing (Pixels)
 import Point2d exposing (Point2d, distanceFrom)
+import Process
 import Quantity exposing (Quantity)
 import Random exposing (Generator, Seed, list)
 import Svg
 import Svg.Attributes as Attributes
+import Task
+import Time exposing (Posix)
 import Vector2d exposing (Vector2d)
 
 
@@ -28,281 +33,300 @@ height =
     800
 
 
-smallesLineSize : Float
-smallesLineSize =
-    10
+optDurationInMillis : Float
+optDurationInMillis =
+    50
 
 
-type alias Model =
+type alias DrawingModel =
+    List (Point2d Pixels ())
+
+
+type alias ReadyModel =
     { iteration : Int
-    , path : List (Point2d Pixels ())
+    , path : List (List (Point2d Pixels ()))
     , drawings : List ( Int, List ( Point2d Pixels (), Point2d Pixels () ) )
-    , working : Bool
     , seed : Seed
+    , computation : Maybe Computation
     }
 
 
+type Model
+    = Drawing DrawingModel
+    | Ready ReadyModel
+
+
+type DrawingMsg
+    = MouseClicked Event
+    | FinishedDrawing
+
+
+type ReadyMsg
+    = NextIteration
+    | Step Posix
+
+
 type Msg
-    = Step
+    = WhileDrawing DrawingMsg
+    | WhileReady ReadyMsg
 
 
 init : () -> ( Model, Cmd Msg )
 init () =
-    let
-        path =
-            [ Point2d.pixels (width / 4) (height / 4)
-            , Point2d.pixels (width * 3 / 4) (height / 4)
-            , Point2d.pixels (width * 3 / 4) (height * 3 / 4)
-            , Point2d.pixels (width / 4) (height * 3 / 4)
-            , Point2d.pixels (width / 4) (height / 4)
-            ]
-
-        iteration =
-            1
-    in
-    ( { iteration = iteration
-      , path = path
-      , drawings =
-            case path of
-                [] ->
-                    []
-
-                head :: tail ->
-                    [ ( iteration
-                      , tail
-                            |> List.foldl
-                                (\to ( from, list ) ->
-                                    ( to
-                                    , ( to, from ) :: list
-                                    )
-                                )
-                                ( head, [] )
-                            |> Tuple.second
-                      )
-                    ]
-      , working = False
-      , seed = Random.initialSeed 42
-      }
+    ( Drawing
+        [ Point2d.pixels (width / 4) (height / 4)
+        , Point2d.pixels (width * 3 / 4) (height / 4)
+        , Point2d.pixels (width * 3 / 4) (height * 3 / 4)
+        , Point2d.pixels (width / 4) (height * 3 / 4)
+        ]
     , Cmd.none
     )
 
 
-findSmallestDistanceTo : Point2d Pixels () -> List ( Point2d Pixels (), Point2d Pixels () ) -> Maybe Float
-findSmallestDistanceTo target list =
+createDrawings : Int -> List (Point2d Pixels ()) -> List ( Int, List ( Point2d Pixels (), Point2d Pixels () ) )
+createDrawings iteration path =
+    case path of
+        [] ->
+            []
+
+        head :: tail ->
+            [ ( iteration
+              , tail
+                    |> List.foldl
+                        (\to ( from, list ) ->
+                            ( to
+                            , ( to, from ) :: list
+                            )
+                        )
+                        ( head, [] )
+                    |> Tuple.second
+              )
+            ]
+
+
+transition : DrawingModel -> ReadyModel
+transition drawingModel =
+    let
+        iteration =
+            1
+    in
+    { iteration = iteration
+    , path = drawingModel |> List.singleton
+    , drawings = drawingModel |> createDrawings iteration
+    , seed = Random.initialSeed 42
+    , computation = Nothing
+    }
+
+
+updateDrawing : DrawingMsg -> DrawingModel -> ( Model, Cmd Msg )
+updateDrawing msg model =
+    case msg of
+        FinishedDrawing ->
+            ( (case model of
+                [] ->
+                    []
+
+                head :: tail ->
+                    (head :: tail)
+                        ++ [ head ]
+              )
+                |> transition
+                |> Ready
+            , Cmd.none
+            )
+
+        MouseClicked { pagePos } ->
+            ( Drawing
+                (Point2d.pixels (pagePos |> Tuple.first) (pagePos |> Tuple.second)
+                    :: model
+                )
+            , Cmd.none
+            )
+
+
+selectN : Int -> List (List a) -> ( List (List a), List (List a) )
+selectN n list =
     case list of
         [] ->
-            Nothing
+            ( [], [] )
 
-        _ ->
-            list
-                |> List.foldl
-                    (\( from, to ) dist ->
-                        Axis2d.throughPoints from to
-                            |> Maybe.map
-                                (\axis ->
-                                    let
-                                        distanceAlong =
-                                            target
-                                                |> Point2d.signedDistanceAlong axis
-                                                |> Pixels.toFloat
-                                    in
-                                    (if distanceAlong < 0 then
-                                        target
-                                            |> Point2d.distanceFrom from
+        head :: tail ->
+            if (head |> List.length) > n then
+                ( head |> List.take n |> List.singleton, (head |> List.drop n) :: tail )
 
-                                     else if
-                                        distanceAlong
-                                            > (from |> Point2d.distanceFrom to |> Pixels.toFloat)
-                                     then
-                                        target |> Point2d.distanceFrom to
+            else if (head |> List.length) == n then
+                ( head |> List.singleton, tail )
 
-                                     else
-                                        target
-                                            |> Point2d.signedDistanceFrom axis
-                                    )
-                                        |> Pixels.toFloat
-                                        |> (\d ->
-                                                if abs d < 0.0005 then
-                                                    dist
-
-                                                else if d < 0 then
-                                                    dist
-                                                        |> Tuple.mapFirst
-                                                            (Maybe.map (min (abs d))
-                                                                >> Maybe.withDefault (abs d)
-                                                                >> Just
-                                                            )
-
-                                                else
-                                                    dist
-                                                        |> Tuple.mapSecond
-                                                            (Maybe.map (min (abs d))
-                                                                >> Maybe.withDefault (abs d)
-                                                                >> Just
-                                                            )
-                                           )
-                                )
-                            |> Maybe.withDefault dist
-                    )
-                    ( Nothing, Nothing )
-                |> (\out ->
-                        case out of
-                            ( Nothing, Nothing ) ->
-                                Nothing
-
-                            ( Nothing, Just n ) ->
-                                Just n
-
-                            ( Just n, Nothing ) ->
-                                Just n
-
-                            ( Just a, Just b ) ->
-                                if a > b then
-                                    Just -a
-
-                                else
-                                    Just b
-                   )
-
-
-step :
-    Point2d Pixels ()
-    ->
-        Generator
-            { from : Point2d Pixels ()
-            , path : List (Point2d Pixels ())
-            , iter : Int
-            , searchList : List ( Point2d Pixels (), Point2d Pixels () )
-            , drawings : List ( Point2d Pixels (), Point2d Pixels () )
-            }
-    ->
-        Generator
-            { from : Point2d Pixels ()
-            , path : List (Point2d Pixels ())
-            , iter : Int
-            , searchList : List ( Point2d Pixels (), Point2d Pixels () )
-            , drawings : List ( Point2d Pixels (), Point2d Pixels () )
-            }
-step to =
-    Random.andThen
-        (\{ from, iter, path, searchList, drawings } ->
-            let
-                mid =
-                    Point2d.midpoint from to
-
-                minLength =
-                    Vector2d.from from mid |> Vector2d.length |> Pixels.toFloat
-
-                defaultCase =
-                    Random.constant
-                        { from = mid
-                        , path = path
-                        , iter = iter
-                        , searchList = searchList
-                        , drawings = drawings
-                        }
-            in
-            if minLength < smallesLineSize then
-                defaultCase
+            else if head |> List.isEmpty then
+                selectN n tail
 
             else
-                case searchList |> findSmallestDistanceTo mid of
-                    Nothing ->
-                        defaultCase
+                selectN (n - (head |> List.length)) tail
+                    |> (\( a, b ) ->
+                            ( head :: a, b )
+                       )
 
-                    Just radius ->
-                        Random.float 0 pi
-                            |> Random.map
-                                (\r ->
-                                    let
-                                        scaleTo : Float -> Vector2d Pixels () -> Vector2d Pixels ()
-                                        scaleTo len v =
-                                            v
-                                                |> Vector2d.scaleBy
-                                                    (len
-                                                        / (v
-                                                            |> Vector2d.length
-                                                            |> Pixels.toFloat
-                                                          )
-                                                    )
 
-                                        p1 : Point2d Pixels ()
-                                        p1 =
-                                            if radius < 0 then
-                                                mid
-                                                    |> Point2d.translateBy
-                                                        (Vector2d.from mid to
-                                                            |> scaleTo (abs radius)
-                                                            |> Vector2d.rotateBy (Angle.radians r)
-                                                        )
-
-                                            else
-                                                mid
-                                                    |> Point2d.translateBy
-                                                        (Vector2d.from mid to
-                                                            |> scaleTo (abs radius)
-                                                            |> Vector2d.rotateBy (Angle.radians (r + pi))
-                                                        )
-                                    in
-                                    { from = to
-                                    , path = p1 :: from :: path
-                                    , iter = iter
-                                    , searchList = ( p1, to ) :: ( from, p1 ) :: searchList
-                                    , drawings =
-                                        ( p1, to ) :: ( from, p1 ) :: drawings
+updateReady : ReadyMsg -> ReadyModel -> ( ReadyModel, Cmd ReadyMsg )
+updateReady msg model =
+    case msg of
+        NextIteration ->
+            case model.path of
+                (head :: _) :: _ ->
+                    let
+                        iteration =
+                            model.iteration + 1
+                    in
+                    ( { model
+                        | iteration = iteration
+                        , computation =
+                            Just
+                                (Running
+                                    { remaining = model.path
+                                    , result =
+                                        { from = head
+                                        , currentPath = []
+                                        , previousPaths = []
+                                        , iter = iteration
+                                        , searchList =
+                                            model.drawings
+                                                |> List.map Tuple.second
+                                                |> List.concat
+                                        , drawings = []
+                                        }
+                                    , lastUpdate = Nothing
+                                    , chunkSize = 1
                                     }
                                 )
-        )
+                      }
+                    , Time.now |> Task.perform Step
+                    )
+
+                _ ->
+                    ( model, Cmd.none )
+
+        Step time ->
+            case model.computation of
+                Just (Running { remaining, result, lastUpdate, chunkSize }) ->
+                    case lastUpdate of
+                        Nothing ->
+                            if remaining |> List.isEmpty then
+                                ( { model
+                                    | computation = Just <| Done result
+                                  }
+                                , Time.now |> Task.perform Step
+                                )
+
+                            else
+                                let
+                                    ( selected, newRemaining ) =
+                                        remaining |> selectN chunkSize
+
+                                    ( newResult, seed ) =
+                                        Random.step
+                                            (selected
+                                                |> List.foldl
+                                                    (\l c ->
+                                                        l |> List.foldl Computation.step c
+                                                    )
+                                                    (Random.constant result)
+                                            )
+                                            model.seed
+                                in
+                                ( { model
+                                    | computation =
+                                        Just <|
+                                            Running
+                                                { remaining = newRemaining
+                                                , result = newResult
+                                                , lastUpdate = Just time
+                                                , chunkSize = chunkSize
+                                                }
+                                    , seed = seed
+                                  }
+                                , Time.now |> Task.perform Step
+                                )
+
+                        Just lastTime ->
+                            case remaining of
+                                [] ->
+                                    ( { model
+                                        | computation = Just <| Done result
+                                      }
+                                    , Time.now |> Task.perform Step
+                                    )
+
+                                currentPath :: remainingPaths ->
+                                    let
+                                        duration =
+                                            (time |> Time.posixToMillis)
+                                                - (lastTime |> Time.posixToMillis)
+                                                |> toFloat
+
+                                        newChunkSize =
+                                            5
+
+                                        ( selected, newRemaining ) =
+                                            remaining |> selectN newChunkSize
+
+                                        ( newResult, seed ) =
+                                            Random.step
+                                                (selected
+                                                    |> List.foldl
+                                                        (\l c ->
+                                                            l |> List.foldl Computation.step c
+                                                        )
+                                                        (Random.constant result)
+                                                )
+                                                model.seed
+                                    in
+                                    ( { model
+                                        | computation =
+                                            Just <|
+                                                Running
+                                                    { remaining = newRemaining
+                                                    , result = newResult
+                                                    , lastUpdate = Just time
+                                                    , chunkSize = newChunkSize
+                                                    }
+                                        , seed = seed
+                                      }
+                                    , Process.sleep 10
+                                        |> Task.andThen (\() -> Time.now)
+                                        |> Task.perform Step
+                                    )
+
+                Just (Done result) ->
+                    let
+                        { path, drawings } =
+                            { path = (result.from :: result.currentPath) :: result.previousPaths
+                            , drawings = result.drawings
+                            }
+                    in
+                    ( { model
+                        | path = path
+                        , drawings = ( model.iteration, drawings ) :: model.drawings
+                        , computation = Nothing
+                      }
+                    , Cmd.none
+                    )
+
+                Nothing ->
+                    ( model, Cmd.none )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
-        Step ->
-            let
-                iteration =
-                    model.iteration + 1
+    case ( msg, model ) of
+        ( WhileDrawing ms, Drawing ml ) ->
+            updateDrawing ms ml
 
-                ( { path, drawings }, seed ) =
-                    Random.step
-                        (case model.path of
-                            [] ->
-                                Random.constant
-                                    { path = model.path
-                                    , drawings = []
-                                    }
+        ( WhileReady ms, Ready ml ) ->
+            updateReady ms ml
+                |> Tuple.mapBoth Ready (Cmd.map WhileReady)
 
-                            head :: tail ->
-                                tail
-                                    |> List.foldl step
-                                        (Random.constant
-                                            { from = head
-                                            , path = []
-                                            , iter = iteration
-                                            , searchList =
-                                                model.drawings
-                                                    |> List.map Tuple.second
-                                                    |> List.concat
-                                            , drawings = []
-                                            }
-                                        )
-                                    |> Random.map
-                                        (\out ->
-                                            { path = out.from :: out.path
-                                            , drawings = out.drawings
-                                            }
-                                        )
-                        )
-                        model.seed
-            in
-            ( { model
-                | path = path
-                , iteration = iteration
-                , drawings = ( iteration, drawings ) :: model.drawings
-                , seed = seed
-              }
-            , Cmd.none
-            )
+        ( _, _ ) ->
+            ( model, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
@@ -312,13 +336,30 @@ subscriptions model =
 
 view : Model -> Html Msg
 view model =
-    [ model.drawings
+    let
+        drawings =
+            case model of
+                Drawing path ->
+                    path |> createDrawings 1
+
+                Ready m ->
+                    m.drawings
+
+        iteration =
+            case model of
+                Drawing _ ->
+                    1
+
+                Ready m ->
+                    m.iteration
+    in
+    [ drawings
         |> List.map
             (\( iter, lines ) ->
                 lines
                     |> List.map
                         ((\( from, to ) -> LineSegment2d.from from to)
-                            >> View.line { iteration = iter, maxIter = model.iteration }
+                            >> View.line { iteration = iter, maxIter = iteration }
                         )
             )
         |> List.concat
@@ -327,12 +368,53 @@ view model =
             , Attributes.height <| String.fromFloat height ++ "px"
             , Attributes.version <| "1.1"
             ]
-    , [ Html.text "Next Iteration"
-      ]
-        |> Html.button [ Events.onClick Step ]
+    , case model of
+        Drawing _ ->
+            [ Html.text "Finish Drawing"
+            ]
+                |> Html.button [ Events.onClick (FinishedDrawing |> WhileDrawing) ]
+
+        Ready { computation } ->
+            case computation of
+                Nothing ->
+                    [ Html.text "Next Iteration"
+                    ]
+                        |> Html.button [ Events.onClick (NextIteration |> WhileReady) ]
+
+                Just comp ->
+                    Html.text <|
+                        "Running ("
+                            ++ (case comp of
+                                    Running { remaining } ->
+                                        remaining
+                                            |> List.concat
+                                            |> List.length
+                                            |> String.fromInt
+
+                                    Done _ ->
+                                        "0"
+                               )
+                            ++ " remaining , "
+                            ++ (case comp of
+                                    Running { remaining } ->
+                                        remaining
+                                            |> List.length
+                                            |> String.fromInt
+
+                                    Done _ ->
+                                        "0"
+                               )
+                            ++ "chunks remaining)"
+    , Html.text <| String.fromInt iteration ++ ". Iteration"
     ]
         |> Html.div
-            []
+            (case model of
+                Drawing _ ->
+                    [ Mouse.onClick (MouseClicked >> WhileDrawing) ]
+
+                Ready _ ->
+                    []
+            )
 
 
 main : Program () Model Msg

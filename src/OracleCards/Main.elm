@@ -20,29 +20,14 @@ viewCard card =
     let
         isWhite =
             case card of
-                Black _ ->
+                Binary 1 ->
                     False
-
-                White _ ->
-                    True
-
-                Trump _ ->
-                    True
-
-                Joker ->
-                    True
-
-                Element _ ->
-                    True
-
-                Planet _ ->
-                    True
-
-                Emotion _ ->
-                    True
 
                 Back ->
                     False
+
+                _ ->
+                    True
 
         viewValue =
             Card.value card
@@ -81,9 +66,6 @@ viewCard card =
                 Trump _ ->
                     []
 
-                Emotion _ ->
-                    []
-
                 Element n ->
                     { value =
                         case n of
@@ -113,16 +95,28 @@ viewCard card =
                     }
                         |> Sigil.view (Point2d.pixels (View.width / 2) View.padding)
 
-                Black _ ->
-                    { value = 1
-                    , size = 1
-                    , color = "white"
-                    }
-                        |> Sigil.view (Point2d.pixels (View.width / 2) View.padding)
+                Binary n ->
+                    case n of
+                        0 ->
+                            { value = n
+                            , size = 1
+                            , color = "black"
+                            }
+                                |> Sigil.view (Point2d.pixels (View.width / 2) View.padding)
 
-                White _ ->
-                    { value = 0
-                    , size = 1
+                        1 ->
+                            { value = n
+                            , size = 1
+                            , color = "white"
+                            }
+                                |> Sigil.view (Point2d.pixels (View.width / 2) View.padding)
+
+                        _ ->
+                            []
+
+                Virtue _ ->
+                    { value = Card.value card - 1
+                    , size = 4
                     , color = "black"
                     }
                         |> Sigil.view (Point2d.pixels (View.width / 2) View.padding)
@@ -177,6 +171,83 @@ viewCard card =
                             ]
                     ]
 
+                Binary _ ->
+                    [ Polyline2d.fromVertices
+                        [ Point2d.pixels (12 * 7) (12 * 7)
+                        , Point2d.pixels (12 * 7 + View.radius * 2) (12 * 7)
+                        ]
+                    , Polyline2d.fromVertices
+                        [ Point2d.pixels (View.width - 12 * 7 - View.radius * 2) (12 * 7)
+                        , Point2d.pixels (View.width - 12 * 7) (12 * 7)
+                        ]
+                    , Polyline2d.fromVertices
+                        [ Point2d.pixels (View.width - 12 * 7) (12 * 7)
+                        , Point2d.pixels (View.width - 12 * 7) (12 * 7 + View.radius * 2)
+                        ]
+                    , Polyline2d.fromVertices
+                        [ Point2d.pixels (View.width - 12 * 7) (View.height - 12 * 7 - View.radius * 2)
+                        , Point2d.pixels (View.width - 12 * 7) (View.height - 12 * 7)
+                        ]
+                    , Polyline2d.fromVertices
+                        [ Point2d.pixels (View.width - 12 * 7) (View.height - 12 * 7)
+                        , Point2d.pixels (View.width - 12 * 7 - View.radius * 2) (View.height - 12 * 7)
+                        ]
+                    , Polyline2d.fromVertices
+                        [ Point2d.pixels (12 * 7 + View.radius * 2) (View.height - 12 * 7)
+                        , Point2d.pixels (12 * 7) (View.height - 12 * 7)
+                        ]
+                    , Polyline2d.fromVertices
+                        [ Point2d.pixels (12 * 7) (View.height - 12 * 7)
+                        , Point2d.pixels (12 * 7) (View.height - 12 * 7 - View.radius * 2)
+                        ]
+                    , Polyline2d.fromVertices
+                        [ Point2d.pixels (12 * 7) (12 * 7 + View.radius * 2)
+                        , Point2d.pixels (12 * 7) (12 * 7)
+                        ]
+                    ]
+                        |> List.map
+                            (Svg.polyline2d
+                                [ Attributes.stroke <| Card.color card
+                                , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 0.1
+                                , Attributes.fill <| "none"
+                                ]
+                            )
+
+                Trump _ ->
+                    [ Polyline2d.fromVertices
+                        [ Point2d.pixels (12 * 7) (12 * 7)
+                        , Point2d.pixels (View.width - 12 * 7) (12 * 7)
+                        ]
+                    , Polyline2d.fromVertices
+                        [ Point2d.pixels (View.width - 12 * 7) (View.height - 12 * 7)
+                        , Point2d.pixels (12 * 7) (View.height - 12 * 7)
+                        ]
+                    , Polyline2d.fromVertices
+                        [ Point2d.pixels (12 * 7) (View.height - 12 * 7)
+                        , Point2d.pixels (12 * 7) (View.height - 12 * 7 - View.relative 1)
+                        ]
+                    , Polyline2d.fromVertices
+                        [ Point2d.pixels (12 * 7) (12 * 7 + View.relative 1)
+                        , Point2d.pixels (12 * 7) (12 * 7)
+                        ]
+                    , Polyline2d.fromVertices
+                        [ Point2d.pixels (View.width - 12 * 7) (12 * 7)
+                        , Point2d.pixels (View.width - 12 * 7) (12 * 7 + View.relative 1)
+                        ]
+                    , Polyline2d.fromVertices
+                        [ Point2d.pixels (View.width - 12 * 7) (View.height - 12 * 7 - View.relative 1)
+                        , Point2d.pixels (View.width - 12 * 7) (View.height - 12 * 7)
+                        ]
+                    ]
+                        |> List.map
+                            (Svg.polyline2d
+                                [ Attributes.stroke <| Card.color card
+                                , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 0.1
+                                , Attributes.fill <| "none"
+                                , Attributes.strokeLinecap <| "square"
+                                ]
+                            )
+
                 _ ->
                     Rectangle2d.from
                         (Point2d.pixels (12 * 7) (12 * 7))
@@ -199,57 +270,48 @@ viewCard card =
                     , Attributes.textAnchor <| "middle"
                     , Attributes.style <| "font: " ++ (String.fromFloat <| View.relative <| 3) ++ "px sans-serif"
                     , Attributes.fill <|
-                        case card of
-                            Black 2 ->
-                                "black"
+                        if isWhite then
+                            "black"
 
-                            White 2 ->
-                                "white"
-
-                            _ ->
+                        else
+                            "white"
+                    ]
+            )
+                :: (card
+                        |> Card.title
+                        |> Svg.text
+                        |> List.singleton
+                        |> Svg.text_
+                            [ Attributes.x <| String.fromFloat <| View.width - View.padding - (View.relative <| 0.6)
+                            , Attributes.y <| String.fromFloat <| View.padding
+                            , Attributes.textAnchor <| "start"
+                            , Attributes.style <| "font: " ++ (String.fromFloat <| View.relative <| 1.8) ++ "px sans-serif"
+                            , Attributes.writingMode <| "tb"
+                            , Attributes.fill <|
                                 if isWhite then
                                     "black"
 
                                 else
                                     "white"
-                    ]
-            )
-                :: (case card of
-                        Emotion _ ->
-                            []
-
-                        _ ->
-                            card
-                                |> Card.title
-                                |> Svg.text
-                                |> List.singleton
-                                |> Svg.text_
-                                    [ Attributes.x <| String.fromFloat <| View.width - View.padding - (View.relative <| 0.6)
-                                    , Attributes.y <| String.fromFloat <| View.padding
-                                    , Attributes.textAnchor <| "start"
-                                    , Attributes.style <| "font: " ++ (String.fromFloat <| View.relative <| 1.8) ++ "px sans-serif"
-                                    , Attributes.writingMode <| "tb"
-                                    , Attributes.fill <|
-                                        if isWhite then
-                                            "black"
-
-                                        else
-                                            "white"
-                                    ]
-                                |> List.singleton
+                            ]
+                        |> List.singleton
                    )
            )
 
 
 smallSet : List Card
 smallSet =
-    [ White 7, Black 7, Joker, Back ]
+    [ Binary 0, Binary 1, Joker, Back ]
         |> List.append
-            (List.range 1 21
+            (List.range 1 16
+                |> List.map Virtue
+            )
+        |> List.append
+            ([ 1, 2, 5, 8, 9, 10, 12, 15, 18 ]
                 |> List.map Trump
             )
         |> List.append
-            ([ Element, Emotion ]
+            ([ Element ]
                 |> List.concatMap (\fun -> List.range 1 4 |> List.map fun)
             )
         |> List.append
