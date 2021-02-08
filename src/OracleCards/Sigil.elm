@@ -3,7 +3,7 @@ module OracleCards.Sigil exposing (view)
 import Angle
 import Arc2d
 import Binary
-import Circle2d exposing (radius)
+import Circle2d
 import Geometry.Svg as Svg
 import LineSegment2d
 import OracleCards.View as View
@@ -12,16 +12,6 @@ import Point2d exposing (Point2d)
 import Svg exposing (Svg)
 import Svg.Attributes as Attributes
 import Vector2d exposing (Vector2d)
-
-
-radius : Float
-radius =
-    View.relative <| 1 / 2
-
-
-strokeWidth : Float
-strokeWidth =
-    View.relative <| 1 / 8
 
 
 type Direction
@@ -43,8 +33,16 @@ type Shape
     | Singleton
 
 
-shapeToSvg : String -> Vector2d Pixels coord -> Direction -> Shape -> ( Point2d Pixels coord -> List (Svg msg), Vector2d Pixels coord, Direction )
-shapeToSvg color p direction shape =
+shapeToSvg :
+    { color : String
+    , p : Vector2d Pixels coord
+    , direction : Direction
+    , radius : Float
+    , strokeWidth : Float
+    }
+    -> Shape
+    -> ( Point2d Pixels coord -> List (Svg msg), Vector2d Pixels coord, Direction )
+shapeToSvg { color, p, direction, radius, strokeWidth } shape =
     case ( direction, shape ) of
         ( d, Singleton ) ->
             ( \offset ->
@@ -754,20 +752,35 @@ shapeToSvg color p direction shape =
             )
 
 
-shapeListToSvg : String -> Vector2d Pixels coord -> Direction -> List Shape -> ( Point2d Pixels coord -> List (Svg msg), Vector2d Pixels coord, Direction )
-shapeListToSvg color p d =
+shapeListToSvg :
+    { color : String
+    , p : Vector2d Pixels coord
+    , direction : Direction
+    , radius : Float
+    , strokeWidth : Float
+    }
+    -> List Shape
+    -> ( Point2d Pixels coord -> List (Svg msg), Vector2d Pixels coord, Direction )
+shapeListToSvg { color, p, direction, radius, strokeWidth } =
     List.foldl
-        (\a ( out, point, direction ) ->
+        (\a ( out, point, d ) ->
             let
                 ( svg, newPoint, newDirection ) =
-                    a |> shapeToSvg color point direction
+                    a
+                        |> shapeToSvg
+                            { color = color
+                            , p = point
+                            , direction = d
+                            , radius = radius
+                            , strokeWidth = strokeWidth
+                            }
             in
             ( \offset -> svg offset ++ out offset
             , newPoint
             , newDirection
             )
         )
-        ( \offset -> [], p, d )
+        ( \offset -> [], p, direction )
 
 
 boolListToShapeList : List Bool -> ( Direction, List Shape )
@@ -850,8 +863,16 @@ boolListToShapeList l =
     )
 
 
-view : Point2d Pixels coord -> { value : Int, size : Int, color : String } -> List (Svg msg)
-view point { value, size, color } =
+view :
+    { point : Point2d Pixels coord
+    , value : Int
+    , size : Int
+    , color : String
+    , radius : Float
+    , strokeWidth : Float
+    }
+    -> List (Svg msg)
+view { point, value, size, color, radius, strokeWidth } =
     let
         ( direction, shapeList ) =
             value
@@ -862,9 +883,13 @@ view point { value, size, color } =
 
         ( list, dimensions, _ ) =
             shapeList
-                |> shapeListToSvg color
-                    Vector2d.zero
-                    direction
+                |> shapeListToSvg
+                    { color = color
+                    , p = Vector2d.zero
+                    , direction = direction
+                    , radius = radius
+                    , strokeWidth = strokeWidth
+                    }
 
         dim =
             dimensions

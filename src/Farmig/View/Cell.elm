@@ -31,13 +31,13 @@ viewPlayer { food, item } =
         }
 
 
-view : Maybe Cell -> Element msg
-view maybeCell =
+view : String -> Maybe Cell -> Element msg
+view tree maybeCell =
     let
         text =
             maybeCell
                 |> Maybe.map Cell.toString
-                |> Maybe.withDefault ( "🌳", "" )
+                |> Maybe.withDefault ( tree, "" )
 
         color =
             case maybeCell of

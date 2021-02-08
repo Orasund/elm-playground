@@ -1,6 +1,7 @@
 module Farmig.Data.Game exposing (Game, init, update)
 
 import Dict exposing (Dict)
+import Farmig.Data.Achievement as Achievement exposing (Achievement(..))
 import Farmig.Data.Cell exposing (Cell(..))
 import Farmig.Data.Food as Food exposing (Food(..))
 import Farmig.Data.Item as Item exposing (Item(..))
@@ -12,33 +13,41 @@ type alias Game =
     { player : { x : Int, y : Int }
     , food : Int
     , world : Dict ( Int, Int ) Cell
-    , worldSize : Int
+    , level : Int
     , item : Maybe Item
+    , achievement : Achievement
     }
+
+
+worldSize : Int -> Int
+worldSize level =
+    5 + (level - 1) * 2
 
 
 init : Generator Game
 init =
     let
-        worldSize =
-            5
+        level =
+            1
 
         player =
             { x = 0
-            , y = worldSize // 2
+            , y = worldSize level // 2
             }
     in
     World.generate
-        { worldSize = worldSize
+        { worldSize = worldSize level
         , startAtY = player.y
+        , level = level
         }
         |> Random.map
             (\world ->
                 { player = player
-                , food = 10
+                , food = 20
                 , item = Nothing
                 , world = world
-                , worldSize = worldSize
+                , level = level
+                , achievement = StartedGame
                 }
             )
 
@@ -83,19 +92,6 @@ rabbitUpdate { player, pos } dict =
                     )
                 |> List.partition (Tuple.second >> (==) Ground)
                 |> Tuple.mapBoth (List.map Tuple.first) (List.map Tuple.first)
-
-        randomPos =
-            case priorityPos of
-                head :: tail ->
-                    Random.uniform head tail
-
-                [] ->
-                    case alternativePos of
-                        head :: tail ->
-                            Random.uniform head tail
-
-                        [] ->
-                            Random.constant ( pos.x, pos.y )
     in
     case priorityPos of
         head :: tail ->
@@ -136,32 +132,74 @@ interact { x, y } maybeCell game =
                 | food = game.food + (food |> Food.value)
                 , world = game.world |> Dict.insert ( x, y ) Ground
                 , player = { x = x, y = y }
+                , achievement =
+                    if
+                        (food == Cherry)
+                            && (game.achievement |> Achievement.smallerThen AteACherry)
+                    then
+                        AteACherry
+
+                    else if
+                        (food == Berry)
+                            && (game.achievement |> Achievement.smallerThen AteABerry)
+                    then
+                        AteABerry
+
+                    else if
+                        (food == Carrot)
+                            && (game.achievement |> Achievement.smallerThen AteACarrot)
+                    then
+                        AteACarrot
+
+                    else if
+                        (food == Melon)
+                            && (game.achievement |> Achievement.smallerThen AteAMelon)
+                    then
+                        AteAMelon
+
+                    else if
+                        (food == Apple)
+                            && (game.achievement |> Achievement.smallerThen AteAnApple)
+                    then
+                        AteAnApple
+
+                    else
+                        game.achievement
             }
                 |> Random.constant
                 |> Ok
 
         itemCell item =
-            case game.item of
-                Just item2 ->
-                    { game
-                        | item = Just item
-                        , world =
+            { game
+                | item = Just item
+                , world =
+                    case game.item of
+                        Just item2 ->
                             game.world
                                 |> Dict.insert ( x, y ) Ground
                                 |> Dict.insert ( game.player.x, game.player.y ) (Item item2)
-                        , player = { x = x, y = y }
-                    }
-                        |> Random.constant
-                        |> Ok
 
-                Nothing ->
-                    { game
-                        | item = Just item
-                        , world = game.world |> Dict.insert ( x, y ) Ground
-                        , player = { x = x, y = y }
-                    }
-                        |> Random.constant
-                        |> Ok
+                        Nothing ->
+                            game.world |> Dict.insert ( x, y ) Ground
+                , player = { x = x, y = y }
+                , achievement =
+                    if
+                        item
+                            == Water
+                            && (game.achievement
+                                    |> Achievement.smallerThen PickedUpWater
+                               )
+                    then
+                        PickedUpWater
+
+                    else if item == Axe && (game.achievement |> Achievement.smallerThen PickedUpAxe) then
+                        PickedUpAxe
+
+                    else
+                        game.achievement
+            }
+                |> Random.constant
+                |> Ok
     in
     case maybeCell of
         Just Ground ->
@@ -173,22 +211,29 @@ interact { x, y } maybeCell game =
 
         Just Goal ->
             let
-                worldSize =
-                    game.worldSize + 2
+                level =
+                    game.level + 1
             in
             World.generate
-                { worldSize = worldSize
-                , startAtY = worldSize // 2
+                { worldSize = worldSize level
+                , startAtY = worldSize level // 2
+                , level = level
                 }
                 |> Random.map
                     (\world ->
                         { game
                             | player =
-                                { y = worldSize // 2
+                                { y = worldSize level // 2
                                 , x = 0
                                 }
                             , world = world
-                            , worldSize = worldSize
+                            , level = level
+                            , achievement =
+                                if (level >= 25) && (game.achievement |> Achievement.smallerThen ReachedDesert) then
+                                    ReachedDesert
+
+                                else
+                                    game.achievement
                         }
                     )
                 |> Ok
@@ -207,6 +252,12 @@ interact { x, y } maybeCell game =
                             game.world
                                 |> Dict.insert ( x, y ) (Plant (food |> Food.waitingTime) food)
                         , item = Nothing
+                        , achievement =
+                            if game.achievement |> Achievement.smallerThen WateredAPlant then
+                                WateredAPlant
+
+                            else
+                                game.achievement
                     }
                         |> Random.constant
                         |> Ok
@@ -217,6 +268,12 @@ interact { x, y } maybeCell game =
                             game.world
                                 |> Dict.insert ( x, y ) Ground
                         , item = Nothing
+                        , achievement =
+                            if game.achievement |> Achievement.smallerThen ChoppedDownATree then
+                                ChoppedDownATree
+
+                            else
+                                game.achievement
                     }
                         |> Random.constant
                         |> Ok
@@ -246,6 +303,12 @@ interact { x, y } maybeCell game =
                             |> Dict.insert ( x, y ) Ground
                     , player = { x = x, y = y }
                     , item = Nothing
+                    , achievement =
+                        if game.achievement |> Achievement.smallerThen ChoppedDownATree then
+                            ChoppedDownATree
+
+                        else
+                            game.achievement
                 }
                     |> Random.constant
                     |> Ok
@@ -266,6 +329,12 @@ interact { x, y } maybeCell game =
                                     |> Dict.insert newPos Wood
                                     |> Dict.insert ( x, y ) Ground
                             , player = { x = x, y = y }
+                            , achievement =
+                                if game.achievement |> Achievement.smallerThen MovedALog then
+                                    MovedALog
+
+                                else
+                                    game.achievement
                         }
                             |> Random.constant
                             |> Ok
@@ -280,6 +349,12 @@ interact { x, y } maybeCell game =
                         game.world
                             |> Dict.insert ( x, y ) (Food Meat)
                     , item = Nothing
+                    , achievement =
+                        if game.achievement |> Achievement.smallerThen ChoppedDownATree then
+                            ChoppedDownATree
+
+                        else
+                            game.achievement
                 }
                     |> Random.constant
                     |> Ok
@@ -306,6 +381,12 @@ interact { x, y } maybeCell game =
                                     |> Dict.insert ( x, y ) Ground
                             , player = { x = x, y = y }
                             , item = Nothing
+                            , achievement =
+                                if game.achievement |> Achievement.smallerThen ChoppedDownATree then
+                                    ChoppedDownATree
+
+                                else
+                                    game.achievement
                         }
                             |> Random.constant
                             |> Ok
@@ -320,6 +401,12 @@ interact { x, y } maybeCell game =
                                 game.world
                                     |> Dict.insert ( x, y ) Wood
                             , item = Nothing
+                            , achievement =
+                                if game.achievement |> Achievement.smallerThen ChoppedDownATree then
+                                    ChoppedDownATree
+
+                                else
+                                    game.achievement
                         }
                             |> Random.constant
                             |> Ok

@@ -1243,14 +1243,7 @@ view card =
             viewPlanet n
 
         Joker ->
-            [ {--Circle2d.atPoint (Point2d.pixels (View.width / 2) (View.height / 2))
-                (Pixels.pixels <| View.radius * 2)
-                |> Svg.circle2d
-                    [ Attributes.stroke <| "black"
-                    , Attributes.strokeWidth <| String.fromFloat <| View.relative <| 1
-                    , Attributes.fill "none"
-                    ]--}
-              View.regularPolygon
+            [ View.regularPolygon
                 { n = 3, scale = View.radius * 2, standing = True }
                 ( View.width / 2, View.height / 2 )
                 |> Svg.polygon2d

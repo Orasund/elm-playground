@@ -18,8 +18,16 @@ firstIndex { screenSize, playerIndex } =
     playerIndex - screenSize // 2
 
 
-view : { screenSize : Int, food : Int, item : Maybe Item, player : { x : Int, y : Int } } -> Dict ( Int, Int ) Cell -> List (Widget.Item msg)
-view { screenSize, food, item, player } dict =
+view :
+    { screenSize : Int
+    , food : Int
+    , tree : String
+    , item : Maybe Item
+    , player : { x : Int, y : Int }
+    }
+    -> Dict ( Int, Int ) Cell
+    -> List (Widget.Item msg)
+view { screenSize, tree, food, item, player } dict =
     let
         minX =
             firstIndex
@@ -52,7 +60,7 @@ view { screenSize, food, item, player } dict =
                             else
                                 dict
                                     |> Dict.get ( x, y )
-                                    |> Cell.view
+                                    |> Cell.view tree
                         )
                     |> Widget.row
                         { elementRow = []

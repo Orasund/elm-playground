@@ -56,7 +56,7 @@ description item =
             "Use water to let plants grow into fruits."
 
         Axe ->
-            "Use the axe to knock down trees, chop down stomps and plants and even kill animals."
+            "Use the axe to knock down trees, chop down wood and even kill animals."
 
         Shit ->
             "Use shit to speed up the growth of plants."

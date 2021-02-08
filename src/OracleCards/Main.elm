@@ -60,8 +60,11 @@ viewCard card =
                     { value = 0
                     , size = 0
                     , color = "black"
+                    , radius = View.relative <| 1 / 2
+                    , strokeWidth = View.relative <| 1 / 8
+                    , point = Point2d.pixels (View.width / 2) View.padding
                     }
-                        |> Sigil.view (Point2d.pixels (View.width / 2) View.padding)
+                        |> Sigil.view
 
                 Trump _ ->
                     []
@@ -85,15 +88,21 @@ viewCard card =
                                 0
                     , size = 2
                     , color = "black"
+                    , radius = View.relative <| 1 / 2
+                    , strokeWidth = View.relative <| 1 / 8
+                    , point = Point2d.pixels (View.width / 2) View.padding
                     }
-                        |> Sigil.view (Point2d.pixels (View.width / 2) View.padding)
+                        |> Sigil.view
 
                 Planet _ ->
                     { value = Card.value card - 1
                     , size = 3
                     , color = "black"
+                    , radius = View.relative <| 1 / 2
+                    , strokeWidth = View.relative <| 1 / 8
+                    , point = Point2d.pixels (View.width / 2) View.padding
                     }
-                        |> Sigil.view (Point2d.pixels (View.width / 2) View.padding)
+                        |> Sigil.view
 
                 Binary n ->
                     case n of
@@ -101,15 +110,21 @@ viewCard card =
                             { value = n
                             , size = 1
                             , color = "black"
+                            , radius = View.relative <| 1 / 2
+                            , strokeWidth = View.relative <| 1 / 8
+                            , point = Point2d.pixels (View.width / 2) View.padding
                             }
-                                |> Sigil.view (Point2d.pixels (View.width / 2) View.padding)
+                                |> Sigil.view
 
                         1 ->
                             { value = n
                             , size = 1
                             , color = "white"
+                            , radius = View.relative <| 1 / 2
+                            , strokeWidth = View.relative <| 1 / 8
+                            , point = Point2d.pixels (View.width / 2) View.padding
                             }
-                                |> Sigil.view (Point2d.pixels (View.width / 2) View.padding)
+                                |> Sigil.view
 
                         _ ->
                             []
@@ -118,8 +133,11 @@ viewCard card =
                     { value = Card.value card - 1
                     , size = 4
                     , color = "black"
+                    , radius = View.relative <| 1 / 2
+                    , strokeWidth = View.relative <| 1 / 8
+                    , point = Point2d.pixels (View.width / 2) View.padding
                     }
-                        |> Sigil.view (Point2d.pixels (View.width / 2) View.padding)
+                        |> Sigil.view
 
                 _ ->
                     []

@@ -10,26 +10,113 @@ import Random exposing (Generator)
 {-| worldSize also specifies the difficulty (and the level)
 -}
 generate :
-    { worldSize : Int
+    { level : Int
+    , worldSize : Int
     , startAtY : Int
     }
     -> Generator (Dict ( Int, Int ) Cell)
-generate { worldSize, startAtY } =
-    [ ( ( 0, startAtY ), Ground )
-    , ( ( 1, startAtY ), Ground )
-    ]
-        |> Dict.fromList
+generate { level, worldSize, startAtY } =
+    Dict.empty
         |> distribute
             { amount = ((worldSize - 2) * (worldSize - 2)) * 2 // 3
             , worldSize = worldSize
             , cells =
-                [ ( 100, Ground )
-                , ( 10 + 1 * toFloat worldSize, Item Water )
-                , ( toFloat worldSize / 2, Seed Carrot )
-                , ( 10, Seed Berry )
-                , ( 10 + 1 * toFloat worldSize, Wood )
-                ]
+                if level <= 1 then
+                    [ ( 50, Ground )
+                    , ( 50, Wood )
+                    ]
+
+                else if level <= 4 then
+                    [ ( 50, Ground )
+                    , ( 30, Wood )
+                    , ( 10, Seed Berry )
+                    , ( 10, Item Water )
+                    ]
+
+                else if level <= 8 then
+                    [ ( 50, Ground )
+                    , ( 10, Wood )
+                    , ( 10, Seed Berry )
+                    , ( 15, Seed Carrot )
+                    , ( 15, Item Water )
+                    ]
+
+                else if level <= 12 then
+                    [ ( 30, Ground )
+                    , ( 10, Wood )
+                    , ( 25, Seed Carrot )
+                    , ( 15, Seed Melon )
+                    , ( 20, Item Water )
+                    ]
+
+                else if level <= 16 then
+                    [ ( 10, Ground )
+                    , ( 10, Wood )
+                    , ( 25, Seed Carrot )
+                    , ( 20, Seed Melon )
+                    , ( 10, Seed Apple )
+                    , ( 25, Item Water )
+                    ]
+
+                else if level <= 20 then
+                    [ ( 30, Ground )
+                    , ( 10, Wood )
+                    , ( 15, Seed Carrot )
+                    , ( 15, Seed Melon )
+                    , ( 10, Seed Apple )
+                    , ( 20, Item Water )
+                    ]
+
+                else if level <= 24 then
+                    [ ( 50, Ground )
+                    , ( 10, Wood )
+                    , ( 5, Seed Carrot )
+                    , ( 10, Seed Melon )
+                    , ( 10, Seed Apple )
+                    , ( 15, Item Water )
+                    ]
+
+                else
+                    [ ( 70, Ground )
+                    , ( 10, Wood )
+                    , ( 5, Seed Carrot )
+                    , ( 10, Seed Melon )
+                    , ( 5, Item Water )
+                    ]
             }
+        |> (\world ->
+                List.range 1 (level // 2)
+                    |> List.foldl
+                        (\_ ->
+                            Random.andThen
+                                (randomWalk
+                                    { fillWith = Ground
+                                    , steps = worldSize // 2
+                                    , startAt = { x = 1, y = startAtY }
+                                    , addEachStep = ( 1, 0 )
+                                    , directions =
+                                        [ ( 1, ( 0, -1 ) )
+                                        , ( 1, ( 0, 1 ) )
+                                        , ( 0.5, ( 1, -1 ) )
+                                        , ( 0.5, ( 1, 1 ) )
+                                        ]
+                                    }
+                                    >> Random.map Tuple.first
+                                )
+                        )
+                        world
+           )
+        |> Random.map
+            (\world ->
+                [ ( ( 0, startAtY ), Ground )
+                , ( ( 1, startAtY ), Ground )
+                ]
+                    |> List.foldl
+                        (\( pos, cell ) ->
+                            Dict.insert pos cell
+                        )
+                        world
+            )
         |> Random.andThen
             (randomWalk
                 { fillWith = Ground
@@ -41,14 +128,14 @@ generate { worldSize, startAtY } =
                     , ( 1, ( 0, 1 ) )
                     ]
                 }
-            )
-        |> Random.map
-            (\( world, endPos ) ->
-                world
-                    |> Dict.insert endPos Goal
+                >> Random.map
+                    (\( world, endPos ) ->
+                        world
+                            |> Dict.insert endPos Goal
+                    )
             )
         |> (\world ->
-                Random.int 1 (worldSize - 2)
+                Random.int 1 level
                     |> Random.andThen
                         (\riverAtX ->
                             List.range 1 (worldSize // 4)
@@ -75,13 +162,52 @@ generate { worldSize, startAtY } =
            )
         |> Random.andThen
             (distribute
-                { amount = worldSize - 4 // 2
+                { amount = level * 2
                 , worldSize = worldSize
                 , cells =
-                    [ ( 1, Food Cherry )
-                    , ( toFloat <| (worldSize - 5) // 8, Item Axe )
-                    , ( toFloat <| (worldSize - 5) // 8, Rabbit )
-                    ]
+                    if level <= 1 then
+                        [ ( 100, Food Cherry ) ]
+
+                    else if level <= 4 then
+                        [ ( 70, Food Cherry )
+                        , ( 30, Food Berry )
+                        ]
+
+                    else if level <= 8 then
+                        [ ( 50, Food Cherry )
+                        , ( 20, Food Berry )
+                        , ( 40, Item Axe )
+                        ]
+
+                    else if level <= 12 then
+                        [ ( 30, Food Cherry )
+                        , ( 10, Food Berry )
+                        , ( 50, Item Axe )
+                        , ( 10, Rabbit )
+                        ]
+
+                    else if level <= 16 then
+                        [ ( 10, Food Cherry )
+                        , ( 60, Item Axe )
+                        , ( 30, Rabbit )
+                        ]
+
+                    else if level <= 20 then
+                        [ ( 70, Item Axe )
+                        , ( 20, Rabbit )
+                        , ( 10, Ground )
+                        ]
+
+                    else if level <= 24 then
+                        [ ( 60, Item Axe )
+                        , ( 10, Rabbit )
+                        , ( 30, Ground )
+                        ]
+
+                    else
+                        [ ( 50, Item Axe )
+                        , ( 50, Ground )
+                        ]
                 }
             )
 
@@ -113,8 +239,7 @@ distribute { amount, worldSize, cells } dict =
                 |> Random.list amount
                 |> Random.map
                     (\list ->
-                        dict
-                            |> Dict.union (list |> Dict.fromList)
+                        Dict.union (list |> Dict.fromList) dict
                     )
 
         [] ->

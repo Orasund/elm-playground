@@ -6,11 +6,19 @@ type Food
     | Berry
     | Cherry
     | Meat
+    | Melon
+    | Apple
 
 
 toString : Food -> String
 toString food =
     case food of
+        Apple ->
+            "🍎"
+
+        Melon ->
+            "🍉"
+
         Meat ->
             "\u{1F969}"
 
@@ -27,8 +35,14 @@ toString food =
 value : Food -> Int
 value food =
     case food of
+        Apple ->
+            80
+
+        Melon ->
+            40
+
         Meat ->
-            50
+            40
 
         Carrot ->
             30
@@ -43,6 +57,12 @@ value food =
 waitingTime : Food -> Int
 waitingTime food =
     case food of
+        Apple ->
+            160
+
+        Melon ->
+            80
+
         Meat ->
             0
 
