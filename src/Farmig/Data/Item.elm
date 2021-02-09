@@ -1,7 +1,7 @@
 module Farmig.Data.Item exposing (Item(..), color, description, name, toString)
 
 import Color exposing (Color)
-import Farmig.View.Color as Color exposing (black, blue, brown)
+import Farmig.View.Color exposing (black, blue, brown)
 
 
 type Item

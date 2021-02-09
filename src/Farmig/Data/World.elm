@@ -106,6 +106,32 @@ generate { level, worldSize, startAtY } =
                         )
                         world
            )
+        |> (\world ->
+                Random.int (worldSize // 4) (worldSize * 3 // 4)
+                    |> Random.andThen
+                        (\riverAtX ->
+                            List.range 1 (worldSize // 4)
+                                |> List.foldl
+                                    (\steps ->
+                                        Random.andThen
+                                            (randomWalk
+                                                { fillWith = Item Water
+                                                , steps = steps
+                                                , startAt = { x = riverAtX, y = 1 }
+                                                , addEachStep = ( 0, 1 )
+                                                , directions =
+                                                    [ ( 1, ( 0, -1 ) )
+                                                    , ( 1, ( 0, 1 ) )
+                                                    , ( 1, ( 1, 0 ) )
+                                                    , ( 1, ( -1, 0 ) )
+                                                    ]
+                                                }
+                                                >> Random.map Tuple.first
+                                            )
+                                    )
+                                    world
+                        )
+           )
         |> Random.map
             (\world ->
                 [ ( ( 0, startAtY ), Ground )
@@ -134,32 +160,6 @@ generate { level, worldSize, startAtY } =
                             |> Dict.insert endPos Goal
                     )
             )
-        |> (\world ->
-                Random.int 1 level
-                    |> Random.andThen
-                        (\riverAtX ->
-                            List.range 1 (worldSize // 4)
-                                |> List.foldl
-                                    (\steps ->
-                                        Random.andThen
-                                            (randomWalk
-                                                { fillWith = Item Water
-                                                , steps = steps
-                                                , startAt = { x = riverAtX, y = 1 }
-                                                , addEachStep = ( 0, 1 )
-                                                , directions =
-                                                    [ ( 1, ( 0, -1 ) )
-                                                    , ( 1, ( 0, 1 ) )
-                                                    , ( 1, ( 1, 0 ) )
-                                                    , ( 1, ( -1, 0 ) )
-                                                    ]
-                                                }
-                                                >> Random.map Tuple.first
-                                            )
-                                    )
-                                    world
-                        )
-           )
         |> Random.andThen
             (distribute
                 { amount = level * 2

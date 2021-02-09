@@ -1,15 +1,24 @@
 module Farmig.Main exposing (main)
 
+{-|
+
+
+# Farmig
+
+by Lucas Payr
+
+Created: 7.2.2021
+
+-}
+
 import Browser
 import Browser.Events as Events
-import Dict exposing (Dict)
 import Element exposing (Attribute, Element)
 import Element.Border as Border
 import Element.Font as Font
-import Farmig.Data.Cell exposing (Cell)
 import Farmig.Data.Game as Game exposing (Game)
 import Farmig.Data.Input as Input
-import Farmig.Data.Item as Item exposing (Item)
+import Farmig.Data.Item as Item
 import Farmig.View.Achievement as Achievement
 import Farmig.View.Grid as Grid
 import Random exposing (Seed)
@@ -202,6 +211,7 @@ view model =
 
                         else
                             "🌲"
+                    , onPress = Just >> Move
                     }
            )
         ++ (model.game.item

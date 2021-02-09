@@ -2,15 +2,12 @@ module Farmig.View.Grid exposing (view)
 
 import Color
 import Dict exposing (Dict)
-import Element exposing (Element)
-import Element.Background as Background
+import Element
 import Element.Border as Border
 import Farmig.Data.Cell as Cell exposing (Cell(..))
-import Farmig.Data.Item as Item exposing (Item)
+import Farmig.Data.Item exposing (Item)
 import Farmig.View.Cell as Cell
 import Widget
-import Widget.Customize as Customize
-import Widget.Material as Material
 
 
 firstIndex : { screenSize : Int, playerIndex : Int } -> Int
@@ -24,10 +21,11 @@ view :
     , tree : String
     , item : Maybe Item
     , player : { x : Int, y : Int }
+    , onPress : ( Int, Int ) -> msg
     }
     -> Dict ( Int, Int ) Cell
     -> List (Widget.Item msg)
-view { screenSize, tree, food, item, player } dict =
+view { screenSize, tree, food, item, player, onPress } dict =
     let
         minX =
             firstIndex
@@ -61,6 +59,12 @@ view { screenSize, tree, food, item, player } dict =
                                 dict
                                     |> Dict.get ( x, y )
                                     |> Cell.view tree
+                                        (if abs (x - player.x) + abs (y - player.y) == 1 then
+                                            Just <| onPress ( x - player.x, y - player.y )
+
+                                         else
+                                            Nothing
+                                        )
                         )
                     |> Widget.row
                         { elementRow = []

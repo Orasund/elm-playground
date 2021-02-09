@@ -4,7 +4,7 @@ import Dict exposing (Dict)
 import Farmig.Data.Achievement as Achievement exposing (Achievement(..))
 import Farmig.Data.Cell exposing (Cell(..))
 import Farmig.Data.Food as Food exposing (Food(..))
-import Farmig.Data.Item as Item exposing (Item(..))
+import Farmig.Data.Item exposing (Item(..))
 import Farmig.Data.World as World
 import Random exposing (Generator)
 
