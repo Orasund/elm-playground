@@ -174,7 +174,7 @@ title card =
                     "Uranus"
 
                 8 ->
-                    "Neptum"
+                    "Neptun"
 
                 _ ->
                     "Planet"

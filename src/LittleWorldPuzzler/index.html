@@ -6551,7 +6551,7 @@ var $author$project$LittleWorldPuzzler$Data$firestore = A2(
 		$author$project$Firestore$init(
 			$author$project$Firestore$Config$new(
 				{apiKey: 'AIzaSyAHNxt048Q4BFwbt_ehv4t4rxydqdc0QNc', project: 'elm-games'}))));
-var $author$project$LittleWorldPuzzler$Data$gameVersion = 5;
+var $author$project$LittleWorldPuzzler$Data$gameVersion = 0;
 var $author$project$Firestore$Internals$Document$Document = F4(
 	function (name, fields, createTime, updateTime) {
 		return {createTime: createTime, fields: fields, name: name, updateTime: updateTime};
@@ -8407,31 +8407,20 @@ var $elm$http$Http$jsonBody = function (value) {
 		'application/json',
 		A2($elm$json$Json$Encode$encode, 0, value));
 };
-var $author$project$Firestore$patch = F3(
-	function (fieldDecoder, fieldList, _v0) {
+var $author$project$Firestore$upsert = F3(
+	function (fieldDecoder, encoder, _v0) {
 		var config = _v0.a;
 		var path = _v0.b;
 		return $elm$http$Http$task(
 			{
 				body: $elm$http$Http$jsonBody(
-					$author$project$Firestore$Encode$encode(
-						$author$project$Firestore$Encode$document(fieldList))),
+					$author$project$Firestore$Encode$encode(encoder)),
 				headers: $author$project$Firestore$Config$httpHeader(config),
 				method: 'PATCH',
 				resolver: $author$project$Firestore$jsonResolver(
 					$author$project$Firestore$Internals$Document$decodeOne(fieldDecoder)),
 				timeout: $elm$core$Maybe$Nothing,
-				url: A3(
-					$author$project$Firestore$Config$endpoint,
-					A2(
-						$elm$core$List$map,
-						function (_v1) {
-							var fieldPath = _v1.a;
-							return A2($elm$url$Url$Builder$string, 'updateMask.fieldPaths', fieldPath);
-						},
-						fieldList),
-					path,
-					config)
+				url: A3($author$project$Firestore$Config$endpoint, _List_Nil, path, config)
 			});
 	});
 var $author$project$LittleWorldPuzzler$Request$setHighscore = function (_v0) {
@@ -8449,17 +8438,9 @@ var $author$project$LittleWorldPuzzler$Request$setHighscore = function (_v0) {
 		$elm$core$Task$attempt,
 		response,
 		A3(
-			$author$project$Firestore$patch,
+			$author$project$Firestore$upsert,
 			$author$project$Firestore$Codec$asDecoder($author$project$LittleWorldPuzzler$Data$Entry$codec),
-			_List_fromArray(
-				[
-					_Utils_Tuple2(
-					'version',
-					$author$project$Firestore$Encode$int(entry.version)),
-					_Utils_Tuple2(
-					'score',
-					$author$project$Firestore$Encode$int(entry.score))
-				]),
+			value,
 			$author$project$LittleWorldPuzzler$Data$firestore));
 };
 var $Orasund$elm_action$Action$Update = function (a) {
@@ -8639,6 +8620,12 @@ var $Orasund$elm_game_essentials$Grid$Bordered$emptyPositions = A2(
 				}
 			})),
 	$Orasund$elm_game_essentials$Grid$Bordered$positions);
+var $Orasund$elm_game_essentials$Grid$Bordered$get = F2(
+	function (pos, grid) {
+		var dict = grid.a.dict;
+		return A2($Orasund$elm_game_essentials$Grid$Bordered$isValid, pos, grid) ? $elm$core$Result$Ok(
+			A2($elm$core$Dict$get, pos, dict)) : $elm$core$Result$Err($Orasund$elm_game_essentials$Grid$Bordered$OutOfBounds);
+	});
 var $elm_community$undo_redo$UndoList$new = F2(
 	function (event, _v0) {
 		var past = _v0.past;
@@ -8648,6 +8635,72 @@ var $elm_community$undo_redo$UndoList$new = F2(
 			A2($elm$core$List$cons, present, past),
 			event,
 			_List_Nil);
+	});
+var $author$project$LittleWorldPuzzler$State$Playing$CardPlaced = {$: 'CardPlaced'};
+var $wernerdegroot$listzipper$List$Zipper$mapAfter = F2(
+	function (f, _v0) {
+		var ls = _v0.a;
+		var x = _v0.b;
+		var rs = _v0.c;
+		return A3(
+			$wernerdegroot$listzipper$List$Zipper$Zipper,
+			ls,
+			x,
+			f(rs));
+	});
+var $author$project$LittleWorldPuzzler$Data$Deck$placeOnDiscard = F2(
+	function (cellType, deck) {
+		return A2(
+			$wernerdegroot$listzipper$List$Zipper$mapAfter,
+			$elm$core$List$cons(cellType),
+			deck);
+	});
+var $Orasund$elm_game_essentials$Grid$Bordered$remove = F2(
+	function (pos, grid) {
+		var dict = grid.a.dict;
+		return A2($Orasund$elm_game_essentials$Grid$Bordered$isValid, pos, grid) ? (A2($elm$core$Dict$member, pos, dict) ? $elm$core$Result$Ok(
+			A2(
+				$Orasund$elm_game_essentials$Grid$Bordered$mapDict,
+				$elm$core$Dict$remove(pos),
+				grid)) : $elm$core$Result$Err($Orasund$elm_game_essentials$Grid$Bordered$NotSuccessful)) : $elm$core$Result$Err($Orasund$elm_game_essentials$Grid$Bordered$OutOfBounds);
+	});
+var $elm$core$Process$sleep = _Process_sleep;
+var $author$project$LittleWorldPuzzler$State$Playing$pickUp = F3(
+	function (cellType, position, _v0) {
+		var state = _v0.a;
+		var game = state.game;
+		var history = state.history;
+		var seed = _v0.b;
+		var seconds = 1000;
+		return $Orasund$elm_action$Action$updating(
+			_Utils_Tuple2(
+				_Utils_Tuple2(
+					_Utils_update(
+						state,
+						{
+							game: _Utils_update(
+								game,
+								{
+									board: function () {
+										var _v1 = A2($Orasund$elm_game_essentials$Grid$Bordered$remove, position, game.board);
+										if (_v1.$ === 'Ok') {
+											var board = _v1.a;
+											return board;
+										} else {
+											return game.board;
+										}
+									}(),
+									deck: A2($author$project$LittleWorldPuzzler$Data$Deck$placeOnDiscard, cellType, game.deck),
+									score: game.score - 2
+								}),
+							history: A2($elm_community$undo_redo$UndoList$new, game, history),
+							selected: $elm$core$Maybe$Nothing
+						}),
+					seed),
+				A2(
+					$elm$core$Task$perform,
+					$elm$core$Basics$always($author$project$LittleWorldPuzzler$State$Playing$CardPlaced),
+					$elm$core$Process$sleep(0.1 * seconds))));
 	});
 var $author$project$LittleWorldPuzzler$Data$Deck$first = $wernerdegroot$listzipper$List$Zipper$current;
 var $Orasund$elm_game_essentials$Grid$Bordered$ignoringErrors = F2(
@@ -8665,8 +8718,6 @@ var $author$project$LittleWorldPuzzler$Data$Board$place = F2(
 		return $Orasund$elm_game_essentials$Grid$Bordered$ignoringErrors(
 			A2($Orasund$elm_game_essentials$Grid$Bordered$insert, position, cellType));
 	});
-var $author$project$LittleWorldPuzzler$State$Playing$CardPlaced = {$: 'CardPlaced'};
-var $elm$core$Process$sleep = _Process_sleep;
 var $author$project$LittleWorldPuzzler$State$Playing$play = function (_v0) {
 	var state = _v0.a;
 	var game = state.game;
@@ -8689,37 +8740,52 @@ var $author$project$LittleWorldPuzzler$State$Playing$play = function (_v0) {
 				$elm$core$Basics$always($author$project$LittleWorldPuzzler$State$Playing$CardPlaced),
 				$elm$core$Process$sleep(0.1 * seconds))));
 };
+var $elm$random$Random$andThen = F2(
+	function (callback, _v0) {
+		var genA = _v0.a;
+		return $elm$random$Random$Generator(
+			function (seed) {
+				var _v1 = genA(seed);
+				var result = _v1.a;
+				var newSeed = _v1.b;
+				var _v2 = callback(result);
+				var genB = _v2.a;
+				return genB(newSeed);
+			});
+	});
 var $elm$random$Random$constant = function (value) {
 	return $elm$random$Random$Generator(
 		function (seed) {
 			return _Utils_Tuple2(value, seed);
 		});
 };
-var $wernerdegroot$listzipper$List$Zipper$next = function (_v0) {
-	var ls = _v0.a;
-	var x = _v0.b;
-	var rs = _v0.c;
-	if (!rs.b) {
-		return $elm$core$Maybe$Nothing;
-	} else {
-		var y = rs.a;
-		var ys = rs.b;
-		return $elm$core$Maybe$Just(
-			A3(
-				$wernerdegroot$listzipper$List$Zipper$Zipper,
-				A2($elm$core$List$cons, x, ls),
-				y,
-				ys));
-	}
-};
+var $wernerdegroot$listzipper$List$Zipper$mapCurrent = F2(
+	function (f, _v0) {
+		var ls = _v0.a;
+		var x = _v0.b;
+		var rs = _v0.c;
+		return A3(
+			$wernerdegroot$listzipper$List$Zipper$Zipper,
+			ls,
+			f(x),
+			rs);
+	});
 var $author$project$LittleWorldPuzzler$Data$Deck$playFirst = F2(
 	function (optionShuffle, deck) {
-		var _v0 = $wernerdegroot$listzipper$List$Zipper$next(deck);
-		if (_v0.$ === 'Just') {
-			var newDeck = _v0.a;
-			return $elm$random$Random$constant(newDeck);
+		var _v0 = $wernerdegroot$listzipper$List$Zipper$after(deck);
+		if (_v0.b) {
+			var b = _v0.a;
+			var tail = _v0.b;
+			return $elm$random$Random$constant(
+				A2(
+					$wernerdegroot$listzipper$List$Zipper$mapAfter,
+					$elm$core$Basics$always(tail),
+					A2(
+						$wernerdegroot$listzipper$List$Zipper$mapCurrent,
+						$elm$core$Basics$always(b),
+						deck)));
 		} else {
-			return optionShuffle ? $author$project$LittleWorldPuzzler$Data$Deck$shuffle(deck) : $author$project$LittleWorldPuzzler$Data$Deck$generator;
+			return (optionShuffle ? $elm$random$Random$andThen($author$project$LittleWorldPuzzler$Data$Deck$shuffle) : $elm$core$Basics$identity)($author$project$LittleWorldPuzzler$Data$Deck$generator);
 		}
 	});
 var $author$project$LittleWorldPuzzler$State$Playing$playFirst = F2(
@@ -8756,47 +8822,14 @@ var $author$project$LittleWorldPuzzler$State$Playing$playFirst = F2(
 						game.deck)),
 				_Utils_eq(mode, $author$project$LittleWorldPuzzler$State$Playing$Challenge) ? initialSeed : seed));
 	});
-var $wernerdegroot$listzipper$List$Zipper$mapAfter = F2(
-	function (f, _v0) {
-		var ls = _v0.a;
-		var x = _v0.b;
-		var rs = _v0.c;
-		return A3(
-			$wernerdegroot$listzipper$List$Zipper$Zipper,
-			ls,
-			x,
-			f(rs));
-	});
-var $wernerdegroot$listzipper$List$Zipper$mapBefore = F2(
-	function (f, zipper) {
-		var x = zipper.b;
-		var rs = zipper.c;
-		var elementsBefore = $wernerdegroot$listzipper$List$Zipper$before(zipper);
-		var mappedElementsBefore = f(elementsBefore);
-		return A3(
-			$wernerdegroot$listzipper$List$Zipper$Zipper,
-			$elm$core$List$reverse(mappedElementsBefore),
-			x,
-			rs);
-	});
 var $author$project$LittleWorldPuzzler$Data$Deck$playSecond = function (deck) {
 	var _v0 = $wernerdegroot$listzipper$List$Zipper$after(deck);
 	if (_v0.b) {
-		var b = _v0.a;
 		var tail = _v0.b;
 		return A2(
 			$wernerdegroot$listzipper$List$Zipper$mapAfter,
 			$elm$core$Basics$always(tail),
-			A2(
-				$wernerdegroot$listzipper$List$Zipper$mapBefore,
-				function (list) {
-					return A2(
-						$elm$core$List$append,
-						list,
-						_List_fromArray(
-							[b]));
-				},
-				deck));
+			deck);
 	} else {
 		return deck;
 	}
@@ -8883,8 +8916,10 @@ var $author$project$LittleWorldPuzzler$Data$CellType$toString = function (cellTy
 					return _Utils_chr('❄');
 				case 'Snow':
 					return _Utils_chr('⛄');
-				default:
+				case 'Evergreen':
 					return _Utils_chr('🌲');
+				default:
+					return _Utils_chr('🌿');
 			}
 		}());
 };
@@ -9038,8 +9073,10 @@ var $author$project$LittleWorldPuzzler$Data$CellType$toInt = function (cellType)
 			return 9;
 		case 'Snow':
 			return 10;
-		default:
+		case 'Evergreen':
 			return 11;
+		default:
+			return 12;
 	}
 };
 var $author$project$LittleWorldPuzzler$Automata$Neighborhood$toList = function (neighbors) {
@@ -9166,6 +9203,7 @@ var $author$project$LittleWorldPuzzler$Automata$order = A2(
 var $elm$core$List$concat = function (lists) {
 	return A3($elm$core$List$foldr, $elm$core$List$append, _List_Nil, lists);
 };
+var $author$project$LittleWorldPuzzler$Data$CellType$Bug = {$: 'Bug'};
 var $author$project$LittleWorldPuzzler$Data$CellType$Desert = {$: 'Desert'};
 var $author$project$LittleWorldPuzzler$Data$CellType$Evergreen = {$: 'Evergreen'};
 var $author$project$LittleWorldPuzzler$Data$CellType$Fog = {$: 'Fog'};
@@ -9174,7 +9212,26 @@ var $author$project$LittleWorldPuzzler$Data$CellType$Ice = {$: 'Ice'};
 var $author$project$LittleWorldPuzzler$Data$CellType$Snow = {$: 'Snow'};
 var $author$project$LittleWorldPuzzler$Data$CellType$Volcano = {$: 'Volcano'};
 var $author$project$LittleWorldPuzzler$Data$CellType$list = _List_fromArray(
-	[$author$project$LittleWorldPuzzler$Data$CellType$Snow, $author$project$LittleWorldPuzzler$Data$CellType$Desert, $author$project$LittleWorldPuzzler$Data$CellType$Fire, $author$project$LittleWorldPuzzler$Data$CellType$Glacier, $author$project$LittleWorldPuzzler$Data$CellType$Volcano, $author$project$LittleWorldPuzzler$Data$CellType$Stone, $author$project$LittleWorldPuzzler$Data$CellType$Evergreen, $author$project$LittleWorldPuzzler$Data$CellType$Ice, $author$project$LittleWorldPuzzler$Data$CellType$Fog, $author$project$LittleWorldPuzzler$Data$CellType$Water, $author$project$LittleWorldPuzzler$Data$CellType$Wood]);
+	[$author$project$LittleWorldPuzzler$Data$CellType$Snow, $author$project$LittleWorldPuzzler$Data$CellType$Desert, $author$project$LittleWorldPuzzler$Data$CellType$Fire, $author$project$LittleWorldPuzzler$Data$CellType$Glacier, $author$project$LittleWorldPuzzler$Data$CellType$Volcano, $author$project$LittleWorldPuzzler$Data$CellType$Stone, $author$project$LittleWorldPuzzler$Data$CellType$Evergreen, $author$project$LittleWorldPuzzler$Data$CellType$Ice, $author$project$LittleWorldPuzzler$Data$CellType$Fog, $author$project$LittleWorldPuzzler$Data$CellType$Water, $author$project$LittleWorldPuzzler$Data$CellType$Wood, $author$project$LittleWorldPuzzler$Data$CellType$Bug]);
+var $author$project$LittleWorldPuzzler$Automata$Rule$CombinesInto = function (a) {
+	return {$: 'CombinesInto', a: a};
+};
+var $author$project$LittleWorldPuzzler$Automata$Rule$Disapears = {$: 'Disapears'};
+var $author$project$LittleWorldPuzzler$Automata$Rule$KilledBy = function (a) {
+	return {$: 'KilledBy', a: a};
+};
+var $author$project$LittleWorldPuzzler$Automata$Rule$KilledBy2 = function (a) {
+	return {$: 'KilledBy2', a: a};
+};
+var $author$project$LittleWorldPuzzler$Automata$Rule$Spawns = function (a) {
+	return {$: 'Spawns', a: a};
+};
+var $author$project$LittleWorldPuzzler$Automata$Rule$Surrounds = function (a) {
+	return {$: 'Surrounds', a: a};
+};
+var $author$project$LittleWorldPuzzler$Automata$Rule$TurnsInto = function (a) {
+	return {$: 'TurnsInto', a: a};
+};
 var $Orasund$elm_cellautomata$CellAutomata$Anything = {$: 'Anything'};
 var $Orasund$elm_cellautomata$CellAutomata$anyNeighborhood = {east: $Orasund$elm_cellautomata$CellAutomata$Anything, north: $Orasund$elm_cellautomata$CellAutomata$Anything, northEast: $Orasund$elm_cellautomata$CellAutomata$Anything, northWest: $Orasund$elm_cellautomata$CellAutomata$Anything, south: $Orasund$elm_cellautomata$CellAutomata$Anything, southEast: $Orasund$elm_cellautomata$CellAutomata$Anything, southWest: $Orasund$elm_cellautomata$CellAutomata$Anything, west: $Orasund$elm_cellautomata$CellAutomata$Anything};
 var $Orasund$elm_cellautomata$CellAutomata$Exactly = function (a) {
@@ -9309,312 +9366,197 @@ var $author$project$LittleWorldPuzzler$Automata$Rule$rule = F2(
 			to: to
 		};
 	});
-var $author$project$LittleWorldPuzzler$Automata$Rule$rules = function (cellType) {
-	switch (cellType.$) {
-		case 'Wood':
-			return _List_fromArray(
-				[
-					A2(
-					$author$project$LittleWorldPuzzler$Automata$Rule$rule,
-					{
-						from: $elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Wood),
-						to: $elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Fire)
-					},
-					_List_fromArray(
-						[
-							_Utils_Tuple2(
-							1,
-							$elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Fire))
-						])),
-					A2(
-					$author$project$LittleWorldPuzzler$Automata$Rule$rule,
-					{
-						from: $elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Wood),
-						to: $elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Evergreen)
-					},
-					_List_fromArray(
-						[
-							_Utils_Tuple2(
-							1,
-							$elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Ice))
-						]))
-				]);
-		case 'Water':
-			return _List_fromArray(
-				[
-					A2(
-					$author$project$LittleWorldPuzzler$Automata$Rule$rule,
-					{
-						from: $elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Water),
-						to: $elm$core$Maybe$Nothing
-					},
-					_List_fromArray(
-						[
-							_Utils_Tuple2(
-							2,
-							$elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Fire))
-						])),
-					A2(
-					$author$project$LittleWorldPuzzler$Automata$Rule$rule,
-					{
-						from: $elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Water),
-						to: $elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Ice)
-					},
-					_List_fromArray(
-						[
-							_Utils_Tuple2(
-							1,
-							$elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Ice))
-						])),
-					A2(
+var $author$project$LittleWorldPuzzler$Automata$Rule$intoRule = function (ruleType) {
+	switch (ruleType.$) {
+		case 'Surrounds':
+			var to = ruleType.a;
+			return function (containedBy) {
+				return A2(
 					$author$project$LittleWorldPuzzler$Automata$Rule$rule,
 					{
 						from: $elm$core$Maybe$Nothing,
-						to: $elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Wood)
-					},
-					_List_fromArray(
-						[
-							_Utils_Tuple2(
-							1,
-							$elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Water))
-						]))
-				]);
-		case 'Fire':
-			return _List_fromArray(
-				[
-					A2(
-					$author$project$LittleWorldPuzzler$Automata$Rule$rule,
-					{
-						from: $elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Fire),
-						to: $elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Volcano)
-					},
-					_List_fromArray(
-						[
-							_Utils_Tuple2(
-							2,
-							$elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Stone))
-						])),
-					A2(
-					$author$project$LittleWorldPuzzler$Automata$Rule$rule,
-					{
-						from: $elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Fire),
-						to: $elm$core$Maybe$Nothing
-					},
-					_List_Nil),
-					A2(
-					$author$project$LittleWorldPuzzler$Automata$Rule$rule,
-					{
-						from: $elm$core$Maybe$Nothing,
-						to: $elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Desert)
+						to: $elm$core$Maybe$Just(to)
 					},
 					_List_fromArray(
 						[
 							_Utils_Tuple2(
 							3,
-							$elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Fire))
-						]))
-				]);
-		case 'Stone':
-			return _List_fromArray(
-				[
-					A2(
+							$elm$core$Maybe$Just(containedBy))
+						]));
+			};
+		case 'CombinesInto':
+			var to = ruleType.a;
+			return function (from) {
+				return A2(
 					$author$project$LittleWorldPuzzler$Automata$Rule$rule,
 					{
-						from: $elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Stone),
-						to: $elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Glacier)
+						from: $elm$core$Maybe$Just(from),
+						to: $elm$core$Maybe$Just(to)
+					},
+					_List_fromArray(
+						[
+							_Utils_Tuple2(
+							3,
+							$elm$core$Maybe$Just(from))
+						]));
+			};
+		case 'TurnsInto':
+			var to = ruleType.a;
+			return function (from) {
+				return A2(
+					$author$project$LittleWorldPuzzler$Automata$Rule$rule,
+					{
+						from: $elm$core$Maybe$Just(from),
+						to: $elm$core$Maybe$Just(to)
+					},
+					_List_fromArray(
+						[
+							_Utils_Tuple2(
+							1,
+							$elm$core$Maybe$Just(to))
+						]));
+			};
+		case 'KilledBy2':
+			var by = ruleType.a;
+			return function (from) {
+				return A2(
+					$author$project$LittleWorldPuzzler$Automata$Rule$rule,
+					{
+						from: $elm$core$Maybe$Just(from),
+						to: $elm$core$Maybe$Nothing
 					},
 					_List_fromArray(
 						[
 							_Utils_Tuple2(
 							2,
-							$elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Stone))
-						])),
-					A2(
+							$elm$core$Maybe$Just(by))
+						]));
+			};
+		case 'KilledBy':
+			var by = ruleType.a;
+			return function (from) {
+				return A2(
 					$author$project$LittleWorldPuzzler$Automata$Rule$rule,
 					{
-						from: $elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Stone),
+						from: $elm$core$Maybe$Just(from),
 						to: $elm$core$Maybe$Nothing
 					},
 					_List_fromArray(
 						[
 							_Utils_Tuple2(
 							1,
-							$elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Volcano)),
-							_Utils_Tuple2(
-							1,
-							$elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Water))
-						]))
-				]);
-		case 'Volcano':
-			return _List_fromArray(
-				[
-					A2(
-					$author$project$LittleWorldPuzzler$Automata$Rule$rule,
-					{
-						from: $elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Volcano),
-						to: $elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Volcano)
-					},
-					_List_fromArray(
-						[
-							_Utils_Tuple2(
-							2,
-							$elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Stone))
-						])),
-					A2(
-					$author$project$LittleWorldPuzzler$Automata$Rule$rule,
-					{
-						from: $elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Volcano),
-						to: $elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Fog)
-					},
-					_List_Nil),
-					A2(
+							$elm$core$Maybe$Just(by))
+						]));
+			};
+		case 'Spawns':
+			var to = ruleType.a;
+			return function (by) {
+				return A2(
 					$author$project$LittleWorldPuzzler$Automata$Rule$rule,
 					{
 						from: $elm$core$Maybe$Nothing,
-						to: $elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Fog)
+						to: $elm$core$Maybe$Just(to)
 					},
 					_List_fromArray(
 						[
 							_Utils_Tuple2(
 							1,
-							$elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Volcano))
-						]))
-				]);
-		case 'Fog':
-			return _List_fromArray(
-				[
-					A2(
-					$author$project$LittleWorldPuzzler$Automata$Rule$rule,
-					{
-						from: $elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Fog),
-						to: $elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Water)
-					},
-					_List_fromArray(
-						[
-							_Utils_Tuple2(
-							1,
-							$elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Water))
-						])),
-					A2(
-					$author$project$LittleWorldPuzzler$Automata$Rule$rule,
-					{
-						from: $elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Fog),
-						to: $elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Fire)
-					},
-					_List_fromArray(
-						[
-							_Utils_Tuple2(
-							1,
-							$elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Wood))
-						]))
-				]);
-		case 'Desert':
-			return _List_fromArray(
-				[
-					A2(
-					$author$project$LittleWorldPuzzler$Automata$Rule$rule,
-					{
-						from: $elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Desert),
-						to: $elm$core$Maybe$Nothing
-					},
-					_List_fromArray(
-						[
-							_Utils_Tuple2(
-							2,
-							$elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Water))
-						]))
-				]);
-		case 'Glacier':
-			return _List_fromArray(
-				[
-					A2(
-					$author$project$LittleWorldPuzzler$Automata$Rule$rule,
-					{
-						from: $elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Glacier),
-						to: $elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Glacier)
-					},
-					_List_fromArray(
-						[
-							_Utils_Tuple2(
-							2,
-							$elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Stone))
-						])),
-					A2(
-					$author$project$LittleWorldPuzzler$Automata$Rule$rule,
-					{
-						from: $elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Glacier),
-						to: $elm$core$Maybe$Nothing
-					},
-					_List_Nil),
-					A2(
-					$author$project$LittleWorldPuzzler$Automata$Rule$rule,
-					{
-						from: $elm$core$Maybe$Nothing,
-						to: $elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Ice)
-					},
-					_List_fromArray(
-						[
-							_Utils_Tuple2(
-							1,
-							$elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Glacier))
-						]))
-				]);
-		case 'Ice':
-			return _List_fromArray(
-				[
-					A2(
-					$author$project$LittleWorldPuzzler$Automata$Rule$rule,
-					{
-						from: $elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Ice),
-						to: $elm$core$Maybe$Nothing
-					},
-					_List_Nil),
-					A2(
-					$author$project$LittleWorldPuzzler$Automata$Rule$rule,
-					{
-						from: $elm$core$Maybe$Nothing,
-						to: $elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Snow)
-					},
-					_List_fromArray(
-						[
-							_Utils_Tuple2(
-							2,
-							$elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Ice))
-						]))
-				]);
-		case 'Snow':
-			return _List_fromArray(
-				[
-					A2(
-					$author$project$LittleWorldPuzzler$Automata$Rule$rule,
-					{
-						from: $elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Snow),
-						to: $elm$core$Maybe$Nothing
-					},
-					_List_fromArray(
-						[
-							_Utils_Tuple2(
-							2,
-							$elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Fire))
-						]))
-				]);
+							$elm$core$Maybe$Just(by))
+						]));
+			};
 		default:
-			return _List_fromArray(
-				[
-					A2(
+			return function (from) {
+				return A2(
 					$author$project$LittleWorldPuzzler$Automata$Rule$rule,
 					{
-						from: $elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Evergreen),
+						from: $elm$core$Maybe$Just(from),
 						to: $elm$core$Maybe$Nothing
 					},
-					_List_fromArray(
-						[
-							_Utils_Tuple2(
-							1,
-							$elm$core$Maybe$Just($author$project$LittleWorldPuzzler$Data$CellType$Fire))
-						]))
-				]);
+					_List_Nil);
+			};
 	}
+};
+var $author$project$LittleWorldPuzzler$Automata$Rule$rules = function (cellType) {
+	return A2(
+		$elm$core$List$map,
+		A2(
+			$elm$core$Basics$composeR,
+			$author$project$LittleWorldPuzzler$Automata$Rule$intoRule,
+			function (f) {
+				return f(cellType);
+			}),
+		function () {
+			switch (cellType.$) {
+				case 'Wood':
+					return _List_fromArray(
+						[
+							$author$project$LittleWorldPuzzler$Automata$Rule$TurnsInto($author$project$LittleWorldPuzzler$Data$CellType$Fire),
+							$author$project$LittleWorldPuzzler$Automata$Rule$CombinesInto($author$project$LittleWorldPuzzler$Data$CellType$Evergreen),
+							$author$project$LittleWorldPuzzler$Automata$Rule$Surrounds($author$project$LittleWorldPuzzler$Data$CellType$Bug)
+						]);
+				case 'Water':
+					return _List_fromArray(
+						[
+							$author$project$LittleWorldPuzzler$Automata$Rule$KilledBy2($author$project$LittleWorldPuzzler$Data$CellType$Fire),
+							$author$project$LittleWorldPuzzler$Automata$Rule$TurnsInto($author$project$LittleWorldPuzzler$Data$CellType$Ice),
+							$author$project$LittleWorldPuzzler$Automata$Rule$Spawns($author$project$LittleWorldPuzzler$Data$CellType$Wood)
+						]);
+				case 'Fire':
+					return _List_fromArray(
+						[
+							$author$project$LittleWorldPuzzler$Automata$Rule$Disapears,
+							$author$project$LittleWorldPuzzler$Automata$Rule$Surrounds($author$project$LittleWorldPuzzler$Data$CellType$Volcano)
+						]);
+				case 'Stone':
+					return _List_fromArray(
+						[
+							$author$project$LittleWorldPuzzler$Automata$Rule$CombinesInto($author$project$LittleWorldPuzzler$Data$CellType$Glacier),
+							$author$project$LittleWorldPuzzler$Automata$Rule$KilledBy($author$project$LittleWorldPuzzler$Data$CellType$Glacier)
+						]);
+				case 'Volcano':
+					return _List_fromArray(
+						[
+							$author$project$LittleWorldPuzzler$Automata$Rule$Disapears,
+							$author$project$LittleWorldPuzzler$Automata$Rule$Spawns($author$project$LittleWorldPuzzler$Data$CellType$Fire)
+						]);
+				case 'Fog':
+					return _List_fromArray(
+						[
+							$author$project$LittleWorldPuzzler$Automata$Rule$TurnsInto($author$project$LittleWorldPuzzler$Data$CellType$Water),
+							$author$project$LittleWorldPuzzler$Automata$Rule$TurnsInto($author$project$LittleWorldPuzzler$Data$CellType$Fire)
+						]);
+				case 'Desert':
+					return _List_Nil;
+				case 'Glacier':
+					return _List_fromArray(
+						[
+							$author$project$LittleWorldPuzzler$Automata$Rule$KilledBy($author$project$LittleWorldPuzzler$Data$CellType$Fire),
+							$author$project$LittleWorldPuzzler$Automata$Rule$Spawns($author$project$LittleWorldPuzzler$Data$CellType$Ice)
+						]);
+				case 'Ice':
+					return _List_fromArray(
+						[
+							$author$project$LittleWorldPuzzler$Automata$Rule$Disapears,
+							$author$project$LittleWorldPuzzler$Automata$Rule$Surrounds($author$project$LittleWorldPuzzler$Data$CellType$Snow)
+						]);
+				case 'Snow':
+					return _List_fromArray(
+						[
+							$author$project$LittleWorldPuzzler$Automata$Rule$KilledBy2($author$project$LittleWorldPuzzler$Data$CellType$Fire)
+						]);
+				case 'Evergreen':
+					return _List_fromArray(
+						[
+							$author$project$LittleWorldPuzzler$Automata$Rule$KilledBy($author$project$LittleWorldPuzzler$Data$CellType$Fire)
+						]);
+				default:
+					return _List_fromArray(
+						[
+							$author$project$LittleWorldPuzzler$Automata$Rule$TurnsInto($author$project$LittleWorldPuzzler$Data$CellType$Fire),
+							$author$project$LittleWorldPuzzler$Automata$Rule$Spawns($author$project$LittleWorldPuzzler$Data$CellType$Bug)
+						]);
+			}
+		}());
 };
 var $author$project$LittleWorldPuzzler$Automata$rules = $elm$core$List$concat(
 	A2($elm$core$List$map, $author$project$LittleWorldPuzzler$Automata$Rule$rules, $author$project$LittleWorldPuzzler$Data$CellType$list));
@@ -9747,27 +9689,38 @@ var $author$project$LittleWorldPuzzler$State$Playing$update = F2(
 						$elm$core$Platform$Cmd$none));
 			case 'PositionSelected':
 				var position = msg.a;
-				if (selected.$ === 'Just') {
-					if (selected.a.$ === 'First') {
-						var _v2 = selected.a;
-						return A2($author$project$LittleWorldPuzzler$State$Playing$playFirst, position, model);
-					} else {
-						var _v3 = selected.a;
-						var _v4 = $author$project$LittleWorldPuzzler$Data$Deck$second(game.deck);
-						if (_v4.$ === 'Just') {
-							var second = _v4.a;
-							return A3($author$project$LittleWorldPuzzler$State$Playing$playSecond, position, second, model);
+				var _v1 = A2($Orasund$elm_game_essentials$Grid$Bordered$get, position, game.board);
+				if (_v1.$ === 'Ok') {
+					if (_v1.a.$ === 'Nothing') {
+						var _v2 = _v1.a;
+						if (selected.$ === 'Just') {
+							if (selected.a.$ === 'First') {
+								var _v4 = selected.a;
+								return A2($author$project$LittleWorldPuzzler$State$Playing$playFirst, position, model);
+							} else {
+								var _v5 = selected.a;
+								var _v6 = $author$project$LittleWorldPuzzler$Data$Deck$second(game.deck);
+								if (_v6.$ === 'Just') {
+									var second = _v6.a;
+									return A3($author$project$LittleWorldPuzzler$State$Playing$playSecond, position, second, model);
+								} else {
+									return A2($author$project$LittleWorldPuzzler$State$Playing$playFirst, position, model);
+								}
+							}
 						} else {
-							return A2($author$project$LittleWorldPuzzler$State$Playing$playFirst, position, model);
+							return defaultCase;
 						}
+					} else {
+						var cell = _v1.a.a;
+						return A3($author$project$LittleWorldPuzzler$State$Playing$pickUp, cell, position, model);
 					}
 				} else {
 					return defaultCase;
 				}
 			case 'CardPlaced':
-				var _v5 = A2($author$project$LittleWorldPuzzler$Data$Game$step, collection, game);
-				var newGame = _v5.a;
-				var newCollection = _v5.b;
+				var _v7 = A2($author$project$LittleWorldPuzzler$Data$Game$step, collection, game);
+				var newGame = _v7.a;
+				var newCollection = _v7.b;
 				var newHistory = A2($elm_community$undo_redo$UndoList$new, newGame, history);
 				return (_Utils_eq(
 					_List_Nil,
@@ -9849,54 +9802,12 @@ var $author$project$LittleWorldPuzzler$State$Prepairing$update = F2(
 		}
 	});
 var $author$project$LittleWorldPuzzler$State$Playing$Normal = {$: 'Normal'};
-var $author$project$LittleWorldPuzzler$State$Ready$monthToInt = function (month) {
-	switch (month.$) {
-		case 'Jan':
-			return 1;
-		case 'Feb':
-			return 2;
-		case 'Mar':
-			return 3;
-		case 'Apr':
-			return 4;
-		case 'May':
-			return 5;
-		case 'Jun':
-			return 6;
-		case 'Jul':
-			return 7;
-		case 'Aug':
-			return 8;
-		case 'Sep':
-			return 9;
-		case 'Oct':
-			return 10;
-		case 'Nov':
-			return 11;
-		default:
-			return 12;
-	}
-};
 var $author$project$LittleWorldPuzzler$State$Ready$update = F2(
-	function (msg, model) {
-		var game = model.a;
-		var seed = model.b;
-		if (msg.$ === 'NormalModeSelected') {
-			return $Orasund$elm_action$Action$transitioning(
-				{game: game, mode: $author$project$LittleWorldPuzzler$State$Playing$Normal, seed: seed});
-		} else {
-			var _v1 = msg.a;
-			var month = _v1.a;
-			var year = _v1.b;
-			var newSeed = $elm$random$Random$initialSeed(
-				(year * 100) + $author$project$LittleWorldPuzzler$State$Ready$monthToInt(month));
-			return $Orasund$elm_action$Action$transitioning(
-				{
-					game: A2($elm$random$Random$step, $author$project$LittleWorldPuzzler$Data$Game$generator, newSeed).a,
-					mode: $author$project$LittleWorldPuzzler$State$Playing$Challenge,
-					seed: newSeed
-				});
-		}
+	function (msg, _v0) {
+		var game = _v0.a;
+		var seed = _v0.b;
+		return $Orasund$elm_action$Action$transitioning(
+			{game: game, mode: $author$project$LittleWorldPuzzler$State$Playing$Normal, seed: seed});
 	});
 var $author$project$LittleWorldPuzzler$State$Replaying$update = F2(
 	function (msg, model) {
@@ -16555,7 +16466,7 @@ var $author$project$LittleWorldPuzzler$View$Header$view = F3(
 							[$mdgriffith$elm_ui$Element$Font$sansSerif]))
 					]),
 				$mdgriffith$elm_ui$Element$text(
-					'Version ' + ($elm$core$String$fromInt($author$project$LittleWorldPuzzler$Data$gameVersion) + (': ' + ($author$project$LittleWorldPuzzler$Data$updateName + ' Update'))))));
+					'Version 2.' + ($elm$core$String$fromInt($author$project$LittleWorldPuzzler$Data$gameVersion) + (': ' + ($author$project$LittleWorldPuzzler$Data$updateName + ' Update'))))));
 	});
 var $mdgriffith$elm_ui$Internal$Model$SpacingStyle = F3(
 	function (a, b, c) {
@@ -16679,15 +16590,11 @@ var $author$project$LittleWorldPuzzler$View$Board$viewCell = F4(
 		return A2(
 			$mdgriffith$elm_ui$Element$el,
 			function () {
-				if (_Utils_eq(maybeCellType, $elm$core$Maybe$Nothing)) {
-					if (maybeMsg.$ === 'Just') {
-						var msg = maybeMsg.a;
-						return $elm$core$List$cons(
-							$mdgriffith$elm_ui$Element$Events$onClick(
-								msg(position)));
-					} else {
-						return $elm$core$Basics$identity;
-					}
+				if (maybeMsg.$ === 'Just') {
+					var msg = maybeMsg.a;
+					return $elm$core$List$cons(
+						$mdgriffith$elm_ui$Element$Events$onClick(
+							msg(position)));
 				} else {
 					return $elm$core$Basics$identity;
 				}
@@ -17555,7 +17462,7 @@ var $author$project$LittleWorldPuzzler$State$Finished$viewScore = F2(
 				]));
 	});
 var $author$project$LittleWorldPuzzler$State$Finished$view = F4(
-	function (scale, restartMsg, msgMapper, model) {
+	function (scale, restartMsg, _v0, model) {
 		var game = function () {
 			if (model.$ === 'End') {
 				var m = model.a;
@@ -17748,11 +17655,18 @@ var $author$project$LittleWorldPuzzler$View$Collection$tree = F3(
 						A2(
 						$mdgriffith$elm_ui$Element$column,
 						$author$project$LittleWorldPuzzler$View$Collection$attributes(scale),
-						A2(
-							$elm$core$List$map,
-							A3($author$project$LittleWorldPuzzler$View$Collection$viewCell, scale, msgMapper, set),
-							_List_fromArray(
-								[$author$project$LittleWorldPuzzler$Data$CellType$Wood, $author$project$LittleWorldPuzzler$Data$CellType$Evergreen]))),
+						_List_fromArray(
+							[
+								A4($author$project$LittleWorldPuzzler$View$Collection$viewCell, scale, msgMapper, set, $author$project$LittleWorldPuzzler$Data$CellType$Wood),
+								A2(
+								$mdgriffith$elm_ui$Element$row,
+								$author$project$LittleWorldPuzzler$View$Collection$attributes(scale),
+								A2(
+									$elm$core$List$map,
+									A3($author$project$LittleWorldPuzzler$View$Collection$viewCell, scale, msgMapper, set),
+									_List_fromArray(
+										[$author$project$LittleWorldPuzzler$Data$CellType$Evergreen, $author$project$LittleWorldPuzzler$Data$CellType$Bug])))
+							])),
 						A2(
 						$mdgriffith$elm_ui$Element$column,
 						$author$project$LittleWorldPuzzler$View$Collection$attributes(scale),
