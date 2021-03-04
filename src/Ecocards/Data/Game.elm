@@ -8,7 +8,7 @@ import Ecocards.Data.GameArea as GameArea exposing (GameArea)
 import Ecocards.Data.Move exposing (Move)
 import Maybe
 import Result.Extra as Result
-import Set
+import Set exposing (Set)
 
 
 
@@ -61,96 +61,82 @@ remove { id } game =
     }
 
 
-tapHerbivores : { amount : Int } -> Move -> Game -> Result String Game
-tapHerbivores { amount } move game =
-    if amount <= (move.played |> Set.size) then
-        Ok
-            { game
-                | yourArea =
-                    game.yourArea
-                        |> GameArea.tap move.animalId
-                        |> (game.animals
-                                |> Dict.get move.animalId
-                                |> Maybe.map GameArea.add
-                                |> Maybe.withDefault identity
-                           )
-            }
-
-    else
-        Err
-            ("Wrong amount: "
-                ++ String.fromInt amount
-                ++ ", expected "
-                ++ String.fromInt (move.played |> Set.size)
-                ++ " or less"
-            )
-
-
-tapOmnivorous : { minAmount : Int, maxAmount : Int } -> Move -> Game -> Result String Game
-tapOmnivorous { minAmount, maxAmount } move game =
-    let
-        amount =
-            move.selected
-                |> Set.foldl
-                    (\id ->
-                        game.animals
-                            |> Dict.get id
-                            |> Maybe.map .strength
-                            |> Maybe.withDefault 0
-                            |> (+)
-                    )
-                    0
-    in
-    if (minAmount <= amount) && (amount <= maxAmount) then
-        Ok
-            { game
-                | yourArea =
-                    game.yourArea
-                        |> GameArea.tap move.animalId
-                        |> GameArea.removeSet move.selected
-                        |> (if maxAmount == amount then
-                                game.animals
-                                    |> Dict.get move.animalId
-                                    |> Maybe.map GameArea.add
-                                    |> Maybe.withDefault identity
-
-                            else
-                                identity
-                           )
-                , oppArea =
-                    game.oppArea
-                        |> GameArea.removeSet move.selected
-            }
-
-    else
-        Err
-            ("wrong amount:"
-                ++ String.fromInt amount
-                ++ ", expected between "
-                ++ String.fromInt minAmount
-                ++ " and "
-                ++ String.fromInt maxAmount
-            )
-
-
-tapPredator :
-    { minAmount : Int
-    , maxAmount : Int
+tap :
+    { strength : Int
     , biome : Biome
+    , eats : Set String
     }
     -> Move
     -> Game
     -> Result String Game
-tapPredator { minAmount, maxAmount, biome } move game =
+tap { strength, biome, eats } move game =
     if
         move.selected
             |> Set.toList
             |> List.all
                 (\id ->
-                    game.animals |> Dict.get id |> Maybe.map (.biome >> (==) biome) |> Maybe.withDefault True
+                    game.animals
+                        |> Dict.get id
+                        |> Maybe.map
+                            (\animal ->
+                                eats
+                                    |> Set.member (animal.biome |> Animal.biomeToString)
+                            )
+                        |> Maybe.withDefault True
                 )
     then
-        tapOmnivorous { minAmount = minAmount, maxAmount = maxAmount } move game
+        let
+            ( minAmount, maxAmount ) =
+                if eats |> Set.isEmpty then
+                    ( 0, 0 )
+
+                else
+                    ( strength
+                    , strength |> (*) 2
+                    )
+
+            amount =
+                move.selected
+                    |> Set.foldl
+                        (\id ->
+                            game.animals
+                                |> Dict.get id
+                                |> Maybe.map .strength
+                                |> Maybe.withDefault 0
+                                |> (+)
+                        )
+                        0
+        in
+        if (minAmount <= amount) && (amount <= maxAmount) then
+            Ok
+                { game
+                    | yourArea =
+                        game.yourArea
+                            |> GameArea.tap move.animalId
+                            |> GameArea.removeSet move.selected
+                            |> (if strength * 2 == amount then
+                                    game.animals
+                                        |> Dict.get move.animalId
+                                        |> Maybe.map GameArea.add
+                                        |> Maybe.withDefault identity
+
+                                else
+                                    identity
+                               )
+                    , oppArea =
+                        game.oppArea
+                            |> GameArea.removeSet move.selected
+                }
+
+        else
+            Err
+                ("wrong amount:"
+                    ++ String.fromInt amount
+                    ++ ", expected between "
+                    ++ String.fromInt strength
+                    ++ " and "
+                    ++ String.fromInt (strength * 2)
+                )
 
     else
         Err "Not all selected have the expected biome."
@@ -169,24 +155,12 @@ tapAnimal move game =
             game.animals
                 |> Dict.get move.animalId
                 |> Maybe.map
-                    (\{ behaviour, biome } ->
-                        (case behaviour of
-                            Predator ( minAmount, maxAmount ) ->
-                                tapPredator
-                                    { minAmount = minAmount
-                                    , maxAmount = maxAmount
-                                    , biome = biome
-                                    }
-
-                            Herbivores amount ->
-                                tapHerbivores { amount = amount }
-
-                            Omnivorous ( minAmount, maxAmount ) ->
-                                tapOmnivorous
-                                    { minAmount = minAmount
-                                    , maxAmount = maxAmount
-                                    }
-                        )
+                    (\{ biome, eats, strength } ->
+                        tap
+                            { strength = strength
+                            , biome = biome
+                            , eats = eats |> List.map Animal.biomeToString |> Set.fromList
+                            }
                             move
                             game
                     )
@@ -237,8 +211,17 @@ isValidMove move game =
         |> Maybe.map
             (\animal ->
                 let
+                    eats =
+                        animal.eats |> List.map Animal.biomeToString |> Set.fromList
+
                     ( minAmount, maxAmount ) =
-                        animal |> Animal.getAmounts
+                        if eats |> Set.isEmpty then
+                            ( 0, 0 )
+
+                        else
+                            ( animal.strength
+                            , animal.strength |> (*) 2
+                            )
 
                     isAnimalOwned =
                         if
@@ -288,12 +271,8 @@ isValidMove move game =
                                             |> Dict.get id
                                             |> Maybe.map
                                                 (\{ biome } ->
-                                                    case animal.behaviour of
-                                                        Predator _ ->
-                                                            animal.biome == biome
-
-                                                        _ ->
-                                                            True
+                                                    eats
+                                                        |> Set.member (biome |> Animal.biomeToString)
                                                 )
                                             |> Maybe.withDefault False
                                     )
@@ -302,27 +281,10 @@ isValidMove move game =
 
                         else
                             Err "Selected animals are not valid"
-
-                    isPlayedAmountValid =
-                        let
-                            remaining =
-                                case animal.behaviour of
-                                    Herbivores amount ->
-                                        amount - (move.played |> Set.size)
-
-                                    _ ->
-                                        0
-                        in
-                        if remaining <= 0 then
-                            Ok ()
-
-                        else
-                            Err <| "Not enough animals played yet, you need to play " ++ String.fromInt remaining ++ " more"
                 in
                 [ isAnimalOwned
                 , isAmountValid
                 , isSelectedValid
-                , isPlayedAmountValid
                 ]
                     |> Result.partition
                     |> Tuple.second

@@ -2,6 +2,7 @@ module Ecocards.Page.LocalGame exposing (Model, Msg, init, main, subscriptions, 
 
 import Array
 import Browser
+import Color
 import Dict exposing (Dict)
 import Dict.Extra as Dict
 import Ecocards.Data.Animal as Animal exposing (Animal, Behaviour(..))
@@ -9,7 +10,8 @@ import Ecocards.Data.Game as Game exposing (Game)
 import Ecocards.Data.GameArea as GameArea exposing (GameArea)
 import Ecocards.Data.GamePhase as GamePhase exposing (GamePhase(..))
 import Ecocards.Data.Move as Move exposing (Move)
-import Ecocards.View as View
+import Ecocards.View.Animal as Animal
+import Ecocards.View.Biome as Biome
 import Element exposing (Element)
 import Element.Font as Font
 import Element.Input as Input
@@ -19,10 +21,9 @@ import Random exposing (Seed)
 import Set
 import Set.Extra as Set
 import Time
-import Widget
-import Widget.Snackbar as Snackbar exposing (Snackbar)
-import Widget.Style exposing (ButtonStyle, ColumnStyle, DialogStyle, ExpansionPanelStyle, LayoutStyle, RowStyle, SnackbarStyle, TabStyle, TextInputStyle)
-import Widget.Style.Material as Material exposing (Palette)
+import Widget exposing (ButtonStyle, ColumnStyle, DialogStyle, ExpansionItemStyle, RowStyle, TabStyle, TextInputStyle)
+import Widget.Material as Material exposing (Palette)
+import Widget.Snackbar as Snackbar exposing (Snackbar, SnackbarStyle)
 
 
 type alias Model =
@@ -129,17 +130,11 @@ update msg model =
                                         (\move ->
                                             { gamePhase = model.phase, game = model.game }
                                                 |> GamePhase.tap move
-                                                |> (case model.game.animals |> Dict.get id of
-                                                        Just { behaviour } ->
-                                                            case behaviour of
-                                                                Herbivores _ ->
-                                                                    Result.andThen GamePhase.end
+                                                |> (if model.game.animals |> Dict.get id |> Maybe.map .eats |> Maybe.withDefault [] |> List.isEmpty then
+                                                        Result.andThen GamePhase.end
 
-                                                                _ ->
-                                                                    identity
-
-                                                        Nothing ->
-                                                            identity
+                                                    else
+                                                        identity
                                                    )
                                                 |> applyChange
                                         )
@@ -377,31 +372,11 @@ subscriptions model =
 --------------------------------------------------------------------------------
 
 
-type alias Style msg =
-    { dialog : DialogStyle msg
-    , expansionPanel : ExpansionPanelStyle msg
-    , button : ButtonStyle msg
-    , primaryButton : ButtonStyle msg
-    , tab : TabStyle msg
-    , textInput : TextInputStyle msg
-    , chipButton : ButtonStyle msg
-    , row : RowStyle msg
-    , buttonRow : RowStyle msg
-    , column : ColumnStyle msg
-    , cardColumn : ColumnStyle msg
-    , selectButton : ButtonStyle msg
-    , layout : LayoutStyle msg
-    , snackbar : SnackbarStyle msg
-    , textButton : ButtonStyle msg
-    }
-
-
 palette : Palette
 palette =
     Material.defaultPalette
 
 
-style : Style msg
 style =
     { row = Material.row
     , buttonRow = Material.buttonRow
@@ -413,9 +388,7 @@ style =
     , tab = Material.tab palette
     , textInput = Material.textInput palette
     , chipButton = Material.chip palette
-    , expansionPanel = Material.expansionPanel palette
     , dialog = Material.alertDialog palette
-    , layout = Material.layout palette
     , snackbar = Material.snackbar palette
     , textButton = Material.textButton palette
     }
@@ -432,14 +405,14 @@ viewArea { gameArea, animals, phase, move } =
     [ [ [ Element.text "Next Cards "
         , gameArea.deck
             |> List.take (3 - (gameArea.hand |> Array.length))
-            |> List.map (.symbol >> Element.text)
+            |> List.map Animal.asCircle
             |> Element.row [ Element.alignRight, Element.spacing 8 ]
         ]
             |> Element.column [ Element.alignTop, Element.spacing 8 ]
       , [ Element.text "Deck"
         , gameArea.deck
             |> List.drop (3 - (gameArea.hand |> Array.length))
-            |> List.map (.symbol >> Element.text)
+            |> List.map Animal.asCircle
             |> Element.row [ Element.spacing 8 ]
         ]
             |> Element.column [ Element.spacing 8 ]
@@ -450,13 +423,9 @@ viewArea { gameArea, animals, phase, move } =
             |> Array.toList
             |> List.indexedMap
                 (\index animal ->
-                    View.squareCard
-                        { color = Nothing
-                        , text = animal.symbol
-                        , header = ( animal.biome |> Animal.biomeToString, String.fromInt animal.strength )
-                        , footer =
-                            animal.behaviour
-                                |> Animal.behaviourToString
+                    Animal.asCard
+                        { isActive = False
+                        , isSelected = False
                         , onPress =
                             case phase of
                                 Thinking _ ->
@@ -464,9 +433,8 @@ viewArea { gameArea, animals, phase, move } =
 
                                 _ ->
                                     Nothing
-                        , getInfoMsg =
-                            Just <| GetInfo <| Animal.behaviourDescription <| animal.behaviour
                         }
+                        animal
                 )
             |> Widget.row style.row
       ]
@@ -476,111 +444,72 @@ viewArea { gameArea, animals, phase, move } =
             |> Dict.toList
             |> List.map
                 (\( id, { isTapped } ) ->
-                    (case
+                    case
                         animals
                             |> Dict.get id
-                     of
+                    of
                         Nothing ->
-                            { color = Nothing
-                            , text = "Id:" ++ String.fromInt id
-                            , header =
-                                ( "", "" )
-                            , footer = ""
-                            , onPress = Nothing
-                            , getInfoMsg =
-                                Nothing
-                            }
+                            Animal.asCard
+                                { isActive = False
+                                , isSelected = False
+                                , onPress = Nothing
+                                }
+                                Animal.fish
 
                         Just animal ->
                             case phase of
                                 Tapping { selected, animalId } ->
-                                    { color =
-                                        if selected |> Set.member id then
-                                            Just View.blue
-
-                                        else if animalId == id then
-                                            Just View.gray
-
-                                        else
-                                            Nothing
-                                    , text = animal.symbol
-                                    , header =
-                                        ( animal.biome |> Animal.biomeToString
-                                        , animal.strength |> String.fromInt
-                                        )
-                                    , footer =
-                                        animal.behaviour
-                                            |> Animal.behaviourToString
-                                    , onPress = Just (ClickedCard { id = id })
-                                    , getInfoMsg =
-                                        Just <| GetInfo <| Animal.behaviourDescription <| animal.behaviour
-                                    }
+                                    Animal.asCard
+                                        { isSelected = selected |> Set.member id
+                                        , isActive = animalId == id
+                                        , onPress = Just (ClickedCard { id = id })
+                                        }
+                                        animal
 
                                 Thinking _ ->
                                     if isTapped then
-                                        { color = Nothing
-                                        , text =
-                                            animals
+                                        Animal.asCard
+                                            { isSelected = False
+                                            , isActive = False
+                                            , onPress = Nothing
+                                            }
+                                            (animals
                                                 |> Dict.get id
-                                                |> Maybe.map .symbol
-                                                |> Maybe.withDefault ("Id:" ++ String.fromInt id)
-                                        , header = ( animal.biome |> Animal.biomeToString, String.fromInt animal.strength )
-                                        , footer =
-                                            animal.behaviour
-                                                |> Animal.behaviourToString
-                                        , onPress = Nothing
-                                        , getInfoMsg =
-                                            Just <| GetInfo <| Animal.behaviourDescription <| animal.behaviour
-                                        }
+                                                |> Maybe.withDefault Animal.fish
+                                            )
 
                                     else
-                                        { color = Nothing
-                                        , text =
-                                            animals
+                                        Animal.asCard
+                                            { isSelected = False
+                                            , isActive = False
+                                            , onPress = Just (ClickedCard { id = id })
+                                            }
+                                            (animals
                                                 |> Dict.get id
-                                                |> Maybe.map .symbol
-                                                |> Maybe.withDefault ("Id:" ++ String.fromInt id)
-                                        , header = ( animal.biome |> Animal.biomeToString, String.fromInt animal.strength )
-                                        , footer =
-                                            animal.behaviour
-                                                |> Animal.behaviourToString
-                                        , onPress = Just (ClickedCard { id = id })
-                                        , getInfoMsg =
-                                            Just <| GetInfo <| Animal.behaviourDescription <| animal.behaviour
-                                        }
+                                                |> Maybe.withDefault Animal.fish
+                                            )
 
                                 _ ->
-                                    { color =
-                                        case move of
-                                            Just m ->
-                                                if m.selected |> Set.member id then
-                                                    Just View.blue
+                                    Animal.asCard
+                                        { isSelected =
+                                            case move of
+                                                Just m ->
+                                                    m.selected |> Set.member id
 
-                                                else
-                                                    Nothing
-
-                                            Nothing ->
+                                                Nothing ->
+                                                    False
+                                        , isActive = False
+                                        , onPress =
+                                            if move == Nothing then
                                                 Nothing
-                                    , text =
-                                        animals
-                                            |> Dict.get id
-                                            |> Maybe.map .symbol
-                                            |> Maybe.withDefault ("Id:" ++ String.fromInt id)
-                                    , header = ( animal.biome |> Animal.biomeToString, String.fromInt animal.strength )
-                                    , footer =
-                                        animal.behaviour
-                                            |> Animal.behaviourToString
-                                    , onPress =
-                                        if move == Nothing then
-                                            Nothing
 
-                                        else
-                                            Just (ClickedCard { id = id })
-                                    , getInfoMsg =
-                                        Just <| GetInfo <| Animal.behaviourDescription <| animal.behaviour
-                                    }
-                    )
-                        |> View.squareCard
+                                            else
+                                                Just (ClickedCard { id = id })
+                                        }
+                                        (animals
+                                            |> Dict.get id
+                                            |> Maybe.withDefault Animal.fish
+                                        )
                 )
             |> Element.wrappedRow [ Element.spacing 10 ]
       ]
@@ -803,6 +732,8 @@ view model =
                                     , onPress = Just <| CloseDialog False
                                     }
                             }
+                            |> List.singleton
+                            |> Widget.singleModal
 
                     else
                         []

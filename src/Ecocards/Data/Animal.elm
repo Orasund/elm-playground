@@ -1,15 +1,12 @@
 module Ecocards.Data.Animal exposing
     ( Animal
     , Behaviour(..)
-    , Biome
+    , Biome(..)
     , bear
-    , behaviourDescription
-    , behaviourToString
     , biomeToString
     , cat
     , deer
     , fish
-    , getAmounts
     , mouse
     , otter
     , wolf
@@ -25,10 +22,10 @@ biomeToString : Biome -> String
 biomeToString biome =
     case biome of
         Plain ->
-            "🌄"
+            "plain"
 
         River ->
-            "🌊"
+            "river"
 
 
 type Behaviour
@@ -90,21 +87,8 @@ type alias Animal =
     { symbol : String
     , strength : Int
     , biome : Biome
-    , behaviour : Behaviour
+    , eats : List Biome
     }
-
-
-getAmounts : Animal -> ( Int, Int )
-getAmounts animal =
-    case animal.behaviour of
-        Predator amounts ->
-            amounts
-
-        Herbivores _ ->
-            ( 0, 0 )
-
-        Omnivorous amounts ->
-            amounts
 
 
 fish : Animal
@@ -112,7 +96,7 @@ fish =
     { symbol = "🐟"
     , strength = 1
     , biome = River
-    , behaviour = Herbivores 0
+    , eats = []
     }
 
 
@@ -121,7 +105,7 @@ mouse =
     { symbol = "🐁"
     , strength = 1
     , biome = Plain
-    , behaviour = Herbivores 1
+    , eats = []
     }
 
 
@@ -130,7 +114,7 @@ otter =
     { symbol = "\u{1F9A6}"
     , strength = 2
     , biome = River
-    , behaviour = Predator ( 1, 2 )
+    , eats = [ River ]
     }
 
 
@@ -139,7 +123,7 @@ cat =
     { symbol = "🐈"
     , strength = 2
     , biome = Plain
-    , behaviour = Omnivorous ( 2, 4 )
+    , eats = [ Plain, River ]
     }
 
 
@@ -148,7 +132,7 @@ wolf =
     { symbol = "🐺"
     , strength = 3
     , biome = Plain
-    , behaviour = Predator ( 3, 6 )
+    , eats = [ Plain ]
     }
 
 
@@ -157,7 +141,7 @@ deer =
     { symbol = "\u{1F98C}"
     , strength = 2
     , biome = Plain
-    , behaviour = Herbivores 2
+    , eats = []
     }
 
 
@@ -166,5 +150,5 @@ bear =
     { symbol = "🐻"
     , strength = 4
     , biome = Plain
-    , behaviour = Omnivorous ( 4, 8 )
+    , eats = [ Plain, River ]
     }

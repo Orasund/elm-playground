@@ -171,8 +171,8 @@ calcMove { id, played, game } =
                     selected : Set Int
                     selected =
                         let
-                            amounts =
-                                tappingAnimal |> Animal.getAmounts
+                            eats =
+                                tappingAnimal.eats |> List.map Animal.biomeToString |> Set.fromList
 
                             toAnimals : Dict Int a -> Dict Int Animal
                             toAnimals =
@@ -185,12 +185,8 @@ calcMove { id, played, game } =
                                                     if
                                                         animal.strength
                                                             < tappingAnimal.strength
-                                                            && (case tappingAnimal.behaviour of
-                                                                    Predator _ ->
-                                                                        animal.biome == tappingAnimal.biome
-
-                                                                    _ ->
-                                                                        True
+                                                            && (eats
+                                                                    |> Set.member (animal.biome |> Animal.biomeToString)
                                                                )
                                                     then
                                                         Just animal
@@ -216,26 +212,21 @@ calcMove { id, played, game } =
                                     >> List.map (Tuple.mapSecond (List.length >> (+) 1))
                                     >> Bag.fromList
                         in
-                        case tappingAnimal.behaviour of
-                            Herbivores _ ->
-                                Set.empty
-
-                            _ ->
-                                Bag.findMinMaxSubset amounts
-                                    { maxBag =
-                                        oppAnimalList
-                                            |> toBag
-                                    , minBag =
-                                        yourAnimalList
-                                            |> toBag
-                                    }
-                                    |> Maybe.map
-                                        (\{ maxBag, minBag } ->
-                                            Set.union
-                                                (yourAnimalList |> Move.getSubset minBag)
-                                                (oppAnimalList |> Move.getSubset maxBag)
-                                        )
-                                    |> Maybe.withDefault Set.empty
+                        Bag.findMinMaxSubset ( tappingAnimal.strength, tappingAnimal.strength * 2 )
+                            { maxBag =
+                                oppAnimalList
+                                    |> toBag
+                            , minBag =
+                                yourAnimalList
+                                    |> toBag
+                            }
+                            |> Maybe.map
+                                (\{ maxBag, minBag } ->
+                                    Set.union
+                                        (yourAnimalList |> Move.getSubset minBag)
+                                        (oppAnimalList |> Move.getSubset maxBag)
+                                )
+                            |> Maybe.withDefault Set.empty
                 in
                 emptyMove { id = id, played = played, game = game }
                     |> Maybe.map
