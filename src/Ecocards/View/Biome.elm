@@ -7,8 +7,8 @@ import Ecocards.Data.Animal exposing (Biome(..))
 asColor : Biome -> Color
 asColor biome =
     case biome of
-        --Fauna ->
-        --    Color.rgb255 0 158 115
+        Forest ->
+            Color.rgb255 0 158 115
         Plain ->
             Color.rgb255 240 228 66
 

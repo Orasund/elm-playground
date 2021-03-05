@@ -1,21 +1,24 @@
 module Ecocards.Data.Animal exposing
     ( Animal
-    , Behaviour(..)
     , Biome(..)
     , bear
+    , biomeFromString
     , biomeToString
     , cat
-    , deer
     , fish
     , mouse
     , otter
+    , rabbit
     , wolf
     )
+
+import Set exposing (Set)
 
 
 type Biome
     = Plain
     | River
+    | Forest
 
 
 biomeToString : Biome -> String
@@ -27,67 +30,31 @@ biomeToString biome =
         River ->
             "river"
 
-
-type Behaviour
-    = Predator ( Int, Int )
-    | Herbivores Int
-    | Omnivorous ( Int, Int )
+        Forest ->
+            "forest"
 
 
-behaviourToString : Behaviour -> String
-behaviourToString behaviour =
-    case behaviour of
-        Predator ( min, max ) ->
-            "Pred." ++ String.fromInt min ++ "-" ++ String.fromInt max
+biomeFromString : String -> Maybe Biome
+biomeFromString string =
+    case string of
+        "plain" ->
+            Just Plain
 
-        Herbivores int ->
-            "Herb." ++ String.fromInt int
+        "river" ->
+            Just River
 
-        Omnivorous ( min, max ) ->
-            "Omni." ++ String.fromInt min ++ "-" ++ String.fromInt max
+        "forest" ->
+            Just Forest
 
-
-behaviourDescription : Behaviour -> { title : String, desc : String }
-behaviourDescription behaviour =
-    case behaviour of
-        Predator ( min, max ) ->
-            { title = "Predator " ++ String.fromInt min ++ " - " ++ String.fromInt max
-            , desc =
-                "Remove animals such that the total strength lyes within "
-                    ++ String.fromInt min
-                    ++ " and "
-                    ++ String.fromInt max
-                    ++ ". Removed animals need to be weaker and of the same Biome. "
-                    ++ "If the total strength of all removed animals is "
-                    ++ String.fromInt max
-                    ++ ", add a copy of your card to the top of your deck. Tap your card."
-            }
-
-        Herbivores int ->
-            { title = "Herbivores " ++ String.fromInt int
-            , desc =
-                "Tap your card if " ++ String.fromInt int ++ " or more cards have been tapped."
-            }
-
-        Omnivorous ( min, max ) ->
-            { title = "Omnivorous " ++ String.fromInt min ++ " - " ++ String.fromInt max
-            , desc =
-                "Remove animals such that the total strength lyes within "
-                    ++ String.fromInt min
-                    ++ " and "
-                    ++ String.fromInt max
-                    ++ ". Removed animals need to be weaker. "
-                    ++ "If the total strength of all removed animals is "
-                    ++ String.fromInt max
-                    ++ ", add a copy of your card to the top of your deck. Tap your card."
-            }
+        _ ->
+            Nothing
 
 
 type alias Animal =
     { symbol : String
     , strength : Int
     , biome : Biome
-    , eats : List Biome
+    , eats : Set String
     }
 
 
@@ -96,7 +63,7 @@ fish =
     { symbol = "🐟"
     , strength = 1
     , biome = River
-    , eats = []
+    , eats = Set.empty
     }
 
 
@@ -105,7 +72,7 @@ mouse =
     { symbol = "🐁"
     , strength = 1
     , biome = Plain
-    , eats = []
+    , eats = Set.empty
     }
 
 
@@ -114,7 +81,10 @@ otter =
     { symbol = "\u{1F9A6}"
     , strength = 2
     , biome = River
-    , eats = [ River ]
+    , eats =
+        [ River ]
+            |> List.map biomeToString
+            |> Set.fromList
     }
 
 
@@ -123,7 +93,10 @@ cat =
     { symbol = "🐈"
     , strength = 2
     , biome = Plain
-    , eats = [ Plain, River ]
+    , eats =
+        [ Plain, River ]
+            |> List.map biomeToString
+            |> Set.fromList
     }
 
 
@@ -131,17 +104,20 @@ wolf : Animal
 wolf =
     { symbol = "🐺"
     , strength = 3
-    , biome = Plain
-    , eats = [ Plain ]
+    , biome = Forest
+    , eats =
+        [ Forest, Plain ]
+            |> List.map biomeToString
+            |> Set.fromList
     }
 
 
-deer : Animal
-deer =
-    { symbol = "\u{1F98C}"
-    , strength = 2
-    , biome = Plain
-    , eats = []
+rabbit : Animal
+rabbit =
+    { symbol = "🐇"
+    , strength = 1
+    , biome = Forest
+    , eats = Set.empty
     }
 
 
@@ -149,6 +125,9 @@ bear : Animal
 bear =
     { symbol = "🐻"
     , strength = 4
-    , biome = Plain
-    , eats = [ Plain, River ]
+    , biome = Forest
+    , eats =
+        [ Forest, Plain, River ]
+            |> List.map biomeToString
+            |> Set.fromList
     }

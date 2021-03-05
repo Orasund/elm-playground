@@ -5,7 +5,7 @@ import Browser
 import Color
 import Dict exposing (Dict)
 import Dict.Extra as Dict
-import Ecocards.Data.Animal as Animal exposing (Animal, Behaviour(..))
+import Ecocards.Data.Animal as Animal exposing (Animal)
 import Ecocards.Data.Game as Game exposing (Game)
 import Ecocards.Data.GameArea as GameArea exposing (GameArea)
 import Ecocards.Data.GamePhase as GamePhase exposing (GamePhase(..))
@@ -71,7 +71,7 @@ init =
             ([ Animal.wolf, Animal.fish, Animal.mouse, Animal.cat, Animal.mouse, Animal.fish ]
                 |> GameArea.generate
             )
-            ([ Animal.bear, Animal.wolf, Animal.deer, Animal.otter, Animal.fish, Animal.deer ]
+            ([ Animal.bear, Animal.wolf, Animal.rabbit, Animal.otter, Animal.fish, Animal.rabbit ]
                 |> GameArea.generate
             )
         )
@@ -130,7 +130,12 @@ update msg model =
                                         (\move ->
                                             { gamePhase = model.phase, game = model.game }
                                                 |> GamePhase.tap move
-                                                |> (if model.game.animals |> Dict.get id |> Maybe.map .eats |> Maybe.withDefault [] |> List.isEmpty then
+                                                |> (if
+                                                        model.game.animals
+                                                            |> Dict.get id
+                                                            |> Maybe.map (.eats >> Set.isEmpty)
+                                                            |> Maybe.withDefault False
+                                                    then
                                                         Result.andThen GamePhase.end
 
                                                     else
@@ -146,9 +151,41 @@ update msg model =
                         model
 
                     else
-                        { model
-                            | phase = Tapping (move |> Move.toggle id)
-                        }
+                        model
+                            |> ({ gamePhase =
+                                    Tapping
+                                        (move
+                                            |> Move.toggle id
+                                        )
+                                , game = model.game
+                                }
+                                    |> (if
+                                            move
+                                                |> Move.toggle id
+                                                |> .selected
+                                                |> Set.foldl
+                                                    (\i out ->
+                                                        model.game.animals
+                                                            |> Dict.get i
+                                                            |> Maybe.map .strength
+                                                            |> Maybe.withDefault 0
+                                                            |> (+) out
+                                                    )
+                                                    0
+                                                |> (==)
+                                                    (model.game.animals
+                                                        |> Dict.get move.animalId
+                                                        |> Maybe.map .strength
+                                                        |> Maybe.withDefault 0
+                                                    )
+                                        then
+                                            GamePhase.end
+
+                                        else
+                                            Ok
+                                       )
+                                    |> applyChange
+                               )
 
                 Finished _ ->
                     model
@@ -462,7 +499,17 @@ viewArea { gameArea, animals, phase, move } =
                                     Animal.asCard
                                         { isSelected = selected |> Set.member id
                                         , isActive = animalId == id
-                                        , onPress = Just (ClickedCard { id = id })
+                                        , onPress =
+                                            if
+                                                animals
+                                                    |> Dict.get animalId
+                                                    |> Maybe.map (.eats >> Set.member (animal.biome |> Animal.biomeToString))
+                                                    |> Maybe.withDefault False
+                                            then
+                                                Just (ClickedCard { id = id })
+
+                                            else
+                                                Nothing
                                         }
                                         animal
 
@@ -489,27 +536,57 @@ viewArea { gameArea, animals, phase, move } =
                                                 |> Maybe.withDefault Animal.fish
                                             )
 
-                                _ ->
-                                    Animal.asCard
-                                        { isSelected =
-                                            case move of
-                                                Just m ->
-                                                    m.selected |> Set.member id
+                                WaitingForOpponent ->
+                                    (animals
+                                        |> Dict.get id
+                                        |> Maybe.withDefault Animal.fish
+                                    )
+                                        |> Animal.asCard
+                                            { isSelected =
+                                                case move of
+                                                    Just m ->
+                                                        m.selected |> Set.member id
 
-                                                Nothing ->
-                                                    False
-                                        , isActive = False
-                                        , onPress =
-                                            if move == Nothing then
+                                                    Nothing ->
+                                                        False
+                                            , isActive = False
+                                            , onPress =
+                                                move
+                                                    |> Maybe.andThen
+                                                        (\{ animalId } ->
+                                                            if move == Nothing then
+                                                                Nothing
+
+                                                            else if
+                                                                animals
+                                                                    |> Dict.get animalId
+                                                                    |> Maybe.map (.eats >> Set.member (animal.biome |> Animal.biomeToString))
+                                                                    |> Maybe.withDefault False
+                                                            then
+                                                                Just (ClickedCard { id = id })
+
+                                                            else
+                                                                Nothing
+                                                        )
+                                            }
+
+                                Finished _ ->
+                                    (animals
+                                        |> Dict.get id
+                                        |> Maybe.withDefault Animal.fish
+                                    )
+                                        |> Animal.asCard
+                                            { isSelected =
+                                                case move of
+                                                    Just m ->
+                                                        m.selected |> Set.member id
+
+                                                    Nothing ->
+                                                        False
+                                            , isActive = False
+                                            , onPress =
                                                 Nothing
-
-                                            else
-                                                Just (ClickedCard { id = id })
-                                        }
-                                        (animals
-                                            |> Dict.get id
-                                            |> Maybe.withDefault Animal.fish
-                                        )
+                                            }
                 )
             |> Element.wrappedRow [ Element.spacing 10 ]
       ]
@@ -587,51 +664,38 @@ view model =
       )
         |> Element.text
         |> Element.el [ Element.centerX ]
-    , [ [ Widget.textButton style.button
-            { text = "Cancel"
-            , onPress =
-                case model.phase of
-                    WaitingForOpponent ->
-                        Nothing
-
-                    Thinking _ ->
-                        Nothing
-
-                    Tapping _ ->
+    , [ [ case model.phase of
+            Tapping _ ->
+                Widget.textButton style.button
+                    { text = "Cancel"
+                    , onPress =
                         Just <| Canceled
+                    }
 
-                    Finished True ->
-                        Nothing
+            _ ->
+                Element.none
+        , case model.phase of
+            Tapping _ ->
+                Element.none
 
-                    Finished False ->
-                        Nothing
-            }
-        , Widget.textButton style.primaryButton
-            { text =
-                case model.phase of
-                    WaitingForOpponent ->
-                        "Start Turn"
+            _ ->
+                Widget.textButton style.primaryButton
+                    { text =
+                        case model.phase of
+                            WaitingForOpponent ->
+                                "Start Turn"
 
-                    Thinking _ ->
-                        "End Turn"
+                            Thinking _ ->
+                                "End Turn"
 
-                    Tapping _ ->
-                        "Tap Card"
+                            Tapping _ ->
+                                "Tap Card"
 
-                    Finished _ ->
-                        "Replay"
-            , onPress =
-                case model.phase of
-                    Tapping _ ->
-                        if invalidRestrictions |> List.isEmpty then
-                            Just Confirmed
-
-                        else
-                            Nothing
-
-                    _ ->
+                            Finished _ ->
+                                "Replay"
+                    , onPress =
                         Just Confirmed
-            }
+                    }
         , Widget.textButton style.textButton
             { text = "Help"
             , onPress =

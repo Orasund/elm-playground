@@ -4,7 +4,7 @@ import Array
 import Bag
 import Dict exposing (Dict)
 import Dict.Extra as Dict
-import Ecocards.Data.Animal as Animal exposing (Animal, Behaviour(..))
+import Ecocards.Data.Animal as Animal exposing (Animal)
 import Ecocards.Data.Bag as Bag
 import Ecocards.Data.Game as Game exposing (Game)
 import Ecocards.Data.Move as Move exposing (Move)
@@ -172,7 +172,7 @@ calcMove { id, played, game } =
                     selected =
                         let
                             eats =
-                                tappingAnimal.eats |> List.map Animal.biomeToString |> Set.fromList
+                                tappingAnimal.eats
 
                             toAnimals : Dict Int a -> Dict Int Animal
                             toAnimals =
@@ -212,7 +212,7 @@ calcMove { id, played, game } =
                                     >> List.map (Tuple.mapSecond (List.length >> (+) 1))
                                     >> Bag.fromList
                         in
-                        Bag.findMinMaxSubset ( tappingAnimal.strength, tappingAnimal.strength * 2 )
+                        Bag.findMinMaxSubset ( tappingAnimal.strength, tappingAnimal.strength )
                             { maxBag =
                                 oppAnimalList
                                     |> toBag

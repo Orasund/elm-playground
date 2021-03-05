@@ -3,7 +3,8 @@ module Ecocards.Data.Game exposing (Game, endTurn, isFinished, isValidMove, play
 import Array
 import Array.Extra as Array
 import Dict exposing (Dict)
-import Ecocards.Data.Animal as Animal exposing (Animal, Behaviour(..), Biome)
+import Dict.Extra as Dict
+import Ecocards.Data.Animal as Animal exposing (Animal, Biome)
 import Ecocards.Data.GameArea as GameArea exposing (GameArea)
 import Ecocards.Data.Move exposing (Move)
 import Maybe
@@ -62,14 +63,11 @@ remove { id } game =
 
 
 tap :
-    { strength : Int
-    , biome : Biome
-    , eats : Set String
-    }
+    Animal
     -> Move
     -> Game
     -> Result String Game
-tap { strength, biome, eats } move game =
+tap { strength, biome, eats, symbol } move game =
     if
         move.selected
             |> Set.toList
@@ -92,7 +90,7 @@ tap { strength, biome, eats } move game =
 
                 else
                     ( strength
-                    , strength |> (*) 2
+                    , strength
                     )
 
             amount =
@@ -114,7 +112,29 @@ tap { strength, biome, eats } move game =
                         game.yourArea
                             |> GameArea.tap move.animalId
                             |> GameArea.removeSet move.selected
-                            |> (if strength * 2 == amount then
+                            |> (if
+                                    game.yourArea.placed
+                                        |> Dict.filterMap
+                                            (\id { isTapped } ->
+                                                if isTapped then
+                                                    game.animals
+                                                        |> Dict.get id
+                                                        |> Maybe.andThen
+                                                            (\a ->
+                                                                if a.symbol == symbol then
+                                                                    Just id
+
+                                                                else
+                                                                    Nothing
+                                                            )
+
+                                                else
+                                                    Nothing
+                                            )
+                                        |> Dict.size
+                                        |> modBy 2
+                                        |> (==) 1
+                                then
                                     game.animals
                                         |> Dict.get move.animalId
                                         |> Maybe.map GameArea.add
@@ -155,12 +175,9 @@ tapAnimal move game =
             game.animals
                 |> Dict.get move.animalId
                 |> Maybe.map
-                    (\{ biome, eats, strength } ->
+                    (\animal ->
                         tap
-                            { strength = strength
-                            , biome = biome
-                            , eats = eats |> List.map Animal.biomeToString |> Set.fromList
-                            }
+                            animal
                             move
                             game
                     )
@@ -212,16 +229,14 @@ isValidMove move game =
             (\animal ->
                 let
                     eats =
-                        animal.eats |> List.map Animal.biomeToString |> Set.fromList
+                        animal.eats
 
-                    ( minAmount, maxAmount ) =
+                    amount =
                         if eats |> Set.isEmpty then
-                            ( 0, 0 )
+                            0
 
                         else
-                            ( animal.strength
-                            , animal.strength |> (*) 2
-                            )
+                            animal.strength
 
                     isAnimalOwned =
                         if
@@ -249,15 +264,13 @@ isValidMove move game =
                                         )
                                         0
                         in
-                        if (minAmount <= n) && (maxAmount >= n) then
+                        if amount == n then
                             Ok ()
 
                         else
                             Err <|
-                                "Amount is not valid, should be between "
-                                    ++ String.fromInt minAmount
-                                    ++ " and "
-                                    ++ String.fromInt maxAmount
+                                "Amount is not valid, should be "
+                                    ++ String.fromInt amount
                                     ++ " but is "
                                     ++ String.fromInt n
 

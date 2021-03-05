@@ -10,6 +10,7 @@ import Element.Border as Border
 import Element.Font as Font
 import Element.Input as Input
 import Html.Attributes as Attributes
+import Set
 import Widget.Material.Color as MaterialColor
 
 
@@ -59,26 +60,35 @@ asCard { onPress, isSelected, isActive } animal =
     in
     [ Input.button
         (Material.buttonFont
-            ++ (if onPress == Nothing then
+            {--++ (if onPress == Nothing then
                     [ Color.rgb255 127 127 127
                         |> Material.scaleOpacity MaterialColor.buttonDisabledOpacity
                         |> Material.fromColor
                         |> Border.color
+                    , 
                     ]
 
                 else
                     []
-               )
-            ++ [ color
+               )--}
+            ++ [ (if isActive then
+                    Color.rgb255 204 102 119
+
+                  else
+                    color
+                 )
                     |> Material.scaleOpacity
                         (if isSelected then
                             MaterialColor.buttonSelectedOpacity
 
                          else if isActive then
-                            MaterialColor.buttonFocusOpacity
+                            1
+
+                         else if onPress == Nothing then
+                            0.36
 
                          else
-                            0.36
+                            1
                         )
                     |> Material.fromColor
                     |> Background.color
@@ -86,12 +96,10 @@ asCard { onPress, isSelected, isActive } animal =
                ]
             ++ (if onPress == Nothing then
                     [ Element.htmlAttribute <| Attributes.style "cursor" "not-allowed"
-                    , Border.width 1
                     ]
 
                 else if isActive then
-                    [ Border.width 1
-                    ]
+                    [ Color.rgb255 255 255 255 |> Material.fromColor |> Font.color ]
 
                 else
                     []
@@ -115,20 +123,21 @@ asCard { onPress, isSelected, isActive } animal =
                     , Font.size 20
                     ]
             , animal.eats
+                |> Set.toList
+                |> List.filterMap Animal.biomeFromString
                 |> List.map
                     (\biome ->
                         Element.el
                             [ biome
                                 |> Biome.asColor
-                                |> Material.scaleOpacity 0.36
                                 |> Material.fromColor
                                 |> Background.color
                             , Element.width <| Element.px 10
                             , Element.height <| Element.px 10
                             , Border.rounded 5
                             , Border.width 1
-                            , Color.rgb255 127 127 127
-                                |> Material.scaleOpacity MaterialColor.buttonDisabledOpacity
+                            , Color.rgb255 0 0 0
+                                |> Material.scaleOpacity 0.5
                                 |> Material.fromColor
                                 |> Border.color
                             ]
