@@ -1,16 +1,32 @@
-module HeroForge.Data.CardDetails exposing (CardDetails, getDetails, onFreed)
+module HeroForge.Data.CardDetails exposing (CardDetails, getDetails, onFreed, onMailDelivery)
 
-import HeroForge.Data.Card exposing (Card(..), Level(..))
+import HeroForge.Data.Card exposing (Card(..))
 import HeroForge.Data.ConditionType exposing (ConditionType(..))
 import HeroForge.Data.Effect exposing (Effect(..))
-import HeroForge.Data.Item exposing (ItemSort(..))
+import HeroForge.Data.Item exposing (Item(..))
+import HeroForge.Data.Level exposing (Level(..))
+import HeroForge.Data.Loot exposing (LootSort(..))
+import HeroForge.Data.Monster as Monster
 
 
 type alias CardDetails =
     { desc : List String
-    , left : ( String, List Effect )
+    , left : Maybe ( String, List Effect )
     , right : ( String, List Effect )
     }
+
+
+onMailDelivery : Level -> List Effect
+onMailDelivery level =
+    case level of
+        Village ->
+            []
+
+        Forest ->
+            [ AddCard <| Inn ]
+
+        Mountains ->
+            []
 
 
 onFreed : Level -> List Effect
@@ -20,13 +36,23 @@ onFreed level =
             []
 
         Forest ->
-            [ ExitArea
-            , AddCard <|
-                Camp
+            [ AddCard <|
+                Spawner Quest <|
+                    Endboss
+                        { monster = Monster.bossBandidLeader
+                        , minion = Monster.bandid
+                        }
+            , ExitArea
+
+            --, AddCard <|
+            --    Camp
             , AddCard <|
                 Entrance Mountains
             , AddCard <|
                 Info "A new area has appeared."
+            , AddItem (Mail Forest)
+            , AddCard <|
+                Info "You recieved a letter for the post office."
             ]
 
         Mountains ->
@@ -39,28 +65,37 @@ getDetails card =
         Entrance level ->
             { desc = [ "Entrance" ]
             , left =
+                Just
+                    ( "Enter"
+                    , [ NextCard
+                      , SetCurrentLevel level
+                      ]
+                    )
+            , right =
                 ( "Continue"
                 , [ NextCard
+                  , Conditional (HasBeatenLevel level) ExitArea
                   , SetCurrentLevel level
                   ]
                 )
-            , right = ( "Continue", [ NextCard, SetCurrentLevel level ] )
             }
 
         Death ->
             { desc = []
-            , left = ( "", [] )
+            , left = Nothing
             , right = ( "Restart", [ RemoveCard, Restart ] )
             }
 
-        Spawner cond c ->
+        Spawner item c ->
             { desc = []
-            , left = ( "Continue", [ NextCard ] )
+            , left = Just ( "Continue", [ NextCard ] )
             , right =
                 ( "Spawn"
                 , [ NextCard
-                  , Conditional cond <|
+                  , Conditional (HasItem item) <|
                         AddCard c
+                  , Conditional (HasItem item) <|
+                        RemoveItem item
                   ]
                 )
             }
@@ -81,7 +116,7 @@ getDetails card =
                     Armor amount ->
                         "Max Health " ++ String.fromInt (amount + 2)
                 ]
-            , left = ( "Continue", [ NextCard ] )
+            , left = Just ( "Continue", [ NextCard ] )
             , right =
                 case item.sort of
                     Weapon amount ->
@@ -125,17 +160,18 @@ getDetails card =
                 , "Attack: " ++ String.fromInt monster.attack
                 ]
             , left =
-                ( "Continue"
-                , [ NextCard
-                  , AddHealth -monster.attack
-                  ]
-                )
+                Just
+                    ( "Continue"
+                    , [ NextCard
+                      , AddMoney -monster.attack
+                      ]
+                    )
             , right =
                 ( "Attack"
-                , [ Attack
-                  , AddHealth -monster.attack
-                  , AddAttack -1
-                  , AddMaxHealth -1
+                , [ Conditional (HasAttack 1) (Conditional (HasHealth monster.attack) Attack)
+                  , Conditional (HasAttack 1) (Conditional (HasHealth monster.attack) (AddHealth -monster.attack))
+                  , Conditional (HasAttack 1) (Conditional (HasHealth monster.attack) (AddAttack -1))
+                  , Conditional (HasAttack 1) (Conditional (HasHealth monster.attack) (AddMaxHealth -1))
                   ]
                 )
             }
@@ -143,34 +179,31 @@ getDetails card =
         Endboss { monster, minion } ->
             { desc = [ "Attack: " ++ String.fromInt monster.attack ]
             , left =
-                ( "Continue"
-                , [ AddPreviousCard (Enemy minion)
-                  , NextCard
-                  , AddHealth -monster.attack
-                  ]
-                )
+                Just
+                    ( "Continue"
+                    , [ AddPreviousCard (Enemy minion)
+                      , NextCard
+                      , AddMoney -monster.attack
+                      ]
+                    )
             , right =
                 ( "Attack"
-                , [ Attack
-                  , AddHealth -monster.attack
-                  , AddAttack -1
-                  , AddMaxHealth -1
+                , [ Conditional (HasAttack 1) (Conditional (HasHealth monster.attack) Attack)
+                  , Conditional (HasAttack 1) (Conditional (HasHealth monster.attack) (AddHealth -monster.attack))
+                  , Conditional (HasAttack 1) (Conditional (HasHealth monster.attack) (AddAttack -1))
+                  , Conditional (HasAttack 1) (Conditional (HasHealth monster.attack) (AddMaxHealth -1))
                   ]
                 )
             }
 
         Camp ->
-            { desc = [ "+1 Health or", "+1 Attack" ]
-            , left =
-                ( "Rest"
-                , [ NextCard
-                  , AddHealth 1
-                  ]
-                )
+            { desc = [ "+1 Health and", "1 Attack" ]
+            , left = Nothing
             , right =
-                ( "Equip basic weapon"
+                ( "Restock"
                 , [ NextCard
-                  , SetAttack 1
+                  , Conditional (Not HasFullHealth) (AddHealth 1)
+                  , Conditional (HasAttack 0) (SetAttack 1)
                   ]
                 )
             }
@@ -178,10 +211,11 @@ getDetails card =
         Shop cost item ->
             { desc = [ item.name ++ " for " ++ String.fromInt cost ++ " Money" ]
             , left =
-                ( "Continue"
-                , [ NextCard
-                  ]
-                )
+                Just
+                    ( "Continue"
+                    , [ NextCard
+                      ]
+                    )
             , right =
                 ( "Buy"
                 , [ Conditional (HasMoney cost) (AddCard (Loot item))
@@ -192,14 +226,37 @@ getDetails card =
 
         Info string ->
             { desc = [ string ]
-            , left =
+            , left = Nothing
+            , right =
                 ( "Continue"
                 , [ RemoveCard
                   ]
                 )
+            }
+
+        PostOffice ->
+            { desc = [ "Find mail to unlock new buildings in the village." ]
+            , left = Nothing
             , right =
                 ( "Continue"
-                , [ RemoveCard
+                , [ NextCard
+                  , DeliverMail
+                  ]
+                )
+            }
+
+        Inn ->
+            { desc = [ "Quest: Kill the leader of the bandits" ]
+            , left =
+                Just
+                    ( "Reject"
+                    , [ NextCard
+                      ]
+                    )
+            , right =
+                ( "Accept"
+                , [ NextCard
+                  , AddItem Quest
                   ]
                 )
             }

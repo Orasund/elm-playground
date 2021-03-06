@@ -7,6 +7,8 @@ import Framework.Grid as Grid
 import HeroForge.Data.Card as Card exposing (Card(..))
 import HeroForge.Data.Deck as Deck
 import HeroForge.Data.Game as Game exposing (Direction, Game)
+import HeroForge.Data.Item as Item
+import HeroForge.Data.Level as Level
 import HeroForge.View.Card as Card
 import HeroForge.View.Deck as Deck
 import Set.Any as AnySet
@@ -39,7 +41,7 @@ view { selected, showAnimation } game =
                     ++ String.fromInt game.attack
             ]
         , game.currentLevel
-            |> Card.levelToString
+            |> Level.toString
             |> Element.text
             |> Element.el
                 ([ Font.alignRight
@@ -74,4 +76,22 @@ view { selected, showAnimation } game =
                 , Element.centerX
                 , Element.width <| Element.shrink
                 ]
+        , "Inventory"
+            |> Element.text
+            |> Element.el
+                ([ Font.alignRight
+                 , Font.bold
+                 , Element.centerX
+                 ]
+                    ++ (if game.wonLevels |> AnySet.member game.currentLevel then
+                            [ Font.color <| Color.green ]
+
+                        else
+                            []
+                       )
+                )
+        , game.items
+            |> AnySet.toList
+            |> List.map (Item.asSymbol >> Element.text)
+            |> Element.row [ Element.spacing 5, Element.centerX ]
         ]

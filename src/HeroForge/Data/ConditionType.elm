@@ -1,5 +1,7 @@
 module HeroForge.Data.ConditionType exposing (ConditionType(..), toString)
 
+import HeroForge.Data.Level as Level exposing (Level(..))
+import HeroForge.Data.Item as Item exposing (Item)
 
 type ConditionType
     = HasMoney Int
@@ -11,6 +13,8 @@ type ConditionType
     | And ConditionType ConditionType
     | Or ConditionType ConditionType
     | Success
+    | HasBeatenLevel Level
+    | HasItem Item
 
 
 toString : ConditionType -> String
@@ -42,3 +46,9 @@ toString cond =
 
         Success ->
             "true"
+
+        HasBeatenLevel level ->
+            "beaten " ++ Level.toString level
+
+        HasItem item ->
+            "owns " ++ Item.toString item

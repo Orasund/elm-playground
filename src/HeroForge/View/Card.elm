@@ -1,7 +1,9 @@
 module HeroForge.View.Card exposing (Msg(..), view)
 
 import Card
+import Color
 import Element exposing (Element)
+import Element.Background as Background
 import Element.Border as Border
 import Element.Events as Events
 import Element.Font as Font
@@ -14,6 +16,7 @@ import HeroForge.Data.Effect as Effect
 import HeroForge.Data.Game exposing (Direction(..))
 import Html.Attributes as Attributes
 import Html.Events.Extra.Touch as Touch
+import List.Extra as List
 import Tuple
 
 
@@ -37,10 +40,10 @@ single card =
         { desc } =
             card |> CardDetails.getDetails
 
-        { name } =
+        { name, symbol } =
             card |> Card.toString
     in
-    [ name |> Element.text |> Element.el [ Font.bold ]
+    [ symbol ++ " " ++ name |> Element.text |> Element.el [ Font.bold ]
     , desc
         |> List.map (Element.text >> List.singleton >> Element.paragraph [])
         |> Element.column Grid.simple
@@ -116,7 +119,12 @@ view { selected, card, maybeNextCard, showAnimation } =
                                     Attributes.style "transition-timing-function" "ease"
                                 ]
                            )
-                        ++ (color |> List.map (Element.mapAttribute never))
+                        ++ (color
+                                |> Color.toRgba
+                                |> Element.fromRgb
+                                |> Background.color
+                                |> List.singleton
+                           )
                         ++ (case selected of
                                 Just Left ->
                                     [ Element.moveLeft 50 ]
@@ -144,7 +152,12 @@ view { selected, card, maybeNextCard, showAnimation } =
                                             ++ [ Element.width <| Element.px <| 200
                                                , Element.height <| Element.px <| 300
                                                ]
-                                            ++ (nextColor |> List.map (Element.mapAttribute never))
+                                            ++ (nextColor
+                                                    |> Color.toRgba
+                                                    |> Element.fromRgb
+                                                    |> Background.color
+                                                    |> List.singleton
+                                               )
                                         )
 
                             Nothing ->
@@ -171,98 +184,144 @@ view { selected, card, maybeNextCard, showAnimation } =
                 }
             ]
         , Element.row Grid.spaceEvenly
-            [ Input.button
-                [ Element.width <| Element.fill
-                , Element.padding 10
-                , Element.height <| Element.fill
-                , Events.onMouseEnter <| Over (Just Left)
-                , Events.onMouseLeave <| Over Nothing
-                ]
-                { onPress = Just <| Selected Left
-                , label =
-                    [ [ "<- "
-                            ++ (left |> Tuple.first)
-                            |> Element.text
-                            |> Element.el
-                                [ Font.bold
-                                , Element.width <| Element.fill
-                                ]
-                      ]
-                    , left
-                        |> Tuple.second
-                        |> List.map
-                            (Effect.toString
-                                >> (\( text, maybeColor ) ->
-                                        text
-                                            |> Element.text
-                                            |> Element.el
-                                                ([ Element.width <| Element.fill
-                                                 , Font.size 11
-                                                 ]
-                                                    ++ (case maybeColor of
-                                                            Just c ->
-                                                                [ Font.color c
-                                                                , Font.bold
-                                                                ]
+            ((case left of
+                Just ( title, effects ) ->
+                    [ Input.button
+                        [ Element.width <| Element.fill
+                        , Element.padding 10
+                        , Element.height <| Element.fill
+                        , Events.onMouseEnter <| Over (Just Left)
+                        , Events.onMouseLeave <| Over Nothing
+                        ]
+                        { onPress = Just <| Selected Left
+                        , label =
+                            [ [ "<- "
+                                    ++ title
+                                    |> Element.text
+                                    |> Element.el
+                                        ([ Font.bold
+                                         , Element.width <| Element.fill
+                                         ]
+                                            ++ (effects
+                                                    |> List.filterMap (Effect.toString >> Tuple.second)
+                                                    |> List.last
+                                                    |> Maybe.map
+                                                        (Color.toRgba
+                                                            >> Element.fromRgb
+                                                            >> Font.color
+                                                            >> List.singleton
+                                                        )
+                                                    |> Maybe.withDefault []
+                                               )
+                                        )
+                              ]
+                            , effects
+                                |> List.map
+                                    (Effect.toString
+                                        >> (\( text, maybeColor ) ->
+                                                text
+                                                    |> Element.text
+                                                    |> Element.el
+                                                        ([ Element.width <| Element.fill
+                                                         , Font.size 11
+                                                         ]
+                                                            ++ (case maybeColor of
+                                                                    Just c ->
+                                                                        [ c
+                                                                            |> Color.toRgba
+                                                                            |> Element.fromRgb
+                                                                            |> Font.color
+                                                                        , Font.bold
+                                                                        ]
 
-                                                            Nothing ->
-                                                                []
-                                                       )
-                                                )
-                                   )
-                            )
+                                                                    Nothing ->
+                                                                        []
+                                                               )
+                                                        )
+                                           )
+                                    )
+                            ]
+                                |> List.concat
+                                |> Element.column
+                                    (Grid.compact
+                                        ++ [ Element.width <| Element.shrink
+                                           , Element.alignRight
+                                           , Font.alignRight
+                                           ]
+                                    )
+                        }
                     ]
-                        |> List.concat
-                        |> Element.column
-                            (Grid.compact
-                                ++ [ Element.width <| Element.shrink
-                                   , Element.alignRight
-                                   , Font.alignRight
-                                   ]
-                            )
-                }
-            , Input.button
-                [ Font.alignLeft
-                , Element.width <| Element.fill
-                , Element.padding 10
-                , Element.height <| Element.fill
-                , Events.onMouseEnter <| Over (Just Right)
-                , Events.onMouseLeave <| Over Nothing
-                ]
-                { onPress = Just <| Selected Right
-                , label =
-                    [ [ (right |> Tuple.first)
-                            ++ " ->"
-                            |> Element.text
-                            |> Element.el [ Font.bold ]
-                      ]
-                    , right
-                        |> Tuple.second
-                        |> List.map
-                            (Effect.toString
-                                >> (\( text, maybeColor ) ->
-                                        text
-                                            |> Element.text
-                                            |> List.singleton
-                                            |> Element.paragraph
-                                                ([ Font.size 11
-                                                 , Element.spacing 0
-                                                 ]
-                                                    ++ (case maybeColor of
-                                                            Just c ->
-                                                                [ Font.color c
-                                                                , Font.bold
-                                                                ]
 
-                                                            Nothing ->
-                                                                []
-                                                       )
-                                                )
-                                   )
-                            )
+                Nothing ->
+                    [ Element.el
+                        [ Element.width <| Element.fill
+                        , Element.padding 10
+                        , Element.height <| Element.fill
+                        ]
+                      <|
+                        Element.none
                     ]
-                        |> List.concat
-                        |> Element.column Grid.compact
-                }
-            ]
+             )
+                ++ [ Input.button
+                        [ Font.alignLeft
+                        , Element.width <| Element.fill
+                        , Element.padding 10
+                        , Element.height <| Element.fill
+                        , Events.onMouseEnter <| Over (Just Right)
+                        , Events.onMouseLeave <| Over Nothing
+                        ]
+                        { onPress = Just <| Selected Right
+                        , label =
+                            [ [ (right |> Tuple.first)
+                                    ++ " ->"
+                                    |> Element.text
+                                    |> Element.el
+                                        (Font.bold
+                                            :: (right
+                                                    |> Tuple.second
+                                                    |> List.filterMap (Effect.toString >> Tuple.second)
+                                                    |> List.last
+                                                    |> Maybe.map
+                                                        (Color.toRgba
+                                                            >> Element.fromRgb
+                                                            >> Font.color
+                                                            >> List.singleton
+                                                        )
+                                                    |> Maybe.withDefault []
+                                               )
+                                        )
+                              ]
+                            , right
+                                |> Tuple.second
+                                |> List.map
+                                    (Effect.toString
+                                        >> (\( text, maybeColor ) ->
+                                                text
+                                                    |> Element.text
+                                                    |> List.singleton
+                                                    |> Element.paragraph
+                                                        ([ Font.size 11
+                                                         , Element.spacing 0
+                                                         ]
+                                                            ++ (case maybeColor of
+                                                                    Just c ->
+                                                                        [ c
+                                                                            |> Color.toRgba
+                                                                            |> Element.fromRgb
+                                                                            |> Font.color
+                                                                        , Font.bold
+                                                                        ]
+
+                                                                    Nothing ->
+                                                                        []
+                                                               )
+                                                        )
+                                           )
+                                    )
+                            ]
+                                |> List.concat
+                                |> Element.column Grid.compact
+                        }
+                   ]
+            )
         ]

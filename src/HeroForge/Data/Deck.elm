@@ -1,4 +1,4 @@
-module HeroForge.Data.Deck exposing (Deck, add, addPrevious, current, fromList, findNext, next, remove, toList)
+module HeroForge.Data.Deck exposing (Deck, add, addPrevious, current, findNext, findPrevious, fromList, next, remove, toList)
 
 import RollingList exposing (RollingList)
 
@@ -17,6 +17,22 @@ findNext cond deck =
             else
                 deck
                     |> RollingList.roll
+                    |> findNext cond
+
+        Nothing ->
+            deck
+
+
+findPrevious : (a -> Bool) -> Deck a -> Deck a
+findPrevious cond deck =
+    case deck |> RollingList.current of
+        Just card ->
+            if cond card then
+                deck
+
+            else
+                deck
+                    |> RollingList.rollBack
                     |> findNext cond
 
         Nothing ->

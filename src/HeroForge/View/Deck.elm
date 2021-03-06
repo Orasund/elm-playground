@@ -1,8 +1,10 @@
 module HeroForge.View.Deck exposing (view)
 
+import Color
 import Element exposing (Element)
+import Element.Background as Background
 import Element.Border as Border
-import Framework.Color as Color
+import Element.Font as Font
 import Framework.Grid as Grid
 import HeroForge.Data.Card as Card exposing (Card)
 import HeroForge.Data.Deck as Deck exposing (Deck)
@@ -14,19 +16,23 @@ view deck =
         |> Deck.toList
         |> List.map
             (Card.toString
-                >> .color
-                >> (\color ->
-                        Element.el
-                            ([ Element.width <| Element.px <| 10
-                             , Element.height <| Element.px <| 10
-                             , Border.color <| Color.lightGrey
-                             , Border.width 1
-                             , Border.rounded 5
-                             ]
-                                ++ (color |> List.map (Element.mapAttribute never))
-                            )
-                        <|
-                            Element.none
+                >> (\{ symbol, color } ->
+                        symbol
+                            |> Element.text
+                            |> Element.el [ Element.centerX, Element.centerY ]
+                            |> Element.el
+                                ([ Element.width <| Element.px <| 20
+                                 , Element.height <| Element.px <| 20
+                                 , Font.size 10
+                                 , Border.rounded 10
+                                 ]
+                                    ++ (color
+                                            |> Color.toRgba
+                                            |> Element.fromRgb
+                                            |> Background.color
+                                            |> List.singleton
+                                       )
+                                )
                    )
             )
-        |> Element.row (Grid.simple ++ [ Element.clipX, Element.centerY ])
+        |> Element.row (Grid.simple ++ [ Element.spacing 5, Element.clipX, Element.centerY ])

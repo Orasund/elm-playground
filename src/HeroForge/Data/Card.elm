@@ -1,76 +1,78 @@
-module HeroForge.Data.Card exposing (Card(..), Level(..), levelToString, toString)
+module HeroForge.Data.Card exposing (Card(..), toString)
 
+import Color as C exposing (Color)
 import Element exposing (Attribute)
-import Framework.Color as Color
 import HeroForge.Data.ConditionType exposing (ConditionType)
-import HeroForge.Data.Item exposing (Item, ItemSort(..))
+import HeroForge.Data.Item as Item exposing (Item)
+import HeroForge.Data.Level as Level exposing (Level(..))
+import HeroForge.Data.Loot exposing (Loot, LootSort(..))
 import HeroForge.Data.Monster exposing (Monster)
-
-
-type Level
-    = Village
-    | Forest
-    | Mountains
-
-
-levelToString : Level -> String
-levelToString level =
-    case level of
-        Village ->
-            "Village"
-
-        Forest ->
-            "Forest"
-
-        Mountains ->
-            "Mountains"
+import HeroForge.View.Color as Color
 
 
 type Card
     = Entrance Level
     | Death
-    | Loot Item
+    | Loot Loot
     | Enemy Monster
     | Endboss { monster : Monster, minion : Monster }
     | Camp
-    | Spawner ConditionType Card
-    | Shop Int Item
+    | Spawner Item Card
+    | Shop Int Loot
     | Info String
+    | PostOffice
+    | Inn
 
 
-toString : Card -> { name : String, color : List (Attribute Never) }
+toString : Card -> { name : String, symbol : String, color : Color }
 toString card =
     case card of
         Entrance level ->
-            { name = level |> levelToString
-            , color = Color.warning
+            { name = level |> Level.toString
+            , symbol = "🚪"
+            , color = Color.cyan
             }
 
         Death ->
             { name = "Death"
-            , color = Color.dark
+            , symbol = "💀"
+            , color = Color.black
             }
 
         Spawner _ _ ->
             { name = "Spawner"
-            , color = Color.simple
+            , symbol = "🎇"
+            , color = Color.white
             }
 
         Loot item ->
             { name =
                 case item.sort of
                     Weapon amount ->
-                        "Weapon Item " ++ String.fromInt amount
+                        "Weapon Loot " ++ String.fromInt amount
 
                     Healing amount ->
-                        "Healing Item " ++ String.fromInt amount
+                        "Healing Loot " ++ String.fromInt amount
 
                     Value amount ->
-                        "Value Item " ++ String.fromInt amount
+                        "Value Loot " ++ String.fromInt amount
 
                     Armor amount ->
-                        "Armor Item " ++ String.fromInt (amount + 2)
-            , color = Color.primary
+                        "Armor Loot " ++ String.fromInt (amount + 2)
+            , symbol =
+                case item.sort of
+                    Weapon _ ->
+                        "🗡️"
+
+                    Healing _ ->
+                        "❤️"
+
+                    Value _ ->
+                        "💰"
+
+                    Armor _ ->
+                        "🛡️"
+            , color = Color.green
             }
 
         Enemy monster ->
@@ -78,7 +80,8 @@ toString card =
                 "Monster("
                     ++ String.fromInt monster.health
                     ++ ")"
-            , color = Color.danger
+            , symbol = "👾"
+            , color = Color.red
             }
 
         Endboss { monster } ->
@@ -88,20 +91,36 @@ toString card =
                     ++ " (Health: "
                     ++ String.fromInt monster.health
                     ++ ")"
-            , color = Color.danger
+            , symbol = "👾"
+            , color = Color.red
             }
 
         Camp ->
             { name = "Camp"
-            , color = Color.light
+            , symbol = "⛺"
+            , color = Color.white
             }
 
         Shop _ _ ->
             { name = "Shop"
-            , color = Color.light
+            , symbol = "\u{1F6D2}"
+            , color = Color.white
             }
 
         Info _ ->
             { name = "Info"
-            , color = Color.info
+            , symbol = "❗"
+            , color = Color.cyan
+            }
+
+        PostOffice ->
+            { name = "Post Office"
+            , symbol = "📯"
+            , color = Color.white
+            }
+
+        Inn ->
+            { name = "Inn"
+            , symbol = "🛎"
+            , color = Color.white
             }

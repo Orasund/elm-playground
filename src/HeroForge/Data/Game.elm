@@ -1,11 +1,13 @@
 module HeroForge.Data.Game exposing (Direction(..), Game, Msg(..), current, init, update)
 
-import HeroForge.Data.Card as Card exposing (Card(..), Level(..))
+import HeroForge.Data.Card as Card exposing (Card(..))
 import HeroForge.Data.CardDetails as CardDetails
 import HeroForge.Data.ConditionType exposing (ConditionType(..))
 import HeroForge.Data.Deck as Deck exposing (Deck)
 import HeroForge.Data.Effect exposing (Effect(..))
-import HeroForge.Data.Item as Item exposing (ItemSort(..))
+import HeroForge.Data.Item as Item exposing (Item(..))
+import HeroForge.Data.Level as Level exposing (Level(..))
+import HeroForge.Data.Loot as Loot exposing (LootSort(..))
 import HeroForge.Data.Monster as Monster exposing (Monster)
 import Random exposing (Generator)
 import Set.Any as AnySet exposing (AnySet)
@@ -24,6 +26,7 @@ type alias Game =
     , attack : Int
     , currentLevel : Level
     , wonLevels : AnySet String Level
+    , items : AnySet String Item
     }
 
 
@@ -54,12 +57,8 @@ init maybeDeck =
                         { monster = Monster.bossBandidLeader
                         , minion = Monster.bandid
                         }
-                    , Spawner (HasMaxHealth 4) <|
-                        Endboss
-                            { monster = Monster.bossBandidLeader
-                            , minion = Monster.bandid
-                            }
                     , Entrance Village
+                    , PostOffice
                     , Shop 5
                         { name = "Old Lether Armor"
                         , sort = Armor 2
@@ -77,7 +76,8 @@ init maybeDeck =
     , wonLevels =
         maybeDeck
             |> Maybe.map .wonLevels
-            |> Maybe.withDefault (AnySet.empty Card.levelToString)
+            |> Maybe.withDefault (AnySet.empty Level.toString)
+    , items = AnySet.empty Item.toString
     }
 
 
@@ -111,6 +111,12 @@ check cond game =
         Success ->
             True
 
+        HasBeatenLevel level ->
+            game.wonLevels |> AnySet.member level
+
+        HasItem item ->
+            game.items |> AnySet.member item
+
 
 applyEffect : Effect -> Game -> Generator Game
 applyEffect effect game =
@@ -129,6 +135,22 @@ applyEffect effect game =
                 | deck =
                     game.deck
                         |> Deck.findNext
+                            (\c ->
+                                case c of
+                                    Entrance _ ->
+                                        True
+
+                                    _ ->
+                                        False
+                            )
+            }
+                |> Random.constant
+
+        RestartArea ->
+            { game
+                | deck =
+                    game.deck
+                        |> Deck.findPrevious
                             (\c ->
                                 case c of
                                     Entrance _ ->
@@ -197,7 +219,7 @@ applyEffect effect game =
                 | attack = max amount game.attack
                 , deck =
                     game.deck
-                        |> (if game.attack > amount then
+                        |> (if game.attack >= amount then
                                 Deck.add <| Info "You have a better Weapon equipped."
 
                             else
@@ -209,6 +231,14 @@ applyEffect effect game =
         SetMaxHealth amount ->
             { game
                 | maxHealth = max (amount + 2) game.maxHealth
+                , deck =
+                    game.deck
+                        |> (if game.maxHealth >= amount + 2 then
+                                Deck.add <| Info "You have a better armor equipped."
+
+                            else
+                                identity
+                           )
             }
                 |> Random.constant
 
@@ -251,7 +281,7 @@ applyEffect effect game =
 
                             else
                                 \deck ->
-                                    Item.generateLoot
+                                    Loot.generateLoot
                                         (case game.currentLevel of
                                             Village ->
                                                 0
@@ -353,6 +383,53 @@ applyEffect effect game =
             else
                 game |> Random.constant
 
+        AddItem item ->
+            { game
+                | items = game.items |> AnySet.insert item
+            }
+                |> Random.constant
+
+        RemoveItem item ->
+            { game
+                | items = game.items |> AnySet.remove item
+            }
+                |> Random.constant
+
+        DeliverMail ->
+            let
+                ( mail, items ) =
+                    game.items
+                        |> AnySet.partition
+                            (\i ->
+                                case i of
+                                    Mail l ->
+                                        True
+
+                                    Quest ->
+                                        False
+                            )
+            in
+            mail
+                |> AnySet.toList
+                |> List.filterMap
+                    (\i ->
+                        case i of
+                            Mail l ->
+                                Just l
+
+                            Quest ->
+                                Nothing
+                    )
+                |> List.foldl
+                    (\l g ->
+                        l
+                            |> CardDetails.onMailDelivery
+                            |> List.map applyEffect
+                            |> List.foldl Random.andThen
+                                g
+                    )
+                    (Random.constant { game | items = items })
+
 
 update : Msg -> Game -> Generator Game
 update msg game =
@@ -364,6 +441,7 @@ update msg game =
                 |> (case dir of
                         Left ->
                             .left
+                                >> Maybe.withDefault ( "", [] )
 
                         Right ->
                             .right

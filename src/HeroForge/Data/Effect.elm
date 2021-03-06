@@ -1,9 +1,12 @@
 module HeroForge.Data.Effect exposing (Effect(..), toString)
 
-import Element exposing (Color)
-import Framework.Color as Color
-import HeroForge.Data.Card as Card exposing (Card, Level)
+import Color as C exposing (Color)
+import Element
+import HeroForge.Data.Card as Card exposing (Card)
 import HeroForge.Data.ConditionType as ConditionType exposing (ConditionType)
+import HeroForge.Data.Item as Item exposing (Item)
+import HeroForge.Data.Level as Level exposing (Level)
+import HeroForge.View.Color as Color
 
 
 type Effect
@@ -22,6 +25,11 @@ type Effect
     | AddMoney Int
     | Conditional ConditionType Effect
     | ExitArea
+    | RestartArea
+    | AddItem Item
+    | RemoveItem Item
+    | DeliverMail
+
 
 toString : Effect -> ( String, Maybe Color )
 toString effect =
@@ -30,7 +38,7 @@ toString effect =
             ( "Restart", Just Color.green )
 
         NextCard ->
-            ( "Next Card", Nothing )
+            ( "Next Card", Just Color.cyan )
 
         RemoveCard ->
             ( "Remove this card", Nothing )
@@ -121,7 +129,7 @@ toString effect =
             )
 
         SetCurrentLevel level ->
-            ( "Entering " ++ (level |> Card.levelToString)
+            ( "Entering " ++ (level |> Level.toString)
             , Nothing
             )
 
@@ -135,6 +143,26 @@ toString effect =
             )
 
         ExitArea ->
-            ( "Exit the Area"
+            ( "Exit the area"
+            , Just Color.cyan
+            )
+
+        RestartArea ->
+            ( "Restart the area"
+            , Just Color.cyan
+            )
+
+        AddItem item ->
+            ( "Adds " ++ Item.toString item ++ " to inventory"
+            , Just Color.green
+            )
+
+        RemoveItem item ->
+            ( "Removes " ++ Item.toString item ++ " from inventory"
+            , Nothing
+            )
+
+        DeliverMail ->
+            ( "Deliver mail"
             , Nothing
             )
