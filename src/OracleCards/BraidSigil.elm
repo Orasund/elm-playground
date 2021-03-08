@@ -31,12 +31,13 @@ n =
     Length.five |> Length.plus1
 
 
-isLeftOf : Index N -> Index N -> Bool
+
+{--isLeftOf : Index N -> Index N -> Bool
 isLeftOf i2 i1 =
     ((i2 |> Index.toInt) - (i1 |> Index.toInt) |> modBy (n |> Index.last |> Index.toInt |> (+) 1))
         < ((n |> Index.last |> Index.toInt |> (+) 1)
             // 2
-          )
+          )--}
 
 
 isOvercrossed : { i1 : Index N, i2 : Index N, i3 : Index N } -> Bool
@@ -52,7 +53,7 @@ isOvercrossed { i1, i2, i3 } =
             i1 |> Index.toInt
 
         l =
-            n |> Index.last |> Index.toInt |> (+) 1
+            n |> Length.toInt
     in
     (n1 - n2 |> modBy l) < (n3 - n2 |> modBy l)
 
@@ -69,18 +70,64 @@ type alias State =
 
 init : Index N -> Index N -> State
 init startIndex nextIndex =
-    { startAngle = Angle.radians 0
+    let
+        i2 =
+            nextIndex
+
+        p1 =
+            points |> StaticArray.get startIndex
+
+        p2 =
+            points |> StaticArray.get i2
+
+        isOvercross =
+            isOvercrossed
+                { i1 = nextIndex --lastDistinctIndex
+                , i2 = startIndex
+                , i3 = nextIndex
+                }
+
+        vector =
+            Vector2d.from p1 p2
+                |> Vector2d.normalize
+                |> Vector2d.toUnitless
+                |> Vector2d.fromPixels
+
+        visited =
+            StaticArray.fromList n 0 []
+
+        end =
+            p2
+                |> Point2d.translateBy
+                    (vector
+                        |> (if isOvercross then
+                                Vector2d.rotateBy (Angle.radians <| -pi / 2)
+
+                            else
+                                Vector2d.rotateBy (Angle.radians <| pi / 2)
+                           )
+                        |> Vector2d.scaleBy
+                            (lineWidth
+                                * (visited
+                                    |> StaticArray.get i2
+                                    |> toFloat
+                                    |> (+) 1
+                                  )
+                            )
+                    )
+    in
+    { startAngle =
+        Direction2d.from
+            p2
+            end
+            |> Maybe.map Direction2d.toAngle
+            |> Maybe.withDefault (Angle.radians 0)
     , startIndex = startIndex
     , lastDistinctIndex = nextIndex --lastDistinctIndex
     , nextIndex = startIndex
-    , visited =
-        StaticArray.fromList n 0 []
+    , visited = visited
     , isOvercross =
-        isOvercrossed
-            { i1 = nextIndex --lastDistinctIndex
-            , i2 = startIndex
-            , i3 = nextIndex
-            }
+        isOvercross
     }
 
 
@@ -110,9 +157,9 @@ points =
         rotate r =
             Point2d.pixels (View.width / 2) (View.height / 2 - radius)
                 |> Point2d.rotateAround (Point2d.pixels (View.width / 2) (View.height / 2))
-                    (Angle.radians <| 2 * pi * toFloat r / toFloat (n |> Index.last |> Index.toInt))
+                    (Angle.radians <| 2 * pi * toFloat r / toFloat (n |> Length.toInt))
     in
-    List.range 1 ((n |> Index.last |> Index.toInt) - 1)
+    List.range 1 ((n |> Length.toInt) - 1)
         |> List.map rotate
         |> StaticArray.fromList (Length.five |> Length.plus1) (rotate 0)
 
@@ -234,25 +281,62 @@ line state newNextIndex =
     , [ case maybeA1 of
             Just a1 ->
                 let
+                    diffAngle =
+                        (a1 |> Angle.inRadians)
+                            - (a0 |> Angle.inRadians)
+
+                    eps =
+                        0.001
+
                     ( startAngle, sweptAngle ) =
-                        if
-                            (a1 |> Angle.inRadians)
-                                - (a0 |> Angle.inRadians)
-                                > pi
-                        then
-                            ( a0
-                            , (a1 |> Angle.inRadians)
-                                - (a0 |> Angle.inRadians)
+                        if state.visited == StaticArray.fromList n 0 [] && isOvercross then
+                            ( a1
+                            , 0
                                 |> Angle.radians
                             )
 
+                        else if diffAngle < 0 - eps then
+                            if abs diffAngle > pi + eps then
+                                ( a1
+                                , abs diffAngle
+                                    |> Angle.radians
+                                )
+
+                            else if abs diffAngle < pi - eps then
+                                ( a0
+                                , 2
+                                    * pi
+                                    - abs diffAngle
+                                    |> Angle.radians
+                                )
+
+                            else
+                                ( a1
+                                , abs diffAngle |> Angle.radians
+                                )
+
+                        else if diffAngle > 0 + eps then
+                            if diffAngle > pi + eps then
+                                ( a0
+                                , diffAngle |> Angle.radians
+                                )
+
+                            else if diffAngle < pi - eps then
+                                ( a1
+                                , 2
+                                    * pi
+                                    - diffAngle
+                                    |> Angle.radians
+                                )
+
+                            else
+                                ( a1
+                                , diffAngle |> Angle.radians
+                                )
+
                         else
-                            ( a1
-                            , 2
-                                * pi
-                                - ((a1 |> Angle.inRadians)
-                                    - (a0 |> Angle.inRadians)
-                                  )
+                            ( a0
+                            , 0
                                 |> Angle.radians
                             )
 
@@ -468,10 +552,10 @@ main : Html msg
 main =
     let
         paths =
-            [ [ 0, 5, 4, 3, 2, 1 ]
-            , [ 0, 1, 2, 3, 4, 5 ]
+            [ [ 0, 4, 2, 0, 3, 5, 1, 3 ]
             , [ 0, 0, 0, 0, 0, 0 ]
-            , [ 0, 1, 0, 1, 0, 1 ]
+            , [ 0, 1, 2, 3, 4, 5 ]
+            , [ 0, 3, 0, 3, 0, 3 ]
             , [ 0, 1, 2, 0, 1, 2 ]
             , [ 0, 2, 4, 0, 2, 4 ]
             , [ 0, 4, 2, 0, 4, 2 ]
@@ -484,7 +568,8 @@ main =
             (\list ->
                 [ case list |> List.map (Index.fromModBy n) of
                     head :: nextIndex :: tail ->
-                        nextIndex
+                        head
+                            :: nextIndex
                             :: tail
                             |> List.foldl
                                 (\i2 ( state, out ) ->
