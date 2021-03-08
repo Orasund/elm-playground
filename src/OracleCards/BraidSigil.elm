@@ -11,11 +11,10 @@ import Html exposing (Html)
 import LineSegment2d
 import List.Extra as List
 import OracleCards.Sigil as Sigil
-import OracleCards.View as View
 import Pixels exposing (Pixels)
 import Point2d exposing (Point2d)
 import StaticArray exposing (StaticArray)
-import StaticArray.Index as Index exposing (Five, Index, OnePlus)
+import StaticArray.Index as Index exposing (Five, Index, OnePlus, TwentyPlus)
 import StaticArray.Length as Length exposing (Length)
 import Svg exposing (Svg)
 import Svg.Attributes as Attributes
@@ -23,12 +22,131 @@ import Vector2d exposing (Vector2d)
 
 
 type alias N =
-    OnePlus Five
+    TwentyPlus (OnePlus Five)
 
 
 n : Length N
 n =
-    Length.five |> Length.plus1
+    Length.five |> Length.plus1 |> Length.plus20
+
+
+zoom =
+    1
+
+
+size =
+    radius * 3
+
+
+width =
+    size
+
+
+height =
+    size
+
+
+strokeWidth =
+    1
+
+
+lineWidth =
+    4
+
+
+radius =
+    60
+
+
+pointSize =
+    lineWidth / 2
+
+
+charToIndex : Char -> Index N
+charToIndex char =
+    (case char |> Char.toLower of
+        'e' ->
+            1
+
+        'n' ->
+            2
+
+        'i' ->
+            3
+
+        's' ->
+            4
+
+        'r' ->
+            5
+
+        'a' ->
+            6
+
+        't' ->
+            7
+
+        'd' ->
+            8
+
+        'h' ->
+            9
+
+        'u' ->
+            10
+
+        'l' ->
+            11
+
+        'c' ->
+            12
+
+        'g' ->
+            13
+
+        'm' ->
+            14
+
+        'o' ->
+            15
+
+        'b' ->
+            16
+
+        'w' ->
+            17
+
+        'f' ->
+            18
+
+        'k' ->
+            19
+
+        'z' ->
+            20
+
+        'p' ->
+            21
+
+        'v' ->
+            22
+
+        'j' ->
+            23
+
+        'y' ->
+            25
+
+        'x' ->
+            26
+
+        _ ->
+            0
+    )
+        |> (-) 1
+        |> (*) 7
+        |> (+) 13
+        |> Index.fromModBy n
 
 
 
@@ -131,37 +249,17 @@ init startIndex nextIndex =
     }
 
 
-size =
-    View.relative <| 50
-
-
-strokeWidth =
-    View.relative <| 0.1
-
-
-lineWidth =
-    View.relative <| 1
-
-
-radius =
-    View.relative <| 10
-
-
-pointSize =
-    lineWidth / 2
-
-
 points : StaticArray N (Point2d Pixels coord)
 points =
     let
         rotate r =
-            Point2d.pixels (View.width / 2) (View.height / 2 - radius)
-                |> Point2d.rotateAround (Point2d.pixels (View.width / 2) (View.height / 2))
+            Point2d.pixels (width / 2) (height / 2 - radius)
+                |> Point2d.rotateAround (Point2d.pixels (width / 2) (height / 2))
                     (Angle.radians <| 2 * pi * toFloat r / toFloat (n |> Length.toInt))
     in
     List.range 1 ((n |> Length.toInt) - 1)
         |> List.map rotate
-        |> StaticArray.fromList (Length.five |> Length.plus1) (rotate 0)
+        |> StaticArray.fromList n (rotate 0)
 
 
 line : State -> Index N -> ( State, List (Svg msg) )
@@ -552,7 +650,18 @@ main : Html msg
 main =
     let
         paths =
-            [ [ 0, 4, 2, 0, 3, 5, 1, 3 ]
+            [ "Merkur"
+            , "Planet"
+            , "Priester"
+            , "Philosophen"
+            , "Wissenschaftler"
+            , "Theoretische"
+            , "Welt"
+            , "Praktische"
+            , "Jupiter"
+            ]
+
+        {--[ [ 0, 4, 2, 0, 3, 5, 1, 3 ]
             , [ 0, 0, 0, 0, 0, 0 ]
             , [ 0, 1, 2, 3, 4, 5 ]
             , [ 0, 3, 0, 3, 0, 3 ]
@@ -561,12 +670,16 @@ main =
             , [ 0, 4, 2, 0, 4, 2 ]
             , [ 0, 2, 4, 3 ]
             , [ 0, 1, 3, 5, 2, 1, 4, 5, 6, 3, 3, 4, 1, 2 ]
-            ]
+            ]--}
     in
     paths
         |> List.map
-            (\list ->
-                [ case list |> List.map (Index.fromModBy n) of
+            (\string ->
+                [ case
+                    string
+                        |> String.toList
+                        |> List.map charToIndex
+                  of
                     head :: nextIndex :: tail ->
                         head
                             :: nextIndex
@@ -608,8 +721,8 @@ main =
                 ]
                     |> List.concat
                     |> Svg.svg
-                        [ Attributes.width <| (String.fromFloat <| View.zoom * size) ++ "px"
-                        , Attributes.height <| (String.fromFloat <| View.zoom * size) ++ "px"
+                        [ Attributes.width <| (String.fromFloat <| zoom * size) ++ "px"
+                        , Attributes.height <| (String.fromFloat <| zoom * size) ++ "px"
                         , Attributes.version <| "1.1"
                         , Attributes.viewBox <|
                             "0 0 "
