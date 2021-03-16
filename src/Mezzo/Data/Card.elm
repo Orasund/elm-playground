@@ -1,4 +1,4 @@
-module Mezzo.Data.Card exposing (Card, CardPart, CardSort(..), Suit, black, blue, fromPart, fromParts, red, suitToString, toParts, validAfter, white)
+module Mezzo.Data.Card exposing (Card, CardPart, CardSort(..), Suit, black, blue, defaultPart, fromPart, fromParts, red, suitToString, toParts, validAfter, white)
 
 
 cardMaxValue =
@@ -129,6 +129,13 @@ type alias CardPart =
     }
 
 
+defaultPart : CardPart
+defaultPart =
+    { suit = white
+    , sort = Valued 0
+    }
+
+
 toParts : Card -> ( CardPart, CardPart )
 toParts card =
     case card.suit of
@@ -156,6 +163,9 @@ fromParts ( p1, p2 ) =
                     || (p2.suit == black)
             then
                 ( mergeSuits p1.suit p2.suit, Nothing )
+
+            else if p1.suit == p2.suit then
+                ( p1.suit, Nothing )
 
             else
                 ( p1.suit, Just p2.suit )

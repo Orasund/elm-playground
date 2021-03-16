@@ -3,16 +3,18 @@ module Mezzo.Data.Game exposing (Game, discard, init, play)
 import Array exposing (Array)
 import Array.Extra as Array
 import List.Extra as List
-import Mezzo.Data.Card as Card exposing (Card, CardPart, CardSort(..), Suit)
+import Mezzo.Data.Card as Card exposing (Card, CardPart, CardSort(..))
 import Queue exposing (Queue)
 import Random exposing (Generator)
 import Random.List as Random
+import Stack exposing (Stack)
 
 
 type alias Game =
     { deck : Queue CardPart
     , hand : Array Card
     , card : Card
+    , discard : Stack Card
     }
 
 
@@ -74,6 +76,8 @@ init =
                         |> List.map Card.fromPart
                         |> Array.fromList
                 , card = card |> Card.fromPart
+                , discard =
+                    Stack.initialise
                 }
             )
 
@@ -113,11 +117,20 @@ playCard i game =
 
 discardCard : Int -> Game -> Game
 discardCard i game =
-    { game
-        | hand =
-            game.hand
-                |> Array.removeAt i
-    }
+    game.hand
+        |> Array.get i
+        |> Maybe.map
+            (\card ->
+                { game
+                    | hand =
+                        game.hand
+                            |> Array.removeAt i
+                    , discard =
+                        game.discard
+                            |> Stack.push card
+                }
+            )
+        |> Maybe.withDefault game
 
 
 drawCard : Game -> Result () Game
@@ -141,11 +154,17 @@ drawCard game =
             Err ()
 
 
-addCard : Card -> Game -> Game
-addCard card game =
+addCard : Game -> Game
+addCard game =
     let
+        ( head, tail ) =
+            game.discard
+                |> Stack.pop
+
         ( p1, p2 ) =
-            card
+            head
+                |> Maybe.withDefault
+                    (Card.defaultPart |> Card.fromPart)
                 |> Card.toParts
     in
     { game
@@ -153,6 +172,7 @@ addCard card game =
             game.deck
                 |> Queue.enqueue p1
                 |> Queue.enqueue p2
+        , discard = tail
     }
 
 
@@ -177,7 +197,7 @@ play i g =
                                 drawCard
 
                             Add ->
-                                addCard { card | sort = Valued 0 }
+                                addCard
                                     >> drawCard
                         )
                     |> Result.withDefault (Ok g)
@@ -200,7 +220,7 @@ discard i g =
                             drawCard
 
                         Add ->
-                            addCard { card | sort = Valued 0 }
+                            addCard
                                 >> drawCard
                    )
 

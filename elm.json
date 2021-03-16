@@ -45,6 +45,7 @@
             "icidasset/elm-binary": "2.1.0",
             "lovasoa/elm-rolling-list": "1.1.4",
             "mdgriffith/elm-ui": "1.1.8",
+            "mhoare/elm-stack": "3.1.2",
             "mpizenberg/elm-pointer-events": "4.0.2",
             "noahzgordon/elm-color-extra": "1.0.2",
             "rtfeldman/elm-iso8601-date-strings": "1.1.3",

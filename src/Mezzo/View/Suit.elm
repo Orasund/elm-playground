@@ -7,37 +7,34 @@ import Mezzo.Data.Card exposing (Suit)
 toColor : Suit -> Color
 toColor suit =
     case ( suit.red, suit.blue, suit.yellow ) of
-        ( False, False, True ) ->
-            Color.rgb255 212 212 106
-
         --yellow
-        ( False, True, False ) ->
-            Color.rgb255 79 97 143
+        ( False, False, True ) ->
+            Color.rgb255 212 202 106
 
         --blue
-        ( False, True, True ) ->
-            Color.rgb255 85 170 85
+        ( False, True, False ) ->
+            Color.rgb255 73 109 137
 
         --green
-        ( True, False, False ) ->
-            Color.rgb255 212 106 106
+        ( False, True, True ) ->
+            Color.rgb255 138 189 95
 
         --red
-        ( True, False, True ) ->
-            Color.rgb255 212 178 106
+        ( True, False, False ) ->
+            Color.rgb255 190 95 124
 
         --orange
-        ( True, True, False ) ->
-            Color.rgb255 117 75 142
+        ( True, False, True ) ->
+            Color.rgb255 212 168 106
 
         --violette
+        ( True, True, False ) ->
+            Color.rgb255 107 78 144
+
+        --black
         ( True, True, True ) ->
             Color.rgb255 0 0 0
 
-        --black
+        --white
         ( False, False, False ) ->
             Color.rgb255 255 255 255
-
-
-
---white

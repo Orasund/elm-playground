@@ -1,27 +1,22 @@
 module Mezzo.Main exposing (main)
 
-import Action
 import Array
 import Browser
-import Browser.Dom as Dom
-import Browser.Events exposing (onResize)
 import Color
-import Element exposing (Element, Option, el)
+import Element exposing (Element, el)
 import Element.Background as Background
 import Element.Font as Font
-import Framework
-import Html
-import Html.Attributes as Attributes
+import Html exposing (Html)
 import List.Extra as List
-import List.NonEmpty as NonEmpty exposing (NonEmpty)
-import Mezzo.Data.Card as Card exposing (Card, Suit)
+import Mezzo.Data.Card as Card
 import Mezzo.Data.Game as Game exposing (Game)
 import Mezzo.View.Card as Card
 import Mezzo.View.Part as Part
+import Mezzo.View.PartBubble as PartBubble
 import Queue
 import Random
 import Result.Extra as Result
-import Task
+import Stack
 import Widget
 import Widget.Customize as Customize
 import Widget.Material as Material
@@ -36,7 +31,7 @@ import Widget.Material.Typography as Typography
 
 type State
     = Running
-    | Won
+    | End
 
 
 type alias Model =
@@ -48,6 +43,7 @@ type alias Model =
 type Msg
     = Play Int
     | Discard Int
+    | Restart
 
 
 
@@ -79,24 +75,23 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case ( msg, model.state ) of
         ( Play i, Running ) ->
-            ( case model.game |> Game.play i of
+            case model.game |> Game.play i of
                 Ok m0 ->
-                    { model | game = m0 }
+                    ( { model | game = m0 }, Cmd.none )
 
                 Err () ->
-                    { model | state = Won }
-            , Cmd.none
-            )
+                    ( { model | state = End }, Cmd.none )
 
         ( Discard i, Running ) ->
-            ( case model.game |> Game.discard i of
+            case model.game |> Game.discard i of
                 Ok m0 ->
-                    { model | game = m0 }
+                    ( { model | game = m0 }, Cmd.none )
 
                 Err () ->
-                    { model | state = Won }
-            , Cmd.none
-            )
+                    ( { model | state = End }, Cmd.none )
+
+        ( Restart, _ ) ->
+            init ()
 
         _ ->
             ( model, Cmd.none )
@@ -119,8 +114,35 @@ subscriptions _ =
 ----------------------
 
 
-view : Model -> Element Msg
+view : Model -> Html Msg
 view model =
+    let
+        ( last, middle, firstFew ) =
+            case
+                model.game.deck
+                    |> Queue.toList
+                    |> List.greedyGroupsOf 2
+            of
+                a :: b :: c :: ((d :: _) as tail) ->
+                    case tail |> List.reverse of
+                        x :: l ->
+                            ( x, l, [ c, b, a ] )
+
+                        [] ->
+                            ( d, [], [ c, b, a ] )
+
+                [ a, b, c ] ->
+                    ( c, [], [ b, a ] )
+
+                [ a, b ] ->
+                    ( b, [], [ a ] )
+
+                [ a ] ->
+                    ( a, [], [] )
+
+                [] ->
+                    ( [], [], [] )
+    in
     [ model.game.card
         |> Card.view Nothing
         |> Element.el
@@ -135,16 +157,32 @@ view model =
                 |> Element.fromRgb
                 |> Background.color
             ]
-    , [ model.game.deck
-            |> Queue.toList
-            |> List.greedyGroupsOf 2
-            |> List.reverse
-            |> List.map Part.view
+    , [ [ last |> Part.view |> List.singleton
+        , if middle |> List.isEmpty then
+            []
+
+          else
+            [ Card.viewBackSmall
+            , middle
+                |> List.length
+                |> String.fromInt
+                |> Element.text
+                |> Element.el
+                    [ Element.height <| Element.px 32
+                    , Font.size 32
+                    , Element.centerX
+                    ]
+            ]
+                |> Element.column [ Element.spacing 10 ]
+                |> List.singleton
+        , firstFew |> List.map Part.view
+        ]
+            |> List.concat
             |> Element.row
-                [ Element.centerX
-                , Element.spacing 4
+                [ Element.spacing 4
                 , Element.alignLeft
                 ]
+            |> Element.el [ Element.width <| Element.fill ]
       , model.game.hand
             |> Array.indexedMap
                 (\i ->
@@ -159,7 +197,7 @@ view model =
                                         |> Customize.elementButton
                                             [ Element.centerX ]
                                     )
-                                    { text = "Discard"
+                                    { text = "Put Aside"
                                     , onPress = Just <| Discard i
                                     }
                                 ]
@@ -169,11 +207,17 @@ view model =
             |> Array.toList
             |> List.reverse
             |> Element.row [ Element.centerX, Element.spacing 10 ]
-      , Element.none
+            |> Element.el [ Element.width <| Element.fill ]
+      , model.game.discard
+            |> Stack.toList
+            |> List.map (Card.toParts >> PartBubble.viewJoined)
+            |> Element.column
+                [ Element.alignBottom
+                , Element.width <| Element.fill
+                ]
       ]
         |> Element.row
-            [ Element.spaceEvenly
-            , Element.width <| Element.fill
+            [ Element.width <| Element.fill
             , Element.padding 10
             , Color.rgb255 200 200 200
                 |> Color.toRgba
@@ -185,6 +229,91 @@ view model =
             [ Element.height <| Element.fill
             , Element.width <| Element.fill
             ]
+        |> Element.layout
+            (Typography.body1
+                ++ (case model.state of
+                        End ->
+                            Widget.singleModal
+                                [ { onDismiss = Just Restart
+                                  , content =
+                                        let
+                                            n =
+                                                model.game.discard
+                                                    |> Stack.toList
+                                                    |> List.filterMap
+                                                        (\card ->
+                                                            case card.suit of
+                                                                ( a, Nothing ) ->
+                                                                    Just (Card.suitToString a)
+
+                                                                _ ->
+                                                                    Nothing
+                                                        )
+                                                    |> List.unique
+                                        in
+                                        [ Widget.fullBleedItem
+                                            (Material.fullBleedItem Material.defaultPalette
+                                                |> Customize.element Typography.h6
+                                            )
+                                            { text = "Game Over"
+                                            , onPress = Nothing
+                                            , icon = always Element.none
+                                            }
+                                        , Widget.multiLineItem
+                                            (Material.multiLineItem Material.defaultPalette
+                                                |> Customize.element [ Element.height <| Element.shrink ]
+                                            )
+                                            { title =
+                                                "You have collected "
+                                                    ++ (n
+                                                            |> List.length
+                                                            |> String.fromInt
+                                                       )
+                                                    ++ " out of 8 different full colored cards:"
+                                            , content = always Element.none
+                                            , text =
+                                                n
+                                                    |> String.join ", "
+                                            , onPress = Nothing
+                                            , icon =
+                                                \{ size } ->
+                                                    n
+                                                        |> List.length
+                                                        |> String.fromInt
+                                                        |> Element.text
+                                                        |> Element.el [ Font.size size, Element.centerX ]
+                                            }
+                                        , Widget.button
+                                            (Material.containedButton Material.defaultPalette
+                                                |> Customize.elementButton [ Element.alignRight ]
+                                            )
+                                            { text = "Play Again"
+                                            , icon = always Element.none
+                                            , onPress = Just Restart
+                                            }
+                                            |> Widget.asItem
+                                        ]
+                                            |> Widget.itemList
+                                                (Material.cardColumn Material.defaultPalette
+                                                    |> Customize.elementColumn
+                                                        [ Element.width <| Element.px 400
+                                                        , Element.centerX
+                                                        , Element.centerY
+                                                        ]
+                                                    |> Customize.mapContent
+                                                        (Customize.element
+                                                            [ Element.width <| Element.px 400
+                                                            , Element.height <| Element.shrink
+                                                            ]
+                                                        )
+                                                )
+                                  }
+                                ]
+
+                        Running ->
+                            []
+                   )
+            )
 
 
 
@@ -202,7 +331,6 @@ main =
                 { title = "Mezzo"
                 , body =
                     view model
-                        |> Element.layout Typography.body1
                         |> List.singleton
                 }
         , update = update
