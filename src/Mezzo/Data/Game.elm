@@ -215,14 +215,7 @@ discard i g =
         Just card ->
             g
                 |> discardCard i
-                |> (case card.sort of
-                        Valued _ ->
-                            drawCard
-
-                        Add ->
-                            addCard
-                                >> drawCard
-                   )
+                |> drawCard
 
         Nothing ->
             Ok g

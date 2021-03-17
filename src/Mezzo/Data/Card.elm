@@ -2,7 +2,7 @@ module Mezzo.Data.Card exposing (Card, CardPart, CardSort(..), Suit, black, blue
 
 
 cardMaxValue =
-    3
+    5
 
 
 type alias Suit =
