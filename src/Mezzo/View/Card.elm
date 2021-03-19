@@ -1,4 +1,4 @@
-module Mezzo.View.Card exposing (view, viewSmall, viewBackSmall)
+module Mezzo.View.Card exposing (view, viewBackSmall, viewSmall)
 
 import Color
 import Element exposing (Element)
@@ -11,15 +11,15 @@ import Widget as Widget
 import Widget.Customize
 import Widget.Material as Material
 import Widget.Material.Color as MaterialColor
+import Widget.Material.Typography as Typography
 
 
 viewBackSmall : Element msg
 viewBackSmall =
     [ Element.none
-        |> Element.el [ Element.centerX, Element.centerY ]
         |> Element.el
-            ([ Element.width <| Element.px 80
-             , Element.height <| Element.px 60
+            ([ Element.width <| Element.px 60
+             , Element.height <| Element.px 45
              , Border.roundEach
                 { topLeft = 8
                 , topRight = 8
@@ -32,17 +32,15 @@ viewBackSmall =
                    )
             )
     , Element.none
-        |> Element.el [ Element.centerX ]
         |> Element.el
-            ([ Element.width <| Element.px 80
-             , Element.height <| Element.px 60
+            ([ Element.width <| Element.px 60
+             , Element.height <| Element.px 45
              , Border.roundEach
                 { topLeft = 0
                 , topRight = 0
                 , bottomLeft = 8
                 , bottomRight = 8
                 }
-             , Element.paddingXY 16 12
              ]
                 ++ (Color.rgb255 16 16 16
                         |> MaterialColor.textAndBackground
@@ -67,10 +65,13 @@ viewSmall card =
             "Add"
       )
         |> Element.text
-        |> Element.el [ Element.centerX, Element.centerY ]
         |> Element.el
-            ([ Element.width <| Element.px 80
-             , Element.height <| Element.px 60
+            ([ Element.centerX, Element.centerY ]
+                ++ Typography.h6
+            )
+        |> Element.el
+            ([ Element.width <| Element.px 60
+             , Element.height <| Element.px 45
              , Border.roundEach
                 { topLeft = 8
                 , topRight = 8
@@ -83,27 +84,27 @@ viewSmall card =
                         |> MaterialColor.textAndBackground
                    )
             )
-    , (Card.suitToString s2
-        ++ (if s1 /= s2 then
-                " | "
-                    ++ Card.suitToString s1
+    , (Card.suitToString s2 |> Element.text)
+        :: (if s1 /= s2 then
+                Card.suitToString s1 |> Element.text |> List.singleton
 
             else
-                ""
+                []
            )
-      )
-        |> Element.text
-        |> Element.el [ Element.centerX ]
+        |> Element.column
+            [ Element.centerX
+            , Element.centerY
+            , Element.spacing 4
+            ]
         |> Element.el
-            ([ Element.width <| Element.px 80
-             , Element.height <| Element.px 60
+            ([ Element.width <| Element.px 60
+             , Element.height <| Element.px 45
              , Border.roundEach
                 { topLeft = 0
                 , topRight = 0
                 , bottomLeft = 8
                 , bottomRight = 8
                 }
-             , Element.paddingXY 16 12
              ]
                 ++ (s1
                         |> Suit.toColor
@@ -130,9 +131,11 @@ view onPress card =
       )
         |> Element.text
         |> Element.el
-            [ Element.centerY
-            , Element.centerX
-            ]
+            ([ Element.centerY
+             , Element.centerX
+             ]
+                ++ Typography.h6
+            )
         |> Element.el
             [ Element.width <| Element.fill
             , Element.height <| Element.fill

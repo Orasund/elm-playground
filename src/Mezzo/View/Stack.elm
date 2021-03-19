@@ -7,48 +7,94 @@ import Element.Border as Border
 import Element.Font as Font
 import Mezzo.Data.Card as Card exposing (Card, CardSort(..))
 import Mezzo.View.Suit as Suit
+import String
 import Widget as Widget
-import Widget.Customize
-import Widget.Material as Material
 import Widget.Material.Color as MaterialColor
 import Widget.Material.Typography as Typography
 
 
-viewSheet : Card -> Element msg
-viewSheet card =
+viewSheet : List (Attribute msg) -> Card -> Element msg
+viewSheet attr card =
     let
-        color =
+        ( color, string ) =
             case card.suit of
                 ( suit, Nothing ) ->
-                    suit |> Suit.toColor
+                    ( suit |> Suit.toColor
+                    , suit |> Card.suitToString
+                    )
 
                 ( _, Just _ ) ->
-                    Color.rgb255 240 240 240
+                    ( Color.rgb255 240 240 240
+                    , ""
+                    )
     in
-    Element.none
+    (string
+        |> String.uncons
+        |> Maybe.map (Tuple.first >> String.fromChar)
+        |> Maybe.withDefault ""
+    )
+        |> Element.text
+        |> Element.el [ Element.alignRight ]
         |> Element.el
-            [ color
-                |> Color.toRgba
-                |> Element.fromRgb
-                |> Background.color
-            , Element.width <| Element.px 64
-            , Element.height <| Element.px 4
-            ]
+            ([ Element.width <| Element.px 64
+             , Element.padding 2
+             , Font.size 10
+             ]
+                ++ (color
+                        |> MaterialColor.textAndBackground
+                   )
+                ++ attr
+            )
 
 
 view : List Card -> Element msg
 view list =
+    let
+        rounded =
+            4
+    in
     if list |> List.isEmpty then
         Element.none
 
     else
-        [ list
-            |> List.length
+        let
+            length =
+                list
+                    |> List.length
+        in
+        [ length
             |> String.fromInt
             |> Element.text
             |> Element.el Typography.h6
         , list
-            |> List.map viewSheet
+            |> List.indexedMap
+                (\i ->
+                    viewSheet
+                        (if length == 1 then
+                            [ Border.rounded rounded ]
+
+                         else if i == 0 then
+                            [ Border.roundEach
+                                { topLeft = rounded
+                                , topRight = rounded
+                                , bottomLeft = 0
+                                , bottomRight = 0
+                                }
+                            ]
+
+                         else if i == length - 1 then
+                            [ Border.roundEach
+                                { topLeft = 0
+                                , topRight = 0
+                                , bottomLeft = rounded
+                                , bottomRight = rounded
+                                }
+                            ]
+
+                         else
+                            []
+                        )
+                )
             |> Element.column []
         ]
             |> Element.row [ Element.spacing 4 ]

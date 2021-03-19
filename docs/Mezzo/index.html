@@ -5241,10 +5241,24 @@ var $elm$core$Task$perform = F2(
 				A2($elm$core$Task$map, toMessage, task)));
 	});
 var $elm$browser$Browser$document = _Browser_document;
-var $author$project$Mezzo$Main$SettingUp = {$: 'SettingUp'};
-var $author$project$Mezzo$Main$Start = function (a) {
-	return {$: 'Start', a: a};
+var $author$project$Mezzo$Main$GotSeed = function (a) {
+	return {$: 'GotSeed', a: a};
 };
+var $author$project$Mezzo$Main$GotWindow = function (a) {
+	return {$: 'GotWindow', a: a};
+};
+var $author$project$Mezzo$Main$Setup = function (a) {
+	return {$: 'Setup', a: a};
+};
+var $author$project$Mezzo$Main$WhileSetup = function (a) {
+	return {$: 'WhileSetup', a: a};
+};
+var $elm$core$Platform$Cmd$batch = _Platform_batch;
+var $elm$core$Basics$composeR = F3(
+	function (f, g, x) {
+		return g(
+			f(x));
+	});
 var $elm$random$Random$Generate = function (a) {
 	return {$: 'Generate', a: a};
 };
@@ -5352,6 +5366,7 @@ var $elm$random$Random$generate = F2(
 			$elm$random$Random$Generate(
 				A2($elm$random$Random$map, tagger, generator)));
 	});
+var $elm$browser$Browser$Dom$getViewport = _Browser_withWindow(_Browser_getViewport);
 var $elm$core$Bitwise$and = _Bitwise_and;
 var $elm$core$Basics$negate = function (n) {
 	return -n;
@@ -5429,20 +5444,900 @@ var $elm$random$Random$independentSeed = $elm$random$Random$Generator(
 			A4($elm$random$Random$map3, makeIndependentSeed, gen, gen, gen),
 			seed0);
 	});
+var $elm$core$Basics$round = _Basics_round;
 var $author$project$Mezzo$Main$init = function (_v0) {
 	return _Utils_Tuple2(
-		$author$project$Mezzo$Main$SettingUp,
-		A2($elm$random$Random$generate, $author$project$Mezzo$Main$Start, $elm$random$Random$independentSeed));
+		$author$project$Mezzo$Main$Setup(
+			{seed: $elm$core$Maybe$Nothing, window: $elm$core$Maybe$Nothing}),
+		$elm$core$Platform$Cmd$batch(
+			_List_fromArray(
+				[
+					A2(
+					$elm$random$Random$generate,
+					A2($elm$core$Basics$composeR, $author$project$Mezzo$Main$GotSeed, $author$project$Mezzo$Main$WhileSetup),
+					$elm$random$Random$independentSeed),
+					A2(
+					$elm$core$Task$perform,
+					function (_v1) {
+						var viewport = _v1.viewport;
+						return $author$project$Mezzo$Main$WhileSetup(
+							$author$project$Mezzo$Main$GotWindow(
+								{
+									height: $elm$core$Basics$round(viewport.height),
+									width: $elm$core$Basics$round(viewport.width)
+								}));
+					},
+					$elm$browser$Browser$Dom$getViewport)
+				])));
 };
+var $author$project$Mezzo$Main$WhileReady = function (a) {
+	return {$: 'WhileReady', a: a};
+};
+var $elm$core$Platform$Sub$map = _Platform_map;
 var $elm$core$Platform$Sub$batch = _Platform_batch;
 var $elm$core$Platform$Sub$none = $elm$core$Platform$Sub$batch(_List_Nil);
-var $author$project$Mezzo$Main$subscriptions = function (_v0) {
-	return $elm$core$Platform$Sub$none;
+var $author$project$Mezzo$Page$Ready$UpdateWindow = function (a) {
+	return {$: 'UpdateWindow', a: a};
 };
-var $author$project$Mezzo$Main$End = {$: 'End'};
+var $elm$browser$Browser$Events$Window = {$: 'Window'};
+var $elm$json$Json$Decode$field = _Json_decodeField;
+var $elm$json$Json$Decode$int = _Json_decodeInt;
+var $elm$browser$Browser$Events$MySub = F3(
+	function (a, b, c) {
+		return {$: 'MySub', a: a, b: b, c: c};
+	});
+var $elm$browser$Browser$Events$State = F2(
+	function (subs, pids) {
+		return {pids: pids, subs: subs};
+	});
+var $elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
+var $elm$core$Dict$empty = $elm$core$Dict$RBEmpty_elm_builtin;
+var $elm$browser$Browser$Events$init = $elm$core$Task$succeed(
+	A2($elm$browser$Browser$Events$State, _List_Nil, $elm$core$Dict$empty));
+var $elm$browser$Browser$Events$nodeToKey = function (node) {
+	if (node.$ === 'Document') {
+		return 'd_';
+	} else {
+		return 'w_';
+	}
+};
+var $elm$browser$Browser$Events$addKey = function (sub) {
+	var node = sub.a;
+	var name = sub.b;
+	return _Utils_Tuple2(
+		_Utils_ap(
+			$elm$browser$Browser$Events$nodeToKey(node),
+			name),
+		sub);
+};
+var $elm$core$Dict$Black = {$: 'Black'};
+var $elm$core$Dict$RBNode_elm_builtin = F5(
+	function (a, b, c, d, e) {
+		return {$: 'RBNode_elm_builtin', a: a, b: b, c: c, d: d, e: e};
+	});
+var $elm$core$Dict$Red = {$: 'Red'};
+var $elm$core$Dict$balance = F5(
+	function (color, key, value, left, right) {
+		if ((right.$ === 'RBNode_elm_builtin') && (right.a.$ === 'Red')) {
+			var _v1 = right.a;
+			var rK = right.b;
+			var rV = right.c;
+			var rLeft = right.d;
+			var rRight = right.e;
+			if ((left.$ === 'RBNode_elm_builtin') && (left.a.$ === 'Red')) {
+				var _v3 = left.a;
+				var lK = left.b;
+				var lV = left.c;
+				var lLeft = left.d;
+				var lRight = left.e;
+				return A5(
+					$elm$core$Dict$RBNode_elm_builtin,
+					$elm$core$Dict$Red,
+					key,
+					value,
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, lK, lV, lLeft, lRight),
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, rK, rV, rLeft, rRight));
+			} else {
+				return A5(
+					$elm$core$Dict$RBNode_elm_builtin,
+					color,
+					rK,
+					rV,
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, key, value, left, rLeft),
+					rRight);
+			}
+		} else {
+			if ((((left.$ === 'RBNode_elm_builtin') && (left.a.$ === 'Red')) && (left.d.$ === 'RBNode_elm_builtin')) && (left.d.a.$ === 'Red')) {
+				var _v5 = left.a;
+				var lK = left.b;
+				var lV = left.c;
+				var _v6 = left.d;
+				var _v7 = _v6.a;
+				var llK = _v6.b;
+				var llV = _v6.c;
+				var llLeft = _v6.d;
+				var llRight = _v6.e;
+				var lRight = left.e;
+				return A5(
+					$elm$core$Dict$RBNode_elm_builtin,
+					$elm$core$Dict$Red,
+					lK,
+					lV,
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, llK, llV, llLeft, llRight),
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, key, value, lRight, right));
+			} else {
+				return A5($elm$core$Dict$RBNode_elm_builtin, color, key, value, left, right);
+			}
+		}
+	});
+var $elm$core$Basics$compare = _Utils_compare;
+var $elm$core$Dict$insertHelp = F3(
+	function (key, value, dict) {
+		if (dict.$ === 'RBEmpty_elm_builtin') {
+			return A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, key, value, $elm$core$Dict$RBEmpty_elm_builtin, $elm$core$Dict$RBEmpty_elm_builtin);
+		} else {
+			var nColor = dict.a;
+			var nKey = dict.b;
+			var nValue = dict.c;
+			var nLeft = dict.d;
+			var nRight = dict.e;
+			var _v1 = A2($elm$core$Basics$compare, key, nKey);
+			switch (_v1.$) {
+				case 'LT':
+					return A5(
+						$elm$core$Dict$balance,
+						nColor,
+						nKey,
+						nValue,
+						A3($elm$core$Dict$insertHelp, key, value, nLeft),
+						nRight);
+				case 'EQ':
+					return A5($elm$core$Dict$RBNode_elm_builtin, nColor, nKey, value, nLeft, nRight);
+				default:
+					return A5(
+						$elm$core$Dict$balance,
+						nColor,
+						nKey,
+						nValue,
+						nLeft,
+						A3($elm$core$Dict$insertHelp, key, value, nRight));
+			}
+		}
+	});
+var $elm$core$Dict$insert = F3(
+	function (key, value, dict) {
+		var _v0 = A3($elm$core$Dict$insertHelp, key, value, dict);
+		if ((_v0.$ === 'RBNode_elm_builtin') && (_v0.a.$ === 'Red')) {
+			var _v1 = _v0.a;
+			var k = _v0.b;
+			var v = _v0.c;
+			var l = _v0.d;
+			var r = _v0.e;
+			return A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, k, v, l, r);
+		} else {
+			var x = _v0;
+			return x;
+		}
+	});
+var $elm$core$Dict$fromList = function (assocs) {
+	return A3(
+		$elm$core$List$foldl,
+		F2(
+			function (_v0, dict) {
+				var key = _v0.a;
+				var value = _v0.b;
+				return A3($elm$core$Dict$insert, key, value, dict);
+			}),
+		$elm$core$Dict$empty,
+		assocs);
+};
+var $elm$core$Process$kill = _Scheduler_kill;
+var $elm$core$Dict$foldl = F3(
+	function (func, acc, dict) {
+		foldl:
+		while (true) {
+			if (dict.$ === 'RBEmpty_elm_builtin') {
+				return acc;
+			} else {
+				var key = dict.b;
+				var value = dict.c;
+				var left = dict.d;
+				var right = dict.e;
+				var $temp$func = func,
+					$temp$acc = A3(
+					func,
+					key,
+					value,
+					A3($elm$core$Dict$foldl, func, acc, left)),
+					$temp$dict = right;
+				func = $temp$func;
+				acc = $temp$acc;
+				dict = $temp$dict;
+				continue foldl;
+			}
+		}
+	});
+var $elm$core$Dict$merge = F6(
+	function (leftStep, bothStep, rightStep, leftDict, rightDict, initialResult) {
+		var stepState = F3(
+			function (rKey, rValue, _v0) {
+				stepState:
+				while (true) {
+					var list = _v0.a;
+					var result = _v0.b;
+					if (!list.b) {
+						return _Utils_Tuple2(
+							list,
+							A3(rightStep, rKey, rValue, result));
+					} else {
+						var _v2 = list.a;
+						var lKey = _v2.a;
+						var lValue = _v2.b;
+						var rest = list.b;
+						if (_Utils_cmp(lKey, rKey) < 0) {
+							var $temp$rKey = rKey,
+								$temp$rValue = rValue,
+								$temp$_v0 = _Utils_Tuple2(
+								rest,
+								A3(leftStep, lKey, lValue, result));
+							rKey = $temp$rKey;
+							rValue = $temp$rValue;
+							_v0 = $temp$_v0;
+							continue stepState;
+						} else {
+							if (_Utils_cmp(lKey, rKey) > 0) {
+								return _Utils_Tuple2(
+									list,
+									A3(rightStep, rKey, rValue, result));
+							} else {
+								return _Utils_Tuple2(
+									rest,
+									A4(bothStep, lKey, lValue, rValue, result));
+							}
+						}
+					}
+				}
+			});
+		var _v3 = A3(
+			$elm$core$Dict$foldl,
+			stepState,
+			_Utils_Tuple2(
+				$elm$core$Dict$toList(leftDict),
+				initialResult),
+			rightDict);
+		var leftovers = _v3.a;
+		var intermediateResult = _v3.b;
+		return A3(
+			$elm$core$List$foldl,
+			F2(
+				function (_v4, result) {
+					var k = _v4.a;
+					var v = _v4.b;
+					return A3(leftStep, k, v, result);
+				}),
+			intermediateResult,
+			leftovers);
+	});
+var $elm$browser$Browser$Events$Event = F2(
+	function (key, event) {
+		return {event: event, key: key};
+	});
+var $elm$core$Platform$sendToSelf = _Platform_sendToSelf;
+var $elm$browser$Browser$Events$spawn = F3(
+	function (router, key, _v0) {
+		var node = _v0.a;
+		var name = _v0.b;
+		var actualNode = function () {
+			if (node.$ === 'Document') {
+				return _Browser_doc;
+			} else {
+				return _Browser_window;
+			}
+		}();
+		return A2(
+			$elm$core$Task$map,
+			function (value) {
+				return _Utils_Tuple2(key, value);
+			},
+			A3(
+				_Browser_on,
+				actualNode,
+				name,
+				function (event) {
+					return A2(
+						$elm$core$Platform$sendToSelf,
+						router,
+						A2($elm$browser$Browser$Events$Event, key, event));
+				}));
+	});
+var $elm$core$Dict$union = F2(
+	function (t1, t2) {
+		return A3($elm$core$Dict$foldl, $elm$core$Dict$insert, t2, t1);
+	});
+var $elm$browser$Browser$Events$onEffects = F3(
+	function (router, subs, state) {
+		var stepRight = F3(
+			function (key, sub, _v6) {
+				var deads = _v6.a;
+				var lives = _v6.b;
+				var news = _v6.c;
+				return _Utils_Tuple3(
+					deads,
+					lives,
+					A2(
+						$elm$core$List$cons,
+						A3($elm$browser$Browser$Events$spawn, router, key, sub),
+						news));
+			});
+		var stepLeft = F3(
+			function (_v4, pid, _v5) {
+				var deads = _v5.a;
+				var lives = _v5.b;
+				var news = _v5.c;
+				return _Utils_Tuple3(
+					A2($elm$core$List$cons, pid, deads),
+					lives,
+					news);
+			});
+		var stepBoth = F4(
+			function (key, pid, _v2, _v3) {
+				var deads = _v3.a;
+				var lives = _v3.b;
+				var news = _v3.c;
+				return _Utils_Tuple3(
+					deads,
+					A3($elm$core$Dict$insert, key, pid, lives),
+					news);
+			});
+		var newSubs = A2($elm$core$List$map, $elm$browser$Browser$Events$addKey, subs);
+		var _v0 = A6(
+			$elm$core$Dict$merge,
+			stepLeft,
+			stepBoth,
+			stepRight,
+			state.pids,
+			$elm$core$Dict$fromList(newSubs),
+			_Utils_Tuple3(_List_Nil, $elm$core$Dict$empty, _List_Nil));
+		var deadPids = _v0.a;
+		var livePids = _v0.b;
+		var makeNewPids = _v0.c;
+		return A2(
+			$elm$core$Task$andThen,
+			function (pids) {
+				return $elm$core$Task$succeed(
+					A2(
+						$elm$browser$Browser$Events$State,
+						newSubs,
+						A2(
+							$elm$core$Dict$union,
+							livePids,
+							$elm$core$Dict$fromList(pids))));
+			},
+			A2(
+				$elm$core$Task$andThen,
+				function (_v1) {
+					return $elm$core$Task$sequence(makeNewPids);
+				},
+				$elm$core$Task$sequence(
+					A2($elm$core$List$map, $elm$core$Process$kill, deadPids))));
+	});
+var $elm$core$List$maybeCons = F3(
+	function (f, mx, xs) {
+		var _v0 = f(mx);
+		if (_v0.$ === 'Just') {
+			var x = _v0.a;
+			return A2($elm$core$List$cons, x, xs);
+		} else {
+			return xs;
+		}
+	});
+var $elm$core$List$filterMap = F2(
+	function (f, xs) {
+		return A3(
+			$elm$core$List$foldr,
+			$elm$core$List$maybeCons(f),
+			_List_Nil,
+			xs);
+	});
+var $elm$browser$Browser$Events$onSelfMsg = F3(
+	function (router, _v0, state) {
+		var key = _v0.key;
+		var event = _v0.event;
+		var toMessage = function (_v2) {
+			var subKey = _v2.a;
+			var _v3 = _v2.b;
+			var node = _v3.a;
+			var name = _v3.b;
+			var decoder = _v3.c;
+			return _Utils_eq(subKey, key) ? A2(_Browser_decodeEvent, decoder, event) : $elm$core$Maybe$Nothing;
+		};
+		var messages = A2($elm$core$List$filterMap, toMessage, state.subs);
+		return A2(
+			$elm$core$Task$andThen,
+			function (_v1) {
+				return $elm$core$Task$succeed(state);
+			},
+			$elm$core$Task$sequence(
+				A2(
+					$elm$core$List$map,
+					$elm$core$Platform$sendToApp(router),
+					messages)));
+	});
+var $elm$browser$Browser$Events$subMap = F2(
+	function (func, _v0) {
+		var node = _v0.a;
+		var name = _v0.b;
+		var decoder = _v0.c;
+		return A3(
+			$elm$browser$Browser$Events$MySub,
+			node,
+			name,
+			A2($elm$json$Json$Decode$map, func, decoder));
+	});
+_Platform_effectManagers['Browser.Events'] = _Platform_createManager($elm$browser$Browser$Events$init, $elm$browser$Browser$Events$onEffects, $elm$browser$Browser$Events$onSelfMsg, 0, $elm$browser$Browser$Events$subMap);
+var $elm$browser$Browser$Events$subscription = _Platform_leaf('Browser.Events');
+var $elm$browser$Browser$Events$on = F3(
+	function (node, name, decoder) {
+		return $elm$browser$Browser$Events$subscription(
+			A3($elm$browser$Browser$Events$MySub, node, name, decoder));
+	});
+var $elm$browser$Browser$Events$onResize = function (func) {
+	return A3(
+		$elm$browser$Browser$Events$on,
+		$elm$browser$Browser$Events$Window,
+		'resize',
+		A2(
+			$elm$json$Json$Decode$field,
+			'target',
+			A3(
+				$elm$json$Json$Decode$map2,
+				func,
+				A2($elm$json$Json$Decode$field, 'innerWidth', $elm$json$Json$Decode$int),
+				A2($elm$json$Json$Decode$field, 'innerHeight', $elm$json$Json$Decode$int))));
+};
+var $author$project$Mezzo$Page$Ready$subscriptions = function (model) {
+	return $elm$browser$Browser$Events$onResize(
+		F2(
+			function (width, height) {
+				return $author$project$Mezzo$Page$Ready$UpdateWindow(
+					{height: height, width: width});
+			}));
+};
+var $author$project$Mezzo$Main$subscriptions = function (m) {
+	if (m.$ === 'Setup') {
+		var model = m.a;
+		return $elm$core$Platform$Sub$none;
+	} else {
+		var model = m.a;
+		return A2(
+			$elm$core$Platform$Sub$map,
+			$author$project$Mezzo$Main$WhileReady,
+			$author$project$Mezzo$Page$Ready$subscriptions(model));
+	}
+};
 var $author$project$Mezzo$Main$Ready = function (a) {
 	return {$: 'Ready', a: a};
 };
+var $author$project$Mezzo$Page$Ready$Running = {$: 'Running'};
+var $author$project$Mezzo$Data$Card$Valued = function (a) {
+	return {$: 'Valued', a: a};
+};
+var $elm$core$Array$fromListHelp = F3(
+	function (list, nodeList, nodeListSize) {
+		fromListHelp:
+		while (true) {
+			var _v0 = A2($elm$core$Elm$JsArray$initializeFromList, $elm$core$Array$branchFactor, list);
+			var jsArray = _v0.a;
+			var remainingItems = _v0.b;
+			if (_Utils_cmp(
+				$elm$core$Elm$JsArray$length(jsArray),
+				$elm$core$Array$branchFactor) < 0) {
+				return A2(
+					$elm$core$Array$builderToArray,
+					true,
+					{nodeList: nodeList, nodeListSize: nodeListSize, tail: jsArray});
+			} else {
+				var $temp$list = remainingItems,
+					$temp$nodeList = A2(
+					$elm$core$List$cons,
+					$elm$core$Array$Leaf(jsArray),
+					nodeList),
+					$temp$nodeListSize = nodeListSize + 1;
+				list = $temp$list;
+				nodeList = $temp$nodeList;
+				nodeListSize = $temp$nodeListSize;
+				continue fromListHelp;
+			}
+		}
+	});
+var $elm$core$Array$fromList = function (list) {
+	if (!list.b) {
+		return $elm$core$Array$empty;
+	} else {
+		return A3($elm$core$Array$fromListHelp, list, _List_Nil, 0);
+	}
+};
+var $turboMaCk$queue$Queue$Queue = F2(
+	function (a, b) {
+		return {$: 'Queue', a: a, b: b};
+	});
+var $turboMaCk$queue$Queue$fromList = function (list) {
+	return A2($turboMaCk$queue$Queue$Queue, list, _List_Nil);
+};
+var $author$project$Mezzo$Data$Card$fromPart = function (part) {
+	return {
+		sort: part.sort,
+		suit: _Utils_Tuple2(part.suit, $elm$core$Maybe$Nothing)
+	};
+};
+var $author$project$Mezzo$Data$Card$black = {blue: true, red: true, yellow: true};
+var $author$project$Mezzo$Data$Card$white = {blue: false, red: false, yellow: false};
+var $author$project$Mezzo$Data$Card$blue = _Utils_update(
+	$author$project$Mezzo$Data$Card$white,
+	{blue: true});
+var $elm$core$List$append = F2(
+	function (xs, ys) {
+		if (!ys.b) {
+			return xs;
+		} else {
+			return A3($elm$core$List$foldr, $elm$core$List$cons, ys, xs);
+		}
+	});
+var $elm$core$List$concat = function (lists) {
+	return A3($elm$core$List$foldr, $elm$core$List$append, _List_Nil, lists);
+};
+var $elm$core$List$concatMap = F2(
+	function (f, list) {
+		return $elm$core$List$concat(
+			A2($elm$core$List$map, f, list));
+	});
+var $author$project$Mezzo$Data$Card$red = _Utils_update(
+	$author$project$Mezzo$Data$Card$white,
+	{red: true});
+var $elm$core$List$repeatHelp = F3(
+	function (result, n, value) {
+		repeatHelp:
+		while (true) {
+			if (n <= 0) {
+				return result;
+			} else {
+				var $temp$result = A2($elm$core$List$cons, value, result),
+					$temp$n = n - 1,
+					$temp$value = value;
+				result = $temp$result;
+				n = $temp$n;
+				value = $temp$value;
+				continue repeatHelp;
+			}
+		}
+	});
+var $elm$core$List$repeat = F2(
+	function (n, value) {
+		return A3($elm$core$List$repeatHelp, _List_Nil, n, value);
+	});
+var $author$project$Mezzo$Data$Game$initDeck = $elm$core$List$concat(
+	_List_fromArray(
+		[
+			_List_fromArray(
+			[
+				{
+				sort: $author$project$Mezzo$Data$Card$Valued(0),
+				suit: $author$project$Mezzo$Data$Card$black
+			}
+			]),
+			A2(
+			$elm$core$List$concatMap,
+			function (suit) {
+				return $elm$core$List$concat(
+					A2(
+						$elm$core$List$repeat,
+						3,
+						A2(
+							$elm$core$List$map,
+							function (value) {
+								return {
+									sort: $author$project$Mezzo$Data$Card$Valued(value),
+									suit: suit
+								};
+							},
+							A2($elm$core$List$range, 1, 2))));
+			},
+			_List_fromArray(
+				[$author$project$Mezzo$Data$Card$red, $author$project$Mezzo$Data$Card$blue]))
+		]));
+var $mhoare$elm_stack$Stack$Stack = function (a) {
+	return {$: 'Stack', a: a};
+};
+var $mhoare$elm_stack$Stack$initialise = $mhoare$elm_stack$Stack$Stack(_List_Nil);
+var $elm$core$Basics$modBy = _Basics_modBy;
+var $elm$random$Random$maxInt = 2147483647;
+var $elm$random$Random$minInt = -2147483648;
+var $elm_community$random_extra$Random$List$anyInt = A2($elm$random$Random$int, $elm$random$Random$minInt, $elm$random$Random$maxInt);
+var $elm$core$Tuple$second = function (_v0) {
+	var y = _v0.b;
+	return y;
+};
+var $elm$core$List$sortBy = _List_sortBy;
+var $elm_community$random_extra$Random$List$shuffle = function (list) {
+	return A2(
+		$elm$random$Random$map,
+		function (independentSeed) {
+			return A2(
+				$elm$core$List$map,
+				$elm$core$Tuple$first,
+				A2(
+					$elm$core$List$sortBy,
+					$elm$core$Tuple$second,
+					A3(
+						$elm$core$List$foldl,
+						F2(
+							function (item, _v0) {
+								var acc = _v0.a;
+								var seed = _v0.b;
+								var _v1 = A2($elm$random$Random$step, $elm_community$random_extra$Random$List$anyInt, seed);
+								var tag = _v1.a;
+								var nextSeed = _v1.b;
+								return _Utils_Tuple2(
+									A2(
+										$elm$core$List$cons,
+										_Utils_Tuple2(item, tag),
+										acc),
+									nextSeed);
+							}),
+						_Utils_Tuple2(_List_Nil, independentSeed),
+						list).a));
+		},
+		$elm$random$Random$independentSeed);
+};
+var $elm$core$List$drop = F2(
+	function (n, list) {
+		drop:
+		while (true) {
+			if (n <= 0) {
+				return list;
+			} else {
+				if (!list.b) {
+					return list;
+				} else {
+					var x = list.a;
+					var xs = list.b;
+					var $temp$n = n - 1,
+						$temp$list = xs;
+					n = $temp$n;
+					list = $temp$list;
+					continue drop;
+				}
+			}
+		}
+	});
+var $elm$core$List$takeReverse = F3(
+	function (n, list, kept) {
+		takeReverse:
+		while (true) {
+			if (n <= 0) {
+				return kept;
+			} else {
+				if (!list.b) {
+					return kept;
+				} else {
+					var x = list.a;
+					var xs = list.b;
+					var $temp$n = n - 1,
+						$temp$list = xs,
+						$temp$kept = A2($elm$core$List$cons, x, kept);
+					n = $temp$n;
+					list = $temp$list;
+					kept = $temp$kept;
+					continue takeReverse;
+				}
+			}
+		}
+	});
+var $elm$core$List$takeTailRec = F2(
+	function (n, list) {
+		return $elm$core$List$reverse(
+			A3($elm$core$List$takeReverse, n, list, _List_Nil));
+	});
+var $elm$core$List$takeFast = F3(
+	function (ctr, n, list) {
+		if (n <= 0) {
+			return _List_Nil;
+		} else {
+			var _v0 = _Utils_Tuple2(n, list);
+			_v0$1:
+			while (true) {
+				_v0$5:
+				while (true) {
+					if (!_v0.b.b) {
+						return list;
+					} else {
+						if (_v0.b.b.b) {
+							switch (_v0.a) {
+								case 1:
+									break _v0$1;
+								case 2:
+									var _v2 = _v0.b;
+									var x = _v2.a;
+									var _v3 = _v2.b;
+									var y = _v3.a;
+									return _List_fromArray(
+										[x, y]);
+								case 3:
+									if (_v0.b.b.b.b) {
+										var _v4 = _v0.b;
+										var x = _v4.a;
+										var _v5 = _v4.b;
+										var y = _v5.a;
+										var _v6 = _v5.b;
+										var z = _v6.a;
+										return _List_fromArray(
+											[x, y, z]);
+									} else {
+										break _v0$5;
+									}
+								default:
+									if (_v0.b.b.b.b && _v0.b.b.b.b.b) {
+										var _v7 = _v0.b;
+										var x = _v7.a;
+										var _v8 = _v7.b;
+										var y = _v8.a;
+										var _v9 = _v8.b;
+										var z = _v9.a;
+										var _v10 = _v9.b;
+										var w = _v10.a;
+										var tl = _v10.b;
+										return (ctr > 1000) ? A2(
+											$elm$core$List$cons,
+											x,
+											A2(
+												$elm$core$List$cons,
+												y,
+												A2(
+													$elm$core$List$cons,
+													z,
+													A2(
+														$elm$core$List$cons,
+														w,
+														A2($elm$core$List$takeTailRec, n - 4, tl))))) : A2(
+											$elm$core$List$cons,
+											x,
+											A2(
+												$elm$core$List$cons,
+												y,
+												A2(
+													$elm$core$List$cons,
+													z,
+													A2(
+														$elm$core$List$cons,
+														w,
+														A3($elm$core$List$takeFast, ctr + 1, n - 4, tl)))));
+									} else {
+										break _v0$5;
+									}
+							}
+						} else {
+							if (_v0.a === 1) {
+								break _v0$1;
+							} else {
+								break _v0$5;
+							}
+						}
+					}
+				}
+				return list;
+			}
+			var _v1 = _v0.b;
+			var x = _v1.a;
+			return _List_fromArray(
+				[x]);
+		}
+	});
+var $elm$core$List$take = F2(
+	function (n, list) {
+		return A3($elm$core$List$takeFast, 0, n, list);
+	});
+var $elm_community$list_extra$List$Extra$splitAt = F2(
+	function (n, xs) {
+		return _Utils_Tuple2(
+			A2($elm$core$List$take, n, xs),
+			A2($elm$core$List$drop, n, xs));
+	});
+var $elm_community$list_extra$List$Extra$uncons = function (list) {
+	if (!list.b) {
+		return $elm$core$Maybe$Nothing;
+	} else {
+		var first = list.a;
+		var rest = list.b;
+		return $elm$core$Maybe$Just(
+			_Utils_Tuple2(first, rest));
+	}
+};
+var $elm$core$Maybe$withDefault = F2(
+	function (_default, maybe) {
+		if (maybe.$ === 'Just') {
+			var value = maybe.a;
+			return value;
+		} else {
+			return _default;
+		}
+	});
+var $author$project$Mezzo$Data$Game$init = A2(
+	$elm$random$Random$map,
+	function (l0) {
+		var defaultCard = {
+			sort: $author$project$Mezzo$Data$Card$Valued(0),
+			suit: $author$project$Mezzo$Data$Card$white
+		};
+		var _v0 = A2(
+			$elm$core$Maybe$withDefault,
+			_Utils_Tuple2(defaultCard, _List_Nil),
+			$elm_community$list_extra$List$Extra$uncons(l0));
+		var card = _v0.a;
+		var l1 = _v0.b;
+		var _v1 = A2($elm_community$list_extra$List$Extra$splitAt, 3, l1);
+		var hand = _v1.a;
+		var deck = _v1.b;
+		return {
+			card: $author$project$Mezzo$Data$Card$fromPart(card),
+			deck: $turboMaCk$queue$Queue$fromList(
+				(!A2(
+					$elm$core$Basics$modBy,
+					2,
+					$elm$core$List$length(deck))) ? A2($elm$core$List$cons, defaultCard, deck) : deck),
+			discard: $mhoare$elm_stack$Stack$initialise,
+			hand: $elm$core$Array$fromList(
+				A2($elm$core$List$map, $author$project$Mezzo$Data$Card$fromPart, hand))
+		};
+	},
+	$elm_community$random_extra$Random$List$shuffle($author$project$Mezzo$Data$Game$initDeck));
+var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
+var $author$project$Mezzo$Page$Ready$init = function (transition) {
+	var _v0 = A2($elm$random$Random$step, $author$project$Mezzo$Data$Game$init, transition.seed);
+	var game = _v0.a;
+	var seed = _v0.b;
+	return _Utils_Tuple2(
+		{game: game, seed: seed, state: $author$project$Mezzo$Page$Ready$Running, window: transition.window},
+		$elm$core$Platform$Cmd$none);
+};
+var $elm$core$Platform$Cmd$map = _Platform_map;
+var $elm$core$Tuple$mapBoth = F3(
+	function (funcA, funcB, _v0) {
+		var x = _v0.a;
+		var y = _v0.b;
+		return _Utils_Tuple2(
+			funcA(x),
+			funcB(y));
+	});
+var $elm$core$Maybe$map2 = F3(
+	function (func, ma, mb) {
+		if (ma.$ === 'Nothing') {
+			return $elm$core$Maybe$Nothing;
+		} else {
+			var a = ma.a;
+			if (mb.$ === 'Nothing') {
+				return $elm$core$Maybe$Nothing;
+			} else {
+				var b = mb.a;
+				return $elm$core$Maybe$Just(
+					A2(func, a, b));
+			}
+		}
+	});
+var $author$project$Mezzo$Main$resolve = function (model) {
+	return A2(
+		$elm$core$Maybe$withDefault,
+		$elm$core$Result$Err(model),
+		A3(
+			$elm$core$Maybe$map2,
+			F2(
+				function (seed, window) {
+					return $elm$core$Result$Ok(
+						{seed: seed, window: window});
+				}),
+			model.seed,
+			model.window));
+};
+var $author$project$Mezzo$Page$Ready$End = {$: 'End'};
 var $elm$core$Array$bitMask = 4294967295 >>> (32 - $elm$core$Array$shiftStep);
 var $elm$core$Basics$ge = _Utils_ge;
 var $elm$core$Elm$JsArray$unsafeGet = _JsArray_unsafeGet;
@@ -5493,9 +6388,6 @@ var $elm$core$Maybe$map = F2(
 			return $elm$core$Maybe$Nothing;
 		}
 	});
-var $mhoare$elm_stack$Stack$Stack = function (a) {
-	return {$: 'Stack', a: a};
-};
 var $mhoare$elm_stack$Stack$push = F2(
 	function (item, _v0) {
 		var stack = _v0.a;
@@ -5681,27 +6573,6 @@ var $elm$core$Array$length = function (_v0) {
 	var len = _v0.a;
 	return len;
 };
-var $elm$core$List$drop = F2(
-	function (n, list) {
-		drop:
-		while (true) {
-			if (n <= 0) {
-				return list;
-			} else {
-				if (!list.b) {
-					return list;
-				} else {
-					var x = list.a;
-					var xs = list.b;
-					var $temp$n = n - 1,
-						$temp$list = xs;
-					n = $temp$n;
-					list = $temp$list;
-					continue drop;
-				}
-			}
-		}
-	});
 var $elm$core$Array$sliceLeft = F2(
 	function (from, array) {
 		var len = array.a;
@@ -5914,15 +6785,6 @@ var $elm_community$array_extra$Array$Extra$removeAt = F2(
 			xs0,
 			A3($elm$core$Array$slice, 1, len1, xs1));
 	});
-var $elm$core$Maybe$withDefault = F2(
-	function (_default, maybe) {
-		if (maybe.$ === 'Just') {
-			var value = maybe.a;
-			return value;
-		} else {
-			return _default;
-		}
-	});
 var $author$project$Mezzo$Data$Game$discardCard = F2(
 	function (i, game) {
 		return A2(
@@ -5939,10 +6801,6 @@ var $author$project$Mezzo$Data$Game$discardCard = F2(
 						});
 				},
 				A2($elm$core$Array$get, i, game.hand)));
-	});
-var $turboMaCk$queue$Queue$Queue = F2(
-	function (a, b) {
-		return {$: 'Queue', a: a, b: b};
 	});
 var $turboMaCk$queue$Queue$queue = F2(
 	function (fl, rl) {
@@ -5971,23 +6829,17 @@ var $turboMaCk$queue$Queue$dequeue = function (_v0) {
 	}
 };
 var $author$project$Mezzo$Data$Card$Add = {$: 'Add'};
-var $author$project$Mezzo$Data$Card$Valued = function (a) {
-	return {$: 'Valued', a: a};
-};
-var $author$project$Mezzo$Data$Card$black = {blue: true, red: true, yellow: true};
 var $author$project$Mezzo$Data$Card$cardMaxValue = 5;
 var $elm$core$Basics$not = _Basics_not;
 var $author$project$Mezzo$Data$Card$negativeSuit = function (s) {
 	return {blue: !s.blue, red: !s.red, yellow: !s.yellow};
 };
-var $author$project$Mezzo$Data$Card$white = {blue: false, red: false, yellow: false};
 var $author$project$Mezzo$Data$Card$mergeSuits = F2(
 	function (s1, s2) {
 		var union = {blue: s1.blue || s2.blue, red: s1.red || s2.red, yellow: s1.yellow || s2.yellow};
 		var intersection = {blue: s1.blue && s2.blue, red: s1.red && s2.red, yellow: s1.yellow && s2.yellow};
 		return _Utils_eq(intersection, $author$project$Mezzo$Data$Card$white) ? (_Utils_eq(s1, $author$project$Mezzo$Data$Card$white) ? s2 : (_Utils_eq(s2, $author$project$Mezzo$Data$Card$white) ? s1 : union)) : (_Utils_eq(s1, $author$project$Mezzo$Data$Card$black) ? $author$project$Mezzo$Data$Card$negativeSuit(s2) : (_Utils_eq(s2, $author$project$Mezzo$Data$Card$black) ? $author$project$Mezzo$Data$Card$negativeSuit(s1) : intersection));
 	});
-var $elm$core$Basics$round = _Basics_round;
 var $author$project$Mezzo$Data$Card$fromParts = function (_v0) {
 	var p1 = _v0.a;
 	var p2 = _v0.b;
@@ -6086,8 +6938,6 @@ var $author$project$Mezzo$Data$Game$discard = F2(
 			return $elm$core$Result$Ok(g);
 		}
 	});
-var $elm$core$Platform$Cmd$batch = _Platform_batch;
-var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $author$project$Mezzo$Data$Card$defaultPart = {
 	sort: $author$project$Mezzo$Data$Card$Valued(0),
 	suit: $author$project$Mezzo$Data$Card$white
@@ -6101,12 +6951,6 @@ var $turboMaCk$queue$Queue$enqueue = F2(
 			fl,
 			A2($elm$core$List$cons, a, rl));
 	});
-var $author$project$Mezzo$Data$Card$fromPart = function (part) {
-	return {
-		sort: part.sort,
-		suit: _Utils_Tuple2(part.suit, $elm$core$Maybe$Nothing)
-	};
-};
 var $mhoare$elm_stack$Stack$pop = function (_v0) {
 	var stack = _v0.a;
 	if (!stack.b) {
@@ -6158,11 +7002,6 @@ var $author$project$Mezzo$Data$Game$addCard = function (game) {
 			discard: tail
 		});
 };
-var $elm$core$Basics$composeR = F3(
-	function (f, g, x) {
-		return g(
-			f(x));
-	});
 var $elm$core$Result$map = F2(
 	function (func, ra) {
 		if (ra.$ === 'Ok') {
@@ -6265,663 +7104,156 @@ var $author$project$Mezzo$Data$Game$play = F2(
 			return $elm$core$Result$Ok(g);
 		}
 	});
-var $author$project$Mezzo$Main$Running = {$: 'Running'};
-var $elm$core$Array$fromListHelp = F3(
-	function (list, nodeList, nodeListSize) {
-		fromListHelp:
+var $author$project$Mezzo$Page$Ready$update = F2(
+	function (msg, model) {
+		var _v0 = _Utils_Tuple2(msg, model.state);
+		_v0$4:
 		while (true) {
-			var _v0 = A2($elm$core$Elm$JsArray$initializeFromList, $elm$core$Array$branchFactor, list);
-			var jsArray = _v0.a;
-			var remainingItems = _v0.b;
-			if (_Utils_cmp(
-				$elm$core$Elm$JsArray$length(jsArray),
-				$elm$core$Array$branchFactor) < 0) {
-				return A2(
-					$elm$core$Array$builderToArray,
-					true,
-					{nodeList: nodeList, nodeListSize: nodeListSize, tail: jsArray});
-			} else {
-				var $temp$list = remainingItems,
-					$temp$nodeList = A2(
-					$elm$core$List$cons,
-					$elm$core$Array$Leaf(jsArray),
-					nodeList),
-					$temp$nodeListSize = nodeListSize + 1;
-				list = $temp$list;
-				nodeList = $temp$nodeList;
-				nodeListSize = $temp$nodeListSize;
-				continue fromListHelp;
-			}
-		}
-	});
-var $elm$core$Array$fromList = function (list) {
-	if (!list.b) {
-		return $elm$core$Array$empty;
-	} else {
-		return A3($elm$core$Array$fromListHelp, list, _List_Nil, 0);
-	}
-};
-var $turboMaCk$queue$Queue$fromList = function (list) {
-	return A2($turboMaCk$queue$Queue$Queue, list, _List_Nil);
-};
-var $author$project$Mezzo$Data$Card$blue = _Utils_update(
-	$author$project$Mezzo$Data$Card$white,
-	{blue: true});
-var $elm$core$List$append = F2(
-	function (xs, ys) {
-		if (!ys.b) {
-			return xs;
-		} else {
-			return A3($elm$core$List$foldr, $elm$core$List$cons, ys, xs);
-		}
-	});
-var $elm$core$List$concat = function (lists) {
-	return A3($elm$core$List$foldr, $elm$core$List$append, _List_Nil, lists);
-};
-var $elm$core$List$concatMap = F2(
-	function (f, list) {
-		return $elm$core$List$concat(
-			A2($elm$core$List$map, f, list));
-	});
-var $author$project$Mezzo$Data$Card$red = _Utils_update(
-	$author$project$Mezzo$Data$Card$white,
-	{red: true});
-var $elm$core$List$repeatHelp = F3(
-	function (result, n, value) {
-		repeatHelp:
-		while (true) {
-			if (n <= 0) {
-				return result;
-			} else {
-				var $temp$result = A2($elm$core$List$cons, value, result),
-					$temp$n = n - 1,
-					$temp$value = value;
-				result = $temp$result;
-				n = $temp$n;
-				value = $temp$value;
-				continue repeatHelp;
-			}
-		}
-	});
-var $elm$core$List$repeat = F2(
-	function (n, value) {
-		return A3($elm$core$List$repeatHelp, _List_Nil, n, value);
-	});
-var $author$project$Mezzo$Data$Game$initDeck = $elm$core$List$concat(
-	_List_fromArray(
-		[
-			_List_fromArray(
-			[
-				{
-				sort: $author$project$Mezzo$Data$Card$Valued(0),
-				suit: $author$project$Mezzo$Data$Card$black
-			}
-			]),
-			A2(
-			$elm$core$List$concatMap,
-			function (suit) {
-				return $elm$core$List$concat(
-					A2(
-						$elm$core$List$repeat,
-						3,
-						A2(
-							$elm$core$List$map,
-							function (value) {
-								return {
-									sort: $author$project$Mezzo$Data$Card$Valued(value),
-									suit: suit
-								};
-							},
-							A2($elm$core$List$range, 1, 2))));
-			},
-			_List_fromArray(
-				[$author$project$Mezzo$Data$Card$red, $author$project$Mezzo$Data$Card$blue]))
-		]));
-var $mhoare$elm_stack$Stack$initialise = $mhoare$elm_stack$Stack$Stack(_List_Nil);
-var $elm$core$Basics$modBy = _Basics_modBy;
-var $elm$random$Random$listHelp = F4(
-	function (revList, n, gen, seed) {
-		listHelp:
-		while (true) {
-			if (n < 1) {
-				return _Utils_Tuple2(revList, seed);
-			} else {
-				var _v0 = gen(seed);
-				var value = _v0.a;
-				var newSeed = _v0.b;
-				var $temp$revList = A2($elm$core$List$cons, value, revList),
-					$temp$n = n - 1,
-					$temp$gen = gen,
-					$temp$seed = newSeed;
-				revList = $temp$revList;
-				n = $temp$n;
-				gen = $temp$gen;
-				seed = $temp$seed;
-				continue listHelp;
-			}
-		}
-	});
-var $elm$random$Random$list = F2(
-	function (n, _v0) {
-		var gen = _v0.a;
-		return $elm$random$Random$Generator(
-			function (seed) {
-				return A4($elm$random$Random$listHelp, _List_Nil, n, gen, seed);
-			});
-	});
-var $elm$core$Basics$compare = _Utils_compare;
-var $elm$core$Dict$get = F2(
-	function (targetKey, dict) {
-		get:
-		while (true) {
-			if (dict.$ === 'RBEmpty_elm_builtin') {
-				return $elm$core$Maybe$Nothing;
-			} else {
-				var key = dict.b;
-				var value = dict.c;
-				var left = dict.d;
-				var right = dict.e;
-				var _v1 = A2($elm$core$Basics$compare, targetKey, key);
-				switch (_v1.$) {
-					case 'LT':
-						var $temp$targetKey = targetKey,
-							$temp$dict = left;
-						targetKey = $temp$targetKey;
-						dict = $temp$dict;
-						continue get;
-					case 'EQ':
-						return $elm$core$Maybe$Just(value);
-					default:
-						var $temp$targetKey = targetKey,
-							$temp$dict = right;
-						targetKey = $temp$targetKey;
-						dict = $temp$dict;
-						continue get;
-				}
-			}
-		}
-	});
-var $owanturist$elm_union_find$UnionFind$findFast = F2(
-	function (id, dict) {
-		findFast:
-		while (true) {
-			var _v0 = A2($elm$core$Dict$get, id, dict);
-			if (_v0.$ === 'Nothing') {
-				return id;
-			} else {
-				var cursor = _v0.a;
-				if (_Utils_eq(id, cursor)) {
-					return id;
-				} else {
-					var $temp$id = cursor,
-						$temp$dict = dict;
-					id = $temp$id;
-					dict = $temp$dict;
-					continue findFast;
-				}
-			}
-		}
-	});
-var $owanturist$elm_union_find$UnionFind$find = F2(
-	function (id, _v0) {
-		var dict = _v0.b;
-		return A2($owanturist$elm_union_find$UnionFind$findFast, id, dict);
-	});
-var $elm$core$Array$isEmpty = function (_v0) {
-	var len = _v0.a;
-	return !len;
-};
-var $owanturist$elm_union_find$UnionFind$QuickUnionPathCompression = F2(
-	function (a, b) {
-		return {$: 'QuickUnionPathCompression', a: a, b: b};
-	});
-var $elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
-var $elm$core$Dict$empty = $elm$core$Dict$RBEmpty_elm_builtin;
-var $owanturist$elm_union_find$UnionFind$quickUnionPathCompression = A2($owanturist$elm_union_find$UnionFind$QuickUnionPathCompression, 0, $elm$core$Dict$empty);
-var $elm$core$Tuple$second = function (_v0) {
-	var y = _v0.b;
-	return y;
-};
-var $elm$core$Dict$Black = {$: 'Black'};
-var $elm$core$Dict$RBNode_elm_builtin = F5(
-	function (a, b, c, d, e) {
-		return {$: 'RBNode_elm_builtin', a: a, b: b, c: c, d: d, e: e};
-	});
-var $elm$core$Dict$Red = {$: 'Red'};
-var $elm$core$Dict$balance = F5(
-	function (color, key, value, left, right) {
-		if ((right.$ === 'RBNode_elm_builtin') && (right.a.$ === 'Red')) {
-			var _v1 = right.a;
-			var rK = right.b;
-			var rV = right.c;
-			var rLeft = right.d;
-			var rRight = right.e;
-			if ((left.$ === 'RBNode_elm_builtin') && (left.a.$ === 'Red')) {
-				var _v3 = left.a;
-				var lK = left.b;
-				var lV = left.c;
-				var lLeft = left.d;
-				var lRight = left.e;
-				return A5(
-					$elm$core$Dict$RBNode_elm_builtin,
-					$elm$core$Dict$Red,
-					key,
-					value,
-					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, lK, lV, lLeft, lRight),
-					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, rK, rV, rLeft, rRight));
-			} else {
-				return A5(
-					$elm$core$Dict$RBNode_elm_builtin,
-					color,
-					rK,
-					rV,
-					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, key, value, left, rLeft),
-					rRight);
-			}
-		} else {
-			if ((((left.$ === 'RBNode_elm_builtin') && (left.a.$ === 'Red')) && (left.d.$ === 'RBNode_elm_builtin')) && (left.d.a.$ === 'Red')) {
-				var _v5 = left.a;
-				var lK = left.b;
-				var lV = left.c;
-				var _v6 = left.d;
-				var _v7 = _v6.a;
-				var llK = _v6.b;
-				var llV = _v6.c;
-				var llLeft = _v6.d;
-				var llRight = _v6.e;
-				var lRight = left.e;
-				return A5(
-					$elm$core$Dict$RBNode_elm_builtin,
-					$elm$core$Dict$Red,
-					lK,
-					lV,
-					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, llK, llV, llLeft, llRight),
-					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, key, value, lRight, right));
-			} else {
-				return A5($elm$core$Dict$RBNode_elm_builtin, color, key, value, left, right);
-			}
-		}
-	});
-var $elm$core$Dict$insertHelp = F3(
-	function (key, value, dict) {
-		if (dict.$ === 'RBEmpty_elm_builtin') {
-			return A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, key, value, $elm$core$Dict$RBEmpty_elm_builtin, $elm$core$Dict$RBEmpty_elm_builtin);
-		} else {
-			var nColor = dict.a;
-			var nKey = dict.b;
-			var nValue = dict.c;
-			var nLeft = dict.d;
-			var nRight = dict.e;
-			var _v1 = A2($elm$core$Basics$compare, key, nKey);
-			switch (_v1.$) {
-				case 'LT':
-					return A5(
-						$elm$core$Dict$balance,
-						nColor,
-						nKey,
-						nValue,
-						A3($elm$core$Dict$insertHelp, key, value, nLeft),
-						nRight);
-				case 'EQ':
-					return A5($elm$core$Dict$RBNode_elm_builtin, nColor, nKey, value, nLeft, nRight);
-				default:
-					return A5(
-						$elm$core$Dict$balance,
-						nColor,
-						nKey,
-						nValue,
-						nLeft,
-						A3($elm$core$Dict$insertHelp, key, value, nRight));
-			}
-		}
-	});
-var $elm$core$Dict$insert = F3(
-	function (key, value, dict) {
-		var _v0 = A3($elm$core$Dict$insertHelp, key, value, dict);
-		if ((_v0.$ === 'RBNode_elm_builtin') && (_v0.a.$ === 'Red')) {
-			var _v1 = _v0.a;
-			var k = _v0.b;
-			var v = _v0.c;
-			var l = _v0.d;
-			var r = _v0.e;
-			return A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, k, v, l, r);
-		} else {
-			var x = _v0;
-			return x;
-		}
-	});
-var $owanturist$elm_union_find$UnionFind$findCompressed = F2(
-	function (id, dict) {
-		var _v0 = A2($elm$core$Dict$get, id, dict);
-		if (_v0.$ === 'Nothing') {
-			return _Utils_Tuple2(
-				id,
-				A3($elm$core$Dict$insert, id, id, dict));
-		} else {
-			var cursor = _v0.a;
-			if (_Utils_eq(id, cursor)) {
-				return _Utils_Tuple2(id, dict);
-			} else {
-				var _v1 = A2($owanturist$elm_union_find$UnionFind$findCompressed, cursor, dict);
-				var parent = _v1.a;
-				var nextDict = _v1.b;
-				return _Utils_Tuple2(
-					parent,
-					A3($elm$core$Dict$insert, id, parent, nextDict));
-			}
-		}
-	});
-var $owanturist$elm_union_find$UnionFind$union = F3(
-	function (left, right, _v0) {
-		var count_ = _v0.a;
-		var dict = _v0.b;
-		var _v1 = A2($owanturist$elm_union_find$UnionFind$findCompressed, left, dict);
-		var leftRoot = _v1.a;
-		var leftDict = _v1.b;
-		var _v2 = A2($owanturist$elm_union_find$UnionFind$findCompressed, right, leftDict);
-		var rightRoot = _v2.a;
-		var rightDict = _v2.b;
-		return _Utils_eq(leftRoot, rightRoot) ? A2($owanturist$elm_union_find$UnionFind$QuickUnionPathCompression, count_, rightDict) : A2(
-			$owanturist$elm_union_find$UnionFind$QuickUnionPathCompression,
-			count_ + 1,
-			A3($elm$core$Dict$insert, leftRoot, rightRoot, rightDict));
-	});
-var $elm_community$random_extra$Utils$selectUniqByIndexes = F2(
-	function (values, randomIndexes) {
-		var modByLength = $elm$core$Basics$modBy(
-			$elm$core$Array$length(values));
-		var step = F2(
-			function (randomIndex, _v1) {
-				var uf = _v1.a;
-				var acc = _v1.b;
-				var leaderOfElement = A2($owanturist$elm_union_find$UnionFind$find, randomIndex, uf);
-				var leaderOfNextElement = A2(
-					$owanturist$elm_union_find$UnionFind$find,
-					modByLength(leaderOfElement + 1),
-					uf);
-				var _v0 = A2($elm$core$Array$get, leaderOfElement, values);
-				if (_v0.$ === 'Nothing') {
-					return _Utils_Tuple2(uf, acc);
-				} else {
-					var value = _v0.a;
-					return _Utils_Tuple2(
-						A3($owanturist$elm_union_find$UnionFind$union, leaderOfElement, leaderOfNextElement, uf),
-						A2($elm$core$List$cons, value, acc));
-				}
-			});
-		return $elm$core$Array$isEmpty(values) ? _List_Nil : A3(
-			$elm$core$List$foldr,
-			step,
-			_Utils_Tuple2($owanturist$elm_union_find$UnionFind$quickUnionPathCompression, _List_Nil),
-			randomIndexes).b;
-	});
-var $elm_community$random_extra$Random$List$shuffle = function (list) {
-	var values = $elm$core$Array$fromList(list);
-	var length = $elm$core$Array$length(values);
-	return A2(
-		$elm$random$Random$map,
-		$elm_community$random_extra$Utils$selectUniqByIndexes(values),
-		A2(
-			$elm$random$Random$list,
-			length,
-			A2($elm$random$Random$int, 0, length - 1)));
-};
-var $elm$core$List$takeReverse = F3(
-	function (n, list, kept) {
-		takeReverse:
-		while (true) {
-			if (n <= 0) {
-				return kept;
-			} else {
-				if (!list.b) {
-					return kept;
-				} else {
-					var x = list.a;
-					var xs = list.b;
-					var $temp$n = n - 1,
-						$temp$list = xs,
-						$temp$kept = A2($elm$core$List$cons, x, kept);
-					n = $temp$n;
-					list = $temp$list;
-					kept = $temp$kept;
-					continue takeReverse;
-				}
-			}
-		}
-	});
-var $elm$core$List$takeTailRec = F2(
-	function (n, list) {
-		return $elm$core$List$reverse(
-			A3($elm$core$List$takeReverse, n, list, _List_Nil));
-	});
-var $elm$core$List$takeFast = F3(
-	function (ctr, n, list) {
-		if (n <= 0) {
-			return _List_Nil;
-		} else {
-			var _v0 = _Utils_Tuple2(n, list);
-			_v0$1:
-			while (true) {
-				_v0$5:
-				while (true) {
-					if (!_v0.b.b) {
-						return list;
-					} else {
-						if (_v0.b.b.b) {
-							switch (_v0.a) {
-								case 1:
-									break _v0$1;
-								case 2:
-									var _v2 = _v0.b;
-									var x = _v2.a;
-									var _v3 = _v2.b;
-									var y = _v3.a;
-									return _List_fromArray(
-										[x, y]);
-								case 3:
-									if (_v0.b.b.b.b) {
-										var _v4 = _v0.b;
-										var x = _v4.a;
-										var _v5 = _v4.b;
-										var y = _v5.a;
-										var _v6 = _v5.b;
-										var z = _v6.a;
-										return _List_fromArray(
-											[x, y, z]);
-									} else {
-										break _v0$5;
-									}
-								default:
-									if (_v0.b.b.b.b && _v0.b.b.b.b.b) {
-										var _v7 = _v0.b;
-										var x = _v7.a;
-										var _v8 = _v7.b;
-										var y = _v8.a;
-										var _v9 = _v8.b;
-										var z = _v9.a;
-										var _v10 = _v9.b;
-										var w = _v10.a;
-										var tl = _v10.b;
-										return (ctr > 1000) ? A2(
-											$elm$core$List$cons,
-											x,
-											A2(
-												$elm$core$List$cons,
-												y,
-												A2(
-													$elm$core$List$cons,
-													z,
-													A2(
-														$elm$core$List$cons,
-														w,
-														A2($elm$core$List$takeTailRec, n - 4, tl))))) : A2(
-											$elm$core$List$cons,
-											x,
-											A2(
-												$elm$core$List$cons,
-												y,
-												A2(
-													$elm$core$List$cons,
-													z,
-													A2(
-														$elm$core$List$cons,
-														w,
-														A3($elm$core$List$takeFast, ctr + 1, n - 4, tl)))));
-									} else {
-										break _v0$5;
-									}
-							}
+			switch (_v0.a.$) {
+				case 'Play':
+					if (_v0.b.$ === 'Running') {
+						var i = _v0.a.a;
+						var _v1 = _v0.b;
+						var _v2 = A2($author$project$Mezzo$Data$Game$play, i, model.game);
+						if (_v2.$ === 'Ok') {
+							var m0 = _v2.a;
+							return _Utils_Tuple2(
+								_Utils_update(
+									model,
+									{game: m0}),
+								$elm$core$Platform$Cmd$none);
 						} else {
-							if (_v0.a === 1) {
-								break _v0$1;
-							} else {
-								break _v0$5;
-							}
+							return _Utils_Tuple2(
+								_Utils_update(
+									model,
+									{state: $author$project$Mezzo$Page$Ready$End}),
+								$elm$core$Platform$Cmd$none);
+						}
+					} else {
+						break _v0$4;
+					}
+				case 'Discard':
+					if (_v0.b.$ === 'Running') {
+						var i = _v0.a.a;
+						var _v3 = _v0.b;
+						var _v4 = A2($author$project$Mezzo$Data$Game$discard, i, model.game);
+						if (_v4.$ === 'Ok') {
+							var m0 = _v4.a;
+							return _Utils_Tuple2(
+								_Utils_update(
+									model,
+									{game: m0}),
+								$elm$core$Platform$Cmd$none);
+						} else {
+							return _Utils_Tuple2(
+								_Utils_update(
+									model,
+									{state: $author$project$Mezzo$Page$Ready$End}),
+								$elm$core$Platform$Cmd$none);
+						}
+					} else {
+						break _v0$4;
+					}
+				case 'Start':
+					var s = _v0.a.a;
+					return $author$project$Mezzo$Page$Ready$init(
+						{seed: model.seed, window: model.window});
+				default:
+					var window = _v0.a.a;
+					return _Utils_Tuple2(
+						_Utils_update(
+							model,
+							{window: window}),
+						$elm$core$Platform$Cmd$none);
+			}
+		}
+		return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+	});
+var $author$project$Mezzo$Main$update = F2(
+	function (mg, ml) {
+		var _v0 = _Utils_Tuple2(mg, ml);
+		_v0$2:
+		while (true) {
+			if (_v0.a.$ === 'WhileSetup') {
+				if (_v0.b.$ === 'Setup') {
+					var msg = _v0.a.a;
+					var model = _v0.b.a;
+					if (msg.$ === 'GotSeed') {
+						var seed = msg.a;
+						var _v2 = $author$project$Mezzo$Main$resolve(
+							_Utils_update(
+								model,
+								{
+									seed: $elm$core$Maybe$Just(seed)
+								}));
+						if (_v2.$ === 'Ok') {
+							var transition = _v2.a;
+							return A3(
+								$elm$core$Tuple$mapBoth,
+								$author$project$Mezzo$Main$Ready,
+								$elm$core$Platform$Cmd$map($author$project$Mezzo$Main$WhileReady),
+								$author$project$Mezzo$Page$Ready$init(transition));
+						} else {
+							var newModel = _v2.a;
+							return _Utils_Tuple2(
+								$author$project$Mezzo$Main$Setup(newModel),
+								$elm$core$Platform$Cmd$none);
+						}
+					} else {
+						var window = msg.a;
+						var _v3 = $author$project$Mezzo$Main$resolve(
+							_Utils_update(
+								model,
+								{
+									window: $elm$core$Maybe$Just(window)
+								}));
+						if (_v3.$ === 'Ok') {
+							var transition = _v3.a;
+							return A3(
+								$elm$core$Tuple$mapBoth,
+								$author$project$Mezzo$Main$Ready,
+								$elm$core$Platform$Cmd$map($author$project$Mezzo$Main$WhileReady),
+								$author$project$Mezzo$Page$Ready$init(transition));
+						} else {
+							var newModel = _v3.a;
+							return _Utils_Tuple2(
+								$author$project$Mezzo$Main$Setup(newModel),
+								$elm$core$Platform$Cmd$none);
 						}
 					}
+				} else {
+					break _v0$2;
 				}
-				return list;
-			}
-			var _v1 = _v0.b;
-			var x = _v1.a;
-			return _List_fromArray(
-				[x]);
-		}
-	});
-var $elm$core$List$take = F2(
-	function (n, list) {
-		return A3($elm$core$List$takeFast, 0, n, list);
-	});
-var $elm_community$list_extra$List$Extra$splitAt = F2(
-	function (n, xs) {
-		return _Utils_Tuple2(
-			A2($elm$core$List$take, n, xs),
-			A2($elm$core$List$drop, n, xs));
-	});
-var $elm_community$list_extra$List$Extra$uncons = function (list) {
-	if (!list.b) {
-		return $elm$core$Maybe$Nothing;
-	} else {
-		var first = list.a;
-		var rest = list.b;
-		return $elm$core$Maybe$Just(
-			_Utils_Tuple2(first, rest));
-	}
-};
-var $author$project$Mezzo$Data$Game$init = A2(
-	$elm$random$Random$map,
-	function (l0) {
-		var defaultCard = {
-			sort: $author$project$Mezzo$Data$Card$Valued(0),
-			suit: $author$project$Mezzo$Data$Card$white
-		};
-		var _v0 = A2(
-			$elm$core$Maybe$withDefault,
-			_Utils_Tuple2(defaultCard, _List_Nil),
-			$elm_community$list_extra$List$Extra$uncons(l0));
-		var card = _v0.a;
-		var l1 = _v0.b;
-		var _v1 = A2($elm_community$list_extra$List$Extra$splitAt, 3, l1);
-		var hand = _v1.a;
-		var deck = _v1.b;
-		return {
-			card: $author$project$Mezzo$Data$Card$fromPart(card),
-			deck: $turboMaCk$queue$Queue$fromList(
-				(!A2(
-					$elm$core$Basics$modBy,
-					2,
-					$elm$core$List$length(deck))) ? A2($elm$core$List$cons, defaultCard, deck) : deck),
-			discard: $mhoare$elm_stack$Stack$initialise,
-			hand: $elm$core$Array$fromList(
-				A2($elm$core$List$map, $author$project$Mezzo$Data$Card$fromPart, hand))
-		};
-	},
-	$elm_community$random_extra$Random$List$shuffle($author$project$Mezzo$Data$Game$initDeck));
-var $author$project$Mezzo$Main$ready = function (s) {
-	var _v0 = A2($elm$random$Random$step, $author$project$Mezzo$Data$Game$init, s);
-	var game = _v0.a;
-	var seed = _v0.b;
-	return _Utils_Tuple2(
-		$author$project$Mezzo$Main$Ready(
-			{game: game, seed: seed, state: $author$project$Mezzo$Main$Running}),
-		$elm$core$Platform$Cmd$none);
-};
-var $author$project$Mezzo$Main$update = F2(
-	function (msg, m) {
-		if (m.$ === 'SettingUp') {
-			if (msg.$ === 'Start') {
-				var s = msg.a;
-				return $author$project$Mezzo$Main$ready(s);
 			} else {
-				return _Utils_Tuple2(m, $elm$core$Platform$Cmd$none);
-			}
-		} else {
-			var model = m.a;
-			var _v2 = _Utils_Tuple2(msg, model.state);
-			_v2$3:
-			while (true) {
-				switch (_v2.a.$) {
-					case 'Play':
-						if (_v2.b.$ === 'Running') {
-							var i = _v2.a.a;
-							var _v3 = _v2.b;
-							var _v4 = A2($author$project$Mezzo$Data$Game$play, i, model.game);
-							if (_v4.$ === 'Ok') {
-								var m0 = _v4.a;
-								return _Utils_Tuple2(
-									$author$project$Mezzo$Main$Ready(
-										_Utils_update(
-											model,
-											{game: m0})),
-									$elm$core$Platform$Cmd$none);
-							} else {
-								return _Utils_Tuple2(
-									$author$project$Mezzo$Main$Ready(
-										_Utils_update(
-											model,
-											{state: $author$project$Mezzo$Main$End})),
-									$elm$core$Platform$Cmd$none);
-							}
-						} else {
-							break _v2$3;
-						}
-					case 'Discard':
-						if (_v2.b.$ === 'Running') {
-							var i = _v2.a.a;
-							var _v5 = _v2.b;
-							var _v6 = A2($author$project$Mezzo$Data$Game$discard, i, model.game);
-							if (_v6.$ === 'Ok') {
-								var m0 = _v6.a;
-								return _Utils_Tuple2(
-									$author$project$Mezzo$Main$Ready(
-										_Utils_update(
-											model,
-											{game: m0})),
-									$elm$core$Platform$Cmd$none);
-							} else {
-								return _Utils_Tuple2(
-									$author$project$Mezzo$Main$Ready(
-										_Utils_update(
-											model,
-											{state: $author$project$Mezzo$Main$End})),
-									$elm$core$Platform$Cmd$none);
-							}
-						} else {
-							break _v2$3;
-						}
-					default:
-						var s = _v2.a.a;
-						return $author$project$Mezzo$Main$ready(s);
+				if (_v0.b.$ === 'Ready') {
+					var msg = _v0.a.a;
+					var model = _v0.b.a;
+					return A3(
+						$elm$core$Tuple$mapBoth,
+						$author$project$Mezzo$Main$Ready,
+						$elm$core$Platform$Cmd$map($author$project$Mezzo$Main$WhileReady),
+						A2($author$project$Mezzo$Page$Ready$update, msg, model));
+				} else {
+					break _v0$2;
 				}
 			}
-			return _Utils_Tuple2(m, $elm$core$Platform$Cmd$none);
 		}
+		return _Utils_Tuple2(ml, $elm$core$Platform$Cmd$none);
 	});
-var $author$project$Mezzo$Main$Discard = function (a) {
+var $elm$virtual_dom$VirtualDom$map = _VirtualDom_map;
+var $elm$html$Html$map = $elm$virtual_dom$VirtualDom$map;
+var $elm$core$List$singleton = function (value) {
+	return _List_fromArray(
+		[value]);
+};
+var $author$project$Mezzo$Page$Ready$Discard = function (a) {
 	return {$: 'Discard', a: a};
 };
-var $author$project$Mezzo$Main$Play = function (a) {
+var $author$project$Mezzo$Page$Ready$Play = function (a) {
 	return {$: 'Play', a: a};
+};
+var $author$project$Mezzo$Page$Ready$Start = function (a) {
+	return {$: 'Start', a: a};
 };
 var $mdgriffith$elm_ui$Internal$Model$AlignY = function (a) {
 	return {$: 'AlignY', a: a};
@@ -7223,6 +7555,37 @@ var $elm$core$Set$insert = F2(
 		return $elm$core$Set$Set_elm_builtin(
 			A3($elm$core$Dict$insert, key, _Utils_Tuple0, dict));
 	});
+var $elm$core$Dict$get = F2(
+	function (targetKey, dict) {
+		get:
+		while (true) {
+			if (dict.$ === 'RBEmpty_elm_builtin') {
+				return $elm$core$Maybe$Nothing;
+			} else {
+				var key = dict.b;
+				var value = dict.c;
+				var left = dict.d;
+				var right = dict.e;
+				var _v1 = A2($elm$core$Basics$compare, targetKey, key);
+				switch (_v1.$) {
+					case 'LT':
+						var $temp$targetKey = targetKey,
+							$temp$dict = left;
+						targetKey = $temp$targetKey;
+						dict = $temp$dict;
+						continue get;
+					case 'EQ':
+						return $elm$core$Maybe$Just(value);
+					default:
+						var $temp$targetKey = targetKey,
+							$temp$dict = right;
+						targetKey = $temp$targetKey;
+						dict = $temp$dict;
+						continue get;
+				}
+			}
+		}
+	});
 var $elm$core$Dict$member = F2(
 	function (key, dict) {
 		var _v0 = A2($elm$core$Dict$get, key, dict);
@@ -7257,24 +7620,6 @@ var $mdgriffith$elm_ui$Internal$Model$Style = F2(
 var $mdgriffith$elm_ui$Internal$Style$dot = function (c) {
 	return '.' + c;
 };
-var $elm$core$List$maybeCons = F3(
-	function (f, mx, xs) {
-		var _v0 = f(mx);
-		if (_v0.$ === 'Just') {
-			var x = _v0.a;
-			return A2($elm$core$List$cons, x, xs);
-		} else {
-			return xs;
-		}
-	});
-var $elm$core$List$filterMap = F2(
-	function (f, xs) {
-		return A3(
-			$elm$core$List$foldr,
-			$elm$core$List$maybeCons(f),
-			_List_Nil,
-			xs);
-	});
 var $elm$core$String$fromFloat = _String_fromNumber;
 var $mdgriffith$elm_ui$Internal$Model$formatColor = function (_v0) {
 	var red = _v0.a;
@@ -12483,7 +12828,6 @@ var $elm$html$Html$Events$onClick = function (msg) {
 var $mdgriffith$elm_ui$Element$Events$onClick = A2($elm$core$Basics$composeL, $mdgriffith$elm_ui$Internal$Model$Attr, $elm$html$Html$Events$onClick);
 var $elm$json$Json$Decode$andThen = _Json_andThen;
 var $elm$json$Json$Decode$fail = _Json_fail;
-var $elm$json$Json$Decode$field = _Json_decodeField;
 var $elm$virtual_dom$VirtualDom$MayPreventDefault = function (a) {
 	return {$: 'MayPreventDefault', a: a};
 };
@@ -12771,7 +13115,6 @@ var $mdgriffith$elm_ui$Internal$Model$TransformComponent = F2(
 		return {$: 'TransformComponent', a: a, b: b};
 	});
 var $mdgriffith$elm_ui$Internal$Model$Empty = {$: 'Empty'};
-var $elm$virtual_dom$VirtualDom$map = _VirtualDom_map;
 var $mdgriffith$elm_ui$Internal$Model$map = F2(
 	function (fn, el) {
 		switch (el.$) {
@@ -13056,8 +13399,6 @@ var $Orasund$elm_ui_widgets$Internal$Material$List$cardColumn = function (palett
 			element: _List_fromArray(
 				[
 					A2($mdgriffith$elm_ui$Element$paddingXY, 16, 12),
-					$mdgriffith$elm_ui$Element$height(
-					A2($mdgriffith$elm_ui$Element$minimum, 48, $mdgriffith$elm_ui$Element$shrink)),
 					$mdgriffith$elm_ui$Element$Background$color(
 					$Orasund$elm_ui_widgets$Widget$Material$Color$fromColor(palette.surface)),
 					$mdgriffith$elm_ui$Element$Font$color(
@@ -13541,10 +13882,6 @@ var $mdgriffith$elm_ui$Element$paragraph = F2(
 						attrs))),
 			$mdgriffith$elm_ui$Internal$Model$Unkeyed(children));
 	});
-var $elm$core$List$singleton = function (value) {
-	return _List_fromArray(
-		[value]);
-};
 var $Orasund$elm_ui_widgets$Internal$Item$fullBleedItem = F2(
 	function (s, _v0) {
 		var onPress = _v0.onPress;
@@ -14314,6 +14651,7 @@ var $Orasund$elm_ui_widgets$Internal$Modal$singleModal = A2(
 			}),
 		$elm$core$Maybe$withDefault(_List_Nil)));
 var $Orasund$elm_ui_widgets$Widget$singleModal = $Orasund$elm_ui_widgets$Internal$Modal$singleModal;
+var $mdgriffith$elm_ui$Element$spaceEvenly = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$spacing, $mdgriffith$elm_ui$Internal$Style$classes.spaceEvenly);
 var $author$project$Mezzo$Data$Card$suitToString = function (suit) {
 	var _v0 = _Utils_Tuple3(suit.red, suit.blue, suit.yellow);
 	if (_v0.a) {
@@ -14451,7 +14789,6 @@ var $Orasund$elm_ui_widgets$Widget$Customize$ifLast = F2(
 			},
 			a);
 	});
-var $mdgriffith$elm_ui$Element$spaceEvenly = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$spacing, $mdgriffith$elm_ui$Internal$Style$classes.spaceEvenly);
 var $Orasund$elm_ui_widgets$Widget$Material$Color$textAndBackground = function (color) {
 	return _List_fromArray(
 		[
@@ -14630,8 +14967,10 @@ var $author$project$Mezzo$View$Card$view = F2(
 								]),
 							A2(
 								$mdgriffith$elm_ui$Element$el,
-								_List_fromArray(
-									[$mdgriffith$elm_ui$Element$centerY, $mdgriffith$elm_ui$Element$centerX]),
+								_Utils_ap(
+									_List_fromArray(
+										[$mdgriffith$elm_ui$Element$centerY, $mdgriffith$elm_ui$Element$centerX]),
+									$Orasund$elm_ui_widgets$Widget$Material$Typography$h6),
 								$mdgriffith$elm_ui$Element$text(
 									function () {
 										var _v1 = card.sort;
@@ -14746,9 +15085,9 @@ var $author$project$Mezzo$View$Card$viewSmall = function (card) {
 					_List_fromArray(
 						[
 							$mdgriffith$elm_ui$Element$width(
-							$mdgriffith$elm_ui$Element$px(80)),
-							$mdgriffith$elm_ui$Element$height(
 							$mdgriffith$elm_ui$Element$px(60)),
+							$mdgriffith$elm_ui$Element$height(
+							$mdgriffith$elm_ui$Element$px(45)),
 							$mdgriffith$elm_ui$Element$Border$roundEach(
 							{bottomLeft: 0, bottomRight: 0, topLeft: 8, topRight: 8})
 						]),
@@ -14756,8 +15095,10 @@ var $author$project$Mezzo$View$Card$viewSmall = function (card) {
 						$author$project$Mezzo$View$Suit$toColor(s2))),
 				A2(
 					$mdgriffith$elm_ui$Element$el,
-					_List_fromArray(
-						[$mdgriffith$elm_ui$Element$centerX, $mdgriffith$elm_ui$Element$centerY]),
+					_Utils_ap(
+						_List_fromArray(
+							[$mdgriffith$elm_ui$Element$centerX, $mdgriffith$elm_ui$Element$centerY]),
+						$Orasund$elm_ui_widgets$Widget$Material$Typography$h6),
 					$mdgriffith$elm_ui$Element$text(
 						function () {
 							var _v1 = card.sort;
@@ -14774,23 +15115,29 @@ var $author$project$Mezzo$View$Card$viewSmall = function (card) {
 					_List_fromArray(
 						[
 							$mdgriffith$elm_ui$Element$width(
-							$mdgriffith$elm_ui$Element$px(80)),
-							$mdgriffith$elm_ui$Element$height(
 							$mdgriffith$elm_ui$Element$px(60)),
+							$mdgriffith$elm_ui$Element$height(
+							$mdgriffith$elm_ui$Element$px(45)),
 							$mdgriffith$elm_ui$Element$Border$roundEach(
-							{bottomLeft: 8, bottomRight: 8, topLeft: 0, topRight: 0}),
-							A2($mdgriffith$elm_ui$Element$paddingXY, 16, 12)
+							{bottomLeft: 8, bottomRight: 8, topLeft: 0, topRight: 0})
 						]),
 					$Orasund$elm_ui_widgets$Widget$Material$Color$textAndBackground(
 						$author$project$Mezzo$View$Suit$toColor(s1))),
 				A2(
-					$mdgriffith$elm_ui$Element$el,
+					$mdgriffith$elm_ui$Element$column,
 					_List_fromArray(
-						[$mdgriffith$elm_ui$Element$centerX]),
-					$mdgriffith$elm_ui$Element$text(
-						_Utils_ap(
-							$author$project$Mezzo$Data$Card$suitToString(s2),
-							(!_Utils_eq(s1, s2)) ? (' | ' + $author$project$Mezzo$Data$Card$suitToString(s1)) : ''))))
+						[
+							$mdgriffith$elm_ui$Element$centerX,
+							$mdgriffith$elm_ui$Element$centerY,
+							$mdgriffith$elm_ui$Element$spacing(4)
+						]),
+					A2(
+						$elm$core$List$cons,
+						$mdgriffith$elm_ui$Element$text(
+							$author$project$Mezzo$Data$Card$suitToString(s2)),
+						(!_Utils_eq(s1, s2)) ? $elm$core$List$singleton(
+							$mdgriffith$elm_ui$Element$text(
+								$author$project$Mezzo$Data$Card$suitToString(s1))) : _List_Nil)))
 			]));
 };
 var $author$project$Mezzo$View$Part$view = function (list) {
@@ -14834,51 +15181,92 @@ var $author$project$Mezzo$View$Part$view = function (list) {
 	}
 	return $mdgriffith$elm_ui$Element$none;
 };
-var $author$project$Mezzo$View$Stack$viewSheet = function (card) {
-	var color = function () {
-		var _v0 = card.suit;
-		if (_v0.b.$ === 'Nothing') {
-			var suit = _v0.a;
-			var _v1 = _v0.b;
-			return $author$project$Mezzo$View$Suit$toColor(suit);
-		} else {
-			return A3($avh4$elm_color$Color$rgb255, 240, 240, 240);
-		}
-	}();
-	return A2(
-		$mdgriffith$elm_ui$Element$el,
-		_List_fromArray(
-			[
-				$mdgriffith$elm_ui$Element$Background$color(
-				$mdgriffith$elm_ui$Element$fromRgb(
-					$avh4$elm_color$Color$toRgba(color))),
-				$mdgriffith$elm_ui$Element$width(
-				$mdgriffith$elm_ui$Element$px(64)),
-				$mdgriffith$elm_ui$Element$height(
-				$mdgriffith$elm_ui$Element$px(4))
-			]),
-		$mdgriffith$elm_ui$Element$none);
-};
-var $author$project$Mezzo$View$Stack$view = function (list) {
-	return $elm$core$List$isEmpty(list) ? $mdgriffith$elm_ui$Element$none : A2(
-		$mdgriffith$elm_ui$Element$row,
-		_List_fromArray(
-			[
-				$mdgriffith$elm_ui$Element$spacing(4)
-			]),
-		_List_fromArray(
-			[
-				A2(
+var $author$project$Mezzo$View$Stack$viewSheet = F2(
+	function (attr, card) {
+		var _v0 = function () {
+			var _v1 = card.suit;
+			if (_v1.b.$ === 'Nothing') {
+				var suit = _v1.a;
+				var _v2 = _v1.b;
+				return _Utils_Tuple2(
+					$author$project$Mezzo$View$Suit$toColor(suit),
+					$author$project$Mezzo$Data$Card$suitToString(suit));
+			} else {
+				return _Utils_Tuple2(
+					A3($avh4$elm_color$Color$rgb255, 240, 240, 240),
+					'');
+			}
+		}();
+		var color = _v0.a;
+		var string = _v0.b;
+		return A2(
+			$mdgriffith$elm_ui$Element$el,
+			_Utils_ap(
+				_List_fromArray(
+					[
+						$mdgriffith$elm_ui$Element$width(
+						$mdgriffith$elm_ui$Element$px(64)),
+						$mdgriffith$elm_ui$Element$padding(2),
+						$mdgriffith$elm_ui$Element$Font$size(10)
+					]),
+				_Utils_ap(
+					$Orasund$elm_ui_widgets$Widget$Material$Color$textAndBackground(color),
+					attr)),
+			A2(
 				$mdgriffith$elm_ui$Element$el,
-				$Orasund$elm_ui_widgets$Widget$Material$Typography$h6,
+				_List_fromArray(
+					[$mdgriffith$elm_ui$Element$alignRight]),
 				$mdgriffith$elm_ui$Element$text(
-					$elm$core$String$fromInt(
-						$elm$core$List$length(list)))),
-				A2(
-				$mdgriffith$elm_ui$Element$column,
-				_List_Nil,
-				A2($elm$core$List$map, $author$project$Mezzo$View$Stack$viewSheet, list))
-			]));
+					A2(
+						$elm$core$Maybe$withDefault,
+						'',
+						A2(
+							$elm$core$Maybe$map,
+							A2($elm$core$Basics$composeR, $elm$core$Tuple$first, $elm$core$String$fromChar),
+							$elm$core$String$uncons(string))))));
+	});
+var $author$project$Mezzo$View$Stack$view = function (list) {
+	var rounded = 4;
+	if ($elm$core$List$isEmpty(list)) {
+		return $mdgriffith$elm_ui$Element$none;
+	} else {
+		var length = $elm$core$List$length(list);
+		return A2(
+			$mdgriffith$elm_ui$Element$row,
+			_List_fromArray(
+				[
+					$mdgriffith$elm_ui$Element$spacing(4)
+				]),
+			_List_fromArray(
+				[
+					A2(
+					$mdgriffith$elm_ui$Element$el,
+					$Orasund$elm_ui_widgets$Widget$Material$Typography$h6,
+					$mdgriffith$elm_ui$Element$text(
+						$elm$core$String$fromInt(length))),
+					A2(
+					$mdgriffith$elm_ui$Element$column,
+					_List_Nil,
+					A2(
+						$elm$core$List$indexedMap,
+						function (i) {
+							return $author$project$Mezzo$View$Stack$viewSheet(
+								(length === 1) ? _List_fromArray(
+									[
+										$mdgriffith$elm_ui$Element$Border$rounded(rounded)
+									]) : ((!i) ? _List_fromArray(
+									[
+										$mdgriffith$elm_ui$Element$Border$roundEach(
+										{bottomLeft: 0, bottomRight: 0, topLeft: rounded, topRight: rounded})
+									]) : (_Utils_eq(i, length - 1) ? _List_fromArray(
+									[
+										$mdgriffith$elm_ui$Element$Border$roundEach(
+										{bottomLeft: rounded, bottomRight: rounded, topLeft: 0, topRight: 0})
+									]) : _List_Nil)));
+						},
+						list))
+				]));
+	}
 };
 var $author$project$Mezzo$View$Card$viewBackSmall = A2(
 	$mdgriffith$elm_ui$Element$column,
@@ -14892,384 +15280,405 @@ var $author$project$Mezzo$View$Card$viewBackSmall = A2(
 				_List_fromArray(
 					[
 						$mdgriffith$elm_ui$Element$width(
-						$mdgriffith$elm_ui$Element$px(80)),
-						$mdgriffith$elm_ui$Element$height(
 						$mdgriffith$elm_ui$Element$px(60)),
+						$mdgriffith$elm_ui$Element$height(
+						$mdgriffith$elm_ui$Element$px(45)),
 						$mdgriffith$elm_ui$Element$Border$roundEach(
 						{bottomLeft: 0, bottomRight: 0, topLeft: 8, topRight: 8})
 					]),
 				$Orasund$elm_ui_widgets$Widget$Material$Color$textAndBackground(
 					A3($avh4$elm_color$Color$rgb255, 16, 16, 16))),
-			A2(
-				$mdgriffith$elm_ui$Element$el,
-				_List_fromArray(
-					[$mdgriffith$elm_ui$Element$centerX, $mdgriffith$elm_ui$Element$centerY]),
-				$mdgriffith$elm_ui$Element$none)),
+			$mdgriffith$elm_ui$Element$none),
 			A2(
 			$mdgriffith$elm_ui$Element$el,
 			_Utils_ap(
 				_List_fromArray(
 					[
 						$mdgriffith$elm_ui$Element$width(
-						$mdgriffith$elm_ui$Element$px(80)),
-						$mdgriffith$elm_ui$Element$height(
 						$mdgriffith$elm_ui$Element$px(60)),
+						$mdgriffith$elm_ui$Element$height(
+						$mdgriffith$elm_ui$Element$px(45)),
 						$mdgriffith$elm_ui$Element$Border$roundEach(
-						{bottomLeft: 8, bottomRight: 8, topLeft: 0, topRight: 0}),
-						A2($mdgriffith$elm_ui$Element$paddingXY, 16, 12)
+						{bottomLeft: 8, bottomRight: 8, topLeft: 0, topRight: 0})
 					]),
 				$Orasund$elm_ui_widgets$Widget$Material$Color$textAndBackground(
 					A3($avh4$elm_color$Color$rgb255, 16, 16, 16))),
-			A2(
-				$mdgriffith$elm_ui$Element$el,
-				_List_fromArray(
-					[$mdgriffith$elm_ui$Element$centerX]),
-				$mdgriffith$elm_ui$Element$none))
+			$mdgriffith$elm_ui$Element$none)
 		]));
-var $author$project$Mezzo$Main$view = function (m) {
-	if (m.$ === 'SettingUp') {
-		return _List_Nil;
-	} else {
-		var model = m.a;
-		var _v1 = function () {
-			var _v2 = A2(
-				$elm_community$list_extra$List$Extra$greedyGroupsOf,
-				2,
-				$turboMaCk$queue$Queue$toList(model.game.deck));
-			if (_v2.b) {
-				if (_v2.b.b) {
-					if (_v2.b.b.b) {
-						if (_v2.b.b.b.b) {
-							var a = _v2.a;
-							var _v3 = _v2.b;
-							var b = _v3.a;
-							var _v4 = _v3.b;
-							var c = _v4.a;
-							var tail = _v4.b;
-							var d = tail.a;
-							var _v5 = $elm$core$List$reverse(tail);
-							if (_v5.b) {
-								var x = _v5.a;
-								var l = _v5.b;
-								return _Utils_Tuple3(
-									x,
-									l,
-									_List_fromArray(
-										[c, b, a]));
-							} else {
-								return _Utils_Tuple3(
-									d,
-									_List_Nil,
-									_List_fromArray(
-										[c, b, a]));
-							}
-						} else {
-							var a = _v2.a;
-							var _v6 = _v2.b;
-							var b = _v6.a;
-							var _v7 = _v6.b;
-							var c = _v7.a;
+var $author$project$Mezzo$Page$Ready$view = function (model) {
+	var viewHand = A2(
+		$mdgriffith$elm_ui$Element$el,
+		_List_fromArray(
+			[
+				$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
+			]),
+		A2(
+			$mdgriffith$elm_ui$Element$row,
+			_List_fromArray(
+				[
+					$mdgriffith$elm_ui$Element$centerX,
+					$mdgriffith$elm_ui$Element$spacing(10)
+				]),
+			$elm$core$List$reverse(
+				$elm$core$Array$toList(
+					A2(
+						$elm$core$Array$indexedMap,
+						function (i) {
+							return A2(
+								$elm$core$Basics$composeR,
+								$author$project$Mezzo$View$Card$view(
+									$elm$core$Maybe$Just(
+										$author$project$Mezzo$Page$Ready$Play(i))),
+								function (el) {
+									return A2(
+										$mdgriffith$elm_ui$Element$column,
+										_List_fromArray(
+											[
+												$mdgriffith$elm_ui$Element$spacing(5)
+											]),
+										_List_fromArray(
+											[
+												el,
+												A2(
+												$Orasund$elm_ui_widgets$Widget$textButton,
+												A2(
+													$Orasund$elm_ui_widgets$Widget$Customize$elementButton,
+													_List_fromArray(
+														[$mdgriffith$elm_ui$Element$centerX]),
+													$Orasund$elm_ui_widgets$Widget$Material$outlinedButton($Orasund$elm_ui_widgets$Widget$Material$defaultPalette)),
+												{
+													onPress: $elm$core$Maybe$Just(
+														$author$project$Mezzo$Page$Ready$Discard(i)),
+													text: 'Put Aside'
+												})
+											]));
+								});
+						},
+						model.game.hand)))));
+	var _v0 = function () {
+		var _v1 = A2(
+			$elm_community$list_extra$List$Extra$greedyGroupsOf,
+			2,
+			$turboMaCk$queue$Queue$toList(model.game.deck));
+		if (_v1.b) {
+			if (_v1.b.b) {
+				if (_v1.b.b.b) {
+					if (_v1.b.b.b.b) {
+						var a = _v1.a;
+						var _v2 = _v1.b;
+						var b = _v2.a;
+						var _v3 = _v2.b;
+						var c = _v3.a;
+						var tail = _v3.b;
+						var d = tail.a;
+						var _v4 = $elm$core$List$reverse(tail);
+						if (_v4.b) {
+							var x = _v4.a;
+							var l = _v4.b;
 							return _Utils_Tuple3(
-								c,
+								x,
+								l,
+								_List_fromArray(
+									[c, b, a]));
+						} else {
+							return _Utils_Tuple3(
+								d,
 								_List_Nil,
 								_List_fromArray(
-									[b, a]));
+									[c, b, a]));
 						}
 					} else {
-						var a = _v2.a;
-						var _v8 = _v2.b;
-						var b = _v8.a;
+						var a = _v1.a;
+						var _v5 = _v1.b;
+						var b = _v5.a;
+						var _v6 = _v5.b;
+						var c = _v6.a;
 						return _Utils_Tuple3(
-							b,
+							c,
 							_List_Nil,
 							_List_fromArray(
-								[a]));
+								[b, a]));
 					}
 				} else {
-					var a = _v2.a;
-					return _Utils_Tuple3(a, _List_Nil, _List_Nil);
+					var a = _v1.a;
+					var _v7 = _v1.b;
+					var b = _v7.a;
+					return _Utils_Tuple3(
+						b,
+						_List_Nil,
+						_List_fromArray(
+							[a]));
 				}
 			} else {
-				return _Utils_Tuple3(_List_Nil, _List_Nil, _List_Nil);
+				var a = _v1.a;
+				return _Utils_Tuple3(a, _List_Nil, _List_Nil);
 			}
-		}();
-		var last = _v1.a;
-		var middle = _v1.b;
-		var firstFew = _v1.c;
-		var _v9 = A2(
-			$elm_community$list_extra$List$Extra$splitAt,
-			3,
-			$mhoare$elm_stack$Stack$toList(model.game.discard));
-		var discardFirst = _v9.a;
-		var discardTail = _v9.b;
-		return $elm$core$List$singleton(
-			A2(
-				$mdgriffith$elm_ui$Element$layout,
-				_Utils_ap(
-					$Orasund$elm_ui_widgets$Widget$Material$Typography$body1,
-					function () {
-						var _v10 = model.state;
-						if (_v10.$ === 'End') {
-							return $Orasund$elm_ui_widgets$Widget$singleModal(
-								_List_fromArray(
-									[
-										{
-										content: function () {
-											var n = $elm_community$list_extra$List$Extra$unique(
-												A2(
-													$elm$core$List$filterMap,
-													function (card) {
-														var _v12 = card.suit;
-														if (_v12.b.$ === 'Nothing') {
-															var a = _v12.a;
-															var _v13 = _v12.b;
-															return $elm$core$Maybe$Just(
-																$author$project$Mezzo$Data$Card$suitToString(a));
-														} else {
-															return $elm$core$Maybe$Nothing;
-														}
-													},
-													$mhoare$elm_stack$Stack$toList(model.game.discard)));
-											return A2(
-												$Orasund$elm_ui_widgets$Widget$itemList,
-												A2(
-													$Orasund$elm_ui_widgets$Widget$Customize$mapContent,
-													$Orasund$elm_ui_widgets$Widget$Customize$element(
-														_List_fromArray(
-															[
-																$mdgriffith$elm_ui$Element$width(
-																$mdgriffith$elm_ui$Element$px(400)),
-																$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$shrink)
-															])),
-													A2(
-														$Orasund$elm_ui_widgets$Widget$Customize$elementColumn,
-														_List_fromArray(
-															[
-																$mdgriffith$elm_ui$Element$width(
-																$mdgriffith$elm_ui$Element$px(400)),
-																$mdgriffith$elm_ui$Element$centerX,
-																$mdgriffith$elm_ui$Element$centerY
-															]),
-														$Orasund$elm_ui_widgets$Widget$Material$cardColumn($Orasund$elm_ui_widgets$Widget$Material$defaultPalette))),
+		} else {
+			return _Utils_Tuple3(_List_Nil, _List_Nil, _List_Nil);
+		}
+	}();
+	var last = _v0.a;
+	var middle = _v0.b;
+	var firstFew = _v0.c;
+	var viewDeck = A2(
+		$mdgriffith$elm_ui$Element$el,
+		_List_fromArray(
+			[
+				$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
+			]),
+		A2(
+			$mdgriffith$elm_ui$Element$row,
+			_List_fromArray(
+				[$mdgriffith$elm_ui$Element$alignLeft]),
+			$elm$core$List$concat(
+				_List_fromArray(
+					[
+						$elm$core$List$singleton(
+						$author$project$Mezzo$View$Part$view(last)),
+						$elm$core$List$isEmpty(middle) ? _List_Nil : $elm$core$List$singleton(
+						A2(
+							$mdgriffith$elm_ui$Element$column,
+							_List_fromArray(
+								[
+									$mdgriffith$elm_ui$Element$spacing(10)
+								]),
+							_List_fromArray(
+								[
+									$author$project$Mezzo$View$Card$viewBackSmall,
+									A2(
+									$mdgriffith$elm_ui$Element$el,
+									_List_fromArray(
+										[
+											$mdgriffith$elm_ui$Element$height(
+											$mdgriffith$elm_ui$Element$px(32)),
+											$mdgriffith$elm_ui$Element$Font$size(32),
+											$mdgriffith$elm_ui$Element$centerX
+										]),
+									$mdgriffith$elm_ui$Element$text(
+										$elm$core$String$fromInt(
+											$elm$core$List$length(middle))))
+								]))),
+						A2($elm$core$List$map, $author$project$Mezzo$View$Part$view, firstFew)
+					]))));
+	var _v8 = A2(
+		$elm_community$list_extra$List$Extra$splitAt,
+		3,
+		$mhoare$elm_stack$Stack$toList(model.game.discard));
+	var discardFirst = _v8.a;
+	var discardTail = _v8.b;
+	var viewDiscard = A2(
+		$mdgriffith$elm_ui$Element$el,
+		_List_fromArray(
+			[
+				$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
+				$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill)
+			]),
+		A2(
+			$mdgriffith$elm_ui$Element$column,
+			_List_fromArray(
+				[$mdgriffith$elm_ui$Element$alignBottom, $mdgriffith$elm_ui$Element$alignRight]),
+			$elm$core$List$concat(
+				_List_fromArray(
+					[
+						A2(
+						$elm$core$List$map,
+						A2($elm$core$Basics$composeR, $author$project$Mezzo$Data$Card$toParts, $author$project$Mezzo$View$PartBubble$viewJoined),
+						discardFirst),
+						$elm$core$List$singleton(
+						$author$project$Mezzo$View$Stack$view(discardTail))
+					]))));
+	return A2(
+		$mdgriffith$elm_ui$Element$layout,
+		_Utils_ap(
+			$Orasund$elm_ui_widgets$Widget$Material$Typography$body1,
+			function () {
+				var _v9 = model.state;
+				if (_v9.$ === 'End') {
+					return $Orasund$elm_ui_widgets$Widget$singleModal(
+						_List_fromArray(
+							[
+								{
+								content: function () {
+									var n = $elm_community$list_extra$List$Extra$unique(
+										A2(
+											$elm$core$List$filterMap,
+											function (card) {
+												var _v11 = card.suit;
+												if (_v11.b.$ === 'Nothing') {
+													var a = _v11.a;
+													var _v12 = _v11.b;
+													return $elm$core$Maybe$Just(
+														$author$project$Mezzo$Data$Card$suitToString(a));
+												} else {
+													return $elm$core$Maybe$Nothing;
+												}
+											},
+											$mhoare$elm_stack$Stack$toList(model.game.discard)));
+									return A2(
+										$Orasund$elm_ui_widgets$Widget$itemList,
+										A2(
+											$Orasund$elm_ui_widgets$Widget$Customize$mapContent,
+											$Orasund$elm_ui_widgets$Widget$Customize$element(
 												_List_fromArray(
 													[
-														A2(
-														$Orasund$elm_ui_widgets$Widget$fullBleedItem,
-														A2(
-															$Orasund$elm_ui_widgets$Widget$Customize$element,
-															$Orasund$elm_ui_widgets$Widget$Material$Typography$h6,
-															$Orasund$elm_ui_widgets$Widget$Material$fullBleedItem($Orasund$elm_ui_widgets$Widget$Material$defaultPalette)),
-														{
-															icon: $elm$core$Basics$always($mdgriffith$elm_ui$Element$none),
-															onPress: $elm$core$Maybe$Nothing,
-															text: 'Game Over'
-														}),
-														A2(
-														$Orasund$elm_ui_widgets$Widget$multiLineItem,
-														A2(
-															$Orasund$elm_ui_widgets$Widget$Customize$element,
+														$mdgriffith$elm_ui$Element$width(
+														$mdgriffith$elm_ui$Element$px(400))
+													])),
+											A2(
+												$Orasund$elm_ui_widgets$Widget$Customize$elementColumn,
+												_List_fromArray(
+													[
+														$mdgriffith$elm_ui$Element$width(
+														$mdgriffith$elm_ui$Element$px(400)),
+														$mdgriffith$elm_ui$Element$centerX,
+														$mdgriffith$elm_ui$Element$centerY
+													]),
+												$Orasund$elm_ui_widgets$Widget$Material$cardColumn($Orasund$elm_ui_widgets$Widget$Material$defaultPalette))),
+										_List_fromArray(
+											[
+												A2(
+												$Orasund$elm_ui_widgets$Widget$fullBleedItem,
+												A2(
+													$Orasund$elm_ui_widgets$Widget$Customize$element,
+													$Orasund$elm_ui_widgets$Widget$Material$Typography$h6,
+													$Orasund$elm_ui_widgets$Widget$Material$fullBleedItem($Orasund$elm_ui_widgets$Widget$Material$defaultPalette)),
+												{
+													icon: $elm$core$Basics$always($mdgriffith$elm_ui$Element$none),
+													onPress: $elm$core$Maybe$Nothing,
+													text: 'Game Over'
+												}),
+												A2(
+												$Orasund$elm_ui_widgets$Widget$multiLineItem,
+												A2(
+													$Orasund$elm_ui_widgets$Widget$Customize$element,
+													_List_fromArray(
+														[
+															$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$shrink)
+														]),
+													$Orasund$elm_ui_widgets$Widget$Material$multiLineItem($Orasund$elm_ui_widgets$Widget$Material$defaultPalette)),
+												{
+													content: $elm$core$Basics$always($mdgriffith$elm_ui$Element$none),
+													icon: function (_v10) {
+														var size = _v10.size;
+														return A2(
+															$mdgriffith$elm_ui$Element$el,
 															_List_fromArray(
 																[
-																	$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$shrink)
+																	$mdgriffith$elm_ui$Element$Font$size(size),
+																	$mdgriffith$elm_ui$Element$centerX
 																]),
-															$Orasund$elm_ui_widgets$Widget$Material$multiLineItem($Orasund$elm_ui_widgets$Widget$Material$defaultPalette)),
-														{
-															content: $elm$core$Basics$always($mdgriffith$elm_ui$Element$none),
-															icon: function (_v11) {
-																var size = _v11.size;
-																return A2(
-																	$mdgriffith$elm_ui$Element$el,
-																	_List_fromArray(
-																		[
-																			$mdgriffith$elm_ui$Element$Font$size(size),
-																			$mdgriffith$elm_ui$Element$centerX
-																		]),
-																	$mdgriffith$elm_ui$Element$text(
-																		$elm$core$String$fromInt(
-																			$elm$core$List$length(n))));
-															},
-															onPress: $elm$core$Maybe$Nothing,
-															text: A2($elm$core$String$join, ', ', n),
-															title: 'You have collected ' + ($elm$core$String$fromInt(
-																$elm$core$List$length(n)) + ' out of 8 different full colored cards:')
-														}),
-														$Orasund$elm_ui_widgets$Widget$asItem(
-														A2(
-															$Orasund$elm_ui_widgets$Widget$button,
-															A2(
-																$Orasund$elm_ui_widgets$Widget$Customize$elementButton,
-																_List_fromArray(
-																	[$mdgriffith$elm_ui$Element$alignRight]),
-																$Orasund$elm_ui_widgets$Widget$Material$containedButton($Orasund$elm_ui_widgets$Widget$Material$defaultPalette)),
-															{
-																icon: $elm$core$Basics$always($mdgriffith$elm_ui$Element$none),
-																onPress: $elm$core$Maybe$Just(
-																	$author$project$Mezzo$Main$Start(model.seed)),
-																text: 'Play Again'
-															}))
-													]));
-										}(),
-										onDismiss: $elm$core$Maybe$Just(
-											$author$project$Mezzo$Main$Start(model.seed))
-									}
-									]));
-						} else {
-							return _List_Nil;
-						}
-					}()),
-				A2(
-					$mdgriffith$elm_ui$Element$column,
+															$mdgriffith$elm_ui$Element$text(
+																$elm$core$String$fromInt(
+																	$elm$core$List$length(n))));
+													},
+													onPress: $elm$core$Maybe$Nothing,
+													text: A2($elm$core$String$join, ', ', n),
+													title: 'You have collected ' + ($elm$core$String$fromInt(
+														$elm$core$List$length(n)) + ' out of 8 different full colored cards:')
+												}),
+												$Orasund$elm_ui_widgets$Widget$asItem(
+												A2(
+													$Orasund$elm_ui_widgets$Widget$button,
+													A2(
+														$Orasund$elm_ui_widgets$Widget$Customize$elementButton,
+														_List_fromArray(
+															[$mdgriffith$elm_ui$Element$alignRight]),
+														$Orasund$elm_ui_widgets$Widget$Material$containedButton($Orasund$elm_ui_widgets$Widget$Material$defaultPalette)),
+													{
+														icon: $elm$core$Basics$always($mdgriffith$elm_ui$Element$none),
+														onPress: $elm$core$Maybe$Just(
+															$author$project$Mezzo$Page$Ready$Start(model.seed)),
+														text: 'Play Again'
+													}))
+											]));
+								}(),
+								onDismiss: $elm$core$Maybe$Just(
+									$author$project$Mezzo$Page$Ready$Start(model.seed))
+							}
+							]));
+				} else {
+					return _List_Nil;
+				}
+			}()),
+		A2(
+			$mdgriffith$elm_ui$Element$column,
+			_List_fromArray(
+				[
+					$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill),
+					$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
+				]),
+			_List_fromArray(
+				[
+					A2(
+					$mdgriffith$elm_ui$Element$el,
 					_List_fromArray(
 						[
 							$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill),
-							$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
+							$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
+							$mdgriffith$elm_ui$Element$Background$color(
+							$mdgriffith$elm_ui$Element$fromRgb(
+								$avh4$elm_color$Color$toRgba(
+									A3($avh4$elm_color$Color$rgb255, 240, 240, 240))))
+						]),
+					A2(
+						$mdgriffith$elm_ui$Element$el,
+						_List_fromArray(
+							[$mdgriffith$elm_ui$Element$centerX, $mdgriffith$elm_ui$Element$centerY]),
+						A2($author$project$Mezzo$View$Card$view, $elm$core$Maybe$Nothing, model.game.card))),
+					(model.window.width < 1015) ? A2(
+					$mdgriffith$elm_ui$Element$column,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
+							A2($mdgriffith$elm_ui$Element$paddingXY, 8, 4),
+							$mdgriffith$elm_ui$Element$Background$color(
+							$mdgriffith$elm_ui$Element$fromRgb(
+								$avh4$elm_color$Color$toRgba(
+									A3($avh4$elm_color$Color$rgb255, 200, 200, 200)))),
+							$mdgriffith$elm_ui$Element$spacing(4)
 						]),
 					_List_fromArray(
 						[
 							A2(
 							$mdgriffith$elm_ui$Element$el,
 							_List_fromArray(
-								[
-									$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill),
-									$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
-									$mdgriffith$elm_ui$Element$Background$color(
-									$mdgriffith$elm_ui$Element$fromRgb(
-										$avh4$elm_color$Color$toRgba(
-											A3($avh4$elm_color$Color$rgb255, 240, 240, 240))))
-								]),
-							A2(
-								$mdgriffith$elm_ui$Element$el,
-								_List_fromArray(
-									[$mdgriffith$elm_ui$Element$centerX, $mdgriffith$elm_ui$Element$centerY]),
-								A2($author$project$Mezzo$View$Card$view, $elm$core$Maybe$Nothing, model.game.card))),
+								[$mdgriffith$elm_ui$Element$centerX]),
+							viewHand),
 							A2(
 							$mdgriffith$elm_ui$Element$row,
 							_List_fromArray(
 								[
 									$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
-									$mdgriffith$elm_ui$Element$padding(10),
-									$mdgriffith$elm_ui$Element$Background$color(
-									$mdgriffith$elm_ui$Element$fromRgb(
-										$avh4$elm_color$Color$toRgba(
-											A3($avh4$elm_color$Color$rgb255, 200, 200, 200))))
+									$mdgriffith$elm_ui$Element$spaceEvenly
 								]),
 							_List_fromArray(
-								[
-									A2(
-									$mdgriffith$elm_ui$Element$el,
-									_List_fromArray(
-										[
-											$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
-										]),
-									A2(
-										$mdgriffith$elm_ui$Element$row,
-										_List_fromArray(
-											[
-												$mdgriffith$elm_ui$Element$spacing(4),
-												$mdgriffith$elm_ui$Element$alignLeft
-											]),
-										$elm$core$List$concat(
-											_List_fromArray(
-												[
-													$elm$core$List$singleton(
-													$author$project$Mezzo$View$Part$view(last)),
-													$elm$core$List$isEmpty(middle) ? _List_Nil : $elm$core$List$singleton(
-													A2(
-														$mdgriffith$elm_ui$Element$column,
-														_List_fromArray(
-															[
-																$mdgriffith$elm_ui$Element$spacing(10)
-															]),
-														_List_fromArray(
-															[
-																$author$project$Mezzo$View$Card$viewBackSmall,
-																A2(
-																$mdgriffith$elm_ui$Element$el,
-																_List_fromArray(
-																	[
-																		$mdgriffith$elm_ui$Element$height(
-																		$mdgriffith$elm_ui$Element$px(32)),
-																		$mdgriffith$elm_ui$Element$Font$size(32),
-																		$mdgriffith$elm_ui$Element$centerX
-																	]),
-																$mdgriffith$elm_ui$Element$text(
-																	$elm$core$String$fromInt(
-																		$elm$core$List$length(middle))))
-															]))),
-													A2($elm$core$List$map, $author$project$Mezzo$View$Part$view, firstFew)
-												])))),
-									A2(
-									$mdgriffith$elm_ui$Element$el,
-									_List_fromArray(
-										[
-											$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill)
-										]),
-									A2(
-										$mdgriffith$elm_ui$Element$row,
-										_List_fromArray(
-											[
-												$mdgriffith$elm_ui$Element$centerX,
-												$mdgriffith$elm_ui$Element$spacing(10)
-											]),
-										$elm$core$List$reverse(
-											$elm$core$Array$toList(
-												A2(
-													$elm$core$Array$indexedMap,
-													function (i) {
-														return A2(
-															$elm$core$Basics$composeR,
-															$author$project$Mezzo$View$Card$view(
-																$elm$core$Maybe$Just(
-																	$author$project$Mezzo$Main$Play(i))),
-															function (el) {
-																return A2(
-																	$mdgriffith$elm_ui$Element$column,
-																	_List_fromArray(
-																		[
-																			$mdgriffith$elm_ui$Element$spacing(5)
-																		]),
-																	_List_fromArray(
-																		[
-																			el,
-																			A2(
-																			$Orasund$elm_ui_widgets$Widget$textButton,
-																			A2(
-																				$Orasund$elm_ui_widgets$Widget$Customize$elementButton,
-																				_List_fromArray(
-																					[$mdgriffith$elm_ui$Element$centerX]),
-																				$Orasund$elm_ui_widgets$Widget$Material$outlinedButton($Orasund$elm_ui_widgets$Widget$Material$defaultPalette)),
-																			{
-																				onPress: $elm$core$Maybe$Just(
-																					$author$project$Mezzo$Main$Discard(i)),
-																				text: 'Put Aside'
-																			})
-																		]));
-															});
-													},
-													model.game.hand))))),
-									A2(
-									$mdgriffith$elm_ui$Element$el,
-									_List_fromArray(
-										[
-											$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
-											$mdgriffith$elm_ui$Element$height($mdgriffith$elm_ui$Element$fill)
-										]),
-									A2(
-										$mdgriffith$elm_ui$Element$column,
-										_List_fromArray(
-											[$mdgriffith$elm_ui$Element$alignBottom, $mdgriffith$elm_ui$Element$alignRight]),
-										$elm$core$List$concat(
-											_List_fromArray(
-												[
-													A2(
-													$elm$core$List$map,
-													A2($elm$core$Basics$composeR, $author$project$Mezzo$Data$Card$toParts, $author$project$Mezzo$View$PartBubble$viewJoined),
-													discardFirst),
-													$elm$core$List$singleton(
-													$author$project$Mezzo$View$Stack$view(discardTail))
-												]))))
-								]))
-						]))));
+								[viewDeck, viewDiscard]))
+						])) : A2(
+					$mdgriffith$elm_ui$Element$row,
+					_List_fromArray(
+						[
+							$mdgriffith$elm_ui$Element$width($mdgriffith$elm_ui$Element$fill),
+							A2($mdgriffith$elm_ui$Element$paddingXY, 8, 4),
+							$mdgriffith$elm_ui$Element$Background$color(
+							$mdgriffith$elm_ui$Element$fromRgb(
+								$avh4$elm_color$Color$toRgba(
+									A3($avh4$elm_color$Color$rgb255, 200, 200, 200))))
+						]),
+					_List_fromArray(
+						[viewDeck, viewHand, viewDiscard]))
+				])));
+};
+var $author$project$Mezzo$Main$view = function (m) {
+	if (m.$ === 'Setup') {
+		var model = m.a;
+		return _List_Nil;
+	} else {
+		var model = m.a;
+		return $elm$core$List$singleton(
+			A2(
+				$elm$html$Html$map,
+				$author$project$Mezzo$Main$WhileReady,
+				$author$project$Mezzo$Page$Ready$view(model)));
 	}
 };
 var $author$project$Mezzo$Main$main = $elm$browser$Browser$document(
