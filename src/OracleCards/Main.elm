@@ -1,13 +1,11 @@
 module OracleCards.Main exposing (main)
 
-import Circle2d
 import Geometry.Svg as Svg
 import Html exposing (Html)
 import OracleCards.Card as Card exposing (Card(..))
 import OracleCards.Image as Image
 import OracleCards.Sigil as Sigil
 import OracleCards.View as View
-import Pixels
 import Point2d
 import Polyline2d
 import Rectangle2d

@@ -2,15 +2,12 @@ module OracleCards.BraidSigil exposing (..)
 
 import Angle exposing (Angle)
 import Arc2d
-import Array
-import Binary
 import Circle2d
-import Direction2d exposing (Direction2d)
+import Direction2d
 import Geometry.Svg as Svg
 import Html exposing (Html)
 import LineSegment2d
 import List.Extra as List
-import OracleCards.Sigil as Sigil
 import Pixels exposing (Pixels)
 import Point2d exposing (Point2d)
 import StaticArray exposing (StaticArray)
@@ -18,7 +15,7 @@ import StaticArray.Index as Index exposing (Five, Index, OnePlus, TwentyPlus)
 import StaticArray.Length as Length exposing (Length)
 import Svg exposing (Svg)
 import Svg.Attributes as Attributes
-import Vector2d exposing (Vector2d)
+import Vector2d
 
 
 type alias N =

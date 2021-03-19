@@ -1,9 +1,9 @@
 module GenerativeCard.View exposing (line)
 
-import Color exposing (Color)
+import Color
 import Geometry.Svg as Svg
 import LineSegment2d exposing (LineSegment2d)
-import Svg exposing (Attribute, Svg)
+import Svg exposing (Svg)
 import Svg.Attributes as Attributes
 
 

@@ -6,7 +6,6 @@ import Binary
 import Circle2d
 import Geometry.Svg as Svg
 import LineSegment2d
-import OracleCards.View as View
 import Pixels exposing (Pixels)
 import Point2d exposing (Point2d)
 import Svg exposing (Svg)

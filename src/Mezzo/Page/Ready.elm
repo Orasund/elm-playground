@@ -94,7 +94,7 @@ update msg model =
                 Err () ->
                     ( { model | state = End }, Cmd.none )
 
-        ( Start s, _ ) ->
+        ( Start _, _ ) ->
             init { window = model.window, seed = model.seed }
 
         ( UpdateWindow window, _ ) ->

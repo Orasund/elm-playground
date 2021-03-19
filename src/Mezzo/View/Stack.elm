@@ -2,13 +2,11 @@ module Mezzo.View.Stack exposing (view)
 
 import Color
 import Element exposing (Attribute, Element)
-import Element.Background as Background
 import Element.Border as Border
 import Element.Font as Font
 import Mezzo.Data.Card as Card exposing (Card, CardSort(..))
 import Mezzo.View.Suit as Suit
 import String
-import Widget as Widget
 import Widget.Material.Color as MaterialColor
 import Widget.Material.Typography as Typography
 

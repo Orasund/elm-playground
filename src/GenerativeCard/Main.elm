@@ -1,26 +1,20 @@
 module GenerativeCard.Main exposing (main)
 
-import Angle
-import Axis2d exposing (Axis2d)
 import Browser
-import Dict exposing (Dict)
-import Direction2d
 import GenerativeCard.Computation as Computation exposing (Computation(..))
 import GenerativeCard.View as View
 import Html exposing (Html)
 import Html.Events as Events
 import Html.Events.Extra.Mouse as Mouse exposing (Event)
-import LineSegment2d exposing (LineSegment2d)
+import LineSegment2d
 import Pixels exposing (Pixels)
-import Point2d exposing (Point2d, distanceFrom)
+import Point2d exposing (Point2d)
 import Process
-import Quantity exposing (Quantity)
-import Random exposing (Generator, Seed, list)
+import Random exposing (Seed, list)
 import Svg
 import Svg.Attributes as Attributes
 import Task
 import Time exposing (Posix)
-import Vector2d exposing (Vector2d)
 
 
 width : Float
@@ -31,11 +25,6 @@ width =
 height : Float
 height =
     800
-
-
-optDurationInMillis : Float
-optDurationInMillis =
-    50
 
 
 type alias DrawingModel =
@@ -247,7 +236,7 @@ updateReady msg model =
                                 , Time.now |> Task.perform Step
                                 )
 
-                        Just lastTime ->
+                        Just _ ->
                             case remaining of
                                 [] ->
                                     ( { model
@@ -256,13 +245,8 @@ updateReady msg model =
                                     , Time.now |> Task.perform Step
                                     )
 
-                                currentPath :: remainingPaths ->
+                                _ :: _ ->
                                     let
-                                        duration =
-                                            (time |> Time.posixToMillis)
-                                                - (lastTime |> Time.posixToMillis)
-                                                |> toFloat
-
                                         newChunkSize =
                                             5
 
@@ -330,7 +314,7 @@ update msg model =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Sub.none
 
 

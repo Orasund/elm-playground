@@ -9,11 +9,11 @@ import Html exposing (Html)
 import LineSegment2d
 import OracleCards.Sigil as Sigil
 import OracleCards.View as View
-import Pixels exposing (Pixels)
-import Point2d exposing (Point2d)
-import Svg exposing (Svg)
+import Pixels
+import Point2d
+import Svg
 import Svg.Attributes as Attributes
-import Vector2d exposing (Vector2d)
+import Vector2d
 
 
 size =

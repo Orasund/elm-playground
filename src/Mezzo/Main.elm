@@ -1,30 +1,13 @@
 module Mezzo.Main exposing (main)
 
-import Array
 import Browser
 import Browser.Dom as Dom
-import Color
-import Element exposing (Element, el)
-import Element.Background as Background
-import Element.Font as Font
 import Html exposing (Html)
 import List.Extra as List
-import Mezzo.Data.Card as Card
-import Mezzo.Data.Game as Game exposing (Game)
 import Mezzo.Page.Ready as Ready
-import Mezzo.View.Card as Card
-import Mezzo.View.Part as Part
-import Mezzo.View.PartBubble as PartBubble
-import Mezzo.View.Stack as Stack
-import Queue
 import Random exposing (Seed)
 import Result.Extra as Result
-import Stack
 import Task
-import Widget
-import Widget.Customize as Customize
-import Widget.Material as Material
-import Widget.Material.Typography as Typography
 
 
 
@@ -144,7 +127,7 @@ update mg ml =
 subscriptions : Model -> Sub Msg
 subscriptions m =
     case m of
-        Setup model ->
+        Setup _ ->
             Sub.none
 
         Ready model ->
@@ -161,7 +144,7 @@ subscriptions m =
 view : Model -> List (Html Msg)
 view m =
     case m of
-        Setup model ->
+        Setup _ ->
             []
 
         Ready model ->

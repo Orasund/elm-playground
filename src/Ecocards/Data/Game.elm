@@ -4,7 +4,7 @@ import Array
 import Array.Extra as Array
 import Dict exposing (Dict)
 import Dict.Extra as Dict
-import Ecocards.Data.Animal as Animal exposing (Animal, Biome)
+import Ecocards.Data.Animal as Animal exposing (Animal)
 import Ecocards.Data.GameArea as GameArea exposing (GameArea)
 import Ecocards.Data.Move exposing (Move)
 import Maybe
