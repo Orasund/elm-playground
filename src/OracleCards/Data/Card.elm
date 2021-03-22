@@ -1,6 +1,6 @@
-module OracleCards.Card exposing (Card(..), color, description, title, value)
+module OracleCards.Data.Card exposing (Card(..), color, description, title, value)
 
-import OracleCards.View as View
+import OracleCards.View.Color as Color
 
 
 type Card
@@ -23,7 +23,7 @@ color card =
             "black"
 
         Trump n ->
-            View.gray
+            Color.gray
 
         Planet _ ->
             "black"
@@ -33,16 +33,16 @@ color card =
 
         Virtue n ->
             if n <= 4 then
-                View.blue
+                Color.blue
 
             else if n <= 8 then
-                View.red
+                Color.red
 
             else if n <= 12 then
-                View.green
+                Color.green
 
             else
-                View.yellow
+                Color.yellow
 
         _ ->
             "none"
