@@ -9,8 +9,10 @@ import Html exposing (Html)
 import LineSegment2d
 import List.Extra as List
 import OracleCards.Data.Alphabet as Alphabet
-import Pixels exposing (Pixels)
+import OracleCards.Data.Turtle as Turtle exposing (Turtle)
+import OracleCards.View.Path as Path
 import Point2d exposing (Point2d)
+import Quantity exposing (Quantity(..))
 import StaticArray exposing (StaticArray)
 import StaticArray.Index as Index exposing (Five, Index, OnePlus, TwentyPlus)
 import StaticArray.Length as Length exposing (Length)
@@ -38,10 +40,6 @@ lineWidth =
 
 pointSize =
     lineWidth / 2
-
-
-overshoot =
-    0.09
 
 
 
@@ -72,12 +70,12 @@ isOvercrossed { i1, i2, i3 } =
 
 
 type alias State =
-    { startAngle : Angle
-    , startIndex : Index N
+    { startIndex : Index N
     , lastDistinctIndex : Index N
     , nextIndex : Index N
     , visited : StaticArray N Int
     , isOvercross : Bool
+    , turtle : Turtle (List (Svg Never))
     }
 
 
@@ -101,7 +99,7 @@ initCircle options startIndex nextIndex =
             Vector2d.from p1 p2
                 |> Vector2d.normalize
                 |> Vector2d.toUnitless
-                |> Vector2d.fromPixels
+                |> Vector2d.unsafe
 
         amount =
             1
@@ -136,7 +134,7 @@ initCircle options startIndex nextIndex =
             Point2d.midpoint
                 (p1
                     |> Point2d.translateBy
-                        (Vector2d.pixels 1 0
+                        (Vector2d.unsafe { x = 1, y = 0 }
                             |> Vector2d.rotateBy startAngle
                             |> Vector2d.scaleBy
                                 (pointSize
@@ -150,7 +148,7 @@ initCircle options startIndex nextIndex =
                 )
                 (p1
                     |> Point2d.translateBy
-                        (Vector2d.pixels 1 0
+                        (Vector2d.unsafe { x = 1, y = 0 }
                             |> Vector2d.rotateBy (startAngle |> Angle.inRadians |> (+) pi |> Angle.radians)
                             |> Vector2d.scaleBy
                                 (pointSize
@@ -177,7 +175,7 @@ initCircle options startIndex nextIndex =
         -}
         circle =
             Circle2d.atPoint centerposition <|
-                Pixels.pixels <|
+                Quantity <|
                     radius
     in
     [ circle
@@ -218,7 +216,7 @@ init options startIndex nextIndex =
             Vector2d.from p1 p2
                 |> Vector2d.normalize
                 |> Vector2d.toUnitless
-                |> Vector2d.fromPixels
+                |> Vector2d.unsafe
 
         visited =
             StaticArray.fromList n 0 []
@@ -243,27 +241,64 @@ init options startIndex nextIndex =
                             )
                     )
     in
-    { startAngle =
-        Direction2d.from
-            p2
-            end
-            |> Maybe.map Direction2d.toAngle
-            |> Maybe.withDefault (Angle.radians 0)
-    , startIndex = startIndex
+    { startIndex = startIndex
     , lastDistinctIndex = nextIndex --lastDistinctIndex
     , nextIndex = startIndex
     , visited = visited
     , isOvercross =
         isOvercross
+    , turtle =
+        { direction =
+            Direction2d.from p2 end
+                |> Maybe.withDefault Direction2d.positiveX
+        , position = p1
+        , lineFun =
+            \{ from, to } ->
+                let
+                    segment =
+                        LineSegment2d.from from to
+                in
+                [ segment
+                    |> Svg.lineSegment2d
+                        [ Attributes.stroke "black"
+                        , Attributes.strokeWidth <| String.fromFloat <| lineWidth
+                        ]
+                , segment
+                    |> Svg.lineSegment2d
+                        [ Attributes.stroke "white"
+                        , Attributes.strokeWidth <| String.fromFloat <| lineWidth - 2 * strokeWidth
+                        , Attributes.strokeLinecap "round"
+                        ]
+                ]
+        , arcFun =
+            \{ around, by, from } ->
+                let
+                    arc =
+                        Arc2d.sweptAround around by from
+                in
+                [ arc
+                    |> Svg.arc2d
+                        [ Attributes.fill <| "none"
+                        , Attributes.stroke <| "black"
+                        , Attributes.strokeWidth <| String.fromFloat <| lineWidth
+                        ]
+                , arc
+                    |> Svg.arc2d
+                        [ Attributes.fill <| "none"
+                        , Attributes.stroke <| "white"
+                        , Attributes.strokeWidth <| String.fromFloat <| lineWidth - 2 * strokeWidth
+                        ]
+                ]
+        }
     }
 
 
-points : { width : Float, height : Float, radius : Float } -> StaticArray N (Point2d Pixels coord)
+points : { width : Float, height : Float, radius : Float } -> StaticArray N (Point2d Float coord)
 points { width, height, radius } =
     let
         rotate r =
-            Point2d.pixels (width / 2) (height / 2 - radius)
-                |> Point2d.rotateAround (Point2d.pixels (width / 2) (height / 2))
+            Point2d.unsafe { x = width / 2, y = height / 2 - radius }
+                |> Point2d.rotateAround (Point2d.unsafe { x = width / 2, y = height / 2 })
                     (Angle.radians <| 2 * pi * toFloat r / toFloat (n |> Length.toInt))
     in
     List.range 1 ((n |> Length.toInt) - 1)
@@ -274,17 +309,19 @@ points { width, height, radius } =
 line : { width : Float, height : Float, radius : Float } -> State -> Index N -> ( State, List (Svg msg) )
 line options state newNextIndex =
     let
-        a0 =
-            state.startAngle
+        --Position of the turtle
+        p0 =
+            state.turtle.position
 
-        i2 =
-            state.nextIndex
+        --Direction of the turtle
+        a0 =
+            state.turtle.direction |> Direction2d.toAngle
 
         p1 =
             points options |> StaticArray.get state.startIndex
 
         p2 =
-            points options |> StaticArray.get i2
+            points options |> StaticArray.get state.nextIndex
 
         {--is p1->p2->p3 overcrossed?--}
         isOvercross =
@@ -294,28 +331,14 @@ line options state newNextIndex =
                 , i3 = newNextIndex
                 }
 
-        {--case ( state.startIndex |> isLeftOf state.nextIndex, state.nextIndex |> isLeftOf newNextIndex ) of
-                ( True, True ) ->
-                    False
-
-                ( False, False ) ->
-                    True
-
-                ( True, False ) ->
-                    False
-
-                ( False, True ) ->
-                    False--}
         vector =
             Vector2d.from p1 p2
                 |> Vector2d.normalize
                 |> Vector2d.toUnitless
-                |> Vector2d.fromPixels
+                |> Vector2d.unsafe
 
-        circle =
-            Circle2d.atPoint p2 (Pixels.pixels <| pointSize + lineWidth / 2)
-
-        start =
+        --Position after Rotation
+        startPosition =
             p1
                 |> Point2d.translateBy
                     (vector
@@ -334,11 +357,8 @@ line options state newNextIndex =
                            )
                     )
 
-        maybeA1 =
-            Direction2d.from p1 start
-                |> Maybe.map Direction2d.toAngle
-
-        end =
+        --Endposition of turtle
+        endPosition =
             p2
                 |> Point2d.translateBy
                     (vector
@@ -351,149 +371,28 @@ line options state newNextIndex =
                         |> Vector2d.scaleBy
                             (lineWidth
                                 * (state.visited
-                                    |> StaticArray.get i2
+                                    |> StaticArray.get state.nextIndex
                                     |> toFloat
                                     |> (+) 1
                                   )
                             )
                     )
 
-        maybeA2 =
-            Direction2d.from p2 end
-                |> Maybe.map Direction2d.toAngle
+        maybeA1 =
+            Direction2d.from p1 startPosition
 
-        segment =
-            LineSegment2d.from start end
-    in
-    ( { state
-        | startAngle =
-            maybeA2
-                |> Maybe.withDefault a0
-        , startIndex =
-            state.nextIndex
-        , lastDistinctIndex =
-            if state.nextIndex == newNextIndex then
-                state.lastDistinctIndex
+        maybeA2 =
+            Direction2d.from p2 endPosition
+
+        rotate =
+            if isOvercross then
+                Turtle.rotateClockwise
 
             else
-                state.nextIndex
-        , nextIndex =
-            newNextIndex
-        , visited =
-            state.visited
-                |> StaticArray.set i2 (state.visited |> StaticArray.get i2 |> (+) 1)
-        , isOvercross =
-            isOvercross
-      }
-    , [ case maybeA1 of
-            Just a1 ->
-                let
-                    diffAngle =
-                        (a1 |> Angle.inRadians)
-                            - (a0 |> Angle.inRadians)
+                Turtle.rotateCounterclockwise
 
-                    eps =
-                        0.001
-
-                    ( startAngle, sweptAngle ) =
-                        if state.visited == StaticArray.fromList n 0 [] && isOvercross then
-                            ( a1
-                            , 0
-                                |> Angle.radians
-                            )
-
-                        else if diffAngle < 0 - eps then
-                            if abs diffAngle > pi + eps then
-                                ( a1
-                                , abs diffAngle
-                                    |> Angle.radians
-                                )
-
-                            else if abs diffAngle < pi - eps then
-                                ( a0
-                                , 2
-                                    * pi
-                                    - abs diffAngle
-                                    |> Angle.radians
-                                )
-
-                            else
-                                ( a1
-                                , abs diffAngle |> Angle.radians
-                                )
-
-                        else if diffAngle > 0 + eps then
-                            if diffAngle > pi + eps then
-                                ( a0
-                                , diffAngle |> Angle.radians
-                                )
-
-                            else if diffAngle < pi - eps then
-                                ( a1
-                                , 2
-                                    * pi
-                                    - diffAngle
-                                    |> Angle.radians
-                                )
-
-                            else
-                                ( a1
-                                , diffAngle |> Angle.radians
-                                )
-
-                        else
-                            ( a0
-                            , 0
-                                |> Angle.radians
-                            )
-
-                    {--if isOvercross then
-                            ( a0
-                            , (a1 |> Angle.inRadians)
-                                - (a0 |> Angle.inRadians)
-                                |> Angle.radians
-                            )
-
-                        else
-                            ( a1
-                            , (2 * pi)
-                                - (a1 |> Angle.inRadians)
-                                + (a0 |> Angle.inRadians)
-                                |> Angle.radians
-                            )--}
-                    arc =
-                        Arc2d.with
-                            { centerPoint = p1
-                            , radius =
-                                Pixels.pixels <|
-                                    pointSize
-                                        + (lineWidth
-                                            * (state.visited
-                                                |> StaticArray.get state.startIndex
-                                                |> toFloat
-                                              )
-                                          )
-                                        - lineWidth
-                                        / 2
-                            , startAngle = Angle.radians <| (startAngle |> Angle.inRadians) - overshoot
-                            , sweptAngle = Angle.radians <| (sweptAngle |> Angle.inRadians) + overshoot * 2
-                            }
-                in
-                [ arc
-                    |> Svg.arc2d
-                        [ Attributes.fill <| "none"
-                        , Attributes.stroke <| "black"
-                        , Attributes.strokeWidth <| String.fromFloat <| lineWidth
-                        ]
-                , arc
-                    |> Svg.arc2d
-                        [ Attributes.fill <| "none"
-                        , Attributes.stroke <| "white"
-                        , Attributes.strokeWidth <| String.fromFloat <| lineWidth - 2 * strokeWidth
-                        ]
-                ]
-
-            Nothing ->
+        ( turtle, drawing ) =
+            if p1 == p2 then
                 let
                     a1 =
                         a0
@@ -520,24 +419,6 @@ line options state newNextIndex =
                                 |> Angle.radians
                             )
 
-                    arc =
-                        Arc2d.with
-                            { centerPoint = p1
-                            , radius =
-                                Pixels.pixels <|
-                                    pointSize
-                                        + (lineWidth
-                                            * (state.visited
-                                                |> StaticArray.get state.startIndex
-                                                |> toFloat
-                                              )
-                                          )
-                                        - lineWidth
-                                        / 2
-                            , startAngle = Angle.radians <| (startAngle |> Angle.inRadians) - overshoot
-                            , sweptAngle = Angle.radians <| pi + overshoot * 2
-                            }
-
                     ( transitionStartAngle, transitionSweptAngle ) =
                         if
                             ((startAngle |> Angle.inRadians |> (+) pi |> Angle.radians) |> Angle.inRadians)
@@ -561,7 +442,7 @@ line options state newNextIndex =
                         Point2d.midpoint
                             (p1
                                 |> Point2d.translateBy
-                                    (Vector2d.pixels 1 0
+                                    (Vector2d.unsafe { x = 1, y = 0 }
                                         |> Vector2d.rotateBy startAngle
                                         |> Vector2d.scaleBy
                                             (pointSize
@@ -578,7 +459,7 @@ line options state newNextIndex =
                             )
                             (p1
                                 |> Point2d.translateBy
-                                    (Vector2d.pixels 1 0
+                                    (Vector2d.unsafe { x = 1, y = 0 }
                                         |> Vector2d.rotateBy (startAngle |> Angle.inRadians |> (+) pi |> Angle.radians)
                                         |> Vector2d.scaleBy
                                             (pointSize
@@ -594,63 +475,72 @@ line options state newNextIndex =
                                             )
                                     )
                             )
-
-                    transitionArc =
-                        Arc2d.with
-                            { centerPoint = centerPoint
-                            , radius =
-                                Pixels.pixels <|
-                                    pointSize
-                                        + (lineWidth
-                                            * (state.visited
-                                                |> StaticArray.get state.startIndex
-                                                |> toFloat
-                                              )
-                                          )
-                            , startAngle = Angle.radians <| (transitionStartAngle |> Angle.inRadians) - overshoot
-                            , sweptAngle =
-                                Angle.radians <| pi + overshoot * 2
-                            }
                 in
-                [ arc
-                    |> Svg.arc2d
-                        [ Attributes.fill <| "none"
-                        , Attributes.stroke <| "black"
-                        , Attributes.strokeWidth <| String.fromFloat <| lineWidth
-                        ]
-                , arc
-                    |> Svg.arc2d
-                        [ Attributes.fill <| "none"
-                        , Attributes.stroke <| "white"
-                        , Attributes.strokeLinecap "round"
-                        , Attributes.strokeWidth <| String.fromFloat <| lineWidth - 2 * strokeWidth
-                        ]
-                , transitionArc
-                    |> Svg.arc2d
-                        [ Attributes.fill <| "none"
-                        , Attributes.stroke <| "black"
-                        , Attributes.strokeWidth <| String.fromFloat <| lineWidth
-                        ]
-                , transitionArc
-                    |> Svg.arc2d
-                        [ Attributes.fill <| "none"
-                        , Attributes.stroke <| "white"
-                        , Attributes.strokeLinecap "round"
-                        , Attributes.strokeWidth <| String.fromFloat <| lineWidth - 2 * strokeWidth
-                        ]
-                ]
-      , [ segment
-            |> Svg.lineSegment2d
-                [ Attributes.stroke "black"
-                , Attributes.strokeWidth <| String.fromFloat <| lineWidth
-                ]
-        , segment
-            |> Svg.lineSegment2d
-                [ Attributes.stroke "white"
-                , Attributes.strokeWidth <| String.fromFloat <| lineWidth - 2 * strokeWidth
-                , Attributes.strokeLinecap "round"
-                ]
-        ]
-      ]
-        |> List.concat
-    )
+                state.turtle
+                    |> rotate
+                        { to = state.turtle.direction |> Direction2d.rotateBy (Angle.radians pi)
+                        , radius =
+                            state.turtle.position
+                                |> Point2d.distanceFrom centerPoint
+                                |> Quantity.unwrap
+                        }
+                    |> Turtle.andThen
+                        (rotate
+                            { to = state.turtle.direction |> Direction2d.rotateBy (Angle.radians pi)
+                            , radius =
+                                state.turtle.position
+                                    |> Point2d.distanceFrom p1
+                                    |> Quantity.unwrap
+                            }
+                        )
+
+            else
+                state.turtle
+                    |> rotate
+                        { to = vector |> Vector2d.direction |> Maybe.withDefault Direction2d.positiveX
+                        , radius =
+                            state.turtle.position
+                                |> Point2d.distanceFrom p1
+                                |> Quantity.unwrap
+                        }
+                    |> Turtle.andThen
+                        (Turtle.forwardBy (vector |> Vector2d.length |> Quantity.unwrap))
+    in
+    Path.line
+        { width = options.width
+        , height = options.height
+        , radius = options.radius
+        , startingPosition = startPosition
+        , startingDireciton = maybeA1
+        , movingAround = p1
+        , endingPosition = endPosition
+        , endingDirection = maybeA2
+        , lineWidth = lineWidth
+        , pointSize = pointSize
+        , strokeWidth = strokeWidth
+        }
+        state
+        newNextIndex
+
+
+
+{--( { state
+        | startIndex =
+            state.nextIndex
+        , lastDistinctIndex =
+            if state.nextIndex == newNextIndex then
+                state.lastDistinctIndex
+
+            else
+                state.nextIndex
+        , nextIndex =
+            newNextIndex
+        , visited =
+            state.visited
+                |> StaticArray.set state.nextIndex (state.visited |> StaticArray.get state.nextIndex |> (+) 1)
+        , isOvercross =
+            isOvercross
+        , turtle = turtle
+      }
+    , drawing |> List.map (Svg.map never)
+    )--}
