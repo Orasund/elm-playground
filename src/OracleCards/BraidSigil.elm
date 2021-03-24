@@ -12,7 +12,7 @@ import Pixels
 import Point2d
 import StaticArray
 import StaticArray.Index as Index exposing (Index)
-import Svg exposing (Svg)
+import Svg
 import Svg.Attributes as Attributes
 import Widget
 import Widget.Customize as Customize
@@ -97,7 +97,7 @@ type Msg
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update msg model =
+update msg _ =
     case msg of
         ChangedText string ->
             ( string, Cmd.none )
@@ -198,12 +198,21 @@ viewSigil string =
                         )
                    )
                 |> (\( state, out ) ->
-                        (BraidSigil.line options
-                            { state
-                                | visited = state.visited |> StaticArray.set head -1
-                            }
-                            head
-                            |> Tuple.second
+                        (if state.startIndex == head then
+                            BraidSigil.line options
+                                { state
+                                    | visited = state.visited |> StaticArray.set head -1
+                                }
+                                head
+                                |> Tuple.second
+
+                         else
+                            BraidSigil.line options
+                                { state
+                                    | visited = state.visited |> StaticArray.set head -1
+                                }
+                                head
+                                |> Tuple.second
                         )
                             ++ out
                             ++ BraidSigil.initCircle options head second
@@ -293,7 +302,7 @@ view model =
             paths =
                 --[ "Glueck", "Liebe", "Geld", "Erfolg" ]
                 --[ "Luck", "Love", "Money", "Success" ]
-                [ "Gegenwart"
+                {--[ "Gegenwart"
                 , "Ziel"
                 , "Kraft"
                 , "Bedeutung"
@@ -301,15 +310,15 @@ view model =
                 , "Werte"
                 , "Gedanken"
                 , "Zukunft"
-                ]
-
-            {--[ "aaaasssd"
+                ]--}
+                [ "teat"
+                , "aaaasssd"
                 , "bede"
                 , "uede"
                 , "ebebebebe"
                 , "aeiaei"
                 , "aeiou"
-                ]--}
+                ]
         in
         paths
             |> List.map viewSigil

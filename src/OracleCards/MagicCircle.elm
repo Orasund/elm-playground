@@ -1,8 +1,6 @@
 module OracleCards.MagicCircle exposing (..)
 
 import Angle
-import Arc2d
-import Binary
 import Circle2d
 import Geometry.Svg as Svg
 import Html exposing (Html)
@@ -50,15 +48,15 @@ main =
         ++ (List.range 1 4
                 |> List.concatMap
                     (\n ->
-                        [ Circle2d.atPoint (Point2d.pixels (size / 2) (size / 2))
+                        (Circle2d.atPoint (Point2d.pixels (size / 2) (size / 2))
                             (Pixels.pixels <| ringWidth * (1 + 2 * toFloat n))
                             |> Svg.circle2d
                                 [ Attributes.fill <| "none"
                                 , Attributes.stroke <| "black"
                                 , Attributes.strokeWidth <| String.fromFloat <| 1
                                 ]
-                        ]
-                            ++ (List.range 1 (2 ^ n)
+                        )
+                            :: (List.range 1 (2 ^ n)
                                     |> List.concatMap
                                         (\r ->
                                             (Point2d.pixels (size / 2) (size / 2)

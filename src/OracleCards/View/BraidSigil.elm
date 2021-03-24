@@ -364,9 +364,10 @@ circleAround :
         { startIndex : Index N
         , visited : StaticArray N Int
         , turtle : Turtle (List (Svg Never))
+        , isClockwise : Bool
         }
     -> ( Turtle (List (Svg Never)), List (Svg Never) )
-circleAround options { startIndex, turtle, visited } =
+circleAround options { startIndex, turtle, visited, isClockwise } =
     let
         --Direction of the turtle
         d0 =
@@ -410,28 +411,46 @@ circleAround options { startIndex, turtle, visited } =
 
         centerPoint =
             Point2d.midpoint intersectionPoint endPoint
+
+        rotate =
+            if isClockwise then
+                Turtle.rotateClockwise
+
+            else
+                Turtle.rotateCounterclockwise
     in
-    turtle
-        |> Turtle.rotateClockwise
-            { to = turtle.direction |> Direction2d.reverse
-            , radius =
-                turtle.position
-                    |> Point2d.distanceFrom p1
-                    |> Quantity.unwrap
-            }
-        |> Tuple.mapFirst (\t -> { t | position = intersectionPoint })
-        |> Turtle.andThen
-            (\t ->
-                t
-                    |> Turtle.rotateClockwise
-                        { to = turtle.direction
-                        , radius =
-                            t.position
-                                |> Point2d.distanceFrom centerPoint
-                                |> Quantity.unwrap
-                        }
-            )
-        |> Tuple.mapFirst (\t -> { t | position = endPoint })
+    if v1 == -1 then
+        turtle
+            |> rotate
+                { to = turtle.direction
+                , radius =
+                    turtle.position
+                        |> Point2d.distanceFrom p1
+                        |> Quantity.unwrap
+                }
+
+    else
+        turtle
+            |> rotate
+                { to = turtle.direction |> Direction2d.reverse
+                , radius =
+                    turtle.position
+                        |> Point2d.distanceFrom p1
+                        |> Quantity.unwrap
+                }
+            |> Tuple.mapFirst (\t -> { t | position = intersectionPoint })
+            |> Turtle.andThen
+                (\t ->
+                    t
+                        |> rotate
+                            { to = turtle.direction
+                            , radius =
+                                t.position
+                                    |> Point2d.distanceFrom centerPoint
+                                    |> Quantity.unwrap
+                            }
+                )
+            |> Tuple.mapFirst (\t -> { t | position = endPoint })
 
 
 
@@ -470,6 +489,7 @@ line options state newNextIndex =
                     { startIndex = state.startIndex
                     , visited = state.visited
                     , turtle = state.turtle
+                    , isClockwise = state.isOvercross
                     }
         in
         ( { state
