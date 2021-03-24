@@ -5,12 +5,13 @@ import Circle2d
 import Element
 import Geometry.Svg as Svg
 import Html exposing (Html)
+import List.Extra as List
 import OracleCards.Data.Alphabet as Alphabet exposing (TwentySix)
 import OracleCards.View.BraidSigil as BraidSigil
 import Pixels
 import Point2d
 import StaticArray
-import StaticArray.Index exposing (Index)
+import StaticArray.Index as Index exposing (Index)
 import Svg exposing (Svg)
 import Svg.Attributes as Attributes
 import Widget
@@ -52,12 +53,12 @@ height =
 
 withCircle : Bool
 withCircle =
-    True
+    False
 
 
 isGerman : Bool
 isGerman =
-    False
+    True
 
 
 interactive : Bool
@@ -67,7 +68,7 @@ interactive =
 
 debugMode : Bool
 debugMode =
-    True
+    False
 
 
 
@@ -136,15 +137,20 @@ viewSigil string =
             , height = height
             , radius = radius
             }
+
+        list =
+            string
+                |> String.toList
+                |> List.map asAlphabet
+
+        uniqueList =
+            list |> List.uniqueBy Index.toInt
     in
-    [ case
-        string
-            |> String.toList
-            |> List.map asAlphabet
-      of
-        head :: nextIndex :: tail ->
-            nextIndex
-                :: tail
+    [ case ( list, uniqueList ) of
+        ( head :: second :: thrid :: tail, _ :: distinctSecond :: distinctThird :: _ ) ->
+            --nextIndex
+            --::
+            tail
                 |> List.foldl
                     (\i2 ( state, out ) ->
                         let
@@ -154,21 +160,29 @@ viewSigil string =
                                     i2
                         in
                         ( newState
-                        , newOut :: out
+                        , newOut ++ out
                         )
                     )
                     (let
+                        ( initState, startingDrawing ) =
+                            BraidSigil.init
+                                { width = options.width
+                                , height = options.height
+                                , radius = options.radius
+                                , startIndex = head
+                                , nextIndex = second
+                                , distinctSecond = distinctSecond
+                                , distinctThird = distinctThird
+                                }
+
                         ( newState, newOut ) =
-                            BraidSigil.line options
-                                (BraidSigil.init options
-                                    head
-                                    nextIndex
-                                )
-                                head
+                            BraidSigil.line options initState thrid
+
+                        --head
                      in
                      ( newState
                      , newOut
-                        :: []
+                        ++ (startingDrawing |> List.map (Svg.map never))
                        --[ BraidSigil.initCircle options head nextIndex ]
                      )
                     )
@@ -180,7 +194,7 @@ viewSigil string =
                                     head
                         in
                         ( newState
-                        , newOut :: out
+                        , newOut ++ out
                         )
                    )
                 |> (\( state, out ) ->
@@ -191,10 +205,9 @@ viewSigil string =
                             head
                             |> Tuple.second
                         )
-                            :: BraidSigil.initCircle options head nextIndex
-                            :: out
+                            ++ out
+                            ++ BraidSigil.initCircle options head second
                    )
-                |> List.concat
                 |> (if withCircle then
                         List.append
                             (Circle2d.atPoint (Point2d.pixels (size / 2) (size / 2))
@@ -290,9 +303,9 @@ view model =
                 , "Zukunft"
                 ]
 
-            {--[ "bede"
+            {--[ "aaaasssd"
+                , "bede"
                 , "uede"
-                , "eee"
                 , "ebebebebe"
                 , "aeiaei"
                 , "aeiou"
