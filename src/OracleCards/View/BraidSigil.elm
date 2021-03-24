@@ -523,6 +523,7 @@ outerTangent ( c1, c2 ) isNextClockwise =
                 Point2d.distanceFrom p1 p2
 
             c4 =
+                --checked d12 /2 is correct
                 Circle2d.withRadius (d12 |> Quantity.divideBy 2)
                     (Point2d.midpoint p1 p2)
 
@@ -682,7 +683,7 @@ line options state newNextIndex =
 
             --Radius around p1
             r1 =
-                Quantity (lineWidth * (v1 |> toFloat))
+                Quantity.unsafe (lineWidth * (v1 |> toFloat) |> Debug.log "test")
 
             --Radius around p2
             r2 =
@@ -698,11 +699,28 @@ line options state newNextIndex =
             --outer/inner tangents of circles p1 p2
             ( intermediatePosition, endPosition ) =
                 if state.isOvercross == isNextClockwise then
-                    outerTangent
-                        ( Circle2d.withRadius r1 p1
-                        , Circle2d.withRadius r2 p2
-                        )
-                        isNextClockwise
+                    if v2 + 1 == v1 then
+                        let
+                            vec =
+                                Vector2d.withLength r1
+                                    (Direction2d.from p1 p2
+                                        |> Maybe.withDefault Direction2d.positiveX
+                                        |> (if state.isOvercross then
+                                                Direction2d.rotateClockwise
+
+                                            else
+                                                Direction2d.rotateCounterclockwise
+                                           )
+                                    )
+                        in
+                        ( p1 |> Point2d.translateBy vec, p2 |> Point2d.translateBy vec )
+
+                    else
+                        outerTangent
+                            ( Circle2d.withRadius r1 p1
+                            , Circle2d.withRadius r2 p2
+                            )
+                            isNextClockwise
 
                 else
                     innerTangent
@@ -791,12 +809,10 @@ line options state newNextIndex =
             , isOvercross =
                 isNextClockwise
             , turtle =
-                turtle
-
-            {--{ turtle
+                { turtle
                     | position = endPosition
                     , direction = endDirection
-                }--}
+                }
           }
         , drawing |> List.map (Svg.map never)
         )

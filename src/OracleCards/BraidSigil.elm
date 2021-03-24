@@ -280,7 +280,7 @@ view model =
             paths =
                 --[ "Glueck", "Liebe", "Geld", "Erfolg" ]
                 --[ "Luck", "Love", "Money", "Success" ]
-                {--[ "Gegenwart"
+                [ "Gegenwart"
                 , "Ziel"
                 , "Kraft"
                 , "Bedeutung"
@@ -288,12 +288,13 @@ view model =
                 , "Werte"
                 , "Gedanken"
                 , "Zukunft"
-                ]--}
-                [ "eee"
+                ]
+
+            {--[ "eee"
                 , "ebebebebe"
                 , "aeiaei"
                 , "aeiou"
-                ]
+                ]--}
         in
         paths
             |> List.map viewSigil
