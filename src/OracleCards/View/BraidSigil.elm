@@ -42,6 +42,10 @@ pointSize =
     lineWidth / 2
 
 
+overshoot =
+    0.05
+
+
 isOvercrossed : { i1 : Index N, i2 : Index N, i3 : Index N } -> Bool
 isOvercrossed { i1, i2, i3 } =
     let
@@ -264,8 +268,18 @@ init options startIndex nextIndex =
         , lineFun =
             \{ from, to } ->
                 let
+                    dir =
+                        Direction2d.from from to
+                            |> Maybe.withDefault Direction2d.positiveX
+
+                    len =
+                        Point2d.distanceFrom from to
+
+                    vec =
+                        Vector2d.withLength (len |> Quantity.plus (Quantity.unsafe overshoot)) dir
+
                     segment =
-                        LineSegment2d.from from to
+                        LineSegment2d.from from (from |> Point2d.translateBy vec)
                 in
                 [ segment
                     |> Svg.lineSegment2d
@@ -283,7 +297,19 @@ init options startIndex nextIndex =
             \{ around, by, from } ->
                 let
                     arc =
-                        Arc2d.sweptAround around by from
+                        Arc2d.sweptAround around
+                            (by
+                                |> Angle.inRadians
+                                |> (\r ->
+                                        if r < 0 then
+                                            r - overshoot
+
+                                        else
+                                            r + overshoot
+                                   )
+                                |> Angle.radians
+                            )
+                            from
                 in
                 [ arc
                     |> Svg.arc2d
@@ -295,6 +321,7 @@ init options startIndex nextIndex =
                     |> Svg.arc2d
                         [ Attributes.fill <| "none"
                         , Attributes.stroke <| "white"
+                        , Attributes.strokeLinecap "round"
                         , Attributes.strokeWidth <| String.fromFloat <| lineWidth - 2 * strokeWidth
                         ]
                 ]
@@ -344,7 +371,7 @@ circleAround options state nextIsOvercross =
                 |> StaticArray.get state.startIndex
 
         rotate =
-            if state.isOvercross then
+            if not state.isOvercross then
                 Turtle.rotateCounterclockwise
 
             else
@@ -354,52 +381,12 @@ circleAround options state nextIsOvercross =
             d0
                 |> Direction2d.reverse
 
-        ( startAngle, sweptAngle ) =
-            if
-                (a1 |> Direction2d.toAngle |> Angle.inRadians)
-                    < (d0 |> Direction2d.toAngle |> Angle.inRadians)
-            then
-                ( d0
-                , (a1 |> Direction2d.toAngle |> Angle.inRadians)
-                    - (d0 |> Direction2d.toAngle |> Angle.inRadians)
-                    |> Angle.radians
-                )
-
-            else
-                ( a1
-                , (2 * pi)
-                    - (a1 |> Direction2d.toAngle |> Angle.inRadians)
-                    + (d0 |> Direction2d.toAngle |> Angle.inRadians)
-                    |> Angle.radians
-                )
-
-        ( transitionStartAngle, transitionSweptAngle ) =
-            if
-                ((startAngle |> Direction2d.toAngle |> Angle.inRadians |> (+) pi |> Angle.radians) |> Angle.inRadians)
-                    < (startAngle |> Direction2d.toAngle |> Angle.inRadians)
-            then
-                ( startAngle
-                , ((startAngle |> Direction2d.toAngle |> Angle.inRadians |> (+) pi |> Angle.radians) |> Angle.inRadians)
-                    - (startAngle |> Direction2d.toAngle |> Angle.inRadians)
-                    |> Angle.radians
-                    |> Direction2d.fromAngle
-                )
-
-            else
-                ( startAngle |> Direction2d.toAngle |> Angle.inRadians |> (+) pi |> Angle.radians |> Direction2d.fromAngle
-                , (2 * pi)
-                    - ((startAngle |> Direction2d.toAngle |> Angle.inRadians |> (+) pi |> Angle.radians) |> Angle.inRadians)
-                    + (startAngle |> Direction2d.toAngle |> Angle.inRadians)
-                    |> Angle.radians
-                    |> Direction2d.fromAngle
-                )
-
-        endPoint =
+        intersectionPoint =
             state.turtle.position
                 |> Point2d.translateBy
                     (Vector2d.withLength
                         (pointSize
-                            + (lineWidth * (v1 * 2 + 1 |> toFloat))
+                            + (lineWidth * (v1 + 1 |> toFloat))
                             - lineWidth
                             / 2
                             |> Quantity
@@ -409,28 +396,42 @@ circleAround options state nextIsOvercross =
                         )
                     )
 
+        endPoint =
+            state.turtle.position
+                |> Point2d.translateBy
+                    (Vector2d.withLength
+                        ((lineWidth * (1 |> toFloat))
+                            |> Quantity
+                        )
+                        (Direction2d.from p1 state.turtle.position
+                            |> Maybe.withDefault Direction2d.positiveX
+                        )
+                    )
+
         centerPoint =
-            Point2d.midpoint state.turtle.position endPoint
+            Point2d.midpoint intersectionPoint endPoint
     in
     state.turtle
         |> rotate
-            { to = state.turtle.direction |> Direction2d.rotateBy (Angle.radians pi)
+            { to = state.turtle.direction |> Direction2d.reverse
             , radius =
                 state.turtle.position
-                    |> Point2d.distanceFrom centerPoint
+                    |> Point2d.distanceFrom p1
                     |> Quantity.unwrap
             }
+        |> Tuple.mapFirst (\t -> { t | position = intersectionPoint })
         |> Turtle.andThen
             (\t ->
                 t
                     |> rotate
-                        { to = t.direction |> Direction2d.rotateBy (Angle.radians pi)
+                        { to = state.turtle.direction
                         , radius =
                             t.position
-                                |> Point2d.distanceFrom p1
+                                |> Point2d.distanceFrom centerPoint
                                 |> Quantity.unwrap
                         }
             )
+        |> Tuple.mapFirst (\t -> { t | position = endPoint })
 
 
 {-| <https://mathworld.wolfram.com/Circle-CircleIntersection.html#:~:text=The%20intersections%20of%20two%20circles,known%20as%20the%20radical%20center>.
@@ -559,7 +560,8 @@ outerTangent ( c1, c2 ) isNextClockwise =
 innerTangent : ( Circle2d Float (), Circle2d Float () ) -> Bool -> ( Point2d Float (), Point2d Float () )
 innerTangent ( c1, c2 ) isNextClockwise =
     if c1 |> Circle2d.radius |> Quantity.lessThan (c2 |> Circle2d.radius) then
-        innerTangent ( c2, c1 ) (not isNextClockwise)
+        innerTangent ( c2, c1 ) isNextClockwise
+            --(not isNextClockwise)
             |> (\( p2, p1 ) -> ( p1, p2 ))
 
     else
@@ -683,18 +685,22 @@ line options state newNextIndex =
 
             --Radius around p1
             r1 =
-                Quantity.unsafe (lineWidth * (v1 |> toFloat) |> Debug.log "test")
+                Quantity.unsafe (lineWidth * (v1 |> toFloat))
 
             --Radius around p2
             r2 =
                 Quantity (lineWidth * (v2 + 1 |> toFloat))
 
             isNextClockwise =
-                nextClockwise
-                    { i1 = state.lastDistinctIndex
-                    , i2 = state.nextIndex
-                    , i3 = newNextIndex
-                    }
+                if state.lastDistinctIndex == newNextIndex then
+                    not state.isOvercross
+
+                else
+                    nextClockwise
+                        { i1 = state.lastDistinctIndex
+                        , i2 = state.nextIndex
+                        , i3 = newNextIndex
+                        }
 
             --outer/inner tangents of circles p1 p2
             ( intermediatePosition, endPosition ) =
@@ -729,37 +735,6 @@ line options state newNextIndex =
                         )
                         isNextClockwise
 
-            {----Endposition of turtle
-            endPosition =
-                p2
-                    |> Point2d.translateBy
-                        (Vector2d.withLength r2
-                            (Direction2d.from state.turtle.position p2
-                                |> Maybe.withDefault Direction2d.positiveX
-                                |> (if isNextClockwise then
-                                        Direction2d.rotateClockwise
-
-                                    else
-                                        Direction2d.rotateCounterclockwise
-                                   )
-                            )
-                        )
-
-            --Position between rotation and forward move
-            intermediatePosition =
-                p1
-                    |> Point2d.translateBy
-                        (Vector2d.withLength r1
-                            (Direction2d.from p1 endPosition
-                                |> Maybe.withDefault Direction2d.positiveX
-                                |> (if state.isOvercross then
-                                        Direction2d.rotateClockwise
-
-                                    else
-                                        Direction2d.rotateCounterclockwise
-                                   )
-                            )
-                        )--}
             --EndDirection of turtle
             endDirection =
                 Direction2d.from intermediatePosition endPosition
