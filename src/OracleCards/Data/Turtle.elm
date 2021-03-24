@@ -37,7 +37,12 @@ rotateCounterclockwise { to, radius } turtle =
             Direction2d.angleFrom turtle.direction to
                 |> Angle.inRadians
                 |> (\r ->
-                        if to == turtle.direction then
+                        if
+                            to
+                                |> Direction2d.equalWithin
+                                    (Angle.radians 0.001)
+                                    turtle.direction
+                        then
                             2 * pi
 
                         else if r < 0 then
@@ -74,7 +79,12 @@ rotateClockwise { to, radius } turtle =
             Direction2d.angleFrom turtle.direction to
                 |> Angle.inRadians
                 |> (\r ->
-                        if to == turtle.direction then
+                        if
+                            to
+                                |> Direction2d.equalWithin
+                                    (Angle.radians 0.001)
+                                    turtle.direction
+                        then
                             2 * pi
 
                         else if r < 0 then

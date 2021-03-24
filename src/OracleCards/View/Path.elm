@@ -151,7 +151,12 @@ line options state newNextIndex =
                         |> StaticArray.set i2 (state.visited |> StaticArray.get i2 |> (+) 1)
                 , isOvercross =
                     isOvercross
-                , turtle = newTurtle
+                , turtle =
+                    newTurtle
+
+                {--{ newTurtle
+                        | position = end
+                    }--}
             }
 
         Nothing ->

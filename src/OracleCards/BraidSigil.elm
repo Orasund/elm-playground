@@ -52,7 +52,7 @@ height =
 
 withCircle : Bool
 withCircle =
-    False
+    True
 
 
 isGerman : Bool
@@ -63,6 +63,11 @@ isGerman =
 interactive : Bool
 interactive =
     False
+
+
+debugMode : Bool
+debugMode =
+    True
 
 
 
@@ -210,6 +215,13 @@ viewSigil string =
             []
     ]
         |> List.concat
+        |> List.append
+            (if debugMode then
+                BraidSigil.drawPoints options
+
+             else
+                []
+            )
         |> Svg.svg
             [ Attributes.width <| (String.fromFloat <| zoom * size) ++ "px"
             , Attributes.height <| (String.fromFloat <| zoom * size) ++ "px"
@@ -268,7 +280,7 @@ view model =
             paths =
                 --[ "Glueck", "Liebe", "Geld", "Erfolg" ]
                 --[ "Luck", "Love", "Money", "Success" ]
-                [ "Gegenwart"
+                {--[ "Gegenwart"
                 , "Ziel"
                 , "Kraft"
                 , "Bedeutung"
@@ -276,6 +288,11 @@ view model =
                 , "Werte"
                 , "Gedanken"
                 , "Zukunft"
+                ]--}
+                [ "eee"
+                , "ebebebebe"
+                , "aeiaei"
+                , "aeiou"
                 ]
         in
         paths
