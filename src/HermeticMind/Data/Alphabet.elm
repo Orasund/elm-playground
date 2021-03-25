@@ -1,4 +1,4 @@
-module OracleCards.Data.Alphabet exposing (TwentySix, english, german, twentySix)
+module HermeticMind.Data.Alphabet exposing (TwentySix, english, german, twentySix)
 
 import StaticArray.Index as Index exposing (Five, Index, OnePlus, TwentyPlus)
 import StaticArray.Length as Length exposing (Length)

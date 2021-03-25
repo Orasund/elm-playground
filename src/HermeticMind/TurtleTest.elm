@@ -1,34 +1,33 @@
-module OracleCards.TurtleTest exposing (..)
+module HermeticMind.TurtleTest exposing (..)
 
-import Angle exposing (Angle)
 import Arc2d
 import Direction2d
 import Geometry.Svg as Svg
+import HermeticMind.Data.Turtle as Turtle
 import Html exposing (Html)
 import LineSegment2d
-import OracleCards.Data.Turtle as Turtle exposing (Turtle)
-import Point2d exposing (Point2d)
+import Point2d
 import Quantity exposing (Quantity(..))
-import StaticArray exposing (StaticArray)
-import StaticArray.Index as Index exposing (Five, Index, OnePlus, TwentyPlus)
-import StaticArray.Length as Length exposing (Length)
-import Svg exposing (Svg)
+import Svg
 import Svg.Attributes as Attributes
-import Vector2d
 
 
+strokeWidth : number
 strokeWidth =
     1
 
 
+lineWidth : number
 lineWidth =
     4
 
 
+size : number
 size =
     200
 
 
+zoom : number
 zoom =
     4
 
@@ -36,7 +35,7 @@ zoom =
 main : Html msg
 main =
     let
-        ( turtle, drawing ) =
+        ( _, drawing ) =
             { position = Point2d.unsafe { x = size / 2, y = size / 2 }
             , direction = Direction2d.positiveX
             , lineFun =

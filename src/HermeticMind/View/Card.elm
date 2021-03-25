@@ -1,11 +1,11 @@
-module OracleCards.View.Card exposing (height, padding, radius, relative, view, width, zoom)
+module HermeticMind.View.Card exposing (height, padding, radius, relative, view, width, zoom)
 
 import Angle
 import Circle2d
 import Geometry.Svg as Svg
-import OracleCards.Data.Card as Card exposing (Card(..))
-import OracleCards.View.Color as Color
-import OracleCards.View.RegularPolygon as RegularPolygon
+import HermeticMind.Data.Card as Card exposing (Card(..))
+import HermeticMind.View.Color as Color
+import HermeticMind.View.RegularPolygon as RegularPolygon
 import Pixels
 import Point2d
 import Polygon2d

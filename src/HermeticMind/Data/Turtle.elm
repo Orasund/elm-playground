@@ -1,4 +1,4 @@
-module OracleCards.Data.Turtle exposing (Turtle, andThen, forwardBy, rotateClockwise, rotateCounterclockwise)
+module HermeticMind.Data.Turtle exposing (Turtle, andThen, forwardBy, rotateClockwise, rotateClockwiseBy, rotateClockwiseTo, rotateCounterclockwise, rotateCounterclockwiseBy, rotateCounterclockwiseTo)
 
 import Angle exposing (Angle)
 import Direction2d exposing (Direction2d)
@@ -28,6 +28,20 @@ forwardBy amount turtle =
       }
     , turtle.lineFun { to = newPosition, from = turtle.position }
     )
+
+
+rotateCounterclockwiseBy : { angle : Angle, radius : Float } -> Turtle out -> ( Turtle out, out )
+rotateCounterclockwiseBy { angle, radius } turtle =
+    rotateCounterclockwiseTo
+        { direction = turtle.direction |> Direction2d.rotateBy (angle |> Angle.inRadians |> (-) (2 * pi) |> Angle.radians)
+        , radius = radius
+        }
+        turtle
+
+
+rotateCounterclockwiseTo : { direction : Direction2d (), radius : Float } -> Turtle out -> ( Turtle out, out )
+rotateCounterclockwiseTo { direction, radius } =
+    rotateCounterclockwise { to = direction, radius = radius }
 
 
 rotateCounterclockwise : { to : Direction2d (), radius : Float } -> Turtle out -> ( Turtle out, out )
@@ -70,6 +84,20 @@ rotateCounterclockwise { to, radius } turtle =
       }
     , turtle.arcFun { around = around, by = angle, from = turtle.position }
     )
+
+
+rotateClockwiseBy : { angle : Angle, radius : Float } -> Turtle out -> ( Turtle out, out )
+rotateClockwiseBy { angle, radius } turtle =
+    rotateClockwiseTo
+        { direction = turtle.direction |> Direction2d.rotateBy angle
+        , radius = radius
+        }
+        turtle
+
+
+rotateClockwiseTo : { direction : Direction2d (), radius : Float } -> Turtle out -> ( Turtle out, out )
+rotateClockwiseTo { direction, radius } =
+    rotateClockwise { to = direction, radius = radius }
 
 
 rotateClockwise : { to : Direction2d (), radius : Float } -> Turtle out -> ( Turtle out, out )

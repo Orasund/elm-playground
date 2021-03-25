@@ -1,4 +1,4 @@
-module OracleCards.View.RegularPolygon exposing (view)
+module HermeticMind.View.RegularPolygon exposing (view)
 
 import Angle
 import Pixels exposing (Pixels)

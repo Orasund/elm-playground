@@ -1,4 +1,4 @@
-module OracleCards.Data.Geometry exposing (innerTangent, intersection, outerTangent)
+module HermeticMind.Data.Geometry exposing (innerTangent, intersection, outerTangent)
 
 import Circle2d exposing (Circle2d)
 import Direction2d

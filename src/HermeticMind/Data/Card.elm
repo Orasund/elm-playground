@@ -1,6 +1,6 @@
-module OracleCards.Data.Card exposing (Card(..), color, description, title, value)
+module HermeticMind.Data.Card exposing (Card(..), color, description, title, value)
 
-import OracleCards.View.Color as Color
+import HermeticMind.View.Color as Color
 
 
 type Card

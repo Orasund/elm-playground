@@ -1,11 +1,11 @@
-module OracleCards.Main exposing (main)
+module HermeticMind.OracleCards exposing (main)
 
 import Geometry.Svg as Svg
+import HermeticMind.Data.Card as Card exposing (Card(..))
+import HermeticMind.Data.Sigil as Sigil
+import HermeticMind.View.Card as Card
+import HermeticMind.View.Color as Color
 import Html exposing (Html)
-import OracleCards.Data.Card as Card exposing (Card(..))
-import OracleCards.Data.Sigil as Sigil
-import OracleCards.View.Card as Card
-import OracleCards.View.Color as Color
 import Point2d
 import Polyline2d
 import Rectangle2d

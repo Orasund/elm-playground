@@ -1,11 +1,11 @@
-module OracleCards.MagicCircle exposing (..)
+module HermeticMind.MagicCircle exposing (..)
 
 import Angle
 import Circle2d
 import Geometry.Svg as Svg
+import HermeticMind.Data.Sigil as Sigil
 import Html exposing (Html)
 import LineSegment2d
-import OracleCards.Data.Sigil as Sigil
 import Pixels
 import Point2d
 import Svg

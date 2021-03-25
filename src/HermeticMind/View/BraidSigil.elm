@@ -1,20 +1,22 @@
-module OracleCards.View.BraidSigil exposing (drawPoints, init, initCircle, line, pointSize, points, strokeWidth)
+module HermeticMind.View.BraidSigil exposing (drawPoints, init, initCircle, line, pointSize, points, strokeWidth, view)
 
-import Angle exposing (Angle)
+import Angle
 import Arc2d
-import Circle2d exposing (Circle2d)
+import Circle2d
 import Direction2d
 import Geometry.Svg as Svg
+import HermeticMind.Data.Alphabet as Alphabet exposing (TwentySix)
+import HermeticMind.Data.Geometry as Geometry
+import HermeticMind.Data.Sigil as Sigil
+import HermeticMind.Data.Turtle as Turtle exposing (Turtle)
 import Html exposing (Html)
 import LineSegment2d
 import List.Extra as List
-import OracleCards.Data.Alphabet as Alphabet
-import OracleCards.Data.Geometry as Geometry
-import OracleCards.Data.Turtle as Turtle exposing (Turtle)
+import Pixels
 import Point2d exposing (Point2d)
 import Quantity exposing (Quantity(..))
 import StaticArray exposing (StaticArray)
-import StaticArray.Index as Index exposing (Five, Index, OnePlus, TwentyPlus)
+import StaticArray.Index as Index exposing (Index)
 import StaticArray.Length as Length exposing (Length)
 import Svg exposing (Svg)
 import Svg.Attributes as Attributes
@@ -74,100 +76,11 @@ type alias State =
     }
 
 
-initCircle : { width : Float, height : Float, radius : Float } -> Index N -> Index N -> List (Svg msg)
-initCircle options startIndex nextIndex =
+initCircle : { width : Float, height : Float, radius : Float } -> Index N -> List (Svg msg)
+initCircle options startIndex =
     let
         p1 =
             points options |> StaticArray.get startIndex
-
-        p2 =
-            points options |> StaticArray.get nextIndex
-
-        isNextClockwise =
-            nextClockwise
-                { i1 = nextIndex --lastDistinctIndex
-                , i2 = startIndex
-                , i3 = nextIndex
-                }
-
-        vector =
-            Vector2d.from p1 p2
-                |> Vector2d.normalize
-                |> Vector2d.toUnitless
-                |> Vector2d.unsafe
-
-        amount =
-            1
-
-        end =
-            p2
-                |> Point2d.translateBy
-                    (vector
-                        |> (if not isNextClockwise then
-                                Vector2d.rotateBy (Angle.radians <| -pi / 2)
-
-                            else
-                                Vector2d.rotateBy (Angle.radians <| pi / 2)
-                           )
-                        |> Vector2d.scaleBy
-                            (lineWidth
-                                * (amount
-                                    |> toFloat
-                                    |> (+) 1
-                                  )
-                            )
-                    )
-
-        startAngle =
-            Direction2d.from
-                p2
-                end
-                |> Maybe.map Direction2d.toAngle
-                |> Maybe.withDefault (Angle.radians 0)
-
-        centerposition =
-            Point2d.midpoint
-                (p1
-                    |> Point2d.translateBy
-                        (Vector2d.unsafe { x = 1, y = 0 }
-                            |> Vector2d.rotateBy startAngle
-                            |> Vector2d.scaleBy
-                                (pointSize
-                                    + (lineWidth
-                                        * amount
-                                      )
-                                    - lineWidth
-                                    / 2
-                                )
-                        )
-                )
-                (p1
-                    |> Point2d.translateBy
-                        (Vector2d.unsafe { x = 1, y = 0 }
-                            |> Vector2d.rotateBy (startAngle |> Angle.inRadians |> (+) pi |> Angle.radians)
-                            |> Vector2d.scaleBy
-                                (pointSize
-                                    + (lineWidth
-                                        * (amount
-                                            |> toFloat
-                                            |> (+) 1
-                                          )
-                                      )
-                                    - lineWidth
-                                    / 2
-                                )
-                        )
-                )
-
-        radius =
-            pointSize
-
-        {--+ (lineWidth
-                    * amount
-                  )--}
-        {- lineWidth
-           / 2
-        -}
     in
     [ Arc2d.with
         { centerPoint = p1
@@ -208,9 +121,6 @@ init :
     -> ( State, List (Svg Never) )
 init { width, height, radius, startIndex, nextIndex, distinctSecond, distinctThird } =
     let
-        i2 =
-            nextIndex
-
         options =
             { width = width
             , height = height
@@ -219,9 +129,6 @@ init { width, height, radius, startIndex, nextIndex, distinctSecond, distinctThi
 
         p1 =
             points options |> StaticArray.get startIndex
-
-        p2 =
-            points options |> StaticArray.get i2
 
         isNextClockwise =
             nextClockwise
@@ -369,10 +276,6 @@ circleAround :
     -> ( Turtle (List (Svg Never)), List (Svg Never) )
 circleAround options { startIndex, turtle, visited, isClockwise } =
     let
-        --Direction of the turtle
-        d0 =
-            turtle.direction
-
         --current Node
         p1 =
             points options |> StaticArray.get startIndex
@@ -658,3 +561,231 @@ line options state newNextIndex =
           }
         , drawing |> List.map (Svg.map never)
         )
+
+
+view :
+    { width : Float
+    , height : Float
+    , radius : Float
+    , zoom : Float
+    , asAlphabet : Char -> Index TwentySix
+    , withCircle : Bool
+    , debugMode : Bool
+    , withRunes : Bool
+    , withText : Bool
+    , withBorder : Bool
+    }
+    -> String
+    -> Html msg
+view { width, height, radius, withText, asAlphabet, withCircle, debugMode, withBorder, zoom, withRunes } string =
+    let
+        options =
+            { width = width
+            , height = height
+            , radius = radius
+            }
+
+        list =
+            string
+                |> String.toList
+                |> List.map asAlphabet
+
+        uniqueList =
+            list |> List.uniqueBy Index.toInt
+
+        border =
+            { position = Point2d.unsafe { x = width / 2, y = lineWidth * 2 }
+            , direction = Direction2d.positiveX
+            , lineFun =
+                \{ from, to } ->
+                    let
+                        segment =
+                            LineSegment2d.from from to
+                    in
+                    [ segment
+                        |> Svg.lineSegment2d
+                            [ Attributes.stroke "black"
+                            , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
+                            ]
+                    ]
+            , arcFun =
+                \{ around, by, from } ->
+                    let
+                        arc =
+                            Arc2d.sweptAround around by from
+                    in
+                    [ arc
+                        |> Svg.arc2d
+                            [ Attributes.fill <| "none"
+                            , Attributes.stroke <| "black"
+                            , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
+                            ]
+                    ]
+            }
+                |> Turtle.forwardBy (width / 2 - lineWidth * 2 + pointSize)
+                |> Turtle.andThen (Turtle.rotateCounterclockwise { to = Direction2d.positiveY, radius = pointSize })
+                |> Turtle.andThen (Turtle.forwardBy (height - lineWidth * 4 + pointSize))
+                |> Turtle.andThen (Turtle.rotateCounterclockwise { to = Direction2d.negativeX, radius = pointSize })
+                |> Turtle.andThen (Turtle.forwardBy (width - lineWidth * 4 + pointSize))
+                |> Turtle.andThen (Turtle.rotateCounterclockwise { to = Direction2d.negativeY, radius = pointSize })
+                |> Turtle.andThen (Turtle.forwardBy (height - lineWidth * 4 + pointSize))
+                |> Turtle.andThen (Turtle.rotateCounterclockwise { to = Direction2d.positiveX, radius = pointSize })
+                |> Turtle.andThen (Turtle.forwardBy (width / 2 - lineWidth * 2 + pointSize))
+                |> Tuple.second
+    in
+    [ case ( list, uniqueList ) of
+        ( head :: second :: thrid :: tail, _ :: distinctSecond :: distinctThird :: _ ) ->
+            --nextIndex
+            --::
+            tail
+                |> List.foldl
+                    (\i2 ( state, out ) ->
+                        let
+                            ( newState, newOut ) =
+                                line options
+                                    state
+                                    i2
+                        in
+                        ( newState
+                        , newOut ++ out
+                        )
+                    )
+                    (let
+                        ( initState, startingDrawing ) =
+                            init
+                                { width = options.width
+                                , height = options.height
+                                , radius = options.radius
+                                , startIndex = head
+                                , nextIndex = second
+                                , distinctSecond = distinctSecond
+                                , distinctThird = distinctThird
+                                }
+
+                        ( newState, newOut ) =
+                            line options initState thrid
+
+                        --head
+                     in
+                     ( newState
+                     , newOut
+                        ++ (startingDrawing |> List.map (Svg.map never))
+                     )
+                    )
+                |> (\( state, out ) ->
+                        let
+                            ( newState, newOut ) =
+                                line options
+                                    state
+                                    head
+                        in
+                        ( newState
+                        , newOut ++ out
+                        )
+                   )
+                |> (\( state, out ) ->
+                        (if state.startIndex == head then
+                            line options
+                                { state
+                                    | visited = state.visited |> StaticArray.set head -1
+                                }
+                                head
+                                |> Tuple.second
+
+                         else
+                            line options
+                                { state
+                                    | visited = state.visited |> StaticArray.set head -1
+                                }
+                                head
+                                |> Tuple.second
+                        )
+                            ++ out
+                            ++ initCircle options head
+                   )
+                |> (if withCircle then
+                        List.append
+                            (Circle2d.atPoint (Point2d.pixels (width / 2) (height / 2))
+                                (Pixels.pixels <| radius)
+                                |> Svg.circle2d
+                                    [ Attributes.fill <| "none"
+                                    , Attributes.stroke <| "black"
+                                    , Attributes.strokeWidth <| String.fromFloat <| strokeWidth
+                                    ]
+                                |> List.singleton
+                            )
+
+                    else
+                        identity
+                   )
+
+        _ ->
+            []
+    ]
+        |> List.concat
+        |> List.append
+            (if debugMode then
+                drawPoints options
+
+             else
+                []
+            )
+        |> List.append
+            (if withRunes then
+                Index.range n
+                    |> List.map
+                        (\r ->
+                            let
+                                symbolLength =
+                                    4
+                            in
+                            { value = Index.toInt r
+                            , size = symbolLength
+                            , color = "black"
+                            , radius = 1
+                            , strokeWidth = 1 / 8
+                            , point =
+                                Point2d.pixels (width / 2) (height / 2)
+                                    |> Point2d.translateBy (Vector2d.pixels (radius * 1.25) 0)
+                                    |> Point2d.rotateAround (Point2d.pixels (width / 2) (height / 2))
+                                        (Angle.radians <| (2 * pi / toFloat (Length.toInt n)) * (0.5 + toFloat (Index.toInt r)))
+                            }
+                                |> Sigil.view
+                        )
+                    |> List.concat
+
+             else
+                []
+            )
+        |> List.append
+            (if withText then
+                [ Svg.text_
+                    [ Attributes.fontFamily "Dancing Script, serif"
+                    , width / 2 |> String.fromFloat |> Attributes.x
+                    , height - lineWidth * 8 |> String.fromFloat |> Attributes.y
+                    , Attributes.textAnchor "middle"
+                    , Attributes.alignmentBaseline "central"
+                    ]
+                    [ Svg.text string ]
+                ]
+
+             else
+                []
+            )
+        |> List.append
+            (if withBorder then
+                border
+
+             else
+                []
+            )
+        |> Svg.svg
+            [ Attributes.width <| (String.fromFloat <| zoom * width) ++ "px"
+            , Attributes.height <| (String.fromFloat <| zoom * height) ++ "px"
+            , Attributes.version <| "1.1"
+            , Attributes.viewBox <|
+                "0 0 "
+                    ++ String.fromFloat width
+                    ++ " "
+                    ++ String.fromFloat height
+            ]

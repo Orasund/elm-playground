@@ -1,4 +1,4 @@
-module OracleCards.Data.Sigil exposing (view)
+module HermeticMind.Data.Sigil exposing (view)
 
 import Angle
 import Arc2d

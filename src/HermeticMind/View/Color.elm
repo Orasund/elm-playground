@@ -1,4 +1,4 @@
-module OracleCards.View.Color exposing (blackBackground, blue, gray, green, red, yellow)
+module HermeticMind.View.Color exposing (blackBackground, blue, gray, green, red, yellow)
 
 
 blackBackground : String
