@@ -2,7 +2,7 @@ module HermeticMind.OracleCards exposing (main)
 
 import Geometry.Svg as Svg
 import HermeticMind.Data.Card as Card exposing (Card(..))
-import HermeticMind.Data.Sigil as Sigil
+import HermeticMind.View.BinarySigil as Sigil
 import HermeticMind.View.Card as Card
 import HermeticMind.View.Color as Color
 import Html exposing (Html)

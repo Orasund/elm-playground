@@ -3,7 +3,7 @@ module HermeticMind.MagicCircle exposing (..)
 import Angle
 import Circle2d
 import Geometry.Svg as Svg
-import HermeticMind.Data.Sigil as Sigil
+import HermeticMind.View.BinarySigil as Sigil
 import Html exposing (Html)
 import LineSegment2d
 import Pixels
@@ -56,7 +56,7 @@ main =
                                 , Attributes.strokeWidth <| String.fromFloat <| 1
                                 ]
                         )
-                            :: (List.range 1 (2 ^ n)
+                            :: (List.range 0 ((2 ^ n) - 1)
                                     |> List.concatMap
                                         (\r ->
                                             (Point2d.pixels (size / 2) (size / 2)

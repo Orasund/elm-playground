@@ -1,10 +1,10 @@
-module HermeticMind.Data.Turtle exposing (Turtle, andThen, forwardBy, rotateClockwise, rotateClockwiseBy, rotateClockwiseTo, rotateCounterclockwise, rotateCounterclockwiseBy, rotateCounterclockwiseTo)
+module HermeticMind.Data.Turtle exposing (Turtle, andThen, arcLeftBy, arcLeftTo, arcRightBy, arcRightTo, forwardBy, init, jumpBy, jumpForward, jumpTo, map, rotateLeftBy, rotateRightBy, rotateTo)
 
 import Angle exposing (Angle)
 import Direction2d exposing (Direction2d)
 import Point2d exposing (Point2d)
 import Quantity exposing (Quantity(..))
-import Vector2d
+import Vector2d exposing (Vector2d)
 
 
 type alias Turtle out =
@@ -30,29 +30,24 @@ forwardBy amount turtle =
     )
 
 
-rotateCounterclockwiseBy : { angle : Angle, radius : Float } -> Turtle out -> ( Turtle out, out )
-rotateCounterclockwiseBy { angle, radius } turtle =
-    rotateCounterclockwiseTo
+arcLeftBy : { angle : Angle, radius : Float } -> Turtle out -> ( Turtle out, out )
+arcLeftBy { angle, radius } turtle =
+    arcLeftTo
         { direction = turtle.direction |> Direction2d.rotateBy (angle |> Angle.inRadians |> (-) (2 * pi) |> Angle.radians)
         , radius = radius
         }
         turtle
 
 
-rotateCounterclockwiseTo : { direction : Direction2d (), radius : Float } -> Turtle out -> ( Turtle out, out )
-rotateCounterclockwiseTo { direction, radius } =
-    rotateCounterclockwise { to = direction, radius = radius }
-
-
-rotateCounterclockwise : { to : Direction2d (), radius : Float } -> Turtle out -> ( Turtle out, out )
-rotateCounterclockwise { to, radius } turtle =
+arcLeftTo : { direction : Direction2d (), radius : Float } -> Turtle out -> ( Turtle out, out )
+arcLeftTo { direction, radius } turtle =
     let
         angle =
-            Direction2d.angleFrom turtle.direction to
+            Direction2d.angleFrom turtle.direction direction
                 |> Angle.inRadians
                 |> (\r ->
                         if
-                            to
+                            direction
                                 |> Direction2d.equalWithin
                                     (Angle.radians 0.001)
                                     turtle.direction
@@ -79,36 +74,31 @@ rotateCounterclockwise { to, radius } turtle =
             turtle.position |> Point2d.rotateAround around angle
     in
     ( { turtle
-        | direction = to
+        | direction = direction
         , position = newPosition
       }
     , turtle.arcFun { around = around, by = angle, from = turtle.position }
     )
 
 
-rotateClockwiseBy : { angle : Angle, radius : Float } -> Turtle out -> ( Turtle out, out )
-rotateClockwiseBy { angle, radius } turtle =
-    rotateClockwiseTo
+arcRightBy : { angle : Angle, radius : Float } -> Turtle out -> ( Turtle out, out )
+arcRightBy { angle, radius } turtle =
+    arcRightTo
         { direction = turtle.direction |> Direction2d.rotateBy angle
         , radius = radius
         }
         turtle
 
 
-rotateClockwiseTo : { direction : Direction2d (), radius : Float } -> Turtle out -> ( Turtle out, out )
-rotateClockwiseTo { direction, radius } =
-    rotateClockwise { to = direction, radius = radius }
-
-
-rotateClockwise : { to : Direction2d (), radius : Float } -> Turtle out -> ( Turtle out, out )
-rotateClockwise { to, radius } turtle =
+arcRightTo : { direction : Direction2d (), radius : Float } -> Turtle out -> ( Turtle out, out )
+arcRightTo { direction, radius } turtle =
     let
         angle =
-            Direction2d.angleFrom turtle.direction to
+            Direction2d.angleFrom turtle.direction direction
                 |> Angle.inRadians
                 |> (\r ->
                         if
-                            to
+                            direction
                                 |> Direction2d.equalWithin
                                     (Angle.radians 0.001)
                                     turtle.direction
@@ -135,11 +125,64 @@ rotateClockwise { to, radius } turtle =
             turtle.position |> Point2d.rotateAround around angle
     in
     ( { turtle
-        | direction = to
+        | direction = direction
         , position = newPosition
       }
     , turtle.arcFun { around = around, by = angle, from = turtle.position }
     )
+
+
+init : List out -> Turtle (List out) -> ( Turtle (List out), List out )
+init out turtle =
+    ( turtle, out )
+
+
+jumpTo : Point2d Float () -> Turtle out -> Turtle out
+jumpTo position turtle =
+    { turtle | position = position }
+
+
+jumpBy : Vector2d Float () -> Turtle out -> Turtle out
+jumpBy vector turtle =
+    { turtle | position = turtle.position |> Point2d.translateBy vector }
+
+
+jumpForward : Float -> Turtle out -> Turtle out
+jumpForward amount turtle =
+    { turtle
+        | position =
+            turtle.position
+                |> Point2d.translateBy
+                    (Vector2d.withLength (Quantity amount) turtle.direction)
+    }
+
+
+rotateTo : Direction2d () -> Turtle out -> Turtle out
+rotateTo direction turtle =
+    { turtle | direction = direction }
+
+
+{-| Rotate the turtle clockwise by a given angle.
+-}
+rotateRightBy : Angle -> Turtle out -> Turtle out
+rotateRightBy angle turtle =
+    { turtle | direction = turtle.direction |> Direction2d.rotateBy angle }
+
+
+{-| Rotate the turtle counterclockwise by a given angle.
+-}
+rotateLeftBy : Angle -> Turtle out -> Turtle out
+rotateLeftBy angle turtle =
+    { turtle
+        | direction =
+            turtle.direction
+                |> Direction2d.rotateBy
+                    (angle
+                        |> Angle.inRadians
+                        |> (+) pi
+                        |> Angle.radians
+                    )
+    }
 
 
 andThen : (Turtle (List out) -> ( Turtle (List out), List out )) -> ( Turtle (List out), List out ) -> ( Turtle (List out), List out )
@@ -149,3 +192,8 @@ andThen fun ( turtle, out ) =
             fun turtle
     in
     ( newTurtle, head ++ out )
+
+
+map : (Turtle out -> Turtle out) -> ( Turtle out, out ) -> ( Turtle out, out )
+map =
+    Tuple.mapFirst

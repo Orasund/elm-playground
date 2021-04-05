@@ -100,40 +100,40 @@ heart =
             |> Angle.radians
             |> Direction2d.fromAngle
         )
-        |> Turtle.rotateClockwiseBy
+        |> Turtle.arcRightBy
             { angle = Angle.radians <| pi * 3 / 4
             , radius = radius * 2
             }
         |> Turtle.andThen (Turtle.forwardBy <| radius * 10)
         |> Turtle.andThen
-            (Turtle.rotateCounterclockwiseBy
+            (Turtle.arcLeftBy
                 { angle = Angle.radians <| pi
                 , radius = radius * 4
                 }
             )
         |> Turtle.andThen (Turtle.forwardBy <| radius * 2)
         |> Turtle.andThen
-            (Turtle.rotateCounterclockwiseBy
+            (Turtle.arcLeftBy
                 { angle = Angle.radians <| pi * 3 / 2
                 , radius = radius * 2
                 }
             )
         |> Turtle.andThen (Turtle.forwardBy <| radius * 2)
         |> Turtle.andThen
-            (Turtle.rotateCounterclockwiseBy
+            (Turtle.arcLeftBy
                 { angle = Angle.radians <| pi
                 , radius = radius * 4
                 }
             )
         |> Turtle.andThen (Turtle.forwardBy <| radius * 10)
         |> Turtle.andThen
-            (Turtle.rotateClockwiseBy
+            (Turtle.arcRightBy
                 { angle = Angle.radians <| pi * 3 / 4
                 , radius = radius * 2
                 }
             )
         |> Turtle.andThen
-            (Turtle.rotateClockwiseBy
+            (Turtle.arcRightBy
                 { angle = Angle.radians <| 2 * pi
                 , radius = radius * 12
                 }
@@ -169,40 +169,40 @@ cross =
             |> Angle.radians
             |> Direction2d.fromAngle
         )
-        |> Turtle.rotateClockwiseBy
+        |> Turtle.arcRightBy
             { angle = Angle.radians <| pi * 3 / 4
             , radius = rot
             }
         |> Turtle.andThen (Turtle.forwardBy <| radius * lineLenght)
         |> Turtle.andThen
-            (Turtle.rotateClockwiseBy
+            (Turtle.arcRightBy
                 { angle = Angle.radians <| pi * 3 / 2
                 , radius = rot
                 }
             )
         |> Turtle.andThen (Turtle.forwardBy <| radius * lineLenght)
         |> Turtle.andThen
-            (Turtle.rotateClockwiseBy
+            (Turtle.arcRightBy
                 { angle = Angle.radians <| pi * 3 / 2
                 , radius = rot
                 }
             )
         |> Turtle.andThen (Turtle.forwardBy <| radius * lineLenght)
         |> Turtle.andThen
-            (Turtle.rotateClockwiseBy
+            (Turtle.arcRightBy
                 { angle = Angle.radians <| pi * 3 / 2
                 , radius = rot
                 }
             )
         |> Turtle.andThen (Turtle.forwardBy <| radius * lineLenght)
         |> Turtle.andThen
-            (Turtle.rotateClockwiseBy
+            (Turtle.arcRightBy
                 { angle = Angle.radians <| pi * 3 / 4
                 , radius = rot
                 }
             )
         |> Turtle.andThen
-            (Turtle.rotateClockwiseBy
+            (Turtle.arcRightBy
                 { angle = Angle.radians <| 2 * pi
                 , radius = radius * 12
                 }
@@ -238,54 +238,54 @@ hashtag =
             |> Angle.radians
             |> Direction2d.fromAngle
         )
-        |> Turtle.rotateClockwiseBy
+        |> Turtle.arcRightBy
             { angle = Angle.radians <| pi * 3 / 4
             , radius = rot
             }
         |> Turtle.andThen (Turtle.forwardBy <| radius * lineLenght)
         |> Turtle.andThen
-            (Turtle.rotateCounterclockwiseBy
+            (Turtle.arcLeftBy
                 { angle = Angle.radians <| pi
                 , radius = rot
                 }
             )
         |> Turtle.andThen (Turtle.forwardBy <| radius * lineLenght)
         |> Turtle.andThen
-            (Turtle.rotateClockwiseBy
+            (Turtle.arcRightBy
                 { angle = Angle.radians <| pi
                 , radius = rot
                 }
             )
         |> Turtle.andThen (Turtle.forwardBy <| radius * lineLenght)
         |> Turtle.andThen
-            (Turtle.rotateCounterclockwiseBy
+            (Turtle.arcLeftBy
                 { angle = Angle.radians <| pi * 3 / 2
                 , radius = rot
                 }
             )
         |> Turtle.andThen (Turtle.forwardBy <| radius * lineLenght)
         |> Turtle.andThen
-            (Turtle.rotateClockwiseBy
+            (Turtle.arcRightBy
                 { angle = Angle.radians <| pi
                 , radius = rot
                 }
             )
         |> Turtle.andThen (Turtle.forwardBy <| radius * lineLenght)
         |> Turtle.andThen
-            (Turtle.rotateCounterclockwiseBy
+            (Turtle.arcLeftBy
                 { angle = Angle.radians <| pi
                 , radius = rot
                 }
             )
         |> Turtle.andThen (Turtle.forwardBy <| radius * lineLenght)
         |> Turtle.andThen
-            (Turtle.rotateClockwiseBy
+            (Turtle.arcRightBy
                 { angle = Angle.radians <| pi * 3 / 4
                 , radius = rot
                 }
             )
         |> Turtle.andThen
-            (Turtle.rotateClockwiseBy
+            (Turtle.arcRightBy
                 { angle = Angle.radians <| 2 * pi
                 , radius = radius * 12
                 }

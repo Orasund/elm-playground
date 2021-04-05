@@ -7,8 +7,8 @@ import Direction2d
 import Geometry.Svg as Svg
 import HermeticMind.Data.Alphabet as Alphabet exposing (TwentySix)
 import HermeticMind.Data.Geometry as Geometry
-import HermeticMind.Data.Sigil as Sigil
 import HermeticMind.Data.Turtle as Turtle exposing (Turtle)
+import HermeticMind.View.BinarySigil as Sigil
 import Html exposing (Html)
 import LineSegment2d
 import List.Extra as List
@@ -205,14 +205,14 @@ init { width, height, radius, startIndex, nextIndex, distinctSecond, distinctThi
                     ]
             }
                 |> (if isNextClockwise then
-                        Turtle.rotateClockwise
-                            { to = Direction2d.positiveY
+                        Turtle.arcRightTo
+                            { direction = Direction2d.positiveY
                             , radius = lineWidth / 2
                             }
 
                     else
-                        Turtle.rotateCounterclockwise
-                            { to = Direction2d.positiveY
+                        Turtle.arcLeftTo
+                            { direction = Direction2d.positiveY
                             , radius = lineWidth / 2
                             }
                    )
@@ -317,15 +317,15 @@ circleAround options { startIndex, turtle, visited, isClockwise } =
 
         rotate =
             if isClockwise then
-                Turtle.rotateClockwise
+                Turtle.arcRightTo
 
             else
-                Turtle.rotateCounterclockwise
+                Turtle.arcLeftTo
     in
     if v1 == -1 then
         turtle
             |> rotate
-                { to = turtle.direction
+                { direction = turtle.direction
                 , radius =
                     turtle.position
                         |> Point2d.distanceFrom p1
@@ -335,7 +335,7 @@ circleAround options { startIndex, turtle, visited, isClockwise } =
     else
         turtle
             |> rotate
-                { to = turtle.direction |> Direction2d.reverse
+                { direction = turtle.direction |> Direction2d.reverse
                 , radius =
                     turtle.position
                         |> Point2d.distanceFrom p1
@@ -346,7 +346,7 @@ circleAround options { startIndex, turtle, visited, isClockwise } =
                 (\t ->
                     t
                         |> rotate
-                            { to = turtle.direction
+                            { direction = turtle.direction
                             , radius =
                                 t.position
                                     |> Point2d.distanceFrom centerPoint
@@ -505,15 +505,15 @@ line options state newNextIndex =
 
             rotate =
                 if state.isOvercross then
-                    Turtle.rotateClockwise
+                    Turtle.arcRightTo
 
                 else
-                    Turtle.rotateCounterclockwise
+                    Turtle.arcLeftTo
 
             ( turtle, drawing ) =
                 state.turtle
                     |> rotate
-                        { to = endDirection
+                        { direction = endDirection
                         , radius =
                             state.turtle.position
                                 |> Point2d.distanceFrom p1
@@ -623,13 +623,13 @@ view { width, height, radius, withText, asAlphabet, withCircle, debugMode, withB
                     ]
             }
                 |> Turtle.forwardBy (width / 2 - lineWidth * 2 + pointSize)
-                |> Turtle.andThen (Turtle.rotateCounterclockwise { to = Direction2d.positiveY, radius = pointSize })
+                |> Turtle.andThen (Turtle.arcLeftTo { direction = Direction2d.positiveY, radius = pointSize })
                 |> Turtle.andThen (Turtle.forwardBy (height - lineWidth * 4 + pointSize))
-                |> Turtle.andThen (Turtle.rotateCounterclockwise { to = Direction2d.negativeX, radius = pointSize })
+                |> Turtle.andThen (Turtle.arcLeftTo { direction = Direction2d.negativeX, radius = pointSize })
                 |> Turtle.andThen (Turtle.forwardBy (width - lineWidth * 4 + pointSize))
-                |> Turtle.andThen (Turtle.rotateCounterclockwise { to = Direction2d.negativeY, radius = pointSize })
+                |> Turtle.andThen (Turtle.arcLeftTo { direction = Direction2d.negativeY, radius = pointSize })
                 |> Turtle.andThen (Turtle.forwardBy (height - lineWidth * 4 + pointSize))
-                |> Turtle.andThen (Turtle.rotateCounterclockwise { to = Direction2d.positiveX, radius = pointSize })
+                |> Turtle.andThen (Turtle.arcLeftTo { direction = Direction2d.positiveX, radius = pointSize })
                 |> Turtle.andThen (Turtle.forwardBy (width / 2 - lineWidth * 2 + pointSize))
                 |> Tuple.second
     in
