@@ -1,5 +1,6 @@
 module HermeticMind.OracleCards exposing (main)
 
+import Direction2d
 import Geometry.Svg as Svg
 import HermeticMind.Data.Card as Card exposing (Card(..))
 import HermeticMind.View.BinarySigil as Sigil
@@ -61,6 +62,8 @@ viewCard card =
                     , radius = Card.relative <| 1 / 2
                     , strokeWidth = Card.relative <| 1 / 8
                     , point = Point2d.pixels (Card.width / 2) Card.padding
+                    , direction =
+                        Direction2d.positiveX
                     }
                         |> Sigil.view
 
@@ -69,7 +72,7 @@ viewCard card =
 
                 Element n ->
                     { value =
-                        case n of
+                        {--case n of
                             1 ->
                                 2
 
@@ -83,12 +86,15 @@ viewCard card =
                                 0
 
                             _ ->
-                                0
+                                0--}
+                        Card.value card
                     , size = 2
                     , color = "black"
                     , radius = Card.relative <| 1 / 2
                     , strokeWidth = Card.relative <| 1 / 8
                     , point = Point2d.pixels (Card.width / 2) Card.padding
+                    , direction =
+                        Direction2d.positiveX
                     }
                         |> Sigil.view
 
@@ -99,6 +105,8 @@ viewCard card =
                     , radius = Card.relative <| 1 / 2
                     , strokeWidth = Card.relative <| 1 / 8
                     , point = Point2d.pixels (Card.width / 2) Card.padding
+                    , direction =
+                        Direction2d.positiveX
                     }
                         |> Sigil.view
 
@@ -111,6 +119,8 @@ viewCard card =
                             , radius = Card.relative <| 1 / 2
                             , strokeWidth = Card.relative <| 1 / 8
                             , point = Point2d.pixels (Card.width / 2) Card.padding
+                            , direction =
+                                Direction2d.positiveX
                             }
                                 |> Sigil.view
 
@@ -121,6 +131,8 @@ viewCard card =
                             , radius = Card.relative <| 1 / 2
                             , strokeWidth = Card.relative <| 1 / 8
                             , point = Point2d.pixels (Card.width / 2) Card.padding
+                            , direction =
+                                Direction2d.positiveX
                             }
                                 |> Sigil.view
 
@@ -134,6 +146,8 @@ viewCard card =
                     , radius = Card.relative <| 1 / 2
                     , strokeWidth = Card.relative <| 1 / 8
                     , point = Point2d.pixels (Card.width / 2) Card.padding
+                    , direction =
+                        Direction2d.positiveX
                     }
                         |> Sigil.view
 

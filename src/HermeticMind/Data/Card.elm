@@ -370,7 +370,7 @@ description card =
         Virtue n ->
             case n of
                 1 ->
-                    "Verbindung"
+                    "Mitgefühl"
 
                 2 ->
                     "Freundlichkeit"
@@ -379,7 +379,7 @@ description card =
                     "Offenheit"
 
                 4 ->
-                    "Neubeginn"
+                    "Vergebung"
 
                 5 ->
                     "Geduld"
@@ -400,19 +400,19 @@ description card =
                     "Autentizität"
 
                 11 ->
-                    "Konfrontation"
+                    "Ehrlichkeit"
 
                 12 ->
                     "Mäßigkeit"
 
                 13 ->
-                    "Positivität"
+                    "Humor"
 
                 14 ->
                     "Hoffnung"
 
                 15 ->
-                    "Kraft"
+                    "Mut"
 
                 16 ->
                     "Fleiß"
@@ -445,7 +445,7 @@ value card =
                    )
 
         Element v ->
-            v
+            v |> modBy 4
 
         Planet v ->
             v

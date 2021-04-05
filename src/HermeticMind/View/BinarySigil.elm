@@ -3,7 +3,7 @@ module HermeticMind.View.BinarySigil exposing (view)
 import Angle
 import Arc2d
 import Binary
-import Direction2d
+import Direction2d exposing (Direction2d)
 import Geometry.Svg as Svg
 import HermeticMind.Data.Turtle as Turtle exposing (Turtle)
 import LineSegment2d
@@ -97,8 +97,9 @@ start { radius, size, direction } =
     case direction of
         Up ->
             { drawing =
-                Turtle.jumpBy (Vector2d.unsafe { x = radius * 2, y = -radius * 2 })
+                Turtle.jumpForward (radius * 2)
                     >> Turtle.rotateLeftBy (Angle.radians <| pi / 2)
+                    >> Turtle.jumpForward (radius * 2)
                     >> Turtle.init []
                     >> Turtle.andThen
                         (Turtle.arcRightBy
@@ -465,20 +466,21 @@ boolListToShapeList l =
 
 
 view :
-    { point : Point2d Pixels coord
+    { point : Point2d unit coord
     , value : Int
     , size : Int
     , color : String
     , radius : Float
     , strokeWidth : Float
+    , direction : Direction2d coord
     }
     -> List (Svg msg)
-view { point, value, size, color, radius, strokeWidth } =
+view { point, value, size, color, radius, strokeWidth, direction } =
     let
         midIndex =
             2 ^ (size - 1)
 
-        ( direction, shapeList ) =
+        ( dir, shapeList ) =
             (if value >= midIndex then
                 ((2 ^ size) - 1) - value + midIndex
 
@@ -494,16 +496,16 @@ view { point, value, size, color, radius, strokeWidth } =
             shapeList
                 |> shapeListToSvg
                     { p = Vector2d.zero
-                    , direction = direction
+                    , direction = dir
                     , radius = radius
                     }
 
         turtle : Turtle (List (Svg msg))
         turtle =
-            { direction = Direction2d.positiveX --Direction2d.positiveY --
+            { direction = direction |> Direction2d.toAngle |> Direction2d.fromAngle --Direction2d.positiveX --Direction2d.positiveY --
             , position =
                 point
-                    |> Point2d.toPixels
+                    |> Point2d.toRecord Quantity.unwrap
                     |> Point2d.unsafe
             , lineFun =
                 \{ to, from } ->
@@ -547,7 +549,7 @@ view { point, value, size, color, radius, strokeWidth } =
     turtle
         |> Turtle.rotateRightBy (Angle.radians <| pi / 2)
         |> Turtle.jumpForward
-            (case direction of
+            (case dir of
                 Up ->
                     1 * radius
 

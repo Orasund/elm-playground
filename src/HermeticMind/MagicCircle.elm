@@ -2,6 +2,7 @@ module HermeticMind.MagicCircle exposing (..)
 
 import Angle
 import Circle2d
+import Direction2d
 import Geometry.Svg as Svg
 import HermeticMind.View.BinarySigil as Sigil
 import Html exposing (Html)
@@ -33,7 +34,7 @@ main =
         |> Svg.circle2d
             [ Attributes.fill <| "none"
             , Attributes.stroke <| "black"
-            , Attributes.strokeWidth <| String.fromFloat <| 0.1
+            , Attributes.strokeWidth <| String.fromFloat <| 0.2
             ]
     ]
         {--++ ({ value = 0
@@ -69,20 +70,30 @@ main =
                                                     (Angle.radians <| (2 * pi / toFloat (2 ^ n)) * toFloat r)
                                                 |> Svg.lineSegment2d
                                                     [ Attributes.stroke "black"
-                                                    , Attributes.strokeWidth <| String.fromFloat <| 0.1
+                                                    , Attributes.strokeWidth <| String.fromFloat <| 0.2
                                                     , Attributes.fill "none"
                                                     ]
                                             )
-                                                :: ({ value = r
+                                                :: (let
+                                                        angle =
+                                                            Angle.radians <| (2 * pi / toFloat (2 ^ n)) * (0.5 + toFloat r)
+                                                    in
+                                                    { value = r
                                                     , size = n
                                                     , color = "black"
                                                     , radius = 1 / 2
-                                                    , strokeWidth = 1 / 8
+                                                    , strokeWidth = 1 / 4 --1 / 8
                                                     , point =
                                                         Point2d.pixels (size / 2) (size / 2)
-                                                            |> Point2d.translateBy (Vector2d.pixels (ringWidth * (2 * toFloat n)) 0)
+                                                            |> Point2d.translateBy (Vector2d.pixels (1.5 * ringWidth + ringWidth * (2 * toFloat (n - 1))) 0)
                                                             |> Point2d.rotateAround (Point2d.pixels (size / 2) (size / 2))
-                                                                (Angle.radians <| (2 * pi / toFloat (2 ^ n)) * (0.5 + toFloat r))
+                                                                angle
+                                                    , direction =
+                                                        angle
+                                                            |> Direction2d.fromAngle
+                                                            |> Direction2d.rotateClockwise
+
+                                                    --Direction2d.positiveX --
                                                     }
                                                         |> Sigil.view
                                                    )
