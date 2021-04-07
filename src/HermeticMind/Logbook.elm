@@ -1,11 +1,11 @@
 module HermeticMind.Logbook exposing (main)
 
 import Browser
-import Element exposing (Element)
-import Element.Background as Background
-import Element.Font as Font
+import Css
 import HermeticMind.View.MarkdownRender as MarkdownRender
-import Html exposing (Html)
+import Html as UnstyledHtml
+import Html.Styled as Html exposing (Html)
+import Html.Styled.Attributes as Attributes
 import Http exposing (Error)
 import Markdown.Block exposing (HeadingLevel)
 import Markdown.Parser as Parser
@@ -52,33 +52,36 @@ update msg model =
                     ( model, Cmd.none )
 
 
-view : Model -> Html Msg
+view : Model -> UnstyledHtml.Html Msg
 view model =
     case model |> Parser.parse of
         Ok list ->
             case list |> Renderer.render MarkdownRender.renderer of
                 Ok elements ->
                     elements
-                        |> Element.column
-                            [ Element.width <| Element.px 800
-                            , Element.centerX
-                            , Element.padding 50
-                            , Element.rgb255 255 255 255
-                                |> Background.color
+                        |> Html.div
+                            [ Attributes.css
+                                [ Css.width <| Css.px 800
+                                , Css.margin2 (Css.px 0) Css.auto
+                                , Css.backgroundColor (Css.rgb 255 255 255)
+                                ]
                             ]
-                        |> Element.layout
-                            [ Font.size 10
-                            , Element.rgb255 64 64 64
-                                |> Background.color
+                        |> List.singleton
+                        |> Html.div
+                            [ Attributes.css
+                                [ Css.fontSize (Css.px 10)
+                                , Css.backgroundColor (Css.rgb 64 64 64)
+                                ]
                             ]
+                        |> Html.toUnstyled
 
                 Err string ->
-                    string |> Html.text
+                    string |> UnstyledHtml.text
 
         Err list ->
             list
-                |> List.map (Parser.deadEndToString >> Html.text)
-                |> Html.div []
+                |> List.map (Parser.deadEndToString >> UnstyledHtml.text)
+                |> UnstyledHtml.div []
 
 
 subscriptions : Model -> Sub Msg

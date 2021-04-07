@@ -8,7 +8,7 @@ import Geometry.Svg as Svg
 import HermeticMind.Data.Alphabet as Alphabet exposing (TwentySix)
 import HermeticMind.Data.Geometry as Geometry
 import HermeticMind.Data.Turtle as Turtle exposing (Turtle)
-import HermeticMind.View.BinarySigil as Sigil
+import HermeticMind.View.BinarySigil as BinarySigil
 import Html exposing (Html)
 import LineSegment2d
 import List.Extra as List
@@ -622,7 +622,7 @@ view { width, height, radius, withText, asAlphabet, withCircle, debugMode, withB
                             ]
                     ]
             }
-                |> Turtle.forwardBy (width / 2 - lineWidth * 2 + pointSize)
+                |> Turtle.forwardBy (width / 2 - lineWidth * 2 + pointSize / 2)
                 |> Turtle.andThen (Turtle.arcLeftTo { direction = Direction2d.positiveY, radius = pointSize })
                 |> Turtle.andThen (Turtle.forwardBy (height - lineWidth * 4 + pointSize))
                 |> Turtle.andThen (Turtle.arcLeftTo { direction = Direction2d.negativeX, radius = pointSize })
@@ -630,7 +630,7 @@ view { width, height, radius, withText, asAlphabet, withCircle, debugMode, withB
                 |> Turtle.andThen (Turtle.arcLeftTo { direction = Direction2d.negativeY, radius = pointSize })
                 |> Turtle.andThen (Turtle.forwardBy (height - lineWidth * 4 + pointSize))
                 |> Turtle.andThen (Turtle.arcLeftTo { direction = Direction2d.positiveX, radius = pointSize })
-                |> Turtle.andThen (Turtle.forwardBy (width / 2 - lineWidth * 2 + pointSize))
+                |> Turtle.andThen (Turtle.forwardBy (width / 2 - lineWidth * 2 + pointSize / 2))
                 |> Tuple.second
     in
     [ case ( list, uniqueList ) of
@@ -742,15 +742,21 @@ view { width, height, radius, withText, asAlphabet, withCircle, debugMode, withB
                             { value = Index.toInt r
                             , size = symbolLength
                             , color = "black"
-                            , radius = 1
-                            , strokeWidth = 1 / 8
+                            , radius = 2
+                            , strokeWidth = 1 / 2
                             , point =
                                 Point2d.pixels (width / 2) (height / 2)
                                     |> Point2d.translateBy (Vector2d.pixels (radius * 1.25) 0)
                                     |> Point2d.rotateAround (Point2d.pixels (width / 2) (height / 2))
                                         (Angle.radians <| (2 * pi / toFloat (Length.toInt n)) * (0.5 + toFloat (Index.toInt r)))
+                            , direction =
+                                (Angle.radians <| (2 * pi / toFloat (Length.toInt n)) * (0.5 + toFloat (Index.toInt r)))
+                                    |> Direction2d.fromAngle
+                                    |> Direction2d.rotateClockwise
+
+                            --Direction2d.positiveX
                             }
-                                |> Sigil.view
+                                |> BinarySigil.view
                         )
                     |> List.concat
 
@@ -762,7 +768,14 @@ view { width, height, radius, withText, asAlphabet, withCircle, debugMode, withB
                 [ Svg.text_
                     [ Attributes.fontFamily "Dancing Script, serif"
                     , width / 2 |> String.fromFloat |> Attributes.x
-                    , height - lineWidth * 8 |> String.fromFloat |> Attributes.y
+                    , (if withRunes then
+                        height - lineWidth * 3
+
+                       else
+                        height - lineWidth * 8
+                      )
+                        |> String.fromFloat
+                        |> Attributes.y
                     , Attributes.textAnchor "middle"
                     , Attributes.alignmentBaseline "central"
                     ]

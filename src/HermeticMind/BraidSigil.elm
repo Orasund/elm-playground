@@ -71,7 +71,7 @@ debugMode =
 
 withRunes : Bool
 withRunes =
-    False
+    True
 
 
 withText : Bool
