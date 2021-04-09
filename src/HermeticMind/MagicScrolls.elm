@@ -8,7 +8,9 @@ import Element.Font as Font
 import Geometry.Svg as Svg
 import HermeticMind.Data.Alphabet as Alphabet
 import HermeticMind.Data.Turtle as Turtle
+import HermeticMind.GreekMagicSymbols as GreekMagicSymbols
 import HermeticMind.View.BraidSigil as BraidSigil
+import HermeticMind.View.MagicSquareSigil as MagicSquareSigil
 import Html exposing (Html)
 import LineSegment2d
 import List.Extra as List
@@ -18,18 +20,37 @@ import Svg
 import Svg.Attributes as Attributes
 
 
+
+--------------------------------------------------------------------------------
+-- Settings
+--------------------------------------------------------------------------------
+
+
+type Font
+    = Mystical
+    | Hebrew
+    | GreekMagic
+
+
+type Sigil
+    = MagicSquare
+    | Braid
+
+
 inputText =
     "Alive"
 
 
-
---"Hoffnung"
---
---
-
-
 isGerman =
     False
+
+
+asAlphabet =
+    if isGerman then
+        Alphabet.german
+
+    else
+        Alphabet.english
 
 
 sigilRadius =
@@ -57,25 +78,116 @@ globalPadding =
     70
 
 
+font : Font
+font =
+    Hebrew
+
+
+sigilStyle : Sigil
+sigilStyle =
+    MagicSquare
+
+
+
+--------------------------------------------------------------------------------
+-- Main Program
+--------------------------------------------------------------------------------
+
+
 sigil : String -> Html msg
 sigil =
-    BraidSigil.view
-        { width = sigilSize
-        , height = sigilSize
-        , radius = sigilRadius
-        , zoom = 1
-        , asAlphabet =
-            if isGerman then
-                Alphabet.german
+    case sigilStyle of
+        Braid ->
+            BraidSigil.view
+                { width = sigilSize
+                , height = sigilSize
+                , radius = sigilRadius
+                , zoom = 1
+                , asAlphabet = asAlphabet
+                , withCircle = True
+                , debugMode = False
+                , withRunes = False
+                , withText = False
+                , withBorder = False
+                }
 
-            else
-                Alphabet.english
-        , withCircle = True
-        , debugMode = False
-        , withRunes = False
-        , withText = False
-        , withBorder = False
-        }
+        MagicSquare ->
+            MagicSquareSigil.view
+                { size = sigilSize
+                , zoom = 1
+                , strokeWidth = 5
+                , alphabet = asAlphabet
+                }
+
+
+charToHebrew : Char -> Maybe String
+charToHebrew char =
+    case char of
+        'B' ->
+            Just "בּ"
+
+        'V' ->
+            Just "ב"
+
+        'G' ->
+            Just "גּ"
+
+        'D' ->
+            Just "דּ"
+
+        'H' ->
+            Just "ה"
+
+        'W' ->
+            Just "ו"
+
+        'U' ->
+            Just "וּ"
+
+        'O' ->
+            Just "וֹ"
+
+        'Z' ->
+            Just "ז"
+
+        'T' ->
+            Just "ט"
+
+        'Y' ->
+            Just "י"
+
+        'I' ->
+            Just "י"
+
+        'E' ->
+            Just "י"
+
+        'K' ->
+            Just "ך"
+
+        'L' ->
+            Just "ל"
+
+        'M' ->
+            Just "ם"
+
+        'N' ->
+            Just "נ"
+
+        'S' ->
+            Just "ס"
+
+        'P' ->
+            Just "פ"
+
+        'F' ->
+            Just "פ"
+
+        'R' ->
+            Just "ר"
+
+        _ ->
+            Nothing
 
 
 stringToSyllables : String -> List String
@@ -111,16 +223,28 @@ stringToSyllables =
 spell : String -> String
 spell string =
     let
+        word =
+            case font of
+                Hebrew ->
+                    string
+                        |> String.toList
+                        |> List.filterMap charToHebrew
+
+                _ ->
+                    string
+                        |> String.toList
+                        |> List.map (List.singleton >> String.fromList)
+
         length =
-            string |> String.length
+            word
+                |> List.length
 
         wordList =
-            string
-                |> String.toList
+            word
                 |> List.permutations
                 |> List.tail
                 |> Maybe.withDefault []
-                |> List.map String.fromList
+                |> List.map String.concat
 
         nrOfWords =
             wordList |> List.length
@@ -222,23 +346,60 @@ border =
 
 main : Html msg
 main =
-    [ Element.none
-        |> Element.el
-            [ Element.width <| Element.fill
-            , Element.height <| Element.px 40
-            , inputText
-                |> String.toUpper
-                |> Element.text
+    [ case font of
+        Hebrew ->
+            Element.none
                 |> Element.el
-                    [ Font.family
-                        [ Font.typeface "Mycrazyfont"
-                        ]
-                    , Font.letterSpacing -10
-                    , Element.centerX
-                    , Font.size 100
+                    [ Element.width <| Element.fill
+                    , Element.height <| Element.px 60
+                    , inputText
+                        |> String.toUpper
+                        |> String.toList
+                        |> List.filterMap charToHebrew
+                        |> String.concat
+                        |> Element.text
+                        |> Element.el
+                            [ Font.family
+                                [ Font.typeface "Times New Roman"
+                                ]
+                            , Element.centerX
+                            , Font.size 100
+                            ]
+                        |> Element.inFront
                     ]
-                |> Element.inFront
-            ]
+
+        Mystical ->
+            Element.none
+                |> Element.el
+                    [ Element.width <| Element.fill
+                    , Element.height <| Element.px 40
+                    , inputText
+                        |> String.toUpper
+                        |> Element.text
+                        |> Element.el
+                            [ Font.family
+                                [ Font.typeface "Mycrazyfont"
+                                ]
+                            , Font.letterSpacing -10
+                            , Element.centerX
+                            , Font.size 100
+                            ]
+                        |> Element.inFront
+                    ]
+
+        GreekMagic ->
+            inputText
+                |> String.toUpper
+                |> String.words
+                |> List.map
+                    (String.toList
+                        >> List.filterMap (GreekMagicSymbols.fromChar 60 >> Maybe.map (Element.html >> Element.el []))
+                        >> Element.row [ Element.spacing 1 ]
+                    )
+                |> Element.wrappedRow [ Element.centerX ]
+                |> Element.el
+                    [ Element.width <| Element.fill
+                    ]
     , Element.none
         |> Element.el
             [ Element.height <| Element.px (sigilRadius * 2)
@@ -251,18 +412,47 @@ main =
                     ]
                 |> Element.behindContent
             ]
-    , [ inputText
-            |> String.toUpper
-            |> spell
-            |> Element.text
-            |> List.singleton
-            |> Element.paragraph
-                [ Font.family
-                    [ Font.typeface "Mycrazyfont"
-                    ]
-                , Font.size 20
-                , Font.center
-                ]
+    , [ case font of
+            Hebrew ->
+                inputText
+                    |> String.toUpper
+                    |> spell
+                    |> Element.text
+                    |> List.singleton
+                    |> Element.paragraph
+                        [ Font.family
+                            [ Font.typeface "Times New Roman"
+                            ]
+                        , Font.size 34
+                        , Font.center
+                        ]
+
+            Mystical ->
+                inputText
+                    |> String.toUpper
+                    |> spell
+                    |> Element.text
+                    |> List.singleton
+                    |> Element.paragraph
+                        [ Font.family
+                            [ Font.typeface "Mycrazyfont"
+                            ]
+                        , Font.size 20
+                        , Font.center
+                        , Font.letterSpacing -1
+                        ]
+
+            GreekMagic ->
+                inputText
+                    |> String.toUpper
+                    |> spell
+                    |> String.words
+                    |> List.map
+                        (String.toList
+                            >> List.filterMap (GreekMagicSymbols.fromChar 16 >> Maybe.map (Element.html >> Element.el []))
+                            >> Element.row [ Element.spacing 1, Element.paddingXY 0 2 ]
+                        )
+                    |> Element.wrappedRow [ Element.spaceEvenly, Element.centerX ]
       , inputText
             |> String.toLower
             |> readableSpell

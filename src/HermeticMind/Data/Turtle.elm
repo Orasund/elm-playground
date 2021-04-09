@@ -179,7 +179,7 @@ rotateLeftBy angle turtle =
                 |> Direction2d.rotateBy
                     (angle
                         |> Angle.inRadians
-                        |> (+) pi
+                        |> (-) (2 * pi)
                         |> Angle.radians
                     )
     }
