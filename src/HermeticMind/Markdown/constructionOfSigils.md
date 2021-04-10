@@ -2,9 +2,7 @@
   
   # Technical Paper Regarding the Construction of Sigils
   
-  <abstract>
   Sigils are symbols with an encoded meanings. While historically the different types of sigils are well known, its construction is sometimes missing. Here we present a collection of different types of sigil and different possible methods for constructing them.
-  </abstract>
 
   ## Origin of Magical Symbols
 
