@@ -44,8 +44,12 @@ _Designed by Hermetic Mind using the original construction but interpolating the
 </interactive>
 
 
-#### Construction by Hermetic Mind
+### Construction using Magic Squares
 
+A Common way for medieval sigils was to use a magic square. (See Magic Squares) One first transforming the letters of a word into numbers. (See Gematria for transforming jewish words) Next one connects the corresponding fields in the magic square, resulting in a symbol. Typically, a magic square of degree 3 is used and by computing the remainder of the division by 9 one can get a mapping from the alphabet to the fields of the square.
 
+<interactive name="MagicSquareSigil">
+_Designed by Hermetic Mind using a magic square of degree 6 in order to avoid the dividing process. Additionally, the alphabet gets order by the amount of occurences in the English dictionary. The graphics are licensed under [CC-BY-4.0](https://creativecommons.org/licenses/by/4.0/)._
+</interactive>
 
 </page>
