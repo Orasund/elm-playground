@@ -1,4 +1,4 @@
-module HermeticMind.BraidSigil exposing (..)
+module HermeticMind.SigilGenerator exposing (..)
 
 import Browser
 import Element
@@ -6,6 +6,7 @@ import Element.Background as Background
 import Element.Font as Font
 import HermeticMind.Data.Alphabet as Alphabet
 import HermeticMind.View.BraidSigil as BraidSigil
+import HermeticMind.View.MagicSquareSigil as MagicSquareSigil
 import Html exposing (Html)
 import List.Extra as List
 import Widget
@@ -18,6 +19,16 @@ import Widget.Material.Typography as Typography
 --------------------------------------------------------------------------------
 -- Config
 --------------------------------------------------------------------------------
+
+
+type SigilSort
+    = BraidSigil
+    | MagicSquareSigil
+
+
+sigilSort : SigilSort
+sigilSort =
+    MagicSquareSigil
 
 
 zoom : number
@@ -81,7 +92,7 @@ withText =
 
 withBorder : Bool
 withBorder =
-    False
+    True
 
 
 paths =
@@ -160,23 +171,40 @@ view : Model -> Html Msg
 view model =
     let
         viewFun =
-            BraidSigil.view
-                { width = width
-                , height = height
-                , radius = radius
-                , zoom = zoom
-                , asAlphabet =
-                    if isGerman then
-                        Alphabet.german
+            case sigilSort of
+                BraidSigil ->
+                    BraidSigil.view
+                        { width = width
+                        , height = height
+                        , radius = radius
+                        , zoom = zoom
+                        , asAlphabet =
+                            if isGerman then
+                                Alphabet.german
 
-                    else
-                        Alphabet.english
-                , withCircle = withCircle
-                , debugMode = debugMode
-                , withRunes = withRunes
-                , withText = withText
-                , withBorder = withBorder
-                }
+                            else
+                                Alphabet.english
+                        , withCircle = withCircle
+                        , debugMode = debugMode
+                        , withRunes = withRunes
+                        , withText = withText
+                        , withBorder = withBorder
+                        }
+
+                MagicSquareSigil ->
+                    MagicSquareSigil.view
+                        { size = width * 1.5
+                        , zoom = 1
+                        , strokeWidth = 5
+                        , alphabet =
+                            if isGerman then
+                                Alphabet.german
+
+                            else
+                                Alphabet.english
+                        , withText = withText
+                        , withBorder = withBorder
+                        }
     in
     if interactive then
         [ "Sigil Generator"

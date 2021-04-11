@@ -117,6 +117,8 @@ sigil =
                 , zoom = 1
                 , strokeWidth = 5
                 , alphabet = asAlphabet
+                , withText = False
+                , withBorder = False
                 }
 
 

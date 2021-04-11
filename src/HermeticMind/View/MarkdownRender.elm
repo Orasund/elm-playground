@@ -15,50 +15,78 @@ import Markdown.Html as Html
 import Markdown.Renderer exposing (Renderer)
 
 
-renderer : Renderer (Html msg)
-renderer =
+renderer : (String -> List (Html msg) -> Html msg) -> Renderer (Html msg)
+renderer interactive =
     { heading =
         \{ level, children } ->
             children
                 |> (let
                         attr =
-                            [ Css.fontFamilies [ "Dancing Script" ] ]
+                            []
+
+                        h1 =
+                            Html.h1
+                                [ Attributes.css <|
+                                    [ Css.fontSize (Css.px 36), Css.fontFamilies [ "Dancing Script" ] ]
+                                        ++ attr
+                                ]
+
+                        h2 =
+                            Html.h2
+                                [ Attributes.css <|
+                                    [ Css.fontSize (Css.px 24)
+                                    , Css.margin4 (Css.px 16) (Css.px 0) (Css.px 8) (Css.px 0)
+                                    , Css.fontFamilies [ "Dancing Script" ]
+                                    ]
+                                        ++ attr
+                                ]
+
+                        h3 =
+                            Html.h3
+                                [ Attributes.css <|
+                                    [ Css.fontSize (Css.px 18)
+                                    , Css.margin4 (Css.px 18) (Css.px 0) (Css.px 8) (Css.px 0)
+                                    ]
+                                        ++ attr
+                                ]
+
+                        h4 =
+                            Html.h4
+                                [ Attributes.css <|
+                                    [ Css.fontSize (Css.px 16)
+                                    , Css.margin2 (Css.px 0) (Css.px 0)
+                                    ]
+                                        ++ attr
+                                ]
                     in
                     case level of
                         Block.H1 ->
-                            Html.h1
-                                [ Attributes.css <|
-                                    [ Css.fontSize (Css.px 36) ]
-                                        ++ attr
-                                ]
+                            h1
 
                         Block.H2 ->
-                            Html.h2
-                                [ Attributes.css <|
-                                    [ Css.fontSize (Css.px 20) ]
-                                        ++ attr
-                                ]
+                            h2
 
                         Block.H3 ->
-                            Html.h3
-                                [ Attributes.css <|
-                                    [ Css.fontSize (Css.px 16) ]
-                                        ++ attr
-                                ]
+                            h3
 
                         Block.H4 ->
-                            Html.h4 [ Attributes.css <| [ Css.fontSize (Css.px 14) ] ++ attr ]
+                            h4
 
                         Block.H5 ->
-                            Html.h5 [ Attributes.css <| [ Css.fontSize (Css.px 14) ] ++ attr ]
+                            h4
 
                         Block.H6 ->
-                            Html.h6
-                                [ Attributes.css <| [ Css.fontSize (Css.px 14) ] ++ attr ]
+                            h4
                    )
 
     -- [Font.family [ Font.typeface "Dancing Script" ]]
-    , paragraph = Html.p []
+    , paragraph =
+        Html.p
+            [ Attributes.css
+                [ Css.textAlign Css.justify
+                , Css.margin2 (Css.px 8) (Css.px 0)
+                ]
+            ]
     , hardLineBreak = Html.br [] []
     , blockQuote = Html.blockquote []
     , strong =
@@ -159,6 +187,51 @@ renderer =
                         ]
                     ]
                 )
+            , Html.tag "interactive" interactive
+                |> Html.withAttribute "name"
+            , Html.tag "abstract" (Html.div [])
+            , Html.tag "image"
+                (\title height src _ ->
+                    [ Html.img
+                        ([ [ Attributes.src src
+                           , Attributes.alt title
+                           ]
+                         , height
+                            |> Maybe.map
+                                (String.toInt
+                                    >> Maybe.withDefault 0
+                                    >> Attributes.height
+                                    >> List.singleton
+                                )
+                            |> Maybe.withDefault []
+                         ]
+                            |> List.concat
+                        )
+                        []
+                        |> List.singleton
+                        |> Html.div
+                            [ [ Css.displayFlex
+                              , Css.justifyContent Css.center
+                              ]
+                                |> Attributes.css
+                            ]
+                    , title
+                        |> Html.text
+                        |> List.singleton
+                        |> Html.div
+                            [ [ Css.displayFlex
+                              , Css.justifyContent Css.center
+                              , Css.fontStyle Css.italic
+                              ]
+                                |> Attributes.css
+                            ]
+                    ]
+                        |> Html.div
+                            []
+                )
+                |> Html.withAttribute "title"
+                |> Html.withOptionalAttribute "height"
+                |> Html.withAttribute "src"
             ]
     , codeBlock =
         \{ body, language } ->
