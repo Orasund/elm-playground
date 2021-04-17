@@ -593,6 +593,14 @@ view { width, height, radius, withText, asAlphabet, withCircle, debugMode, withB
         uniqueList =
             list |> List.uniqueBy Index.toInt
 
+        fnBorder =
+            Turtle.andThen (Turtle.forwardBy pointSize)
+                >> Turtle.andThen (Turtle.arcRightBy { angle = Angle.radians <| pi, radius = pointSize })
+                >> Turtle.andThen (Turtle.forwardBy (pointSize * 4))
+                >> Turtle.andThen (Turtle.arcLeftBy { angle = Angle.radians <| pi * 3 / 2, radius = pointSize })
+                >> Turtle.andThen (Turtle.forwardBy (pointSize * 4))
+                >> Turtle.andThen (Turtle.arcRightBy { angle = Angle.radians <| pi, radius = pointSize })
+
         border =
             { position = Point2d.unsafe { x = width / 2, y = lineWidth * 2 }
             , direction = Direction2d.positiveX
@@ -623,13 +631,13 @@ view { width, height, radius, withText, asAlphabet, withCircle, debugMode, withB
                     ]
             }
                 |> Turtle.forwardBy (width / 2 - lineWidth * 2 + pointSize / 2)
-                |> Turtle.andThen (Turtle.arcLeftTo { direction = Direction2d.positiveY, radius = pointSize })
+                |> fnBorder
                 |> Turtle.andThen (Turtle.forwardBy (height - lineWidth * 4 + pointSize))
-                |> Turtle.andThen (Turtle.arcLeftTo { direction = Direction2d.negativeX, radius = pointSize })
+                |> fnBorder
                 |> Turtle.andThen (Turtle.forwardBy (width - lineWidth * 4 + pointSize))
-                |> Turtle.andThen (Turtle.arcLeftTo { direction = Direction2d.negativeY, radius = pointSize })
+                |> fnBorder
                 |> Turtle.andThen (Turtle.forwardBy (height - lineWidth * 4 + pointSize))
-                |> Turtle.andThen (Turtle.arcLeftTo { direction = Direction2d.positiveX, radius = pointSize })
+                |> fnBorder
                 |> Turtle.andThen (Turtle.forwardBy (width / 2 - lineWidth * 2 + pointSize / 2))
                 |> Tuple.second
     in

@@ -28,7 +28,7 @@ type SigilSort
 
 sigilSort : SigilSort
 sigilSort =
-    MagicSquareSigil
+    BraidSigil
 
 
 zoom : number
@@ -82,7 +82,7 @@ debugMode =
 
 withRunes : Bool
 withRunes =
-    True
+    False
 
 
 withText : Bool

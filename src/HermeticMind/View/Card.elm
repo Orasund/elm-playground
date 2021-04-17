@@ -1,4 +1,4 @@
-module HermeticMind.View.Card exposing (height, padding, radius, relative, view, width, zoom)
+module HermeticMind.View.Card exposing (height, padding, view,radius, relative, viewSymbol, width, zoom)
 
 import Angle
 import Circle2d
@@ -12,8 +12,9 @@ import Polygon2d
 import Polyline2d
 import Svg exposing (Svg)
 import Svg.Attributes as Attributes
-
-
+import Rectangle2d
+import Direction2d
+import HermeticMind.View.BinarySigil as BinarySigil
 
 --------------------------------------------------------------------------------
 -- Config
@@ -1291,8 +1292,8 @@ viewVirtue n =
             []
 
 
-view : Card -> List (Svg msg)
-view card =
+viewSymbol : Card -> List (Svg msg)
+viewSymbol card =
     case card of
         Trump n ->
             viewTrump n
@@ -1378,3 +1379,317 @@ view card =
 
         Back ->
             viewBack
+
+view : Card -> List (Svg msg)
+view card =
+    let
+        isWhite =
+            case card of
+                Binary 1 ->
+                    False
+
+                Back ->
+                    False
+
+                _ ->
+                    True
+
+        viewValue =
+            Card.value card
+                |> String.fromInt
+                |> Svg.text
+                |> List.singleton
+                |> Svg.text_
+                    [ Attributes.x <| String.fromFloat <| padding
+                    , Attributes.y <| String.fromFloat <| padding + relative 3
+                    , Attributes.textAnchor <| "middle"
+                    , Attributes.style <| "font: " ++ (String.fromFloat <| relative 5) ++ "px sans-serif"
+                    , Attributes.fill <|
+                        Card.color card
+                    ]
+    in
+    (Rectangle2d.from Point2d.origin (Point2d.pixels width height)
+        |> Svg.rectangle2d
+            [ Attributes.stroke "none"
+            , Attributes.strokeWidth <| String.fromFloat <| 0
+            , Attributes.fill <|
+                if isWhite then
+                    "white"
+
+                else
+                    Color.blackBackground
+            ]
+    )
+        :: (case card of
+                Joker ->
+                    { value = 0
+                    , size = 0
+                    , color = "black"
+                    , radius = relative <| 1 / 2
+                    , strokeWidth = relative <| 1 / 8
+                    , point = Point2d.pixels (width / 2) padding
+                    , direction =
+                        Direction2d.positiveX
+                    }
+                        |> BinarySigil.view
+
+                Trump _ ->
+                    []
+
+                Element n ->
+                    { value =
+                        {--case n of
+                            1 ->
+                                2
+
+                            2 ->
+                                3
+
+                            3 ->
+                                1
+
+                            4 ->
+                                0
+
+                            _ ->
+                                0--}
+                        Card.value card
+                    , size = 2
+                    , color = "black"
+                    , radius = relative <| 1 / 2
+                    , strokeWidth = relative <| 1 / 8
+                    , point = Point2d.pixels (width / 2) padding
+                    , direction =
+                        Direction2d.positiveX
+                    }
+                        |> BinarySigil.view
+
+                Planet _ ->
+                    { value = Card.value card - 1
+                    , size = 3
+                    , color = "black"
+                    , radius = relative <| 1 / 2
+                    , strokeWidth = relative <| 1 / 8
+                    , point = Point2d.pixels (width / 2) padding
+                    , direction =
+                        Direction2d.positiveX
+                    }
+                        |> BinarySigil.view
+
+                Binary n ->
+                    case n of
+                        0 ->
+                            { value = n
+                            , size = 1
+                            , color = "black"
+                            , radius = relative <| 1 / 2
+                            , strokeWidth = relative <| 1 / 8
+                            , point = Point2d.pixels (width / 2) padding
+                            , direction =
+                                Direction2d.positiveX
+                            }
+                                |> BinarySigil.view
+
+                        1 ->
+                            { value = n
+                            , size = 1
+                            , color = "white"
+                            , radius = relative <| 1 / 2
+                            , strokeWidth = relative <| 1 / 8
+                            , point = Point2d.pixels (width / 2) padding
+                            , direction =
+                                Direction2d.positiveX
+                            }
+                                |> BinarySigil.view
+
+                        _ ->
+                            []
+
+                Virtue _ ->
+                    { value = Card.value card - 1
+                    , size = 4
+                    , color = "black"
+                    , radius = relative <| 1 / 2
+                    , strokeWidth = relative <| 1 / 8
+                    , point = Point2d.pixels (width / 2) padding
+                    , direction =
+                        Direction2d.positiveX
+                    }
+                        |> BinarySigil.view
+
+                _ ->
+                    []
+           )
+        ++ (case card of
+                Planet _ ->
+                    []
+
+                Element _ ->
+                    [ Polyline2d.fromVertices
+                        [ Point2d.pixels 0 (padding + radius)
+                        , Point2d.pixels 0 0
+                        , Point2d.pixels (padding + radius) 0
+                        ]
+                        |> Svg.polyline2d
+                            [ Attributes.stroke <| "none"
+                            , Attributes.strokeWidth <| String.fromFloat <| relative <| 0.1
+                            , Attributes.fill "black"
+                            ]
+                    , Polyline2d.fromVertices
+                        [ Point2d.pixels (width - padding - radius) 0
+                        , Point2d.pixels width 0
+                        , Point2d.pixels width (padding + radius)
+                        ]
+                        |> Svg.polyline2d
+                            [ Attributes.stroke <| "none"
+                            , Attributes.strokeWidth <| String.fromFloat <| relative <| 0.1
+                            , Attributes.fill "black"
+                            ]
+                    , Polyline2d.fromVertices
+                        [ Point2d.pixels width (height - padding - radius)
+                        , Point2d.pixels width height
+                        , Point2d.pixels (width - padding - radius) height
+                        ]
+                        |> Svg.polyline2d
+                            [ Attributes.stroke <| "none"
+                            , Attributes.strokeWidth <| String.fromFloat <| relative <| 0.1
+                            , Attributes.fill "black"
+                            ]
+                    , Polyline2d.fromVertices
+                        [ Point2d.pixels (padding + radius) height
+                        , Point2d.pixels 0 height
+                        , Point2d.pixels 0 (height - padding - radius)
+                        ]
+                        |> Svg.polyline2d
+                            [ Attributes.stroke <| "none"
+                            , Attributes.strokeWidth <| String.fromFloat <| relative <| 0.1
+                            , Attributes.fill "black"
+                            ]
+                    ]
+
+                Binary _ ->
+                    [ Polyline2d.fromVertices
+                        [ Point2d.pixels (12 * 7) (12 * 7)
+                        , Point2d.pixels (12 * 7 + radius * 2) (12 * 7)
+                        ]
+                    , Polyline2d.fromVertices
+                        [ Point2d.pixels (width - 12 * 7 - radius * 2) (12 * 7)
+                        , Point2d.pixels (width - 12 * 7) (12 * 7)
+                        ]
+                    , Polyline2d.fromVertices
+                        [ Point2d.pixels (width - 12 * 7) (12 * 7)
+                        , Point2d.pixels (width - 12 * 7) (12 * 7 + radius * 2)
+                        ]
+                    , Polyline2d.fromVertices
+                        [ Point2d.pixels (width - 12 * 7) (height - 12 * 7 - radius * 2)
+                        , Point2d.pixels (width - 12 * 7) (height - 12 * 7)
+                        ]
+                    , Polyline2d.fromVertices
+                        [ Point2d.pixels (width - 12 * 7) (height - 12 * 7)
+                        , Point2d.pixels (width - 12 * 7 - radius * 2) (height - 12 * 7)
+                        ]
+                    , Polyline2d.fromVertices
+                        [ Point2d.pixels (12 * 7 + radius * 2) (height - 12 * 7)
+                        , Point2d.pixels (12 * 7) (height - 12 * 7)
+                        ]
+                    , Polyline2d.fromVertices
+                        [ Point2d.pixels (12 * 7) (height - 12 * 7)
+                        , Point2d.pixels (12 * 7) (height - 12 * 7 - radius * 2)
+                        ]
+                    , Polyline2d.fromVertices
+                        [ Point2d.pixels (12 * 7) (12 * 7 + radius * 2)
+                        , Point2d.pixels (12 * 7) (12 * 7)
+                        ]
+                    ]
+                        |> List.map
+                            (Svg.polyline2d
+                                [ Attributes.stroke <| Card.color card
+                                , Attributes.strokeWidth <| String.fromFloat <| relative <| 0.1
+                                , Attributes.fill <| "none"
+                                ]
+                            )
+
+                Trump _ ->
+                    [ Polyline2d.fromVertices
+                        [ Point2d.pixels (12 * 7) (12 * 7)
+                        , Point2d.pixels (width - 12 * 7) (12 * 7)
+                        ]
+                    , Polyline2d.fromVertices
+                        [ Point2d.pixels (width - 12 * 7) (height - 12 * 7)
+                        , Point2d.pixels (12 * 7) (height - 12 * 7)
+                        ]
+                    , Polyline2d.fromVertices
+                        [ Point2d.pixels (12 * 7) (height - 12 * 7)
+                        , Point2d.pixels (12 * 7) (height - 12 * 7 - relative 1)
+                        ]
+                    , Polyline2d.fromVertices
+                        [ Point2d.pixels (12 * 7) (12 * 7 + relative 1)
+                        , Point2d.pixels (12 * 7) (12 * 7)
+                        ]
+                    , Polyline2d.fromVertices
+                        [ Point2d.pixels (width - 12 * 7) (12 * 7)
+                        , Point2d.pixels (width - 12 * 7) (12 * 7 + relative 1)
+                        ]
+                    , Polyline2d.fromVertices
+                        [ Point2d.pixels (width - 12 * 7) (height - 12 * 7 - relative 1)
+                        , Point2d.pixels (width - 12 * 7) (height - 12 * 7)
+                        ]
+                    ]
+                        |> List.map
+                            (Svg.polyline2d
+                                [ Attributes.stroke <| Card.color card
+                                , Attributes.strokeWidth <| String.fromFloat <| relative <| 0.1
+                                , Attributes.fill <| "none"
+                                , Attributes.strokeLinecap <| "square"
+                                ]
+                            )
+
+                _ ->
+                    Rectangle2d.from
+                        (Point2d.pixels (12 * 7) (12 * 7))
+                        (Point2d.pixels (width - 12 * 7) (height - 12 * 7))
+                        |> Svg.rectangle2d
+                            [ Attributes.stroke <| Card.color card
+                            , Attributes.strokeWidth <| String.fromFloat <| relative <| 0.1
+                            , Attributes.fill <| "none"
+                            ]
+                        |> List.singleton
+           )
+        ++ viewSymbol card
+        ++ ((card
+                |> Card.description
+                |> Svg.text
+                |> List.singleton
+                |> Svg.text_
+                    [ Attributes.x <| String.fromFloat <| width / 2
+                    , Attributes.y <| String.fromFloat <| height - padding - relative 3
+                    , Attributes.textAnchor <| "middle"
+                    , Attributes.style <| "font: " ++ (String.fromFloat <| relative <| 3) ++ "px sans-serif"
+                    , Attributes.fill <|
+                        if isWhite then
+                            "black"
+
+                        else
+                            "white"
+                    ]
+            )
+                :: (card
+                        |> Card.title
+                        |> Svg.text
+                        |> List.singleton
+                        |> Svg.text_
+                            [ Attributes.x <| String.fromFloat <| width - padding - (relative <| 0.6)
+                            , Attributes.y <| String.fromFloat <| padding
+                            , Attributes.textAnchor <| "start"
+                            , Attributes.style <| "font: " ++ (String.fromFloat <| relative <| 1.8) ++ "px sans-serif"
+                            , Attributes.writingMode <| "tb"
+                            , Attributes.fill <|
+                                if isWhite then
+                                    "black"
+
+                                else
+                                    "white"
+                            ]
+                        |> List.singleton
+                   )
+           )

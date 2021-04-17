@@ -1,4 +1,4 @@
-module HermeticMind.Data.Card exposing (Card(..), color, description, title, value)
+module HermeticMind.Data.Card exposing (Card(..), asList, back, color, description, title, value)
 
 import HermeticMind.View.Color as Color
 
@@ -11,6 +11,32 @@ type Card
     | Virtue Int
     | Joker
     | Back
+
+
+asList : List Card
+asList =
+    [ Binary 0, Binary 1, Joker ]
+        |> List.append
+            (List.range 1 16
+                |> List.map Virtue
+            )
+        |> List.append
+            ([ 1, 2, 5, 8, 9, 10, 12, 15, 18 ]
+                |> List.map Trump
+            )
+        |> List.append
+            ([ Element ]
+                |> List.concatMap (\fun -> List.range 1 4 |> List.map fun)
+            )
+        |> List.append
+            ([ Planet ]
+                |> List.concatMap (\fun -> List.range 1 8 |> List.map fun)
+            )
+
+
+back : Card
+back =
+    Back
 
 
 color : Card -> String
