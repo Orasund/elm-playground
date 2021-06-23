@@ -1,4 +1,4 @@
-module GreenFields.View.Color exposing (black, green, white)
+module GreenFields.View.Color exposing (black, green, lightGray, lightGreen, lightRed, white)
 
 import Color exposing (Color)
 
@@ -16,6 +16,21 @@ green =
 black : Color
 black =
     Color.rgb255 84 106 123
+
+
+lightGreen : Color
+lightGreen =
+    Color.rgb255 179 208 195
+
+
+lightGray : Color
+lightGray =
+    Color.rgb255 205 205 205
+
+
+lightRed : Color
+lightRed =
+    Color.rgb255 240 197 188
 
 
 

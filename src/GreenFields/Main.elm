@@ -1,136 +1,73 @@
 module GreenFields.Main exposing (main)
 
 import Browser
-import Color as C
-import Element
-import Element.Background as Background
-import Element.Border as Border
-import Element.Font as Font
-import GreenFields.Data.Building as Building
-import GreenFields.Data.Game as Game exposing (Game)
-import GreenFields.View.Card as Card
-import GreenFields.View.Color as Color
-import GreenFields.View.Tile as Tile
+import GreenFields.Page.InGame as InGame
+import GreenFields.Page.Lobby as Lobby
 import Html exposing (Html)
-import Task
-import Time exposing (Posix)
 
 
-type alias Model =
-    { game : Game
-    , center : ( Int, Int )
-    , selected : Maybe ( Int, Int )
-    , timestamp : Posix
-    }
+type Model
+    = InGame InGame.Model
+    | Lobby Lobby.Model
 
 
 type Msg
-    = Restart
-    | Select ( Int, Int )
-    | Restore ( Int, Int )
-    | GotTime Posix
+    = WhileInGame InGame.Msg
+    | WhileInLobby Lobby.Msg
 
 
 init : () -> ( Model, Cmd Msg )
 init () =
-    ( { game = Game.empty
-      , center = ( 0, 0 )
-      , selected = Nothing
-      , timestamp = Time.millisToPosix 0
-      }
-    , Task.perform GotTime Time.now
-    )
+    Lobby.init ()
+        |> Tuple.mapBoth Lobby (Cmd.map WhileInLobby)
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    case msg of
-        GotTime timestamp ->
-            ( { model | timestamp = timestamp }, Cmd.none )
+    case ( msg, model ) of
+        ( WhileInGame mg, InGame ml ) ->
+            InGame.update
+                { modelMapper = InGame
+                , restart = init ()
+                , msgMapper = WhileInGame
+                }
+                mg
+                ml
 
-        Select pos ->
-            ( { model | selected = Just pos }, Cmd.none )
+        ( WhileInLobby mg, Lobby ml ) ->
+            Lobby.update
+                { modelMapper = Lobby
+                , upgrade = InGame.init >> InGame
+                }
+                mg
+                ml
+                |> Tuple.mapSecond (Cmd.map WhileInLobby)
 
-        Restore pos ->
-            ( { model
-                | game =
-                    model.game
-                        |> Game.restore
-                            { position = pos
-                            , timestamp = model.timestamp
-                            }
-              }
-            , Cmd.none
-            )
-
-        Restart ->
-            init ()
+        _ ->
+            ( model, Cmd.none )
 
 
 view : Model -> Html Msg
 view model =
-    let
-        size =
-            20
+    case model of
+        InGame ml ->
+            InGame.view ml
+                |> Html.map WhileInGame
 
-        ( centerX, centerY ) =
-            model.center
-    in
-    [ List.range (centerY - size // 2) (centerY + size // 2)
-        |> List.map
-            (\y ->
-                List.range (centerX - size // 2) (centerX + size // 2)
-                    |> List.map
-                        (\x ->
-                            Tile.view
-                                { game = model.game
-                                , pos = ( x, y )
-                                , onClick = Select ( x, y )
-                                , timestamp = model.timestamp
-                                }
-                        )
-                    |> Element.row [ Element.spacing 2 ]
-            )
-        |> Element.column
-            [ Element.spacing 2
-            , Element.alignRight
-            , Element.centerY
-            ]
-        |> Element.el
-            [ Element.width <| Element.fill
-            , Element.height <| Element.fill
-            ]
-    , Card.view
-        { selected = model.selected
-        , game = model.game
-        , onRestore =
-            model.selected
-                |> Maybe.map Restore
-                |> Maybe.withDefault Restart
-        }
-        |> Element.el
-            [ Element.width <| Element.fill
-            , Element.height <| Element.fill
-            ]
-    ]
-        |> Element.row
-            [ Element.width <| Element.fill
-            , Element.centerY
-            , Element.spacing 2
-            ]
-        |> Element.layout
-            [ Color.green
-                |> C.toRgba
-                |> Element.fromRgb
-                |> Background.color
-            , Font.size 14
-            , Font.family [ Font.monospace ]
-            ]
+        Lobby ml ->
+            Lobby.view ml |> Html.map WhileInLobby
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    case model of
+        InGame ml ->
+            InGame.subscriptions ml
+                |> Sub.map WhileInGame
+
+        Lobby ml ->
+            Lobby.subscriptions ml
+                |> Sub.map WhileInLobby
 
 
 main : Program () Model Msg

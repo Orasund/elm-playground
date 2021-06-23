@@ -2,7 +2,6 @@ module GreenFields.View.Tile exposing (view)
 
 import Color as C
 import Css exposing (backgroundColor)
-import Dict
 import Element exposing (Element)
 import Element.Background as Background
 import Element.Border as Border
@@ -10,10 +9,9 @@ import Element.Font as Font
 import Element.Input as Input
 import GreenFields.Data.Building as Building
 import GreenFields.Data.Game as Game exposing (Game)
-import GreenFields.Data.Tile as Tile exposing (Tile)
+import GreenFields.Data.Tile as Tile
 import GreenFields.View.Color as Color
 import Time exposing (Posix)
-import Time.Extra as Time
 
 
 view : { game : Game, pos : ( Int, Int ), onClick : msg, timestamp : Posix } -> Element msg
@@ -23,20 +21,25 @@ view arg =
             arg.game
                 |> Game.getTile arg.pos
 
-        isOld tile =
-            tile.timestamp
-                |> Debug.log "tile"
-                |> Time.addHours 1
-                |> Time.compare (arg.timestamp |> Debug.log "timestamp")
-                |> (==) GT
-
         onClick =
             case maybeTile of
                 Just tile ->
                     if
-                        isOld tile
-                            && ((arg.game |> Game.getNeighbors arg.pos |> List.isEmpty |> not)
+                        (Tile.isOld arg.timestamp tile
+                            && ((arg.game
+                                    |> Game.getNeighbors arg.pos
+                                    |> List.filter
+                                        (\( _, pos ) ->
+                                            arg.game |> Game.isActive pos
+                                        )
+                                    |> List.isEmpty
+                                    |> not
+                                )
                                     || (arg.game |> Game.hasNoActives)
+                               )
+                        )
+                            || ((Tile.isOld arg.timestamp tile |> not)
+                                    && (arg.game |> Game.isActive arg.pos)
                                )
                     then
                         Just arg.onClick
@@ -45,7 +48,15 @@ view arg =
                         Nothing
 
                 Nothing ->
-                    if arg.game |> Game.getNeighbors arg.pos |> List.isEmpty then
+                    if
+                        arg.game
+                            |> Game.getNeighbors arg.pos
+                            |> List.filter
+                                (\( _, pos ) ->
+                                    arg.game |> Game.isActive pos
+                                )
+                            |> List.isEmpty
+                    then
                         Nothing
 
                     else
@@ -54,21 +65,27 @@ view arg =
         { backgroundColor, textColor, borderColor } =
             case maybeTile of
                 Just tile ->
-                    if isOld tile then
+                    if tile |> Tile.isOld arg.timestamp then
                         { backgroundColor = Color.green
                         , borderColor =
                             if onClick == Nothing then
                                 Color.green
 
                             else
-                                Color.white
-                        , textColor = Color.white
+                                Building.color tile.building
+                        , textColor = Building.color tile.building
+                        }
+
+                    else if arg.game |> Game.isActive arg.pos then
+                        { backgroundColor = Building.color tile.building
+                        , borderColor = Color.white
+                        , textColor = Color.black
                         }
 
                     else
-                        { backgroundColor = Color.white
-                        , borderColor = Color.white
-                        , textColor = Color.black
+                        { backgroundColor = Color.black
+                        , borderColor = Color.black
+                        , textColor = Building.color tile.building
                         }
 
                 Nothing ->
