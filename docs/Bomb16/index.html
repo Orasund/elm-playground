@@ -14209,6 +14209,35 @@ var $Orasund$elm_ui_widgets$Widget$row = function () {
 	var fun = $Orasund$elm_ui_widgets$Internal$List$row;
 	return fun;
 }();
+var $author$project$Bomb16$View$Color$black = A3($avh4$elm_color$Color$rgb255, 117, 115, 150);
+var $avh4$elm_color$Color$hsla = F4(
+	function (hue, sat, light, alpha) {
+		var _v0 = _Utils_Tuple3(hue, sat, light);
+		var h = _v0.a;
+		var s = _v0.b;
+		var l = _v0.c;
+		var m2 = (l <= 0.5) ? (l * (s + 1)) : ((l + s) - (l * s));
+		var m1 = (l * 2) - m2;
+		var hueToRgb = function (h__) {
+			var h_ = (h__ < 0) ? (h__ + 1) : ((h__ > 1) ? (h__ - 1) : h__);
+			return ((h_ * 6) < 1) ? (m1 + (((m2 - m1) * h_) * 6)) : (((h_ * 2) < 1) ? m2 : (((h_ * 3) < 2) ? (m1 + (((m2 - m1) * ((2 / 3) - h_)) * 6)) : m1));
+		};
+		var b = hueToRgb(h - (1 / 3));
+		var g = hueToRgb(h);
+		var r = hueToRgb(h + (1 / 3));
+		return A4($avh4$elm_color$Color$RgbaSpace, r, g, b, alpha);
+	});
+var $avh4$elm_color$Color$hsl = F3(
+	function (h, s, l) {
+		return A4($avh4$elm_color$Color$hsla, h, s, l, 1.0);
+	});
+var $author$project$Bomb16$View$Color$fromInt = function (n) {
+	return A3(
+		$avh4$elm_color$Color$hsl,
+		0.608,
+		0.1 * A2($elm$core$Basics$logBase, 2, n),
+		0.9 - (0.02 * A2($elm$core$Basics$logBase, 2, n)));
+};
 var $mdgriffith$elm_ui$Element$spaceEvenly = A2($mdgriffith$elm_ui$Internal$Model$Class, $mdgriffith$elm_ui$Internal$Flag$spacing, $mdgriffith$elm_ui$Internal$Style$classes.spaceEvenly);
 var $author$project$Bomb16$View$Cell$internal = function (_v0) {
 	var text = _v0.text;
@@ -14301,6 +14330,7 @@ var $author$project$Bomb16$View$Cell$internal = function (_v0) {
 			]),
 		{label: label, onPress: onPress});
 };
+var $author$project$Bomb16$View$Color$red = A3($avh4$elm_color$Color$rgb255, 216, 140, 154);
 var $author$project$Bomb16$Data$Cell$toString = function (cell) {
 	switch (cell.$) {
 		case 'Effect':
@@ -14334,7 +14364,28 @@ var $author$project$Bomb16$View$Cell$view = F3(
 			$elm$core$Maybe$withDefault,
 			_Utils_Tuple2(tree, ''),
 			A2($elm$core$Maybe$map, $author$project$Bomb16$Data$Cell$toString, maybeCell));
-		var color = $elm$core$Maybe$Nothing;
+		var color = function () {
+			_v1$3:
+			while (true) {
+				if (maybeCell.$ === 'Just') {
+					switch (maybeCell.a.$) {
+						case 'Monster':
+							var _int = maybeCell.a.a;
+							return $elm$core$Maybe$Just(
+								$author$project$Bomb16$View$Color$fromInt(_int));
+						case 'Wall':
+							return $elm$core$Maybe$Just($author$project$Bomb16$View$Color$black);
+						case 'Bomb':
+							return $elm$core$Maybe$Just($author$project$Bomb16$View$Color$red);
+						default:
+							break _v1$3;
+					}
+				} else {
+					break _v1$3;
+				}
+			}
+			return $elm$core$Maybe$Nothing;
+		}();
 		return $author$project$Bomb16$View$Cell$internal(
 			{
 				background: color,

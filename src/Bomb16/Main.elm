@@ -127,7 +127,7 @@ update msg model =
                                 Random.step
                                     (game.world
                                         |> World.add
-                                            { cell = Cell.generate level
+                                            { cell = Cell.generate
                                             , direction = process.direction
                                             }
                                     )
@@ -257,16 +257,10 @@ view model =
                         , Element.spacing 4
                         , Font.family [ Font.serif ]
                         ]
-        , content =
-            \{ size } ->
-                Element.none
+        , content = always Element.none
         }
         :: (model.game.world
-                |> Grid.view
-                    { food = model.game.score
-                    , tree = ""
-                    , onPress = Just >> Move
-                    }
+                |> Grid.view ""
            )
         ++ [ Widget.insetItem
                 (Material.insetItem Material.defaultPalette

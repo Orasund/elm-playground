@@ -1,29 +1,20 @@
 module Bomb16.View.Grid exposing (view)
 
-import Color
-import Dict exposing (Dict)
 import Bomb16.Data.Cell as Cell exposing (Cell(..))
-import Bomb16.Data.Input exposing (Direction)
 import Bomb16.Data.World as World
 import Bomb16.View.Cell as Cell
+import Color
+import Dict exposing (Dict)
 import Element
 import Element.Border as Border
 import Widget
 
 
-firstIndex : { screenSize : Int, playerIndex : Int } -> Int
-firstIndex { screenSize, playerIndex } =
-    playerIndex - screenSize // 2
-
-
 view :
-    { food : Int
-    , tree : String
-    , onPress : Direction -> msg
-    }
+    String
     -> Dict ( Int, Int ) Cell
     -> List (Widget.Item msg)
-view { tree, food, onPress } dict =
+view tree dict =
     let
         screenSize =
             World.size

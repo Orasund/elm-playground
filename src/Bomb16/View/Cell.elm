@@ -2,7 +2,7 @@ module Bomb16.View.Cell exposing (view, viewPlayer)
 
 import Bomb16.Data.Cell as Cell exposing (Cell(..))
 import Bomb16.View.Color as Color
-import Color exposing (Color)
+import Color as C exposing (Color)
 import Element exposing (Element)
 import Element.Background as Background
 import Element.Font as Font
@@ -39,7 +39,18 @@ view tree onPress maybeCell =
                 |> Maybe.withDefault ( tree, "" )
 
         color =
-            Nothing
+            case maybeCell of
+                Just (Monster int) ->
+                    Just <| Color.fromInt int
+
+                Just (Wall _) ->
+                    Just <| Color.black
+
+                Just (Bomb _) ->
+                    Just <| Color.red
+
+                _ ->
+                    Nothing
     in
     internal
         { text = text
@@ -128,7 +139,7 @@ internal { text, background, dynamicSized, onPress } =
                      ]
                         ++ (background
                                 |> Maybe.map
-                                    (Color.toRgba
+                                    (C.toRgba
                                         >> Element.fromRgb
                                         >> Background.color
                                         >> List.singleton

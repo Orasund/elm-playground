@@ -11,8 +11,8 @@ type Cell
     | Bomb Int
 
 
-generate : Int -> Generator Cell
-generate level =
+generate : Generator Cell
+generate =
     Random.weighted ( 1, Wall 1 )
         [ ( 1, Bomb 2 )
         , ( 8, Monster 1 )
