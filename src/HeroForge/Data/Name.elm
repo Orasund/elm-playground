@@ -1,4 +1,4 @@
-module Katakomben.Data.Name exposing (generate)
+module HeroForge.Data.Name exposing (generate)
 
 import Random exposing (Generator)
 
