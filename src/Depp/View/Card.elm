@@ -1,40 +1,32 @@
 module Depp.View.Card exposing (toString, view, withActions)
 
 import Cards exposing (Face(..), Suit(..))
-import Depp.Data.Deck as Deck
-import Depp.Data.Game as Game exposing (Action, Card)
+import Depp.Data.Deck as Deck exposing (Card)
+import Depp.Data.Game as Game exposing (Action, Game)
 import Depp.View as View
 import Html exposing (Html)
 import List.Extra as List
 import UndoList.Decode exposing (msg)
 
 
-toString : Card -> String
-toString ( suit, face ) =
-    if Deck.isTrump suit then
-        "Joker"
-
-    else
-        Deck.suitToString suit ++ String.fromInt (Game.value ( suit, face ))
+toString : Game -> Card -> String
+toString game card =
+    Deck.suitToString card.suit ++ (card |> Game.value game |> String.fromInt)
 
 
-
---Deck.suitToString suit ++ Deck.faceToString face
-
-
-view : Card -> Html msg
-view card =
+view : Game -> Card -> Html msg
+view game card =
     card
-        |> toString
+        |> toString game
         |> Html.text
         |> List.singleton
         |> Html.div []
 
 
-withActions : List { label : String, onClick : Maybe msg } -> Card -> Html msg
-withActions list card =
+withActions : List { label : String, onClick : Maybe msg } -> Game -> Card -> Html msg
+withActions list game card =
     list
-        |> View.actionGroup (toString card)
+        |> View.actionGroup (toString game card)
         |> List.singleton
         |> Html.p []
         |> List.singleton

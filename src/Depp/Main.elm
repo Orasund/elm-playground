@@ -1,10 +1,15 @@
 module Depp.Main exposing (main)
 
 import Browser exposing (Document)
+import Depp.Data.Deck as Deck
 import Depp.Data.Game as Game exposing (Action, Game)
+import Depp.Data.Rule as Rule
 import Depp.View as View
 import Depp.View.Action as Action
 import Depp.View.Card as Card
+import Dict.Any as AnyDict
+import Html
+import List.Extra as List
 import Random exposing (Seed)
 import Set.Any as AnySet exposing (AnySet)
 
@@ -54,10 +59,13 @@ view model =
                     (\action ->
                         case action of
                             Game.PlayCard args ->
-                                Game.value args.hand
+                                Game.value model.game args.hand
 
-                            Game.Redraw _ ->
-                                0
+                            Game.SwapCards args ->
+                                Game.value model.game args.hand
+
+                            Game.Redraw card ->
+                                Game.value model.game card
                     )
     in
     { title = "Depp Card Game"
@@ -65,7 +73,7 @@ view model =
         [ View.stylesheet
         , model.game.hand
             |> AnySet.toList
-            |> List.map Card.view
+            |> List.map (Card.view model.game)
             |> View.collection "Hand"
         , model.game.board
             |> AnySet.toList
@@ -79,7 +87,17 @@ view model =
                                         case action of
                                             Game.PlayCard args ->
                                                 if args.board == card then
-                                                    { label = "Play " ++ Card.toString args.hand
+                                                    { label = "Play " ++ Card.toString model.game args.hand
+                                                    , onClick = Just (PlayAction action)
+                                                    }
+                                                        |> Just
+
+                                                else
+                                                    Nothing
+
+                                            Game.SwapCards args ->
+                                                if args.board == card then
+                                                    { label = "Swap " ++ Card.toString model.game args.hand
                                                     , onClick = Just (PlayAction action)
                                                     }
                                                         |> Just
@@ -90,12 +108,40 @@ view model =
                                             _ ->
                                                 Nothing
                                     )
-                                |> List.take 1
+                             --|> List.take 1
                             )
+                            model.game
                 )
-            |> View.collection ("Board (" ++ (model.game.drawPile |> List.length |> String.fromInt) ++ " remaining)")
+            |> View.collection
+                ("Board (remaining: "
+                    ++ (model.game.drawPile
+                            |> List.map .suit
+                            |> List.gatherEquals
+                            |> List.map
+                                (\( s, l ) ->
+                                    (l
+                                        |> List.length
+                                        |> (+) 1
+                                        |> String.fromInt
+                                    )
+                                        ++ " of "
+                                        ++ Deck.suitToString s
+                                )
+                            |> String.join ", "
+                       )
+                    ++ ")"
+                )
+        , model.game.rules
+            |> AnyDict.keys
+            |> List.map
+                (\rule ->
+                    rule
+                        |> Rule.toString
+                        |> Html.text
+                )
+            |> View.listing "Rules"
         , actions
-            |> List.map (Action.view PlayAction)
+            |> List.map (Action.view model.game PlayAction)
             |> (::) { label = "New Game", onClick = Just (Restart model.seed) }
             |> View.actionGroup "List of all possible Actions"
         ]

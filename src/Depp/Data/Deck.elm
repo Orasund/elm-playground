@@ -1,4 +1,4 @@
-module Depp.Data.Deck exposing (Deck, faceToInt, faceToString, isTrump, new, suitToInt, suitToString)
+module Depp.Data.Deck exposing (Card, Deck, cardToComparable, faceToInt, faceToString, new, suitToInt, suitToString, trump)
 
 import Array exposing (Array)
 import Cards exposing (Face(..), Suit(..))
@@ -6,29 +6,42 @@ import Random exposing (Generator)
 import Random.List
 
 
+type alias Card =
+    { suit : Suit, face : Face }
+
+
 type alias Deck =
-    List ( Suit, Face )
+    List Card
 
 
-isTrump : Suit -> Bool
-isTrump =
-    (==) Hearts
+cardToComparable : Card -> ( Int, Int )
+cardToComparable card =
+    ( suitToInt card.suit, faceToInt card.face )
+
+
+trump : Suit
+trump =
+    Hearts
 
 
 suitToString : Suit -> String
 suitToString suit =
-    case suit of
-        Spades ->
-            "♠"
+    if suit == trump then
+        "☆"
 
-        Diamonds ->
-            "♦"
+    else
+        case suit of
+            Spades ->
+                "♠"
 
-        Clubs ->
-            "♣"
+            Diamonds ->
+                "♦"
 
-        Hearts ->
-            "♥"
+            Clubs ->
+                "♣"
+
+            Hearts ->
+                "♥"
 
 
 suitToInt : Suit -> Int
@@ -170,6 +183,6 @@ new =
             (\suit ->
                 List.range 0 9
                     |> List.filterMap (\i -> faces |> Array.get i)
-                    |> List.map (\face -> ( suit, face ))
+                    |> List.map (\face -> { suit = suit, face = face })
             )
         |> Random.List.shuffle

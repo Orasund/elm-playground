@@ -56,6 +56,7 @@
             "stephenreddek/elm-emoji": "1.0.0",
             "stoeffel/set-extra": "1.2.3",
             "sudo-rushil/elm-cards": "3.2.0",
+            "turboMaCk/any-dict": "2.4.0",
             "turboMaCk/any-set": "1.4.0",
             "turboMaCk/non-empty-list-alias": "1.1.0",
             "turboMaCk/queue": "1.1.0",
@@ -74,8 +75,7 @@
             "ianmackenzie/elm-triangular-mesh": "1.1.0",
             "ianmackenzie/elm-units-interval": "2.3.0",
             "justinmimbs/timezone-data": "2.1.4",
-            "rtfeldman/elm-hex": "1.0.0",
-            "turboMaCk/any-dict": "2.4.0"
+            "rtfeldman/elm-hex": "1.0.0"
         }
     },
     "test-dependencies": {

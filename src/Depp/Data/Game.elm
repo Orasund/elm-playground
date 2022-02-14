@@ -1,30 +1,31 @@
-module Depp.Data.Game exposing (Action(..), Card, Game, actions, isWon, new, play, value)
+module Depp.Data.Game exposing (Action(..), Game, actions, isWon, new, play, value)
 
 import Array exposing (Array)
 import Cards exposing (Face(..), Suit(..))
 import Depp.Config as Config
-import Depp.Data.Deck as Deck
+import Depp.Data.Deck as Deck exposing (Card)
+import Depp.Data.Rule as Rule exposing (ClubsRule(..), DiamondsRule(..), HeartsRule(..), Rule(..))
+import Dict.Any as AnyDict exposing (AnyDict)
 import Emojidojo.String exposing (game)
 import List.Extra as List
 import Maybe.Extra as Maybe
 import Random exposing (Generator)
 import Random.List
 import Set.Any as AnySet exposing (AnySet)
-
-
-type alias Card =
-    ( Suit, Face )
+import Time exposing (Month(..))
 
 
 type alias Game =
     { drawPile : List Card
     , board : AnySet ( Int, Int ) Card
     , hand : AnySet ( Int, Int ) Card
+    , rules : AnyDict String Rule Suit
     }
 
 
 type Action
     = PlayCard { hand : Card, board : Card }
+    | SwapCards { hand : Card, board : Card }
     | Redraw Card
 
 
@@ -40,8 +41,9 @@ new =
                             |> Tuple.mapSecond (List.splitAt Config.cardAmountInHand)
                 in
                 { drawPile = drawPile
-                , board = board |> AnySet.fromList (Tuple.mapBoth Deck.suitToInt Deck.faceToInt)
-                , hand = hand |> AnySet.fromList (Tuple.mapBoth Deck.suitToInt Deck.faceToInt)
+                , board = board |> AnySet.fromList Deck.cardToComparable
+                , hand = hand |> AnySet.fromList Deck.cardToComparable
+                , rules = Rule.defaultRules
                 }
             )
 
@@ -67,7 +69,35 @@ play action game =
             { game
                 | hand =
                     game.hand
-                        |> AnySet.remove hand
+                        |> (if
+                                game.rules
+                                    |> AnyDict.get (ClubsRule HighestStaysInHand)
+                                    |> Maybe.map
+                                        (\suit ->
+                                            (hand.suit == suit)
+                                                && (game.hand
+                                                        |> AnySet.toList
+                                                        |> List.filterMap
+                                                            (\card ->
+                                                                if card.suit == suit then
+                                                                    card
+                                                                        |> value game
+                                                                        |> Just
+
+                                                                else
+                                                                    Nothing
+                                                            )
+                                                        |> List.maximum
+                                                        |> (==) (hand |> value game |> Just)
+                                                   )
+                                        )
+                                    |> Maybe.withDefault False
+                            then
+                                identity
+
+                            else
+                                AnySet.remove hand
+                           )
                         |> maybeAdd cHand
                 , board =
                     game.board
@@ -75,6 +105,19 @@ play action game =
                         |> maybeAdd cBoard
                 , drawPile =
                     drawPile
+            }
+                |> Random.constant
+
+        SwapCards { hand, board } ->
+            { game
+                | hand =
+                    game.hand
+                        |> AnySet.remove hand
+                        |> AnySet.insert board
+                , board =
+                    game.board
+                        |> AnySet.remove board
+                        |> AnySet.insert hand
             }
                 |> Random.constant
 
@@ -98,9 +141,9 @@ play action game =
                                     |> Tuple.mapSecond (List.splitAt Config.cardAmountOnBoard)
                         in
                         { game
-                            | hand = card :: hand |> AnySet.fromList (Tuple.mapBoth Deck.suitToInt Deck.faceToInt)
+                            | hand = card :: hand |> AnySet.fromList Deck.cardToComparable
                             , drawPile = drawPile
-                            , board = board |> AnySet.fromList (Tuple.mapBoth Deck.suitToInt Deck.faceToInt)
+                            , board = board |> AnySet.fromList Deck.cardToComparable
                         }
                     )
 
@@ -129,16 +172,27 @@ actions game =
                                 |> List.map
                                     (\boardC ->
                                         { hand = handC, board = boardC }
-                                            |> PlayCard
+                                    )
+                                |> List.concatMap
+                                    (\args ->
+                                        [ PlayCard args, SwapCards args ]
                                     )
                         )
                )
             |> List.filter (internalIsValid game)
 
 
-value : Card -> Int
-value ( suit, face ) =
-    if face == Ace || Deck.isTrump suit then
+value : Game -> Card -> Int
+value game { suit, face } =
+    if
+        game.rules
+            |> AnyDict.get (HeartsRule HaveSameValue)
+            |> Maybe.map ((==) suit)
+            |> Maybe.withDefault False
+    then
+        Config.heartsRuleSameValue
+
+    else if face == Ace then
         11
 
     else
@@ -148,21 +202,31 @@ value ( suit, face ) =
             |> min 10
 
 
-isBiggerThen : Card -> Card -> Bool
-isBiggerThen (( s2, f2 ) as c2) (( s1, f1 ) as c1) =
-    if s1 == s2 then
-        value c1 >= value c2
+isBiggerThen : Card -> Game -> Card -> Bool
+isBiggerThen c2 game c1 =
+    if c1.suit == c2.suit then
+        value game c1 >= value game c2
 
     else
-        Deck.isTrump s1
+        Deck.trump == c1.suit
 
 
 internalIsValid : Game -> Action -> Bool
 internalIsValid game action =
     case action of
         PlayCard args ->
-            args.hand |> isBiggerThen args.board
+            args.hand |> isBiggerThen args.board game
+
+        SwapCards args ->
+            game.rules
+                |> AnyDict.get (DiamondsRule MaySwapWithSameValue)
+                |> Maybe.map
+                    (\suit ->
+                        (args.hand.suit == suit || args.board.suit == suit)
+                            && (value game args.hand == value game args.board)
+                    )
+                |> Maybe.withDefault False
 
         Redraw card ->
             AnySet.member card game.hand
-                && (AnySet.size game.hand > 1)
+                && (AnySet.size game.hand > 2)

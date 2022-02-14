@@ -9,3 +9,8 @@ cardAmountOnBoard =
 cardAmountInHand : Int
 cardAmountInHand =
     7
+
+
+heartsRuleSameValue : Int
+heartsRuleSameValue =
+    11
