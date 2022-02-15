@@ -11,7 +11,7 @@ import UndoList.Decode exposing (msg)
 
 toString : Game -> Card -> String
 toString game card =
-    Deck.suitToString card.suit ++ (card |> Game.value game |> String.fromInt)
+    Game.suitToString card.suit game ++ (card |> Game.value game |> String.fromInt)
 
 
 view : Game -> Card -> Html msg

@@ -125,7 +125,7 @@ view model =
                                         |> String.fromInt
                                     )
                                         ++ " of "
-                                        ++ Deck.suitToString s
+                                        ++ Game.suitToString s model.game
                                 )
                             |> String.join ", "
                        )
@@ -134,9 +134,10 @@ view model =
         , model.game.rules
             |> AnyDict.toList
             |> List.map
-                (\tuple ->
-                    tuple
-                        |> Rule.toString
+                (\( rule, suit ) ->
+                    Game.suitToString suit model.game
+                        ++ " "
+                        ++ Rule.toString rule
                         |> Html.text
                 )
             |> View.listing "Rules"

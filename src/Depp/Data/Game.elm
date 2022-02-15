@@ -1,4 +1,4 @@
-module Depp.Data.Game exposing (Action(..), Game, actions, isWon, new, play, updateValue, value)
+module Depp.Data.Game exposing (Action(..), Game, actions, isWon, new, play, suitToString, updateValue, value)
 
 import Array exposing (Array)
 import Cards exposing (Face(..), Suit(..))
@@ -25,6 +25,7 @@ type alias Game =
     , hand : AnySet ( Int, Int ) Card
     , rules : AnyDict Int Rule Suit
     , cardStates : AnyDict ( Int, Int ) Card CardState
+    , trump : Suit
     }
 
 
@@ -36,22 +37,50 @@ type Action
 
 new : Generator Game
 new =
-    Deck.new
-        |> Random.map
-            (\deck ->
-                let
-                    ( board, ( hand, drawPile ) ) =
-                        deck
-                            |> List.splitAt Config.cardAmountOnBoard
-                            |> Tuple.mapSecond (List.splitAt Config.cardAmountInHand)
-                in
-                { drawPile = drawPile
-                , board = board |> AnySet.fromList Deck.cardToComparable
-                , hand = hand |> AnySet.fromList Deck.cardToComparable
-                , rules = Rule.defaultRules
-                , cardStates = AnyDict.empty Deck.cardToComparable
-                }
-            )
+    Random.map2
+        (\deck trump ->
+            let
+                ( board, ( hand, drawPile ) ) =
+                    deck
+                        |> List.splitAt Config.cardAmountOnBoard
+                        |> Tuple.mapSecond (List.splitAt Config.cardAmountInHand)
+            in
+            { drawPile = drawPile
+            , board = board |> AnySet.fromList Deck.cardToComparable
+            , hand = hand |> AnySet.fromList Deck.cardToComparable
+            , rules = Rule.defaultRules
+            , cardStates = AnyDict.empty Deck.cardToComparable
+            , trump = trump
+            }
+        )
+        Deck.new
+        (case Array.toList Deck.suits of
+            head :: tail ->
+                Random.uniform head tail
+
+            [] ->
+                Random.constant Hearts
+        )
+
+
+suitToString : Suit -> Game -> String
+suitToString suit game =
+    if suit == game.trump then
+        "☆"
+
+    else
+        case suit of
+            Spades ->
+                "♠"
+
+            Diamonds ->
+                "♦"
+
+            Clubs ->
+                "♣"
+
+            Hearts ->
+                "♥"
 
 
 playCard : { hand : Card, board : Card } -> Game -> Game
@@ -261,7 +290,7 @@ isBiggerThen c2 game c1 =
         value game c1 >= value game c2
 
     else
-        Deck.trump == c1.suit
+        game.trump == c1.suit
 
 
 internalIsValid : Game -> Action -> Bool
@@ -274,7 +303,7 @@ internalIsValid game action =
                     (\suit ->
                         (args.hand.suit == suit)
                             && ((args.hand.suit == args.board.suit)
-                                    || (Deck.trump == args.hand.suit)
+                                    || (game.trump == args.hand.suit)
                                )
                     )
                 |> Maybe.withDefault False

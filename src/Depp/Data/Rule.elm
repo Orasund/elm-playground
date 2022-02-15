@@ -30,23 +30,20 @@ toComparable rule =
             4
 
 
-toString : ( Rule, Suit ) -> String
-toString ( rule, suit ) =
-    (suit |> Deck.suitToString)
-        ++ " "
-        ++ (case rule of
-                HaveSameValue ->
-                    "has a value of " ++ String.fromInt Config.heartsRuleSameValue ++ "."
+toString : Rule -> String
+toString rule =
+    case rule of
+        HaveSameValue ->
+            "has a value of " ++ String.fromInt Config.heartsRuleSameValue ++ "."
 
-                HighestStaysInHand ->
-                    "stays in your hand, if it is the highest of this suit that you got."
+        HighestStaysInHand ->
+            "stays in your hand, if it is the highest of this suit that you got."
 
-                MaySwapWithSameValue ->
-                    "can be swapped with cards of same value."
+        MaySwapWithSameValue ->
+            "can be swapped with cards of same value."
 
-                ReduceValueIfLower ->
-                    "will reduce the value of cards it can not beat."
-           )
+        ReduceValueIfLower ->
+            "will reduce the value of cards it can not beat."
 
 
 defaultRules : AnyDict Int Rule Suit

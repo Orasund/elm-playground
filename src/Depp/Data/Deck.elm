@@ -1,4 +1,4 @@
-module Depp.Data.Deck exposing (Card, Deck, cardToComparable, faceToInt, faceToString, new, suitToInt, suitToString, trump)
+module Depp.Data.Deck exposing (Card, Deck, cardToComparable, faceToInt, faceToString, new, suitToInt, suits)
 
 import Array exposing (Array)
 import Cards exposing (Face(..), Suit(..))
@@ -17,31 +17,6 @@ type alias Deck =
 cardToComparable : Card -> ( Int, Int )
 cardToComparable card =
     ( suitToInt card.suit, faceToInt card.face )
-
-
-trump : Suit
-trump =
-    Hearts
-
-
-suitToString : Suit -> String
-suitToString suit =
-    if suit == trump then
-        "☆"
-
-    else
-        case suit of
-            Spades ->
-                "♠"
-
-            Diamonds ->
-                "♦"
-
-            Clubs ->
-                "♣"
-
-            Hearts ->
-                "♥"
 
 
 suitToInt : Suit -> Int
