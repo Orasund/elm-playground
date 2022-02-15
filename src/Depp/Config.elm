@@ -14,3 +14,13 @@ cardAmountInHand =
 heartsRuleSameValue : Int
 heartsRuleSameValue =
     11
+
+
+aceValue : Int
+aceValue =
+    11
+
+
+courtCardValue : Int
+courtCardValue =
+    10

@@ -132,10 +132,10 @@ view model =
                     ++ ")"
                 )
         , model.game.rules
-            |> AnyDict.keys
+            |> AnyDict.toList
             |> List.map
-                (\rule ->
-                    rule
+                (\tuple ->
+                    tuple
                         |> Rule.toString
                         |> Html.text
                 )

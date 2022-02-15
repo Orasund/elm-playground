@@ -1,4 +1,4 @@
-module Depp.Data.Rule exposing (ClubsRule(..), DiamondsRule(..), HeartsRule(..), Rule(..), defaultRules, toString)
+module Depp.Data.Rule exposing (Rule(..), defaultRules, toString)
 
 import Cards exposing (Suit(..))
 import Depp.Config as Config
@@ -7,53 +7,53 @@ import Dict.Any as AnyDict exposing (AnyDict)
 import Set.Any as AnySet exposing (AnySet)
 
 
-type HeartsRule
-    = HaveSameValue
-
-
-type ClubsRule
-    = HighestStaysInHand
-
-
-type DiamondsRule
-    = MaySwapWithSameValue
-
-
 type Rule
-    = HeartsRule HeartsRule
-    | ClubsRule ClubsRule
-    | DiamondsRule DiamondsRule
+    = HaveSameValue
+    | HighestStaysInHand
+    | MaySwapWithSameValue
+    | ReduceValueIfLower
 
 
-toString : Rule -> String
-toString rule =
+toComparable : Rule -> Int
+toComparable rule =
     case rule of
-        HeartsRule r ->
-            "Hearts "
-                ++ (case r of
-                        HaveSameValue ->
-                            "have a value of " ++ String.fromInt Config.heartsRuleSameValue ++ "."
-                   )
+        HaveSameValue ->
+            1
 
-        ClubsRule r ->
-            "Clubs "
-                ++ (case r of
-                        HighestStaysInHand ->
-                            "stay in your hand, if they are the highest clubs you got."
-                   )
+        HighestStaysInHand ->
+            2
 
-        DiamondsRule r ->
-            "Diamonds "
-                ++ (case r of
-                        MaySwapWithSameValue ->
-                            "can be swapped with cards of same value"
-                   )
+        MaySwapWithSameValue ->
+            3
+
+        ReduceValueIfLower ->
+            4
 
 
-defaultRules : AnyDict String Rule Suit
+toString : ( Rule, Suit ) -> String
+toString ( rule, suit ) =
+    (suit |> Deck.suitToString)
+        ++ " "
+        ++ (case rule of
+                HaveSameValue ->
+                    "has a value of " ++ String.fromInt Config.heartsRuleSameValue ++ "."
+
+                HighestStaysInHand ->
+                    "stays in your hand, if it is the highest of this suit that you got."
+
+                MaySwapWithSameValue ->
+                    "can be swapped with cards of same value."
+
+                ReduceValueIfLower ->
+                    "will reduce the value of cards it can not beat."
+           )
+
+
+defaultRules : AnyDict Int Rule Suit
 defaultRules =
-    [ ( HeartsRule HaveSameValue, Hearts )
-    , ( ClubsRule HighestStaysInHand, Clubs )
-    , ( DiamondsRule MaySwapWithSameValue, Diamonds )
+    [ ( HaveSameValue, Hearts )
+    , ( HighestStaysInHand, Clubs )
+    , ( MaySwapWithSameValue, Diamonds )
+    , ( ReduceValueIfLower, Spades )
     ]
-        |> AnyDict.fromList toString
+        |> AnyDict.fromList toComparable
