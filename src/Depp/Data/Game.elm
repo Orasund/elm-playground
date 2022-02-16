@@ -37,30 +37,34 @@ type Action
 
 new : Generator Game
 new =
-    Random.map2
-        (\deck trump ->
-            let
-                ( board, ( hand, drawPile ) ) =
-                    deck
-                        |> List.splitAt Config.cardAmountOnBoard
-                        |> Tuple.mapSecond (List.splitAt Config.cardAmountInHand)
-            in
-            { drawPile = drawPile
-            , board = board |> AnySet.fromList Deck.cardToComparable
-            , hand = hand |> AnySet.fromList Deck.cardToComparable
-            , rules = Rule.defaultRules
-            , cardStates = AnyDict.empty Deck.cardToComparable
-            , trump = trump
-            }
-        )
-        Deck.new
-        (case Array.toList Deck.suits of
-            head :: tail ->
-                Random.uniform head tail
+    (Rule.defaultRules |> Random.List.choices 2 |> Random.map Tuple.first)
+        |> Random.andThen
+            (\rules ->
+                Random.map2
+                    (\deck trump ->
+                        let
+                            ( board, ( hand, drawPile ) ) =
+                                deck
+                                    |> List.splitAt Config.cardAmountOnBoard
+                                    |> Tuple.mapSecond (List.splitAt Config.cardAmountInHand)
+                        in
+                        { drawPile = drawPile
+                        , board = board |> AnySet.fromList Deck.cardToComparable
+                        , hand = hand |> AnySet.fromList Deck.cardToComparable
+                        , rules = rules |> AnyDict.fromList Rule.toComparable
+                        , cardStates = AnyDict.empty Deck.cardToComparable
+                        , trump = trump
+                        }
+                    )
+                    Deck.new
+                    (case rules |> List.map Tuple.second of
+                        head :: tail ->
+                            Random.uniform head tail
 
-            [] ->
-                Random.constant Hearts
-        )
+                        [] ->
+                            Random.constant Hearts
+                    )
+            )
 
 
 suitToString : Suit -> Game -> String

@@ -1,4 +1,4 @@
-module Depp.Data.Rule exposing (Rule(..), defaultRules, toString)
+module Depp.Data.Rule exposing (Rule(..), defaultRules, toComparable, toString)
 
 import Cards exposing (Suit(..))
 import Depp.Config as Config
@@ -46,11 +46,10 @@ toString rule =
             "will reduce the value of cards it can not beat."
 
 
-defaultRules : AnyDict Int Rule Suit
+defaultRules : List ( Rule, Suit )
 defaultRules =
     [ ( HaveSameValue, Hearts )
     , ( HighestStaysInHand, Clubs )
     , ( MaySwapWithSameValue, Diamonds )
     , ( ReduceValueIfLower, Spades )
     ]
-        |> AnyDict.fromList toComparable
