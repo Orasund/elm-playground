@@ -1,7 +1,7 @@
 module Depp.Main exposing (main)
 
 import Browser exposing (Document)
-import Depp.Data.Deck as Deck
+import Depp.Data.Deck as Deck exposing (Card)
 import Depp.Data.Game as Game exposing (Action, Game)
 import Depp.Data.Rule as Rule
 import Depp.View as View
@@ -17,12 +17,15 @@ import Set.Any as AnySet exposing (AnySet)
 type alias Model =
     { game : Game
     , seed : Seed
+    , hand : Maybe Card
+    , board : Maybe Card
     }
 
 
 type Msg
     = Restart Seed
     | PlayAction Action
+    | SelectBoardCard Card
 
 
 main : Program () Model Msg
@@ -39,7 +42,13 @@ newModel : Seed -> Model
 newModel old =
     old
         |> Random.step Game.new
-        |> (\( game, seed ) -> { game = game, seed = seed })
+        |> (\( game, seed ) ->
+                { game = game
+                , seed = seed
+                , hand = Nothing
+                , board = Nothing
+                }
+           )
 
 
 init : () -> ( Model, Cmd Msg )
@@ -75,62 +84,65 @@ view model =
             |> AnySet.toList
             |> List.map (Card.view model.game)
             |> View.collection "Hand"
+        , model.game.drawPile
+            |> List.map .suit
+            |> List.gatherEquals
+            |> List.map
+                (\( s, l ) ->
+                    (l
+                        |> List.length
+                        |> (+) 1
+                        |> String.fromInt
+                    )
+                        ++ "x"
+                        ++ Game.suitToString s model.game
+                        |> Html.text
+                        |> List.singleton
+                        |> Html.div []
+                )
+            |> View.collection "Remaining"
         , model.game.board
             |> AnySet.toList
             |> List.map
                 (\card ->
-                    card
-                        |> Card.withActions
-                            (actions
-                                |> List.filterMap
-                                    (\action ->
-                                        case action of
-                                            Game.PlayCard args ->
-                                                if args.board == card then
-                                                    { label = "Play " ++ Card.toString model.game args.hand
-                                                    , onClick = Just (PlayAction action)
-                                                    }
-                                                        |> Just
+                    { label = card |> Card.toString model.game
+                    , onClick = Just (SelectBoardCard card)
+                    }
+                )
+            |> View.actionGroup "Board"
+        , model.board
+            |> Maybe.map
+                (\card ->
+                    actions
+                        |> List.filterMap
+                            (\action ->
+                                case action of
+                                    Game.PlayCard args ->
+                                        if args.board == card then
+                                            { label = "Play " ++ Card.toString model.game args.hand
+                                            , onClick = Just (PlayAction action)
+                                            }
+                                                |> Just
 
-                                                else
-                                                    Nothing
+                                        else
+                                            Nothing
 
-                                            Game.SwapCards args ->
-                                                if args.board == card then
-                                                    { label = "Swap " ++ Card.toString model.game args.hand
-                                                    , onClick = Just (PlayAction action)
-                                                    }
-                                                        |> Just
+                                    Game.SwapCards args ->
+                                        if args.board == card then
+                                            { label = "Swap " ++ Card.toString model.game args.hand
+                                            , onClick = Just (PlayAction action)
+                                            }
+                                                |> Just
 
-                                                else
-                                                    Nothing
+                                        else
+                                            Nothing
 
-                                            _ ->
-                                                Nothing
-                                    )
-                             --|> List.take 1
+                                    _ ->
+                                        Nothing
                             )
-                            model.game
+                        |> View.actionGroup ("Actions for " ++ Card.toString model.game card)
                 )
-            |> View.collection
-                ("Board (remaining: "
-                    ++ (model.game.drawPile
-                            |> List.map .suit
-                            |> List.gatherEquals
-                            |> List.map
-                                (\( s, l ) ->
-                                    (l
-                                        |> List.length
-                                        |> (+) 1
-                                        |> String.fromInt
-                                    )
-                                        ++ " of "
-                                        ++ Game.suitToString s model.game
-                                )
-                            |> String.join ", "
-                       )
-                    ++ ")"
-                )
+            |> Maybe.withDefault (Html.text "Select a card")
         , model.game.rules
             |> AnyDict.toList
             |> List.map
@@ -158,8 +170,18 @@ update msg model =
         PlayAction action ->
             Random.step (Game.play action model.game) model.seed
                 |> (\( game, seed ) ->
-                        ( { model | game = game, seed = seed }, Cmd.none )
+                        ( { model
+                            | game = game
+                            , seed = seed
+                            , board = Nothing
+                            , hand = Nothing
+                          }
+                        , Cmd.none
+                        )
                    )
+
+        SelectBoardCard card ->
+            ( { model | board = Just card }, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
