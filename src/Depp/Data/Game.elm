@@ -151,6 +151,18 @@ playCard { hand, board } game =
                                 |> AnySet.remove board
                                 |> maybeAdd cBoard
                     }
+                        |> (g.rules
+                                |> AnyDict.get ReduceValueIfLower
+                                |> Maybe.andThen
+                                    (\suit ->
+                                        if suit == board.suit then
+                                            Just (updateValue ((+) -(value game board)) hand)
+
+                                        else
+                                            Nothing
+                                    )
+                                |> Maybe.withDefault identity
+                           )
 
             else
                 updateValue ((+) -(value game hand)) board

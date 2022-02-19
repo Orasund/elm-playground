@@ -84,107 +84,104 @@ view model =
     { title = "Depp Card Game"
     , body =
         [ View.stylesheet
-        , Layout.sidebarContainer
-            { sidebar =
-                actions
-                    |> List.filterMap
-                        (\action ->
-                            case action of
-                                Game.PlayCard args ->
-                                    if
-                                        (model.board |> Maybe.map ((==) args.board) |> Maybe.withDefault True)
-                                            && (model.hand |> Maybe.map ((==) args.hand) |> Maybe.withDefault True)
-                                    then
-                                        action
-                                            |> Action.view model.game PlayAction
-                                            |> Just
-
-                                    else
-                                        Nothing
-
-                                Game.SwapCards args ->
-                                    if
-                                        (model.board |> Maybe.map ((==) args.board) |> Maybe.withDefault True)
-                                            && (model.hand |> Maybe.map ((==) args.hand) |> Maybe.withDefault True)
-                                    then
-                                        action
-                                            |> Action.view model.game PlayAction
-                                            |> Just
-
-                                    else
-                                        Nothing
-
-                                Game.Redraw hand ->
-                                    if model.hand |> Maybe.map ((==) hand) |> Maybe.withDefault True then
-                                        action
-                                            |> Action.view model.game PlayAction
-                                            |> Just
-
-                                    else
-                                        Nothing
+        , [ model.game.hand
+                |> AnySet.toList
+                |> List.map
+                    (\card ->
+                        ( Just card == model.hand
+                        , { label = card |> Card.toString model.game
+                          , onClick = Just (ToggleHandCard card)
+                          }
                         )
-                    |> (::) { label = "New Game", onClick = Just (Restart model.seed) }
-                    |> List.map (\it -> Layout.propertyItem { name = Html.text it.label, value = View.singleButton { it | label = "Play" } })
-                    |> Html.div
-                        [ Attr.style "display" "flex"
-                        , Attr.style "flex-direction" "column"
+                    )
+                |> View.actionSelect "Hand"
+          , model.game.board
+                |> AnySet.toList
+                |> List.map
+                    (\card ->
+                        ( Just card == model.board
+                        , { label = card |> Card.toString model.game
+                          , onClick = Just (ToggleBoardCard card)
+                          }
+                        )
+                    )
+                |> View.actionSelect "Board"
+          , model.game.drawPile
+                |> List.map .suit
+                |> List.gatherEquals
+                |> List.map
+                    (\( s, l ) ->
+                        [ (l
+                            |> List.length
+                            |> (+) 1
+                            |> String.fromInt
+                          )
+                            ++ "x"
+                            |> Html.text
+                        , Game.suitToString s model.game
+                            |> Html.text
                         ]
-            , main =
-                Html.article []
-                    [ model.game.hand
-                        |> AnySet.toList
-                        |> List.map
-                            (\card ->
-                                ( Just card == model.hand
-                                , { label = card |> Card.toString model.game
-                                  , onClick = Just (ToggleHandCard card)
-                                  }
-                                )
-                            )
-                        |> View.actionSelect "Hand"
-                    , model.game.board
-                        |> AnySet.toList
-                        |> List.map
-                            (\card ->
-                                ( Just card == model.board
-                                , { label = card |> Card.toString model.game
-                                  , onClick = Just (ToggleBoardCard card)
-                                  }
-                                )
-                            )
-                        |> View.actionSelect "Board"
-                    , model.game.drawPile
-                        |> List.map .suit
-                        |> List.gatherEquals
-                        |> List.map
-                            (\( s, l ) ->
-                                [ (l
-                                    |> List.length
-                                    |> (+) 1
-                                    |> String.fromInt
-                                  )
-                                    ++ "x"
-                                    |> Html.text
-                                , Game.suitToString s model.game
-                                    |> Html.text
-                                ]
-                                    |> Layout.chip
-                            )
-                        |> View.collection "Remaining"
-                    , model.game.rules
-                        |> AnyDict.toList
-                        |> List.map
-                            (\( rule, suit ) ->
-                                Game.suitToString suit model.game
-                                    ++ " "
-                                    ++ Rule.toString rule
-                                    |> Html.text
-                            )
-                        |> View.listing "Rules"
-                    ]
-                    |> List.singleton
-                    |> Html.div [ Attr.style "padding" "16px" ]
-            }
+                            |> Layout.chip
+                    )
+                |> View.collection "Remaining"
+          , model.game.rules
+                |> AnyDict.toList
+                |> List.map
+                    (\( rule, suit ) ->
+                        Game.suitToString suit model.game
+                            ++ " "
+                            ++ Rule.toString rule
+                            |> Html.text
+                    )
+                |> View.listing "Rules"
+          ]
+            |> Html.article []
+            |> List.singleton
+            |> Html.div
+                [ Attr.style "display" "flex"
+                , Attr.style "flex-direction" "column"
+                , Attr.style "padding" "16px"
+                ]
+        , actions
+            |> List.filterMap
+                (\action ->
+                    case action of
+                        Game.PlayCard args ->
+                            if
+                                (model.board |> Maybe.map ((==) args.board) |> Maybe.withDefault True)
+                                    && (model.hand |> Maybe.map ((==) args.hand) |> Maybe.withDefault True)
+                            then
+                                action
+                                    |> Action.view model.game PlayAction
+                                    |> Just
+
+                            else
+                                Nothing
+
+                        Game.SwapCards args ->
+                            if
+                                (model.board |> Maybe.map ((==) args.board) |> Maybe.withDefault True)
+                                    && (model.hand |> Maybe.map ((==) args.hand) |> Maybe.withDefault True)
+                            then
+                                action
+                                    |> Action.view model.game PlayAction
+                                    |> Just
+
+                            else
+                                Nothing
+
+                        Game.Redraw hand ->
+                            if model.hand |> Maybe.map ((==) hand) |> Maybe.withDefault True then
+                                action
+                                    |> Action.view model.game PlayAction
+                                    |> Just
+
+                            else
+                                Nothing
+                )
+            |> (::) { label = "New Game", onClick = Just (Restart model.seed) }
+            |> View.actionGroup "Actions"
+            |> Layout.footer
         ]
     }
 

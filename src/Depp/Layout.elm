@@ -11,6 +11,8 @@ import Html.Attributes as Attr
 import UndoList.Decode exposing (msg)
 
 
+{-| You have to set a fixed hight to see the scrollbars --> you can use 100vh for full height.
+-}
 sidebarContainer :
     { sidebar : Html msg
     , main : Html msg
@@ -26,7 +28,6 @@ sidebarContainer args =
               Attr.style "width" "30%"
 
             -- Make it scrollable
-            , Attr.style "height" "100vh"
             , Attr.style "overflow" "auto"
             ]
             [ args.sidebar ]
@@ -36,7 +37,6 @@ sidebarContainer args =
               Attr.style "flex" "1"
 
             -- Make it scrollable
-            , Attr.style "height" "100vh"
             , Attr.style "overflow" "auto"
             ]
             [ args.main ]
@@ -165,4 +165,16 @@ chip list =
             --Spacing
             , Attr.style "padding" "4px 8px"
             , Attr.style "gap" "4px"
+            ]
+
+
+footer : Html msg -> Html msg
+footer container =
+    container
+        |> List.singleton
+        |> Html.div
+            [ Attr.style "position" "sticky"
+            , Attr.style "bottom" "0"
+            , Attr.style "background-color" "#fff"
+            , Attr.style "max-height" "20vh"
             ]
