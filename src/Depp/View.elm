@@ -1,4 +1,4 @@
-module Depp.View exposing (actionGroup, actions, card, collection, listing, stylesheet)
+module Depp.View exposing (actionGroup, actionSelect, actions, card, collection, listing, singleButton, stylesheet)
 
 import Html exposing (Attribute, Html)
 import Html.Attributes as Attr
@@ -10,7 +10,16 @@ stylesheet : Html msg
 stylesheet =
     Html.node "link"
         [ Attr.rel "stylesheet"
-        , Attr.href "https://unpkg.com/mvp.css"
+
+        --Pico
+        , Attr.href "https://unpkg.com/@picocss/pico@latest/css/pico.min.css"
+
+        --NES UI
+        --, Attr.href "https://unpkg.com/nes.css@2.3.0/css/nes.min.css"
+        -- RPGUI
+        --, Attr.href "https://raw.githubusercontent.com/RonenNess/RPGUI/master/dist/rpgui.min.css"
+        -- MVP
+        --, Attr.href "https://unpkg.com/mvp.css"
         ]
         []
 
@@ -94,6 +103,18 @@ actionGroup title list =
         |> collection title
 
 
+actionSelect : String -> List ( Bool, { label : String, onClick : Maybe msg } ) -> Html msg
+actionSelect title list =
+    list
+        |> List.map (\( isSelected, button ) -> internalButton isSelected button)
+        |> collection title
+
+
+singleButton : { label : String, onClick : Maybe msg } -> Html msg
+singleButton =
+    internalButton True
+
+
 
 -------------------------------------------------------------------------------
 -- INTNERAL
@@ -129,7 +150,15 @@ internalRow =
 internalButton : Bool -> { label : String, onClick : Maybe msg } -> Html msg
 internalButton isPrimary args =
     Html.a
-        ([ Attr.href "#" ]
+        ([ Attr.attribute "role" "button"
+         , Attr.href "#"
+         ]
+            ++ (if isPrimary then
+                    []
+
+                else
+                    [ Attr.class "outline" ]
+               )
             ++ (args.onClick
                     |> Maybe.map
                         (\msg ->
@@ -140,11 +169,4 @@ internalButton isPrimary args =
                     |> Maybe.withDefault []
                )
         )
-        [ (if isPrimary then
-            Html.b []
-
-           else
-            Html.i []
-          )
-            [ Html.text args.label ]
-        ]
+        [ Html.text args.label ]
