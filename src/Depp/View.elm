@@ -1,4 +1,4 @@
-module Depp.View exposing (actionGroup, actionSelect, actions, card, collection, listing, singleButton, stylesheet)
+module Depp.View exposing (actionGroup, actionSelect, actions, card, collection, listing, selectButton, singleButton, stylesheet)
 
 import Html exposing (Attribute, Html)
 import Html.Attributes as Attr
@@ -113,6 +113,11 @@ actionSelect title list =
 singleButton : { label : String, onClick : Maybe msg } -> Html msg
 singleButton =
     internalButton True
+
+
+selectButton : ( Bool, { label : String, onClick : Maybe msg } ) -> Html msg
+selectButton ( isSelected, button ) =
+    internalButton isSelected button
 
 
 

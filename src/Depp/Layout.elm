@@ -6,9 +6,86 @@ better than elm-ui
 
 -}
 
-import Html exposing (Html)
+import Html exposing (Attribute, Html)
 import Html.Attributes as Attr
 import UndoList.Decode exposing (msg)
+
+
+noWrap : Attribute msg
+noWrap =
+    Attr.style "flex-wrap" "nowrap"
+
+
+alignBaseline : Attribute msg
+alignBaseline =
+    Attr.style "align-items" "baseline"
+
+
+gap : Int -> Attribute msg
+gap int =
+    Attr.style "gap" (String.fromInt int ++ "px")
+
+
+stickyOnTop : List (Attribute msg)
+stickyOnTop =
+    [ Attr.style "position" "sticky"
+    , Attr.style "top" "0"
+    , Attr.style "z-index" "99999"
+    ]
+
+
+stickyOnBottom : List (Attribute msg)
+stickyOnBottom =
+    [ Attr.style "position" "sticky"
+    , Attr.style "bottom" "0"
+    , Attr.style "z-index" "99999"
+    ]
+
+
+{-|
+
+    row : List (Attribute msg) -> List (Html msg) -> Html msg
+    row attrs =
+        Html.div
+            ([ Attr.style "display" "flex"
+             , Attr.style "flex-direction" "row"
+             , Attr.style "flex-wrap" "wrap"
+             ]
+                ++ attrs
+            )
+
+-}
+row : List (Attribute msg) -> List (Html msg) -> Html msg
+row attrs =
+    Html.div
+        ([ Attr.style "display" "flex"
+         , Attr.style "flex-direction" "row"
+         , Attr.style "flex-wrap" "wrap"
+         ]
+            ++ attrs
+        )
+
+
+{-|
+
+    column : List (Attribute msg) -> List (Html msg) -> Html msg
+    column attrs =
+        Html.div
+            ([ Attr.style "display" "flex"
+             , Attr.style "flex-direction" "column"
+             ]
+                ++ attrs
+            )
+
+-}
+column : List (Attribute msg) -> List (Html msg) -> Html msg
+column attrs =
+    Html.div
+        ([ Attr.style "display" "flex"
+         , Attr.style "flex-direction" "column"
+         ]
+            ++ attrs
+        )
 
 
 {-| You have to set a fixed hight to see the scrollbars --> you can use 100vh for full height.
@@ -145,27 +222,29 @@ propertyItem args =
             ]
 
 
-chip : List (Html msg) -> Html msg
-chip list =
+chip : List (Attribute msg) -> List (Html msg) -> Html msg
+chip attrs list =
     list
         |> List.map
             (\it -> Html.div [] [ it ])
         |> Html.div
-            [ --Center the content
-              Attr.style "align-items" "center"
-            , Attr.style "display" "inline-flex"
-            , Attr.style "justify-content" "center"
+            ([ --Center the content
+               Attr.style "align-items" "center"
+             , Attr.style "display" "inline-flex"
+             , Attr.style "justify-content" "center"
 
-            --Background color
-            , Attr.style "background-color" "rgba(0, 0, 0, 0.1)"
+             --Background color
+             , Attr.style "background-color" "rgba(0, 0, 0, 0.1)"
 
-            --Rounded border
-            , Attr.style "border-radius" "999999px"
+             --Rounded border
+             , Attr.style "border-radius" "999999px"
 
-            --Spacing
-            , Attr.style "padding" "4px 8px"
-            , Attr.style "gap" "4px"
-            ]
+             --Spacing
+             , Attr.style "padding" "4px 8px"
+             , Attr.style "gap" "4px"
+             ]
+                ++ attrs
+            )
 
 
 footer : Html msg -> Html msg

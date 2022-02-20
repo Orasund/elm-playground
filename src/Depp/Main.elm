@@ -1,5 +1,6 @@
 module Depp.Main exposing (main)
 
+import Array
 import Browser exposing (Document)
 import Depp.Data.Deck as Deck exposing (Card)
 import Depp.Data.Game as Game exposing (Action, Game)
@@ -80,67 +81,133 @@ view model =
                             Game.Redraw card ->
                                 Game.value model.game card
                     )
+
+        drawPile =
+            model.game.drawPile
+                |> List.map .suit
+                |> List.gatherEquals
+                |> AnyDict.fromList Deck.suitToInt
+
+        ruleBySuit =
+            model.game.rules
+                |> AnyDict.toList
+                |> List.gatherEqualsBy Tuple.second
+                |> List.map
+                    (\( first, rest ) ->
+                        ( Tuple.second first, first :: rest )
+                    )
+                |> AnyDict.fromList Deck.suitToInt
     in
     { title = "Depp Card Game"
     , body =
         [ View.stylesheet
-        , [ model.game.hand
-                |> AnySet.toList
-                |> List.map
-                    (\card ->
-                        ( Just card == model.hand
-                        , { label = card |> Card.toString model.game
-                          , onClick = Just (ToggleHandCard card)
-                          }
-                        )
-                    )
-                |> View.actionSelect "Hand"
-          , model.game.board
-                |> AnySet.toList
-                |> List.map
-                    (\card ->
-                        ( Just card == model.board
-                        , { label = card |> Card.toString model.game
-                          , onClick = Just (ToggleBoardCard card)
-                          }
-                        )
-                    )
-                |> View.actionSelect "Board"
-          , model.game.drawPile
-                |> List.map .suit
-                |> List.gatherEquals
-                |> List.map
-                    (\( s, l ) ->
-                        [ (l
-                            |> List.length
-                            |> (+) 1
-                            |> String.fromInt
-                          )
-                            ++ "x"
-                            |> Html.text
-                        , Game.suitToString s model.game
-                            |> Html.text
-                        ]
-                            |> Layout.chip
-                    )
-                |> View.collection "Remaining"
-          , model.game.rules
-                |> AnyDict.toList
-                |> List.map
-                    (\( rule, suit ) ->
-                        Game.suitToString suit model.game
-                            ++ " "
-                            ++ Rule.toString rule
-                            |> Html.text
-                    )
-                |> View.listing "Rules"
+        , [ Html.table
+                []
+                (((Html.text "Suit"
+                    |> List.singleton
+                    |> Html.th
+                        []
+                  )
+                    :: ([ "Hand", "Board" ]
+                            |> List.map
+                                (\string ->
+                                    string
+                                        |> Html.text
+                                        |> List.singleton
+                                        |> Html.th []
+                                )
+                       )
+                    |> Html.tr
+                        ([ Attr.style "background-color" "#fff" ] ++ Layout.stickyOnTop)
+                 )
+                    :: (Deck.suits
+                            |> Array.toList
+                            |> List.concatMap
+                                (\suit ->
+                                    let
+                                        rules =
+                                            ruleBySuit
+                                                |> AnyDict.get suit
+                                                |> Maybe.withDefault []
+                                    in
+                                    (([ Game.suitToString suit model.game
+                                            |> Html.text
+                                            |> List.singleton
+                                            |> Layout.chip
+                                                [ Attr.style "width" "32px"
+                                                , Attr.style "height" "32px"
+                                                ]
+                                      , drawPile
+                                            |> AnyDict.get suit
+                                            |> Maybe.map
+                                                (\list ->
+                                                    (list |> List.length |> (+) 1 |> String.fromInt) ++ " remain"
+                                                )
+                                            |> Maybe.withDefault ""
+                                            |> Html.text
+                                      ]
+                                        |> Layout.row
+                                            [ Layout.gap 4
+                                            , Layout.alignBaseline
+                                            ]
+                                        |> List.singleton
+                                        |> Html.td [ Attr.rowspan (List.length rules + 1) ]
+                                     )
+                                        :: ([ model.game.hand
+                                                |> AnySet.toList
+                                                |> List.filter (\card -> card.suit == suit)
+                                                |> List.map
+                                                    (\card ->
+                                                        View.selectButton
+                                                            ( Just card == model.hand
+                                                            , { label = card |> Card.toString model.game
+                                                              , onClick = Just (ToggleHandCard card)
+                                                              }
+                                                            )
+                                                    )
+                                                |> Layout.row [ Layout.gap 8 ]
+                                            , model.game.board
+                                                |> AnySet.toList
+                                                |> List.filter (\card -> card.suit == suit)
+                                                |> List.map
+                                                    (\card ->
+                                                        View.selectButton
+                                                            ( Just card == model.board
+                                                            , { label = card |> Card.toString model.game
+                                                              , onClick = Just (ToggleBoardCard card)
+                                                              }
+                                                            )
+                                                    )
+                                                |> Layout.row [ Layout.gap 8 ]
+                                            ]
+                                                |> List.map
+                                                    (\elem ->
+                                                        elem
+                                                            |> List.singleton
+                                                            |> Html.td []
+                                                    )
+                                           )
+                                    )
+                                        :: (rules
+                                                |> List.map
+                                                    (\( rule, _ ) ->
+                                                        [ Game.suitToString suit model.game
+                                                            ++ " "
+                                                            ++ Rule.toString rule
+                                                            |> Html.text
+                                                            |> List.singleton
+                                                            |> Html.td [ Attr.colspan 2 ]
+                                                        ]
+                                                    )
+                                           )
+                                )
+                            |> List.map (Html.tr [])
+                       )
+                )
           ]
-            |> Html.article []
-            |> List.singleton
             |> Html.div
                 [ Attr.style "display" "flex"
                 , Attr.style "flex-direction" "column"
-                , Attr.style "padding" "16px"
                 ]
         , actions
             |> List.filterMap
@@ -171,7 +238,7 @@ view model =
                                 Nothing
 
                         Game.Redraw hand ->
-                            if model.hand |> Maybe.map ((==) hand) |> Maybe.withDefault True then
+                            if model.hand |> Maybe.map ((==) hand) |> Maybe.withDefault False then
                                 action
                                     |> Action.view model.game PlayAction
                                     |> Just
