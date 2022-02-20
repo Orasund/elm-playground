@@ -101,114 +101,128 @@ view model =
     { title = "Depp Card Game"
     , body =
         [ View.stylesheet
-        , [ Html.table
-                []
-                (((Html.text "Suit"
-                    |> List.singleton
-                    |> Html.th
-                        []
-                  )
-                    :: ([ "Hand", "Board" ]
-                            |> List.map
-                                (\string ->
-                                    string
-                                        |> Html.text
-                                        |> List.singleton
-                                        |> Html.th []
-                                )
-                       )
-                    |> Html.tr
-                        ([ Attr.style "background-color" "#fff" ] ++ Layout.stickyOnTop)
-                 )
-                    :: (Deck.suits
-                            |> Array.toList
-                            |> List.concatMap
-                                (\suit ->
-                                    let
-                                        rules =
-                                            ruleBySuit
-                                                |> AnyDict.get suit
-                                                |> Maybe.withDefault []
-                                    in
-                                    (([ Game.suitToString suit model.game
-                                            |> Html.text
-                                            |> List.singleton
-                                            |> Layout.chip
-                                                [ Attr.style "width" "32px"
-                                                , Attr.style "height" "32px"
+        , (((Html.text "Suit"
+                |> List.singleton
+                |> Html.div [ Attr.style "text-align" "center", Attr.style "width" "100px" ]
+            )
+                :: ([ "Hand", "Board" ]
+                        |> List.map
+                            (\string ->
+                                string
+                                    |> Html.text
+                                    |> List.singleton
+                                    |> Html.div [ Attr.style "flex" "1" ]
+                            )
+                   )
+                |> Layout.row
+                    ([ Attr.style "background-color" "#fff"
+                     , Attr.style "border-bottom" "rgba(0,0,0,0.1) solid 1px"
+                     , Attr.style "padding" "8px 0"
+                     ]
+                        ++ Layout.stickyOnTop
+                    )
+           )
+            :: (Deck.suits
+                    |> Array.toList
+                    |> List.map
+                        (\suit ->
+                            let
+                                rules =
+                                    ruleBySuit
+                                        |> AnyDict.get suit
+                                        |> Maybe.withDefault []
+                            in
+                            (([ Game.suitToString suit model.game
+                                    |> Html.text
+                                    |> List.singleton
+                                    |> Layout.chip
+                                        [ Attr.style "width" "32px"
+                                        , Attr.style "height" "32px"
+                                        ]
+                              , drawPile
+                                    |> AnyDict.get suit
+                                    |> Maybe.map
+                                        (\list ->
+                                            (list |> List.length |> (+) 1 |> String.fromInt) ++ " remain"
+                                        )
+                                    |> Maybe.withDefault ""
+                                    |> Html.text
+                              ]
+                                |> Layout.column
+                                    [ Layout.gap 4
+                                    , Layout.alignCenter
+                                    ]
+                                |> List.singleton
+                                |> Html.div
+                                    [ Attr.style "width" "100px"
+                                    ]
+                             )
+                                :: ([ model.game.hand
+                                        |> AnySet.toList
+                                        |> List.filter (\card -> card.suit == suit)
+                                        |> List.map
+                                            (\card ->
+                                                View.selectButton
+                                                    ( Just card == model.hand
+                                                    , { label = card |> Card.toString model.game
+                                                      , onClick = Just (ToggleHandCard card)
+                                                      }
+                                                    )
+                                            )
+                                        |> Layout.row [ Layout.gap 8 ]
+                                    , model.game.board
+                                        |> AnySet.toList
+                                        |> List.filter (\card -> card.suit == suit)
+                                        |> List.map
+                                            (\card ->
+                                                View.selectButton
+                                                    ( Just card == model.board
+                                                    , { label = card |> Card.toString model.game
+                                                      , onClick = Just (ToggleBoardCard card)
+                                                      }
+                                                    )
+                                            )
+                                        |> Layout.row [ Layout.gap 8 ]
+                                    ]
+                                        |> List.map
+                                            (\elem ->
+                                                elem
+                                                    |> List.singleton
+                                                    |> Html.div [ Attr.style "flex" "1" ]
+                                            )
+                                   )
+                            )
+                                :: (rules
+                                        |> List.map
+                                            (\( rule, _ ) ->
+                                                [ Html.div [ Attr.style "width" "100px" ] []
+                                                , Game.suitToString suit model.game
+                                                    ++ " "
+                                                    ++ Rule.toString rule
+                                                    |> Html.text
+                                                    |> List.singleton
+                                                    |> Html.div [ Attr.style "flex" "2" ]
                                                 ]
-                                      , drawPile
-                                            |> AnyDict.get suit
-                                            |> Maybe.map
-                                                (\list ->
-                                                    (list |> List.length |> (+) 1 |> String.fromInt) ++ " remain"
-                                                )
-                                            |> Maybe.withDefault ""
-                                            |> Html.text
-                                      ]
-                                        |> Layout.row
-                                            [ Layout.gap 4
-                                            , Layout.alignBaseline
-                                            ]
-                                        |> List.singleton
-                                        |> Html.td [ Attr.rowspan (List.length rules + 1) ]
-                                     )
-                                        :: ([ model.game.hand
-                                                |> AnySet.toList
-                                                |> List.filter (\card -> card.suit == suit)
-                                                |> List.map
-                                                    (\card ->
-                                                        View.selectButton
-                                                            ( Just card == model.hand
-                                                            , { label = card |> Card.toString model.game
-                                                              , onClick = Just (ToggleHandCard card)
-                                                              }
-                                                            )
-                                                    )
-                                                |> Layout.row [ Layout.gap 8 ]
-                                            , model.game.board
-                                                |> AnySet.toList
-                                                |> List.filter (\card -> card.suit == suit)
-                                                |> List.map
-                                                    (\card ->
-                                                        View.selectButton
-                                                            ( Just card == model.board
-                                                            , { label = card |> Card.toString model.game
-                                                              , onClick = Just (ToggleBoardCard card)
-                                                              }
-                                                            )
-                                                    )
-                                                |> Layout.row [ Layout.gap 8 ]
-                                            ]
-                                                |> List.map
-                                                    (\elem ->
-                                                        elem
-                                                            |> List.singleton
-                                                            |> Html.td []
-                                                    )
-                                           )
+                                            )
+                                   )
+                                |> List.map
+                                    (Layout.row
+                                        [ Attr.style "width" "100%"
+                                        , Layout.gap 4
+                                        , Layout.alignBaseline
+                                        ]
                                     )
-                                        :: (rules
-                                                |> List.map
-                                                    (\( rule, _ ) ->
-                                                        [ Game.suitToString suit model.game
-                                                            ++ " "
-                                                            ++ Rule.toString rule
-                                                            |> Html.text
-                                                            |> List.singleton
-                                                            |> Html.td [ Attr.colspan 2 ]
-                                                        ]
-                                                    )
-                                           )
-                                )
-                            |> List.map (Html.tr [])
-                       )
-                )
-          ]
-            |> Html.div
-                [ Attr.style "display" "flex"
-                , Attr.style "flex-direction" "column"
-                ]
+                        )
+                    |> List.map
+                        (Layout.row
+                            [ Attr.style "width" "100%"
+                            , Attr.style "border-bottom" "rgba(0,0,0,0.1) solid 1px"
+                            , Attr.style "padding" "8px 0"
+                            ]
+                        )
+               )
+          )
+            |> Layout.column []
         , actions
             |> List.filterMap
                 (\action ->

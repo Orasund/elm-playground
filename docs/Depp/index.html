@@ -7336,6 +7336,7 @@ var $author$project$Depp$Data$Game$actions = function (game) {
 				$turboMaCk$any_set$Set$Any$toList(game.hand))));
 };
 var $author$project$Depp$Layout$alignBaseline = A2($elm$html$Html$Attributes$style, 'align-items', 'baseline');
+var $author$project$Depp$Layout$alignCenter = A2($elm$html$Html$Attributes$style, 'align-items', 'center');
 var $author$project$Depp$Layout$chip = F2(
 	function (attrs, list) {
 		return A2(
@@ -7363,11 +7364,15 @@ var $author$project$Depp$Layout$chip = F2(
 				},
 				list));
 	});
-var $elm$html$Html$Attributes$colspan = function (n) {
-	return A2(
-		_VirtualDom_attribute,
-		'colspan',
-		$elm$core$String$fromInt(n));
+var $author$project$Depp$Layout$column = function (attrs) {
+	return $elm$html$Html$div(
+		_Utils_ap(
+			_List_fromArray(
+				[
+					A2($elm$html$Html$Attributes$style, 'display', 'flex'),
+					A2($elm$html$Html$Attributes$style, 'flex-direction', 'column')
+				]),
+			attrs));
 };
 var $author$project$Depp$Layout$footer = function (container) {
 	return A2(
@@ -7457,12 +7462,6 @@ var $author$project$Depp$Layout$row = function (attrs) {
 				]),
 			attrs));
 };
-var $elm$html$Html$Attributes$rowspan = function (n) {
-	return A2(
-		_VirtualDom_attribute,
-		'rowspan',
-		$elm$core$String$fromInt(n));
-};
 var $author$project$Depp$View$selectButton = function (_v0) {
 	var isSelected = _v0.a;
 	var button = _v0.b;
@@ -7506,9 +7505,6 @@ var $author$project$Depp$Data$Game$suitToString = F2(
 			}
 		}
 	});
-var $elm$html$Html$table = _VirtualDom_node('table');
-var $elm$html$Html$td = _VirtualDom_node('td');
-var $elm$html$Html$th = _VirtualDom_node('th');
 var $author$project$Depp$Data$Rule$toString = function (rule) {
 	switch (rule.$) {
 		case 'HaveSameValue':
@@ -7528,7 +7524,6 @@ var $author$project$Depp$View$Card$toString = F2(
 			$elm$core$String$fromInt(
 				A2($author$project$Depp$Data$Game$value, game, card)));
 	});
-var $elm$html$Html$tr = _VirtualDom_node('tr');
 var $author$project$Depp$View$Action$view = F3(
 	function (game, onClick, action) {
 		return {
@@ -7597,182 +7592,205 @@ var $author$project$Depp$Main$view = function (model) {
 			[
 				$author$project$Depp$View$stylesheet,
 				A2(
-				$elm$html$Html$div,
-				_List_fromArray(
-					[
-						A2($elm$html$Html$Attributes$style, 'display', 'flex'),
-						A2($elm$html$Html$Attributes$style, 'flex-direction', 'column')
-					]),
-				_List_fromArray(
-					[
-						A2(
-						$elm$html$Html$table,
-						_List_Nil,
+				$author$project$Depp$Layout$column,
+				_List_Nil,
+				A2(
+					$elm$core$List$cons,
+					A2(
+						$author$project$Depp$Layout$row,
+						_Utils_ap(
+							_List_fromArray(
+								[
+									A2($elm$html$Html$Attributes$style, 'background-color', '#fff'),
+									A2($elm$html$Html$Attributes$style, 'border-bottom', 'rgba(0,0,0,0.1) solid 1px'),
+									A2($elm$html$Html$Attributes$style, 'padding', '8px 0')
+								]),
+							$author$project$Depp$Layout$stickyOnTop),
 						A2(
 							$elm$core$List$cons,
 							A2(
-								$elm$html$Html$tr,
-								_Utils_ap(
-									_List_fromArray(
-										[
-											A2($elm$html$Html$Attributes$style, 'background-color', '#fff')
-										]),
-									$author$project$Depp$Layout$stickyOnTop),
-								A2(
-									$elm$core$List$cons,
-									A2(
-										$elm$html$Html$th,
-										_List_Nil,
-										$elm$core$List$singleton(
-											$elm$html$Html$text('Suit'))),
-									A2(
-										$elm$core$List$map,
-										function (string) {
-											return A2(
-												$elm$html$Html$th,
-												_List_Nil,
-												$elm$core$List$singleton(
-													$elm$html$Html$text(string)));
-										},
-										_List_fromArray(
-											['Hand', 'Board'])))),
+								$elm$html$Html$div,
+								_List_fromArray(
+									[
+										A2($elm$html$Html$Attributes$style, 'text-align', 'center'),
+										A2($elm$html$Html$Attributes$style, 'width', '100px')
+									]),
+								$elm$core$List$singleton(
+									$elm$html$Html$text('Suit'))),
 							A2(
 								$elm$core$List$map,
-								$elm$html$Html$tr(_List_Nil),
-								A2(
-									$elm$core$List$concatMap,
-									function (suit) {
-										var rules = A2(
-											$elm$core$Maybe$withDefault,
-											_List_Nil,
-											A2($turboMaCk$any_dict$Dict$Any$get, suit, ruleBySuit));
-										return A2(
+								function (string) {
+									return A2(
+										$elm$html$Html$div,
+										_List_fromArray(
+											[
+												A2($elm$html$Html$Attributes$style, 'flex', '1')
+											]),
+										$elm$core$List$singleton(
+											$elm$html$Html$text(string)));
+								},
+								_List_fromArray(
+									['Hand', 'Board'])))),
+					A2(
+						$elm$core$List$map,
+						$author$project$Depp$Layout$row(
+							_List_fromArray(
+								[
+									A2($elm$html$Html$Attributes$style, 'width', '100%'),
+									A2($elm$html$Html$Attributes$style, 'border-bottom', 'rgba(0,0,0,0.1) solid 1px'),
+									A2($elm$html$Html$Attributes$style, 'padding', '8px 0')
+								])),
+						A2(
+							$elm$core$List$map,
+							function (suit) {
+								var rules = A2(
+									$elm$core$Maybe$withDefault,
+									_List_Nil,
+									A2($turboMaCk$any_dict$Dict$Any$get, suit, ruleBySuit));
+								return A2(
+									$elm$core$List$map,
+									$author$project$Depp$Layout$row(
+										_List_fromArray(
+											[
+												A2($elm$html$Html$Attributes$style, 'width', '100%'),
+												$author$project$Depp$Layout$gap(4),
+												$author$project$Depp$Layout$alignBaseline
+											])),
+									A2(
+										$elm$core$List$cons,
+										A2(
 											$elm$core$List$cons,
 											A2(
-												$elm$core$List$cons,
-												A2(
-													$elm$html$Html$td,
-													_List_fromArray(
-														[
-															$elm$html$Html$Attributes$rowspan(
-															$elm$core$List$length(rules) + 1)
-														]),
-													$elm$core$List$singleton(
-														A2(
-															$author$project$Depp$Layout$row,
-															_List_fromArray(
-																[
-																	$author$project$Depp$Layout$gap(4),
-																	$author$project$Depp$Layout$alignBaseline
-																]),
-															_List_fromArray(
-																[
-																	A2(
-																	$author$project$Depp$Layout$chip,
-																	_List_fromArray(
-																		[
-																			A2($elm$html$Html$Attributes$style, 'width', '32px'),
-																			A2($elm$html$Html$Attributes$style, 'height', '32px')
-																		]),
-																	$elm$core$List$singleton(
-																		$elm$html$Html$text(
-																			A2($author$project$Depp$Data$Game$suitToString, suit, model.game)))),
+												$elm$html$Html$div,
+												_List_fromArray(
+													[
+														A2($elm$html$Html$Attributes$style, 'width', '100px')
+													]),
+												$elm$core$List$singleton(
+													A2(
+														$author$project$Depp$Layout$column,
+														_List_fromArray(
+															[
+																$author$project$Depp$Layout$gap(4),
+																$author$project$Depp$Layout$alignCenter
+															]),
+														_List_fromArray(
+															[
+																A2(
+																$author$project$Depp$Layout$chip,
+																_List_fromArray(
+																	[
+																		A2($elm$html$Html$Attributes$style, 'width', '32px'),
+																		A2($elm$html$Html$Attributes$style, 'height', '32px')
+																	]),
+																$elm$core$List$singleton(
 																	$elm$html$Html$text(
+																		A2($author$project$Depp$Data$Game$suitToString, suit, model.game)))),
+																$elm$html$Html$text(
+																A2(
+																	$elm$core$Maybe$withDefault,
+																	'',
 																	A2(
-																		$elm$core$Maybe$withDefault,
-																		'',
-																		A2(
-																			$elm$core$Maybe$map,
-																			function (list) {
-																				return $elm$core$String$fromInt(
-																					1 + $elm$core$List$length(list)) + ' remain';
-																			},
-																			A2($turboMaCk$any_dict$Dict$Any$get, suit, drawPile))))
-																])))),
-												A2(
-													$elm$core$List$map,
-													function (elem) {
-														return A2(
-															$elm$html$Html$td,
-															_List_Nil,
-															$elm$core$List$singleton(elem));
-													},
-													_List_fromArray(
-														[
-															A2(
-															$author$project$Depp$Layout$row,
-															_List_fromArray(
-																[
-																	$author$project$Depp$Layout$gap(8)
-																]),
-															A2(
-																$elm$core$List$map,
-																function (card) {
-																	return $author$project$Depp$View$selectButton(
-																		_Utils_Tuple2(
-																			_Utils_eq(
-																				$elm$core$Maybe$Just(card),
-																				model.hand),
-																			{
-																				label: A2($author$project$Depp$View$Card$toString, model.game, card),
-																				onClick: $elm$core$Maybe$Just(
-																					$author$project$Depp$Main$ToggleHandCard(card))
-																			}));
-																},
-																A2(
-																	$elm$core$List$filter,
-																	function (card) {
-																		return _Utils_eq(card.suit, suit);
-																	},
-																	$turboMaCk$any_set$Set$Any$toList(model.game.hand)))),
-															A2(
-															$author$project$Depp$Layout$row,
-															_List_fromArray(
-																[
-																	$author$project$Depp$Layout$gap(8)
-																]),
-															A2(
-																$elm$core$List$map,
-																function (card) {
-																	return $author$project$Depp$View$selectButton(
-																		_Utils_Tuple2(
-																			_Utils_eq(
-																				$elm$core$Maybe$Just(card),
-																				model.board),
-																			{
-																				label: A2($author$project$Depp$View$Card$toString, model.game, card),
-																				onClick: $elm$core$Maybe$Just(
-																					$author$project$Depp$Main$ToggleBoardCard(card))
-																			}));
-																},
-																A2(
-																	$elm$core$List$filter,
-																	function (card) {
-																		return _Utils_eq(card.suit, suit);
-																	},
-																	$turboMaCk$any_set$Set$Any$toList(model.game.board))))
-														]))),
+																		$elm$core$Maybe$map,
+																		function (list) {
+																			return $elm$core$String$fromInt(
+																				1 + $elm$core$List$length(list)) + ' remain';
+																		},
+																		A2($turboMaCk$any_dict$Dict$Any$get, suit, drawPile))))
+															])))),
 											A2(
 												$elm$core$List$map,
-												function (_v0) {
-													var rule = _v0.a;
-													return _List_fromArray(
-														[
-															A2(
-															$elm$html$Html$td,
-															_List_fromArray(
-																[
-																	$elm$html$Html$Attributes$colspan(2)
-																]),
-															$elm$core$List$singleton(
-																$elm$html$Html$text(
-																	A2($author$project$Depp$Data$Game$suitToString, suit, model.game) + (' ' + $author$project$Depp$Data$Rule$toString(rule)))))
-														]);
+												function (elem) {
+													return A2(
+														$elm$html$Html$div,
+														_List_fromArray(
+															[
+																A2($elm$html$Html$Attributes$style, 'flex', '1')
+															]),
+														$elm$core$List$singleton(elem));
 												},
-												rules));
-									},
-									$elm$core$Array$toList($author$project$Depp$Data$Deck$suits)))))
-					])),
+												_List_fromArray(
+													[
+														A2(
+														$author$project$Depp$Layout$row,
+														_List_fromArray(
+															[
+																$author$project$Depp$Layout$gap(8)
+															]),
+														A2(
+															$elm$core$List$map,
+															function (card) {
+																return $author$project$Depp$View$selectButton(
+																	_Utils_Tuple2(
+																		_Utils_eq(
+																			$elm$core$Maybe$Just(card),
+																			model.hand),
+																		{
+																			label: A2($author$project$Depp$View$Card$toString, model.game, card),
+																			onClick: $elm$core$Maybe$Just(
+																				$author$project$Depp$Main$ToggleHandCard(card))
+																		}));
+															},
+															A2(
+																$elm$core$List$filter,
+																function (card) {
+																	return _Utils_eq(card.suit, suit);
+																},
+																$turboMaCk$any_set$Set$Any$toList(model.game.hand)))),
+														A2(
+														$author$project$Depp$Layout$row,
+														_List_fromArray(
+															[
+																$author$project$Depp$Layout$gap(8)
+															]),
+														A2(
+															$elm$core$List$map,
+															function (card) {
+																return $author$project$Depp$View$selectButton(
+																	_Utils_Tuple2(
+																		_Utils_eq(
+																			$elm$core$Maybe$Just(card),
+																			model.board),
+																		{
+																			label: A2($author$project$Depp$View$Card$toString, model.game, card),
+																			onClick: $elm$core$Maybe$Just(
+																				$author$project$Depp$Main$ToggleBoardCard(card))
+																		}));
+															},
+															A2(
+																$elm$core$List$filter,
+																function (card) {
+																	return _Utils_eq(card.suit, suit);
+																},
+																$turboMaCk$any_set$Set$Any$toList(model.game.board))))
+													]))),
+										A2(
+											$elm$core$List$map,
+											function (_v0) {
+												var rule = _v0.a;
+												return _List_fromArray(
+													[
+														A2(
+														$elm$html$Html$div,
+														_List_fromArray(
+															[
+																A2($elm$html$Html$Attributes$style, 'width', '100px')
+															]),
+														_List_Nil),
+														A2(
+														$elm$html$Html$div,
+														_List_fromArray(
+															[
+																A2($elm$html$Html$Attributes$style, 'flex', '2')
+															]),
+														$elm$core$List$singleton(
+															$elm$html$Html$text(
+																A2($author$project$Depp$Data$Game$suitToString, suit, model.game) + (' ' + $author$project$Depp$Data$Rule$toString(rule)))))
+													]);
+											},
+											rules)));
+							},
+							$elm$core$Array$toList($author$project$Depp$Data$Deck$suits))))),
 				$author$project$Depp$Layout$footer(
 				A2(
 					$author$project$Depp$View$actionGroup,

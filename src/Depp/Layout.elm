@@ -21,6 +21,11 @@ alignBaseline =
     Attr.style "align-items" "baseline"
 
 
+alignCenter : Attribute msg
+alignCenter =
+    Attr.style "align-items" "center"
+
+
 gap : Int -> Attribute msg
 gap int =
     Attr.style "gap" (String.fromInt int ++ "px")
@@ -40,6 +45,11 @@ stickyOnBottom =
     , Attr.style "bottom" "0"
     , Attr.style "z-index" "99999"
     ]
+
+
+centerContent : Attribute msg
+centerContent =
+    Attr.style "justify-content" "center"
 
 
 {-|
