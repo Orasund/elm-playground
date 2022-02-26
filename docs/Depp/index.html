@@ -6258,7 +6258,7 @@ var $author$project$Depp$Main$newModel = function (old) {
 	return function (_v0) {
 		var game = _v0.a;
 		var seed = _v0.b;
-		return {board: $elm$core$Maybe$Nothing, game: game, hand: $elm$core$Maybe$Nothing, seed: seed};
+		return {game: game, hand: $elm$core$Maybe$Nothing, seed: seed};
 	}(
 		A2($elm$random$Random$step, $author$project$Depp$Data$Game$new, old));
 };
@@ -7051,24 +7051,13 @@ var $author$project$Depp$Main$update = F2(
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
-							{board: $elm$core$Maybe$Nothing, game: game, hand: $elm$core$Maybe$Nothing, seed: seed}),
+							{game: game, hand: $elm$core$Maybe$Nothing, seed: seed}),
 						$elm$core$Platform$Cmd$none);
 				}(
 					A2(
 						$elm$random$Random$step,
 						A2($author$project$Depp$Data$Game$play, action, model.game),
 						model.seed));
-			case 'ToggleBoardCard':
-				var card = msg.a;
-				return _Utils_Tuple2(
-					_Utils_update(
-						model,
-						{
-							board: _Utils_eq(
-								model.board,
-								$elm$core$Maybe$Just(card)) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(card)
-						}),
-					$elm$core$Platform$Cmd$none);
 			default:
 				var card = msg.a;
 				return _Utils_Tuple2(
@@ -7085,144 +7074,11 @@ var $author$project$Depp$Main$update = F2(
 var $author$project$Depp$Main$PlayAction = function (a) {
 	return {$: 'PlayAction', a: a};
 };
-var $author$project$Depp$Main$ToggleBoardCard = function (a) {
-	return {$: 'ToggleBoardCard', a: a};
+var $author$project$Depp$Data$Game$PlayCard = function (a) {
+	return {$: 'PlayCard', a: a};
 };
 var $author$project$Depp$Main$ToggleHandCard = function (a) {
 	return {$: 'ToggleHandCard', a: a};
-};
-var $elm$virtual_dom$VirtualDom$attribute = F2(
-	function (key, value) {
-		return A2(
-			_VirtualDom_attribute,
-			_VirtualDom_noOnOrFormAction(key),
-			_VirtualDom_noJavaScriptOrHtmlUri(value));
-	});
-var $elm$html$Html$Attributes$attribute = $elm$virtual_dom$VirtualDom$attribute;
-var $elm$html$Html$details = _VirtualDom_node('details');
-var $elm$html$Html$div = _VirtualDom_node('div');
-var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
-var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
-var $author$project$Depp$View$internalBaseFlex = _List_fromArray(
-	[
-		A2($elm$html$Html$Attributes$style, 'display', 'flex'),
-		A2($elm$html$Html$Attributes$style, 'flex-wrap', 'wrap'),
-		A2($elm$html$Html$Attributes$style, 'gap', '10px')
-	]);
-var $author$project$Depp$View$internalRow = $elm$html$Html$div(
-	_Utils_ap(
-		$author$project$Depp$View$internalBaseFlex,
-		_List_fromArray(
-			[
-				A2($elm$html$Html$Attributes$style, 'flex-direction', 'row')
-			])));
-var $elm$html$Html$p = _VirtualDom_node('p');
-var $elm$core$List$singleton = function (value) {
-	return _List_fromArray(
-		[value]);
-};
-var $elm$html$Html$summary = _VirtualDom_node('summary');
-var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
-var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
-var $author$project$Depp$View$collection = F2(
-	function (title, list) {
-		return A2(
-			$elm$html$Html$details,
-			_List_fromArray(
-				[
-					A2($elm$html$Html$Attributes$attribute, 'open', 'true')
-				]),
-			_List_fromArray(
-				[
-					A2(
-					$elm$html$Html$summary,
-					_List_Nil,
-					_List_fromArray(
-						[
-							$elm$html$Html$text(title)
-						])),
-					A2(
-					$elm$html$Html$p,
-					_List_Nil,
-					$elm$core$List$singleton(
-						$author$project$Depp$View$internalRow(list)))
-				]));
-	});
-var $elm$html$Html$a = _VirtualDom_node('a');
-var $elm$json$Json$Encode$string = _Json_wrap;
-var $elm$html$Html$Attributes$stringProperty = F2(
-	function (key, string) {
-		return A2(
-			_VirtualDom_property,
-			key,
-			$elm$json$Json$Encode$string(string));
-	});
-var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
-var $elm$html$Html$Attributes$href = function (url) {
-	return A2(
-		$elm$html$Html$Attributes$stringProperty,
-		'href',
-		_VirtualDom_noJavaScriptUri(url));
-};
-var $elm$virtual_dom$VirtualDom$Normal = function (a) {
-	return {$: 'Normal', a: a};
-};
-var $elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
-var $elm$html$Html$Events$on = F2(
-	function (event, decoder) {
-		return A2(
-			$elm$virtual_dom$VirtualDom$on,
-			event,
-			$elm$virtual_dom$VirtualDom$Normal(decoder));
-	});
-var $elm$html$Html$Events$onClick = function (msg) {
-	return A2(
-		$elm$html$Html$Events$on,
-		'click',
-		$elm$json$Json$Decode$succeed(msg));
-};
-var $author$project$Depp$View$internalButton = F2(
-	function (isPrimary, args) {
-		return A2(
-			$elm$html$Html$a,
-			_Utils_ap(
-				_List_fromArray(
-					[
-						A2($elm$html$Html$Attributes$attribute, 'role', 'button'),
-						$elm$html$Html$Attributes$href('#')
-					]),
-				_Utils_ap(
-					isPrimary ? _List_Nil : _List_fromArray(
-						[
-							$elm$html$Html$Attributes$class('outline')
-						]),
-					A2(
-						$elm$core$Maybe$withDefault,
-						_List_Nil,
-						A2(
-							$elm$core$Maybe$map,
-							function (msg) {
-								return $elm$core$List$singleton(
-									$elm$html$Html$Events$onClick(msg));
-							},
-							args.onClick)))),
-			_List_fromArray(
-				[
-					$elm$html$Html$text(args.label)
-				]));
-	});
-var $author$project$Depp$View$actionGroup = F2(
-	function (title, list) {
-		return A2(
-			$author$project$Depp$View$collection,
-			title,
-			A2(
-				$elm$core$List$map,
-				$author$project$Depp$View$internalButton(false),
-				list));
-	});
-var $author$project$Depp$Data$Game$PlayCard = function (a) {
-	return {$: 'PlayCard', a: a};
 };
 var $author$project$Depp$Data$Game$Redraw = function (a) {
 	return {$: 'Redraw', a: a};
@@ -7335,8 +7191,10 @@ var $author$project$Depp$Data$Game$actions = function (game) {
 				},
 				$turboMaCk$any_set$Set$Any$toList(game.hand))));
 };
-var $author$project$Depp$Layout$alignBaseline = A2($elm$html$Html$Attributes$style, 'align-items', 'baseline');
+var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
+var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
 var $author$project$Depp$Layout$alignCenter = A2($elm$html$Html$Attributes$style, 'align-items', 'center');
+var $elm$html$Html$div = _VirtualDom_node('div');
 var $author$project$Depp$Layout$chip = F2(
 	function (attrs, list) {
 		return A2(
@@ -7373,6 +7231,19 @@ var $author$project$Depp$Layout$column = function (attrs) {
 					A2($elm$html$Html$Attributes$style, 'flex-direction', 'column')
 				]),
 			attrs));
+};
+var $elm_community$maybe_extra$Maybe$Extra$filter = F2(
+	function (f, m) {
+		var _v0 = A2($elm$core$Maybe$map, f, m);
+		if ((_v0.$ === 'Just') && _v0.a) {
+			return m;
+		} else {
+			return $elm$core$Maybe$Nothing;
+		}
+	});
+var $elm$core$List$singleton = function (value) {
+	return _List_fromArray(
+		[value]);
 };
 var $author$project$Depp$Layout$footer = function (container) {
 	return A2(
@@ -7462,11 +7333,87 @@ var $author$project$Depp$Layout$row = function (attrs) {
 				]),
 			attrs));
 };
-var $author$project$Depp$View$selectButton = function (_v0) {
-	var isSelected = _v0.a;
-	var button = _v0.b;
-	return A2($author$project$Depp$View$internalButton, isSelected, button);
+var $elm$html$Html$a = _VirtualDom_node('a');
+var $elm$virtual_dom$VirtualDom$attribute = F2(
+	function (key, value) {
+		return A2(
+			_VirtualDom_attribute,
+			_VirtualDom_noOnOrFormAction(key),
+			_VirtualDom_noJavaScriptOrHtmlUri(value));
+	});
+var $elm$html$Html$Attributes$attribute = $elm$virtual_dom$VirtualDom$attribute;
+var $elm$json$Json$Encode$string = _Json_wrap;
+var $elm$html$Html$Attributes$stringProperty = F2(
+	function (key, string) {
+		return A2(
+			_VirtualDom_property,
+			key,
+			$elm$json$Json$Encode$string(string));
+	});
+var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
+var $elm$html$Html$Attributes$href = function (url) {
+	return A2(
+		$elm$html$Html$Attributes$stringProperty,
+		'href',
+		_VirtualDom_noJavaScriptUri(url));
 };
+var $elm$virtual_dom$VirtualDom$Normal = function (a) {
+	return {$: 'Normal', a: a};
+};
+var $elm$virtual_dom$VirtualDom$on = _VirtualDom_on;
+var $elm$html$Html$Events$on = F2(
+	function (event, decoder) {
+		return A2(
+			$elm$virtual_dom$VirtualDom$on,
+			event,
+			$elm$virtual_dom$VirtualDom$Normal(decoder));
+	});
+var $elm$html$Html$Events$onClick = function (msg) {
+	return A2(
+		$elm$html$Html$Events$on,
+		'click',
+		$elm$json$Json$Decode$succeed(msg));
+};
+var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
+var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
+var $author$project$Depp$View$internalButton = F3(
+	function (attrs, isPrimary, args) {
+		return A2(
+			$elm$html$Html$a,
+			_Utils_ap(
+				_List_fromArray(
+					[
+						A2($elm$html$Html$Attributes$attribute, 'role', 'button'),
+						$elm$html$Html$Attributes$href('#')
+					]),
+				_Utils_ap(
+					isPrimary ? _List_Nil : _List_fromArray(
+						[
+							$elm$html$Html$Attributes$class('outline')
+						]),
+					_Utils_ap(
+						A2(
+							$elm$core$Maybe$withDefault,
+							_List_Nil,
+							A2(
+								$elm$core$Maybe$map,
+								function (msg) {
+									return $elm$core$List$singleton(
+										$elm$html$Html$Events$onClick(msg));
+								},
+								args.onClick)),
+						attrs))),
+			_List_fromArray(
+				[
+					$elm$html$Html$text(args.label)
+				]));
+	});
+var $author$project$Depp$View$selectButton = F2(
+	function (attrs, _v0) {
+		var isSelected = _v0.a;
+		var button = _v0.b;
+		return A3($author$project$Depp$View$internalButton, attrs, isSelected, button);
+	});
 var $author$project$Depp$Layout$stickyOnTop = _List_fromArray(
 	[
 		A2($elm$html$Html$Attributes$style, 'position', 'sticky'),
@@ -7544,15 +7491,53 @@ var $author$project$Depp$View$Action$view = F3(
 				onClick(action))
 		};
 	});
+var $author$project$Depp$View$Card$view = F3(
+	function (args, game, card) {
+		var label = A2($author$project$Depp$View$Card$toString, game, card);
+		var commonAttr = _List_fromArray(
+			[
+				A2($elm$html$Html$Attributes$style, 'text-align', 'center'),
+				A2($elm$html$Html$Attributes$style, 'border-radius', '4px'),
+				A2($elm$html$Html$Attributes$style, 'padding', '8px'),
+				A2($elm$html$Html$Attributes$style, 'width', '60px'),
+				A2($elm$html$Html$Attributes$style, 'aspect-ratio', '0.66')
+			]);
+		var _v0 = args.onClick;
+		if (_v0.$ === 'Just') {
+			var onClick = _v0.a;
+			return A2(
+				$author$project$Depp$View$selectButton,
+				commonAttr,
+				_Utils_Tuple2(
+					args.active,
+					{
+						label: label,
+						onClick: $elm$core$Maybe$Just(onClick)
+					}));
+		} else {
+			return A2(
+				$elm$html$Html$div,
+				_Utils_ap(
+					_List_fromArray(
+						[
+							A2($elm$html$Html$Attributes$style, 'border', '1px solid rgba(0, 0, 0, 0.1)')
+						]),
+					commonAttr),
+				_List_fromArray(
+					[
+						$elm$html$Html$text(label)
+					]));
+		}
+	});
 var $author$project$Depp$Main$view = function (model) {
 	var ruleBySuit = A2(
 		$turboMaCk$any_dict$Dict$Any$fromList,
 		$author$project$Depp$Data$Deck$suitToInt,
 		A2(
 			$elm$core$List$map,
-			function (_v3) {
-				var first = _v3.a;
-				var rest = _v3.b;
+			function (_v4) {
+				var first = _v4.a;
+				var rest = _v4.b;
 				return _Utils_Tuple2(
 					first.b,
 					A2($elm$core$List$cons, first, rest));
@@ -7587,6 +7572,44 @@ var $author$project$Depp$Main$view = function (model) {
 			}
 		},
 		$author$project$Depp$Data$Game$actions(model.game));
+	var actionToString = function (action) {
+		return A3(
+			$author$project$Depp$View$Action$view,
+			model.game,
+			function (_v2) {
+				return _Utils_Tuple0;
+			},
+			action).label;
+	};
+	var actionDict = A2(
+		$turboMaCk$any_dict$Dict$Any$fromList,
+		$author$project$Depp$Data$Deck$cardToComparable,
+		A2(
+			$elm$core$List$map,
+			function (card) {
+				return _Utils_Tuple2(
+					card,
+					A2(
+						$turboMaCk$any_set$Set$Any$fromList,
+						actionToString,
+						A2(
+							$elm$core$List$filter,
+							function (action) {
+								switch (action.$) {
+									case 'PlayCard':
+										var args = action.a;
+										return _Utils_eq(card, args.hand);
+									case 'SwapCards':
+										var args = action.a;
+										return _Utils_eq(card, args.hand);
+									default:
+										var hand = action.a;
+										return _Utils_eq(card, hand);
+								}
+							},
+							actions)));
+			},
+			$turboMaCk$any_set$Set$Any$toList(model.game.hand)));
 	return {
 		body: _List_fromArray(
 			[
@@ -7654,7 +7677,7 @@ var $author$project$Depp$Main$view = function (model) {
 											[
 												A2($elm$html$Html$Attributes$style, 'width', '100%'),
 												$author$project$Depp$Layout$gap(4),
-												$author$project$Depp$Layout$alignBaseline
+												$author$project$Depp$Layout$alignCenter
 											])),
 									A2(
 										$elm$core$List$cons,
@@ -7720,16 +7743,24 @@ var $author$project$Depp$Main$view = function (model) {
 														A2(
 															$elm$core$List$map,
 															function (card) {
-																return $author$project$Depp$View$selectButton(
-																	_Utils_Tuple2(
-																		_Utils_eq(
+																return A3(
+																	$author$project$Depp$View$Card$view,
+																	{
+																		active: _Utils_eq(
 																			$elm$core$Maybe$Just(card),
 																			model.hand),
-																		{
-																			label: A2($author$project$Depp$View$Card$toString, model.game, card),
-																			onClick: $elm$core$Maybe$Just(
-																				$author$project$Depp$Main$ToggleHandCard(card))
-																		}));
+																		onClick: $elm$core$List$isEmpty(
+																			A2(
+																				$elm$core$Maybe$withDefault,
+																				_List_Nil,
+																				A2(
+																					$elm$core$Maybe$map,
+																					$turboMaCk$any_set$Set$Any$toList,
+																					A2($turboMaCk$any_dict$Dict$Any$get, card, actionDict)))) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(
+																			$author$project$Depp$Main$ToggleHandCard(card))
+																	},
+																	model.game,
+																	card);
 															},
 															A2(
 																$elm$core$List$filter,
@@ -7746,16 +7777,35 @@ var $author$project$Depp$Main$view = function (model) {
 														A2(
 															$elm$core$List$map,
 															function (card) {
-																return $author$project$Depp$View$selectButton(
-																	_Utils_Tuple2(
-																		_Utils_eq(
-																			$elm$core$Maybe$Just(card),
-																			model.board),
-																		{
-																			label: A2($author$project$Depp$View$Card$toString, model.game, card),
-																			onClick: $elm$core$Maybe$Just(
-																				$author$project$Depp$Main$ToggleBoardCard(card))
-																		}));
+																return A3(
+																	$author$project$Depp$View$Card$view,
+																	{
+																		active: false,
+																		onClick: A2(
+																			$elm$core$Maybe$andThen,
+																			function (hand) {
+																				return A2(
+																					$elm$core$Maybe$map,
+																					$author$project$Depp$Main$PlayAction,
+																					A2(
+																						$elm_community$maybe_extra$Maybe$Extra$filter,
+																						function (action) {
+																							return A2(
+																								$elm$core$Maybe$withDefault,
+																								false,
+																								A2(
+																									$elm$core$Maybe$map,
+																									$turboMaCk$any_set$Set$Any$member(action),
+																									A2($turboMaCk$any_dict$Dict$Any$get, hand, actionDict)));
+																						},
+																						$elm$core$Maybe$Just(
+																							$author$project$Depp$Data$Game$PlayCard(
+																								{board: card, hand: hand}))));
+																			},
+																			model.hand)
+																	},
+																	model.game,
+																	card);
 															},
 															A2(
 																$elm$core$List$filter,
@@ -7764,11 +7814,34 @@ var $author$project$Depp$Main$view = function (model) {
 																},
 																$turboMaCk$any_set$Set$Any$toList(model.game.board))))
 													]))),
-										A2(
-											$elm$core$List$map,
-											function (_v0) {
-												var rule = _v0.a;
-												return _List_fromArray(
+										_Utils_ap(
+											A2(
+												$elm$core$List$map,
+												function (_v0) {
+													var rule = _v0.a;
+													return _List_fromArray(
+														[
+															A2(
+															$elm$html$Html$div,
+															_List_fromArray(
+																[
+																	A2($elm$html$Html$Attributes$style, 'width', '100px')
+																]),
+															_List_Nil),
+															A2(
+															$elm$html$Html$div,
+															_List_fromArray(
+																[
+																	A2($elm$html$Html$Attributes$style, 'flex', '2')
+																]),
+															$elm$core$List$singleton(
+																$elm$html$Html$text(
+																	A2($author$project$Depp$Data$Game$suitToString, suit, model.game) + (' ' + $author$project$Depp$Data$Rule$toString(rule)))))
+														]);
+												},
+												rules),
+											_Utils_eq(suit, model.game.trump) ? $elm$core$List$singleton(
+												_List_fromArray(
 													[
 														A2(
 														$elm$html$Html$div,
@@ -7785,72 +7858,45 @@ var $author$project$Depp$Main$view = function (model) {
 															]),
 														$elm$core$List$singleton(
 															$elm$html$Html$text(
-																A2($author$project$Depp$Data$Game$suitToString, suit, model.game) + (' ' + $author$project$Depp$Data$Rule$toString(rule)))))
-													]);
-											},
-											rules)));
+																A2($author$project$Depp$Data$Game$suitToString, suit, model.game) + (' ' + 'defeats any other color.'))))
+													])) : _List_Nil)));
 							},
 							$elm$core$Array$toList($author$project$Depp$Data$Deck$suits))))),
 				$author$project$Depp$Layout$footer(
 				A2(
-					$author$project$Depp$View$actionGroup,
-					'Actions',
+					$author$project$Depp$Layout$row,
+					_List_fromArray(
+						[$author$project$Depp$Layout$alignCenter]),
 					A2(
-						$elm$core$List$cons,
-						{
-							label: 'New Game',
-							onClick: $elm$core$Maybe$Just(
-								$author$project$Depp$Main$Restart(model.seed))
+						$elm$core$List$map,
+						function (button) {
+							return A2(
+								$author$project$Depp$View$selectButton,
+								_List_Nil,
+								_Utils_Tuple2(false, button));
 						},
 						A2(
-							$elm$core$List$filterMap,
-							function (action) {
-								switch (action.$) {
-									case 'PlayCard':
-										var args = action.a;
-										return (A2(
-											$elm$core$Maybe$withDefault,
-											true,
-											A2(
-												$elm$core$Maybe$map,
-												$elm$core$Basics$eq(args.board),
-												model.board)) && A2(
-											$elm$core$Maybe$withDefault,
-											true,
-											A2(
-												$elm$core$Maybe$map,
-												$elm$core$Basics$eq(args.hand),
-												model.hand))) ? $elm$core$Maybe$Just(
-											A3($author$project$Depp$View$Action$view, model.game, $author$project$Depp$Main$PlayAction, action)) : $elm$core$Maybe$Nothing;
-									case 'SwapCards':
-										var args = action.a;
-										return (A2(
-											$elm$core$Maybe$withDefault,
-											true,
-											A2(
-												$elm$core$Maybe$map,
-												$elm$core$Basics$eq(args.board),
-												model.board)) && A2(
-											$elm$core$Maybe$withDefault,
-											true,
-											A2(
-												$elm$core$Maybe$map,
-												$elm$core$Basics$eq(args.hand),
-												model.hand))) ? $elm$core$Maybe$Just(
-											A3($author$project$Depp$View$Action$view, model.game, $author$project$Depp$Main$PlayAction, action)) : $elm$core$Maybe$Nothing;
-									default:
-										var hand = action.a;
-										return A2(
-											$elm$core$Maybe$withDefault,
-											false,
-											A2(
-												$elm$core$Maybe$map,
-												$elm$core$Basics$eq(hand),
-												model.hand)) ? $elm$core$Maybe$Just(
-											A3($author$project$Depp$View$Action$view, model.game, $author$project$Depp$Main$PlayAction, action)) : $elm$core$Maybe$Nothing;
-								}
+							$elm$core$List$cons,
+							{
+								label: 'New Game',
+								onClick: $elm$core$Maybe$Just(
+									$author$project$Depp$Main$Restart(model.seed))
 							},
-							actions))))
+							A2(
+								$elm$core$List$map,
+								A2($author$project$Depp$View$Action$view, model.game, $author$project$Depp$Main$PlayAction),
+								A2(
+									$elm$core$Maybe$withDefault,
+									_List_Nil,
+									A2(
+										$elm$core$Maybe$andThen,
+										function (card) {
+											return A2(
+												$elm$core$Maybe$map,
+												$turboMaCk$any_set$Set$Any$toList,
+												A2($turboMaCk$any_dict$Dict$Any$get, card, actionDict));
+										},
+										model.hand)))))))
 			]),
 		title: 'Depp Card Game'
 	};
