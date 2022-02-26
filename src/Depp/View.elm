@@ -76,10 +76,10 @@ actions : { label : String, onClick : Maybe msg } -> List { label : String, onCl
 actions primary list =
     let
         primaryButton =
-            internalButton True primary
+            internalButton [] True primary
 
         listButtons =
-            list |> List.map (internalButton False)
+            list |> List.map (internalButton [] False)
     in
     if (list |> List.length) < 3 then
         [ primaryButton ]
@@ -99,25 +99,25 @@ actions primary list =
 actionGroup : String -> List { label : String, onClick : Maybe msg } -> Html msg
 actionGroup title list =
     list
-        |> List.map (internalButton False)
+        |> List.map (internalButton [] False)
         |> collection title
 
 
 actionSelect : String -> List ( Bool, { label : String, onClick : Maybe msg } ) -> Html msg
 actionSelect title list =
     list
-        |> List.map (\( isSelected, button ) -> internalButton isSelected button)
+        |> List.map (\( isSelected, button ) -> internalButton [] isSelected button)
         |> collection title
 
 
 singleButton : { label : String, onClick : Maybe msg } -> Html msg
 singleButton =
-    internalButton True
+    internalButton [] True
 
 
-selectButton : ( Bool, { label : String, onClick : Maybe msg } ) -> Html msg
-selectButton ( isSelected, button ) =
-    internalButton isSelected button
+selectButton : List (Attribute msg) -> ( Bool, { label : String, onClick : Maybe msg } ) -> Html msg
+selectButton attrs ( isSelected, button ) =
+    internalButton attrs isSelected button
 
 
 
@@ -152,8 +152,8 @@ internalRow =
         )
 
 
-internalButton : Bool -> { label : String, onClick : Maybe msg } -> Html msg
-internalButton isPrimary args =
+internalButton : List (Attribute msg) -> Bool -> { label : String, onClick : Maybe msg } -> Html msg
+internalButton attrs isPrimary args =
     Html.a
         ([ Attr.attribute "role" "button"
          , Attr.href "#"
@@ -173,5 +173,6 @@ internalButton isPrimary args =
                         )
                     |> Maybe.withDefault []
                )
+            ++ attrs
         )
         [ Html.text args.label ]

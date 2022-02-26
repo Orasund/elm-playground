@@ -26,6 +26,11 @@ alignCenter =
     Attr.style "align-items" "center"
 
 
+spaceBetween : Attribute msg
+spaceBetween =
+    Attr.style "justify-content" "space-between"
+
+
 gap : Int -> Attribute msg
 gap int =
     Attr.style "gap" (String.fromInt int ++ "px")
