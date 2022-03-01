@@ -1,4 +1,4 @@
-module Depp.Layout exposing (..)
+module Layout exposing (..)
 
 {-| elm-layout
 

@@ -5,13 +5,13 @@ import Browser exposing (Document)
 import Depp.Data.Deck as Deck exposing (Card)
 import Depp.Data.Game as Game exposing (Action, Game)
 import Depp.Data.Rule as Rule
-import Depp.Layout as Layout
 import Depp.View as View exposing (card)
 import Depp.View.Action as Action
 import Depp.View.Card as Card
 import Dict.Any as AnyDict exposing (AnyDict)
 import Html
 import Html.Attributes as Attr
+import Layout
 import List.Extra as List
 import Maybe.Extra as Maybe
 import Random exposing (Seed)

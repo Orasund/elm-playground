@@ -3,10 +3,10 @@ module Depp.View.Card exposing (toString, view, withActions)
 import Cards exposing (Face(..), Suit(..))
 import Depp.Data.Deck as Deck exposing (Card)
 import Depp.Data.Game as Game exposing (Action, Game)
-import Depp.Layout as Layout
 import Depp.View as View
 import Html exposing (Html)
 import Html.Attributes as Attr
+import Layout as Layout
 import List.Extra as List
 import UndoList.Decode exposing (msg)
 
