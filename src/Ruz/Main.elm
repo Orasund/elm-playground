@@ -3,6 +3,7 @@ module Ruz.Main exposing (..)
 import Browser exposing (Document)
 import Color exposing (Color)
 import Dict exposing (Dict)
+import Element exposing (Attr)
 import Html
 import Html.Attributes as Attr
 import Html.Events as Event
@@ -106,7 +107,12 @@ view ({ game } as model) =
     in
     { title = "Ruz Puzzle"
     , body =
-        [ [ model.game.score
+        [ Html.node "meta"
+            [ Attr.attribute "name" "viewport"
+            , Attr.attribute "content" "width=device-width, initial-scale=1.0"
+            ]
+            []
+        , [ model.game.score
                 |> String.fromInt
                 |> Html.text
                 |> List.singleton
