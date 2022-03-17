@@ -1,6 +1,7 @@
 module Ruz.Main exposing (..)
 
 import Browser exposing (Document)
+import Color exposing (Color)
 import Dict exposing (Dict)
 import Html
 import Html.Attributes as Attr
@@ -17,6 +18,7 @@ type alias Model =
     { game : Game
     , gameOver : Bool
     , seed : Seed
+    , score : Int
     }
 
 
@@ -39,22 +41,92 @@ init : () -> ( Model, Cmd Msg )
 init () =
     ( Random.initialSeed 42
         |> Random.step Game.init
-        |> (\( game, seed ) -> { game = game, gameOver = False, seed = seed })
+        |> (\( game, seed ) ->
+                { game = game
+                , gameOver = False
+                , seed = seed
+                , score = 0
+                }
+           )
     , Random.generate NewGame Random.independentSeed
     )
 
 
 view : Model -> Document Msg
-view model =
+view ({ game } as model) =
+    let
+        overlay : Dict ( Int, Int ) Color
+        overlay =
+            List.range 0 (Config.size - 1)
+                |> List.concatMap
+                    (\i ->
+                        List.range 0 (Config.size - 1)
+                            |> List.map (\j -> ( i, j ))
+                    )
+                |> List.filterMap
+                    (\pos ->
+                        if pos == model.game.player then
+                            if model.gameOver then
+                                Just ( pos, Config.red )
+
+                            else
+                                Nothing
+
+                        else if model.gameOver then
+                            Nothing
+
+                        else if Game.valid { isEnemy = False, from = model.game.player, to = pos } model.game then
+                            if
+                                model.game.grid
+                                    |> Dict.keys
+                                    |> List.any
+                                        (\enemyPos ->
+                                            (enemyPos /= model.game.player)
+                                                && (enemyPos /= pos)
+                                                && Game.valid { isEnemy = True, from = enemyPos, to = pos }
+                                                    { game
+                                                        | grid =
+                                                            game.grid
+                                                                |> Dict.remove model.game.player
+                                                                |> Dict.remove pos
+                                                        , player = pos
+                                                    }
+                                        )
+                            then
+                                Just ( pos, Config.red )
+
+                            else if game |> Game.isDangerous pos then
+                                Just ( pos, Config.yellow )
+
+                            else
+                                Just ( pos, Config.green )
+
+                        else
+                            Nothing
+                    )
+                |> Dict.fromList
+    in
     { title = "Ruz Puzzle"
     , body =
-        [ model.game.grid
-            |> Board.view
-                { figures = model.game.figures
-                , player = model.game.player
-                , gameOver = model.gameOver
-                , onClick = Click
-                }
+        [ [ model.score
+                |> String.fromInt
+                |> Html.text
+                |> List.singleton
+                |> Html.h1 [ Attr.style "text-align" "center", Attr.style "margin-bottom" "100px" ]
+          , model.game.grid
+                |> Board.view
+                    { figures = model.game.figures
+                    , player = model.game.player
+                    , overlay = overlay
+                    , onClick = Click
+                    }
+          ]
+            |> Html.div
+                [ Attr.style "position" "absolute"
+                , Attr.style "left" "50%"
+                , Attr.style "top" "50%"
+                , Attr.style "transform" "translate(-50%, -50%)"
+                ]
             |> List.singleton
             |> Html.div
                 [ Attr.style "margin" "flex"
@@ -82,6 +154,7 @@ update msg model =
                                         { game = game
                                         , gameOver = gameOver
                                         , seed = seed
+                                        , score = model.score + 1
                                         }
                                     )
                                 |> Maybe.withDefault model
@@ -92,7 +165,7 @@ update msg model =
         NewGame s ->
             ( s
                 |> Random.step Game.init
-                |> (\( game, seed ) -> { game = game, gameOver = False, seed = seed })
+                |> (\( game, seed ) -> { game = game, gameOver = False, seed = seed, score = 0 })
             , Cmd.none
             )
 

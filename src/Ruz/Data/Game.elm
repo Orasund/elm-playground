@@ -1,7 +1,8 @@
-module Ruz.Data.Game exposing (Game, init, move)
+module Ruz.Data.Game exposing (Game, init, isDangerous, move, valid)
 
 import Dict exposing (Dict)
 import List.Extra
+import Process exposing (spawn)
 import Random exposing (Generator)
 import Random.List
 import Ruz.Config as Config
@@ -28,6 +29,30 @@ init =
                 , player = Config.startingPos
                 , next = next |> List.Extra.uncons |> Maybe.withDefault ( Figure.player, [] )
                 }
+            )
+        |> Random.andThen spawnEnemy
+
+
+isDangerous : ( Int, Int ) -> Game -> Bool
+isDangerous ( x, y ) game =
+    List.range 0 (Config.size - 1)
+        |> List.concatMap
+            (\i ->
+                [ ( ( i, y ), Rook )
+                , ( ( x, i ), Rook )
+                , ( ( i, y - x + i ), Biship )
+                , ( ( i, y + x - i ), Biship )
+                ]
+            )
+        |> List.any
+            (\( pos, figure ) ->
+                (pos /= ( x, y ))
+                    && (pos /= game.player)
+                    && (game.grid
+                            |> Dict.get pos
+                            |> Maybe.andThen (\id -> game.figures |> Dict.get id)
+                            |> (==) (Just figure)
+                       )
             )
 
 
@@ -58,7 +83,8 @@ canMove args game figure =
                         List.range (min from.y to.y) (max from.y to.y)
                             |> List.all
                                 (\y ->
-                                    (y == from.y)
+                                    (y == to.y)
+                                        || (y == from.y)
                                         || (game.grid |> Dict.member ( from.x, y ) |> not)
                                 )
 
@@ -66,7 +92,8 @@ canMove args game figure =
                         List.range (min from.x to.x) (max from.x to.x)
                             |> List.all
                                 (\x ->
-                                    (x == from.x)
+                                    (x == to.x)
+                                        || (x == from.x)
                                         || (game.grid |> Dict.member ( x, from.y ) |> not)
                                 )
 
@@ -85,6 +112,16 @@ canMove args game figure =
                         List.range 1 n
                             |> List.map (\i -> ( from.x + dir.x * i, from.y + dir.y * i ))
                             |> List.all (\pos -> game.grid |> Dict.member pos |> not)
+
+                    else
+                        False
+
+                Pawn ->
+                    if to.x == from.x && to.y == from.y + 1 then
+                        game.player /= ( to.x, to.y )
+
+                    else if abs (to.x - from.x) == 1 && to.y == from.y + 1 then
+                        game.player == ( to.x, to.y )
 
                     else
                         False
@@ -125,7 +162,7 @@ spawnEnemy game =
             game.next
     in
     List.range 0 (Config.size - 1)
-        |> List.map (\x -> ( x, 0 ))
+        |> List.map (\x -> ( x, -1 ))
         |> List.filter (\pos -> (game.grid |> Dict.member pos |> not) && (pos /= game.player))
         |> List.Extra.uncons
         |> Maybe.map (\( head, tail ) -> Random.uniform head tail)
@@ -157,27 +194,32 @@ spawnEnemy game =
 
 moveEnemy : ( ( Int, Int ), Int ) -> Game -> Generator Game
 moveEnemy ( pos, figureId ) game =
-    case
-        game.figures
-            |> Dict.get figureId
-            |> Maybe.withDefault Figure.player
-            |> Figure.moves pos
-            |> List.filter (\to -> valid { isEnemy = True, from = pos, to = to } game)
-    of
-        head :: tail ->
-            Random.uniform head tail
-                |> Random.map
-                    (\to ->
-                        { game
-                            | grid =
-                                game.grid
-                                    |> Dict.remove pos
-                                    |> Dict.insert to figureId
-                        }
-                    )
+    let
+        moveTo to =
+            { game
+                | grid =
+                    game.grid
+                        |> Dict.remove pos
+                        |> Dict.insert to figureId
+            }
+    in
+    if valid { isEnemy = True, from = pos, to = game.player } game then
+        Random.constant (moveTo game.player)
 
-        [] ->
-            Random.constant game
+    else
+        case
+            game.figures
+                |> Dict.get figureId
+                |> Maybe.withDefault Figure.player
+                |> Figure.moves pos
+                |> List.filter (\to -> valid { isEnemy = True, from = pos, to = to } game)
+        of
+            head :: tail ->
+                Random.uniform head tail
+                    |> Random.map moveTo
+
+            [] ->
+                Random.constant game
 
 
 move : ( Int, Int ) -> Game -> Generator (Maybe { gameOver : Bool, game : Game })

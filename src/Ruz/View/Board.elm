@@ -1,6 +1,6 @@
 module Ruz.View.Board exposing (view)
 
-import Color
+import Color exposing (Color)
 import Dict exposing (Dict)
 import Html exposing (Html)
 import Html.Attributes as Attr
@@ -14,7 +14,7 @@ import Ruz.Data.Figure as Figure exposing (Figure)
 view :
     { figures : Dict Int Figure
     , player : ( Int, Int )
-    , gameOver : Bool
+    , overlay : Dict ( Int, Int ) Color
     , onClick : ( Int, Int ) -> msg
     }
     -> Dict ( Int, Int ) Int
@@ -32,6 +32,10 @@ view args board =
 
 viewFigures : { board : Dict ( Int, Int ) Int } -> Dict Int Figure -> Html msg
 viewFigures args figures =
+    let
+        gridSize =
+            100 / toFloat Config.size
+    in
     args.board
         |> Dict.toList
         |> List.sortBy Tuple.second
@@ -40,16 +44,16 @@ viewFigures args figures =
                 ( "figure-" ++ String.fromInt figureId
                 , [ figures
                         |> Dict.get figureId
-                        |> Maybe.withDefault Figure.player
-                        |> Figure.toString
+                        |> Maybe.map (Figure.toString False)
+                        |> Maybe.withDefault (Figure.toString True Figure.player)
                         |> Html.text
                   ]
                     |> Html.div
                         [ Attr.style "position" "absolute"
-                        , Attr.style "left" (String.fromInt (x * 20 + 5) ++ "%")
-                        , Attr.style "top" (String.fromInt (y * 20 + 5) ++ "%")
-                        , Attr.style "width" "10%"
-                        , Attr.style "height" "10%"
+                        , Attr.style "left" (String.fromFloat (toFloat x * gridSize + gridSize / 4) ++ "%")
+                        , Attr.style "top" (String.fromFloat (toFloat y * gridSize + gridSize / 4) ++ "%")
+                        , Attr.style "width" (String.fromFloat (gridSize / 2) ++ "%")
+                        , Attr.style "height" (String.fromFloat (gridSize / 2) ++ "%")
                         , Attr.style "display" "flex"
                         , Attr.style "justify-content" "center"
                         , Attr.style "align-items" "center"
@@ -70,7 +74,7 @@ viewFigures args figures =
 viewBoard :
     { figures : Dict Int Figure
     , player : ( Int, Int )
-    , gameOver : Bool
+    , overlay : Dict ( Int, Int ) Color
     , onClick : ( Int, Int ) -> msg
     }
     -> Dict ( Int, Int ) Int
@@ -88,16 +92,9 @@ viewBoard args board =
                                 , Attr.style "flex" "1"
                                 , Attr.style "height" "100%"
                                 , Attr.style "background-color"
-                                    ((if args.player == ( i, j ) then
-                                        if args.gameOver then
-                                            Color.rgba 1 0 0 0.25
-
-                                        else
-                                            Color.rgba 0 0 1 0.25
-
-                                      else
-                                        Color.rgba 0 0 0 0
-                                     )
+                                    (args.overlay
+                                        |> Dict.get ( i, j )
+                                        |> Maybe.withDefault (Color.rgba 0 0 0 0)
                                         |> Color.toCssString
                                     )
                                 ]
