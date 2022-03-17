@@ -6699,6 +6699,14 @@ var $author$project$Ruz$Main$update = F2(
 var $author$project$Ruz$Main$Click = function (a) {
 	return {$: 'Click', a: a};
 };
+var $elm$virtual_dom$VirtualDom$attribute = F2(
+	function (key, value) {
+		return A2(
+			_VirtualDom_attribute,
+			_VirtualDom_noOnOrFormAction(key),
+			_VirtualDom_noJavaScriptOrHtmlUri(value));
+	});
+var $elm$html$Html$Attributes$attribute = $elm$virtual_dom$VirtualDom$attribute;
 var $elm$core$List$concatMap = F2(
 	function (f, list) {
 		return $elm$core$List$concat(
@@ -6786,6 +6794,11 @@ var $author$project$Ruz$Data$Game$isDangerous = F2(
 				},
 				A2($elm$core$List$range, 0, $author$project$Ruz$Config$size - 1)));
 	});
+var $elm$virtual_dom$VirtualDom$node = function (tag) {
+	return _VirtualDom_node(
+		_VirtualDom_noScript(tag));
+};
+var $elm$html$Html$node = $elm$virtual_dom$VirtualDom$node;
 var $author$project$Ruz$Config$red = A4($avh4$elm_color$Color$rgba, 1, 0, 0, 0.125);
 var $elm$core$List$singleton = function (value) {
 	return _List_fromArray(
@@ -7072,6 +7085,15 @@ var $author$project$Ruz$Main$view = function (model) {
 	return {
 		body: _List_fromArray(
 			[
+				A3(
+				$elm$html$Html$node,
+				'meta',
+				_List_fromArray(
+					[
+						A2($elm$html$Html$Attributes$attribute, 'name', 'viewport'),
+						A2($elm$html$Html$Attributes$attribute, 'content', 'width=device-width, initial-scale=1.0')
+					]),
+				_List_Nil),
 				A2(
 				$elm$html$Html$div,
 				_List_fromArray(
