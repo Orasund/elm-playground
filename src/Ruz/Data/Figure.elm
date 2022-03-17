@@ -8,29 +8,50 @@ type Figure
     = King
     | Rook
     | Biship
+    | Pawn
 
 
 asList : List Figure
 asList =
-    [ King, Rook, Rook, Biship, Biship ]
+    [ List.repeat 1 King, List.repeat 2 Rook, List.repeat 2 Biship, List.repeat 8 Pawn ]
+        |> List.concat
 
 
 player : Figure
 player =
-    King
+    Rook
 
 
-toString : Figure -> String
-toString figure =
+toString : Bool -> Figure -> String
+toString isWhite figure =
     case figure of
         King ->
-            "♚"
+            if isWhite then
+                "♔"
+
+            else
+                "♚"
 
         Rook ->
-            "♜"
+            if isWhite then
+                "♖"
+
+            else
+                "♜"
 
         Biship ->
-            "♝"
+            if isWhite then
+                "♗"
+
+            else
+                "♝"
+
+        Pawn ->
+            if isWhite then
+                "♙"
+
+            else
+                "♟"
 
 
 moves : ( Int, Int ) -> Figure -> List ( Int, Int )
@@ -44,3 +65,6 @@ moves ( x, y ) figure =
 
         Biship ->
             [ ( x + 1, y + 1 ), ( x - 1, y + 1 ) ]
+
+        Pawn ->
+            [ ( x, y + 1 ), ( x + 1, y + 1 ), ( x - 1, y + 1 ) ]
