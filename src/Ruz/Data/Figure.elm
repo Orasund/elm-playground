@@ -1,4 +1,4 @@
-module Ruz.Data.Figure exposing (Figure(..), asList, moves, player, toString)
+module Ruz.Data.Figure exposing (Figure(..), asList, moves, player, score, toString)
 
 import Random exposing (Generator)
 import Ruz.Config as Config
@@ -8,12 +8,37 @@ type Figure
     = King
     | Rook
     | Biship
+    | Knight
     | Pawn
+
+
+score : Figure -> Int
+score figure =
+    case figure of
+        Pawn ->
+            1
+
+        Knight ->
+            3
+
+        Biship ->
+            3
+
+        Rook ->
+            5
+
+        King ->
+            10
 
 
 asList : List Figure
 asList =
-    [ List.repeat 1 King, List.repeat 2 Rook, List.repeat 2 Biship, List.repeat 8 Pawn ]
+    [ List.repeat 1 King
+    , List.repeat 2 Rook
+    , List.repeat 2 Biship
+    , List.repeat 2 Knight
+    , List.repeat 8 Pawn
+    ]
         |> List.concat
 
 
@@ -46,6 +71,13 @@ toString isWhite figure =
             else
                 "♝"
 
+        Knight ->
+            if isWhite then
+                "♘"
+
+            else
+                "♞"
+
         Pawn ->
             if isWhite then
                 "♙"
@@ -65,6 +97,9 @@ moves ( x, y ) figure =
 
         Biship ->
             [ ( x + 1, y + 1 ), ( x - 1, y + 1 ) ]
+
+        Knight ->
+            [ ( x + 2, y + 1 ), ( x + 1, y + 2 ), ( x - 1, y + 2 ), ( x - 2, y + 1 ) ]
 
         Pawn ->
             [ ( x, y + 1 ), ( x + 1, y + 1 ), ( x - 1, y + 1 ) ]

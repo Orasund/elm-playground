@@ -14,6 +14,7 @@ type alias Game =
     , grid : Dict ( Int, Int ) Int
     , player : ( Int, Int )
     , next : ( Figure, List Figure )
+    , score : Int
     }
 
 
@@ -28,6 +29,7 @@ init =
                     Dict.singleton Config.startingPos Config.playerId
                 , player = Config.startingPos
                 , next = next |> List.Extra.uncons |> Maybe.withDefault ( Figure.player, [] )
+                , score = 0
                 }
             )
         |> Random.andThen spawnEnemy
@@ -115,6 +117,10 @@ canMove args game figure =
 
                     else
                         False
+
+                Knight ->
+                    [ ( 2, 1 ), ( 1, 2 ), ( -1, 2 ), ( -2, 1 ), ( -2, -1 ), ( -1, -2 ), ( 1, -2 ), ( 2, -1 ) ]
+                        |> List.member ( to.x - from.x, to.y - from.y )
 
                 Pawn ->
                     if to.x == from.x && to.y == from.y + 1 then
@@ -240,6 +246,14 @@ move pos game =
                         { game
                             | grid = enemies
                             , player = pos
+                            , score =
+                                game.score
+                                    + (game.grid
+                                        |> Dict.get pos
+                                        |> Maybe.andThen (\id -> game.figures |> Dict.get id)
+                                        |> Maybe.map Figure.score
+                                        |> Maybe.withDefault 0
+                                      )
                         }
                     )
                 )

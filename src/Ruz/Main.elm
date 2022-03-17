@@ -18,7 +18,6 @@ type alias Model =
     { game : Game
     , gameOver : Bool
     , seed : Seed
-    , score : Int
     }
 
 
@@ -45,7 +44,6 @@ init () =
                 { game = game
                 , gameOver = False
                 , seed = seed
-                , score = 0
                 }
            )
     , Random.generate NewGame Random.independentSeed
@@ -108,7 +106,7 @@ view ({ game } as model) =
     in
     { title = "Ruz Puzzle"
     , body =
-        [ [ model.score
+        [ [ model.game.score
                 |> String.fromInt
                 |> Html.text
                 |> List.singleton
@@ -154,7 +152,6 @@ update msg model =
                                         { game = game
                                         , gameOver = gameOver
                                         , seed = seed
-                                        , score = model.score + 1
                                         }
                                     )
                                 |> Maybe.withDefault model
@@ -165,7 +162,7 @@ update msg model =
         NewGame s ->
             ( s
                 |> Random.step Game.init
-                |> (\( game, seed ) -> { game = game, gameOver = False, seed = seed, score = 0 })
+                |> (\( game, seed ) -> { game = game, gameOver = False, seed = seed })
             , Cmd.none
             )
 
