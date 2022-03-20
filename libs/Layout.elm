@@ -11,6 +11,21 @@ import Html.Attributes as Attr
 import UndoList.Decode exposing (msg)
 
 
+fill : Attribute msg
+fill =
+    fillPortion 1
+
+
+fillPortion : Int -> Attribute msg
+fillPortion n =
+    Attr.style "flex" (String.fromInt n)
+
+
+spacing : Float -> Attribute msg
+spacing n =
+    Attr.style "gap" (String.fromFloat n ++ "px")
+
+
 noWrap : Attribute msg
 noWrap =
     Attr.style "flex-wrap" "nowrap"
@@ -55,6 +70,21 @@ stickyOnBottom =
 centerContent : Attribute msg
 centerContent =
     Attr.style "justify-content" "center"
+
+
+none : Html msg
+none =
+    Html.text ""
+
+
+el : List (Attribute msg) -> Html msg -> Html msg
+el attrs content =
+    Html.div
+        ([ Attr.style "display" "flex"
+         ]
+            ++ attrs
+        )
+        [ content ]
 
 
 {-|

@@ -9,12 +9,14 @@ import Html.Keyed
 import Layout
 import Ruz.Config as Config
 import Ruz.Data.Figure as Figure exposing (Figure, FigureId)
+import Ruz.Data.Overlay exposing (Overlay(..))
 
 
 view :
     { figures : Dict FigureId Figure
-    , overlay : Dict ( Int, Int ) Color
+    , overlay : Dict ( Int, Int ) Overlay
     , onClick : ( Int, Int ) -> msg
+    , gameOver : Bool
     }
     -> Dict FigureId ( Int, Int )
     -> Html msg
@@ -23,9 +25,33 @@ view args figurePos =
         gridSize =
             Config.boardSize / toFloat Config.size
     in
-    [ args.figures |> viewFigures { figurePos = figurePos }
-    , figurePos |> viewBoard args
+    [ [ args.figures
+            |> viewFigures { figurePos = figurePos }
+      , figurePos
+            |> viewBoard
+                { figures = args.figures
+                , overlay = args.overlay
+                , onClick = args.onClick
+                }
+      ]
+    , if args.gameOver then
+        [ Html.text "Game Over"
+            |> Layout.el
+                [ Attr.style "background-color" "rgba(0,0,0,0.5)"
+                , Attr.style "height" (String.fromFloat Config.boardSize ++ "px")
+                , Attr.style "color" "white"
+                , Attr.style "z-index" "2"
+                , Attr.style "font-size" "30px"
+                , Layout.alignCenter
+                , Layout.centerContent
+                , Attr.style "backdrop-filter" "blur(2px)"
+                ]
+        ]
+
+      else
+        []
     ]
+        |> List.concat
         |> Html.div
             [ Attr.style "height" (String.fromFloat Config.boardSize ++ "px")
             , Attr.style "width" (String.fromFloat Config.boardSize ++ "px")
@@ -76,7 +102,7 @@ viewFigures args figures =
 
 viewBoard :
     { figures : Dict Int Figure
-    , overlay : Dict ( Int, Int ) Color
+    , overlay : Dict ( Int, Int ) Overlay
     , onClick : ( Int, Int ) -> msg
     }
     -> Dict FigureId ( Int, Int )
@@ -88,19 +114,57 @@ viewBoard args figurePos =
                 List.repeat Config.size ()
                     |> List.indexedMap
                         (\i () ->
-                            Html.button
-                                [ Event.onClick (args.onClick ( i, j ))
-                                , Attr.style "border" "solid 1 rgba(0,0,0,25)"
-                                , Attr.style "flex" "1"
-                                , Attr.style "height" "100%"
-                                , Attr.style "background-color"
-                                    (args.overlay
-                                        |> Dict.get ( i, j )
-                                        |> Maybe.withDefault (Color.rgba 0 0 0 0)
-                                        |> Color.toCssString
-                                    )
-                                ]
-                                []
+                            let
+                                cell attrs =
+                                    Html.div
+                                        ([ Attr.style "border"
+                                            ("solid 1px "
+                                                ++ (Config.gray |> Color.toCssString)
+                                            )
+                                         , Layout.fill
+                                         , Attr.style "height" "calc(100% -  2px)"
+                                         ]
+                                            ++ attrs
+                                        )
+                                        []
+
+                                clickableCell attrs =
+                                    Html.a
+                                        ([ Event.onClick (args.onClick ( i, j ))
+                                         , Attr.href "#"
+                                         , Attr.style "border" ("solid 1px " ++ (Config.gray |> Color.toCssString))
+                                         , Layout.fill
+                                         , Attr.style "height" "calc(100% -  2px)"
+                                         ]
+                                            ++ attrs
+                                        )
+                                        []
+                            in
+                            case args.overlay |> Dict.get ( i, j ) of
+                                Just Success ->
+                                    [ Attr.style "background-color" (Color.toCssString Config.green) ]
+                                        |> clickableCell
+
+                                Just Warning ->
+                                    [ Attr.style "background-color" (Color.toCssString Config.green)
+                                    , Attr.style "background"
+                                        ("repeating-linear-gradient("
+                                            ++ " -45deg,"
+                                            ++ (Color.toCssString Config.green ++ ",")
+                                            ++ (Color.toCssString Config.green ++ " 20%,")
+                                            ++ ((Config.gray |> Color.toCssString) ++ " 20%,")
+                                            ++ ((Config.gray |> Color.toCssString) ++ " 40%")
+                                            ++ ")"
+                                        )
+                                    ]
+                                        |> clickableCell
+
+                                Just Danger ->
+                                    [ Attr.style "background-color" (Config.gray |> Color.toCssString) ]
+                                        |> clickableCell
+
+                                Nothing ->
+                                    cell []
                         )
                     |> Layout.row
                         [ Attr.style "flex" "1"

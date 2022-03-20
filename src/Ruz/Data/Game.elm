@@ -15,6 +15,7 @@ type alias Game =
     , player : ( Int, Int )
     , next : ( List Figure, List (List Figure) )
     , score : Int
+    , waveSize : Int
     }
 
 
@@ -25,13 +26,13 @@ type Change
     | GameOver
 
 
-generateNextEnemies : Generator ( List Figure, List (List Figure) )
-generateNextEnemies =
+generateNextEnemies : Int -> Generator ( List Figure, List (List Figure) )
+generateNextEnemies waveSize =
     Random.List.shuffle Figure.asList
         |> Random.map
             (\list ->
                 list
-                    |> List.Extra.groupsOf Config.chunkSize
+                    |> List.Extra.groupsOf waveSize
                     |> List.Extra.uncons
                     |> Maybe.withDefault ( [], [] )
             )
@@ -39,7 +40,7 @@ generateNextEnemies =
 
 init : Generator ( Game, List Change )
 init =
-    generateNextEnemies
+    generateNextEnemies Config.initialWaveSize
         |> Random.map
             (\next ->
                 ( { figures = Dict.empty
@@ -49,6 +50,7 @@ init =
                   , player = Config.startingPos
                   , next = next
                   , score = 0
+                  , waveSize = Config.initialWaveSize
                   }
                 , [ Spawn Config.playerId Config.startingPos ]
                 )
@@ -72,20 +74,24 @@ isDangerous ( x, y ) game =
     List.range 0 (Config.size - 1)
         |> List.concatMap
             (\i ->
-                [ ( ( i, y ), Rook )
-                , ( ( x, i ), Rook )
-                , ( ( i, y - x + i ), Biship )
-                , ( ( i, y + x - i ), Biship )
+                [ ( ( i, y ), [ Rook, Queen ] )
+                , ( ( x, i ), [ Rook, Queen ] )
+                , ( ( i, y - x + i ), [ Biship, Queen ] )
+                , ( ( i, y + x - i ), [ Biship, Queen ] )
                 ]
             )
         |> List.any
-            (\( pos, figure ) ->
+            (\( pos, figures ) ->
                 (pos /= ( x, y ))
                     && (pos /= game.player)
                     && (game.grid
                             |> Dict.get pos
                             |> Maybe.andThen (\id -> game.figures |> Dict.get id)
-                            |> (==) (Just figure)
+                            |> (\maybe ->
+                                    maybe
+                                        |> Maybe.map (\figure -> figures |> List.member figure)
+                                        |> Maybe.withDefault False
+                               )
                        )
             )
 
@@ -255,17 +261,29 @@ spawnEnemy game =
                 |> Maybe.withDefault (Random.constant ( game, [] ))
 
         ( [], nextChunks ) ->
-            if Dict.size game.grid <= 2 then
-                case nextChunks of
-                    next :: rest ->
-                        Random.constant ( { game | next = ( next, rest ) }, [] )
+            (case nextChunks of
+                [] ->
+                     generateNextEnemies (game.waveSize + 1)
+                     |> Random.map (\it -> (it, game.waveSize ))
 
-                    [] ->
-                        generateNextEnemies
-                            |> Random.map (\next -> ( { game | next = next }, [] ))
+                [ next ] ->
+                    ( generateNextEnemies (game.waveSize + 1)
+                        |> Random.map (\( head, tail ) -> (( next, head :: tail ), game.waveSize + 1))
+                    
+                    )
 
-            else
-                Random.constant ( { game | next = ( [], nextChunks ) }, [] )
+                head :: tail ->
+                    Random.constant (( head, tail ), game.waveSize )
+            )
+                |> Random.map
+                    (Tuple.mapFirst (\(head, tail ) ->
+                        if Dict.size game.grid <= 2 then
+                            (( head, tail ))
+
+                        else
+                            ( [], head :: tail )
+                    ))
+                |> Random.map (\(next,waveSize) -> ( { game | next = next,waveSize = waveSize }, [] ))
 
 
 moveEnemy : ( ( Int, Int ), FigureId ) -> Game -> Generator ( Game, List Change )

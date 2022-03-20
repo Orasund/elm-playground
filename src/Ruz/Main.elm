@@ -14,6 +14,7 @@ import Random exposing (Seed)
 import Ruz.Config as Config
 import Ruz.Data.Figure as Figure exposing (Figure, FigureId)
 import Ruz.Data.Game as Game exposing (Change(..), Game)
+import Ruz.Data.Overlay exposing (Overlay(..))
 import Ruz.View.Board as Board
 import Time
 import View.WrappedColumn exposing (Model)
@@ -60,63 +61,63 @@ init () =
     )
 
 
+viewOverlay : { game : Game, changes : List Change, gameOver : Bool } -> Dict ( Int, Int ) Overlay
+viewOverlay ({ game } as model) =
+    if model.changes /= [] then
+        Dict.empty
+
+    else
+        List.range 0 (Config.size - 1)
+            |> List.concatMap
+                (\i ->
+                    List.range 0 (Config.size - 1)
+                        |> List.map (\j -> ( i, j ))
+                )
+            |> List.filterMap
+                (\pos ->
+                    if model.gameOver then
+                        Nothing
+
+                    else if pos == model.game.player then
+                        Nothing
+
+                    else if model.gameOver then
+                        Nothing
+
+                    else if Game.valid { isEnemy = False, from = model.game.player, to = pos } model.game then
+                        if
+                            model.game.grid
+                                |> Dict.keys
+                                |> List.any
+                                    (\enemyPos ->
+                                        (enemyPos /= model.game.player)
+                                            && (enemyPos /= pos)
+                                            && Game.valid { isEnemy = True, from = enemyPos, to = pos }
+                                                { game
+                                                    | grid =
+                                                        game.grid
+                                                            |> Dict.remove model.game.player
+                                                            |> Dict.remove pos
+                                                    , player = pos
+                                                }
+                                    )
+                        then
+                            Just ( pos, Danger )
+
+                        else if model.game |> Game.isDangerous pos then
+                            Just ( pos, Warning )
+
+                        else
+                            Just ( pos, Success )
+
+                    else
+                        Nothing
+                )
+            |> Dict.fromList
+
+
 view : Model -> Document Msg
-view ({ game } as model) =
-    let
-        overlay : Dict ( Int, Int ) Color
-        overlay =
-            if model.changes /= [] then
-                Dict.empty
-
-            else
-                List.range 0 (Config.size - 1)
-                    |> List.concatMap
-                        (\i ->
-                            List.range 0 (Config.size - 1)
-                                |> List.map (\j -> ( i, j ))
-                        )
-                    |> List.filterMap
-                        (\pos ->
-                            if model.gameOver then
-                                Just ( pos, Config.red )
-
-                            else if pos == model.game.player then
-                                Nothing
-
-                            else if model.gameOver then
-                                Nothing
-
-                            else if Game.valid { isEnemy = False, from = model.game.player, to = pos } model.game then
-                                if
-                                    model.game.grid
-                                        |> Dict.keys
-                                        |> List.any
-                                            (\enemyPos ->
-                                                (enemyPos /= model.game.player)
-                                                    && (enemyPos /= pos)
-                                                    && Game.valid { isEnemy = True, from = enemyPos, to = pos }
-                                                        { game
-                                                            | grid =
-                                                                game.grid
-                                                                    |> Dict.remove model.game.player
-                                                                    |> Dict.remove pos
-                                                            , player = pos
-                                                        }
-                                            )
-                                then
-                                    Just ( pos, Config.red )
-
-                                else if game |> Game.isDangerous pos then
-                                    Just ( pos, Config.yellow )
-
-                                else
-                                    Just ( pos, Config.green )
-
-                            else
-                                Nothing
-                        )
-                    |> Dict.fromList
-    in
+view model =
     { title = "Ruz Puzzle"
     , body =
         [ Html.node "meta"
@@ -124,57 +125,56 @@ view ({ game } as model) =
             , Attr.attribute "content" "width=device-width, initial-scale=1.0"
             ]
             []
-        , [ model.game.score
+        , [ [ [ Html.text "Next Up"
+              , model.game.next
+                    |> Tuple.first
+                    |> List.map (\figure -> figure |> Figure.toString False)
+                    |> List.sort
+                    |> List.map Html.text
+                    |> Layout.row []
+              ]
+                |> Layout.column [ Layout.fill ]
+            , model.game.score
                 |> String.fromInt
                 |> Html.text
                 |> List.singleton
                 |> Html.h1 [ Attr.style "text-align" "center", Attr.style "margin" "0" ]
-          , [ model.game.next
-                |> (\( head, tail ) -> head :: tail)
-                |> List.map
-                    (\list ->
-                        list
-                            |> List.map (\figure -> figure |> Figure.toString False)
-                            |> List.sort
-                            |> List.map Html.text
-                            |> Layout.row []
-                    )
-                |> Layout.column []
-            , model.positions
+            , Html.button
+                [ Event.onClick (NewGame model.seed)
+                , Attr.style "font-size" "14px"
+                ]
+                [ Html.text "New Game" ]
+                |> Layout.el
+                    [ Layout.fill
+                    , Attr.style "align-items" "flex-start"
+                    , Attr.style "justify-content" "flex-end"
+                    ]
+            ]
+                |> Layout.row [ Attr.style "height" "40px" ]
+          , [ model.positions
                 |> Board.view
                     { figures = model.game.figures
-                    , overlay = overlay
+                    , overlay =
+                        viewOverlay
+                            { game = model.game
+                            , changes = model.changes
+                            , gameOver = model.gameOver
+                            }
                     , onClick = Click
+                    , gameOver = model.gameOver
                     }
-            , Html.div [] []
             ]
-                |> Layout.row
-                    [ Layout.spaceBetween
-                    , Attr.style "margin" (String.fromFloat (Config.boardSize / toFloat Config.size) ++ "px 0px")
-                    ]
-          , Html.div
-                [ Attr.style "width" "100%"
-                , Attr.style "display" "flex"
-                , Layout.centerContent
-                ]
-                [ Html.button
-                    [ Event.onClick (NewGame model.seed)
-                    , Attr.style "font-size" "20px"
-                    ]
-                    [ Html.text "New Game" ]
-                ]
+                |> Layout.row [ Layout.spaceBetween ]
           ]
-            |> Html.div
+            |> Layout.column
+                [ Layout.spacing (Config.boardSize / toFloat Config.size)
+                , Attr.style "padding" "8px"
+                ]
+            |> Layout.el
                 [ Attr.style "position" "absolute"
                 , Attr.style "left" "50%"
                 , Attr.style "top" "50%"
                 , Attr.style "transform" "translate(-50%, -50%)"
-                ]
-            |> List.singleton
-            |> Html.div
-                [ Attr.style "margin" "flex"
-                , Attr.style "justify-content" "center"
-                , Attr.style "align-items" "center"
                 ]
         ]
     }

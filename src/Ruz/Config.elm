@@ -23,14 +23,19 @@ yellow =
     Color.rgba 1 1 0 0.5
 
 
+gray : Color
+gray =
+    Color.rgba 0 0 0 0.1
+
+
 size : Int
 size =
     4
 
 
-chunkSize : Int
-chunkSize =
-    6
+initialWaveSize : Int
+initialWaveSize =
+    3
 
 
 startingPos : ( Int, Int )
