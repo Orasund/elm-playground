@@ -30,7 +30,6 @@ view args figurePos =
             [ Attr.style "height" (String.fromFloat Config.boardSize ++ "px")
             , Attr.style "width" (String.fromFloat Config.boardSize ++ "px")
             , Attr.style "position" "relative"
-            , Attr.style "margin" (String.fromFloat (Config.boardSize / toFloat Config.size) ++ "px 0px")
             ]
 
 

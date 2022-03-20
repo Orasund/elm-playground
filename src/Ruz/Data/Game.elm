@@ -13,7 +13,7 @@ type alias Game =
     { figures : Dict FigureId Figure
     , grid : Dict ( Int, Int ) FigureId
     , player : ( Int, Int )
-    , next : List Figure
+    , next : ( List Figure, List (List Figure) )
     , score : Int
     }
 
@@ -25,9 +25,21 @@ type Change
     | GameOver
 
 
+generateNextEnemies : Generator ( List Figure, List (List Figure) )
+generateNextEnemies =
+    Random.List.shuffle Figure.asList
+        |> Random.map
+            (\list ->
+                list
+                    |> List.Extra.groupsOf Config.chunkSize
+                    |> List.Extra.uncons
+                    |> Maybe.withDefault ( [], [] )
+            )
+
+
 init : Generator ( Game, List Change )
 init =
-    Random.List.shuffle Figure.asList
+    generateNextEnemies
         |> Random.map
             (\next ->
                 ( { figures = Dict.empty
@@ -218,7 +230,7 @@ valid args game =
 spawnEnemy : Game -> Generator ( Game, List Change )
 spawnEnemy game =
     case game.next of
-        nextFigure :: nextRest ->
+        ( nextFigure :: nextRest, nextChunks ) ->
             List.range 0 (Config.size - 1)
                 |> List.map (\x -> ( x, -1 ))
                 |> List.filter (\pos -> (game.grid |> Dict.member pos |> not) && (pos /= game.player))
@@ -234,7 +246,7 @@ spawnEnemy game =
                             ( { game
                                 | figures = game.figures |> Dict.insert newFigureId nextFigure
                                 , grid = game.grid |> Dict.insert pos newFigureId
-                                , next = nextRest
+                                , next = ( nextRest, nextChunks )
                               }
                             , [ Spawn newFigureId pos ]
                             )
@@ -242,12 +254,18 @@ spawnEnemy game =
                     )
                 |> Maybe.withDefault (Random.constant ( game, [] ))
 
-        [] ->
-            Random.List.shuffle Figure.asList
-                |> Random.map
-                    (\next ->
-                        ( { game | next = Queen :: next }, [] )
-                    )
+        ( [], nextChunks ) ->
+            if Dict.size game.grid <= 2 then
+                case nextChunks of
+                    next :: rest ->
+                        Random.constant ( { game | next = ( next, rest ) }, [] )
+
+                    [] ->
+                        generateNextEnemies
+                            |> Random.map (\next -> ( { game | next = next }, [] ))
+
+            else
+                Random.constant ( { game | next = ( [], nextChunks ) }, [] )
 
 
 moveEnemy : ( ( Int, Int ), FigureId ) -> Game -> Generator ( Game, List Change )

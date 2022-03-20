@@ -28,6 +28,11 @@ size =
     4
 
 
+chunkSize : Int
+chunkSize =
+    6
+
+
 startingPos : ( Int, Int )
 startingPos =
     ( size // 2, size - 1 )

@@ -41,7 +41,8 @@ score figure =
 
 asList : List Figure
 asList =
-    [ List.repeat 1 King
+    [ List.repeat 1 Queen
+    , List.repeat 1 King
     , List.repeat 2 Rook
     , List.repeat 2 Biship
     , List.repeat 2 Knight
@@ -50,6 +51,13 @@ asList =
         |> List.concat
 
 
+{-|
+
+  - Queen gives you Option parallize
+  - King seems as capable as Rook, but has no way to flee out of a bad situation
+  - Biship can't reach all fields.
+
+-}
 player : Figure
 player =
     Rook

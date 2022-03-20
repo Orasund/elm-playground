@@ -9,6 +9,7 @@ import Html
 import Html.Attributes as Attr
 import Html.Events as Event
 import Layout
+import List.Extra
 import Random exposing (Seed)
 import Ruz.Config as Config
 import Ruz.Data.Figure as Figure exposing (Figure, FigureId)
@@ -127,16 +128,32 @@ view ({ game } as model) =
                 |> String.fromInt
                 |> Html.text
                 |> List.singleton
-                |> Html.h1 [ Attr.style "text-align" "center", Attr.style "margin-bottom" "100px" ]
-          , model.positions
+                |> Html.h1 [ Attr.style "text-align" "center", Attr.style "margin" "0" ]
+          , [ model.game.next
+                |> (\( head, tail ) -> head :: tail)
+                |> List.map
+                    (\list ->
+                        list
+                            |> List.map (\figure -> figure |> Figure.toString False)
+                            |> List.sort
+                            |> List.map Html.text
+                            |> Layout.row []
+                    )
+                |> Layout.column []
+            , model.positions
                 |> Board.view
                     { figures = model.game.figures
                     , overlay = overlay
                     , onClick = Click
                     }
+            , Html.div [] []
+            ]
+                |> Layout.row
+                    [ Layout.spaceBetween
+                    , Attr.style "margin" (String.fromFloat (Config.boardSize / toFloat Config.size) ++ "px 0px")
+                    ]
           , Html.div
-                [ Attr.style "margin-top" "8px"
-                , Attr.style "width" "100%"
+                [ Attr.style "width" "100%"
                 , Attr.style "display" "flex"
                 , Layout.centerContent
                 ]
