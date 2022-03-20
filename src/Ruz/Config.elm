@@ -3,6 +3,11 @@ module Ruz.Config exposing (..)
 import Color exposing (Color)
 
 
+boardSize : Float
+boardSize =
+    350
+
+
 red : Color
 red =
     Color.rgba 1 0 0 0.125
@@ -10,7 +15,7 @@ red =
 
 green : Color
 green =
-    Color.rgba 0 1 0 0.33
+    Color.rgba 0 1 0 0.7
 
 
 yellow : Color
@@ -20,7 +25,7 @@ yellow =
 
 size : Int
 size =
-    5
+    4
 
 
 startingPos : ( Int, Int )

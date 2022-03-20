@@ -8,39 +8,43 @@ import Html.Events as Event
 import Html.Keyed
 import Layout
 import Ruz.Config as Config
-import Ruz.Data.Figure as Figure exposing (Figure)
+import Ruz.Data.Figure as Figure exposing (Figure, FigureId)
 
 
 view :
-    { figures : Dict Int Figure
-    , player : ( Int, Int )
+    { figures : Dict FigureId Figure
     , overlay : Dict ( Int, Int ) Color
     , onClick : ( Int, Int ) -> msg
     }
-    -> Dict ( Int, Int ) Int
+    -> Dict FigureId ( Int, Int )
     -> Html msg
-view args board =
-    [ args.figures |> viewFigures { board = board }
-    , board |> viewBoard args
+view args figurePos =
+    let
+        gridSize =
+            Config.boardSize / toFloat Config.size
+    in
+    [ args.figures |> viewFigures { figurePos = figurePos }
+    , figurePos |> viewBoard args
     ]
         |> Html.div
-            [ Attr.style "height" "400px"
-            , Attr.style "width" "400px"
+            [ Attr.style "height" (String.fromFloat Config.boardSize ++ "px")
+            , Attr.style "width" (String.fromFloat Config.boardSize ++ "px")
             , Attr.style "position" "relative"
+            , Attr.style "margin" (String.fromFloat (Config.boardSize / toFloat Config.size) ++ "px 0px")
             ]
 
 
-viewFigures : { board : Dict ( Int, Int ) Int } -> Dict Int Figure -> Html msg
+viewFigures : { figurePos : Dict FigureId ( Int, Int ) } -> Dict FigureId Figure -> Html msg
 viewFigures args figures =
     let
         gridSize =
             100 / toFloat Config.size
     in
-    args.board
+    args.figurePos
         |> Dict.toList
-        |> List.sortBy Tuple.second
+        |> List.sortBy Tuple.first
         |> List.map
-            (\( ( x, y ), figureId ) ->
+            (\( figureId, ( x, y ) ) ->
                 ( "figure-" ++ String.fromInt figureId
                 , [ figures
                         |> Dict.get figureId
@@ -58,7 +62,7 @@ viewFigures args figures =
                         , Attr.style "justify-content" "center"
                         , Attr.style "align-items" "center"
                         , Attr.style "transition" "top 0.5s, left 0.5s"
-                        , Attr.style "font-size" "50px"
+                        , Attr.style "font-size" "40px"
                         ]
                 )
             )
@@ -73,13 +77,12 @@ viewFigures args figures =
 
 viewBoard :
     { figures : Dict Int Figure
-    , player : ( Int, Int )
     , overlay : Dict ( Int, Int ) Color
     , onClick : ( Int, Int ) -> msg
     }
-    -> Dict ( Int, Int ) Int
+    -> Dict FigureId ( Int, Int )
     -> Html msg
-viewBoard args board =
+viewBoard args figurePos =
     List.repeat Config.size ()
         |> List.indexedMap
             (\j () ->

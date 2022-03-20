@@ -1,7 +1,11 @@
-module Ruz.Data.Figure exposing (Figure(..), asList, moves, player, score, toString)
+module Ruz.Data.Figure exposing (Figure(..), FigureId, asList, moves, player, score, toString)
 
 import Random exposing (Generator)
 import Ruz.Config as Config
+
+
+type alias FigureId =
+    Int
 
 
 type Figure
@@ -10,6 +14,7 @@ type Figure
     | Biship
     | Knight
     | Pawn
+    | Queen
 
 
 score : Figure -> Int
@@ -29,6 +34,9 @@ score figure =
 
         King ->
             10
+
+        Queen ->
+            9
 
 
 asList : List Figure
@@ -85,6 +93,13 @@ toString isWhite figure =
             else
                 "♟"
 
+        Queen ->
+            if isWhite then
+                "♕"
+
+            else
+                "♛"
+
 
 moves : ( Int, Int ) -> Figure -> List ( Int, Int )
 moves ( x, y ) figure =
@@ -99,7 +114,19 @@ moves ( x, y ) figure =
             [ ( x + 1, y + 1 ), ( x - 1, y + 1 ) ]
 
         Knight ->
-            [ ( x + 2, y + 1 ), ( x + 1, y + 2 ), ( x - 1, y + 2 ), ( x - 2, y + 1 ) ]
+            [ List.repeat 2 ( x + 2, y + 1 )
+            , List.repeat 2 ( x - 2, y + 1 )
+            , [ ( x + 1, y + 2 ), ( x - 1, y + 2 ) ]
+            ]
+                |> List.concat
 
         Pawn ->
             [ ( x, y + 1 ), ( x + 1, y + 1 ), ( x - 1, y + 1 ) ]
+
+        Queen ->
+            [ ( x + 1, y + 1 )
+            , ( x - 1, y + 1 )
+            , ( x + 1, y )
+            , ( x, y + 1 )
+            , ( x - 1, y )
+            ]

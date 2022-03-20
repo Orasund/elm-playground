@@ -4,27 +4,33 @@ import Browser exposing (Document)
 import Color exposing (Color)
 import Dict exposing (Dict)
 import Element exposing (Attr)
+import Emojidojo.String exposing (game)
 import Html
 import Html.Attributes as Attr
 import Html.Events as Event
 import Layout
 import Random exposing (Seed)
 import Ruz.Config as Config
-import Ruz.Data.Figure as Figure exposing (Figure)
-import Ruz.Data.Game as Game exposing (Game)
+import Ruz.Data.Figure as Figure exposing (Figure, FigureId)
+import Ruz.Data.Game as Game exposing (Change(..), Game)
 import Ruz.View.Board as Board
+import Time
+import View.WrappedColumn exposing (Model)
 
 
 type alias Model =
     { game : Game
     , gameOver : Bool
     , seed : Seed
+    , changes : List Change
+    , positions : Dict FigureId ( Int, Int )
     }
 
 
 type Msg
     = Click ( Int, Int )
     | NewGame Seed
+    | ApplyChange
 
 
 main : Program () Model Msg
@@ -41,10 +47,12 @@ init : () -> ( Model, Cmd Msg )
 init () =
     ( Random.initialSeed 42
         |> Random.step Game.init
-        |> (\( game, seed ) ->
+        |> (\( ( game, changes ), seed ) ->
                 { game = game
                 , gameOver = False
                 , seed = seed
+                , changes = changes
+                , positions = Dict.empty
                 }
            )
     , Random.generate NewGame Random.independentSeed
@@ -56,54 +64,57 @@ view ({ game } as model) =
     let
         overlay : Dict ( Int, Int ) Color
         overlay =
-            List.range 0 (Config.size - 1)
-                |> List.concatMap
-                    (\i ->
-                        List.range 0 (Config.size - 1)
-                            |> List.map (\j -> ( i, j ))
-                    )
-                |> List.filterMap
-                    (\pos ->
-                        if pos == model.game.player then
+            if model.changes /= [] then
+                Dict.empty
+
+            else
+                List.range 0 (Config.size - 1)
+                    |> List.concatMap
+                        (\i ->
+                            List.range 0 (Config.size - 1)
+                                |> List.map (\j -> ( i, j ))
+                        )
+                    |> List.filterMap
+                        (\pos ->
                             if model.gameOver then
                                 Just ( pos, Config.red )
 
-                            else
+                            else if pos == model.game.player then
                                 Nothing
 
-                        else if model.gameOver then
-                            Nothing
+                            else if model.gameOver then
+                                Nothing
 
-                        else if Game.valid { isEnemy = False, from = model.game.player, to = pos } model.game then
-                            if
-                                model.game.grid
-                                    |> Dict.keys
-                                    |> List.any
-                                        (\enemyPos ->
-                                            (enemyPos /= model.game.player)
-                                                && (enemyPos /= pos)
-                                                && Game.valid { isEnemy = True, from = enemyPos, to = pos }
-                                                    { game
-                                                        | grid =
-                                                            game.grid
-                                                                |> Dict.remove model.game.player
-                                                                |> Dict.remove pos
-                                                        , player = pos
-                                                    }
-                                        )
-                            then
-                                Just ( pos, Config.red )
+                            else if Game.valid { isEnemy = False, from = model.game.player, to = pos } model.game then
+                                if
+                                    model.game.grid
+                                        |> Dict.keys
+                                        |> List.any
+                                            (\enemyPos ->
+                                                (enemyPos /= model.game.player)
+                                                    && (enemyPos /= pos)
+                                                    && Game.valid { isEnemy = True, from = enemyPos, to = pos }
+                                                        { game
+                                                            | grid =
+                                                                game.grid
+                                                                    |> Dict.remove model.game.player
+                                                                    |> Dict.remove pos
+                                                            , player = pos
+                                                        }
+                                            )
+                                then
+                                    Just ( pos, Config.red )
 
-                            else if game |> Game.isDangerous pos then
-                                Just ( pos, Config.yellow )
+                                else if game |> Game.isDangerous pos then
+                                    Just ( pos, Config.yellow )
+
+                                else
+                                    Just ( pos, Config.green )
 
                             else
-                                Just ( pos, Config.green )
-
-                        else
-                            Nothing
-                    )
-                |> Dict.fromList
+                                Nothing
+                        )
+                    |> Dict.fromList
     in
     { title = "Ruz Puzzle"
     , body =
@@ -117,13 +128,24 @@ view ({ game } as model) =
                 |> Html.text
                 |> List.singleton
                 |> Html.h1 [ Attr.style "text-align" "center", Attr.style "margin-bottom" "100px" ]
-          , model.game.grid
+          , model.positions
                 |> Board.view
                     { figures = model.game.figures
-                    , player = model.game.player
                     , overlay = overlay
                     , onClick = Click
                     }
+          , Html.div
+                [ Attr.style "margin-top" "8px"
+                , Attr.style "width" "100%"
+                , Attr.style "display" "flex"
+                , Layout.centerContent
+                ]
+                [ Html.button
+                    [ Event.onClick (NewGame model.seed)
+                    , Attr.style "font-size" "20px"
+                    ]
+                    [ Html.text "New Game" ]
+                ]
           ]
             |> Html.div
                 [ Attr.style "position" "absolute"
@@ -141,6 +163,37 @@ view ({ game } as model) =
     }
 
 
+applyChange : Change -> Model -> Model
+applyChange change model =
+    case change of
+        Spawn figureId pos ->
+            { model
+                | positions =
+                    model.positions
+                        |> Dict.insert figureId pos
+            }
+
+        Move figureId pos ->
+            { model
+                | positions =
+                    model.positions
+                        |> Dict.update figureId
+                            (Maybe.map (\_ -> pos))
+            }
+
+        Kill figureId ->
+            { model
+                | positions =
+                    model.positions
+                        |> Dict.remove figureId
+            }
+
+        GameOver ->
+            { model
+                | gameOver = True
+            }
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
@@ -154,10 +207,11 @@ update msg model =
                     |> (\( maybe, seed ) ->
                             maybe
                                 |> Maybe.map
-                                    (\{ gameOver, game } ->
-                                        { game = game
-                                        , gameOver = gameOver
-                                        , seed = seed
+                                    (\( game, changes ) ->
+                                        { model
+                                            | game = game
+                                            , changes = changes
+                                            , seed = seed
                                         }
                                     )
                                 |> Maybe.withDefault model
@@ -168,11 +222,35 @@ update msg model =
         NewGame s ->
             ( s
                 |> Random.step Game.init
-                |> (\( game, seed ) -> { game = game, gameOver = False, seed = seed })
+                |> (\( ( game, changes ), seed ) ->
+                        { game = game
+                        , gameOver = False
+                        , seed = seed
+                        , changes = changes
+                        , positions = Dict.empty
+                        }
+                   )
             , Cmd.none
             )
+
+        ApplyChange ->
+            case model.changes of
+                head :: tail ->
+                    ( model
+                        |> applyChange head
+                        |> (\it -> { it | changes = tail })
+                    , Cmd.none
+                    )
+
+                [] ->
+                    ( model, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.none
+    case model.changes of
+        [] ->
+            Sub.none
+
+        _ ->
+            Time.every 100 (always ApplyChange)
