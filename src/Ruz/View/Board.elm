@@ -10,6 +10,7 @@ import Layout
 import Ruz.Config as Config
 import Ruz.Data.Figure as Figure exposing (Figure, FigureId)
 import Ruz.Data.Overlay exposing (Overlay(..))
+import Ruz.View.Figure as Figure
 
 
 view :
@@ -56,6 +57,7 @@ view args figurePos =
             [ Attr.style "height" (String.fromFloat Config.boardSize ++ "px")
             , Attr.style "width" (String.fromFloat Config.boardSize ++ "px")
             , Attr.style "position" "relative"
+            , Attr.style "border" ("solid 1px " ++ Color.toCssString Color.black)
             ]
 
 
@@ -75,7 +77,7 @@ viewFigures args figures =
                         |> Dict.get figureId
                         |> Maybe.map (Figure.toString False)
                         |> Maybe.withDefault (Figure.toString True Figure.player)
-                        |> Html.text
+                        |> Figure.view [ Attr.style "width" "100%" ]
                   ]
                     |> Html.div
                         [ Attr.style "position" "absolute"

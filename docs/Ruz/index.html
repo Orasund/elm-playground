@@ -5244,6 +5244,8 @@ var $elm$browser$Browser$document = _Browser_document;
 var $author$project$Ruz$Main$NewGame = function (a) {
 	return {$: 'NewGame', a: a};
 };
+var $elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
+var $elm$core$Dict$empty = $elm$core$Dict$RBEmpty_elm_builtin;
 var $elm$random$Random$Generate = function (a) {
 	return {$: 'Generate', a: a};
 };
@@ -5428,6 +5430,10 @@ var $elm$random$Random$independentSeed = $elm$random$Random$Generator(
 			A4($elm$random$Random$map3, makeIndependentSeed, gen, gen, gen),
 			seed0);
 	});
+var $author$project$Ruz$Data$Game$Spawn = F2(
+	function (a, b) {
+		return {$: 'Spawn', a: a, b: b};
+	});
 var $elm$random$Random$andThen = F2(
 	function (callback, _v0) {
 		var genA = _v0.a;
@@ -5441,10 +5447,36 @@ var $elm$random$Random$andThen = F2(
 				return genB(newSeed);
 			});
 	});
+var $elm$core$Tuple$mapSecond = F2(
+	function (func, _v0) {
+		var x = _v0.a;
+		var y = _v0.b;
+		return _Utils_Tuple2(
+			x,
+			func(y));
+	});
+var $author$project$Ruz$Data$Game$andThen = F2(
+	function (fun, generator) {
+		return A2(
+			$elm$random$Random$andThen,
+			function (_v0) {
+				var game = _v0.a;
+				var changes = _v0.b;
+				return A2(
+					$elm$random$Random$map,
+					$elm$core$Tuple$mapSecond(
+						function (newChanges) {
+							return _Utils_ap(changes, newChanges);
+						}),
+					fun(game));
+			},
+			generator);
+	});
 var $author$project$Ruz$Data$Figure$Biship = {$: 'Biship'};
 var $author$project$Ruz$Data$Figure$King = {$: 'King'};
 var $author$project$Ruz$Data$Figure$Knight = {$: 'Knight'};
 var $author$project$Ruz$Data$Figure$Pawn = {$: 'Pawn'};
+var $author$project$Ruz$Data$Figure$Queen = {$: 'Queen'};
 var $author$project$Ruz$Data$Figure$Rook = {$: 'Rook'};
 var $elm$core$List$append = F2(
 	function (xs, ys) {
@@ -5481,16 +5513,177 @@ var $elm$core$List$repeat = F2(
 var $author$project$Ruz$Data$Figure$asList = $elm$core$List$concat(
 	_List_fromArray(
 		[
+			A2($elm$core$List$repeat, 1, $author$project$Ruz$Data$Figure$Queen),
 			A2($elm$core$List$repeat, 1, $author$project$Ruz$Data$Figure$King),
 			A2($elm$core$List$repeat, 2, $author$project$Ruz$Data$Figure$Rook),
 			A2($elm$core$List$repeat, 2, $author$project$Ruz$Data$Figure$Biship),
 			A2($elm$core$List$repeat, 2, $author$project$Ruz$Data$Figure$Knight),
 			A2($elm$core$List$repeat, 8, $author$project$Ruz$Data$Figure$Pawn)
 		]));
-var $elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
-var $elm$core$Dict$empty = $elm$core$Dict$RBEmpty_elm_builtin;
-var $author$project$Ruz$Data$Figure$player = $author$project$Ruz$Data$Figure$Rook;
-var $author$project$Ruz$Config$playerId = -1;
+var $elm$core$List$drop = F2(
+	function (n, list) {
+		drop:
+		while (true) {
+			if (n <= 0) {
+				return list;
+			} else {
+				if (!list.b) {
+					return list;
+				} else {
+					var x = list.a;
+					var xs = list.b;
+					var $temp$n = n - 1,
+						$temp$list = xs;
+					n = $temp$n;
+					list = $temp$list;
+					continue drop;
+				}
+			}
+		}
+	});
+var $elm$core$List$takeReverse = F3(
+	function (n, list, kept) {
+		takeReverse:
+		while (true) {
+			if (n <= 0) {
+				return kept;
+			} else {
+				if (!list.b) {
+					return kept;
+				} else {
+					var x = list.a;
+					var xs = list.b;
+					var $temp$n = n - 1,
+						$temp$list = xs,
+						$temp$kept = A2($elm$core$List$cons, x, kept);
+					n = $temp$n;
+					list = $temp$list;
+					kept = $temp$kept;
+					continue takeReverse;
+				}
+			}
+		}
+	});
+var $elm$core$List$takeTailRec = F2(
+	function (n, list) {
+		return $elm$core$List$reverse(
+			A3($elm$core$List$takeReverse, n, list, _List_Nil));
+	});
+var $elm$core$List$takeFast = F3(
+	function (ctr, n, list) {
+		if (n <= 0) {
+			return _List_Nil;
+		} else {
+			var _v0 = _Utils_Tuple2(n, list);
+			_v0$1:
+			while (true) {
+				_v0$5:
+				while (true) {
+					if (!_v0.b.b) {
+						return list;
+					} else {
+						if (_v0.b.b.b) {
+							switch (_v0.a) {
+								case 1:
+									break _v0$1;
+								case 2:
+									var _v2 = _v0.b;
+									var x = _v2.a;
+									var _v3 = _v2.b;
+									var y = _v3.a;
+									return _List_fromArray(
+										[x, y]);
+								case 3:
+									if (_v0.b.b.b.b) {
+										var _v4 = _v0.b;
+										var x = _v4.a;
+										var _v5 = _v4.b;
+										var y = _v5.a;
+										var _v6 = _v5.b;
+										var z = _v6.a;
+										return _List_fromArray(
+											[x, y, z]);
+									} else {
+										break _v0$5;
+									}
+								default:
+									if (_v0.b.b.b.b && _v0.b.b.b.b.b) {
+										var _v7 = _v0.b;
+										var x = _v7.a;
+										var _v8 = _v7.b;
+										var y = _v8.a;
+										var _v9 = _v8.b;
+										var z = _v9.a;
+										var _v10 = _v9.b;
+										var w = _v10.a;
+										var tl = _v10.b;
+										return (ctr > 1000) ? A2(
+											$elm$core$List$cons,
+											x,
+											A2(
+												$elm$core$List$cons,
+												y,
+												A2(
+													$elm$core$List$cons,
+													z,
+													A2(
+														$elm$core$List$cons,
+														w,
+														A2($elm$core$List$takeTailRec, n - 4, tl))))) : A2(
+											$elm$core$List$cons,
+											x,
+											A2(
+												$elm$core$List$cons,
+												y,
+												A2(
+													$elm$core$List$cons,
+													z,
+													A2(
+														$elm$core$List$cons,
+														w,
+														A3($elm$core$List$takeFast, ctr + 1, n - 4, tl)))));
+									} else {
+										break _v0$5;
+									}
+							}
+						} else {
+							if (_v0.a === 1) {
+								break _v0$1;
+							} else {
+								break _v0$5;
+							}
+						}
+					}
+				}
+				return list;
+			}
+			var _v1 = _v0.b;
+			var x = _v1.a;
+			return _List_fromArray(
+				[x]);
+		}
+	});
+var $elm$core$List$take = F2(
+	function (n, list) {
+		return A3($elm$core$List$takeFast, 0, n, list);
+	});
+var $elm_community$list_extra$List$Extra$groupsOfWithStep = F3(
+	function (size, step, xs) {
+		var xs_ = A2($elm$core$List$drop, step, xs);
+		var thisGroup = A2($elm$core$List$take, size, xs);
+		var okayLength = _Utils_eq(
+			size,
+			$elm$core$List$length(thisGroup));
+		var okayArgs = (size > 0) && (step > 0);
+		return (okayArgs && okayLength) ? A2(
+			$elm$core$List$cons,
+			thisGroup,
+			A3($elm_community$list_extra$List$Extra$groupsOfWithStep, size, step, xs_)) : _List_Nil;
+	});
+var $elm_community$list_extra$List$Extra$groupsOf = F2(
+	function (size, xs) {
+		return A3($elm_community$list_extra$List$Extra$groupsOfWithStep, size, size, xs);
+	});
 var $elm$random$Random$maxInt = 2147483647;
 var $elm$random$Random$minInt = -2147483648;
 var $elm_community$random_extra$Random$List$anyInt = A2($elm$random$Random$int, $elm$random$Random$minInt, $elm$random$Random$maxInt);
@@ -5530,6 +5723,39 @@ var $elm_community$random_extra$Random$List$shuffle = function (list) {
 		},
 		$elm$random$Random$independentSeed);
 };
+var $elm_community$list_extra$List$Extra$uncons = function (list) {
+	if (!list.b) {
+		return $elm$core$Maybe$Nothing;
+	} else {
+		var first = list.a;
+		var rest = list.b;
+		return $elm$core$Maybe$Just(
+			_Utils_Tuple2(first, rest));
+	}
+};
+var $elm$core$Maybe$withDefault = F2(
+	function (_default, maybe) {
+		if (maybe.$ === 'Just') {
+			var value = maybe.a;
+			return value;
+		} else {
+			return _default;
+		}
+	});
+var $author$project$Ruz$Data$Game$generateNextEnemies = function (waveSize) {
+	return A2(
+		$elm$random$Random$map,
+		function (list) {
+			return A2(
+				$elm$core$Maybe$withDefault,
+				_Utils_Tuple2(_List_Nil, _List_Nil),
+				$elm_community$list_extra$List$Extra$uncons(
+					A2($elm_community$list_extra$List$Extra$groupsOf, waveSize, list)));
+		},
+		$elm_community$random_extra$Random$List$shuffle($author$project$Ruz$Data$Figure$asList));
+};
+var $author$project$Ruz$Config$initialWaveSize = 3;
+var $author$project$Ruz$Config$playerId = -1;
 var $elm$core$Dict$Black = {$: 'Black'};
 var $elm$core$Dict$RBNode_elm_builtin = F5(
 	function (a, b, c, d, e) {
@@ -5670,6 +5896,14 @@ var $elm$core$Maybe$map = F2(
 			return $elm$core$Maybe$Nothing;
 		}
 	});
+var $elm$core$Tuple$mapFirst = F2(
+	function (func, _v0) {
+		var x = _v0.a;
+		var y = _v0.b;
+		return _Utils_Tuple2(
+			func(x),
+			y);
+	});
 var $elm$core$Dict$get = F2(
 	function (targetKey, dict) {
 		get:
@@ -5732,17 +5966,7 @@ var $elm$core$Dict$sizeHelp = F2(
 var $elm$core$Dict$size = function (dict) {
 	return A2($elm$core$Dict$sizeHelp, 0, dict);
 };
-var $author$project$Ruz$Config$size = 5;
-var $elm_community$list_extra$List$Extra$uncons = function (list) {
-	if (!list.b) {
-		return $elm$core$Maybe$Nothing;
-	} else {
-		var first = list.a;
-		var rest = list.b;
-		return $elm$core$Maybe$Just(
-			_Utils_Tuple2(first, rest));
-	}
-};
+var $author$project$Ruz$Config$size = 4;
 var $elm$random$Random$addOne = function (value) {
 	return _Utils_Tuple2(1, value);
 };
@@ -5816,88 +6040,142 @@ var $elm$random$Random$uniform = F2(
 			$elm$random$Random$addOne(value),
 			A2($elm$core$List$map, $elm$random$Random$addOne, valueList));
 	});
-var $elm$core$Maybe$withDefault = F2(
-	function (_default, maybe) {
-		if (maybe.$ === 'Just') {
-			var value = maybe.a;
-			return value;
-		} else {
-			return _default;
-		}
-	});
 var $author$project$Ruz$Data$Game$spawnEnemy = function (game) {
 	var _v0 = game.next;
-	var nextFigure = _v0.a;
-	var nextRest = _v0.b;
-	return A2(
-		$elm$core$Maybe$withDefault,
-		$elm$random$Random$constant(game),
-		A2(
-			$elm$core$Maybe$map,
-			$elm$random$Random$andThen(
-				function (pos) {
-					return A2(
-						$elm$random$Random$map,
-						function (list) {
-							var newFigureId = $elm$core$Dict$size(game.figures);
-							return _Utils_update(
+	if (_v0.a.b) {
+		var _v1 = _v0.a;
+		var nextFigure = _v1.a;
+		var nextRest = _v1.b;
+		var nextChunks = _v0.b;
+		return A2(
+			$elm$core$Maybe$withDefault,
+			$elm$random$Random$constant(
+				_Utils_Tuple2(game, _List_Nil)),
+			A2(
+				$elm$core$Maybe$map,
+				$elm$random$Random$map(
+					function (pos) {
+						var newFigureId = $elm$core$Dict$size(game.figures);
+						return _Utils_Tuple2(
+							_Utils_update(
 								game,
 								{
 									figures: A3($elm$core$Dict$insert, newFigureId, nextFigure, game.figures),
 									grid: A3($elm$core$Dict$insert, pos, newFigureId, game.grid),
-									next: A2(
-										$elm$core$Maybe$withDefault,
-										_Utils_Tuple2($author$project$Ruz$Data$Figure$player, _List_Nil),
-										$elm_community$list_extra$List$Extra$uncons(list))
-								});
-						},
-						_Utils_eq(nextRest, _List_Nil) ? $elm_community$random_extra$Random$List$shuffle($author$project$Ruz$Data$Figure$asList) : $elm$random$Random$constant(nextRest));
-				}),
-			A2(
-				$elm$core$Maybe$map,
-				function (_v1) {
-					var head = _v1.a;
-					var tail = _v1.b;
-					return A2($elm$random$Random$uniform, head, tail);
-				},
-				$elm_community$list_extra$List$Extra$uncons(
-					A2(
-						$elm$core$List$filter,
-						function (pos) {
-							return (!A2($elm$core$Dict$member, pos, game.grid)) && (!_Utils_eq(pos, game.player));
-						},
+									next: _Utils_Tuple2(nextRest, nextChunks)
+								}),
+							_List_fromArray(
+								[
+									A2($author$project$Ruz$Data$Game$Spawn, newFigureId, pos)
+								]));
+					}),
+				A2(
+					$elm$core$Maybe$map,
+					function (_v2) {
+						var head = _v2.a;
+						var tail = _v2.b;
+						return A2($elm$random$Random$uniform, head, tail);
+					},
+					$elm_community$list_extra$List$Extra$uncons(
 						A2(
-							$elm$core$List$map,
-							function (x) {
-								return _Utils_Tuple2(x, -1);
+							$elm$core$List$filter,
+							function (pos) {
+								return (!A2($elm$core$Dict$member, pos, game.grid)) && (!_Utils_eq(pos, game.player));
 							},
-							A2($elm$core$List$range, 0, $author$project$Ruz$Config$size - 1)))))));
+							A2(
+								$elm$core$List$map,
+								function (x) {
+									return _Utils_Tuple2(x, -1);
+								},
+								A2($elm$core$List$range, 0, $author$project$Ruz$Config$size - 1)))))));
+	} else {
+		var nextChunks = _v0.b;
+		return A2(
+			$elm$random$Random$map,
+			function (_v6) {
+				var next = _v6.a;
+				var waveSize = _v6.b;
+				return _Utils_Tuple2(
+					_Utils_update(
+						game,
+						{next: next, waveSize: waveSize}),
+					_List_Nil);
+			},
+			A2(
+				$elm$random$Random$map,
+				$elm$core$Tuple$mapFirst(
+					function (_v5) {
+						var head = _v5.a;
+						var tail = _v5.b;
+						return ($elm$core$Dict$size(game.grid) <= 2) ? _Utils_Tuple2(head, tail) : _Utils_Tuple2(
+							_List_Nil,
+							A2($elm$core$List$cons, head, tail));
+					}),
+				function () {
+					if (!nextChunks.b) {
+						return A2(
+							$elm$random$Random$map,
+							function (it) {
+								return _Utils_Tuple2(it, game.waveSize);
+							},
+							$author$project$Ruz$Data$Game$generateNextEnemies(game.waveSize + 1));
+					} else {
+						if (!nextChunks.b.b) {
+							var next = nextChunks.a;
+							return A2(
+								$elm$random$Random$map,
+								function (_v4) {
+									var head = _v4.a;
+									var tail = _v4.b;
+									return _Utils_Tuple2(
+										_Utils_Tuple2(
+											next,
+											A2($elm$core$List$cons, head, tail)),
+										game.waveSize + 1);
+								},
+								$author$project$Ruz$Data$Game$generateNextEnemies(game.waveSize + 1));
+						} else {
+							var head = nextChunks.a;
+							var tail = nextChunks.b;
+							return $elm$random$Random$constant(
+								_Utils_Tuple2(
+									_Utils_Tuple2(head, tail),
+									game.waveSize));
+						}
+					}
+				}()));
+	}
 };
 var $author$project$Ruz$Config$startingPos = _Utils_Tuple2(($author$project$Ruz$Config$size / 2) | 0, $author$project$Ruz$Config$size - 1);
 var $author$project$Ruz$Data$Game$init = A2(
-	$elm$random$Random$andThen,
+	$author$project$Ruz$Data$Game$andThen,
 	$author$project$Ruz$Data$Game$spawnEnemy,
 	A2(
 		$elm$random$Random$map,
 		function (next) {
-			return {
-				figures: $elm$core$Dict$empty,
-				grid: A2($elm$core$Dict$singleton, $author$project$Ruz$Config$startingPos, $author$project$Ruz$Config$playerId),
-				next: A2(
-					$elm$core$Maybe$withDefault,
-					_Utils_Tuple2($author$project$Ruz$Data$Figure$player, _List_Nil),
-					$elm_community$list_extra$List$Extra$uncons(next)),
-				player: $author$project$Ruz$Config$startingPos,
-				score: 0
-			};
+			return _Utils_Tuple2(
+				{
+					figures: $elm$core$Dict$empty,
+					grid: A2($elm$core$Dict$singleton, $author$project$Ruz$Config$startingPos, $author$project$Ruz$Config$playerId),
+					next: next,
+					player: $author$project$Ruz$Config$startingPos,
+					score: 0,
+					waveSize: $author$project$Ruz$Config$initialWaveSize
+				},
+				_List_fromArray(
+					[
+						A2($author$project$Ruz$Data$Game$Spawn, $author$project$Ruz$Config$playerId, $author$project$Ruz$Config$startingPos)
+					]));
 		},
-		$elm_community$random_extra$Random$List$shuffle($author$project$Ruz$Data$Figure$asList)));
+		$author$project$Ruz$Data$Game$generateNextEnemies($author$project$Ruz$Config$initialWaveSize)));
 var $author$project$Ruz$Main$init = function (_v0) {
 	return _Utils_Tuple2(
 		function (_v1) {
-			var game = _v1.a;
+			var _v2 = _v1.a;
+			var game = _v2.a;
+			var changes = _v2.b;
 			var seed = _v1.b;
-			return {game: game, gameOver: false, seed: seed};
+			return {changes: changes, game: game, gameOver: false, positions: $elm$core$Dict$empty, seed: seed};
 		}(
 			A2(
 				$elm$random$Random$step,
@@ -5905,20 +6183,43 @@ var $author$project$Ruz$Main$init = function (_v0) {
 				$elm$random$Random$initialSeed(42))),
 		A2($elm$random$Random$generate, $author$project$Ruz$Main$NewGame, $elm$random$Random$independentSeed));
 };
-var $elm$core$Platform$Sub$batch = _Platform_batch;
-var $elm$core$Platform$Sub$none = $elm$core$Platform$Sub$batch(_List_Nil);
-var $author$project$Ruz$Main$subscriptions = function (model) {
-	return $elm$core$Platform$Sub$none;
-};
-var $elm$core$Maybe$andThen = F2(
-	function (callback, maybeValue) {
-		if (maybeValue.$ === 'Just') {
-			var value = maybeValue.a;
-			return callback(value);
+var $author$project$Ruz$Main$ApplyChange = {$: 'ApplyChange'};
+var $elm$core$Basics$always = F2(
+	function (a, _v0) {
+		return a;
+	});
+var $elm$time$Time$Every = F2(
+	function (a, b) {
+		return {$: 'Every', a: a, b: b};
+	});
+var $elm$time$Time$State = F2(
+	function (taggers, processes) {
+		return {processes: processes, taggers: taggers};
+	});
+var $elm$time$Time$init = $elm$core$Task$succeed(
+	A2($elm$time$Time$State, $elm$core$Dict$empty, $elm$core$Dict$empty));
+var $elm$time$Time$addMySub = F2(
+	function (_v0, state) {
+		var interval = _v0.a;
+		var tagger = _v0.b;
+		var _v1 = A2($elm$core$Dict$get, interval, state);
+		if (_v1.$ === 'Nothing') {
+			return A3(
+				$elm$core$Dict$insert,
+				interval,
+				_List_fromArray(
+					[tagger]),
+				state);
 		} else {
-			return $elm$core$Maybe$Nothing;
+			var taggers = _v1.a;
+			return A3(
+				$elm$core$Dict$insert,
+				interval,
+				A2($elm$core$List$cons, tagger, taggers),
+				state);
 		}
 	});
+var $elm$core$Process$kill = _Scheduler_kill;
 var $elm$core$Dict$foldl = F3(
 	function (func, acc, dict) {
 		foldl:
@@ -5944,61 +6245,219 @@ var $elm$core$Dict$foldl = F3(
 			}
 		}
 	});
-var $elm$core$Dict$filter = F2(
-	function (isGood, dict) {
-		return A3(
+var $elm$core$Dict$merge = F6(
+	function (leftStep, bothStep, rightStep, leftDict, rightDict, initialResult) {
+		var stepState = F3(
+			function (rKey, rValue, _v0) {
+				stepState:
+				while (true) {
+					var list = _v0.a;
+					var result = _v0.b;
+					if (!list.b) {
+						return _Utils_Tuple2(
+							list,
+							A3(rightStep, rKey, rValue, result));
+					} else {
+						var _v2 = list.a;
+						var lKey = _v2.a;
+						var lValue = _v2.b;
+						var rest = list.b;
+						if (_Utils_cmp(lKey, rKey) < 0) {
+							var $temp$rKey = rKey,
+								$temp$rValue = rValue,
+								$temp$_v0 = _Utils_Tuple2(
+								rest,
+								A3(leftStep, lKey, lValue, result));
+							rKey = $temp$rKey;
+							rValue = $temp$rValue;
+							_v0 = $temp$_v0;
+							continue stepState;
+						} else {
+							if (_Utils_cmp(lKey, rKey) > 0) {
+								return _Utils_Tuple2(
+									list,
+									A3(rightStep, rKey, rValue, result));
+							} else {
+								return _Utils_Tuple2(
+									rest,
+									A4(bothStep, lKey, lValue, rValue, result));
+							}
+						}
+					}
+				}
+			});
+		var _v3 = A3(
 			$elm$core$Dict$foldl,
-			F3(
-				function (k, v, d) {
-					return A2(isGood, k, v) ? A3($elm$core$Dict$insert, k, v, d) : d;
+			stepState,
+			_Utils_Tuple2(
+				$elm$core$Dict$toList(leftDict),
+				initialResult),
+			rightDict);
+		var leftovers = _v3.a;
+		var intermediateResult = _v3.b;
+		return A3(
+			$elm$core$List$foldl,
+			F2(
+				function (_v4, result) {
+					var k = _v4.a;
+					var v = _v4.b;
+					return A3(leftStep, k, v, result);
 				}),
-			$elm$core$Dict$empty,
-			dict);
+			intermediateResult,
+			leftovers);
 	});
-var $author$project$Ruz$Data$Figure$moves = F2(
-	function (_v0, figure) {
-		var x = _v0.a;
-		var y = _v0.b;
-		switch (figure.$) {
-			case 'King':
-				return _List_fromArray(
-					[
-						_Utils_Tuple2(x + 1, y),
-						_Utils_Tuple2(x, y + 1),
-						_Utils_Tuple2(x - 1, y),
-						_Utils_Tuple2(x + 1, y + 1),
-						_Utils_Tuple2(x - 1, y + 1)
-					]);
-			case 'Rook':
-				return _List_fromArray(
-					[
-						_Utils_Tuple2(x + 1, y),
-						_Utils_Tuple2(x, y + 1),
-						_Utils_Tuple2(x - 1, y)
-					]);
-			case 'Biship':
-				return _List_fromArray(
-					[
-						_Utils_Tuple2(x + 1, y + 1),
-						_Utils_Tuple2(x - 1, y + 1)
-					]);
-			case 'Knight':
-				return _List_fromArray(
-					[
-						_Utils_Tuple2(x + 2, y + 1),
-						_Utils_Tuple2(x + 1, y + 2),
-						_Utils_Tuple2(x - 1, y + 2),
-						_Utils_Tuple2(x - 2, y + 1)
-					]);
-			default:
-				return _List_fromArray(
-					[
-						_Utils_Tuple2(x, y + 1),
-						_Utils_Tuple2(x + 1, y + 1),
-						_Utils_Tuple2(x - 1, y + 1)
-					]);
+var $elm$core$Platform$sendToSelf = _Platform_sendToSelf;
+var $elm$time$Time$setInterval = _Time_setInterval;
+var $elm$core$Process$spawn = _Scheduler_spawn;
+var $elm$time$Time$spawnHelp = F3(
+	function (router, intervals, processes) {
+		if (!intervals.b) {
+			return $elm$core$Task$succeed(processes);
+		} else {
+			var interval = intervals.a;
+			var rest = intervals.b;
+			var spawnTimer = $elm$core$Process$spawn(
+				A2(
+					$elm$time$Time$setInterval,
+					interval,
+					A2($elm$core$Platform$sendToSelf, router, interval)));
+			var spawnRest = function (id) {
+				return A3(
+					$elm$time$Time$spawnHelp,
+					router,
+					rest,
+					A3($elm$core$Dict$insert, interval, id, processes));
+			};
+			return A2($elm$core$Task$andThen, spawnRest, spawnTimer);
 		}
 	});
+var $elm$time$Time$onEffects = F3(
+	function (router, subs, _v0) {
+		var processes = _v0.processes;
+		var rightStep = F3(
+			function (_v6, id, _v7) {
+				var spawns = _v7.a;
+				var existing = _v7.b;
+				var kills = _v7.c;
+				return _Utils_Tuple3(
+					spawns,
+					existing,
+					A2(
+						$elm$core$Task$andThen,
+						function (_v5) {
+							return kills;
+						},
+						$elm$core$Process$kill(id)));
+			});
+		var newTaggers = A3($elm$core$List$foldl, $elm$time$Time$addMySub, $elm$core$Dict$empty, subs);
+		var leftStep = F3(
+			function (interval, taggers, _v4) {
+				var spawns = _v4.a;
+				var existing = _v4.b;
+				var kills = _v4.c;
+				return _Utils_Tuple3(
+					A2($elm$core$List$cons, interval, spawns),
+					existing,
+					kills);
+			});
+		var bothStep = F4(
+			function (interval, taggers, id, _v3) {
+				var spawns = _v3.a;
+				var existing = _v3.b;
+				var kills = _v3.c;
+				return _Utils_Tuple3(
+					spawns,
+					A3($elm$core$Dict$insert, interval, id, existing),
+					kills);
+			});
+		var _v1 = A6(
+			$elm$core$Dict$merge,
+			leftStep,
+			bothStep,
+			rightStep,
+			newTaggers,
+			processes,
+			_Utils_Tuple3(
+				_List_Nil,
+				$elm$core$Dict$empty,
+				$elm$core$Task$succeed(_Utils_Tuple0)));
+		var spawnList = _v1.a;
+		var existingDict = _v1.b;
+		var killTask = _v1.c;
+		return A2(
+			$elm$core$Task$andThen,
+			function (newProcesses) {
+				return $elm$core$Task$succeed(
+					A2($elm$time$Time$State, newTaggers, newProcesses));
+			},
+			A2(
+				$elm$core$Task$andThen,
+				function (_v2) {
+					return A3($elm$time$Time$spawnHelp, router, spawnList, existingDict);
+				},
+				killTask));
+	});
+var $elm$time$Time$onSelfMsg = F3(
+	function (router, interval, state) {
+		var _v0 = A2($elm$core$Dict$get, interval, state.taggers);
+		if (_v0.$ === 'Nothing') {
+			return $elm$core$Task$succeed(state);
+		} else {
+			var taggers = _v0.a;
+			var tellTaggers = function (time) {
+				return $elm$core$Task$sequence(
+					A2(
+						$elm$core$List$map,
+						function (tagger) {
+							return A2(
+								$elm$core$Platform$sendToApp,
+								router,
+								tagger(time));
+						},
+						taggers));
+			};
+			return A2(
+				$elm$core$Task$andThen,
+				function (_v1) {
+					return $elm$core$Task$succeed(state);
+				},
+				A2($elm$core$Task$andThen, tellTaggers, $elm$time$Time$now));
+		}
+	});
+var $elm$core$Basics$composeL = F3(
+	function (g, f, x) {
+		return g(
+			f(x));
+	});
+var $elm$time$Time$subMap = F2(
+	function (f, _v0) {
+		var interval = _v0.a;
+		var tagger = _v0.b;
+		return A2(
+			$elm$time$Time$Every,
+			interval,
+			A2($elm$core$Basics$composeL, f, tagger));
+	});
+_Platform_effectManagers['Time'] = _Platform_createManager($elm$time$Time$init, $elm$time$Time$onEffects, $elm$time$Time$onSelfMsg, 0, $elm$time$Time$subMap);
+var $elm$time$Time$subscription = _Platform_leaf('Time');
+var $elm$time$Time$every = F2(
+	function (interval, tagger) {
+		return $elm$time$Time$subscription(
+			A2($elm$time$Time$Every, interval, tagger));
+	});
+var $elm$core$Platform$Sub$batch = _Platform_batch;
+var $elm$core$Platform$Sub$none = $elm$core$Platform$Sub$batch(_List_Nil);
+var $author$project$Ruz$Main$subscriptions = function (model) {
+	var _v0 = model.changes;
+	if (!_v0.b) {
+		return $elm$core$Platform$Sub$none;
+	} else {
+		return A2(
+			$elm$time$Time$every,
+			100,
+			$elm$core$Basics$always($author$project$Ruz$Main$ApplyChange));
+	}
+};
 var $elm$core$Dict$getMin = function (dict) {
 	getMin:
 	while (true) {
@@ -6361,6 +6820,137 @@ var $elm$core$Dict$remove = F2(
 			return x;
 		}
 	});
+var $elm$core$Dict$update = F3(
+	function (targetKey, alter, dictionary) {
+		var _v0 = alter(
+			A2($elm$core$Dict$get, targetKey, dictionary));
+		if (_v0.$ === 'Just') {
+			var value = _v0.a;
+			return A3($elm$core$Dict$insert, targetKey, value, dictionary);
+		} else {
+			return A2($elm$core$Dict$remove, targetKey, dictionary);
+		}
+	});
+var $author$project$Ruz$Main$applyChange = F2(
+	function (change, model) {
+		switch (change.$) {
+			case 'Spawn':
+				var figureId = change.a;
+				var pos = change.b;
+				return _Utils_update(
+					model,
+					{
+						positions: A3($elm$core$Dict$insert, figureId, pos, model.positions)
+					});
+			case 'Move':
+				var figureId = change.a;
+				var pos = change.b;
+				return _Utils_update(
+					model,
+					{
+						positions: A3(
+							$elm$core$Dict$update,
+							figureId,
+							$elm$core$Maybe$map(
+								function (_v1) {
+									return pos;
+								}),
+							model.positions)
+					});
+			case 'Kill':
+				var figureId = change.a;
+				return _Utils_update(
+					model,
+					{
+						positions: A2($elm$core$Dict$remove, figureId, model.positions)
+					});
+			default:
+				return _Utils_update(
+					model,
+					{gameOver: true});
+		}
+	});
+var $author$project$Ruz$Data$Game$GameOver = {$: 'GameOver'};
+var $author$project$Ruz$Data$Game$Kill = function (a) {
+	return {$: 'Kill', a: a};
+};
+var $author$project$Ruz$Data$Game$Move = F2(
+	function (a, b) {
+		return {$: 'Move', a: a, b: b};
+	});
+var $elm$core$Maybe$andThen = F2(
+	function (callback, maybeValue) {
+		if (maybeValue.$ === 'Just') {
+			var value = maybeValue.a;
+			return callback(value);
+		} else {
+			return $elm$core$Maybe$Nothing;
+		}
+	});
+var $author$project$Ruz$Data$Figure$moves = F2(
+	function (_v0, figure) {
+		var x = _v0.a;
+		var y = _v0.b;
+		switch (figure.$) {
+			case 'King':
+				return _List_fromArray(
+					[
+						_Utils_Tuple2(x + 1, y),
+						_Utils_Tuple2(x, y + 1),
+						_Utils_Tuple2(x - 1, y),
+						_Utils_Tuple2(x + 1, y + 1),
+						_Utils_Tuple2(x - 1, y + 1)
+					]);
+			case 'Rook':
+				return _List_fromArray(
+					[
+						_Utils_Tuple2(x + 1, y),
+						_Utils_Tuple2(x, y + 1),
+						_Utils_Tuple2(x - 1, y)
+					]);
+			case 'Biship':
+				return _List_fromArray(
+					[
+						_Utils_Tuple2(x + 1, y + 1),
+						_Utils_Tuple2(x - 1, y + 1)
+					]);
+			case 'Knight':
+				return $elm$core$List$concat(
+					_List_fromArray(
+						[
+							A2(
+							$elm$core$List$repeat,
+							2,
+							_Utils_Tuple2(x + 2, y + 1)),
+							A2(
+							$elm$core$List$repeat,
+							2,
+							_Utils_Tuple2(x - 2, y + 1)),
+							_List_fromArray(
+							[
+								_Utils_Tuple2(x + 1, y + 2),
+								_Utils_Tuple2(x - 1, y + 2)
+							])
+						]));
+			case 'Pawn':
+				return _List_fromArray(
+					[
+						_Utils_Tuple2(x, y + 1),
+						_Utils_Tuple2(x + 1, y + 1),
+						_Utils_Tuple2(x - 1, y + 1)
+					]);
+			default:
+				return _List_fromArray(
+					[
+						_Utils_Tuple2(x + 1, y + 1),
+						_Utils_Tuple2(x - 1, y + 1),
+						_Utils_Tuple2(x + 1, y),
+						_Utils_Tuple2(x, y + 1),
+						_Utils_Tuple2(x - 1, y)
+					]);
+		}
+	});
+var $author$project$Ruz$Data$Figure$player = $author$project$Ruz$Data$Figure$Rook;
 var $elm$core$List$any = F2(
 	function (isOkay, list) {
 		any:
@@ -6381,11 +6971,6 @@ var $elm$core$List$any = F2(
 				}
 			}
 		}
-	});
-var $elm$core$Basics$composeL = F3(
-	function (g, f, x) {
-		return g(
-			f(x));
 	});
 var $elm$core$List$all = F2(
 	function (isOkay, list) {
@@ -6482,12 +7067,65 @@ var $author$project$Ruz$Data$Game$canMove = F3(
 								_Utils_Tuple2(1, -2),
 								_Utils_Tuple2(2, -1)
 							]));
-				default:
+				case 'Pawn':
 					return (_Utils_eq(to.x, from.x) && _Utils_eq(to.y, from.y + 1)) ? (!_Utils_eq(
 						game.player,
 						_Utils_Tuple2(to.x, to.y))) : ((($elm$core$Basics$abs(to.x - from.x) === 1) && _Utils_eq(to.y, from.y + 1)) ? _Utils_eq(
 						game.player,
 						_Utils_Tuple2(to.x, to.y)) : false);
+				default:
+					if (_Utils_eq(from.x, to.x)) {
+						return A2(
+							$elm$core$List$all,
+							function (y) {
+								return _Utils_eq(y, to.y) || (_Utils_eq(y, from.y) || (!A2(
+									$elm$core$Dict$member,
+									_Utils_Tuple2(from.x, y),
+									game.grid)));
+							},
+							A2(
+								$elm$core$List$range,
+								A2($elm$core$Basics$min, from.y, to.y),
+								A2($elm$core$Basics$max, from.y, to.y)));
+					} else {
+						if (_Utils_eq(from.y, to.y)) {
+							return A2(
+								$elm$core$List$all,
+								function (x) {
+									return _Utils_eq(x, to.x) || (_Utils_eq(x, from.x) || (!A2(
+										$elm$core$Dict$member,
+										_Utils_Tuple2(x, from.y),
+										game.grid)));
+								},
+								A2(
+									$elm$core$List$range,
+									A2($elm$core$Basics$min, from.x, to.x),
+									A2($elm$core$Basics$max, from.x, to.x)));
+						} else {
+							if (_Utils_eq(
+								$elm$core$Basics$abs(from.x - to.x),
+								$elm$core$Basics$abs(from.y - to.y))) {
+								var n = $elm$core$Basics$abs(from.x - to.x);
+								var dir = {
+									x: A3($elm$core$Basics$clamp, -1, 1, to.x - from.x),
+									y: A3($elm$core$Basics$clamp, -1, 1, to.y - from.y)
+								};
+								return A2(
+									$elm$core$List$all,
+									function (pos) {
+										return !A2($elm$core$Dict$member, pos, game.grid);
+									},
+									A2(
+										$elm$core$List$map,
+										function (i) {
+											return _Utils_Tuple2(from.x + (dir.x * i), from.y + (dir.y * i));
+										},
+										A2($elm$core$List$range, 1, n)));
+							} else {
+								return false;
+							}
+						}
+					}
 			}
 		}()));
 	});
@@ -6517,16 +7155,39 @@ var $author$project$Ruz$Data$Game$moveEnemy = F2(
 	function (_v0, game) {
 		var pos = _v0.a;
 		var figureId = _v0.b;
-		var moveTo = function (to) {
-			return _Utils_update(
-				game,
-				{
-					grid: A3(
-						$elm$core$Dict$insert,
-						to,
+		var moveTo = function (_v2) {
+			var x = _v2.a;
+			var y = _v2.b;
+			return (_Utils_cmp(y, $author$project$Ruz$Config$size) < 0) ? _Utils_Tuple2(
+				_Utils_update(
+					game,
+					{
+						grid: A3(
+							$elm$core$Dict$insert,
+							_Utils_Tuple2(x, y),
+							figureId,
+							A2($elm$core$Dict$remove, pos, game.grid))
+					}),
+				_List_fromArray(
+					[
+						A2(
+						$author$project$Ruz$Data$Game$Move,
 						figureId,
-						A2($elm$core$Dict$remove, pos, game.grid))
-				});
+						_Utils_Tuple2(x, y))
+					])) : _Utils_Tuple2(
+				_Utils_update(
+					game,
+					{
+						grid: A2($elm$core$Dict$remove, pos, game.grid)
+					}),
+				_List_fromArray(
+					[
+						A2(
+						$author$project$Ruz$Data$Game$Move,
+						figureId,
+						_Utils_Tuple2(x, y)),
+						$author$project$Ruz$Data$Game$Kill(figureId)
+					]));
 		};
 		if (A2(
 			$author$project$Ruz$Data$Game$valid,
@@ -6558,7 +7219,8 @@ var $author$project$Ruz$Data$Game$moveEnemy = F2(
 					moveTo,
 					A2($elm$random$Random$uniform, head, tail));
 			} else {
-				return $elm$random$Random$constant(game);
+				return $elm$random$Random$constant(
+					_Utils_Tuple2(game, _List_Nil));
 			}
 		}
 	});
@@ -6572,21 +7234,12 @@ var $author$project$Ruz$Data$Figure$score = function (figure) {
 			return 3;
 		case 'Rook':
 			return 5;
-		default:
+		case 'King':
 			return 10;
+		default:
+			return 9;
 	}
 };
-var $elm$core$Dict$update = F3(
-	function (targetKey, alter, dictionary) {
-		var _v0 = alter(
-			A2($elm$core$Dict$get, targetKey, dictionary));
-		if (_v0.$ === 'Just') {
-			var value = _v0.a;
-			return A3($elm$core$Dict$insert, targetKey, value, dictionary);
-		} else {
-			return A2($elm$core$Dict$remove, targetKey, dictionary);
-		}
-	});
 var $author$project$Ruz$Data$Game$move = F2(
 	function (pos, game) {
 		var enemies = A2(
@@ -6598,102 +7251,137 @@ var $author$project$Ruz$Data$Game$move = F2(
 			{from: game.player, isEnemy: false, to: pos},
 			game) ? A2(
 			$elm$random$Random$map,
-			function (g) {
-				return $elm$core$Maybe$Just(
-					{
-						game: _Utils_update(
-							g,
-							{
-								grid: A2(
-									$elm$core$Dict$filter,
-									F2(
-										function (_v0, _v1) {
-											var x = _v0.a;
-											var y = _v0.b;
-											return _Utils_cmp(y, $author$project$Ruz$Config$size) < 1;
-										}),
-									A3(
+			$elm$core$Maybe$Just,
+			A2(
+				$author$project$Ruz$Data$Game$andThen,
+				function (g) {
+					return $elm$random$Random$constant(
+						_Utils_Tuple2(
+							_Utils_update(
+								g,
+								{
+									grid: A3(
 										$elm$core$Dict$update,
 										pos,
 										function (maybe) {
 											return $elm$core$Maybe$Just(
 												A2($elm$core$Maybe$withDefault, $author$project$Ruz$Config$playerId, maybe));
 										},
-										g.grid))
-							}),
-						gameOver: A2($elm$core$Dict$member, pos, g.grid)
-					});
-			},
-			A2(
-				$elm$random$Random$andThen,
-				$author$project$Ruz$Data$Game$spawnEnemy,
+										g.grid)
+								}),
+							A2($elm$core$Dict$member, pos, g.grid) ? _List_fromArray(
+								[
+									$author$project$Ruz$Data$Game$Kill($author$project$Ruz$Config$playerId),
+									$author$project$Ruz$Data$Game$GameOver
+								]) : _List_Nil));
+				},
 				A2(
-					$elm$random$Random$andThen,
+					$author$project$Ruz$Data$Game$andThen,
+					$author$project$Ruz$Data$Game$spawnEnemy,
 					A2(
-						$elm$core$List$foldl,
-						function (tuple) {
-							return $elm$random$Random$andThen(
-								$author$project$Ruz$Data$Game$moveEnemy(tuple));
-						},
-						$elm$random$Random$constant(
-							_Utils_update(
-								game,
-								{
-									grid: enemies,
-									player: pos,
-									score: game.score + A2(
-										$elm$core$Maybe$withDefault,
-										0,
+						$elm$random$Random$andThen,
+						A2(
+							$elm$core$List$foldl,
+							function (tuple) {
+								return $author$project$Ruz$Data$Game$andThen(
+									$author$project$Ruz$Data$Game$moveEnemy(tuple));
+							},
+							$elm$random$Random$constant(
+								_Utils_Tuple2(
+									_Utils_update(
+										game,
+										{
+											grid: enemies,
+											player: pos,
+											score: game.score + A2(
+												$elm$core$Maybe$withDefault,
+												0,
+												A2(
+													$elm$core$Maybe$map,
+													$author$project$Ruz$Data$Figure$score,
+													A2(
+														$elm$core$Maybe$andThen,
+														function (id) {
+															return A2($elm$core$Dict$get, id, game.figures);
+														},
+														A2($elm$core$Dict$get, pos, game.grid))))
+										}),
+									A2(
+										$elm$core$List$cons,
+										A2($author$project$Ruz$Data$Game$Move, $author$project$Ruz$Config$playerId, pos),
 										A2(
-											$elm$core$Maybe$map,
-											$author$project$Ruz$Data$Figure$score,
+											$elm$core$Maybe$withDefault,
+											_List_Nil,
 											A2(
-												$elm$core$Maybe$andThen,
+												$elm$core$Maybe$map,
 												function (id) {
-													return A2($elm$core$Dict$get, id, game.figures);
+													return _List_fromArray(
+														[
+															$author$project$Ruz$Data$Game$Kill(id)
+														]);
 												},
-												A2($elm$core$Dict$get, pos, game.grid))))
-								}))),
-					$elm_community$random_extra$Random$List$shuffle(
-						$elm$core$Dict$toList(enemies))))) : $elm$random$Random$constant($elm$core$Maybe$Nothing);
+												A2($elm$core$Dict$get, pos, game.grid))))))),
+						$elm_community$random_extra$Random$List$shuffle(
+							$elm$core$Dict$toList(enemies)))))) : $elm$random$Random$constant($elm$core$Maybe$Nothing);
 	});
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $author$project$Ruz$Main$update = F2(
 	function (msg, model) {
-		if (msg.$ === 'Click') {
-			var pos = msg.a;
-			return _Utils_Tuple2(
-				model.gameOver ? model : function (_v1) {
-					var maybe = _v1.a;
-					var seed = _v1.b;
-					return A2(
-						$elm$core$Maybe$withDefault,
-						model,
+		switch (msg.$) {
+			case 'Click':
+				var pos = msg.a;
+				return _Utils_Tuple2(
+					model.gameOver ? model : function (_v1) {
+						var maybe = _v1.a;
+						var seed = _v1.b;
+						return A2(
+							$elm$core$Maybe$withDefault,
+							model,
+							A2(
+								$elm$core$Maybe$map,
+								function (_v2) {
+									var game = _v2.a;
+									var changes = _v2.b;
+									return _Utils_update(
+										model,
+										{changes: changes, game: game, seed: seed});
+								},
+								maybe));
+					}(
 						A2(
-							$elm$core$Maybe$map,
-							function (_v2) {
-								var gameOver = _v2.gameOver;
-								var game = _v2.game;
-								return {game: game, gameOver: gameOver, seed: seed};
-							},
-							maybe));
-				}(
-					A2(
-						$elm$random$Random$step,
-						A2($author$project$Ruz$Data$Game$move, pos, model.game),
-						model.seed)),
-				$elm$core$Platform$Cmd$none);
-		} else {
-			var s = msg.a;
-			return _Utils_Tuple2(
-				function (_v3) {
-					var game = _v3.a;
-					var seed = _v3.b;
-					return {game: game, gameOver: false, seed: seed};
-				}(
-					A2($elm$random$Random$step, $author$project$Ruz$Data$Game$init, s)),
-				$elm$core$Platform$Cmd$none);
+							$elm$random$Random$step,
+							A2($author$project$Ruz$Data$Game$move, pos, model.game),
+							model.seed)),
+					$elm$core$Platform$Cmd$none);
+			case 'NewGame':
+				var s = msg.a;
+				return _Utils_Tuple2(
+					function (_v3) {
+						var _v4 = _v3.a;
+						var game = _v4.a;
+						var changes = _v4.b;
+						var seed = _v3.b;
+						return {changes: changes, game: game, gameOver: false, positions: $elm$core$Dict$empty, seed: seed};
+					}(
+						A2($elm$random$Random$step, $author$project$Ruz$Data$Game$init, s)),
+					$elm$core$Platform$Cmd$none);
+			default:
+				var _v5 = model.changes;
+				if (_v5.b) {
+					var head = _v5.a;
+					var tail = _v5.b;
+					return _Utils_Tuple2(
+						function (it) {
+							return _Utils_update(
+								it,
+								{changes: tail});
+						}(
+							A2($author$project$Ruz$Main$applyChange, head, model)),
+						$elm$core$Platform$Cmd$none);
+				} else {
+					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+				}
 		}
 	});
 var $author$project$Ruz$Main$Click = function (a) {
@@ -6707,108 +7395,16 @@ var $elm$virtual_dom$VirtualDom$attribute = F2(
 			_VirtualDom_noJavaScriptOrHtmlUri(value));
 	});
 var $elm$html$Html$Attributes$attribute = $elm$virtual_dom$VirtualDom$attribute;
-var $elm$core$List$concatMap = F2(
-	function (f, list) {
-		return $elm$core$List$concat(
-			A2($elm$core$List$map, f, list));
-	});
-var $elm$html$Html$div = _VirtualDom_node('div');
-var $elm$core$List$maybeCons = F3(
-	function (f, mx, xs) {
-		var _v0 = f(mx);
-		if (_v0.$ === 'Just') {
-			var x = _v0.a;
-			return A2($elm$core$List$cons, x, xs);
-		} else {
-			return xs;
-		}
-	});
-var $elm$core$List$filterMap = F2(
-	function (f, xs) {
-		return A3(
-			$elm$core$List$foldr,
-			$elm$core$List$maybeCons(f),
-			_List_Nil,
-			xs);
-	});
-var $elm$core$Dict$fromList = function (assocs) {
-	return A3(
-		$elm$core$List$foldl,
-		F2(
-			function (_v0, dict) {
-				var key = _v0.a;
-				var value = _v0.b;
-				return A3($elm$core$Dict$insert, key, value, dict);
-			}),
-		$elm$core$Dict$empty,
-		assocs);
-};
 var $avh4$elm_color$Color$RgbaSpace = F4(
 	function (a, b, c, d) {
 		return {$: 'RgbaSpace', a: a, b: b, c: c, d: d};
 	});
-var $avh4$elm_color$Color$rgba = F4(
-	function (r, g, b, a) {
-		return A4($avh4$elm_color$Color$RgbaSpace, r, g, b, a);
-	});
-var $author$project$Ruz$Config$green = A4($avh4$elm_color$Color$rgba, 0, 1, 0, 0.33);
-var $elm$html$Html$h1 = _VirtualDom_node('h1');
-var $author$project$Ruz$Data$Game$isDangerous = F2(
-	function (_v0, game) {
-		var x = _v0.a;
-		var y = _v0.b;
-		return A2(
-			$elm$core$List$any,
-			function (_v1) {
-				var pos = _v1.a;
-				var figure = _v1.b;
-				return (!_Utils_eq(
-					pos,
-					_Utils_Tuple2(x, y))) && ((!_Utils_eq(pos, game.player)) && _Utils_eq(
-					$elm$core$Maybe$Just(figure),
-					A2(
-						$elm$core$Maybe$andThen,
-						function (id) {
-							return A2($elm$core$Dict$get, id, game.figures);
-						},
-						A2($elm$core$Dict$get, pos, game.grid))));
-			},
-			A2(
-				$elm$core$List$concatMap,
-				function (i) {
-					return _List_fromArray(
-						[
-							_Utils_Tuple2(
-							_Utils_Tuple2(i, y),
-							$author$project$Ruz$Data$Figure$Rook),
-							_Utils_Tuple2(
-							_Utils_Tuple2(x, i),
-							$author$project$Ruz$Data$Figure$Rook),
-							_Utils_Tuple2(
-							_Utils_Tuple2(i, (y - x) + i),
-							$author$project$Ruz$Data$Figure$Biship),
-							_Utils_Tuple2(
-							_Utils_Tuple2(i, (y + x) - i),
-							$author$project$Ruz$Data$Figure$Biship)
-						]);
-				},
-				A2($elm$core$List$range, 0, $author$project$Ruz$Config$size - 1)));
-	});
-var $elm$virtual_dom$VirtualDom$node = function (tag) {
-	return _VirtualDom_node(
-		_VirtualDom_noScript(tag));
-};
-var $elm$html$Html$node = $elm$virtual_dom$VirtualDom$node;
-var $author$project$Ruz$Config$red = A4($avh4$elm_color$Color$rgba, 1, 0, 0, 0.125);
-var $elm$core$List$singleton = function (value) {
-	return _List_fromArray(
-		[value]);
-};
+var $avh4$elm_color$Color$black = A4($avh4$elm_color$Color$RgbaSpace, 0 / 255, 0 / 255, 0 / 255, 1.0);
+var $author$project$Ruz$Config$boardSize = 350;
+var $elm$html$Html$button = _VirtualDom_node('button');
+var $elm$html$Html$div = _VirtualDom_node('div');
 var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
 var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
-var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
-var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
-var $elm$html$Html$button = _VirtualDom_node('button');
 var $author$project$Layout$column = function (attrs) {
 	return $elm$html$Html$div(
 		_Utils_ap(
@@ -6819,6 +7415,37 @@ var $author$project$Layout$column = function (attrs) {
 				]),
 			attrs));
 };
+var $author$project$Layout$el = F2(
+	function (attrs, content) {
+		return A2(
+			$elm$html$Html$div,
+			_Utils_ap(
+				_List_fromArray(
+					[
+						A2($elm$html$Html$Attributes$style, 'display', 'flex')
+					]),
+				attrs),
+			_List_fromArray(
+				[content]));
+	});
+var $author$project$Layout$fillPortion = function (n) {
+	return A2(
+		$elm$html$Html$Attributes$style,
+		'flex',
+		$elm$core$String$fromInt(n));
+};
+var $author$project$Layout$fill = $author$project$Layout$fillPortion(1);
+var $avh4$elm_color$Color$rgba = F4(
+	function (r, g, b, a) {
+		return A4($avh4$elm_color$Color$RgbaSpace, r, g, b, a);
+	});
+var $author$project$Ruz$Config$green = A4($avh4$elm_color$Color$rgba, 0, 1, 0, 0.7);
+var $elm$html$Html$h1 = _VirtualDom_node('h1');
+var $elm$virtual_dom$VirtualDom$node = function (tag) {
+	return _VirtualDom_node(
+		_VirtualDom_noScript(tag));
+};
+var $elm$html$Html$node = $elm$virtual_dom$VirtualDom$node;
 var $elm$virtual_dom$VirtualDom$Normal = function (a) {
 	return {$: 'Normal', a: a};
 };
@@ -6847,10 +7474,26 @@ var $author$project$Layout$row = function (attrs) {
 				]),
 			attrs));
 };
+var $elm$core$List$singleton = function (value) {
+	return _List_fromArray(
+		[value]);
+};
+var $elm$core$List$sort = function (xs) {
+	return A2($elm$core$List$sortBy, $elm$core$Basics$identity, xs);
+};
+var $author$project$Layout$spaceBetween = A2($elm$html$Html$Attributes$style, 'justify-content', 'space-between');
+var $elm$core$String$fromFloat = _String_fromNumber;
+var $author$project$Layout$spacing = function (n) {
+	return A2(
+		$elm$html$Html$Attributes$style,
+		'gap',
+		$elm$core$String$fromFloat(n) + 'px');
+};
+var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
+var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $elm$core$String$concat = function (strings) {
 	return A2($elm$core$String$join, '', strings);
 };
-var $elm$core$String$fromFloat = _String_fromNumber;
 var $elm$core$Basics$round = _Basics_round;
 var $avh4$elm_color$Color$toCssString = function (_v0) {
 	var r = _v0.a;
@@ -6881,8 +7524,43 @@ var $avh4$elm_color$Color$toCssString = function (_v0) {
 				')'
 			]));
 };
+var $author$project$Ruz$Data$Figure$toString = F2(
+	function (isWhite, figure) {
+		switch (figure.$) {
+			case 'King':
+				return isWhite ? '♔' : 'king_black';
+			case 'Rook':
+				return isWhite ? 'rook_white' : 'rook_black';
+			case 'Biship':
+				return isWhite ? '♗' : 'biship_black';
+			case 'Knight':
+				return isWhite ? '♘' : 'knight_black';
+			case 'Pawn':
+				return isWhite ? '♙' : 'pawn_black';
+			default:
+				return isWhite ? '♕' : 'queen_black';
+		}
+	});
+var $author$project$Layout$alignCenter = A2($elm$html$Html$Attributes$style, 'align-items', 'center');
+var $author$project$Layout$centerContent = A2($elm$html$Html$Attributes$style, 'justify-content', 'center');
+var $elm$html$Html$a = _VirtualDom_node('a');
+var $author$project$Ruz$Config$gray = A4($avh4$elm_color$Color$rgba, 0, 0, 0, 0.1);
+var $elm$json$Json$Encode$string = _Json_wrap;
+var $elm$html$Html$Attributes$stringProperty = F2(
+	function (key, string) {
+		return A2(
+			_VirtualDom_property,
+			key,
+			$elm$json$Json$Encode$string(string));
+	});
+var $elm$html$Html$Attributes$href = function (url) {
+	return A2(
+		$elm$html$Html$Attributes$stringProperty,
+		'href',
+		_VirtualDom_noJavaScriptUri(url));
+};
 var $author$project$Ruz$View$Board$viewBoard = F2(
-	function (args, board) {
+	function (args, figurePos) {
 		return A2(
 			$author$project$Layout$column,
 			_List_fromArray(
@@ -6905,29 +7583,86 @@ var $author$project$Ruz$View$Board$viewBoard = F2(
 								$elm$core$List$indexedMap,
 								F2(
 									function (i, _v1) {
-										return A2(
-											$elm$html$Html$button,
-											_List_fromArray(
-												[
-													$elm$html$Html$Events$onClick(
-													args.onClick(
-														_Utils_Tuple2(i, j))),
-													A2($elm$html$Html$Attributes$style, 'border', 'solid 1 rgba(0,0,0,25)'),
-													A2($elm$html$Html$Attributes$style, 'flex', '1'),
-													A2($elm$html$Html$Attributes$style, 'height', '100%'),
-													A2(
-													$elm$html$Html$Attributes$style,
-													'background-color',
-													$avh4$elm_color$Color$toCssString(
-														A2(
-															$elm$core$Maybe$withDefault,
-															A4($avh4$elm_color$Color$rgba, 0, 0, 0, 0),
+										var clickableCell = function (attrs) {
+											return A2(
+												$elm$html$Html$a,
+												_Utils_ap(
+													_List_fromArray(
+														[
+															$elm$html$Html$Events$onClick(
+															args.onClick(
+																_Utils_Tuple2(i, j))),
+															$elm$html$Html$Attributes$href('#'),
 															A2(
-																$elm$core$Dict$get,
-																_Utils_Tuple2(i, j),
-																args.overlay))))
-												]),
-											_List_Nil);
+															$elm$html$Html$Attributes$style,
+															'border',
+															'solid 1px ' + $avh4$elm_color$Color$toCssString($author$project$Ruz$Config$gray)),
+															$author$project$Layout$fill,
+															A2($elm$html$Html$Attributes$style, 'height', 'calc(100% -  2px)')
+														]),
+													attrs),
+												_List_Nil);
+										};
+										var cell = function (attrs) {
+											return A2(
+												$elm$html$Html$div,
+												_Utils_ap(
+													_List_fromArray(
+														[
+															A2(
+															$elm$html$Html$Attributes$style,
+															'border',
+															'solid 1px ' + $avh4$elm_color$Color$toCssString($author$project$Ruz$Config$gray)),
+															$author$project$Layout$fill,
+															A2($elm$html$Html$Attributes$style, 'height', 'calc(100% -  2px)')
+														]),
+													attrs),
+												_List_Nil);
+										};
+										var _v2 = A2(
+											$elm$core$Dict$get,
+											_Utils_Tuple2(i, j),
+											args.overlay);
+										if (_v2.$ === 'Just') {
+											switch (_v2.a.$) {
+												case 'Success':
+													var _v3 = _v2.a;
+													return clickableCell(
+														_List_fromArray(
+															[
+																A2(
+																$elm$html$Html$Attributes$style,
+																'background-color',
+																$avh4$elm_color$Color$toCssString($author$project$Ruz$Config$green))
+															]));
+												case 'Warning':
+													var _v4 = _v2.a;
+													return clickableCell(
+														_List_fromArray(
+															[
+																A2(
+																$elm$html$Html$Attributes$style,
+																'background-color',
+																$avh4$elm_color$Color$toCssString($author$project$Ruz$Config$green)),
+																A2(
+																$elm$html$Html$Attributes$style,
+																'background',
+																'repeating-linear-gradient(' + (' -45deg,' + (($avh4$elm_color$Color$toCssString($author$project$Ruz$Config$green) + ',') + (($avh4$elm_color$Color$toCssString($author$project$Ruz$Config$green) + ' 20%,') + (($avh4$elm_color$Color$toCssString($author$project$Ruz$Config$gray) + ' 20%,') + (($avh4$elm_color$Color$toCssString($author$project$Ruz$Config$gray) + ' 40%') + ')'))))))
+															]));
+												default:
+													var _v5 = _v2.a;
+													return clickableCell(
+														_List_fromArray(
+															[
+																A2(
+																$elm$html$Html$Attributes$style,
+																'background-color',
+																$avh4$elm_color$Color$toCssString($author$project$Ruz$Config$gray))
+															]));
+											}
+										} else {
+											return cell(_List_Nil);
+										}
 									}),
 								A2($elm$core$List$repeat, $author$project$Ruz$Config$size, _Utils_Tuple0)));
 					}),
@@ -6938,20 +7673,24 @@ var $elm$virtual_dom$VirtualDom$keyedNode = function (tag) {
 		_VirtualDom_noScript(tag));
 };
 var $elm$html$Html$Keyed$node = $elm$virtual_dom$VirtualDom$keyedNode;
-var $author$project$Ruz$Data$Figure$toString = F2(
-	function (isWhite, figure) {
-		switch (figure.$) {
-			case 'King':
-				return isWhite ? '♔' : '♚';
-			case 'Rook':
-				return isWhite ? '♖' : '♜';
-			case 'Biship':
-				return isWhite ? '♗' : '♝';
-			case 'Knight':
-				return isWhite ? '♘' : '♞';
-			default:
-				return isWhite ? '♙' : '♟';
-		}
+var $elm$html$Html$img = _VirtualDom_node('img');
+var $elm$html$Html$Attributes$src = function (url) {
+	return A2(
+		$elm$html$Html$Attributes$stringProperty,
+		'src',
+		_VirtualDom_noJavaScriptOrHtmlUri(url));
+};
+var $author$project$Ruz$View$Figure$view = F2(
+	function (attrs, string) {
+		return function (url) {
+			return A2(
+				$elm$html$Html$img,
+				A2(
+					$elm$core$List$cons,
+					$elm$html$Html$Attributes$src(url),
+					attrs),
+				_List_Nil);
+		}('assert/' + (string + '.svg'));
 	});
 var $author$project$Ruz$View$Board$viewFigures = F2(
 	function (args, figures) {
@@ -6970,10 +7709,10 @@ var $author$project$Ruz$View$Board$viewFigures = F2(
 			A2(
 				$elm$core$List$map,
 				function (_v0) {
-					var _v1 = _v0.a;
+					var figureId = _v0.a;
+					var _v1 = _v0.b;
 					var x = _v1.a;
 					var y = _v1.b;
-					var figureId = _v0.b;
 					return _Utils_Tuple2(
 						'figure-' + $elm$core$String$fromInt(figureId),
 						A2(
@@ -7001,11 +7740,16 @@ var $author$project$Ruz$View$Board$viewFigures = F2(
 									A2($elm$html$Html$Attributes$style, 'justify-content', 'center'),
 									A2($elm$html$Html$Attributes$style, 'align-items', 'center'),
 									A2($elm$html$Html$Attributes$style, 'transition', 'top 0.5s, left 0.5s'),
-									A2($elm$html$Html$Attributes$style, 'font-size', '50px')
+									A2($elm$html$Html$Attributes$style, 'font-size', '40px')
 								]),
 							_List_fromArray(
 								[
-									$elm$html$Html$text(
+									A2(
+									$author$project$Ruz$View$Figure$view,
+									_List_fromArray(
+										[
+											A2($elm$html$Html$Attributes$style, 'width', '100%')
+										]),
 									A2(
 										$elm$core$Maybe$withDefault,
 										A2($author$project$Ruz$Data$Figure$toString, true, $author$project$Ruz$Data$Figure$player),
@@ -7017,37 +7761,165 @@ var $author$project$Ruz$View$Board$viewFigures = F2(
 				},
 				A2(
 					$elm$core$List$sortBy,
-					$elm$core$Tuple$second,
-					$elm$core$Dict$toList(args.board))));
+					$elm$core$Tuple$first,
+					$elm$core$Dict$toList(args.figurePos))));
 	});
 var $author$project$Ruz$View$Board$view = F2(
-	function (args, board) {
+	function (args, figurePos) {
+		var gridSize = $author$project$Ruz$Config$boardSize / $author$project$Ruz$Config$size;
 		return A2(
 			$elm$html$Html$div,
 			_List_fromArray(
 				[
-					A2($elm$html$Html$Attributes$style, 'height', '400px'),
-					A2($elm$html$Html$Attributes$style, 'width', '400px'),
-					A2($elm$html$Html$Attributes$style, 'position', 'relative')
-				]),
-			_List_fromArray(
-				[
 					A2(
-					$author$project$Ruz$View$Board$viewFigures,
-					{board: board},
-					args.figures),
-					A2($author$project$Ruz$View$Board$viewBoard, args, board)
-				]));
+					$elm$html$Html$Attributes$style,
+					'height',
+					$elm$core$String$fromFloat($author$project$Ruz$Config$boardSize) + 'px'),
+					A2(
+					$elm$html$Html$Attributes$style,
+					'width',
+					$elm$core$String$fromFloat($author$project$Ruz$Config$boardSize) + 'px'),
+					A2($elm$html$Html$Attributes$style, 'position', 'relative'),
+					A2(
+					$elm$html$Html$Attributes$style,
+					'border',
+					'solid 1px ' + $avh4$elm_color$Color$toCssString($avh4$elm_color$Color$black))
+				]),
+			$elm$core$List$concat(
+				_List_fromArray(
+					[
+						_List_fromArray(
+						[
+							A2(
+							$author$project$Ruz$View$Board$viewFigures,
+							{figurePos: figurePos},
+							args.figures),
+							A2(
+							$author$project$Ruz$View$Board$viewBoard,
+							{figures: args.figures, onClick: args.onClick, overlay: args.overlay},
+							figurePos)
+						]),
+						args.gameOver ? _List_fromArray(
+						[
+							A2(
+							$author$project$Layout$el,
+							_List_fromArray(
+								[
+									A2($elm$html$Html$Attributes$style, 'background-color', 'rgba(0,0,0,0.5)'),
+									A2(
+									$elm$html$Html$Attributes$style,
+									'height',
+									$elm$core$String$fromFloat($author$project$Ruz$Config$boardSize) + 'px'),
+									A2($elm$html$Html$Attributes$style, 'color', 'white'),
+									A2($elm$html$Html$Attributes$style, 'z-index', '2'),
+									A2($elm$html$Html$Attributes$style, 'font-size', '30px'),
+									$author$project$Layout$alignCenter,
+									$author$project$Layout$centerContent,
+									A2($elm$html$Html$Attributes$style, 'backdrop-filter', 'blur(2px)')
+								]),
+							$elm$html$Html$text('Game Over'))
+						]) : _List_Nil
+					])));
 	});
-var $author$project$Ruz$Config$yellow = A4($avh4$elm_color$Color$rgba, 1, 1, 0, 0.5);
-var $author$project$Ruz$Main$view = function (model) {
+var $author$project$Ruz$Data$Overlay$Danger = {$: 'Danger'};
+var $author$project$Ruz$Data$Overlay$Success = {$: 'Success'};
+var $author$project$Ruz$Data$Overlay$Warning = {$: 'Warning'};
+var $elm$core$List$concatMap = F2(
+	function (f, list) {
+		return $elm$core$List$concat(
+			A2($elm$core$List$map, f, list));
+	});
+var $elm$core$List$maybeCons = F3(
+	function (f, mx, xs) {
+		var _v0 = f(mx);
+		if (_v0.$ === 'Just') {
+			var x = _v0.a;
+			return A2($elm$core$List$cons, x, xs);
+		} else {
+			return xs;
+		}
+	});
+var $elm$core$List$filterMap = F2(
+	function (f, xs) {
+		return A3(
+			$elm$core$List$foldr,
+			$elm$core$List$maybeCons(f),
+			_List_Nil,
+			xs);
+	});
+var $elm$core$Dict$fromList = function (assocs) {
+	return A3(
+		$elm$core$List$foldl,
+		F2(
+			function (_v0, dict) {
+				var key = _v0.a;
+				var value = _v0.b;
+				return A3($elm$core$Dict$insert, key, value, dict);
+			}),
+		$elm$core$Dict$empty,
+		assocs);
+};
+var $author$project$Ruz$Data$Game$isDangerous = F2(
+	function (_v0, game) {
+		var x = _v0.a;
+		var y = _v0.b;
+		return A2(
+			$elm$core$List$any,
+			function (_v1) {
+				var pos = _v1.a;
+				var figures = _v1.b;
+				return (!_Utils_eq(
+					pos,
+					_Utils_Tuple2(x, y))) && ((!_Utils_eq(pos, game.player)) && function (maybe) {
+					return A2(
+						$elm$core$Maybe$withDefault,
+						false,
+						A2(
+							$elm$core$Maybe$map,
+							function (figure) {
+								return A2($elm$core$List$member, figure, figures);
+							},
+							maybe));
+				}(
+					A2(
+						$elm$core$Maybe$andThen,
+						function (id) {
+							return A2($elm$core$Dict$get, id, game.figures);
+						},
+						A2($elm$core$Dict$get, pos, game.grid))));
+			},
+			A2(
+				$elm$core$List$concatMap,
+				function (i) {
+					return _List_fromArray(
+						[
+							_Utils_Tuple2(
+							_Utils_Tuple2(i, y),
+							_List_fromArray(
+								[$author$project$Ruz$Data$Figure$Rook, $author$project$Ruz$Data$Figure$Queen])),
+							_Utils_Tuple2(
+							_Utils_Tuple2(x, i),
+							_List_fromArray(
+								[$author$project$Ruz$Data$Figure$Rook, $author$project$Ruz$Data$Figure$Queen])),
+							_Utils_Tuple2(
+							_Utils_Tuple2(i, (y - x) + i),
+							_List_fromArray(
+								[$author$project$Ruz$Data$Figure$Biship, $author$project$Ruz$Data$Figure$Queen])),
+							_Utils_Tuple2(
+							_Utils_Tuple2(i, (y + x) - i),
+							_List_fromArray(
+								[$author$project$Ruz$Data$Figure$Biship, $author$project$Ruz$Data$Figure$Queen]))
+						]);
+				},
+				A2($elm$core$List$range, 0, $author$project$Ruz$Config$size - 1)));
+	});
+var $author$project$Ruz$Main$viewOverlay = function (model) {
 	var game = model.game;
-	var overlay = $elm$core$Dict$fromList(
+	return (!_Utils_eq(model.changes, _List_Nil)) ? $elm$core$Dict$empty : $elm$core$Dict$fromList(
 		A2(
 			$elm$core$List$filterMap,
 			function (pos) {
-				return _Utils_eq(pos, model.game.player) ? (model.gameOver ? $elm$core$Maybe$Just(
-					_Utils_Tuple2(pos, $author$project$Ruz$Config$red)) : $elm$core$Maybe$Nothing) : (model.gameOver ? $elm$core$Maybe$Nothing : (A2(
+				return model.gameOver ? $elm$core$Maybe$Nothing : (_Utils_eq(pos, model.game.player) ? $elm$core$Maybe$Nothing : (model.gameOver ? $elm$core$Maybe$Nothing : (A2(
 					$author$project$Ruz$Data$Game$valid,
 					{from: model.game.player, isEnemy: false, to: pos},
 					model.game) ? (A2(
@@ -7067,9 +7939,9 @@ var $author$project$Ruz$Main$view = function (model) {
 								})));
 					},
 					$elm$core$Dict$keys(model.game.grid)) ? $elm$core$Maybe$Just(
-					_Utils_Tuple2(pos, $author$project$Ruz$Config$red)) : (A2($author$project$Ruz$Data$Game$isDangerous, pos, game) ? $elm$core$Maybe$Just(
-					_Utils_Tuple2(pos, $author$project$Ruz$Config$yellow)) : $elm$core$Maybe$Just(
-					_Utils_Tuple2(pos, $author$project$Ruz$Config$green)))) : $elm$core$Maybe$Nothing));
+					_Utils_Tuple2(pos, $author$project$Ruz$Data$Overlay$Danger)) : (A2($author$project$Ruz$Data$Game$isDangerous, pos, model.game) ? $elm$core$Maybe$Just(
+					_Utils_Tuple2(pos, $author$project$Ruz$Data$Overlay$Warning)) : $elm$core$Maybe$Just(
+					_Utils_Tuple2(pos, $author$project$Ruz$Data$Overlay$Success)))) : $elm$core$Maybe$Nothing)));
 			},
 			A2(
 				$elm$core$List$concatMap,
@@ -7082,6 +7954,8 @@ var $author$project$Ruz$Main$view = function (model) {
 						A2($elm$core$List$range, 0, $author$project$Ruz$Config$size - 1));
 				},
 				A2($elm$core$List$range, 0, $author$project$Ruz$Config$size - 1))));
+};
+var $author$project$Ruz$Main$view = function (model) {
 	return {
 		body: _List_fromArray(
 			[
@@ -7095,40 +7969,117 @@ var $author$project$Ruz$Main$view = function (model) {
 					]),
 				_List_Nil),
 				A2(
-				$elm$html$Html$div,
+				$author$project$Layout$el,
 				_List_fromArray(
 					[
-						A2($elm$html$Html$Attributes$style, 'margin', 'flex'),
-						A2($elm$html$Html$Attributes$style, 'justify-content', 'center'),
-						A2($elm$html$Html$Attributes$style, 'align-items', 'center')
+						A2($elm$html$Html$Attributes$style, 'position', 'absolute'),
+						A2($elm$html$Html$Attributes$style, 'left', '50%'),
+						A2($elm$html$Html$Attributes$style, 'top', '50%'),
+						A2($elm$html$Html$Attributes$style, 'transform', 'translate(-50%, -50%)')
 					]),
-				$elm$core$List$singleton(
-					A2(
-						$elm$html$Html$div,
-						_List_fromArray(
-							[
-								A2($elm$html$Html$Attributes$style, 'position', 'absolute'),
-								A2($elm$html$Html$Attributes$style, 'left', '50%'),
-								A2($elm$html$Html$Attributes$style, 'top', '50%'),
-								A2($elm$html$Html$Attributes$style, 'transform', 'translate(-50%, -50%)')
-							]),
-						_List_fromArray(
-							[
-								A2(
-								$elm$html$Html$h1,
-								_List_fromArray(
-									[
-										A2($elm$html$Html$Attributes$style, 'text-align', 'center'),
-										A2($elm$html$Html$Attributes$style, 'margin-bottom', '100px')
-									]),
-								$elm$core$List$singleton(
-									$elm$html$Html$text(
-										$elm$core$String$fromInt(model.game.score)))),
-								A2(
-								$author$project$Ruz$View$Board$view,
-								{figures: model.game.figures, onClick: $author$project$Ruz$Main$Click, overlay: overlay, player: model.game.player},
-								model.game.grid)
-							]))))
+				A2(
+					$author$project$Layout$column,
+					_List_fromArray(
+						[
+							$author$project$Layout$spacing($author$project$Ruz$Config$boardSize / $author$project$Ruz$Config$size),
+							A2($elm$html$Html$Attributes$style, 'padding', '16px'),
+							A2(
+							$elm$html$Html$Attributes$style,
+							'border',
+							'solid 1px ' + $avh4$elm_color$Color$toCssString($avh4$elm_color$Color$black)),
+							A2($elm$html$Html$Attributes$style, 'border-radius', '20px')
+						]),
+					_List_fromArray(
+						[
+							A2(
+							$author$project$Layout$row,
+							_List_fromArray(
+								[
+									A2($elm$html$Html$Attributes$style, 'height', '40px')
+								]),
+							_List_fromArray(
+								[
+									A2(
+									$author$project$Layout$column,
+									_List_fromArray(
+										[$author$project$Layout$fill]),
+									_List_fromArray(
+										[
+											$elm$html$Html$text('Next Up'),
+											A2(
+											$author$project$Layout$row,
+											_List_Nil,
+											A2(
+												$elm$core$List$map,
+												$author$project$Ruz$View$Figure$view(
+													_List_fromArray(
+														[
+															A2($elm$html$Html$Attributes$style, 'height', '20px')
+														])),
+												$elm$core$List$sort(
+													A2(
+														$elm$core$List$map,
+														function (figure) {
+															return A2($author$project$Ruz$Data$Figure$toString, false, figure);
+														},
+														model.game.next.a))))
+										])),
+									A2(
+									$elm$html$Html$h1,
+									_List_fromArray(
+										[
+											A2($elm$html$Html$Attributes$style, 'text-align', 'center'),
+											A2($elm$html$Html$Attributes$style, 'margin', '0')
+										]),
+									$elm$core$List$singleton(
+										$elm$html$Html$text(
+											$elm$core$String$fromInt(model.game.score)))),
+									A2(
+									$author$project$Layout$el,
+									_List_fromArray(
+										[
+											$author$project$Layout$fill,
+											A2($elm$html$Html$Attributes$style, 'align-items', 'flex-start'),
+											A2($elm$html$Html$Attributes$style, 'justify-content', 'flex-end')
+										]),
+									A2(
+										$elm$html$Html$button,
+										_List_fromArray(
+											[
+												$elm$html$Html$Events$onClick(
+												$author$project$Ruz$Main$NewGame(model.seed)),
+												A2($elm$html$Html$Attributes$style, 'font-size', '14px'),
+												A2(
+												$elm$html$Html$Attributes$style,
+												'background-color',
+												$avh4$elm_color$Color$toCssString($author$project$Ruz$Config$green)),
+												A2($elm$html$Html$Attributes$style, 'padding', '8px'),
+												A2($elm$html$Html$Attributes$style, 'border-radius', '20px'),
+												A2($elm$html$Html$Attributes$style, 'border', '0px')
+											]),
+										_List_fromArray(
+											[
+												$elm$html$Html$text('New Game')
+											])))
+								])),
+							A2(
+							$author$project$Layout$row,
+							_List_fromArray(
+								[$author$project$Layout$spaceBetween]),
+							_List_fromArray(
+								[
+									A2(
+									$author$project$Ruz$View$Board$view,
+									{
+										figures: model.game.figures,
+										gameOver: model.gameOver,
+										onClick: $author$project$Ruz$Main$Click,
+										overlay: $author$project$Ruz$Main$viewOverlay(
+											{changes: model.changes, game: model.game, gameOver: model.gameOver})
+									},
+									model.positions)
+								]))
+						])))
 			]),
 		title: 'Ruz Puzzle'
 	};

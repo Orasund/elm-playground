@@ -71,42 +71,42 @@ toString isWhite figure =
                 "♔"
 
             else
-                "♚"
+                "king_black"
 
         Rook ->
             if isWhite then
-                "♖"
+                "rook_white"
 
             else
-                "♜"
+                "rook_black"
 
         Biship ->
             if isWhite then
                 "♗"
 
             else
-                "♝"
+                "biship_black"
 
         Knight ->
             if isWhite then
                 "♘"
 
             else
-                "♞"
+                "knight_black"
 
         Pawn ->
             if isWhite then
                 "♙"
 
             else
-                "♟"
+                "pawn_black"
 
         Queen ->
             if isWhite then
                 "♕"
 
             else
-                "♛"
+                "queen_black"
 
 
 moves : ( Int, Int ) -> Figure -> List ( Int, Int )

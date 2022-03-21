@@ -16,6 +16,7 @@ import Ruz.Data.Figure as Figure exposing (Figure, FigureId)
 import Ruz.Data.Game as Game exposing (Change(..), Game)
 import Ruz.Data.Overlay exposing (Overlay(..))
 import Ruz.View.Board as Board
+import Ruz.View.Figure as Figure
 import Time
 import View.WrappedColumn exposing (Model)
 
@@ -130,7 +131,7 @@ view model =
                     |> Tuple.first
                     |> List.map (\figure -> figure |> Figure.toString False)
                     |> List.sort
-                    |> List.map Html.text
+                    |> List.map (Figure.view [ Attr.style "height" "20px" ])
                     |> Layout.row []
               ]
                 |> Layout.column [ Layout.fill ]
@@ -142,6 +143,10 @@ view model =
             , Html.button
                 [ Event.onClick (NewGame model.seed)
                 , Attr.style "font-size" "14px"
+                , Attr.style "background-color" (Config.green |> Color.toCssString)
+                , Attr.style "padding" "8px"
+                , Attr.style "border-radius" "20px"
+                , Attr.style "border" "0px"
                 ]
                 [ Html.text "New Game" ]
                 |> Layout.el
@@ -168,7 +173,9 @@ view model =
           ]
             |> Layout.column
                 [ Layout.spacing (Config.boardSize / toFloat Config.size)
-                , Attr.style "padding" "8px"
+                , Attr.style "padding" "16px"
+                , Attr.style "border" ("solid 1px " ++ Color.toCssString Color.black)
+                , Attr.style "border-radius" "20px"
                 ]
             |> Layout.el
                 [ Attr.style "position" "absolute"
