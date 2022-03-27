@@ -1,4 +1,4 @@
-module Ruz.Config exposing (..)
+module Zess.Config exposing (..)
 
 import Color exposing (Color)
 

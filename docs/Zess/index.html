@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="UTF-8">
-  <title>Ruz.Main</title>
+  <title>Zess.Main</title>
   <style>body { padding: 0; margin: 0; }</style>
 </head>
 
@@ -5241,7 +5241,7 @@ var $elm$core$Task$perform = F2(
 				A2($elm$core$Task$map, toMessage, task)));
 	});
 var $elm$browser$Browser$document = _Browser_document;
-var $author$project$Ruz$Main$NewGame = function (a) {
+var $author$project$Zess$Main$NewGame = function (a) {
 	return {$: 'NewGame', a: a};
 };
 var $elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
@@ -5430,7 +5430,7 @@ var $elm$random$Random$independentSeed = $elm$random$Random$Generator(
 			A4($elm$random$Random$map3, makeIndependentSeed, gen, gen, gen),
 			seed0);
 	});
-var $author$project$Ruz$Data$Game$Spawn = F2(
+var $author$project$Zess$Data$Game$Spawn = F2(
 	function (a, b) {
 		return {$: 'Spawn', a: a, b: b};
 	});
@@ -5455,7 +5455,7 @@ var $elm$core$Tuple$mapSecond = F2(
 			x,
 			func(y));
 	});
-var $author$project$Ruz$Data$Game$andThen = F2(
+var $author$project$Zess$Data$Game$andThen = F2(
 	function (fun, generator) {
 		return A2(
 			$elm$random$Random$andThen,
@@ -5472,12 +5472,12 @@ var $author$project$Ruz$Data$Game$andThen = F2(
 			},
 			generator);
 	});
-var $author$project$Ruz$Data$Figure$Biship = {$: 'Biship'};
-var $author$project$Ruz$Data$Figure$King = {$: 'King'};
-var $author$project$Ruz$Data$Figure$Knight = {$: 'Knight'};
-var $author$project$Ruz$Data$Figure$Pawn = {$: 'Pawn'};
-var $author$project$Ruz$Data$Figure$Queen = {$: 'Queen'};
-var $author$project$Ruz$Data$Figure$Rook = {$: 'Rook'};
+var $author$project$Zess$Data$Figure$Biship = {$: 'Biship'};
+var $author$project$Zess$Data$Figure$King = {$: 'King'};
+var $author$project$Zess$Data$Figure$Knight = {$: 'Knight'};
+var $author$project$Zess$Data$Figure$Pawn = {$: 'Pawn'};
+var $author$project$Zess$Data$Figure$Queen = {$: 'Queen'};
+var $author$project$Zess$Data$Figure$Rook = {$: 'Rook'};
 var $elm$core$List$append = F2(
 	function (xs, ys) {
 		if (!ys.b) {
@@ -5510,15 +5510,15 @@ var $elm$core$List$repeat = F2(
 	function (n, value) {
 		return A3($elm$core$List$repeatHelp, _List_Nil, n, value);
 	});
-var $author$project$Ruz$Data$Figure$asList = $elm$core$List$concat(
+var $author$project$Zess$Data$Figure$asList = $elm$core$List$concat(
 	_List_fromArray(
 		[
-			A2($elm$core$List$repeat, 1, $author$project$Ruz$Data$Figure$Queen),
-			A2($elm$core$List$repeat, 1, $author$project$Ruz$Data$Figure$King),
-			A2($elm$core$List$repeat, 2, $author$project$Ruz$Data$Figure$Rook),
-			A2($elm$core$List$repeat, 2, $author$project$Ruz$Data$Figure$Biship),
-			A2($elm$core$List$repeat, 2, $author$project$Ruz$Data$Figure$Knight),
-			A2($elm$core$List$repeat, 8, $author$project$Ruz$Data$Figure$Pawn)
+			A2($elm$core$List$repeat, 1, $author$project$Zess$Data$Figure$Queen),
+			A2($elm$core$List$repeat, 1, $author$project$Zess$Data$Figure$King),
+			A2($elm$core$List$repeat, 2, $author$project$Zess$Data$Figure$Rook),
+			A2($elm$core$List$repeat, 2, $author$project$Zess$Data$Figure$Biship),
+			A2($elm$core$List$repeat, 2, $author$project$Zess$Data$Figure$Knight),
+			A2($elm$core$List$repeat, 8, $author$project$Zess$Data$Figure$Pawn)
 		]));
 var $elm$core$List$drop = F2(
 	function (n, list) {
@@ -5742,7 +5742,7 @@ var $elm$core$Maybe$withDefault = F2(
 			return _default;
 		}
 	});
-var $author$project$Ruz$Data$Game$generateNextEnemies = function (waveSize) {
+var $author$project$Zess$Data$Game$generateNextEnemies = function (waveSize) {
 	return A2(
 		$elm$random$Random$map,
 		function (list) {
@@ -5752,10 +5752,10 @@ var $author$project$Ruz$Data$Game$generateNextEnemies = function (waveSize) {
 				$elm_community$list_extra$List$Extra$uncons(
 					A2($elm_community$list_extra$List$Extra$groupsOf, waveSize, list)));
 		},
-		$elm_community$random_extra$Random$List$shuffle($author$project$Ruz$Data$Figure$asList));
+		$elm_community$random_extra$Random$List$shuffle($author$project$Zess$Data$Figure$asList));
 };
-var $author$project$Ruz$Config$initialWaveSize = 3;
-var $author$project$Ruz$Config$playerId = -1;
+var $author$project$Zess$Config$initialWaveSize = 3;
+var $author$project$Zess$Config$playerId = -1;
 var $elm$core$Dict$Black = {$: 'Black'};
 var $elm$core$Dict$RBNode_elm_builtin = F5(
 	function (a, b, c, d, e) {
@@ -5966,7 +5966,7 @@ var $elm$core$Dict$sizeHelp = F2(
 var $elm$core$Dict$size = function (dict) {
 	return A2($elm$core$Dict$sizeHelp, 0, dict);
 };
-var $author$project$Ruz$Config$size = 4;
+var $author$project$Zess$Config$size = 4;
 var $elm$random$Random$addOne = function (value) {
 	return _Utils_Tuple2(1, value);
 };
@@ -6040,7 +6040,7 @@ var $elm$random$Random$uniform = F2(
 			$elm$random$Random$addOne(value),
 			A2($elm$core$List$map, $elm$random$Random$addOne, valueList));
 	});
-var $author$project$Ruz$Data$Game$spawnEnemy = function (game) {
+var $author$project$Zess$Data$Game$spawnEnemy = function (game) {
 	var _v0 = game.next;
 	if (_v0.a.b) {
 		var _v1 = _v0.a;
@@ -6066,7 +6066,7 @@ var $author$project$Ruz$Data$Game$spawnEnemy = function (game) {
 								}),
 							_List_fromArray(
 								[
-									A2($author$project$Ruz$Data$Game$Spawn, newFigureId, pos)
+									A2($author$project$Zess$Data$Game$Spawn, newFigureId, pos)
 								]));
 					}),
 				A2(
@@ -6087,7 +6087,7 @@ var $author$project$Ruz$Data$Game$spawnEnemy = function (game) {
 								function (x) {
 									return _Utils_Tuple2(x, -1);
 								},
-								A2($elm$core$List$range, 0, $author$project$Ruz$Config$size - 1)))))));
+								A2($elm$core$List$range, 0, $author$project$Zess$Config$size - 1)))))));
 	} else {
 		var nextChunks = _v0.b;
 		return A2(
@@ -6118,7 +6118,7 @@ var $author$project$Ruz$Data$Game$spawnEnemy = function (game) {
 							function (it) {
 								return _Utils_Tuple2(it, game.waveSize);
 							},
-							$author$project$Ruz$Data$Game$generateNextEnemies(game.waveSize + 1));
+							$author$project$Zess$Data$Game$generateNextEnemies(game.waveSize + 1));
 					} else {
 						if (!nextChunks.b.b) {
 							var next = nextChunks.a;
@@ -6133,7 +6133,7 @@ var $author$project$Ruz$Data$Game$spawnEnemy = function (game) {
 											A2($elm$core$List$cons, head, tail)),
 										game.waveSize + 1);
 								},
-								$author$project$Ruz$Data$Game$generateNextEnemies(game.waveSize + 1));
+								$author$project$Zess$Data$Game$generateNextEnemies(game.waveSize + 1));
 						} else {
 							var head = nextChunks.a;
 							var tail = nextChunks.b;
@@ -6146,29 +6146,29 @@ var $author$project$Ruz$Data$Game$spawnEnemy = function (game) {
 				}()));
 	}
 };
-var $author$project$Ruz$Config$startingPos = _Utils_Tuple2(($author$project$Ruz$Config$size / 2) | 0, $author$project$Ruz$Config$size - 1);
-var $author$project$Ruz$Data$Game$init = A2(
-	$author$project$Ruz$Data$Game$andThen,
-	$author$project$Ruz$Data$Game$spawnEnemy,
+var $author$project$Zess$Config$startingPos = _Utils_Tuple2(($author$project$Zess$Config$size / 2) | 0, $author$project$Zess$Config$size - 1);
+var $author$project$Zess$Data$Game$init = A2(
+	$author$project$Zess$Data$Game$andThen,
+	$author$project$Zess$Data$Game$spawnEnemy,
 	A2(
 		$elm$random$Random$map,
 		function (next) {
 			return _Utils_Tuple2(
 				{
 					figures: $elm$core$Dict$empty,
-					grid: A2($elm$core$Dict$singleton, $author$project$Ruz$Config$startingPos, $author$project$Ruz$Config$playerId),
+					grid: A2($elm$core$Dict$singleton, $author$project$Zess$Config$startingPos, $author$project$Zess$Config$playerId),
 					next: next,
-					player: $author$project$Ruz$Config$startingPos,
+					player: $author$project$Zess$Config$startingPos,
 					score: 0,
-					waveSize: $author$project$Ruz$Config$initialWaveSize
+					waveSize: $author$project$Zess$Config$initialWaveSize
 				},
 				_List_fromArray(
 					[
-						A2($author$project$Ruz$Data$Game$Spawn, $author$project$Ruz$Config$playerId, $author$project$Ruz$Config$startingPos)
+						A2($author$project$Zess$Data$Game$Spawn, $author$project$Zess$Config$playerId, $author$project$Zess$Config$startingPos)
 					]));
 		},
-		$author$project$Ruz$Data$Game$generateNextEnemies($author$project$Ruz$Config$initialWaveSize)));
-var $author$project$Ruz$Main$init = function (_v0) {
+		$author$project$Zess$Data$Game$generateNextEnemies($author$project$Zess$Config$initialWaveSize)));
+var $author$project$Zess$Main$init = function (_v0) {
 	return _Utils_Tuple2(
 		function (_v1) {
 			var _v2 = _v1.a;
@@ -6179,11 +6179,11 @@ var $author$project$Ruz$Main$init = function (_v0) {
 		}(
 			A2(
 				$elm$random$Random$step,
-				$author$project$Ruz$Data$Game$init,
+				$author$project$Zess$Data$Game$init,
 				$elm$random$Random$initialSeed(42))),
-		A2($elm$random$Random$generate, $author$project$Ruz$Main$NewGame, $elm$random$Random$independentSeed));
+		A2($elm$random$Random$generate, $author$project$Zess$Main$NewGame, $elm$random$Random$independentSeed));
 };
-var $author$project$Ruz$Main$ApplyChange = {$: 'ApplyChange'};
+var $author$project$Zess$Main$ApplyChange = {$: 'ApplyChange'};
 var $elm$core$Basics$always = F2(
 	function (a, _v0) {
 		return a;
@@ -6447,7 +6447,7 @@ var $elm$time$Time$every = F2(
 	});
 var $elm$core$Platform$Sub$batch = _Platform_batch;
 var $elm$core$Platform$Sub$none = $elm$core$Platform$Sub$batch(_List_Nil);
-var $author$project$Ruz$Main$subscriptions = function (model) {
+var $author$project$Zess$Main$subscriptions = function (model) {
 	var _v0 = model.changes;
 	if (!_v0.b) {
 		return $elm$core$Platform$Sub$none;
@@ -6455,7 +6455,7 @@ var $author$project$Ruz$Main$subscriptions = function (model) {
 		return A2(
 			$elm$time$Time$every,
 			100,
-			$elm$core$Basics$always($author$project$Ruz$Main$ApplyChange));
+			$elm$core$Basics$always($author$project$Zess$Main$ApplyChange));
 	}
 };
 var $elm$core$Dict$getMin = function (dict) {
@@ -6831,7 +6831,7 @@ var $elm$core$Dict$update = F3(
 			return A2($elm$core$Dict$remove, targetKey, dictionary);
 		}
 	});
-var $author$project$Ruz$Main$applyChange = F2(
+var $author$project$Zess$Main$applyChange = F2(
 	function (change, model) {
 		switch (change.$) {
 			case 'Spawn':
@@ -6870,11 +6870,11 @@ var $author$project$Ruz$Main$applyChange = F2(
 					{gameOver: true});
 		}
 	});
-var $author$project$Ruz$Data$Game$GameOver = {$: 'GameOver'};
-var $author$project$Ruz$Data$Game$Kill = function (a) {
+var $author$project$Zess$Data$Game$GameOver = {$: 'GameOver'};
+var $author$project$Zess$Data$Game$Kill = function (a) {
 	return {$: 'Kill', a: a};
 };
-var $author$project$Ruz$Data$Game$Move = F2(
+var $author$project$Zess$Data$Game$Move = F2(
 	function (a, b) {
 		return {$: 'Move', a: a, b: b};
 	});
@@ -6887,7 +6887,7 @@ var $elm$core$Maybe$andThen = F2(
 			return $elm$core$Maybe$Nothing;
 		}
 	});
-var $author$project$Ruz$Data$Figure$moves = F2(
+var $author$project$Zess$Data$Figure$moves = F2(
 	function (_v0, figure) {
 		var x = _v0.a;
 		var y = _v0.b;
@@ -6950,7 +6950,7 @@ var $author$project$Ruz$Data$Figure$moves = F2(
 					]);
 		}
 	});
-var $author$project$Ruz$Data$Figure$player = $author$project$Ruz$Data$Figure$Rook;
+var $author$project$Zess$Data$Figure$player = $author$project$Zess$Data$Figure$Rook;
 var $elm$core$List$any = F2(
 	function (isOkay, list) {
 		any:
@@ -6997,11 +6997,11 @@ var $elm$core$Basics$min = F2(
 	function (x, y) {
 		return (_Utils_cmp(x, y) < 0) ? x : y;
 	});
-var $author$project$Ruz$Data$Game$canMove = F3(
+var $author$project$Zess$Data$Game$canMove = F3(
 	function (args, game, figure) {
 		var to = {x: args.to.a, y: args.to.b};
 		var from = {x: args.from.a, y: args.from.b};
-		return (!_Utils_eq(from, to)) && (((to.x >= 0) && (_Utils_cmp(to.x, $author$project$Ruz$Config$size) < 0)) && ((to.y >= 0) && function () {
+		return (!_Utils_eq(from, to)) && (((to.x >= 0) && (_Utils_cmp(to.x, $author$project$Zess$Config$size) < 0)) && ((to.y >= 0) && function () {
 			switch (figure.$) {
 				case 'King':
 					return ($elm$core$Basics$abs(from.x - to.x) <= 1) && ($elm$core$Basics$abs(from.y - to.y) <= 1);
@@ -7129,7 +7129,7 @@ var $author$project$Ruz$Data$Game$canMove = F3(
 			}
 		}()));
 	});
-var $author$project$Ruz$Data$Game$valid = F2(
+var $author$project$Zess$Data$Game$valid = F2(
 	function (args, game) {
 		if (_Utils_eq(args.from, args.to)) {
 			return false;
@@ -7138,12 +7138,12 @@ var $author$project$Ruz$Data$Game$valid = F2(
 			if (_v0.$ === 'Just') {
 				var figureId = _v0.a;
 				var figureCanMove = A3(
-					$author$project$Ruz$Data$Game$canMove,
+					$author$project$Zess$Data$Game$canMove,
 					{from: args.from, to: args.to},
 					game,
 					A2(
 						$elm$core$Maybe$withDefault,
-						$author$project$Ruz$Data$Figure$player,
+						$author$project$Zess$Data$Figure$player,
 						A2($elm$core$Dict$get, figureId, game.figures)));
 				return figureCanMove && (args.isEnemy ? (!A2($elm$core$Dict$member, args.to, game.grid)) : true);
 			} else {
@@ -7151,14 +7151,14 @@ var $author$project$Ruz$Data$Game$valid = F2(
 			}
 		}
 	});
-var $author$project$Ruz$Data$Game$moveEnemy = F2(
+var $author$project$Zess$Data$Game$moveEnemy = F2(
 	function (_v0, game) {
 		var pos = _v0.a;
 		var figureId = _v0.b;
 		var moveTo = function (_v2) {
 			var x = _v2.a;
 			var y = _v2.b;
-			return (_Utils_cmp(y, $author$project$Ruz$Config$size) < 0) ? _Utils_Tuple2(
+			return (_Utils_cmp(y, $author$project$Zess$Config$size) < 0) ? _Utils_Tuple2(
 				_Utils_update(
 					game,
 					{
@@ -7171,7 +7171,7 @@ var $author$project$Ruz$Data$Game$moveEnemy = F2(
 				_List_fromArray(
 					[
 						A2(
-						$author$project$Ruz$Data$Game$Move,
+						$author$project$Zess$Data$Game$Move,
 						figureId,
 						_Utils_Tuple2(x, y))
 					])) : _Utils_Tuple2(
@@ -7183,14 +7183,14 @@ var $author$project$Ruz$Data$Game$moveEnemy = F2(
 				_List_fromArray(
 					[
 						A2(
-						$author$project$Ruz$Data$Game$Move,
+						$author$project$Zess$Data$Game$Move,
 						figureId,
 						_Utils_Tuple2(x, y)),
-						$author$project$Ruz$Data$Game$Kill(figureId)
+						$author$project$Zess$Data$Game$Kill(figureId)
 					]));
 		};
 		if (A2(
-			$author$project$Ruz$Data$Game$valid,
+			$author$project$Zess$Data$Game$valid,
 			{from: pos, isEnemy: true, to: game.player},
 			game)) {
 			return $elm$random$Random$constant(
@@ -7200,16 +7200,16 @@ var $author$project$Ruz$Data$Game$moveEnemy = F2(
 				$elm$core$List$filter,
 				function (to) {
 					return A2(
-						$author$project$Ruz$Data$Game$valid,
+						$author$project$Zess$Data$Game$valid,
 						{from: pos, isEnemy: true, to: to},
 						game);
 				},
 				A2(
-					$author$project$Ruz$Data$Figure$moves,
+					$author$project$Zess$Data$Figure$moves,
 					pos,
 					A2(
 						$elm$core$Maybe$withDefault,
-						$author$project$Ruz$Data$Figure$player,
+						$author$project$Zess$Data$Figure$player,
 						A2($elm$core$Dict$get, figureId, game.figures))));
 			if (_v1.b) {
 				var head = _v1.a;
@@ -7224,7 +7224,7 @@ var $author$project$Ruz$Data$Game$moveEnemy = F2(
 			}
 		}
 	});
-var $author$project$Ruz$Data$Figure$score = function (figure) {
+var $author$project$Zess$Data$Figure$score = function (figure) {
 	switch (figure.$) {
 		case 'Pawn':
 			return 1;
@@ -7240,20 +7240,20 @@ var $author$project$Ruz$Data$Figure$score = function (figure) {
 			return 9;
 	}
 };
-var $author$project$Ruz$Data$Game$move = F2(
+var $author$project$Zess$Data$Game$move = F2(
 	function (pos, game) {
 		var enemies = A2(
 			$elm$core$Dict$remove,
 			pos,
 			A2($elm$core$Dict$remove, game.player, game.grid));
 		return A2(
-			$author$project$Ruz$Data$Game$valid,
+			$author$project$Zess$Data$Game$valid,
 			{from: game.player, isEnemy: false, to: pos},
 			game) ? A2(
 			$elm$random$Random$map,
 			$elm$core$Maybe$Just,
 			A2(
-				$author$project$Ruz$Data$Game$andThen,
+				$author$project$Zess$Data$Game$andThen,
 				function (g) {
 					return $elm$random$Random$constant(
 						_Utils_Tuple2(
@@ -7265,26 +7265,26 @@ var $author$project$Ruz$Data$Game$move = F2(
 										pos,
 										function (maybe) {
 											return $elm$core$Maybe$Just(
-												A2($elm$core$Maybe$withDefault, $author$project$Ruz$Config$playerId, maybe));
+												A2($elm$core$Maybe$withDefault, $author$project$Zess$Config$playerId, maybe));
 										},
 										g.grid)
 								}),
 							A2($elm$core$Dict$member, pos, g.grid) ? _List_fromArray(
 								[
-									$author$project$Ruz$Data$Game$Kill($author$project$Ruz$Config$playerId),
-									$author$project$Ruz$Data$Game$GameOver
+									$author$project$Zess$Data$Game$Kill($author$project$Zess$Config$playerId),
+									$author$project$Zess$Data$Game$GameOver
 								]) : _List_Nil));
 				},
 				A2(
-					$author$project$Ruz$Data$Game$andThen,
-					$author$project$Ruz$Data$Game$spawnEnemy,
+					$author$project$Zess$Data$Game$andThen,
+					$author$project$Zess$Data$Game$spawnEnemy,
 					A2(
 						$elm$random$Random$andThen,
 						A2(
 							$elm$core$List$foldl,
 							function (tuple) {
-								return $author$project$Ruz$Data$Game$andThen(
-									$author$project$Ruz$Data$Game$moveEnemy(tuple));
+								return $author$project$Zess$Data$Game$andThen(
+									$author$project$Zess$Data$Game$moveEnemy(tuple));
 							},
 							$elm$random$Random$constant(
 								_Utils_Tuple2(
@@ -7298,7 +7298,7 @@ var $author$project$Ruz$Data$Game$move = F2(
 												0,
 												A2(
 													$elm$core$Maybe$map,
-													$author$project$Ruz$Data$Figure$score,
+													$author$project$Zess$Data$Figure$score,
 													A2(
 														$elm$core$Maybe$andThen,
 														function (id) {
@@ -7308,7 +7308,7 @@ var $author$project$Ruz$Data$Game$move = F2(
 										}),
 									A2(
 										$elm$core$List$cons,
-										A2($author$project$Ruz$Data$Game$Move, $author$project$Ruz$Config$playerId, pos),
+										A2($author$project$Zess$Data$Game$Move, $author$project$Zess$Config$playerId, pos),
 										A2(
 											$elm$core$Maybe$withDefault,
 											_List_Nil,
@@ -7317,7 +7317,7 @@ var $author$project$Ruz$Data$Game$move = F2(
 												function (id) {
 													return _List_fromArray(
 														[
-															$author$project$Ruz$Data$Game$Kill(id)
+															$author$project$Zess$Data$Game$Kill(id)
 														]);
 												},
 												A2($elm$core$Dict$get, pos, game.grid))))))),
@@ -7326,7 +7326,7 @@ var $author$project$Ruz$Data$Game$move = F2(
 	});
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
-var $author$project$Ruz$Main$update = F2(
+var $author$project$Zess$Main$update = F2(
 	function (msg, model) {
 		switch (msg.$) {
 			case 'Click':
@@ -7351,7 +7351,7 @@ var $author$project$Ruz$Main$update = F2(
 					}(
 						A2(
 							$elm$random$Random$step,
-							A2($author$project$Ruz$Data$Game$move, pos, model.game),
+							A2($author$project$Zess$Data$Game$move, pos, model.game),
 							model.seed)),
 					$elm$core$Platform$Cmd$none);
 			case 'NewGame':
@@ -7364,7 +7364,7 @@ var $author$project$Ruz$Main$update = F2(
 						var seed = _v3.b;
 						return {changes: changes, game: game, gameOver: false, positions: $elm$core$Dict$empty, seed: seed};
 					}(
-						A2($elm$random$Random$step, $author$project$Ruz$Data$Game$init, s)),
+						A2($elm$random$Random$step, $author$project$Zess$Data$Game$init, s)),
 					$elm$core$Platform$Cmd$none);
 			default:
 				var _v5 = model.changes;
@@ -7377,16 +7377,17 @@ var $author$project$Ruz$Main$update = F2(
 								it,
 								{changes: tail});
 						}(
-							A2($author$project$Ruz$Main$applyChange, head, model)),
+							A2($author$project$Zess$Main$applyChange, head, model)),
 						$elm$core$Platform$Cmd$none);
 				} else {
 					return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
 				}
 		}
 	});
-var $author$project$Ruz$Main$Click = function (a) {
+var $author$project$Zess$Main$Click = function (a) {
 	return {$: 'Click', a: a};
 };
+var $elm$html$Html$a = _VirtualDom_node('a');
 var $elm$virtual_dom$VirtualDom$attribute = F2(
 	function (key, value) {
 		return A2(
@@ -7400,8 +7401,16 @@ var $avh4$elm_color$Color$RgbaSpace = F4(
 		return {$: 'RgbaSpace', a: a, b: b, c: c, d: d};
 	});
 var $avh4$elm_color$Color$black = A4($avh4$elm_color$Color$RgbaSpace, 0 / 255, 0 / 255, 0 / 255, 1.0);
-var $author$project$Ruz$Config$boardSize = 350;
-var $elm$html$Html$button = _VirtualDom_node('button');
+var $author$project$Zess$Config$boardSize = 350;
+var $elm$json$Json$Encode$string = _Json_wrap;
+var $elm$html$Html$Attributes$stringProperty = F2(
+	function (key, string) {
+		return A2(
+			_VirtualDom_property,
+			key,
+			$elm$json$Json$Encode$string(string));
+	});
+var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
 var $elm$html$Html$div = _VirtualDom_node('div');
 var $elm$virtual_dom$VirtualDom$style = _VirtualDom_style;
 var $elm$html$Html$Attributes$style = $elm$virtual_dom$VirtualDom$style;
@@ -7414,6 +7423,140 @@ var $author$project$Layout$column = function (attrs) {
 					A2($elm$html$Html$Attributes$style, 'flex-direction', 'column')
 				]),
 			attrs));
+};
+var $author$project$Zess$Data$Overlay$Danger = {$: 'Danger'};
+var $author$project$Zess$Data$Overlay$Success = {$: 'Success'};
+var $author$project$Zess$Data$Overlay$Warning = {$: 'Warning'};
+var $elm$core$List$concatMap = F2(
+	function (f, list) {
+		return $elm$core$List$concat(
+			A2($elm$core$List$map, f, list));
+	});
+var $elm$core$List$maybeCons = F3(
+	function (f, mx, xs) {
+		var _v0 = f(mx);
+		if (_v0.$ === 'Just') {
+			var x = _v0.a;
+			return A2($elm$core$List$cons, x, xs);
+		} else {
+			return xs;
+		}
+	});
+var $elm$core$List$filterMap = F2(
+	function (f, xs) {
+		return A3(
+			$elm$core$List$foldr,
+			$elm$core$List$maybeCons(f),
+			_List_Nil,
+			xs);
+	});
+var $elm$core$Dict$fromList = function (assocs) {
+	return A3(
+		$elm$core$List$foldl,
+		F2(
+			function (_v0, dict) {
+				var key = _v0.a;
+				var value = _v0.b;
+				return A3($elm$core$Dict$insert, key, value, dict);
+			}),
+		$elm$core$Dict$empty,
+		assocs);
+};
+var $author$project$Zess$Data$Game$isDangerous = F2(
+	function (_v0, game) {
+		var x = _v0.a;
+		var y = _v0.b;
+		return A2(
+			$elm$core$List$any,
+			function (_v1) {
+				var pos = _v1.a;
+				var figures = _v1.b;
+				return (!_Utils_eq(
+					pos,
+					_Utils_Tuple2(x, y))) && ((!_Utils_eq(pos, game.player)) && function (maybe) {
+					return A2(
+						$elm$core$Maybe$withDefault,
+						false,
+						A2(
+							$elm$core$Maybe$map,
+							function (figure) {
+								return A2($elm$core$List$member, figure, figures);
+							},
+							maybe));
+				}(
+					A2(
+						$elm$core$Maybe$andThen,
+						function (id) {
+							return A2($elm$core$Dict$get, id, game.figures);
+						},
+						A2($elm$core$Dict$get, pos, game.grid))));
+			},
+			A2(
+				$elm$core$List$concatMap,
+				function (i) {
+					return _List_fromArray(
+						[
+							_Utils_Tuple2(
+							_Utils_Tuple2(i, y),
+							_List_fromArray(
+								[$author$project$Zess$Data$Figure$Rook, $author$project$Zess$Data$Figure$Queen])),
+							_Utils_Tuple2(
+							_Utils_Tuple2(x, i),
+							_List_fromArray(
+								[$author$project$Zess$Data$Figure$Rook, $author$project$Zess$Data$Figure$Queen])),
+							_Utils_Tuple2(
+							_Utils_Tuple2(i, (y - x) + i),
+							_List_fromArray(
+								[$author$project$Zess$Data$Figure$Biship, $author$project$Zess$Data$Figure$Queen])),
+							_Utils_Tuple2(
+							_Utils_Tuple2(i, (y + x) - i),
+							_List_fromArray(
+								[$author$project$Zess$Data$Figure$Biship, $author$project$Zess$Data$Figure$Queen]))
+						]);
+				},
+				A2($elm$core$List$range, 0, $author$project$Zess$Config$size - 1)));
+	});
+var $author$project$Zess$View$Overlay$createCellOverlay = function (model) {
+	var game = model.game;
+	return (!_Utils_eq(model.changes, _List_Nil)) ? $elm$core$Dict$empty : $elm$core$Dict$fromList(
+		A2(
+			$elm$core$List$filterMap,
+			function (pos) {
+				return model.gameOver ? $elm$core$Maybe$Nothing : (_Utils_eq(pos, model.game.player) ? $elm$core$Maybe$Nothing : (model.gameOver ? $elm$core$Maybe$Nothing : (A2(
+					$author$project$Zess$Data$Game$valid,
+					{from: model.game.player, isEnemy: false, to: pos},
+					model.game) ? (A2(
+					$elm$core$List$any,
+					function (enemyPos) {
+						return (!_Utils_eq(enemyPos, model.game.player)) && ((!_Utils_eq(enemyPos, pos)) && A2(
+							$author$project$Zess$Data$Game$valid,
+							{from: enemyPos, isEnemy: true, to: pos},
+							_Utils_update(
+								game,
+								{
+									grid: A2(
+										$elm$core$Dict$remove,
+										pos,
+										A2($elm$core$Dict$remove, model.game.player, game.grid)),
+									player: pos
+								})));
+					},
+					$elm$core$Dict$keys(model.game.grid)) ? $elm$core$Maybe$Just(
+					_Utils_Tuple2(pos, $author$project$Zess$Data$Overlay$Danger)) : (A2($author$project$Zess$Data$Game$isDangerous, pos, model.game) ? $elm$core$Maybe$Just(
+					_Utils_Tuple2(pos, $author$project$Zess$Data$Overlay$Warning)) : $elm$core$Maybe$Just(
+					_Utils_Tuple2(pos, $author$project$Zess$Data$Overlay$Success)))) : $elm$core$Maybe$Nothing)));
+			},
+			A2(
+				$elm$core$List$concatMap,
+				function (i) {
+					return A2(
+						$elm$core$List$map,
+						function (j) {
+							return _Utils_Tuple2(i, j);
+						},
+						A2($elm$core$List$range, 0, $author$project$Zess$Config$size - 1));
+				},
+				A2($elm$core$List$range, 0, $author$project$Zess$Config$size - 1))));
 };
 var $author$project$Layout$el = F2(
 	function (attrs, content) {
@@ -7439,8 +7582,15 @@ var $avh4$elm_color$Color$rgba = F4(
 	function (r, g, b, a) {
 		return A4($avh4$elm_color$Color$RgbaSpace, r, g, b, a);
 	});
-var $author$project$Ruz$Config$green = A4($avh4$elm_color$Color$rgba, 0, 1, 0, 0.7);
+var $author$project$Zess$Config$gray = A4($avh4$elm_color$Color$rgba, 0, 0, 0, 0.1);
+var $author$project$Zess$Config$green = A4($avh4$elm_color$Color$rgba, 0, 1, 0, 0.7);
 var $elm$html$Html$h1 = _VirtualDom_node('h1');
+var $elm$html$Html$Attributes$href = function (url) {
+	return A2(
+		$elm$html$Html$Attributes$stringProperty,
+		'href',
+		_VirtualDom_noJavaScriptUri(url));
+};
 var $elm$virtual_dom$VirtualDom$node = function (tag) {
 	return _VirtualDom_node(
 		_VirtualDom_noScript(tag));
@@ -7524,7 +7674,7 @@ var $avh4$elm_color$Color$toCssString = function (_v0) {
 				')'
 			]));
 };
-var $author$project$Ruz$Data$Figure$toString = F2(
+var $author$project$Zess$Data$Figure$toString = F2(
 	function (isWhite, figure) {
 		switch (figure.$) {
 			case 'King':
@@ -7541,25 +7691,39 @@ var $author$project$Ruz$Data$Figure$toString = F2(
 				return isWhite ? '♕' : 'queen_black';
 		}
 	});
-var $author$project$Layout$alignCenter = A2($elm$html$Html$Attributes$style, 'align-items', 'center');
-var $author$project$Layout$centerContent = A2($elm$html$Html$Attributes$style, 'justify-content', 'center');
-var $elm$html$Html$a = _VirtualDom_node('a');
-var $author$project$Ruz$Config$gray = A4($avh4$elm_color$Color$rgba, 0, 0, 0, 0.1);
-var $elm$json$Json$Encode$string = _Json_wrap;
-var $elm$html$Html$Attributes$stringProperty = F2(
-	function (key, string) {
-		return A2(
-			_VirtualDom_property,
-			key,
-			$elm$json$Json$Encode$string(string));
-	});
-var $elm$html$Html$Attributes$href = function (url) {
+var $author$project$Zess$View$Board$cell = function (attrs) {
 	return A2(
-		$elm$html$Html$Attributes$stringProperty,
-		'href',
-		_VirtualDom_noJavaScriptUri(url));
+		$elm$html$Html$div,
+		_Utils_ap(
+			_List_fromArray(
+				[
+					A2(
+					$elm$html$Html$Attributes$style,
+					'border',
+					'solid 1px ' + $avh4$elm_color$Color$toCssString($author$project$Zess$Config$gray)),
+					$author$project$Layout$fill,
+					A2($elm$html$Html$Attributes$style, 'height', 'calc(100% -  2px)')
+				]),
+			attrs),
+		_List_Nil);
 };
-var $author$project$Ruz$View$Board$viewBoard = F2(
+var $author$project$Zess$View$Board$clickableCell = F2(
+	function (onClick, attrs) {
+		return A2(
+			$elm$html$Html$a,
+			_Utils_ap(
+				_List_fromArray(
+					[
+						$elm$html$Html$Events$onClick(onClick),
+						$elm$html$Html$Attributes$href('#'),
+						$author$project$Layout$fill,
+						A2($elm$html$Html$Attributes$style, 'height', 'calc(100% -  2px)'),
+						$elm$html$Html$Attributes$class('cell')
+					]),
+				attrs),
+			_List_Nil);
+	});
+var $author$project$Zess$View$Board$viewBoard = F2(
 	function (args, figurePos) {
 		return A2(
 			$author$project$Layout$column,
@@ -7583,42 +7747,6 @@ var $author$project$Ruz$View$Board$viewBoard = F2(
 								$elm$core$List$indexedMap,
 								F2(
 									function (i, _v1) {
-										var clickableCell = function (attrs) {
-											return A2(
-												$elm$html$Html$a,
-												_Utils_ap(
-													_List_fromArray(
-														[
-															$elm$html$Html$Events$onClick(
-															args.onClick(
-																_Utils_Tuple2(i, j))),
-															$elm$html$Html$Attributes$href('#'),
-															A2(
-															$elm$html$Html$Attributes$style,
-															'border',
-															'solid 1px ' + $avh4$elm_color$Color$toCssString($author$project$Ruz$Config$gray)),
-															$author$project$Layout$fill,
-															A2($elm$html$Html$Attributes$style, 'height', 'calc(100% -  2px)')
-														]),
-													attrs),
-												_List_Nil);
-										};
-										var cell = function (attrs) {
-											return A2(
-												$elm$html$Html$div,
-												_Utils_ap(
-													_List_fromArray(
-														[
-															A2(
-															$elm$html$Html$Attributes$style,
-															'border',
-															'solid 1px ' + $avh4$elm_color$Color$toCssString($author$project$Ruz$Config$gray)),
-															$author$project$Layout$fill,
-															A2($elm$html$Html$Attributes$style, 'height', 'calc(100% -  2px)')
-														]),
-													attrs),
-												_List_Nil);
-										};
 										var _v2 = A2(
 											$elm$core$Dict$get,
 											_Utils_Tuple2(i, j),
@@ -7627,46 +7755,55 @@ var $author$project$Ruz$View$Board$viewBoard = F2(
 											switch (_v2.a.$) {
 												case 'Success':
 													var _v3 = _v2.a;
-													return clickableCell(
+													return A2(
+														$author$project$Zess$View$Board$clickableCell,
+														args.onClick(
+															_Utils_Tuple2(i, j)),
 														_List_fromArray(
 															[
 																A2(
 																$elm$html$Html$Attributes$style,
 																'background-color',
-																$avh4$elm_color$Color$toCssString($author$project$Ruz$Config$green))
+																$avh4$elm_color$Color$toCssString($author$project$Zess$Config$green))
 															]));
 												case 'Warning':
 													var _v4 = _v2.a;
-													return clickableCell(
+													return A2(
+														$author$project$Zess$View$Board$clickableCell,
+														args.onClick(
+															_Utils_Tuple2(i, j)),
 														_List_fromArray(
 															[
 																A2(
 																$elm$html$Html$Attributes$style,
 																'background-color',
-																$avh4$elm_color$Color$toCssString($author$project$Ruz$Config$green)),
+																$avh4$elm_color$Color$toCssString($author$project$Zess$Config$green)),
 																A2(
 																$elm$html$Html$Attributes$style,
 																'background',
-																'repeating-linear-gradient(' + (' -45deg,' + (($avh4$elm_color$Color$toCssString($author$project$Ruz$Config$green) + ',') + (($avh4$elm_color$Color$toCssString($author$project$Ruz$Config$green) + ' 20%,') + (($avh4$elm_color$Color$toCssString($author$project$Ruz$Config$gray) + ' 20%,') + (($avh4$elm_color$Color$toCssString($author$project$Ruz$Config$gray) + ' 40%') + ')'))))))
+																'repeating-linear-gradient(' + (' -45deg,' + (($avh4$elm_color$Color$toCssString($author$project$Zess$Config$green) + ',') + (($avh4$elm_color$Color$toCssString($author$project$Zess$Config$green) + ' 20%,') + (($avh4$elm_color$Color$toCssString($author$project$Zess$Config$gray) + ' 20%,') + (($avh4$elm_color$Color$toCssString($author$project$Zess$Config$gray) + ' 40%') + ')'))))))
 															]));
 												default:
 													var _v5 = _v2.a;
-													return clickableCell(
+													return A2(
+														$author$project$Zess$View$Board$clickableCell,
+														args.onClick(
+															_Utils_Tuple2(i, j)),
 														_List_fromArray(
 															[
 																A2(
 																$elm$html$Html$Attributes$style,
 																'background-color',
-																$avh4$elm_color$Color$toCssString($author$project$Ruz$Config$gray))
+																$avh4$elm_color$Color$toCssString($author$project$Zess$Config$gray))
 															]));
 											}
 										} else {
-											return cell(_List_Nil);
+											return $author$project$Zess$View$Board$cell(_List_Nil);
 										}
 									}),
-								A2($elm$core$List$repeat, $author$project$Ruz$Config$size, _Utils_Tuple0)));
+								A2($elm$core$List$repeat, $author$project$Zess$Config$size, _Utils_Tuple0)));
 					}),
-				A2($elm$core$List$repeat, $author$project$Ruz$Config$size, _Utils_Tuple0)));
+				A2($elm$core$List$repeat, $author$project$Zess$Config$size, _Utils_Tuple0)));
 	});
 var $elm$virtual_dom$VirtualDom$keyedNode = function (tag) {
 	return _VirtualDom_keyedNode(
@@ -7680,7 +7817,7 @@ var $elm$html$Html$Attributes$src = function (url) {
 		'src',
 		_VirtualDom_noJavaScriptOrHtmlUri(url));
 };
-var $author$project$Ruz$View$Figure$view = F2(
+var $author$project$Zess$View$Figure$view = F2(
 	function (attrs, string) {
 		return function (url) {
 			return A2(
@@ -7692,9 +7829,9 @@ var $author$project$Ruz$View$Figure$view = F2(
 				_List_Nil);
 		}('assert/' + (string + '.svg'));
 	});
-var $author$project$Ruz$View$Board$viewFigures = F2(
+var $author$project$Zess$View$Board$viewFigures = F2(
 	function (args, figures) {
-		var gridSize = 100 / $author$project$Ruz$Config$size;
+		var gridSize = 100 / $author$project$Zess$Config$size;
 		return A3(
 			$elm$html$Html$Keyed$node,
 			'div',
@@ -7745,17 +7882,17 @@ var $author$project$Ruz$View$Board$viewFigures = F2(
 							_List_fromArray(
 								[
 									A2(
-									$author$project$Ruz$View$Figure$view,
+									$author$project$Zess$View$Figure$view,
 									_List_fromArray(
 										[
 											A2($elm$html$Html$Attributes$style, 'width', '100%')
 										]),
 									A2(
 										$elm$core$Maybe$withDefault,
-										A2($author$project$Ruz$Data$Figure$toString, true, $author$project$Ruz$Data$Figure$player),
+										A2($author$project$Zess$Data$Figure$toString, true, $author$project$Zess$Data$Figure$player),
 										A2(
 											$elm$core$Maybe$map,
-											$author$project$Ruz$Data$Figure$toString(false),
+											$author$project$Zess$Data$Figure$toString(false),
 											A2($elm$core$Dict$get, figureId, figures))))
 								])));
 				},
@@ -7764,9 +7901,57 @@ var $author$project$Ruz$View$Board$viewFigures = F2(
 					$elm$core$Tuple$first,
 					$elm$core$Dict$toList(args.figurePos))));
 	});
-var $author$project$Ruz$View$Board$view = F2(
+var $author$project$Layout$alignCenter = A2($elm$html$Html$Attributes$style, 'align-items', 'center');
+var $author$project$Layout$centerContent = A2($elm$html$Html$Attributes$style, 'justify-content', 'center');
+var $author$project$Zess$View$Overlay$viewGameOver = F2(
+	function (onClick, score) {
+		var _v0 = (score < 50) ? _Utils_Tuple3(0, 0.5, 'Keep Trying') : ((score < 100) ? _Utils_Tuple3(100, 0.7, 'Nice') : ((score < 200) ? _Utils_Tuple3(150, 0.7, 'Very Good') : _Utils_Tuple3(200, 0.7, 'Legendary!')));
+		var green = _v0.a;
+		var alpha = _v0.b;
+		var hint = _v0.c;
+		return A2(
+			$elm$html$Html$a,
+			_List_fromArray(
+				[
+					$elm$html$Html$Attributes$href('#'),
+					A2($elm$html$Html$Attributes$style, 'text-decoration', 'none'),
+					$elm$html$Html$Events$onClick(onClick)
+				]),
+			$elm$core$List$singleton(
+				A2(
+					$author$project$Layout$column,
+					_List_fromArray(
+						[
+							A2(
+							$elm$html$Html$Attributes$style,
+							'background-color',
+							'rgba(0,' + ($elm$core$String$fromInt(green) + (',0,' + ($elm$core$String$fromFloat(alpha) + ')')))),
+							A2(
+							$elm$html$Html$Attributes$style,
+							'height',
+							$elm$core$String$fromFloat($author$project$Zess$Config$boardSize) + 'px'),
+							A2($elm$html$Html$Attributes$style, 'color', 'white'),
+							A2($elm$html$Html$Attributes$style, 'z-index', '2'),
+							$author$project$Layout$spacing(40),
+							$author$project$Layout$alignCenter,
+							$author$project$Layout$centerContent,
+							A2($elm$html$Html$Attributes$style, 'backdrop-filter', 'blur(2px)')
+						]),
+					_List_fromArray(
+						[
+							A2(
+							$author$project$Layout$el,
+							_List_fromArray(
+								[
+									A2($elm$html$Html$Attributes$style, 'font-size', '30px')
+								]),
+							$elm$html$Html$text('Game Over')),
+							$elm$html$Html$text(hint)
+						]))));
+	});
+var $author$project$Zess$View$Board$view = F2(
 	function (args, figurePos) {
-		var gridSize = $author$project$Ruz$Config$boardSize / $author$project$Ruz$Config$size;
+		var gridSize = $author$project$Zess$Config$boardSize / $author$project$Zess$Config$size;
 		return A2(
 			$elm$html$Html$div,
 			_List_fromArray(
@@ -7774,11 +7959,11 @@ var $author$project$Ruz$View$Board$view = F2(
 					A2(
 					$elm$html$Html$Attributes$style,
 					'height',
-					$elm$core$String$fromFloat($author$project$Ruz$Config$boardSize) + 'px'),
+					$elm$core$String$fromFloat($author$project$Zess$Config$boardSize) + 'px'),
 					A2(
 					$elm$html$Html$Attributes$style,
 					'width',
-					$elm$core$String$fromFloat($author$project$Ruz$Config$boardSize) + 'px'),
+					$elm$core$String$fromFloat($author$project$Zess$Config$boardSize) + 'px'),
 					A2($elm$html$Html$Attributes$style, 'position', 'relative'),
 					A2(
 					$elm$html$Html$Attributes$style,
@@ -7791,171 +7976,21 @@ var $author$project$Ruz$View$Board$view = F2(
 						_List_fromArray(
 						[
 							A2(
-							$author$project$Ruz$View$Board$viewFigures,
+							$author$project$Zess$View$Board$viewFigures,
 							{figurePos: figurePos},
 							args.figures),
 							A2(
-							$author$project$Ruz$View$Board$viewBoard,
+							$author$project$Zess$View$Board$viewBoard,
 							{figures: args.figures, onClick: args.onClick, overlay: args.overlay},
 							figurePos)
 						]),
 						args.gameOver ? _List_fromArray(
 						[
-							A2(
-							$author$project$Layout$el,
-							_List_fromArray(
-								[
-									A2($elm$html$Html$Attributes$style, 'background-color', 'rgba(0,0,0,0.5)'),
-									A2(
-									$elm$html$Html$Attributes$style,
-									'height',
-									$elm$core$String$fromFloat($author$project$Ruz$Config$boardSize) + 'px'),
-									A2($elm$html$Html$Attributes$style, 'color', 'white'),
-									A2($elm$html$Html$Attributes$style, 'z-index', '2'),
-									A2($elm$html$Html$Attributes$style, 'font-size', '30px'),
-									$author$project$Layout$alignCenter,
-									$author$project$Layout$centerContent,
-									A2($elm$html$Html$Attributes$style, 'backdrop-filter', 'blur(2px)')
-								]),
-							$elm$html$Html$text('Game Over'))
+							A2($author$project$Zess$View$Overlay$viewGameOver, args.newGame, args.score)
 						]) : _List_Nil
 					])));
 	});
-var $author$project$Ruz$Data$Overlay$Danger = {$: 'Danger'};
-var $author$project$Ruz$Data$Overlay$Success = {$: 'Success'};
-var $author$project$Ruz$Data$Overlay$Warning = {$: 'Warning'};
-var $elm$core$List$concatMap = F2(
-	function (f, list) {
-		return $elm$core$List$concat(
-			A2($elm$core$List$map, f, list));
-	});
-var $elm$core$List$maybeCons = F3(
-	function (f, mx, xs) {
-		var _v0 = f(mx);
-		if (_v0.$ === 'Just') {
-			var x = _v0.a;
-			return A2($elm$core$List$cons, x, xs);
-		} else {
-			return xs;
-		}
-	});
-var $elm$core$List$filterMap = F2(
-	function (f, xs) {
-		return A3(
-			$elm$core$List$foldr,
-			$elm$core$List$maybeCons(f),
-			_List_Nil,
-			xs);
-	});
-var $elm$core$Dict$fromList = function (assocs) {
-	return A3(
-		$elm$core$List$foldl,
-		F2(
-			function (_v0, dict) {
-				var key = _v0.a;
-				var value = _v0.b;
-				return A3($elm$core$Dict$insert, key, value, dict);
-			}),
-		$elm$core$Dict$empty,
-		assocs);
-};
-var $author$project$Ruz$Data$Game$isDangerous = F2(
-	function (_v0, game) {
-		var x = _v0.a;
-		var y = _v0.b;
-		return A2(
-			$elm$core$List$any,
-			function (_v1) {
-				var pos = _v1.a;
-				var figures = _v1.b;
-				return (!_Utils_eq(
-					pos,
-					_Utils_Tuple2(x, y))) && ((!_Utils_eq(pos, game.player)) && function (maybe) {
-					return A2(
-						$elm$core$Maybe$withDefault,
-						false,
-						A2(
-							$elm$core$Maybe$map,
-							function (figure) {
-								return A2($elm$core$List$member, figure, figures);
-							},
-							maybe));
-				}(
-					A2(
-						$elm$core$Maybe$andThen,
-						function (id) {
-							return A2($elm$core$Dict$get, id, game.figures);
-						},
-						A2($elm$core$Dict$get, pos, game.grid))));
-			},
-			A2(
-				$elm$core$List$concatMap,
-				function (i) {
-					return _List_fromArray(
-						[
-							_Utils_Tuple2(
-							_Utils_Tuple2(i, y),
-							_List_fromArray(
-								[$author$project$Ruz$Data$Figure$Rook, $author$project$Ruz$Data$Figure$Queen])),
-							_Utils_Tuple2(
-							_Utils_Tuple2(x, i),
-							_List_fromArray(
-								[$author$project$Ruz$Data$Figure$Rook, $author$project$Ruz$Data$Figure$Queen])),
-							_Utils_Tuple2(
-							_Utils_Tuple2(i, (y - x) + i),
-							_List_fromArray(
-								[$author$project$Ruz$Data$Figure$Biship, $author$project$Ruz$Data$Figure$Queen])),
-							_Utils_Tuple2(
-							_Utils_Tuple2(i, (y + x) - i),
-							_List_fromArray(
-								[$author$project$Ruz$Data$Figure$Biship, $author$project$Ruz$Data$Figure$Queen]))
-						]);
-				},
-				A2($elm$core$List$range, 0, $author$project$Ruz$Config$size - 1)));
-	});
-var $author$project$Ruz$Main$viewOverlay = function (model) {
-	var game = model.game;
-	return (!_Utils_eq(model.changes, _List_Nil)) ? $elm$core$Dict$empty : $elm$core$Dict$fromList(
-		A2(
-			$elm$core$List$filterMap,
-			function (pos) {
-				return model.gameOver ? $elm$core$Maybe$Nothing : (_Utils_eq(pos, model.game.player) ? $elm$core$Maybe$Nothing : (model.gameOver ? $elm$core$Maybe$Nothing : (A2(
-					$author$project$Ruz$Data$Game$valid,
-					{from: model.game.player, isEnemy: false, to: pos},
-					model.game) ? (A2(
-					$elm$core$List$any,
-					function (enemyPos) {
-						return (!_Utils_eq(enemyPos, model.game.player)) && ((!_Utils_eq(enemyPos, pos)) && A2(
-							$author$project$Ruz$Data$Game$valid,
-							{from: enemyPos, isEnemy: true, to: pos},
-							_Utils_update(
-								game,
-								{
-									grid: A2(
-										$elm$core$Dict$remove,
-										pos,
-										A2($elm$core$Dict$remove, model.game.player, game.grid)),
-									player: pos
-								})));
-					},
-					$elm$core$Dict$keys(model.game.grid)) ? $elm$core$Maybe$Just(
-					_Utils_Tuple2(pos, $author$project$Ruz$Data$Overlay$Danger)) : (A2($author$project$Ruz$Data$Game$isDangerous, pos, model.game) ? $elm$core$Maybe$Just(
-					_Utils_Tuple2(pos, $author$project$Ruz$Data$Overlay$Warning)) : $elm$core$Maybe$Just(
-					_Utils_Tuple2(pos, $author$project$Ruz$Data$Overlay$Success)))) : $elm$core$Maybe$Nothing)));
-			},
-			A2(
-				$elm$core$List$concatMap,
-				function (i) {
-					return A2(
-						$elm$core$List$map,
-						function (j) {
-							return _Utils_Tuple2(i, j);
-						},
-						A2($elm$core$List$range, 0, $author$project$Ruz$Config$size - 1));
-				},
-				A2($elm$core$List$range, 0, $author$project$Ruz$Config$size - 1))));
-};
-var $author$project$Ruz$Main$view = function (model) {
+var $author$project$Zess$Main$view = function (model) {
 	return {
 		body: _List_fromArray(
 			[
@@ -7968,6 +8003,15 @@ var $author$project$Ruz$Main$view = function (model) {
 						A2($elm$html$Html$Attributes$attribute, 'content', 'width=device-width, initial-scale=1.0')
 					]),
 				_List_Nil),
+				A3(
+				$elm$html$Html$node,
+				'style',
+				_List_Nil,
+				_List_fromArray(
+					[
+						$elm$html$Html$text(
+						'.button {border: 0px;}' + (('.cell {border: solid 1px ' + ($avh4$elm_color$Color$toCssString($author$project$Zess$Config$gray) + '}')) + 'a:active {border: solid 1px black;}'))
+					])),
 				A2(
 				$author$project$Layout$el,
 				_List_fromArray(
@@ -7981,7 +8025,7 @@ var $author$project$Ruz$Main$view = function (model) {
 					$author$project$Layout$column,
 					_List_fromArray(
 						[
-							$author$project$Layout$spacing($author$project$Ruz$Config$boardSize / $author$project$Ruz$Config$size),
+							$author$project$Layout$spacing($author$project$Zess$Config$boardSize / $author$project$Zess$Config$size),
 							A2($elm$html$Html$Attributes$style, 'padding', '16px'),
 							A2(
 							$elm$html$Html$Attributes$style,
@@ -8011,7 +8055,7 @@ var $author$project$Ruz$Main$view = function (model) {
 											_List_Nil,
 											A2(
 												$elm$core$List$map,
-												$author$project$Ruz$View$Figure$view(
+												$author$project$Zess$View$Figure$view(
 													_List_fromArray(
 														[
 															A2($elm$html$Html$Attributes$style, 'height', '20px')
@@ -8020,7 +8064,7 @@ var $author$project$Ruz$Main$view = function (model) {
 													A2(
 														$elm$core$List$map,
 														function (figure) {
-															return A2($author$project$Ruz$Data$Figure$toString, false, figure);
+															return A2($author$project$Zess$Data$Figure$toString, false, figure);
 														},
 														model.game.next.a))))
 										])),
@@ -8043,19 +8087,22 @@ var $author$project$Ruz$Main$view = function (model) {
 											A2($elm$html$Html$Attributes$style, 'justify-content', 'flex-end')
 										]),
 									A2(
-										$elm$html$Html$button,
+										$elm$html$Html$a,
 										_List_fromArray(
 											[
 												$elm$html$Html$Events$onClick(
-												$author$project$Ruz$Main$NewGame(model.seed)),
+												$author$project$Zess$Main$NewGame(model.seed)),
+												$elm$html$Html$Attributes$href('#'),
+												A2($elm$html$Html$Attributes$style, 'text-decoration', 'none'),
+												A2($elm$html$Html$Attributes$style, 'color', 'black'),
 												A2($elm$html$Html$Attributes$style, 'font-size', '14px'),
 												A2(
 												$elm$html$Html$Attributes$style,
 												'background-color',
-												$avh4$elm_color$Color$toCssString($author$project$Ruz$Config$green)),
+												$avh4$elm_color$Color$toCssString($author$project$Zess$Config$green)),
 												A2($elm$html$Html$Attributes$style, 'padding', '8px'),
 												A2($elm$html$Html$Attributes$style, 'border-radius', '20px'),
-												A2($elm$html$Html$Attributes$style, 'border', '0px')
+												$elm$html$Html$Attributes$class('button')
 											]),
 										_List_fromArray(
 											[
@@ -8069,27 +8116,29 @@ var $author$project$Ruz$Main$view = function (model) {
 							_List_fromArray(
 								[
 									A2(
-									$author$project$Ruz$View$Board$view,
+									$author$project$Zess$View$Board$view,
 									{
 										figures: model.game.figures,
 										gameOver: model.gameOver,
-										onClick: $author$project$Ruz$Main$Click,
-										overlay: $author$project$Ruz$Main$viewOverlay(
-											{changes: model.changes, game: model.game, gameOver: model.gameOver})
+										newGame: $author$project$Zess$Main$NewGame(model.seed),
+										onClick: $author$project$Zess$Main$Click,
+										overlay: $author$project$Zess$View$Overlay$createCellOverlay(
+											{changes: model.changes, game: model.game, gameOver: model.gameOver}),
+										score: model.game.score
 									},
 									model.positions)
 								]))
 						])))
 			]),
-		title: 'Ruz Puzzle'
+		title: 'Zess'
 	};
 };
-var $author$project$Ruz$Main$main = $elm$browser$Browser$document(
-	{init: $author$project$Ruz$Main$init, subscriptions: $author$project$Ruz$Main$subscriptions, update: $author$project$Ruz$Main$update, view: $author$project$Ruz$Main$view});
-_Platform_export({'Ruz':{'Main':{'init':$author$project$Ruz$Main$main(
+var $author$project$Zess$Main$main = $elm$browser$Browser$document(
+	{init: $author$project$Zess$Main$init, subscriptions: $author$project$Zess$Main$subscriptions, update: $author$project$Zess$Main$update, view: $author$project$Zess$Main$view});
+_Platform_export({'Zess':{'Main':{'init':$author$project$Zess$Main$main(
 	$elm$json$Json$Decode$succeed(_Utils_Tuple0))(0)}}});}(this));
 
-  var app = Elm.Ruz.Main.init({ node: document.getElementById("elm") });
+  var app = Elm.Zess.Main.init({ node: document.getElementById("elm") });
 }
 catch (e)
 {

@@ -1,4 +1,4 @@
-module Ruz.Main exposing (..)
+module Zess.Main exposing (..)
 
 import Browser exposing (Document)
 import Color exposing (Color)
@@ -11,14 +11,15 @@ import Html.Events as Event
 import Layout
 import List.Extra
 import Random exposing (Seed)
-import Ruz.Config as Config
-import Ruz.Data.Figure as Figure exposing (Figure, FigureId)
-import Ruz.Data.Game as Game exposing (Change(..), Game)
-import Ruz.Data.Overlay exposing (Overlay(..))
-import Ruz.View.Board as Board
-import Ruz.View.Figure as Figure
 import Time
 import View.WrappedColumn exposing (Model)
+import Zess.Config as Config
+import Zess.Data.Figure as Figure exposing (Figure, FigureId)
+import Zess.Data.Game as Game exposing (Change(..), Game)
+import Zess.Data.Overlay exposing (Overlay(..))
+import Zess.View.Board as Board
+import Zess.View.Figure as Figure
+import Zess.View.Overlay as Overlay
 
 
 type alias Model =
@@ -62,70 +63,22 @@ init () =
     )
 
 
-viewOverlay : { game : Game, changes : List Change, gameOver : Bool } -> Dict ( Int, Int ) Overlay
-viewOverlay ({ game } as model) =
-    if model.changes /= [] then
-        Dict.empty
-
-    else
-        List.range 0 (Config.size - 1)
-            |> List.concatMap
-                (\i ->
-                    List.range 0 (Config.size - 1)
-                        |> List.map (\j -> ( i, j ))
-                )
-            |> List.filterMap
-                (\pos ->
-                    if model.gameOver then
-                        Nothing
-
-                    else if pos == model.game.player then
-                        Nothing
-
-                    else if model.gameOver then
-                        Nothing
-
-                    else if Game.valid { isEnemy = False, from = model.game.player, to = pos } model.game then
-                        if
-                            model.game.grid
-                                |> Dict.keys
-                                |> List.any
-                                    (\enemyPos ->
-                                        (enemyPos /= model.game.player)
-                                            && (enemyPos /= pos)
-                                            && Game.valid { isEnemy = True, from = enemyPos, to = pos }
-                                                { game
-                                                    | grid =
-                                                        game.grid
-                                                            |> Dict.remove model.game.player
-                                                            |> Dict.remove pos
-                                                    , player = pos
-                                                }
-                                    )
-                        then
-                            Just ( pos, Danger )
-
-                        else if model.game |> Game.isDangerous pos then
-                            Just ( pos, Warning )
-
-                        else
-                            Just ( pos, Success )
-
-                    else
-                        Nothing
-                )
-            |> Dict.fromList
-
-
 view : Model -> Document Msg
 view model =
-    { title = "Ruz Puzzle"
+    { title = "Zess"
     , body =
         [ Html.node "meta"
             [ Attr.attribute "name" "viewport"
             , Attr.attribute "content" "width=device-width, initial-scale=1.0"
             ]
             []
+        , Html.node "style"
+            []
+            [ ".button {border: 0px;}"
+                ++ (".cell {border: solid 1px " ++ (Config.gray |> Color.toCssString) ++ "}")
+                ++ "a:active {border: solid 1px black;}"
+                |> Html.text
+            ]
         , [ [ [ Html.text "Next Up"
               , model.game.next
                     |> Tuple.first
@@ -140,13 +93,16 @@ view model =
                 |> Html.text
                 |> List.singleton
                 |> Html.h1 [ Attr.style "text-align" "center", Attr.style "margin" "0" ]
-            , Html.button
+            , Html.a
                 [ Event.onClick (NewGame model.seed)
+                , Attr.href "#"
+                , Attr.style "text-decoration" "none"
+                , Attr.style "color" "black"
                 , Attr.style "font-size" "14px"
                 , Attr.style "background-color" (Config.green |> Color.toCssString)
                 , Attr.style "padding" "8px"
                 , Attr.style "border-radius" "20px"
-                , Attr.style "border" "0px"
+                , Attr.class "button"
                 ]
                 [ Html.text "New Game" ]
                 |> Layout.el
@@ -160,13 +116,15 @@ view model =
                 |> Board.view
                     { figures = model.game.figures
                     , overlay =
-                        viewOverlay
+                        Overlay.createCellOverlay
                             { game = model.game
                             , changes = model.changes
                             , gameOver = model.gameOver
                             }
                     , onClick = Click
                     , gameOver = model.gameOver
+                    , score = model.game.score
+                    , newGame = NewGame model.seed
                     }
             ]
                 |> Layout.row [ Layout.spaceBetween ]

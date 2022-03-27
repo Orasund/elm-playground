@@ -1,9 +1,9 @@
-module Ruz.View.Figure exposing (view)
+module Zess.View.Figure exposing (view)
 
 import Dict
 import Html exposing (Attribute, Html)
 import Html.Attributes as Attr
-import Ruz.Data.Figure as Figure exposing (Figure)
+import Zess.Data.Figure as Figure exposing (Figure)
 
 
 view : List (Attribute msg) -> String -> Html msg

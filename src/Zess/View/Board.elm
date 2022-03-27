@@ -1,4 +1,4 @@
-module Ruz.View.Board exposing (view)
+module Zess.View.Board exposing (view)
 
 import Color exposing (Color)
 import Dict exposing (Dict)
@@ -7,10 +7,11 @@ import Html.Attributes as Attr
 import Html.Events as Event
 import Html.Keyed
 import Layout
-import Ruz.Config as Config
-import Ruz.Data.Figure as Figure exposing (Figure, FigureId)
-import Ruz.Data.Overlay exposing (Overlay(..))
-import Ruz.View.Figure as Figure
+import Zess.Config as Config
+import Zess.Data.Figure as Figure exposing (Figure, FigureId)
+import Zess.Data.Overlay exposing (Overlay(..))
+import Zess.View.Figure as Figure
+import Zess.View.Overlay as Overlay
 
 
 view :
@@ -18,6 +19,8 @@ view :
     , overlay : Dict ( Int, Int ) Overlay
     , onClick : ( Int, Int ) -> msg
     , gameOver : Bool
+    , score : Int
+    , newGame : msg
     }
     -> Dict FigureId ( Int, Int )
     -> Html msg
@@ -36,17 +39,7 @@ view args figurePos =
                 }
       ]
     , if args.gameOver then
-        [ Html.text "Game Over"
-            |> Layout.el
-                [ Attr.style "background-color" "rgba(0,0,0,0.5)"
-                , Attr.style "height" (String.fromFloat Config.boardSize ++ "px")
-                , Attr.style "color" "white"
-                , Attr.style "z-index" "2"
-                , Attr.style "font-size" "30px"
-                , Layout.alignCenter
-                , Layout.centerContent
-                , Attr.style "backdrop-filter" "blur(2px)"
-                ]
+        [ Overlay.viewGameOver args.newGame args.score
         ]
 
       else
@@ -116,36 +109,10 @@ viewBoard args figurePos =
                 List.repeat Config.size ()
                     |> List.indexedMap
                         (\i () ->
-                            let
-                                cell attrs =
-                                    Html.div
-                                        ([ Attr.style "border"
-                                            ("solid 1px "
-                                                ++ (Config.gray |> Color.toCssString)
-                                            )
-                                         , Layout.fill
-                                         , Attr.style "height" "calc(100% -  2px)"
-                                         ]
-                                            ++ attrs
-                                        )
-                                        []
-
-                                clickableCell attrs =
-                                    Html.a
-                                        ([ Event.onClick (args.onClick ( i, j ))
-                                         , Attr.href "#"
-                                         , Attr.style "border" ("solid 1px " ++ (Config.gray |> Color.toCssString))
-                                         , Layout.fill
-                                         , Attr.style "height" "calc(100% -  2px)"
-                                         ]
-                                            ++ attrs
-                                        )
-                                        []
-                            in
                             case args.overlay |> Dict.get ( i, j ) of
                                 Just Success ->
                                     [ Attr.style "background-color" (Color.toCssString Config.green) ]
-                                        |> clickableCell
+                                        |> clickableCell (args.onClick ( i, j ))
 
                                 Just Warning ->
                                     [ Attr.style "background-color" (Color.toCssString Config.green)
@@ -159,11 +126,11 @@ viewBoard args figurePos =
                                             ++ ")"
                                         )
                                     ]
-                                        |> clickableCell
+                                        |> clickableCell (args.onClick ( i, j ))
 
                                 Just Danger ->
                                     [ Attr.style "background-color" (Config.gray |> Color.toCssString) ]
-                                        |> clickableCell
+                                        |> clickableCell (args.onClick ( i, j ))
 
                                 Nothing ->
                                     cell []
@@ -177,3 +144,32 @@ viewBoard args figurePos =
             , Attr.style "width" "100%"
             , Attr.style "position" "absolute"
             ]
+
+
+cell : List (Html.Attribute msg) -> Html msg
+cell attrs =
+    Html.div
+        ([ Attr.style "border"
+            ("solid 1px "
+                ++ (Config.gray |> Color.toCssString)
+            )
+         , Layout.fill
+         , Attr.style "height" "calc(100% -  2px)"
+         ]
+            ++ attrs
+        )
+        []
+
+
+clickableCell : msg -> List (Html.Attribute msg) -> Html msg
+clickableCell onClick attrs =
+    Html.a
+        ([ Event.onClick onClick
+         , Attr.href "#"
+         , Layout.fill
+         , Attr.style "height" "calc(100% -  2px)"
+         , Attr.class "cell"
+         ]
+            ++ attrs
+        )
+        []

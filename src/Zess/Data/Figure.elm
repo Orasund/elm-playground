@@ -1,7 +1,7 @@
-module Ruz.Data.Figure exposing (Figure(..), FigureId, asList, moves, player, score, toString)
+module Zess.Data.Figure exposing (Figure(..), FigureId, asList, moves, player, score, toString)
 
 import Random exposing (Generator)
-import Ruz.Config as Config
+import Zess.Config as Config
 
 
 type alias FigureId =

@@ -1,12 +1,12 @@
-module Ruz.Data.Game exposing (Change(..), Game, init, isDangerous, move, valid)
+module Zess.Data.Game exposing (Change(..), Game, init, isDangerous, move, valid)
 
 import Dict exposing (Dict)
 import List.Extra
 import Process exposing (spawn)
 import Random exposing (Generator)
 import Random.List
-import Ruz.Config as Config
-import Ruz.Data.Figure as Figure exposing (Figure(..), FigureId)
+import Zess.Config as Config
+import Zess.Data.Figure as Figure exposing (Figure(..), FigureId)
 
 
 type alias Game =
@@ -263,27 +263,27 @@ spawnEnemy game =
         ( [], nextChunks ) ->
             (case nextChunks of
                 [] ->
-                     generateNextEnemies (game.waveSize + 1)
-                     |> Random.map (\it -> (it, game.waveSize ))
+                    generateNextEnemies (game.waveSize + 1)
+                        |> Random.map (\it -> ( it, game.waveSize ))
 
                 [ next ] ->
-                    ( generateNextEnemies (game.waveSize + 1)
-                        |> Random.map (\( head, tail ) -> (( next, head :: tail ), game.waveSize + 1))
-                    
-                    )
+                    generateNextEnemies (game.waveSize + 1)
+                        |> Random.map (\( head, tail ) -> ( ( next, head :: tail ), game.waveSize + 1 ))
 
                 head :: tail ->
-                    Random.constant (( head, tail ), game.waveSize )
+                    Random.constant ( ( head, tail ), game.waveSize )
             )
                 |> Random.map
-                    (Tuple.mapFirst (\(head, tail ) ->
-                        if Dict.size game.grid <= 2 then
-                            (( head, tail ))
+                    (Tuple.mapFirst
+                        (\( head, tail ) ->
+                            if Dict.size game.grid <= 2 then
+                                ( head, tail )
 
-                        else
-                            ( [], head :: tail )
-                    ))
-                |> Random.map (\(next,waveSize) -> ( { game | next = next,waveSize = waveSize }, [] ))
+                            else
+                                ( [], head :: tail )
+                        )
+                    )
+                |> Random.map (\( next, waveSize ) -> ( { game | next = next, waveSize = waveSize }, [] ))
 
 
 moveEnemy : ( ( Int, Int ), FigureId ) -> Game -> Generator ( Game, List Change )
