@@ -10,9 +10,9 @@ module LittleWorldPuzzler.Data.Board exposing
     )
 
 import Grid.Bordered as Grid exposing (Grid)
-import Grid.Position exposing (Position)
 import Jsonstore exposing (Json)
 import LittleWorldPuzzler.Data.CellType as CellType exposing (CellType(..))
+import Position
 
 
 columns : Int
@@ -29,7 +29,7 @@ type alias Board =
     Grid CellType
 
 
-place : Position -> CellType -> Board -> Board
+place : ( Int, Int ) -> CellType -> Board -> Board
 place position cellType =
     Grid.ignoringErrors <|
         Grid.insert position cellType
@@ -41,7 +41,7 @@ place position cellType =
 ------------------------}
 
 
-jsonTuple : Json ( Position, CellType )
+jsonTuple : Json ( ( Int, Int ), CellType )
 jsonTuple =
     Jsonstore.object (\x y value -> ( ( x, y ), value ))
         |> Jsonstore.with "x" Jsonstore.int (\( ( x, _ ), _ ) -> x)
@@ -55,12 +55,12 @@ values =
     Grid.values
 
 
-toList : Board -> List ( Position, CellType )
+toList : Board -> List ( ( Int, Int ), CellType )
 toList =
     Grid.toList
 
 
-fromList : List ( Position, CellType ) -> Board
+fromList : List ( ( Int, Int ), CellType ) -> Board
 fromList =
     Grid.fromList
         { rows = rows

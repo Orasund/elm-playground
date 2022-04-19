@@ -10,10 +10,10 @@ import FactoryCity.Data.Item as Item
 import FactoryCity.View.Text as Text
 import Framework.Grid as Grid
 import Grid.Bordered as Grid exposing (Grid)
-import Grid.Position exposing (Position)
+import Position
 
 
-viewCell : Float -> Position -> Maybe (Position -> msg) -> Maybe CellType -> Element msg
+viewCell : Float -> ( Int, Int ) -> Maybe (( Int, Int ) -> msg) -> Maybe CellType -> Element msg
 viewCell scale position maybeMsg maybeCellType =
     Element.el
         ([ Element.centerX
@@ -76,7 +76,7 @@ viewCell scale position maybeMsg maybeCellType =
                     []
 
 
-view : { scale : Float, maybePositionMsg : Maybe (Position -> msg) } -> Grid CellType -> Element msg
+view : { scale : Float, maybePositionMsg : Maybe (( Int, Int ) -> msg) } -> Grid CellType -> Element msg
 view { scale, maybePositionMsg } grid =
     Element.column
         (Grid.compact

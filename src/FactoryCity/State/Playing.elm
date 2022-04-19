@@ -2,6 +2,7 @@ module FactoryCity.State.Playing exposing (Model, Msg, TransitionData, init, sub
 
 import Action
 import Bag exposing (Bag)
+import Direction exposing (Direction(..))
 import Element exposing (Element)
 import Element.Font as Font
 import FactoryCity.Data as Data
@@ -14,10 +15,9 @@ import Framework.Color as Color
 import Framework.Grid as Grid
 import Framework.Heading as Heading
 import Grid.Bordered as Grid
-import Grid.Direction exposing (Direction(..))
-import Grid.Position exposing (Position)
 import Http exposing (Error(..))
 import Maybe.Extra as Maybe
+import Position
 import Random exposing (Seed)
 import Task
 import Time
@@ -57,7 +57,7 @@ type UiMsg
 type Msg
     = UiSpecific UiMsg
     | GameSpecific Game.Msg
-    | PositionSelected Position
+    | PositionSelected ( Int, Int )
     | TimePassed
     | ClickedCraft ContainerSort
 

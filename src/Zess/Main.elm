@@ -4,7 +4,6 @@ import Browser exposing (Document)
 import Color exposing (Color)
 import Dict exposing (Dict)
 import Element exposing (Attr)
-import Emojidojo.String exposing (game)
 import Html
 import Html.Attributes as Attr
 import Html.Events as Event

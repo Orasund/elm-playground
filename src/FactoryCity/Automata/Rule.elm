@@ -1,10 +1,10 @@
 module FactoryCity.Automata.Rule exposing (burnable, container, merger, movables, output, pressable, shreddable, smeltable)
 
 import CellAutomata exposing (Rule, RuleExpression(..))
+import Direction exposing (Direction(..))
 import FactoryCity.Automata.Neighborhood as Neighborhood
 import FactoryCity.Data.CellType as CellType exposing (CellType, ContainerSort(..), MachineSort(..), MovableSort(..))
 import FactoryCity.Data.Item as Item exposing (Item(..))
-import Grid.Direction as Direction exposing (Direction(..))
 
 
 directionList : List Direction
@@ -29,7 +29,7 @@ output =
                         }
               , neighbors =
                     CellAutomata.anyNeighborhood
-                        |> (Neighborhood.set (to |> Direction.flip) <|
+                        |> (Neighborhood.set (to |> Direction.mirror) <|
                                 Exactly <|
                                     Just <|
                                         { item = Just item
@@ -93,10 +93,10 @@ merger =
                             Movable Merger
                                 { from =
                                     from
-                                        |> Direction.rotRight
+                                        |> Direction.rotateRightwise
                                         |> (\x ->
                                                 if x == to then
-                                                    x |> Direction.rotRight
+                                                    x |> Direction.rotateRightwise
 
                                                 else
                                                     x
@@ -139,7 +139,7 @@ pressable =
                         }
               , neighbors =
                     CellAutomata.anyNeighborhood
-                        |> (Neighborhood.set (to |> Direction.flip) <|
+                        |> (Neighborhood.set (to |> Direction.mirror) <|
                                 Exactly <|
                                     Just <|
                                         { item = Just itemFrom
@@ -204,7 +204,7 @@ shreddable =
                             }
                     , neighbors =
                         CellAutomata.anyNeighborhood
-                            |> (Neighborhood.set (to |> Direction.flip) <|
+                            |> (Neighborhood.set (to |> Direction.mirror) <|
                                     Exactly <|
                                         Just <|
                                             { item = Just itemFrom
@@ -310,7 +310,7 @@ smeltable =
                         }
               , neighbors =
                     CellAutomata.anyNeighborhood
-                        |> (Neighborhood.set (to |> Direction.flip) <|
+                        |> (Neighborhood.set (to |> Direction.mirror) <|
                                 Exactly <|
                                     Just <|
                                         { item = Just itemFrom
@@ -374,7 +374,7 @@ burnable =
                         }
               , neighbors =
                     CellAutomata.anyNeighborhood
-                        |> (Neighborhood.set (to |> Direction.flip) <|
+                        |> (Neighborhood.set (to |> Direction.mirror) <|
                                 Exactly <|
                                     Just <|
                                         { item = Just i
@@ -462,7 +462,7 @@ container =
                         }
               , neighbors =
                     CellAutomata.anyNeighborhood
-                        |> (Neighborhood.set (from |> Direction.flip) <|
+                        |> (Neighborhood.set (from |> Direction.mirror) <|
                                 Exactly <|
                                     Just <|
                                         { sort = Movable movableSort { from = from, to = to }
@@ -524,7 +524,7 @@ movables =
                                                             { sort =
                                                                 Movable mov
                                                                     { from = dir
-                                                                    , to = from |> Direction.flip
+                                                                    , to = from |> Direction.mirror
                                                                     }
                                                             , item = Just i
                                                             }
@@ -556,7 +556,7 @@ movables =
                                                         Just <|
                                                             { sort =
                                                                 Movable mov
-                                                                    { from = to |> Direction.flip
+                                                                    { from = to |> Direction.mirror
                                                                     , to = dir
                                                                     }
                                                             , item = Nothing

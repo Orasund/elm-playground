@@ -13,7 +13,7 @@ import FactoryCity.View.Details as Details
 import FactoryCity.View.Settings as Settings
 import FactoryCity.View.Shop as Shop
 import Framework.Grid as Grid
-import Grid.Position exposing (Position)
+import Position
 
 
 arrangement : List (List Tab)
@@ -27,7 +27,7 @@ arrangement =
 view :
     { scale : Float
     , selected : Maybe ContainerSort
-    , positionSelectedMsg : Position -> msg
+    , positionSelectedMsg : ( Int, Int ) -> msg
     , selectedMsg : ContainerSort -> msg
     , craftMsg : ContainerSort -> msg
     , speed : Int

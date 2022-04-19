@@ -3,7 +3,6 @@ module LittleWorldPuzzler.State.Playing exposing (Mode(..), Model, Msg, Transiti
 import Action
 import Element exposing (Element)
 import Grid.Bordered as Grid
-import Grid.Position exposing (Position)
 import Http exposing (Error(..))
 import LittleWorldPuzzler.Data.Board as Board
 import LittleWorldPuzzler.Data.CellType exposing (CellType(..))
@@ -15,6 +14,7 @@ import LittleWorldPuzzler.View.Collection as CollectionView
 import LittleWorldPuzzler.View.Game as GameView
 import LittleWorldPuzzler.View.Header as HeaderView
 import LittleWorldPuzzler.View.PageSelector as PageSelectorView
+import Position
 import Process
 import Random exposing (Seed)
 import Set exposing (Set)
@@ -52,7 +52,7 @@ type alias Model =
 
 type Msg
     = Selected Selected
-    | PositionSelected Position
+    | PositionSelected ( Int, Int )
     | CardPlaced
     | Undo
     | Redo
@@ -119,7 +119,7 @@ play ( { game, history } as state, seed ) =
         )
 
 
-playFirst : Position -> Model -> Action
+playFirst : ( Int, Int ) -> Model -> Action
 playFirst position ( { game, mode, initialSeed } as state, seed ) =
     Random.step
         (Deck.playFirst (mode /= Challenge) game.deck
@@ -146,7 +146,7 @@ playFirst position ( { game, mode, initialSeed } as state, seed ) =
         |> play
 
 
-playSecond : Position -> CellType -> Model -> Action
+playSecond : ( Int, Int ) -> CellType -> Model -> Action
 playSecond position cellType ( { game } as state, seed ) =
     play
         ( { state
@@ -160,7 +160,7 @@ playSecond position cellType ( { game } as state, seed ) =
         )
 
 
-pickUp : CellType -> Position -> Model -> Action
+pickUp : CellType -> ( Int, Int ) -> Model -> Action
 pickUp cellType position ( { game, history } as state, seed ) =
     let
         seconds : Float

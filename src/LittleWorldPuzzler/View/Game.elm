@@ -6,12 +6,12 @@ import Element.Border as Border
 import Element.Font as Font
 import Framework.Grid as Grid
 import Framework.Heading as Heading
-import Grid.Position exposing (Position)
 import LittleWorldPuzzler.Data.CellType exposing (CellType(..))
 import LittleWorldPuzzler.Data.Deck exposing (Selected(..))
 import LittleWorldPuzzler.Data.Game exposing (EndCondition(..), Game)
 import LittleWorldPuzzler.View.Board as BoardView
 import LittleWorldPuzzler.View.Deck as DeckView
+import Position
 
 
 viewFinished : Float -> Game -> Element msg
@@ -66,7 +66,7 @@ viewHome scale { board, deck } =
         ]
 
 
-view : { scale : Float, selected : Maybe Selected, sort : Bool } -> { positionSelectedMsg : Position -> msg, selectedMsg : Selected -> msg } -> Game -> Element msg
+view : { scale : Float, selected : Maybe Selected, sort : Bool } -> { positionSelectedMsg : ( Int, Int ) -> msg, selectedMsg : Selected -> msg } -> Game -> Element msg
 view { scale, selected, sort } { positionSelectedMsg, selectedMsg } { board, deck } =
     Element.column Grid.simple <|
         [ BoardView.view scale (Just positionSelectedMsg) board

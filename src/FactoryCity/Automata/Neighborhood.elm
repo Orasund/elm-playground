@@ -1,7 +1,7 @@
 module FactoryCity.Automata.Neighborhood exposing (set)
 
 import CellAutomata exposing (Neighborhood, RuleExpression(..))
-import Grid.Direction exposing (Direction(..))
+import Direction exposing (Direction(..))
 
 
 set : Direction -> RuleExpression (Maybe state) -> Neighborhood (RuleExpression (Maybe state)) -> Neighborhood (RuleExpression (Maybe state))

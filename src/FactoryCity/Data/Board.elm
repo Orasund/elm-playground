@@ -17,7 +17,7 @@ module FactoryCity.Data.Board exposing
 import FactoryCity.Data.CellType as CellType exposing (CellType, ContainerSort(..), MovableSort(..))
 import FactoryCity.Data.Item exposing (Item(..))
 import Grid.Bordered as Grid exposing (Grid)
-import Grid.Position exposing (Position)
+import Position
 
 
 columns : Int
@@ -34,7 +34,7 @@ type alias Board =
     Grid CellType
 
 
-get : Position -> Board -> Maybe CellType
+get : ( Int, Int ) -> Board -> Maybe CellType
 get position board =
     case board |> Grid.get position of
         Ok m ->
@@ -115,13 +115,13 @@ unload =
         )
 
 
-place : Position -> CellType -> Board -> Board
+place : ( Int, Int ) -> CellType -> Board -> Board
 place position cellType =
     Grid.ignoringErrors <|
         Grid.insert position cellType
 
 
-remove : Position -> Board -> Board
+remove : ( Int, Int ) -> Board -> Board
 remove position =
     Grid.ignoringErrors <|
         Grid.remove position
@@ -138,12 +138,12 @@ values =
     Grid.values
 
 
-toList : Board -> List ( Position, CellType )
+toList : Board -> List ( ( Int, Int ), CellType )
 toList =
     Grid.toList
 
 
-fromList : List ( Position, CellType ) -> Board
+fromList : List ( ( Int, Int ), CellType ) -> Board
 fromList =
     Grid.fromList
         { rows = rows

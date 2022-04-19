@@ -2,6 +2,7 @@ module FactoryCity.Data.Game exposing (Game, Msg(..), Tab(..), craft, init, play
 
 import Bag exposing (Bag)
 import Dict exposing (Dict)
+import Direction exposing (Direction(..))
 import FactoryCity.Automata as Automata exposing (ListRule)
 import FactoryCity.Automata.Rule as Rule
 import FactoryCity.Data as Data
@@ -11,9 +12,8 @@ import FactoryCity.Data.Deck as Deck exposing (Deck)
 import FactoryCity.Data.Item as Item exposing (Item(..))
 import FactoryCity.Data.RemoteShop as RemoteShop
 import Grid.Bordered as Grid
-import Grid.Direction exposing (Direction(..))
-import Grid.Position as Position exposing (Position)
 import Http
+import Position
 import Random exposing (Generator)
 import Set exposing (Set)
 import Task
@@ -72,7 +72,7 @@ type alias Game =
     }
 
 
-playCard : ContainerSort -> Position -> Game -> Game
+playCard : ContainerSort -> ( Int, Int ) -> Game -> Game
 playCard containerSort position game =
     case game.deck |> Deck.remove containerSort 1 of
         Ok deck ->
@@ -92,7 +92,7 @@ playCard containerSort position game =
             game
 
 
-removeCard : Position -> Game -> Game
+removeCard : ( Int, Int ) -> Game -> Game
 removeCard position game =
     let
         maybeCellType : Maybe CellType
@@ -174,8 +174,8 @@ tick =
                                                                 game.board
                                                                     |> Grid.get
                                                                         (pos
-                                                                            |> Position.move 1
-                                                                                (case dir of
+                                                                            |> Position.add
+                                                                                ((case dir of
                                                                                     Right ->
                                                                                         Up
 
@@ -187,6 +187,8 @@ tick =
 
                                                                                     Left ->
                                                                                         Down
+                                                                                 )
+                                                                                    |> Direction.toCoord
                                                                                 )
                                                                         )
                                                             of
@@ -318,7 +320,7 @@ craft card game =
 step : Game -> Game
 step ({ score } as game) =
     let
-        boardStep : ListRule -> Dict Position CellType -> ( Board, Board ) -> ( Board, Board )
+        boardStep : ListRule -> Dict ( Int, Int ) CellType -> ( Board, Board ) -> ( Board, Board )
         boardStep listRule read ( b, remaining ) =
             remaining
                 |> Grid.map (Automata.step (Automata.automata listRule) read)

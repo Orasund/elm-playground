@@ -30,8 +30,8 @@ module FactoryCity.Data.CellType exposing
     )
 
 import Bag exposing (Bag)
+import Direction exposing (Direction(..))
 import FactoryCity.Data.Item as Item exposing (Item(..))
-import Grid.Direction as Direction exposing (Direction(..))
 
 
 dirList : List Direction
@@ -105,7 +105,7 @@ belt { from, to } =
 
 merger : Direction -> ContainerSort
 merger dir =
-    Movable Merger { from = dir |> Direction.flip, to = dir }
+    Movable Merger { from = dir |> Direction.mirror, to = dir }
 
 
 containerList : List ContainerSort
@@ -306,7 +306,7 @@ stringToContainerSort string =
                 |> Maybe.map
                     (\{ to } ->
                         Movable Merger
-                            { from = to |> Direction.flip, to = to }
+                            { from = to |> Direction.mirror, to = to }
                     )
 
         Just ( '📦', item ) ->
@@ -462,7 +462,7 @@ tierTwoList =
             |> List.filterMap
                 (\to ->
                     if to /= Down then
-                        Just <| Movable Belt { from = to |> Direction.flip, to = to }
+                        Just <| Movable Belt { from = to |> Direction.mirror, to = to }
 
                     else
                         Nothing
@@ -487,7 +487,7 @@ tierThreeList =
                                 if from == to then
                                     Nothing
 
-                                else if from == (to |> Direction.flip) then
+                                else if from == (to |> Direction.mirror) then
                                     Nothing
 
                                 else
@@ -498,7 +498,7 @@ tierThreeList =
             |> List.filterMap
                 (\to ->
                     if to /= Down then
-                        Just <| Movable Merger { from = to |> Direction.flip, to = to }
+                        Just <| Movable Merger { from = to |> Direction.mirror, to = to }
 
                     else
                         Nothing
@@ -519,7 +519,7 @@ craftingCost card =
             else if (to == Down) && (from == Up) then
                 tierOne
 
-            else if from == (to |> Direction.flip) then
+            else if from == (to |> Direction.mirror) then
                 tierTwo
 
             else

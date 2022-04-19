@@ -1,6 +1,7 @@
 module FactoryCity.View.Crafting exposing (view)
 
 import Array
+import Direction exposing (Direction(..))
 import Element exposing (Element)
 import Element.Input as Input
 import FactoryCity.Data.CellType as CellType exposing (ContainerSort(..), MachineSort(..), MovableSort(..))
@@ -11,7 +12,6 @@ import Framework.Card as Card
 import Framework.Color as Color
 import Framework.Grid as Grid
 import Framework.Group as Group
-import Grid.Direction exposing (Direction(..))
 
 
 view : { clickedViewInfoMsg : ContainerSort -> msg, displayedTier : Int, craftMsg : ContainerSort -> msg, clickedTierTabMsg : Int -> msg } -> Element msg

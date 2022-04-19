@@ -7,9 +7,9 @@ module FactoryCity.Data.Deck exposing
     )
 
 import Bag exposing (Bag)
+import Direction exposing (Direction(..))
 import FactoryCity.Data.CellType as CellType exposing (ContainerSort)
 import FactoryCity.Data.Item exposing (Item(..))
-import Grid.Direction exposing (Direction(..))
 import List.Zipper exposing (Zipper(..))
 
 
