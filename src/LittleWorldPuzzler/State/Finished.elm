@@ -37,8 +37,9 @@ init { game, history, challenge } =
         , error = Nothing
         , challenge = challenge
         }
-    , Request.getHighscore { score = game.score, challenge = challenge }
-        |> Cmd.map RequestedHighscore
+    , Cmd.none
+      {--Request.getHighscore { score = game.score, challenge = challenge }
+        |> Cmd.map RequestedHighscore--}
     )
 
 
@@ -120,8 +121,9 @@ update msg model =
                                     , newHighscore = True
                                     , error = Nothing
                                     }
-                                , Request.setHighscore { entry = newEntry, challenge = challenge }
-                                    |> Cmd.map RequestedHighscore
+                                , Cmd.none
+                                  {--Request.setHighscore { entry = newEntry, challenge = challenge }
+                                    |> Cmd.map RequestedHighscore--}
                                 )
 
                         GotError error ->

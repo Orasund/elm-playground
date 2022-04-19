@@ -68,9 +68,17 @@ viewFigures args figures =
                 ( "figure-" ++ String.fromInt figureId
                 , [ figures
                         |> Dict.get figureId
-                        |> Maybe.map (Figure.toString False)
-                        |> Maybe.withDefault (Figure.toString True Figure.player)
-                        |> Figure.view [ Attr.style "width" "100%" ]
+                        |> Maybe.map
+                            (\figure ->
+                                figure
+                                    |> Figure.toString
+                                    |> Figure.view False [ Attr.style "width" "100%" ]
+                            )
+                        |> Maybe.withDefault
+                            (Figure.player
+                                |> Figure.toString
+                                |> Figure.view True [ Attr.style "width" "100%" ]
+                            )
                   ]
                     |> Html.div
                         [ Attr.style "position" "absolute"

@@ -61,7 +61,8 @@ viewAttributes : Float -> List (Attribute msg)
 viewAttributes scale =
     [ Element.centerX
     , Element.spaceEvenly
-    , Element.height <| Element.px <| floor <| 200 * scale
+
+    --, Element.height <| Element.px <| floor <| 200 * scale
     , Element.width <| Element.fill
     ]
 
@@ -69,8 +70,8 @@ viewAttributes scale =
 viewOne : Float -> Maybe CellType -> Element msg
 viewOne scale maybeCellType =
     Element.el
-        [ Element.height <| Element.px <| floor <| 200 * scale
-        , Element.centerX
+        [ -- Element.height <| Element.px <| floor <| 200 * scale
+          Element.centerX
         ]
     <|
         case maybeCellType of
@@ -125,7 +126,8 @@ view scale sort maybeSelectedMsg maybeSelected deck =
                 ]
         , Card.hand
             [ Element.centerX
-            , Element.height <| Element.px <| floor <| 200 * scale
+
+            --, Element.height <| Element.px <| floor <| 200 * scale
             ]
             { width = 250 * scale
             , dimensions = ( 120, 176 )

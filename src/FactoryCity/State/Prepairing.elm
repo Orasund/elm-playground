@@ -37,7 +37,8 @@ type Msg
 
 
 type alias Action =
-    Action.Action Model
+    Action.Action
+        Model
         Never
         { scale : Float
         , seed : Seed
@@ -55,7 +56,8 @@ init =
       }
     , Cmd.batch
         [ Random.generate GotSeed Random.independentSeed
-        , Task.attempt GotShopResponse RemoteShop.sync
+
+        {--, Task.attempt GotShopResponse RemoteShop.sync --}
         , Task.perform GotViewport Dom.getViewport
         ]
     )

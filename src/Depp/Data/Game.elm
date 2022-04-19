@@ -6,7 +6,6 @@ import Depp.Config as Config
 import Depp.Data.Deck as Deck exposing (Card)
 import Depp.Data.Rule as Rule exposing (Rule(..))
 import Dict.Any as AnyDict exposing (AnyDict)
-import Emojidojo.String exposing (game)
 import List.Extra as List
 import Maybe.Extra as Maybe
 import Random exposing (Generator)

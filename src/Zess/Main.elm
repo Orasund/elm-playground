@@ -82,9 +82,9 @@ view model =
         , [ [ [ Html.text "Next Up"
               , model.game.next
                     |> Tuple.first
-                    |> List.map (\figure -> figure |> Figure.toString False)
+                    |> List.map (\figure -> figure |> Figure.toString)
                     |> List.sort
-                    |> List.map (Figure.view [ Attr.style "height" "20px" ])
+                    |> List.map (Figure.view False [ Attr.style "height" "20px" ])
                     |> Layout.row []
               ]
                 |> Layout.column [ Layout.fill ]
@@ -134,6 +134,7 @@ view model =
                 , Attr.style "padding" "16px"
                 , Attr.style "border" ("solid 1px " ++ Color.toCssString Color.black)
                 , Attr.style "border-radius" "20px"
+                , Attr.style "background-color" "white"
                 ]
             |> Layout.el
                 [ Attr.style "position" "absolute"

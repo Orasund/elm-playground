@@ -11,8 +11,11 @@ firestore =
         , project = "elm-games"
         }
         |> Firestore.init
-        |> Firestore.withCollection "factory-city"
-        |> Firestore.withCollection "shop"
+
+
+
+{--|> Firestore.withCollection "factory-city"
+        |> Firestore.withCollection "shop"--}
 
 
 yOffset : Int

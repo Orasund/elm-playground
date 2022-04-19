@@ -63,50 +63,26 @@ player =
     Rook
 
 
-toString : Bool -> Figure -> String
-toString isWhite figure =
+toString : Figure -> String
+toString figure =
     case figure of
         King ->
-            if isWhite then
-                "♔"
-
-            else
-                "king_black"
+            "King"
 
         Rook ->
-            if isWhite then
-                "rook_white"
-
-            else
-                "rook_black"
+            "Rook"
 
         Biship ->
-            if isWhite then
-                "♗"
-
-            else
-                "biship_black"
+            "Biship"
 
         Knight ->
-            if isWhite then
-                "♘"
-
-            else
-                "knight_black"
+            "Knight"
 
         Pawn ->
-            if isWhite then
-                "♙"
-
-            else
-                "pawn_black"
+            "Pawn"
 
         Queen ->
-            if isWhite then
-                "♕"
-
-            else
-                "queen_black"
+            "Queen"
 
 
 moves : ( Int, Int ) -> Figure -> List ( Int, Int )

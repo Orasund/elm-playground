@@ -6,9 +6,31 @@ import Html.Attributes as Attr
 import Zess.Data.Figure as Figure exposing (Figure)
 
 
-view : List (Attribute msg) -> String -> Html msg
-view attrs string =
+view : Bool -> List (Attribute msg) -> String -> Html msg
+view isWhite attrs string =
     "assert/"
-        ++ string
+        ++ String.toLower string
+        ++ (if isWhite then
+                "_white"
+
+            else
+                "_black"
+           )
         ++ ".svg"
-        |> (\url -> Html.img (Attr.src url :: attrs) [])
+        |> (\url ->
+                Html.img
+                    ([ Attr.src url
+                     , Attr.alt
+                        ((if isWhite then
+                            "White "
+
+                          else
+                            "Black "
+                         )
+                            ++ string
+                        )
+                     ]
+                        ++ attrs
+                    )
+                    []
+           )

@@ -31,5 +31,8 @@ firestore =
         , project = "elm-games"
         }
         |> Firestore.init
-        |> Firestore.withCollection "little-world-puzzler"
-        |> Firestore.withCollection "highscore"
+
+
+
+--|> Firestore.withCollection "little-world-puzzler"
+--|> Firestore.withCollection "highscore"

@@ -98,7 +98,8 @@ init { shop, seed, source } =
             }
       , seed = seed
       }
-    , Cmd.batch
+    , Cmd.none
+      {--Cmd.batch
         [ Item.itemList
             |> List.map (\i -> RemoteShop.remove i 5)
             |> Task.sequence
@@ -109,7 +110,7 @@ init { shop, seed, source } =
             |> Task.attempt (Game.GotShopResponse >> GameSpecific)
         , cmd
             |> Cmd.map (WrappedColumnSpecific >> UiSpecific)
-        ]
+        ]--}
     )
 
 

@@ -41,8 +41,11 @@ toSvg (Core.Shape shapeType surface color) =
                                 |> Svg.polygon2d
                                     [ Attributes.fill <| Color.toCssString <| color
                                     , Attributes.strokeWidth "1"
-                                    , Attributes.stroke <| Color.toCssString <| 
-                                        Color.rgba 0 0 0 1 --color
+                                    , Attributes.stroke <|
+                                        Color.toCssString <|
+                                            Color.rgba 0 0 0 1
+
+                                    --color
                                     ]
                                 |> List.singleton
                                 |> Random.constant

@@ -1,4 +1,6 @@
-module FactoryCity.Data.RemoteShop exposing (default, insert, remove, sync)
+module FactoryCity.Data.RemoteShop exposing (default)
+
+--,insert, remove, sync)
 
 import Bag exposing (Bag)
 import FactoryCity.Data as Data
@@ -81,14 +83,13 @@ mapTask =
             )
 
 
-sync : Task Http.Error (Bag String)
+
+{--sync : Task Http.Error (Bag String)
 sync =
     Data.firestore
         |> Firestore.get (codec |> Codec.asDecoder)
-        |> mapTask
-
-
-remove : Item -> Int -> Task Http.Error (Bag String)
+        |> mapTask--}
+{--remove : Item -> Int -> Task Http.Error (Bag String)
 remove item amount =
     Data.firestore
         |> Firestore.get (codec |> Codec.asDecoder)
@@ -126,10 +127,7 @@ remove item amount =
                         , deleteFields = []
                         }
             )
-        |> mapTask
-
-
-
+        |> mapTask--}
 {--Jsonstore.update
         { url = String.url ++ "/" ++ (item |> Item.itemToString)
         , decoder = Jsonstore.int |> Jsonstore.decode
@@ -143,9 +141,7 @@ remove item amount =
                         Just <| Jsonstore.encode Jsonstore.int <| n - amount
                 )
         }--}
-
-
-insert : Item -> Int -> Task Http.Error (Bag String)
+{--insert : Item -> Int -> Task Http.Error (Bag String)
 insert item amount =
     Data.firestore
         |> Firestore.get (codec |> Codec.asDecoder)
@@ -183,9 +179,7 @@ insert item amount =
                         }
             )
         |> mapTask
-
-
-
+--}
 {--Jsonstore.update
         { url = String.url ++ "/" ++ (item |> Item.itemToString)
         , decoder = Jsonstore.int |> Jsonstore.decode

@@ -404,8 +404,9 @@ update msg game =
                                 , money = game.money + price
                                 , deck = deck
                               }
-                            , Task.attempt GotShopResponse
-                                (RemoteShop.insert i 1)
+                            , Cmd.none
+                              {--Task.attempt GotShopResponse
+                                (RemoteShop.insert i 1)--}
                             )
 
                         _ ->
@@ -423,8 +424,9 @@ update msg game =
                                 , deck = deck
                                 , money = game.money + price
                               }
-                            , Task.attempt GotShopResponse
-                                (RemoteShop.insert Scrap 1)
+                            , Cmd.none
+                              {--Task.attempt GotShopResponse
+                                (RemoteShop.insert Scrap 1)--}
                             )
 
                 Err () ->
@@ -446,8 +448,9 @@ update msg game =
                     , money = game.money - price
                     , deck = game.deck |> Deck.add (Crate item)
                   }
-                , Task.attempt GotShopResponse
-                    (RemoteShop.remove item n)
+                , Cmd.none
+                  {--Task.attempt GotShopResponse
+                    (RemoteShop.remove item n)--}
                 )
 
             else
@@ -470,8 +473,9 @@ update msg game =
 
         Sync ->
             ( game
-            , RemoteShop.sync
-                |> Task.attempt GotShopResponse
+            , Cmd.none
+              {--RemoteShop.sync
+                |> Task.attempt GotShopResponse--}
             )
 
         ToggledBuyRegularly item ->

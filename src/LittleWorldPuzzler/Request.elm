@@ -1,8 +1,4 @@
-module LittleWorldPuzzler.Request exposing
-    ( Response(..)
-    , getHighscore
-    , setHighscore
-    )
+module LittleWorldPuzzler.Request exposing (Response(..))
 
 import Firestore exposing (Document)
 import Firestore.Codec as Codec
@@ -20,7 +16,8 @@ type Response
     | Done
 
 
-getHighscore : { score : Int, challenge : Bool } -> Cmd Response
+
+{--getHighscore : { score : Int, challenge : Bool } -> Cmd Response
 getHighscore { score } =
     let
         response : Result Firestore.Error (Document Entry) -> Response
@@ -55,10 +52,8 @@ getHighscore { score } =
         (Firestore.get
             (Entry.codec |> Codec.asDecoder)
             Data.firestore
-        )
-
-
-setHighscore : { entry : Entry, challenge : Bool } -> Cmd Response
+        )--}
+{--setHighscore : { entry : Entry, challenge : Bool } -> Cmd Response
 setHighscore { entry } =
     let
         value : Encoder
@@ -81,3 +76,4 @@ setHighscore { entry } =
             value
             Data.firestore
         )
+--}
