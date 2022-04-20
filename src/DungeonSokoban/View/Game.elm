@@ -40,7 +40,8 @@ viewCell maybeCell =
                 Layout.el
                     [ Attr.style "width" "40%"
                     , Attr.style "height" "40%"
-                    , Attr.style "border-color" "darkGray"
+                    , Attr.style "border-color" "gray"
+                    , Attr.style "background-color" "gray"
                     , Attr.style "border-width" "20px"
                     , Attr.style "border-radius" "20px"
                     , Attr.style "border-style" "solid"
@@ -64,7 +65,7 @@ viewPlayer =
             [ Attr.style "width" "40%"
             , Attr.style "height" "40%"
             , Attr.style "border-radius" "100px"
-            , Attr.style "border-color" "lightBlue"
+            , Attr.style "border-color" "silver"
             , Attr.style "border-width" "20px"
             , Attr.style "border-style" "solid"
             ]

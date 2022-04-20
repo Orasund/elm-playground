@@ -1,14 +1,12 @@
 module DungeonSokoban.Data.Game exposing (..)
 
-import Css exposing (true)
 import Dict exposing (Dict)
 import Direction as Direction exposing (Direction(..))
 import DungeonSokoban.Config as Config
 import DungeonSokoban.Data.Cell as Cell exposing (Cell(..))
 import DungeonSokoban.Data.Game.Internal as Internal
-import DungeonSokoban.Data.Game.Level1 as Level1
+import DungeonSokoban.Data.Game.Level as Level
 import Grid exposing (Grid)
-import PixelEngine exposing (game)
 import Position
 import Random exposing (Generator)
 import Random.List
@@ -20,8 +18,36 @@ type alias Game =
 
 new : Int -> Generator Game
 new level =
-    Level1.generate
+    Level.level1
         |> Random.map fromBoard
+
+
+{-| Nothing -> running
+Just True -> Won
+Just False -> Lost
+-}
+state : Game -> Maybe Bool
+state game =
+    if game.player == Config.killedPlayer then
+        Just False
+
+    else if
+        game.board
+            |> Grid.values
+            |> List.all
+                (\cell ->
+                    case cell of
+                        Monster _ ->
+                            False
+
+                        _ ->
+                            True
+                )
+    then
+        Just True
+
+    else
+        Nothing
 
 
 fromBoard : Grid (Maybe Cell) -> Game

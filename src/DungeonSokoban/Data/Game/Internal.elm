@@ -4,7 +4,6 @@ import Dict exposing (Dict)
 import Direction as Direction exposing (Direction(..))
 import DungeonSokoban.Config as Config
 import DungeonSokoban.Data.Cell exposing (Cell(..))
-import DungeonSokoban.Data.Game.Level1 as Level1
 import Grid exposing (Grid)
 import Position
 import Random exposing (Generator)
@@ -16,6 +15,11 @@ type alias Game =
     { board : Grid (Maybe Cell)
     , player : ( Int, Int )
     }
+
+
+killPlayer : Game -> Game
+killPlayer game =
+    { game | player = Config.killedPlayer }
 
 
 updateCell : Direction -> ( ( Int, Int ), Cell ) -> Game -> Game
@@ -75,8 +79,7 @@ updateCell defaultDir ( pos, cell ) game =
                             |> Grid.insert newPos cell
                 }
                     |> (if game.player == newPos then
-                            --GAME OVER
-                            \g -> { g | player = ( -1, -1 ) }
+                            killPlayer
 
                         else
                             identity
@@ -112,3 +115,40 @@ directionsFromCoord coord =
             else
                 [ Up ]
            )
+
+
+
+-------------------------------------------------------------------------
+-- Level
+
+
+levelFromGrid : Grid (Maybe Cell) -> ( Grid (Maybe Cell), Set ( Int, Int ) )
+levelFromGrid grid =
+    ( grid
+    , grid
+        |> Grid.emptyPositions
+        |> Set.fromList
+    )
+
+
+randomInsertAll : List Cell -> ( Grid (Maybe Cell), Set ( Int, Int ) ) -> Generator ( Grid (Maybe Cell), Set ( Int, Int ) )
+randomInsertAll list ( grid, emptySpaces ) =
+    list
+        |> List.foldl (\cell -> Random.andThen (randomInsert cell))
+            (Random.constant ( grid, emptySpaces ))
+
+
+randomInsert : Cell -> ( Grid (Maybe Cell), Set ( Int, Int ) ) -> Generator ( Grid (Maybe Cell), Set ( Int, Int ) )
+randomInsert elem ( grid, emptySpaces ) =
+    case emptySpaces |> Set.toList of
+        [] ->
+            Random.constant ( grid, emptySpaces )
+
+        head :: tail ->
+            Random.uniform head tail
+                |> Random.map
+                    (\pos ->
+                        ( grid |> Grid.insert pos elem
+                        , emptySpaces |> Set.remove pos
+                        )
+                    )

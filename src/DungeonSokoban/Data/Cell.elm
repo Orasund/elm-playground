@@ -1,10 +1,15 @@
-module DungeonSokoban.Data.Cell exposing (Cell(..), pushable)
+module DungeonSokoban.Data.Cell exposing (Cell(..), monster, pushable)
 
 
 type Cell
     = Hole
     | Monster { stunned : Bool }
     | Box
+
+
+monster : Cell
+monster =
+    Monster { stunned = False }
 
 
 {-| If pushable returns the resulting cell

@@ -15,7 +15,8 @@ import Task
 
 
 type alias Model =
-    { game : Maybe Game
+    { initGame : Maybe Game
+    , game : Maybe Game
     , swipingState : SwipingState
     , seed : Seed
     }
@@ -23,6 +24,7 @@ type alias Model =
 
 type Msg
     = UpdateModel (Model -> Model)
+    | Tick Direction
     | HasSwiped SwipeEvent
     | MoveDir (Maybe Direction)
 
@@ -43,14 +45,21 @@ newGame seed model =
         |> (\( game, newSeed ) ->
                 { model
                     | game = Just game
+                    , initGame = Just game
                     , seed = newSeed
                 }
            )
 
 
+restart : Model -> Model
+restart model =
+    { model | game = model.initGame }
+
+
 init : () -> ( Model, Cmd Msg )
 init () =
     ( { game = Nothing
+      , initGame = Nothing
       , swipingState = Swiper.initialSwipingState
       , seed = Random.initialSeed 42
       }
@@ -107,25 +116,38 @@ update msg model =
                     in
                     ( { model | game = maybeGame }
                     , Process.sleep 100
-                        |> Task.perform
-                            (\() ->
-                                UpdateModel
-                                    (\newModel ->
-                                        newModel.game
-                                            |> Maybe.map
-                                                (\game ->
-                                                    game
-                                                        |> Game.update dir
-                                                        |> Random.map (\g -> { newModel | game = Just g })
-                                                        |> randomUpdateModel newModel.seed
-                                                )
-                                            |> Maybe.withDefault newModel
-                                    )
-                            )
+                        |> Task.perform (\() -> Tick dir)
                     )
 
                 Nothing ->
                     ( model, Cmd.none )
+
+        Tick dir ->
+            model.game
+                |> Maybe.map
+                    (\game ->
+                        let
+                            newModel =
+                                game
+                                    |> Game.update dir
+                                    |> Random.map (\g -> { model | game = Just g })
+                                    |> randomUpdateModel model.seed
+                        in
+                        ( newModel
+                        , case newModel.game |> Maybe.andThen Game.state of
+                            Just False ->
+                                Process.sleep 200
+                                    |> Task.perform (\() -> UpdateModel restart)
+
+                            Just True ->
+                                Process.sleep 200
+                                    |> Task.perform (\() -> UpdateModel (newGame newModel.seed))
+
+                            _ ->
+                                Cmd.none
+                        )
+                    )
+                |> Maybe.withDefault ( model, Cmd.none )
 
 
 randomUpdateModel : Seed -> Generator Model -> Model
@@ -149,6 +171,7 @@ view model =
                  , Attr.style "left" "50%"
                  , Attr.style "top" "50%"
                  , Attr.style "transform" "translate(-50%, -50%)"
+                 , Attr.style "border" "20px solid gray"
                  ]
                     ++ Swiper.onSwipeEvents HasSwiped
                 )
