@@ -19,6 +19,7 @@ type alias Model =
     , game : Maybe Game
     , swipingState : SwipingState
     , seed : Seed
+    , level : Int
     }
 
 
@@ -41,12 +42,17 @@ main =
 
 newGame : Seed -> Model -> Model
 newGame seed model =
-    Random.step (Game.new 1) seed
+    let
+        level =
+            model.level + 1
+    in
+    Random.step (Game.new level) seed
         |> (\( game, newSeed ) ->
                 { model
                     | game = Just game
                     , initGame = Just game
                     , seed = newSeed
+                    , level = level
                 }
            )
 
@@ -62,6 +68,7 @@ init () =
       , initGame = Nothing
       , swipingState = Swiper.initialSwipingState
       , seed = Random.initialSeed 42
+      , level = 0
       }
     , Random.generate (\seed -> UpdateModel (newGame seed)) Random.independentSeed
     )

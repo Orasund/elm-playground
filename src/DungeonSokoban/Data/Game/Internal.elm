@@ -47,22 +47,15 @@ updateCell defaultDir ( pos, cell ) game =
 
                     newPos =
                         coord
-                            |> directionsFromCoord
+                            |> directionsFromCoord defaultDir
                             |> List.filter (\dir -> game |> isEmpty dir pos)
                             |> (\list ->
                                     case list of
-                                        [ head ] ->
-                                            Just head
-
                                         [] ->
                                             Nothing
 
-                                        _ ->
-                                            if list |> List.member defaultDir then
-                                                Just defaultDir
-
-                                            else
-                                                Nothing
+                                        head :: _ ->
+                                            Just head
                                )
                             |> Maybe.map
                                 (\dir ->
@@ -91,30 +84,38 @@ isEmpty dir pos game =
     dir
         |> Direction.toCoord
         |> Position.addTo pos
-        |> (\newPos -> Grid.getMember newPos game.board)
-        |> (==) Nothing
+        |> (\newPos -> Grid.get newPos game.board)
+        |> (==) (Just Nothing)
 
 
-directionsFromCoord : { x : Int, y : Int } -> List Direction
-directionsFromCoord coord =
-    (if abs coord.x < abs coord.y then
-        []
+directionsFromCoord : Direction -> { x : Int, y : Int } -> List Direction
+directionsFromCoord dir coord =
+    let
+        horizontal =
+            if coord.x > 0 then
+                [ Right ]
 
-     else if coord.x > 0 then
-        [ Right ]
+            else
+                [ Left ]
 
-     else
-        [ Left ]
-    )
-        ++ (if abs coord.y < abs coord.x then
-                []
-
-            else if coord.y > 0 then
+        vertical =
+            if coord.y > 0 then
                 [ Down ]
 
             else
                 [ Up ]
-           )
+    in
+    if abs coord.x < abs coord.y then
+        vertical ++ horizontal
+
+    else if abs coord.x > abs coord.y then
+        horizontal ++ vertical
+
+    else
+        horizontal
+            ++ vertical
+            |> List.partition ((==) dir)
+            |> (\( a, b ) -> a ++ b)
 
 
 

@@ -18,7 +18,25 @@ type alias Game =
 
 new : Int -> Generator Game
 new level =
-    Level.level1
+    (case level of
+        1 ->
+            Level.level1
+
+        2 ->
+            Level.level2
+
+        3 ->
+            Level.level3
+
+        4 ->
+            Level.level4
+
+        5 ->
+            Level.level5
+
+        _ ->
+            Level.level6
+    )
         |> Random.map fromBoard
 
 

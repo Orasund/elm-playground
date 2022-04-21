@@ -28,7 +28,7 @@ level6 =
 level5 : Generator (Grid (Maybe Cell))
 level5 =
     [ [ Just Hole, Just Box, Just Box, Just Box ]
-    , [ Nothing, Nothing, Nothing, Just Box ]
+    , [ Nothing, Nothing, Just Cell.monster, Just Box ]
     , [ Nothing, Just Box, Nothing, Just Box ]
     , [ Just Box, Nothing, Nothing, Just Hole ]
     ]
@@ -36,7 +36,7 @@ level5 =
         |> Internal.levelFromGrid
         |> Internal.randomInsertAll
             (List.concat
-                [ List.repeat 2 Cell.monster
+                [ List.repeat 1 Cell.monster
                 , List.repeat 0 Box
                 ]
             )
@@ -91,10 +91,10 @@ level1 : Generator (Grid (Maybe Cell))
 level1 =
     [ [ Just Box, Nothing, Nothing, Just Box ]
     , [ Nothing, Nothing, Nothing, Nothing ]
-    , [ Nothing, Nothing, Nothing, Nothing ]
+    , [ Nothing, Just Hole, Nothing, Nothing ]
     , [ Just Box, Nothing, Nothing, Just Box ]
     ]
         |> Grid.build
         |> Internal.levelFromGrid
-        |> Internal.randomInsertAll [ Hole, Cell.monster, Box ]
+        |> Internal.randomInsertAll [ Cell.monster, Box ]
         |> Random.map Tuple.first
