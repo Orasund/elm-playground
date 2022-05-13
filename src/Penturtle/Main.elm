@@ -2,16 +2,14 @@ module Penturtle.Main exposing (..)
 
 import Array exposing (Array)
 import Browser
-import Color
+import Color exposing (Color)
 import Html exposing (Html)
 import Html.Attributes
-import Quantity exposing (fractionalModBy)
 import Queue exposing (Queue)
 import Random exposing (Seed)
 import Svg
 import Svg.Attributes
 import Time
-import W.InputSlider exposing (color)
 
 
 type Mode
@@ -47,7 +45,18 @@ maxRadius =
 
 distBetweenReaders : Int
 distBetweenReaders =
-    15
+    10
+
+
+colors : Array Color
+colors =
+    [ Color.rgb255 54 53 55
+    , Color.rgb255 232 144 5
+    , Color.rgb255 219 80 74
+    , Color.rgb255 50 150 93
+    , Color.rgb255 0 141 213
+    ]
+        |> Array.fromList
 
 
 screenSize : Float
@@ -57,7 +66,7 @@ screenSize =
 
 circleSize : Float
 circleSize =
-    0.1
+    0.5
 
 
 forceMultiplier : Float
@@ -67,7 +76,7 @@ forceMultiplier =
 
 friction : Float
 friction =
-    0.05
+    0.01
 
 
 eps : Float
@@ -82,7 +91,7 @@ init () =
                 |> List.map (\int -> toFloat int * 2 * pi / 5 + pi / 2)
                 |> List.map
                     (\angle ->
-                        fromPolar ( maxRadius / 2, angle )
+                        fromPolar ( 10, angle )
                             |> plus ( maxRadius / 2, maxRadius / 2 )
                     )
                 |> List.map
@@ -98,7 +107,7 @@ init () =
                     )
       , strip =
             Array.empty
-      , mode = Read
+      , mode = Move
       }
     , Random.uniform True [ False ]
         |> Random.list (5 * distBetweenReaders)
@@ -114,16 +123,12 @@ plus ( x1, y1 ) ( x2, y2 ) =
 
 view : Model -> Browser.Document Msg
 view model =
-    let
-        color =
-            Color.black
-    in
     { title = "Penturtle"
     , body =
         [ [ model.particles
                 |> List.map (\it -> ( it.pos, it.path |> Queue.toList ))
-                |> List.map
-                    (\( ( x, y ), list ) ->
+                |> List.indexedMap
+                    (\index ( ( x, y ), list ) ->
                         Svg.path
                             [ list
                                 |> List.reverse
@@ -132,7 +137,11 @@ view model =
                                 |> String.join " "
                                 |> Svg.Attributes.d
                             , circleSize |> String.fromFloat |> Svg.Attributes.r
-                            , color |> Color.toCssString |> Svg.Attributes.stroke
+                            , colors
+                                |> Array.get index
+                                |> Maybe.withDefault Color.black
+                                |> Color.toCssString
+                                |> Svg.Attributes.stroke
                             , "transparent" |> Svg.Attributes.fill
                             , circleSize |> String.fromFloat |> Svg.Attributes.strokeWidth
                             ]
@@ -176,7 +185,11 @@ view model =
                     in
                     if i |> modBy distBetweenReaders |> (==) 0 then
                         Html.span
-                            [ Html.Attributes.style "background-color" (color |> Color.toCssString)
+                            [ colors
+                                |> Array.get (i // distBetweenReaders)
+                                |> Maybe.withDefault Color.black
+                                |> Color.toCssString
+                                |> Html.Attributes.style "background-color"
                             , Html.Attributes.style "color" (Color.white |> Color.toCssString)
                             ]
                             [ text ]
@@ -209,17 +222,20 @@ getForce list particle =
 
                     force =
                         if sign p.force == sign particle.force then
-                            -(abs p.force)
+                            -1 * forceMultiplier / length
+                            ---(abs p.force)
 
                         else
-                            abs p.force
+                            1 * forceMultiplier / length
+
+                    --abs p.force
                 in
                 if length < eps then
                     ( 0, 0 )
 
                 else
-                    ( ((pX - x) / length) * force * forceMultiplier
-                    , ((pY - y) / length) * force * forceMultiplier
+                    ( ((pX - x) / length) * force
+                    , ((pY - y) / length) * force
                     )
             )
         |> List.unzip
@@ -253,11 +269,12 @@ tick model =
                                     a.pos
                                         |> toPolar
                                         |> (\( radius, angle ) ->
-                                                if maxRadius / 2 < radius then
-                                                    -a.force
+                                                if maxRadius / 8 < radius then
+                                                    -a.force * radius * radius
+                                                    ---a.force 2
 
                                                 else
-                                                    0
+                                                    -a.force * radius * 2
                                            )
                                 , path = Queue.empty
                                 }
@@ -326,10 +343,10 @@ nextAction m0 =
                                     |> List.indexedMap Tuple.pair
                                     |> List.foldl
                                         (\( i, particle ) ->
-                                            if particle.force > 0 then
+                                            if particle.force > 1 then
                                                 Array.set (i * distBetweenReaders) False
 
-                                            else if particle.force < 0 then
+                                            else if particle.force < 1 then
                                                 Array.set (i * distBetweenReaders) True
 
                                             else
@@ -377,7 +394,7 @@ subscriptions model =
         second =
             1000
     in
-    [ Time.every (second / 10) (\_ -> Tick)
+    [ Time.every (second / 20) (\_ -> Tick)
     , Time.every second (\_ -> NextAction)
     ]
         |> Sub.batch
