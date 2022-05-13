@@ -50,13 +50,28 @@ distBetweenReaders =
 
 colors : Array Color
 colors =
-    [ Color.rgb255 54 53 55
+    [ black
     , Color.rgb255 232 144 5
-    , Color.rgb255 219 80 74
+    , red
     , Color.rgb255 50 150 93
-    , Color.rgb255 0 141 213
+    , blau
     ]
         |> Array.fromList
+
+
+black : Color
+black =
+    Color.rgb255 54 53 55
+
+
+red : Color
+red =
+    Color.rgb255 219 80 74
+
+
+blau : Color
+blau =
+    Color.rgb255 0 141 213
 
 
 screenSize : Float
@@ -126,9 +141,9 @@ view model =
     { title = "Penturtle"
     , body =
         [ [ model.particles
-                |> List.map (\it -> ( it.pos, it.path |> Queue.toList ))
+                |> List.map (\it -> ( it.force, it.pos, it.path |> Queue.toList ))
                 |> List.indexedMap
-                    (\index ( ( x, y ), list ) ->
+                    (\index ( force, ( x, y ), list ) ->
                         Svg.path
                             [ list
                                 |> List.reverse
@@ -137,9 +152,12 @@ view model =
                                 |> String.join " "
                                 |> Svg.Attributes.d
                             , circleSize |> String.fromFloat |> Svg.Attributes.r
-                            , colors
-                                |> Array.get index
-                                |> Maybe.withDefault Color.black
+                            , (if force > 0 then
+                                blau
+
+                               else
+                                red
+                              )
                                 |> Color.toCssString
                                 |> Svg.Attributes.stroke
                             , "transparent" |> Svg.Attributes.fill
@@ -185,9 +203,18 @@ view model =
                     in
                     if i |> modBy distBetweenReaders |> (==) 0 then
                         Html.span
-                            [ colors
+                            [ model.particles
+                                |> Array.fromList
                                 |> Array.get (i // distBetweenReaders)
-                                |> Maybe.withDefault Color.black
+                                |> Maybe.map
+                                    (\particle ->
+                                        if particle.force > 0 then
+                                            blau
+
+                                        else
+                                            red
+                                    )
+                                |> Maybe.withDefault black
                                 |> Color.toCssString
                                 |> Html.Attributes.style "background-color"
                             , Html.Attributes.style "color" (Color.white |> Color.toCssString)
@@ -222,13 +249,11 @@ getForce list particle =
 
                     force =
                         if sign p.force == sign particle.force then
-                            -1 * forceMultiplier / length
-                            ---(abs p.force)
+                            -(forceMultiplier / 10)
+                            -- -1 * forceMultiplier / (2 * min 1 length)
 
                         else
-                            1 * forceMultiplier / length
-
-                    --abs p.force
+                            1 * forceMultiplier / min 1 length
                 in
                 if length < eps then
                     ( 0, 0 )
@@ -353,6 +378,22 @@ nextAction m0 =
                                                 identity
                                         )
                                         model.strip
+                            , particles =
+                                model.particles
+                                    |> List.map
+                                        (\particle ->
+                                            { particle
+                                                | force =
+                                                    if particle.force > 1 then
+                                                        particle.force - 1
+
+                                                    else if particle.force < 1 then
+                                                        particle.force + 1
+
+                                                    else
+                                                        particle.force
+                                            }
+                                        )
                         }
 
                     Move ->
