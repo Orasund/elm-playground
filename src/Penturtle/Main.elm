@@ -87,7 +87,7 @@ circleSize =
 
 forceMultiplier : Float
 forceMultiplier =
-    0.05
+    0.1
 
 
 friction : Float
@@ -248,8 +248,7 @@ getForce list particle =
 
                     force =
                         if p.force == particle.force then
-                            -(forceMultiplier / 10)
-                            -- -1 * forceMultiplier / (2 * min 1 length)
+                            -forceMultiplier / (4 * min 1 length)
 
                         else
                             1 * forceMultiplier / min 1 length
