@@ -21,7 +21,8 @@ type Mode
 type alias Particle =
     { pos : ( Float, Float )
     , dir : ( Float, Float )
-    , force : Float
+    , score : Int
+    , force : Bool
     , path : Queue ( Float, Float )
     }
 
@@ -113,7 +114,8 @@ init () =
                     (\pos ->
                         { pos = pos
                         , dir = ( 0, 0 )
-                        , force = 0
+                        , score = 0
+                        , force = False
                         , path =
                             pos
                                 |> List.repeat 20
@@ -152,7 +154,7 @@ view model =
                                 |> String.join " "
                                 |> Svg.Attributes.d
                             , circleSize |> String.fromFloat |> Svg.Attributes.r
-                            , (if force > 0 then
+                            , (if force then
                                 blau
 
                                else
@@ -208,7 +210,7 @@ view model =
                                 |> Array.get (i // distBetweenReaders)
                                 |> Maybe.map
                                     (\particle ->
-                                        if particle.force > 0 then
+                                        if particle.force then
                                             blau
 
                                         else
@@ -244,11 +246,8 @@ getForce list particle =
                     length =
                         sqrt ((pX - x) ^ 2 + (pY - y) ^ 2)
 
-                    sign a =
-                        a > 0
-
                     force =
-                        if sign p.force == sign particle.force then
+                        if p.force == particle.force then
                             -(forceMultiplier / 10)
                             -- -1 * forceMultiplier / (2 * min 1 length)
 
@@ -290,17 +289,8 @@ tick model =
                             centerForce a =
                                 { pos = ( maxRadius / 2, maxRadius / 2 )
                                 , dir = ( 0, 0 )
-                                , force =
-                                    a.pos
-                                        |> toPolar
-                                        |> (\( radius, angle ) ->
-                                                if maxRadius / 8 < radius then
-                                                    -a.force * radius * radius
-                                                    ---a.force 2
-
-                                                else
-                                                    -a.force * radius * 2
-                                           )
+                                , score = 0
+                                , force = not a.force
                                 , path = Queue.empty
                                 }
 
@@ -349,12 +339,13 @@ nextAction m0 =
                                                 |> Maybe.map
                                                     (\bool ->
                                                         { particle
-                                                            | force =
+                                                            | score =
                                                                 if bool then
-                                                                    particle.force + 1
+                                                                    particle.score + 1
 
                                                                 else
-                                                                    particle.force - 1
+                                                                    particle.score - 1
+                                                            , force = bool
                                                         }
                                                     )
                                                 |> Maybe.withDefault particle
@@ -368,10 +359,10 @@ nextAction m0 =
                                     |> List.indexedMap Tuple.pair
                                     |> List.foldl
                                         (\( i, particle ) ->
-                                            if particle.force > 1 then
+                                            if particle.score > 1 then
                                                 Array.set (i * distBetweenReaders) False
 
-                                            else if particle.force < 1 then
+                                            else if particle.score < 1 then
                                                 Array.set (i * distBetweenReaders) True
 
                                             else
@@ -383,15 +374,15 @@ nextAction m0 =
                                     |> List.map
                                         (\particle ->
                                             { particle
-                                                | force =
-                                                    if particle.force > 1 then
-                                                        particle.force - 1
+                                                | score =
+                                                    if particle.score > 1 then
+                                                        particle.score - 1
 
-                                                    else if particle.force < 1 then
-                                                        particle.force + 1
+                                                    else if particle.score < 1 then
+                                                        particle.score + 1
 
                                                     else
-                                                        particle.force
+                                                        particle.score
                                             }
                                         )
                         }
