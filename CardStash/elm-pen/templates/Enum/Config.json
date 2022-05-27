@@ -1,0 +1,15 @@
+{
+  "schema": {
+    "type": "object",
+    "properties": {
+      "variants": {
+        "type": "array",
+        "items": { "type": "string" },
+        "minItems": 1
+      },
+      "isCyclic": { "type": "boolean" },
+      "withJsonConverters": { "type": "boolean" }
+    },
+    "required": ["variants"]
+  }
+}

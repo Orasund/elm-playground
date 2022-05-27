@@ -1,0 +1,42 @@
+{
+  "generateInto": "elm-pen/generated",
+  "templatesFrom": "elm-pen/templates",
+  "moduleBase": "Gen",
+  "pathToElmFormat": "elm-format",
+  "modules": {
+    "Face": {
+      "Enum": {
+        "variants": ["Jack", "Queen", "King", "Ace"],
+        "isCyclic": false,
+        "withJsonConverters": false
+      }
+    },
+    "Card": {
+      "Record": {
+        "imports": ["Gen.Enum.Face exposing (Face)"],
+        "fields": [
+          { "name": "face", "type": "Face" },
+          { "name": "amount", "type": "Int" }
+        ],
+        "withJsonDecoder": false,
+        "withJsonEncoder": false
+      }
+    },
+    "Model": {
+      "Record": {
+        "imports": [
+          "Data.Deck exposing (Deck)",
+          "Gen.Record.Card exposing (Card)",
+          "Random exposing (Seed)"
+        ],
+        "fields": [
+          { "name": "decks", "type": "(Deck,Deck)" },
+          { "name": "stash", "type": "Maybe Card" },
+          { "name": "seed", "type": "Seed" }
+        ],
+        "withJsonDecoder": false,
+        "withJsonEncoder": false
+      }
+    }
+  }
+}

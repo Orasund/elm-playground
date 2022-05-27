@@ -1,0 +1,22 @@
+{
+  "schema": {
+    "type": "object",
+    "properties": {
+      "imports": { "type": "array", "items": { "type": "string" } },
+      "variants": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "type": { "type": "string" },
+            "polymorphic": { "type": "boolean" }
+          },
+          "required": ["name"]
+        },
+        "minItems": 1
+      }
+    },
+    "required": ["variants"]
+  }
+}
