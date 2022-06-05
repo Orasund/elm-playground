@@ -1,0 +1,25 @@
+{
+  "schema": {
+    "type": "object",
+    "properties": {
+      "imports": { "type": "array", "items": { "type": "string" } },
+      "fields": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "type": { "type": "string" },
+            "jsonDecoder": { "type": "string" },
+            "jsonEncoder": { "type": "string" }
+          },
+          "required": ["name", "type"]
+        },
+        "minItems": 1
+      },
+      "withJsonDecoder": { "type": "boolean" },
+      "withJsonEncoder": { "type": "boolean" }
+    },
+    "required": ["fields"]
+  }
+}
