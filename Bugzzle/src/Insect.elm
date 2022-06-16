@@ -33,7 +33,7 @@ movement ( x, y ) ( ( posX, posY ), maybe ) insect =
         ( Just Fruit, Caterpillar ) ->
             True
 
-        ( Just natural, Caterpillar ) ->
+        ( Just _, Caterpillar ) ->
             ( posX, posY ) == ( x, y - 1 )
 
         ( Just _, Beetle ) ->
@@ -48,7 +48,7 @@ movement ( x, y ) ( ( posX, posY ), maybe ) insect =
         ( Just Stone, Snail ) ->
             ( posX, posY ) == ( x, y - 1 )
 
-        ( Just natural, Snail ) ->
+        ( Just _, Snail ) ->
             ( posX, posY ) == ( x, y + 1 )
 
         ( _, _ ) ->

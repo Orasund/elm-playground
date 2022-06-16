@@ -4,7 +4,6 @@ import Config
 import Dict exposing (Dict)
 import Gen.Enum.Natural exposing (Natural(..))
 import Insect exposing (Action(..), Insect(..))
-import Process exposing (spawn)
 import Random exposing (Generator)
 
 
@@ -61,24 +60,24 @@ place x game =
 
 fallTile : ( Int, Int ) -> Dict ( Int, Int ) Tile -> Maybe (Dict ( Int, Int ) Tile)
 fallTile ( x, y ) grid =
-    case grid |> Dict.get ( x, y ) of
-        Just tile ->
-            if y + 1 < Config.rows then
-                case grid |> Dict.get ( x, y + 1 ) of
-                    Just below ->
-                        Nothing
+    grid
+        |> Dict.get ( x, y )
+        |> Maybe.andThen
+            (\tile ->
+                if y + 1 < Config.rows then
+                    case grid |> Dict.get ( x, y + 1 ) of
+                        Just _ ->
+                            Nothing
 
-                    Nothing ->
-                        grid
-                            |> Dict.insert ( x, y + 1 ) tile
-                            |> Dict.remove ( x, y )
-                            |> Just
+                        Nothing ->
+                            grid
+                                |> Dict.insert ( x, y + 1 ) tile
+                                |> Dict.remove ( x, y )
+                                |> Just
 
-            else
-                Nothing
-
-        Nothing ->
-            Nothing
+                else
+                    Nothing
+            )
 
 
 fall : Game -> Maybe Game

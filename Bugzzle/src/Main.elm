@@ -81,7 +81,7 @@ update msg model =
                     ( model.game
                         |> Game.move
                         |> (\generator -> Random.step generator model.seed)
-                        |> (\( game, seed ) ->
+                        |> (\( game, _ ) ->
                                 { model
                                     | game = game
                                     , phase = Just (Falling { final = True })

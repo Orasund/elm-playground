@@ -1,7 +1,6 @@
 module View.Natural exposing (..)
 
 import Gen.Enum.Natural exposing (Natural(..))
-import Html.Styled exposing (Html)
 
 
 view : Natural -> String
