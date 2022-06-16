@@ -5,35 +5,37 @@ import Json.Value as JsonValue exposing (JsonValue(..))
 
 
 type Exp
-    = FunctionExp String (List Exp)
-    | ValueExp Value
-
-
-type Value
-    = SymbolValue JsonValue
-    | EmptyValue
+    = VariableExp { name : String, args : List Exp }
+    | ValueExp JsonValue
 
 
 type ParserError
     = FunctionNameExpected JsonValue
-    | ListExpected JsonValue
+    | ListValueExpected JsonValue
 
 
 type EvaluationError
     = NameNotFound String
     | InvalidListLength Int (List Exp)
+    | BoolExpected JsonValue Exp
+    | ListExpected JsonValue Exp
+    | ParsingError ParserError
 
 
 type alias Context =
-    Dict String (List Value -> Result EvaluationError Value)
+    Dict String (List JsonValue -> Result EvaluationError JsonValue)
+
+
+type alias Extension =
+    { args : List Exp
+    , context : Context
+    , evalFun : Context -> Exp -> Result EvaluationError JsonValue
+    }
+    -> Result EvaluationError JsonValue
 
 
 type alias Extensions =
-    Dict
-        String
-        ({ args : List Exp, context : Context, evalFun : Context -> Exp -> Result EvaluationError Value }
-         -> Result EvaluationError Value
-        )
+    Dict String Extension
 
 
 parseExp : JsonValue -> Result ParserError Exp
@@ -42,43 +44,82 @@ parseExp jsonValue =
         ArrayValue list ->
             case list of
                 [] ->
-                    EmptyValue |> ValueExp |> Ok
+                    JsonValue.NullValue |> ValueExp |> Ok
 
                 [ JsonValue.StringValue string ] ->
-                    FunctionExp string [] |> Ok
+                    VariableExp { name = string, args = [] } |> Ok
 
                 [ head ] ->
-                    head |> SymbolValue |> ValueExp |> Ok
+                    head |> ValueExp |> Ok
 
                 (JsonValue.StringValue string) :: tail ->
                     tail
                         |> internalRun parseExp
-                        |> Result.map (FunctionExp string)
+                        |> Result.map (\l -> VariableExp { name = string, args = l })
 
                 head :: _ ->
                     head |> FunctionNameExpected |> Err
 
         _ ->
-            jsonValue |> ListExpected |> Err
+            jsonValue |> ListValueExpected |> Err
 
 
-baseDialect :
-    Dict
-        String
-        ({ args : List Exp, context : Context, evalFun : Context -> Exp -> Result EvaluationError Value }
-         -> Result EvaluationError Value
-        )
+baseDialect : Extensions
 baseDialect =
     [ ( "let"
       , \{ args, context, evalFun } ->
             case args of
-                [ ValueExp (SymbolValue (JsonValue.StringValue string)), e1, e2 ] ->
-                    e1
+                [ ValueExp (JsonValue.ArrayValue list), body ] ->
+                    list
+                        |> List.foldl
+                            (\v0 ->
+                                Result.andThen
+                                    (\c ->
+                                        case v0 of
+                                            JsonValue.ArrayValue [ JsonValue.StringValue string, v1 ] ->
+                                                v1
+                                                    |> parseExp
+                                                    |> Result.mapError ParsingError
+                                                    |> Result.andThen (evalFun c)
+                                                    |> Result.map (\v -> c |> Dict.insert string (\_ -> Ok v))
+
+                                            JsonValue.ArrayValue l ->
+                                                InvalidListLength 2 (l |> List.map ValueExp) |> Err
+
+                                            _ ->
+                                                ListExpected v0 (ValueExp (JsonValue.ArrayValue list)) |> Err
+                                    )
+                            )
+                            (Ok context)
+                        |> Result.andThen
+                            (\newContext ->
+                                body
+                                    |> evalFun newContext
+                            )
+
+                _ ->
+                    InvalidListLength 3 args |> Err
+      )
+    , ( "if"
+      , \{ args, context, evalFun } ->
+            case args of
+                [ e0, e1, e2 ] ->
+                    e0
                         |> evalFun context
                         |> Result.andThen
-                            (\value ->
-                                e2
-                                    |> evalFun (Dict.insert string (\_ -> Ok value) context)
+                            (\v ->
+                                case v of
+                                    BoolValue bool ->
+                                        (if bool then
+                                            e1
+
+                                         else
+                                            e2
+                                        )
+                                            |> evalFun context
+
+                                    _ ->
+                                        BoolExpected v e0 |> Err
                             )
 
                 _ ->
@@ -88,23 +129,29 @@ baseDialect =
         |> Dict.fromList
 
 
-eval : Context -> Exp -> Result EvaluationError Value
+eval : Context -> Exp -> Result EvaluationError JsonValue
 eval =
     evalWithExtensions baseDialect
 
 
-evalWithExtensions : Extensions -> Context -> Exp -> Result EvaluationError Value
+evalWithExtensions : Extensions -> Context -> Exp -> Result EvaluationError JsonValue
 evalWithExtensions extensions context exp =
     case exp of
-        FunctionExp string list ->
-            case context |> Dict.get string of
+        VariableExp args ->
+            case extensions |> Dict.get args.name of
                 Just fun ->
-                    list
-                        |> internalRun (evalWithExtensions extensions context)
-                        |> Result.andThen fun
+                    { args = args.args, context = context, evalFun = evalWithExtensions extensions }
+                        |> fun
 
                 Nothing ->
-                    string |> NameNotFound |> Err
+                    case context |> Dict.get args.name of
+                        Just fun ->
+                            args.args
+                                |> internalRun (evalWithExtensions extensions context)
+                                |> Result.andThen fun
+
+                        Nothing ->
+                            args.name |> NameNotFound |> Err
 
         ValueExp value ->
             value |> Ok
