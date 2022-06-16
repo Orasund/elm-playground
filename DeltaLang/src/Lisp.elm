@@ -64,67 +64,87 @@ parseExp jsonValue =
             jsonValue |> ListValueExpected |> Err
 
 
-baseDialect : Extensions
-baseDialect =
-    [ ( "let"
-      , \{ args, context, evalFun } ->
-            case args of
-                [ ValueExp (JsonValue.ArrayValue list), body ] ->
-                    list
-                        |> List.foldl
-                            (\v0 ->
-                                Result.andThen
-                                    (\c ->
-                                        case v0 of
-                                            JsonValue.ArrayValue [ JsonValue.StringValue string, v1 ] ->
-                                                v1
-                                                    |> parseExp
-                                                    |> Result.mapError ParsingError
-                                                    |> Result.andThen (evalFun c)
-                                                    |> Result.map (\v -> c |> Dict.insert string (\_ -> Ok v))
+letFun :
+    { args : List Exp
+    , context : Context
+    , evalFun : Context -> Exp -> Result EvaluationError JsonValue
+    }
+    -> Result EvaluationError JsonValue
+letFun { args, context, evalFun } =
+    case args of
+        [ e, body ] ->
+            e
+                |> evalFun context
+                |> Result.andThen
+                    (\v ->
+                        case v of
+                            JsonValue.ArrayValue list ->
+                                list
+                                    |> List.foldl
+                                        (\v1 ->
+                                            Result.andThen
+                                                (\c ->
+                                                    case v1 of
+                                                        JsonValue.ArrayValue [ JsonValue.StringValue string, v2 ] ->
+                                                            c |> Dict.insert string (\_ -> Ok v2) |> Ok
 
-                                            JsonValue.ArrayValue l ->
-                                                InvalidListLength 2 (l |> List.map ValueExp) |> Err
+                                                        JsonValue.ArrayValue l ->
+                                                            InvalidListLength 2 (l |> List.map ValueExp) |> Err
 
-                                            _ ->
-                                                ListExpected v0 (ValueExp (JsonValue.ArrayValue list)) |> Err
-                                    )
-                            )
-                            (Ok context)
-                        |> Result.andThen
-                            (\newContext ->
-                                body
-                                    |> evalFun newContext
-                            )
-
-                _ ->
-                    InvalidListLength 3 args |> Err
-      )
-    , ( "if"
-      , \{ args, context, evalFun } ->
-            case args of
-                [ e0, e1, e2 ] ->
-                    e0
-                        |> evalFun context
-                        |> Result.andThen
-                            (\v ->
-                                case v of
-                                    BoolValue bool ->
-                                        (if bool then
-                                            e1
-
-                                         else
-                                            e2
+                                                        _ ->
+                                                            ListExpected v1 (ValueExp (JsonValue.ArrayValue list)) |> Err
+                                                )
                                         )
-                                            |> evalFun context
+                                        (Ok context)
 
-                                    _ ->
-                                        BoolExpected v e0 |> Err
-                            )
+                            _ ->
+                                ListExpected v e |> Err
+                    )
+                |> Result.andThen
+                    (\newContext ->
+                        body
+                            |> evalFun newContext
+                    )
 
-                _ ->
-                    InvalidListLength 3 args |> Err
-      )
+        _ ->
+            InvalidListLength 3 args |> Err
+
+
+ifFun :
+    { args : List Exp
+    , context : Context
+    , evalFun : Context -> Exp -> Result EvaluationError JsonValue
+    }
+    -> Result EvaluationError JsonValue
+ifFun { args, context, evalFun } =
+    case args of
+        [ e0, e1, e2 ] ->
+            e0
+                |> evalFun context
+                |> Result.andThen
+                    (\v ->
+                        case v of
+                            BoolValue bool ->
+                                (if bool then
+                                    e1
+
+                                 else
+                                    e2
+                                )
+                                    |> evalFun context
+
+                            _ ->
+                                BoolExpected v e0 |> Err
+                    )
+
+        _ ->
+            InvalidListLength 3 args |> Err
+
+
+baseDialect : Dict String Extension
+baseDialect =
+    [ ( "let", letFun )
+    , ( "if", ifFun )
     ]
         |> Dict.fromList
 
