@@ -76,28 +76,30 @@ recFun { args, context, evalFun } =
         [ e1, e2, body, e4 ] ->
             Result.map2
                 (\string argsNames ->
+                    let
+                        fun argsValues =
+                            if List.length argsValues == List.length argsNames then
+                                List.map2
+                                    (\name value ->
+                                        ( name, \_ -> Ok value )
+                                    )
+                                    argsNames
+                                    argsValues
+                                    |> Dict.fromList
+                                    |> (\dict -> Dict.union dict context)
+                                    |> Dict.insert string (\a -> fun a)
+                                    |> (\newContext -> body |> evalFun newContext)
+
+                            else
+                                argsValues
+                                    |> List.map ValueExp
+                                    |> InvalidListLength (List.length argsNames)
+                                    |> Err
+                    in
                     e4
                         |> evalFun
                             (context
-                                |> Dict.insert string
-                                    (\argsValues ->
-                                        if List.length argsValues == List.length argsNames then
-                                            List.map2
-                                                (\name value ->
-                                                    ( name, \_ -> Ok value )
-                                                )
-                                                argsNames
-                                                argsValues
-                                                |> Dict.fromList
-                                                |> (\dict -> Dict.union dict context)
-                                                |> (\newContext -> body |> evalFun newContext)
-
-                                        else
-                                            argsValues
-                                                |> List.map ValueExp
-                                                |> InvalidListLength (List.length argsNames)
-                                                |> Err
-                                    )
+                                |> Dict.insert string fun
                             )
                 )
                 (e1
