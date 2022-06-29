@@ -3,12 +3,12 @@ module Config exposing (bugAmount, gridSize, leafAmount, stoneAmount)
 
 gridSize : Int
 gridSize =
-    6
+    8
 
 
 leafAmount : Int
 leafAmount =
-    gridSize * gridSize // 3
+    gridSize
 
 
 stoneAmount : Int
@@ -18,4 +18,4 @@ stoneAmount =
 
 bugAmount : Int
 bugAmount =
-    2
+    3

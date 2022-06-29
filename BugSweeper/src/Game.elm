@@ -1,4 +1,4 @@
-module Game exposing (Game, moveBug, nearestBug, new, positions, removeLeafs, reveal)
+module Game exposing (Game, moveBug, nearestBug, new, positions, removeCatchedBugs, removeLeafs, reveal)
 
 import Config
 import Dict exposing (Dict)
@@ -111,6 +111,14 @@ moveBug game =
                 (Random.constant game.grid)
             )
         |> Random.map (\grid -> { grid = grid })
+
+
+removeCatchedBugs : Game -> Game
+removeCatchedBugs game =
+    game.grid
+        |> Dict.filter
+            (\_ tile -> tile /= Bug { visible = True })
+        |> (\grid -> { grid = grid })
 
 
 removeLeafs : Game -> Game

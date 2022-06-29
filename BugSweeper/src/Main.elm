@@ -2,9 +2,9 @@ module Main exposing (main)
 
 import Browser exposing (Document)
 import Config
-import Dict exposing (Dict)
+import Dict
 import Game exposing (Game)
-import Html exposing (Html)
+import Html
 import Html.Attributes
 import Html.Events
 import Random exposing (Seed)
@@ -113,6 +113,8 @@ view model =
                                     |> Html.a
                                         [ Html.Attributes.href "#"
                                         , Html.Events.onClick (TileClicked pos)
+                                        , Html.Attributes.style "font-size" "30px"
+                                        , Html.Attributes.style "text-decoration" "none"
                                         ]
                             )
                         |> Html.div []
@@ -132,15 +134,17 @@ update msg model =
             model.seed
                 |> Random.step
                     (model.game
+                        |> Game.removeCatchedBugs
+                        |> Game.removeLeafs
                         |> Game.reveal pos
                         |> Game.moveBug
-                        |> Random.map Game.removeLeafs
+                        |> Random.andThen Game.moveBug
                     )
                 |> (\( game, _ ) -> ( { model | game = game }, Cmd.none ))
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Sub.none
 
 
