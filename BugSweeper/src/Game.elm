@@ -8,7 +8,10 @@ import Tile exposing (Tile(..))
 
 
 type alias Game =
-    { grid : Dict ( Int, Int ) Tile }
+    { grid : Dict ( Int, Int ) Tile
+
+    -- , bugs : Dict ( Int, Int ) { visible : Bool }
+    }
 
 
 new : Generator Game
@@ -83,7 +86,10 @@ moveBug game =
                             ]
                                 |> List.filter
                                     (\( x0, y0 ) ->
-                                        (0 <= x0) && (x0 < Config.gridSize) && (0 <= y0) && (y0 < Config.gridSize)
+                                        (0 <= x0)
+                                            && (x0 < Config.gridSize)
+                                            && (0 <= y0)
+                                            && (y0 < Config.gridSize)
                                     )
                                 |> List.filterMap
                                     (\p ->
