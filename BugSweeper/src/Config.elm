@@ -1,8 +1,13 @@
-module Config exposing (bugAmount, gridSize, leafAmount, stoneAmount)
+module Config exposing (bugAmount, gameOverCooldownInMs, gridSize, hideBugs, leafAmount, maxTurns, stoneAmount)
 
 
 gridSize : Int
 gridSize =
+    5
+
+
+maxTurns : Int
+maxTurns =
     10
 
 
@@ -18,4 +23,13 @@ stoneAmount =
 
 bugAmount : Int
 bugAmount =
-    3
+    6
+
+
+hideBugs =
+    True
+
+
+gameOverCooldownInMs : Float
+gameOverCooldownInMs =
+    50

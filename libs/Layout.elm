@@ -2,7 +2,7 @@ module Layout exposing (..)
 
 {-| elm-layout
 
-better than elm-ui
+HTML like elm-ui
 
 -}
 
@@ -11,78 +11,179 @@ import Html.Attributes as Attr
 import UndoList.Decode exposing (msg)
 
 
+{-|
+
+    fill : Attribute msg
+    fill =
+        fillPortion 1
+
+-}
 fill : Attribute msg
 fill =
     fillPortion 1
 
 
+{-|
+
+    fillPortion : Int -> Attribute msg
+    fillPortion n =
+        Attr.style "flex" (String.fromInt n)
+
+-}
 fillPortion : Int -> Attribute msg
 fillPortion n =
     Attr.style "flex" (String.fromInt n)
 
 
+{-|
+
+    spacing : Float -> Attribute msg
+    spacing n =
+        Attr.style "gap" (String.fromFloat n ++ "px")
+
+-}
 spacing : Float -> Attribute msg
 spacing n =
     Attr.style "gap" (String.fromFloat n ++ "px")
 
 
+{-|
+
+    noWrap : Attribute msg
+    noWrap =
+        Attr.style "flex-wrap" "nowrap"
+
+-}
 noWrap : Attribute msg
 noWrap =
     Attr.style "flex-wrap" "nowrap"
 
 
+{-|
+
+    alignBaseline : Attribute msg
+    alignBaseline =
+        Attr.style "align-items" "baseline"
+
+-}
 alignBaseline : Attribute msg
 alignBaseline =
     Attr.style "align-items" "baseline"
 
 
+{-|
+
+    alignCenter : Attribute msg
+    alignCenter =
+        Attr.style "align-items" "center"
+
+-}
 alignCenter : Attribute msg
 alignCenter =
     Attr.style "align-items" "center"
 
 
+{-|
+
+    spaceBetween : Attribute msg
+    spaceBetween =
+        Attr.style "justify-content" "space-between"
+
+-}
 spaceBetween : Attribute msg
 spaceBetween =
     Attr.style "justify-content" "space-between"
 
 
+{-|
+
+    gap : Int -> Attribute msg
+    gap int =
+        Attr.style "gap" (String.fromInt int ++ "px")
+
+-}
 gap : Int -> Attribute msg
 gap int =
     Attr.style "gap" (String.fromInt int ++ "px")
 
 
+sticky : List (Attribute msg)
+sticky =
+    [ Attr.style "position" "sticky"
+    , Attr.style "z-index" "99999"
+    ]
+
+
+{-|
+
+    stickyOnTop : List (Attribute msg)
+    stickyOnTop =
+        [ Attr.style "position" "sticky"
+        , Attr.style "top" "0"
+        , Attr.style "z-index" "99999"
+        ]
+
+-}
 stickyOnTop : List (Attribute msg)
 stickyOnTop =
-    [ Attr.style "position" "sticky"
-    , Attr.style "top" "0"
-    , Attr.style "z-index" "99999"
-    ]
+    Attr.style "top" "0" :: sticky
 
 
+{-|
+
+    stickyOnBottom : List (Attribute msg)
+    stickyOnBottom =
+        [ Attr.style "position" "sticky"
+        , Attr.style "bottom" "0"
+        , Attr.style "z-index" "99999"
+        ]
+
+-}
 stickyOnBottom : List (Attribute msg)
 stickyOnBottom =
-    [ Attr.style "position" "sticky"
-    , Attr.style "bottom" "0"
-    , Attr.style "z-index" "99999"
-    ]
+    Attr.style "bottom" "0" :: sticky
 
 
+{-|
+
+    centerContent : Attribute msg
+    centerContent =
+        Attr.style "justify-content" "center"
+
+-}
 centerContent : Attribute msg
 centerContent =
     Attr.style "justify-content" "center"
 
 
+{-|
+
+    none : Html msg
+    none =
+        Html.text ""
+
+-}
 none : Html msg
 none =
     Html.text ""
 
 
+{-|
+
+    el : List (Attribute msg) -> Html msg -> Html msg
+    el attrs content =
+        Html.div
+            (Attr.style "display" "flex"
+                :: attrs
+            )
+            [ content ]
+
+-}
 el : List (Attribute msg) -> Html msg -> Html msg
 el attrs content =
     Html.div
-        ([ Attr.style "display" "flex"
-         ]
-            ++ attrs
+        (Attr.style "display" "flex"
+            :: attrs
         )
         [ content ]
 

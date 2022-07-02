@@ -1,21 +1,30 @@
-module Game exposing (Game, moveBug, nearestBug, new, positions, removeCatchedBugs, removeLeafs, reveal)
+module Game exposing (Game, moveBugs, nearestBug, new, positions, removeCatchedBugs, removeLeafs, reveal)
 
+import BugSpecies exposing (BugSpecies(..))
 import Config
 import Dict exposing (Dict)
 import Random exposing (Generator)
 import Random.List
+import Set.Any as AnySet exposing (AnySet)
 import Tile exposing (Tile(..))
+
+
+type alias Bug =
+    { visible : Bool
+    , species : BugSpecies
+    }
 
 
 type alias Game =
     { grid : Dict ( Int, Int ) Tile
-
-    -- , bugs : Dict ( Int, Int ) { visible : Bool }
+    , bugs : Dict ( Int, Int ) Bug
+    , collectedBugs : AnySet String BugSpecies
+    , turn : Int
     }
 
 
-new : Generator Game
-new =
+new : AnySet String BugSpecies -> Generator Game
+new collectedBugs =
     positions
         |> Random.List.choices Config.leafAmount
         |> Random.andThen
@@ -24,31 +33,58 @@ new =
                     |> Random.List.choices Config.stoneAmount
                     |> Random.andThen
                         (\( stones, rest2 ) ->
-                            Random.List.choices Config.bugAmount rest2
-                                |> Random.map
-                                    (\( bugs, _ ) ->
-                                        List.map (\pos -> ( pos, Bug { visible = False } )) bugs
-                                            ++ List.map (\pos -> ( pos, Leaf )) leafs
+                            Random.map2
+                                (\( bugs, _ ) list ->
+                                    { grid =
+                                        List.map (\pos -> ( pos, Leaf )) leafs
                                             ++ List.map (\pos -> ( pos, Stone )) stones
                                             |> Dict.fromList
-                                    )
+                                    , bugs =
+                                        List.map2
+                                            (\pos species ->
+                                                ( pos
+                                                , { visible = False
+                                                  , species = species
+                                                  }
+                                                )
+                                            )
+                                            bugs
+                                            list
+                                            |> Dict.fromList
+                                    , collectedBugs = collectedBugs
+                                    , turn = 0
+                                    }
+                                )
+                                (Random.List.choices Config.bugAmount rest2)
+                                (Random.list Config.bugAmount BugSpecies.generate)
                         )
             )
-        |> Random.map (\dict -> { grid = dict })
 
 
 reveal : ( Int, Int ) -> Game -> Game
 reveal pos game =
-    (case game.grid |> Dict.get pos of
-        Just (Bug _) ->
-            game.grid
-                |> Dict.insert pos (Bug { visible = True })
+    case game.bugs |> Dict.get pos of
+        Just bug ->
+            { game
+                | bugs = game.bugs |> Dict.insert pos { bug | visible = True }
+                , collectedBugs = game.collectedBugs |> AnySet.insert bug.species
+                , turn = game.turn - 1
+            }
 
         _ ->
-            game.grid
-                |> Dict.insert pos Leaf
-    )
-        |> (\grid -> { game | grid = grid })
+            case game.grid |> Dict.get pos of
+                Just Leaf ->
+                    { game
+                        | grid = game.grid |> Dict.remove pos
+                    }
+
+                Just _ ->
+                    game
+
+                Nothing ->
+                    { game
+                        | grid = game.grid |> Dict.insert pos Leaf
+                    }
 
 
 positions : List ( Int, Int )
@@ -61,79 +97,155 @@ positions =
             )
 
 
-moveBug : Game -> Generator Game
-moveBug game =
-    game.grid
-        |> Dict.toList
-        |> List.filterMap
-            (\( p, tile ) ->
-                if tile == Bug { visible = False } then
-                    Just p
+internalBugMovement : ( Int, Int ) -> Bug -> Game -> Generator Game
+internalBugMovement ( x, y ) bug g =
+    (case bug.species of
+        Grasshopper ->
+            [ ( x + 1, y + 1 )
+            , ( x + 1, y - 1 )
+            , ( x - 1, y + 1 )
+            , ( x - 1, y - 1 )
+            , ( x, y - 2 )
+            , ( x - 2, y )
+            , ( x, y + 2 )
+            , ( x + 2, y )
+            ]
 
-                else
-                    Nothing
+        LadyBeetle ->
+            [ ( x, y - 1 )
+            , ( x - 1, y )
+            , ( x, y + 1 )
+            , ( x + 1, y )
+            , ( x, y - 2 )
+            , ( x - 2, y )
+            , ( x, y + 2 )
+            , ( x + 2, y )
+            ]
+
+        _ ->
+            [ ( x, y - 1 )
+            , ( x - 1, y )
+            , ( x, y + 1 )
+            , ( x + 1, y )
+            ]
+    )
+        |> List.filter
+            (\( x0, y0 ) ->
+                (0 <= x0)
+                    && (x0 < Config.gridSize)
+                    && (0 <= y0)
+                    && (y0 < Config.gridSize)
             )
+        |> List.filterMap
+            (\p ->
+                case ( g.grid |> Dict.get p, g.bugs |> Dict.get p ) of
+                    ( Nothing, Nothing ) ->
+                        Just ( p, Nothing )
+
+                    ( Just Stone, Nothing ) ->
+                        Just ( p, Just Stone )
+
+                    ( _, _ ) ->
+                        Nothing
+            )
+        |> (case bug.species of
+                Cockroach ->
+                    \list ->
+                        let
+                            ( stone, empty ) =
+                                List.partition
+                                    (\( _, maybe ) ->
+                                        maybe == Just Stone
+                                    )
+                                    list
+                        in
+                        if List.isEmpty stone then
+                            empty
+
+                        else
+                            empty
+                                |> List.take 1
+                                |> (++) stone
+
+                Grasshopper ->
+                    \list ->
+                        let
+                            ( stone, empty ) =
+                                List.partition
+                                    (\( _, maybe ) ->
+                                        maybe == Just Stone
+                                    )
+                                    list
+                        in
+                        if List.isEmpty empty then
+                            stone
+
+                        else
+                            empty
+
+                Snail ->
+                    \list ->
+                        let
+                            ( stone, empty ) =
+                                List.partition
+                                    (\( _, maybe ) ->
+                                        maybe == Just Stone
+                                    )
+                                    list
+                        in
+                        if List.isEmpty stone then
+                            []
+
+                        else
+                            empty
+
+                _ ->
+                    identity
+           )
+        |> Random.List.choose
+        |> Random.map
+            (\( maybe, _ ) ->
+                { g
+                    | bugs =
+                        maybe
+                            |> Maybe.map
+                                (\( p, _ ) ->
+                                    g.bugs
+                                        |> Dict.remove ( x, y )
+                                        |> Dict.insert p { bug | visible = False }
+                                )
+                            |> Maybe.withDefault g.bugs
+                }
+            )
+
+
+moveBugs : Game -> Generator Game
+moveBugs game =
+    game.bugs
+        |> Dict.toList
+        |> List.filter (\( _, { visible } ) -> not visible)
         |> Random.List.shuffle
         |> Random.andThen
             (List.foldl
-                (\( x, y ) ->
-                    Random.andThen
-                        (\grid ->
-                            [ ( x, y - 1 )
-                            , ( x - 1, y )
-                            , ( x, y + 1 )
-                            , ( x + 1, y )
-                            ]
-                                |> List.filter
-                                    (\( x0, y0 ) ->
-                                        (0 <= x0)
-                                            && (x0 < Config.gridSize)
-                                            && (0 <= y0)
-                                            && (y0 < Config.gridSize)
-                                    )
-                                |> List.filterMap
-                                    (\p ->
-                                        case grid |> Dict.get p of
-                                            Just _ ->
-                                                Nothing
-
-                                            Nothing ->
-                                                Just p
-                                    )
-                                |> Random.List.choose
-                                |> Random.map
-                                    (\( maybe, _ ) ->
-                                        maybe
-                                            |> Maybe.map
-                                                (\p ->
-                                                    grid
-                                                        |> Dict.remove ( x, y )
-                                                        |> Dict.insert p (Bug { visible = False })
-                                                )
-                                            |> Maybe.withDefault grid
-                                    )
-                        )
-                )
-                (Random.constant game.grid)
+                (\( p, bug ) -> Random.andThen (internalBugMovement p bug))
+                (Random.constant game)
             )
-        |> Random.map (\grid -> { grid = grid })
 
 
 removeCatchedBugs : Game -> Game
 removeCatchedBugs game =
-    game.grid
-        |> Dict.filter
-            (\_ tile -> tile /= Bug { visible = True })
-        |> (\grid -> { grid = grid })
+    game.bugs
+        |> Dict.filter (\_ { visible } -> not visible)
+        |> (\bugs -> { game | bugs = bugs })
 
 
-removeLeafs : Game -> Game
-removeLeafs game =
+removeLeafs : ( Int, Int ) -> Game -> Game
+removeLeafs ignorePos game =
     game.grid
         |> Dict.toList
         |> List.filterMap
             (\( p, tile ) ->
-                if tile == Leaf then
+                if tile == Leaf && p /= ignorePos then
                     Just p
 
                 else
@@ -148,11 +260,16 @@ removeLeafs game =
                 ]
                     |> List.map
                         (\p ->
-                            grid |> Dict.get p
+                            game.bugs |> Dict.get p
                         )
                     |> List.any
-                        (\p ->
-                            p == Just (Bug { visible = False })
+                        (\maybe ->
+                            case maybe of
+                                Just { visible } ->
+                                    not visible
+
+                                Nothing ->
+                                    False
                         )
                     |> (\nextToBug ->
                             if nextToBug then
@@ -164,25 +281,20 @@ removeLeafs game =
                        )
             )
             game.grid
-        |> (\grid -> { grid = grid })
+        |> (\grid -> { game | grid = grid })
 
 
 nearestBug : ( Int, Int ) -> Game -> Int
 nearestBug ( x0, y0 ) game =
-    game.grid
+    game.bugs
         |> Dict.toList
         |> List.filterMap
-            (\( p, tile ) ->
-                case tile of
-                    Bug { visible } ->
-                        if visible then
-                            Nothing
+            (\( p, { visible } ) ->
+                if visible then
+                    Nothing
 
-                        else
-                            Just p
-
-                    _ ->
-                        Nothing
+                else
+                    Just p
             )
         |> List.map
             (\( x1, y1 ) ->
