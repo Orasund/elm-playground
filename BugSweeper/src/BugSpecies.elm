@@ -9,12 +9,28 @@ type BugSpecies
     | Cockroach
     | Snail
     | Grasshopper
+    | Spider
 
 
-generate : Generator BugSpecies
-generate =
-    [ ( 8, Beetle ), ( 4, Cockroach ), ( 2, LadyBeetle ), ( 1, Grasshopper ) ]
-        |> Random.weighted ( 16, Snail )
+list : List BugSpecies
+list =
+    [ Snail, Beetle, Cockroach, LadyBeetle, Grasshopper, Spider ]
+
+
+generate : Int -> Generator BugSpecies
+generate level =
+    case
+        list
+            |> List.drop (level // 2)
+            |> List.take (level + 1)
+            |> List.reverse
+            |> List.indexedMap (\i species -> ( ((i + 1) ^ 2 + (i + 1)) // 2 |> toFloat, species ))
+    of
+        head :: tail ->
+            Random.weighted head tail
+
+        [] ->
+            Random.constant Snail
 
 
 toString : BugSpecies -> String
@@ -34,3 +50,6 @@ toString species =
 
         Grasshopper ->
             "🦗"
+
+        Spider ->
+            "🕷️"

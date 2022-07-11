@@ -20,11 +20,12 @@ type alias Game =
     , bugs : Dict ( Int, Int ) Bug
     , collectedBugs : AnySet String BugSpecies
     , turn : Int
+    , level : Int
     }
 
 
-new : AnySet String BugSpecies -> Generator Game
-new collectedBugs =
+new : Int -> AnySet String BugSpecies -> Generator Game
+new level collectedBugs =
     positions
         |> Random.List.choices Config.leafAmount
         |> Random.andThen
@@ -53,10 +54,11 @@ new collectedBugs =
                                             |> Dict.fromList
                                     , collectedBugs = collectedBugs
                                     , turn = 0
+                                    , level = level
                                     }
                                 )
                                 (Random.List.choices Config.bugAmount rest2)
-                                (Random.list Config.bugAmount BugSpecies.generate)
+                                (Random.list Config.bugAmount (BugSpecies.generate level))
                         )
             )
 
@@ -145,6 +147,9 @@ internalBugMovement ( x, y ) bug g =
                     ( Just Stone, Nothing ) ->
                         Just ( p, Just Stone )
 
+                    ( Just SpiderWeb, Nothing ) ->
+                        Just ( p, Just SpiderWeb )
+
                     ( _, _ ) ->
                         Nothing
             )
@@ -160,12 +165,16 @@ internalBugMovement ( x, y ) bug g =
                                     list
                         in
                         if List.isEmpty stone then
-                            empty
+                            Random.constant empty
 
                         else
-                            empty
-                                |> List.take 1
-                                |> (++) stone
+                            case empty of
+                                h :: t ->
+                                    Random.uniform h t
+                                        |> Random.map (\e -> e :: stone)
+
+                                [] ->
+                                    Random.constant stone
 
                 Grasshopper ->
                     \list ->
@@ -177,36 +186,75 @@ internalBugMovement ( x, y ) bug g =
                                     )
                                     list
                         in
-                        if List.isEmpty empty then
+                        (if List.isEmpty empty then
                             stone
 
-                        else
+                         else
                             empty
+                        )
+                            |> Random.constant
 
                 Snail ->
                     \list ->
                         let
-                            ( stone, empty ) =
+                            ( _, empty ) =
                                 List.partition
                                     (\( _, maybe ) ->
                                         maybe == Just Stone
                                     )
                                     list
                         in
-                        if List.isEmpty stone then
-                            []
+                        (case g.grid |> Dict.get ( x, y ) of
+                            Just Stone ->
+                                empty
 
-                        else
-                            empty
+                            _ ->
+                                []
+                        )
+                            |> Random.constant
 
                 _ ->
-                    identity
+                    Random.constant
            )
-        |> Random.List.choose
-        |> Random.map
+        |> Random.andThen Random.List.choose
+        |> Random.andThen
             (\( maybe, _ ) ->
-                { g
-                    | bugs =
+                case bug.species of
+                    Spider ->
+                        Random.int 0 4
+                            |> Random.map
+                                (\int ->
+                                    if int == 0 then
+                                        { g
+                                            | grid =
+                                                g.grid
+                                                    |> Dict.update ( x, y ) (\m -> m |> Maybe.withDefault SpiderWeb |> Just)
+                                            , bugs =
+                                                maybe
+                                                    |> Maybe.map
+                                                        (\( p, _ ) ->
+                                                            g.bugs
+                                                                |> Dict.remove ( x, y )
+                                                                |> Dict.insert p { bug | visible = False }
+                                                        )
+                                                    |> Maybe.withDefault g.bugs
+                                        }
+
+                                    else
+                                        { g
+                                            | bugs =
+                                                maybe
+                                                    |> Maybe.map
+                                                        (\( p, _ ) ->
+                                                            g.bugs
+                                                                |> Dict.remove ( x, y )
+                                                                |> Dict.insert p { bug | visible = False }
+                                                        )
+                                                    |> Maybe.withDefault g.bugs
+                                        }
+                                )
+
+                    _ ->
                         maybe
                             |> Maybe.map
                                 (\( p, _ ) ->
@@ -215,7 +263,8 @@ internalBugMovement ( x, y ) bug g =
                                         |> Dict.insert p { bug | visible = False }
                                 )
                             |> Maybe.withDefault g.bugs
-                }
+                            |> Random.constant
+                            |> Random.map (\bugs -> { g | bugs = bugs })
             )
 
 

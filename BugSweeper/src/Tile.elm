@@ -4,6 +4,7 @@ module Tile exposing (Tile(..), toString)
 type Tile
     = Stone
     | Leaf
+    | SpiderWeb
 
 
 toString : Tile -> String
@@ -14,3 +15,6 @@ toString tile =
 
         Leaf ->
             "🍂"
+
+        SpiderWeb ->
+            "🕸️"

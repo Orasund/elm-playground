@@ -9,8 +9,6 @@ import Html
 import Html.Attributes
 import Html.Events
 import Layout
-import Material.Elevation as Elevation
-import Material.Theme as Theme
 import Process
 import Random exposing (Seed)
 import Set.Any as AnySet exposing (AnySet)
@@ -21,12 +19,14 @@ import Tile exposing (Tile(..))
 type alias Model =
     { game : Game
     , seed : Seed
+    , viewCollection : Bool
     }
 
 
 type Msg
-    = NewGame { seed : Seed, collectedBugs : AnySet String BugSpecies }
+    = NewGame { seed : Seed, collectedBugs : AnySet String BugSpecies, level : Int }
     | TileClicked ( Int, Int )
+    | ToggleViewCollection
 
 
 init : () -> ( Model, Cmd Msg )
@@ -37,16 +37,18 @@ init () =
 
         ( game, _ ) =
             seed
-                |> Random.step (Game.new (AnySet.empty BugSpecies.toString))
+                |> Random.step (Game.new 1 (AnySet.empty BugSpecies.toString))
     in
     ( { game = game
       , seed = seed
+      , viewCollection = False
       }
     , Random.independentSeed
         |> Random.map
             (\s ->
                 { seed = s
                 , collectedBugs = AnySet.empty BugSpecies.toString
+                , level = 1
                 }
             )
         |> Random.generate NewGame
@@ -84,10 +86,9 @@ view model =
             |> Html.text
             |> Layout.el [ Html.Attributes.style "padding" "8px 16px" ]
             |> Layout.el
-                [ Theme.surface
-                , Elevation.z1
+                [ Html.Attributes.style "background-color" "rgba(255,255,255,0.2)"
                 , Html.Attributes.style "height" "48px"
-                , Html.Attributes.style "border-radius" "8px"
+                , Html.Attributes.style "border-radius" "10000px"
                 , Layout.alignCenter
                 ]
         , List.range 0 (Config.gridSize - 1)
@@ -123,8 +124,7 @@ view model =
                                             ++ [ Html.Attributes.style "height" "64px"
                                                , Html.Attributes.style "width" "64px"
                                                , Html.Attributes.style "border-radius" "8px"
-                                               , Theme.surface
-                                               , Elevation.z2
+                                               , Html.Attributes.style "background-color" "white"
                                                ]
                                         )
                                     |> List.singleton
@@ -141,7 +141,15 @@ view model =
         , [ "Turns remaining: " |> Html.text
           , (Config.maxTurns - model.game.turn |> String.fromInt)
                 |> Html.text
-                |> Layout.el [ Html.Attributes.style "font-size" "28px" ]
+                |> Layout.el
+                    (Layout.centered
+                        ++ [ Html.Attributes.style "font-size" "28px"
+                           , Html.Attributes.style "background-color" "rgba(255,255,255,0.2)"
+                           , Html.Attributes.style "height" "48px"
+                           , Html.Attributes.style "width" "48px"
+                           , Html.Attributes.style "border-radius" "10000px"
+                           ]
+                    )
           ]
             |> Layout.row
                 [ Html.Attributes.style "justify-content" "flex-end"
@@ -149,35 +157,110 @@ view model =
                 , Html.Attributes.style "height" "48px"
                 , Layout.spacing 16
                 ]
-        , [ "collected Bugs:"
+        , Layout.none
+            |> Layout.container
+                (Layout.centered
+                    ++ [ Html.Attributes.style "background-color" "rgb(70, 109, 34,0.5)"
+                       , Html.Attributes.style "backdrop-filter" "blur(2px)"
+                       , Html.Events.onClick ToggleViewCollection
+                       ]
+                    ++ (if model.viewCollection then
+                            []
+
+                        else
+                            [ Html.Attributes.style "display" "none"
+                            ]
+                       )
+                )
+        , (if model.viewCollection then
+            [ "Your collection:"
                 |> Html.text
                 |> Layout.el
                     [ Html.Attributes.style "padding" "8px 16px"
+                    , Html.Attributes.style "height" "48px"
                     , Layout.alignCenter
                     ]
-          , (model.game.collectedBugs
-                |> AnySet.toList
-                |> List.map BugSpecies.toString
-                |> String.concat
-            )
-                |> Html.text
-                |> Layout.el [ Html.Attributes.style "padding" "8px 16px", Html.Attributes.style "font-size" "20px", Layout.alignCenter ]
-          ]
-            |> Layout.row
-                [ Html.Attributes.style "height" "48px"
-                , Html.Attributes.style "position" "fixed"
-                , Html.Attributes.style "bottom" "0px"
-                , Html.Attributes.style "width" "352px"
-                , Theme.surface
-                , Elevation.z8
-                , Html.Attributes.style "border-top-left-radius" "8px"
-                , Html.Attributes.style "border-top-right-radius" "8px"
-                ]
+            , (BugSpecies.list
+                |> List.map
+                    (\species ->
+                        if model.game.collectedBugs |> AnySet.member species then
+                            BugSpecies.toString species
+
+                        else
+                            "❓"
+                    )
+                |> List.map
+                    (\string ->
+                        string
+                            |> Html.text
+                            |> Layout.el
+                                (Layout.centered
+                                    ++ [ Html.Attributes.style "border-radius" "32px"
+                                       , Html.Attributes.style "background-color" "rgba(0,0,0,0.1)"
+                                       , Html.Attributes.style "height" "48px"
+                                       , Html.Attributes.style "width" "48px"
+                                       ]
+                                )
+                    )
+              )
+                |> Layout.row
+                    [ Html.Attributes.style "padding" "16px"
+                    , Html.Attributes.style "font-size" "20px"
+                    , Layout.alignCenter
+                    , Layout.spacing 16
+                    ]
+            ]
+
+           else
+            [ [ "Your collection:"
+                    |> Html.text
+                    |> Layout.el
+                        [ Html.Attributes.style "padding" "8px 16px"
+                        , Layout.alignCenter
+                        ]
+              , (model.game.collectedBugs
+                    |> AnySet.toList
+                    |> List.map BugSpecies.toString
+                    |> String.concat
+                )
+                    |> Html.text
+                    |> Layout.el
+                        [ Html.Attributes.style "padding" "8px 16px"
+                        , Html.Attributes.style "font-size" "20px"
+                        , Layout.alignCenter
+                        ]
+              ]
+                |> Layout.row [ Html.Attributes.style "height" "48px", Layout.alignCenter, Layout.spaceBetween ]
+                |> List.singleton
+                |> Html.a
+                    [ Html.Attributes.href "#"
+                    , Html.Events.onClick ToggleViewCollection
+                    , Html.Attributes.style "text-decoration" "none"
+                    , Html.Attributes.style "color" "black"
+                    ]
+            ]
+          )
+            |> Layout.column
+                ((if model.viewCollection then
+                    [ Html.Attributes.style "height" "250px" ]
+
+                  else
+                    [ Html.Attributes.style "height" "48px" ]
+                 )
+                    ++ [ Html.Attributes.style "position" "fixed"
+                       , Html.Attributes.style "bottom" "0px"
+                       , Html.Attributes.style "width" "352px"
+                       , Html.Attributes.style "background-color" "white"
+                       , Html.Attributes.style "border-top-left-radius" "8px"
+                       , Html.Attributes.style "border-top-right-radius" "8px"
+                       , Html.Attributes.style "transition" "height 0.2s"
+                       ]
+                )
         ]
             |> Layout.column [ Layout.spacing 8, Html.Attributes.style "height" "100%", Layout.centerContent ]
             |> Layout.container
                 (Layout.centered
-                    ++ [ Theme.primaryBg
+                    ++ [ Html.Attributes.style "background-image" "linear-gradient(#D1884D,#466D22)"
                        ]
                 )
             |> List.singleton
@@ -187,12 +270,13 @@ view model =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        NewGame { seed, collectedBugs } ->
+        NewGame { seed, collectedBugs, level } ->
             seed
-                |> Random.step (Game.new collectedBugs |> Random.map (Game.removeLeafs ( -1, -1 )))
+                |> Random.step (Game.new level collectedBugs |> Random.map (Game.removeLeafs ( -1, -1 )))
                 |> (\( game, newSeed ) ->
                         ( { game = game
                           , seed = newSeed
+                          , viewCollection = False
                           }
                         , Cmd.none
                         )
@@ -207,6 +291,7 @@ update msg model =
                             Task.succeed
                                 { seed = model.seed
                                 , collectedBugs = model.game.collectedBugs
+                                , level = model.game.level + 1
                                 }
                         )
                     |> Task.perform NewGame
@@ -229,6 +314,9 @@ update msg model =
                             , Cmd.none
                             )
                        )
+
+        ToggleViewCollection ->
+            ( { model | viewCollection = not model.viewCollection }, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
