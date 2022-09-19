@@ -41,12 +41,8 @@ generator size =
         , "color": ["black","darkRed"]
         , "square":
             [ "#square3#"
-            , "{\\"0\\":#content#,\\"1\\":#content#}"
             , "{\\"0\\":#content#,\\"2\\":#content#}"
             , "{\\"0\\":#content#,\\"3\\":#content#}"
-            , "{\\"1\\":#content#,\\"2\\":#content#}"
-            , "{\\"1\\":#content#,\\"3\\":#content#}"
-            , "{\\"2\\":#content#,\\"3\\":#content#}"
             ]
         , "square3":
             [ "{\\"1\\":#content#,\\"2\\":#content#,\\"3\\":#square#}"
