@@ -28,8 +28,8 @@ type alias Circle =
     { size : Float, color : String }
 
 
-generator : Float -> Generator (Result Json.Decode.Error (List ( ( Float, Float ), Circle )))
-generator size =
+generator : ( Float, Float ) -> Float -> Generator (Result Json.Decode.Error (List ( ( Float, Float ), Circle )))
+generator pos size =
     Tracery.fromJson
         """
         { "origin":"#square3#"
@@ -53,7 +53,7 @@ generator size =
         }
         """
         |> Result.Extra.extract (\err -> err |> Json.Decode.errorToString |> Random.constant)
-        |> Random.map (Json.Decode.decodeString (circleDecoder size))
+        |> Random.map (Json.Decode.decodeString (circleDecoder pos size))
 
 
 circleList : { pos : ( Float, Float ), size : Float } -> JsonValue -> List ( ( Float, Float ), Circle )
@@ -90,10 +90,10 @@ circleList args jsonValue =
             []
 
 
-circleDecoder : Float -> Decoder (List ( ( Float, Float ), Circle ))
-circleDecoder size =
+circleDecoder : ( Float, Float ) -> Float -> Decoder (List ( ( Float, Float ), Circle ))
+circleDecoder pos size =
     Json.Value.decoder
-        |> Json.Decode.map (circleList { pos = ( 0, 0 ), size = size })
+        |> Json.Decode.map (circleList { pos = pos, size = size })
 
 
 init : () -> ( Model, Cmd Msg )
@@ -111,8 +111,11 @@ view model =
             size =
                 400
 
+            imageSize =
+                500
+
             ( result, _ ) =
-                Random.step (generator size) model.seed
+                Random.step (generator ( 50, 50 ) size) model.seed
         in
         [ case result of
             Ok list ->
@@ -124,12 +127,24 @@ view model =
                                 , y + circle.size / 2 |> String.fromFloat |> Svg.Attributes.cy
                                 , circle.size / 2 |> String.fromFloat |> Svg.Attributes.r
                                 , circle.color |> Svg.Attributes.fill
+                                , "drop-shadow(0px 4px 2px rgb(0 0 0 / 0.4))"
+                                    |> Svg.Attributes.filter
                                 ]
                                 []
                         )
+                    |> (::)
+                        (Svg.rect
+                            [ Svg.Attributes.x "0"
+                            , Svg.Attributes.y "0"
+                            , imageSize |> String.fromFloat |> Svg.Attributes.height
+                            , imageSize |> String.fromFloat |> Svg.Attributes.width
+                            , "orange" |> Svg.Attributes.fill
+                            ]
+                            []
+                        )
                     |> Svg.svg
-                        [ size |> String.fromFloat |> Svg.Attributes.width
-                        , size |> String.fromFloat |> Svg.Attributes.height
+                        [ imageSize |> String.fromFloat |> Svg.Attributes.width
+                        , imageSize |> String.fromFloat |> Svg.Attributes.height
                         ]
 
             Err err ->
