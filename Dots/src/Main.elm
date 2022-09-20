@@ -1,7 +1,7 @@
 module Main exposing (..)
 
 import Browser exposing (Document)
-import Dict exposing (Dict)
+import Dict
 import Html
 import Html.Events
 import Json.Decode exposing (Decoder)
@@ -38,7 +38,7 @@ generator pos size =
             , "\\"#color#\\""
             , "#square#"
             ]
-        , "color": ["black","darkRed"]
+        , "color": ["\\\\#19381F","\\\\#EEE82C"]
         , "square":
             [ "#square3#"
             , "{\\"0\\":#content#,\\"2\\":#content#}"
@@ -138,7 +138,7 @@ view model =
                             , Svg.Attributes.y "0"
                             , imageSize |> String.fromFloat |> Svg.Attributes.height
                             , imageSize |> String.fromFloat |> Svg.Attributes.width
-                            , "orange" |> Svg.Attributes.fill
+                            , "#91CB3E" |> Svg.Attributes.fill
                             ]
                             []
                         )
@@ -165,7 +165,7 @@ update msg model =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Sub.none
 
 
