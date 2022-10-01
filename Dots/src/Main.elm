@@ -8,52 +8,83 @@ import Json.Decode exposing (Decoder)
 import Json.Value exposing (JsonValue(..))
 import Random exposing (Generator, Seed)
 import Result.Extra
+import String exposing (replace)
 import Svg
 import Svg.Attributes
+import Time
 import Tracery
+import Tracery.Command exposing (Command(..))
+import Tracery.Grammar exposing (Grammar)
+import Tracery.Syntax exposing (Expression(..))
+
+
+backgroundColor : String
+backgroundColor =
+    "#553A41"
+
+
+color1 : String
+color1 =
+    "#32908F"
+
+
+color2 : String
+color2 =
+    "#26C485"
 
 
 type alias Model =
     { seed : Seed
+    , grammar : Grammar
     , circles : List ( ( Float, Float ), Circle )
+    , error : Maybe String
     }
 
 
 type Msg
     = NewSeed Seed
     | RequestedNextImage
+    | Tick
 
 
 type alias Circle =
     { size : Float, color : String }
 
 
-generator : ( Float, Float ) -> Float -> Generator (Result Json.Decode.Error (List ( ( Float, Float ), Circle )))
-generator pos size =
-    Tracery.fromJson
-        """
-        { "origin":"#square3#"
+generateGrammar : Result Json.Decode.Error Grammar
+generateGrammar =
+    """
+        { "origin":"#square#"
         , "content":
             [ "\\"#color#\\""
             , "\\"#color#\\""
+            , "null"
             , "#square#"
             ]
-        , "color": ["\\\\#19381F","\\\\#EEE82C"]
-        , "square":
-            [ "#square3#"
-            , "{\\"0\\":#content#,\\"2\\":#content#}"
-            , "{\\"0\\":#content#,\\"3\\":#content#}"
-            ]
-        , "square3":
-            [ "{\\"1\\":#content#,\\"2\\":#content#,\\"3\\":#square#}"
-            , "{\\"0\\":#content#,\\"2\\":#square#,\\"3\\":#content#}"
-            , "{\\"1\\":#square#,\\"0\\":#content#,\\"3\\":#content#}"
-            , "{\\"1\\":#content#,\\"2\\":#content#,\\"0\\":#square#}"
-            ]
+        , "color": ["\\\\"""
+        ++ color1
+        ++ """","\\\\"""
+        ++ color2
+        ++ """"]
+        , "square": [ "{\\"1\\":#content#,\\"2\\":#content#,\\"3\\":#content#,\\"0\\":#content#}" ]
         }
         """
-        |> Result.Extra.extract (\err -> err |> Json.Decode.errorToString |> Random.constant)
-        |> Random.map (Json.Decode.decodeString (circleDecoder pos size))
+        |> Tracery.fromJson
+
+
+toCircles : ( Float, Float ) -> Float -> Grammar -> Result Json.Decode.Error (List ( ( Float, Float ), Circle ))
+toCircles pos size grammar =
+    grammar
+        |> Tracery.toString
+            (\{ variable } ->
+                case variable of
+                    "color" ->
+                        "black"
+
+                    _ ->
+                        "\"black\""
+            )
+        |> Json.Decode.decodeString (circleDecoder pos size)
 
 
 circleList : { pos : ( Float, Float ), size : Float } -> JsonValue -> List ( ( Float, Float ), Circle )
@@ -98,7 +129,20 @@ circleDecoder pos size =
 
 init : () -> ( Model, Cmd Msg )
 init () =
-    ( { seed = Random.initialSeed 42, circles = [] }
+    let
+        ( grammar, error ) =
+            case generateGrammar of
+                Ok g ->
+                    ( g, Nothing )
+
+                Err err ->
+                    ( Tracery.Grammar.fromDefinitions Dict.empty, err |> Json.Decode.errorToString |> Just )
+    in
+    ( { seed = Random.initialSeed 42
+      , circles = []
+      , grammar = grammar
+      , error = error
+      }
     , Random.generate NewSeed Random.independentSeed
     )
 
@@ -114,42 +158,45 @@ view model =
             imageSize =
                 500
 
-            ( result, _ ) =
-                Random.step (generator ( 50, 50 ) size) model.seed
+            result =
+                toCircles ( 50, 50 ) size model.grammar
         in
-        [ case result of
-            Ok list ->
-                list
-                    |> List.map
-                        (\( ( x, y ), circle ) ->
-                            Svg.circle
-                                [ x + circle.size / 2 |> String.fromFloat |> Svg.Attributes.cx
-                                , y + circle.size / 2 |> String.fromFloat |> Svg.Attributes.cy
-                                , circle.size / 2 |> String.fromFloat |> Svg.Attributes.r
-                                , circle.color |> Svg.Attributes.fill
-                                , "drop-shadow(0px 4px 2px rgb(0 0 0 / 0.4))"
-                                    |> Svg.Attributes.filter
+        [ Html.div []
+            [ case result of
+                Ok list ->
+                    list
+                        |> List.map
+                            (\( ( x, y ), circle ) ->
+                                Svg.circle
+                                    [ x + circle.size / 2 |> String.fromFloat |> Svg.Attributes.cx
+                                    , y + circle.size / 2 |> String.fromFloat |> Svg.Attributes.cy
+                                    , circle.size / 2 |> String.fromFloat |> Svg.Attributes.r
+                                    , circle.color |> Svg.Attributes.fill
+                                    , "drop-shadow(0px 4px 2px rgb(0 0 0 / 0.4))"
+                                        |> Svg.Attributes.filter
+                                    ]
+                                    []
+                            )
+                        |> (::)
+                            (Svg.rect
+                                [ Svg.Attributes.x "0"
+                                , Svg.Attributes.y "0"
+                                , imageSize |> String.fromFloat |> Svg.Attributes.height
+                                , imageSize |> String.fromFloat |> Svg.Attributes.width
+                                , backgroundColor |> Svg.Attributes.fill
                                 ]
                                 []
-                        )
-                    |> (::)
-                        (Svg.rect
-                            [ Svg.Attributes.x "0"
-                            , Svg.Attributes.y "0"
+                            )
+                        |> Svg.svg
+                            [ imageSize |> String.fromFloat |> Svg.Attributes.width
                             , imageSize |> String.fromFloat |> Svg.Attributes.height
-                            , imageSize |> String.fromFloat |> Svg.Attributes.width
-                            , "#91CB3E" |> Svg.Attributes.fill
                             ]
-                            []
-                        )
-                    |> Svg.svg
-                        [ imageSize |> String.fromFloat |> Svg.Attributes.width
-                        , imageSize |> String.fromFloat |> Svg.Attributes.height
-                        ]
 
-            Err err ->
-                err |> Json.Decode.errorToString |> Html.text
-        , Html.button [ Html.Events.onClick RequestedNextImage ] [ Html.text "Next" ]
+                Err err ->
+                    err |> Json.Decode.errorToString |> Debug.log "error" |> Html.text
+            , Html.button [ Html.Events.onClick RequestedNextImage ] [ Html.text "Next" ]
+            , model.grammar |> Tracery.toString (\_ -> "null") |> Html.text
+            ]
         ]
     }
 
@@ -163,10 +210,22 @@ update msg model =
         RequestedNextImage ->
             ( model, Random.generate NewSeed Random.independentSeed )
 
+        Tick ->
+            let
+                ( grammar, seed ) =
+                    Random.step
+                        (model.grammar
+                            |> Tracery.Grammar.generateNext Tracery.Grammar.defaultStrategy
+                         -- |> Random.andThen (Tracery.runTo [ "square" ])
+                        )
+                        model.seed
+            in
+            ( { model | seed = seed, grammar = grammar }, Cmd.none )
+
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    Sub.none
+    Time.every 10 (\_ -> Tick)
 
 
 main : Program () Model Msg
