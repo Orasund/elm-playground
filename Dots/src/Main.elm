@@ -54,7 +54,7 @@ type alias Circle =
 generateGrammar : Result Json.Decode.Error Grammar
 generateGrammar =
     """
-        { "origin":"#square#"
+        { "origin":"{\\"0\\":#square#,\\"1\\":#square#,\\"2\\":#square#,\\"3\\":#square#}"
         , "content":
             [ "\\"#color#\\""
             , "\\"#color#\\""
@@ -66,7 +66,7 @@ generateGrammar =
         ++ """","\\\\"""
         ++ color2
         ++ """"]
-        , "square": [ "{\\"1\\":#content#,\\"2\\":#content#,\\"3\\":#content#,\\"0\\":#content#}" ]
+        , "square": [ "{\\"0\\":#content#,\\"1\\":#content#,\\"2\\":#content#,\\"3\\":#content#}" ]
         }
         """
         |> Tracery.fromJson
@@ -216,7 +216,7 @@ update msg model =
                     Random.step
                         (model.grammar
                             |> Tracery.Grammar.generateNext Tracery.Grammar.defaultStrategy
-                         -- |> Random.andThen (Tracery.runTo [ "square" ])
+                            |> Random.andThen (Tracery.runTo [ "square" ])
                         )
                         model.seed
             in
@@ -225,7 +225,7 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    Time.every 10 (\_ -> Tick)
+    Time.every 100 (\_ -> Tick)
 
 
 main : Program () Model Msg
