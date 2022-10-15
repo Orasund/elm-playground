@@ -6,10 +6,9 @@ import Html
 import Html.Events
 import Json.Decode exposing (Decoder)
 import Json.Value exposing (JsonValue(..))
-import Random exposing (Generator, Seed)
-import Result.Extra
-import String exposing (replace)
-import Svg
+import Random exposing (Seed)
+import String
+import Svg exposing (Svg)
 import Svg.Attributes
 import Time
 import Tracery
@@ -20,23 +19,28 @@ import Tracery.Syntax exposing (Expression(..))
 
 backgroundColor : String
 backgroundColor =
-    "#553A41"
+    "#1C1018"
 
 
 color1 : String
 color1 =
-    "#32908F"
+    "#95E06C"
 
 
 color2 : String
 color2 =
-    "#26C485"
+    "#68B684"
+
+
+color3 : String
+color3 =
+    "#094D92"
 
 
 type alias Model =
     { seed : Seed
     , grammar : Grammar
-    , circles : List ( ( Float, Float ), Circle )
+    , circles : List ( ( Float, Float ), Shape )
     , error : Maybe String
     }
 
@@ -47,8 +51,13 @@ type Msg
     | Tick
 
 
-type alias Circle =
-    { size : Float, color : String }
+type ShapeType
+    = Circle
+    | Square
+
+
+type alias Shape =
+    { size : Float, color : String, shapeType : ShapeType }
 
 
 generateGrammar : Result Json.Decode.Error Grammar
@@ -56,23 +65,30 @@ generateGrammar =
     """
         { "origin":"{\\"0\\":#square#,\\"1\\":#square#,\\"2\\":#square#,\\"3\\":#square#}"
         , "content":
-            [ "\\"#color#\\""
-            , "\\"#color#\\""
+            [ "#element#"
+            , "#element#"
             , "null"
             , "#square#"
             ]
-        , "color": ["\\\\"""
-        ++ color1
-        ++ """","\\\\"""
-        ++ color2
-        ++ """"]
+        , "element":[ "[\\"#shape#\\",\\"#color#\\"]"]
+        , "shape": ["square","circle","circle"]
+        , "color": ["""
+        ++ ([ List.repeat 3 color1
+            , List.repeat 3 color2
+            , [ color3 ]
+            ]
+                |> List.concat
+                |> List.map (\string -> "\"\\\\" ++ string ++ "\"")
+                |> String.join ","
+           )
+        ++ """]
         , "square": [ "{\\"0\\":#content#,\\"1\\":#content#,\\"2\\":#content#,\\"3\\":#content#}" ]
         }
         """
         |> Tracery.fromJson
 
 
-toCircles : ( Float, Float ) -> Float -> Grammar -> Result Json.Decode.Error (List ( ( Float, Float ), Circle ))
+toCircles : ( Float, Float ) -> Float -> Grammar -> Result Json.Decode.Error (List ( ( Float, Float ), Shape ))
 toCircles pos size grammar =
     grammar
         |> Tracery.toString
@@ -87,15 +103,39 @@ toCircles pos size grammar =
         |> Json.Decode.decodeString (circleDecoder pos size)
 
 
-circleList : { pos : ( Float, Float ), size : Float } -> JsonValue -> List ( ( Float, Float ), Circle )
+shapeTypeFromString : String -> Maybe ShapeType
+shapeTypeFromString string =
+    case string of
+        "circle" ->
+            Just Circle
+
+        "square" ->
+            Just Square
+
+        _ ->
+            Nothing
+
+
+circleList : { pos : ( Float, Float ), size : Float } -> JsonValue -> List ( ( Float, Float ), Shape )
 circleList args jsonValue =
     let
         ( x1, y1 ) =
             args.pos
     in
     case jsonValue of
-        StringValue string ->
-            [ ( args.pos, { size = args.size, color = string } ) ]
+        ArrayValue list ->
+            case list of
+                [ StringValue shapeType, StringValue color ] ->
+                    [ ( args.pos
+                      , { size = args.size
+                        , color = color
+                        , shapeType = shapeType |> shapeTypeFromString |> Maybe.withDefault Circle
+                        }
+                      )
+                    ]
+
+                _ ->
+                    []
 
         ObjectValue list ->
             let
@@ -121,7 +161,7 @@ circleList args jsonValue =
             []
 
 
-circleDecoder : ( Float, Float ) -> Float -> Decoder (List ( ( Float, Float ), Circle ))
+circleDecoder : ( Float, Float ) -> Float -> Decoder (List ( ( Float, Float ), Shape ))
 circleDecoder pos size =
     Json.Value.decoder
         |> Json.Decode.map (circleList { pos = pos, size = size })
@@ -147,6 +187,42 @@ init () =
     )
 
 
+viewShape : ( ( Float, Float ), Shape ) -> Svg msg
+viewShape ( ( x, y ), shape ) =
+    case shape.shapeType of
+        Circle ->
+            Svg.circle
+                [ x + shape.size / 2 |> String.fromFloat |> Svg.Attributes.cx
+                , y + shape.size / 2 |> String.fromFloat |> Svg.Attributes.cy
+                , shape.size / 2 |> String.fromFloat |> Svg.Attributes.r
+                , shape.color |> Svg.Attributes.fill
+                , "drop-shadow(0px 4px 2px rgb(0 0 0 / 0.4))"
+                    |> Svg.Attributes.filter
+                ]
+                []
+
+        Square ->
+            Svg.polygon
+                [ [ [ x + shape.size / 2, y ]
+                  , [ x + shape.size, y + shape.size / 2 ]
+                  , [ x + shape.size / 2, y + shape.size ]
+                  , [ x, y + shape.size / 2 ]
+                  ]
+                    |> List.map
+                        (\list ->
+                            list
+                                |> List.map String.fromFloat
+                                |> String.join ","
+                        )
+                    |> String.join " "
+                    |> Svg.Attributes.points
+                , shape.color |> Svg.Attributes.fill
+                , "drop-shadow(0px 4px 2px rgb(0 0 0 / 0.4))"
+                    |> Svg.Attributes.filter
+                ]
+                []
+
+
 view : Model -> Document Msg
 view model =
     { title = "Dots"
@@ -165,18 +241,7 @@ view model =
             [ case result of
                 Ok list ->
                     list
-                        |> List.map
-                            (\( ( x, y ), circle ) ->
-                                Svg.circle
-                                    [ x + circle.size / 2 |> String.fromFloat |> Svg.Attributes.cx
-                                    , y + circle.size / 2 |> String.fromFloat |> Svg.Attributes.cy
-                                    , circle.size / 2 |> String.fromFloat |> Svg.Attributes.r
-                                    , circle.color |> Svg.Attributes.fill
-                                    , "drop-shadow(0px 4px 2px rgb(0 0 0 / 0.4))"
-                                        |> Svg.Attributes.filter
-                                    ]
-                                    []
-                            )
+                        |> List.map viewShape
                         |> (::)
                             (Svg.rect
                                 [ Svg.Attributes.x "0"
