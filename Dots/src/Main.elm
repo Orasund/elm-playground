@@ -73,8 +73,8 @@ generateGrammar =
         , "element":[ "[\\"#shape#\\",\\"#color#\\"]"]
         , "shape": ["square","circle","circle"]
         , "color": ["""
-        ++ ([ List.repeat 3 color1
-            , List.repeat 3 color2
+        ++ ([ List.repeat 8 color1
+            , List.repeat 8 color2
             , [ color3 ]
             ]
                 |> List.concat
@@ -82,7 +82,27 @@ generateGrammar =
                 |> String.join ","
            )
         ++ """]
-        , "square": [ "{\\"0\\":#content#,\\"1\\":#content#,\\"2\\":#content#,\\"3\\":#content#}" ]
+        , "arrangement1":
+            ["{\\"0\\":null,\\"1\\":#content#,\\"2\\":#content#,\\"3\\":#square#}"
+            ,"{\\"0\\":#content#,\\"1\\":null,\\"2\\":#square#,\\"3\\":#content#}"
+            ,"{\\"0\\":#content#,\\"1\\":#square#,\\"2\\":null,\\"3\\":#content#}"
+            ,"{\\"0\\":#square#,\\"1\\":#content#,\\"2\\":#content#,\\"3\\":null}"
+            ]
+        , "arrangement2":
+            ["{\\"0\\":null,\\"1\\":null,\\"2\\":#content#,\\"3\\":#content#}"
+            ,"{\\"0\\":#content#,\\"1\\":null,\\"2\\":null,\\"3\\":#content#}"
+            ,"{\\"0\\":#content#,\\"1\\":#content#,\\"2\\":null,\\"3\\":null}"
+            ,"{\\"0\\":null,\\"1\\":#content#,\\"2\\":#content#,\\"3\\":null}"
+            ,"{\\"0\\":null,\\"1\\":#content#,\\"2\\":null,\\"3\\":#content#}"
+            ,"{\\"0\\":#content#,\\"1\\":null,\\"2\\":#content#,\\"3\\":null}"
+            ]
+        , "arr1":"#arrangement1#"
+        , "arr2":"#arrangement2#"
+        , "square":
+            [ "{\\"0\\":#content#,\\"1\\":#content#,\\"2\\":#content#,\\"3\\":#content#}"
+            , "#arr1#"
+            ,"#arr2#"
+            ]
         }
         """
         |> Tracery.fromJson
