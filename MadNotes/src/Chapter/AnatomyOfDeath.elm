@@ -37,7 +37,7 @@ Ich habe den Tod mehre Tausend Male gesehen.
             |> Data.Page.fromString
             |> Data.Page.withQuiz
                 { question = "Der Blick des Kindes schaut dich direkt an. Er durchdringt dich und blickt dir tief in die Seele."
-                , answers = [ "Blick Abwenden", "Blick Erwidern" ]
+                , answers = [ "Blick abwenden", "Blick erwidern" ]
                 , correctAnswer = 1
                 }
         , """Ich habe den Tod mit meinen eigenen Augen gesehen 
@@ -54,9 +54,8 @@ Der Tod ist lediglich eine Veränderung der Schwingung um
  Um sich dem Tod zu nähern muss die eigene Frequenz auf 
  richtige Weise moduliert werden.
 
-![Abbildung 2: Ein Chemischer Prozess, der scheinbar 
- Noten mit alchemistischen Substanzen mischt und in Moll
- gespielt wird.
+![Abbildung 2: Ein Chemischer Prozess, der musikalische Elemente beinhaltet und in Moll
+ geschrieben ist.
  Eine Doppelhelix verläuft wie ein Notenblatt quer über 
  die Darstellung, wobei die Noten einer Regelmäßigkeit 
  folgen die gänzlich überirdisch scheinen.](/abb2.jpg)    
@@ -64,7 +63,7 @@ Der Tod ist lediglich eine Veränderung der Schwingung um
             |> Data.Page.fromString
         ]
     , closingText =
-        "> Jedes mal wenn du dieses Kapitel aufschlägst, bleiben deine Augen auf dem Bild des Kindes haften. Der Blick des Kindes hat sich auf ewig in dein Gedächtnis eingebrannt."
+        "> Jedes mal wenn du dieses Kapitel aufschlägst, bleiben deine Augen auf dem Bild des Kindes haften. Der Blick hat sich auf ewig in dein Gedächtnis eingebrannt."
             ++ "\n\n"
             ++ imageOfChild
     }

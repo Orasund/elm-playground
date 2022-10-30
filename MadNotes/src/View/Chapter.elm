@@ -41,7 +41,7 @@ view title content =
                     readPreviousChapter =
                         chapter.previousTitle
                             |> Maybe.andThen (\t -> state.chapters |> Dict.get t)
-                            |> Maybe.map (\c -> c.currentPage == c.maxPage)
+                            |> Maybe.map (\c -> c.currentPage == c.maxPage || c.isClosed)
                             |> Maybe.withDefault True
                 in
                 if not readPreviousChapter then

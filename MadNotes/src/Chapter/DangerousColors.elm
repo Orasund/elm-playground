@@ -25,8 +25,7 @@ chapter =
                 , answers = [ "Umblättern", "Deinen Verstand auf die leere Seite konzentrieren." ]
                 , correctAnswer = 2
                 }
-        , """ Das durchschnittliche Auge eines stattlichen Jünglings 
- vermag dieser Operation für 10 Minuten stand zu halten,
+        , """Das durchschnittliche Auge vermag dieser Operation für 10 Minuten stand zu halten,
  bevor es erblindet.
  Werden die Augen jedoch ganz durch externe Objektive 
  ersetzt, so vermag ein Mensch für ein ganzes Monat die 
@@ -37,7 +36,7 @@ chapter =
  dunklen Substanz in ein abgetrenntes und ausgehöhltes 
  Auge pumpt, in dem eine kleine Kerze brennt. 
  Neben der Substanz ist ein Symbol abgebildet, 
- welches wage an einen Oktopus erinnert.](/abb1.jpg) 
+ das wage an einen Oktopus erinnert.](/abb1.jpg) 
 """ |> Data.Page.fromString
         ]
     , closingText =

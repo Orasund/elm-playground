@@ -4858,19 +4858,19 @@ var $author$project$Chapter$AnatomyOfDeath$chapter = function () {
 	var imageOfChild = '![Abbildung 1: Ein Kind welches zur Hälfte tot und zur \n Hälfte lebendig zu seien scheint. Die tote Hälfte besitzt \n unnatürliche Fühler, die scheinbar vom gesamten \n Körper ausgehend sich über die halbe Seite erstrecken.\n Es lächelt während es mit der rechten Hand nach seinem\n Herz greift.](/abb1.jpg)';
 	return $author$project$Data$Chapter$new(
 		{
-			closingText: '> Jedes mal wenn du dieses Kapitel aufschlägst, bleiben deine Augen auf dem Bild des Kindes haften. Der Blick des Kindes hat sich auf ewig in dein Gedächtnis eingebrannt.' + ('\n\n' + imageOfChild),
+			closingText: '> Jedes mal wenn du dieses Kapitel aufschlägst, bleiben deine Augen auf dem Bild des Kindes haften. Der Blick hat sich auf ewig in dein Gedächtnis eingebrannt.' + ('\n\n' + imageOfChild),
 			pages: _List_fromArray(
 				[
 					A2(
 					$author$project$Data$Page$withQuiz,
 					{
 						answers: _List_fromArray(
-							['Blick Abwenden', 'Blick Erwidern']),
+							['Blick abwenden', 'Blick erwidern']),
 						correctAnswer: 1,
 						question: 'Der Blick des Kindes schaut dich direkt an. Er durchdringt dich und blickt dir tief in die Seele.'
 					},
 					$author$project$Data$Page$fromString('\nUm die Zusammenhänge zwischen Leben und Tod besser zu \n verstehen müssen wir zuerst die Essenz des Todes \n studieren. \n Was ist der Tod? Ist es ein Zustand? Ein Prozess? \n Eine Pforte? Ein Ort? Ein Wesen?\n\nIch habe den Tod mehre Tausend Male gesehen. \n Mehre Hundert Male habe ich mich selbst im eben jenen \n Zustand befunden. \n Mehrere Dutzend Male habe ich den Tod rückgängig gemacht.\n Und ein einziges Mal konnte ich den Tod in seinen \n Einzelteilen studieren. \n Dieses Buch handelt vom Tod, genauer gesagt von dessen \n Tanz, dessen Musik und dessen Klang.' + ('\n\n' + imageOfChild))),
-					$author$project$Data$Page$fromString('Ich habe den Tod mit meinen eigenen Augen gesehen \n und ich kann Ihnen versichern, es handelt sich hierbei \n um nichts weiter als eine Illusion. \n Um ein wissenschaftliches Phänomen, dass, sobald man \n die Wahrheit kennt,sich als weit einfacher herausstellt\n als das Vermessen des Niels oder den Bau der Pyramide \n von Nyarlathotep.\n\nDer Tod ist lediglich eine Veränderung der Schwingung um \n das unsichtbare sichtbar und das sichtbare unsichtbar \n zu machen. \n Um sich dem Tod zu nähern muss die eigene Frequenz auf \n richtige Weise moduliert werden.\n\n![Abbildung 2: Ein Chemischer Prozess, der scheinbar \n Noten mit alchemistischen Substanzen mischt und in Moll\n gespielt wird.\n Eine Doppelhelix verläuft wie ein Notenblatt quer über \n die Darstellung, wobei die Noten einer Regelmäßigkeit \n folgen die gänzlich überirdisch scheinen.](/abb2.jpg)    \n')
+					$author$project$Data$Page$fromString('Ich habe den Tod mit meinen eigenen Augen gesehen \n und ich kann Ihnen versichern, es handelt sich hierbei \n um nichts weiter als eine Illusion. \n Um ein wissenschaftliches Phänomen, dass, sobald man \n die Wahrheit kennt,sich als weit einfacher herausstellt\n als das Vermessen des Niels oder den Bau der Pyramide \n von Nyarlathotep.\n\nDer Tod ist lediglich eine Veränderung der Schwingung um \n das unsichtbare sichtbar und das sichtbare unsichtbar \n zu machen. \n Um sich dem Tod zu nähern muss die eigene Frequenz auf \n richtige Weise moduliert werden.\n\n![Abbildung 2: Ein Chemischer Prozess, der musikalische Elemente beinhaltet und in Moll\n geschrieben ist.\n Eine Doppelhelix verläuft wie ein Notenblatt quer über \n die Darstellung, wobei die Noten einer Regelmäßigkeit \n folgen die gänzlich überirdisch scheinen.](/abb2.jpg)    \n')
 				]),
 			title: 'Anatomie des Todes'
 		});
@@ -4891,7 +4891,7 @@ var $author$project$Chapter$DangerousColors$chapter = function () {
 						question: 'Die restliche Seite ist leer.'
 					},
 					$author$project$Data$Page$fromString(intro)),
-					$author$project$Data$Page$fromString(' Das durchschnittliche Auge eines stattlichen Jünglings \n vermag dieser Operation für 10 Minuten stand zu halten,\n bevor es erblindet.\n Werden die Augen jedoch ganz durch externe Objektive \n ersetzt, so vermag ein Mensch für ein ganzes Monat die \n "echte Welt" erblicken zu können, ehe sein Verstand unter der \n Flut der Wahrnehmungen in sich zusammenfällt.\n\n ![Abbildung 1: Ein Apparat welcher scheinbar eine \n dunklen Substanz in ein abgetrenntes und ausgehöhltes \n Auge pumpt, in dem eine kleine Kerze brennt. \n Neben der Substanz ist ein Symbol abgebildet, \n welches wage an einen Oktopus erinnert.](/abb1.jpg) \n')
+					$author$project$Data$Page$fromString('Das durchschnittliche Auge vermag dieser Operation für 10 Minuten stand zu halten,\n bevor es erblindet.\n Werden die Augen jedoch ganz durch externe Objektive \n ersetzt, so vermag ein Mensch für ein ganzes Monat die \n "echte Welt" erblicken zu können, ehe sein Verstand unter der \n Flut der Wahrnehmungen in sich zusammenfällt.\n\n ![Abbildung 1: Ein Apparat welcher scheinbar eine \n dunklen Substanz in ein abgetrenntes und ausgehöhltes \n Auge pumpt, in dem eine kleine Kerze brennt. \n Neben der Substanz ist ein Symbol abgebildet, \n das wage an einen Oktopus erinnert.](/abb1.jpg) \n')
 				]),
 			title: 'Gefährliche Farben'
 		});
@@ -4899,24 +4899,27 @@ var $author$project$Chapter$DangerousColors$chapter = function () {
 var $elm$core$Basics$negate = function (n) {
 	return -n;
 };
-var $author$project$Chapter$Darkness$chapter = $author$project$Data$Chapter$new(
-	{
-		closingText: '\n> Während du das Bild anschaust wird dir ganz schwindelig. Allmählich verschwimmen die Konturen und die Schwärze breitet sich in deinem Kopf aus. Vielleicht hast du für heute genug gelesen. Ein Spaziergang an der frischen Luft wäre jetzt wohl genau das Richtige.\n\n![Abbildung 1: Ein komplett in schwarz gehülltes Bild. Bei längerem Hinsehen sind Formen zu erkennen. \nHarte kannte die Konturen in das sonst pechschwarze Bild bringen.\nDoch diese Konturen könnten auch einfach nur zufällige Striche sein, die absolut nichts auszusagen haben.](abb1.jpg)\n',
-		pages: _List_fromArray(
-			[
-				A2(
-				$author$project$Data$Page$withQuiz,
-				{
-					answers: _List_fromArray(
-						['Ein Auge', 'Eine Spinne', 'Ein Tentakel', 'Ein Rabe']),
-					correctAnswer: -1,
-					question: 'Umso länger du in das schwarze Chaos blickst, umso mehr kommt dir vor, als würde du darin etwas erkennen'
-				},
-				$author$project$Data$Page$fromString('\nDie Finsternis scheint ein Ort mit eigenen Gesetzen zu sein.\nHier gibt es keine Himmelrichtungen, keine Geräusche, kein Gewicht.\nDie Kälte mag zu beginn erschreckend wirken, es ist jedoch nur ein Schutz vor ihnen.\nSie leben von der Wärme. \nWarme Objekte ziehen sie magisch an und ihr endloser Hunger scheint grenzenlos zu sein.\n\nEs wird empfohlen eine Hand voll warmer Kadaver mit zu nehmen und \nsie in regelmäßigen Abständen um sich zu verteilen.\nDies verschafft einem etwas mehr Zeit, wenn auch nicht viel.\n\nIch war niemals mehr als ein paar Atemzüge in der Finsternis.\nMeist veranlasste meine Neugierde meine Zeit bis auf die letzte Sekunde hinaus zu zögern.\n\n![Abbildung 1: Ein komplett in schwarz gehülltes Bild. Bei längerem Hinsehen sind Formen zu erkennen. \nHarte kannte die Konturen in das sonst pechschwarze Bild bringen.\nDoch diese Konturen könnten auch einfach nur zufällige Striche sein, die absolut nichts auszusagen haben.](abb1.jpg)\n')),
-				$author$project$Data$Page$fromString('')
-			]),
-		title: 'Finsternis'
-	});
+var $author$project$Chapter$Darkness$chapter = function () {
+	var blackImage = '![Abbildung 1: Ein komplett in schwarz gehülltes Bild. Bei längerem Hinsehen sind Formen zu erkennen. \nHarte Kanten, die Konturen in das sonst pechschwarze Bild bringen.\nDoch diese Konturen könnten auch einfach nur zufällige Striche sein, die absolut nichts auszusagen haben.](abb1.jpg)';
+	return $author$project$Data$Chapter$new(
+		{
+			closingText: '\n> Während du das Bild anschaust wird dir ganz schwindelig. Allmählich verschwimmen die Konturen und die Schwärze breitet sich in deinem Kopf aus. Vielleicht hast du für heute genug gelesen. Ein Spaziergang an der frischen Luft wäre jetzt wohl genau das Richtige.' + ('\n\n' + blackImage),
+			pages: _List_fromArray(
+				[
+					A2(
+					$author$project$Data$Page$withQuiz,
+					{
+						answers: _List_fromArray(
+							['Ein Auge', 'Eine Spinne', 'Ein Tentakel', 'Ein Rabe']),
+						correctAnswer: -1,
+						question: 'Umso länger du in das schwarze Chaos blickst, umso mehr kommt dir vor, als würdest du darin etwas erkennen'
+					},
+					$author$project$Data$Page$fromString('\nDie Finsternis scheint ein Ort mit eigenen Gesetzen zu sein.\nHier gibt es keine Himmelrichtungen, keine Geräusche, kein Gewicht.\nDie Kälte mag zu Beginn erschreckend wirken, es ist jedoch nur ein Schutz vor ihnen.\nDenn sie leben von der Wärme. \nWarme Objekte ziehen sie magisch an und ihr endloser Hunger scheint grenzenlos zu sein.\n\nEs wird empfohlen eine Hand voll warmer Kadaver mit zu nehmen und \nsie in regelmäßigen Abständen um sich herum zu verteilen.\nDies verschafft einem etwas mehr Zeit, wenn auch nicht viel.\n\nIch war niemals mehr als ein paar Atemzüge in der Finsternis.\nMeist veranlasste meine Neugierde meine Zeit bis auf die letzte Sekunde hinauszuzögern.' + ('\n\n' + blackImage))),
+					$author$project$Data$Page$fromString('')
+				]),
+			title: 'Finsternis'
+		});
+}();
 var $author$project$Chapter$Introduction$chapter = $author$project$Data$Chapter$new(
 	{
 		closingText: 'Du hast genug gelesen',
@@ -4927,24 +4930,27 @@ var $author$project$Chapter$Introduction$chapter = $author$project$Data$Chapter$
 			]),
 		title: 'Vorwort des Übersetzers'
 	});
-var $author$project$Chapter$TheWatchers$chapter = $author$project$Data$Chapter$new(
-	{
-		closingText: '![Ein fraktal artiges Bild welches erschreckend echt wirkt. In dem Bild sind dünne schwarze Fäden, \n die sich wie eine Decke über die Landschaft stülpen](abb2.jpg)\n \n > Umso länger du die Landschaft betrachtest, umso vertrauter kommt sie dir vor. Es ist alles so klar. Du kannst jedes Detail ganz klar erkennen. Und da sind auch diese dünnen Fäden die dich zu verfolgen scheinen. Du versuchst ihnen zu entkommen, doch schaffst es nicht. Du musst irgendwann die Augen geschlossen haben, denn mit einem Schrei öffnest du Sie schlagartig wieder. Das Buch ist dir aus der Hand gefallen und liegt nun zugeklappt auf den Boden.\n ',
-		pages: _List_fromArray(
-			[
-				A2(
-				$author$project$Data$Page$withQuiz,
-				{
-					answers: _List_fromArray(
-						['In einem Traum', 'Das ist nur eine Einbildung', 'Aus meiner Kindheit']),
-					correctAnswer: 2,
-					question: 'Die Landschaft kommt dir bekannt vor. Wo hast du sie schon einmal gesehen?'
-				},
-				$author$project$Data$Page$fromString('\nAuf meinen Reisen auf die andere Seite habe ich immer das Gefühl, als würde ich beobachtet werden. \n Manchmal ist mir, als folgt mir ein Schatten, immer gerade so, \n dass ich ihn aus dem Augenwinkel erkennen, jedoch nie ganz zu orten vermag.\nDer Schatten selbst scheint immer ein anderer zu sein, jedoch lassen sie sich aufgrund ihrer Eigenschaften \n grundsätzlich in vier Kategorien einteilen.\n\nDie runden Schatten verweilen meist stationär und verschmelzen mit der Umgebung, \n wenn man sich ihnen nähert.\nIhr Erscheinen wird meist von einem kaum hörbarem Pfeifen angekündigt, welches in schrillen, \n fast unerträglichen Tonhöhen sich dem allgemeinen Sirren anschließt.\n\nDie langen und dünnen Schatten sind so dünn, dass man sie mit bloßen Auge kaum zu erkennen vermag.\nIhr Kopf erstreckt sich über das ganze Firmament bis an den gegenüberliegenden Horizon aus.\nSie sind schnell und überaus gerissen. Sie können mit kleinen Hautfetzen abgelenkt werden.\n\n![Ein fraktal artiges Bild welches erschreckend echt wirkt. In dem Bild sind dünne schwarze Fäden, \n die sich wie eine Decke über die Landschaft stülpen](abb2.jpg)\n')),
-				$author$project$Data$Page$fromString('\nDer gelbe scheint der klügste zu sein, war er mir fast unentdeckt geblieben. \n Ich konnte ihn einmal beobachten wie er mit einem der Ortsansässigen kommunizierte.\n Wobei die Sprache selbst nicht aus Lauten zu bestehen schien.\n\n![Ein gelbes Quadrat, das quadrat ist perfekt symmetrisch und scheinbar wurde über ein schwarzes \n Quadrat der gleichen Größe gezeichnet. \n Daneben sind schwarze punkte in verschiedenen Größen und formen zu erkennen.](abb3.jpg)\n\nDie vierte Kategorie ist die, die mich heute noch heimsucht. Sie ist die schlimmste. \n Allumfassend frisst sie alles um sich herum auf. \n Scheinbar aus Nichts bestehend breitet sie sich ca. im Tempo eines trabenden Pferdes aus.\n Nichts kann sie aufhalten.\n\n> Ein großer schwarzer Tintenfleck bedeckt das restliche Blatt\n')
-			]),
-		title: 'Die Beobachter'
-	});
+var $author$project$Chapter$TheWatchers$chapter = function () {
+	var pictureLandscape = '![Ein fraktal-artiges Bild welches erschreckend echt wirkt. In dem Bild sind dünne schwarze Fäden, \n die sich wie eine Decke über die Landschaft stülpen](abb2.jpg)';
+	return $author$project$Data$Chapter$new(
+		{
+			closingText: '> Umso länger du die Landschaft betrachtest, umso vertrauter kommt sie dir vor. Es ist alles so klar. Du kannst jedes Detail ganz klar erkennen. Und da sind auch diese dünnen Fäden die dich zu verfolgen scheinen. Du versuchst ihnen zu entkommen, doch schaffst es nicht. Du musst irgendwann die Augen geschlossen haben, denn mit einem Schrei öffnest du sie schlagartig wieder. Das Buch ist dir aus der Hand gefallen und liegt nun zugeklappt auf den Boden.\n' + ('\n\n' + pictureLandscape),
+			pages: _List_fromArray(
+				[
+					A2(
+					$author$project$Data$Page$withQuiz,
+					{
+						answers: _List_fromArray(
+							['In einem Traum', 'Das ist nur eine Einbildung', 'Aus meiner Kindheit']),
+						correctAnswer: 2,
+						question: 'Die Landschaft kommt dir bekannt vor. Wo hast du sie schon einmal gesehen?'
+					},
+					$author$project$Data$Page$fromString('\nAuf meinen Reisen auf die andere Seite habe ich immer das Gefühl, als würde ich beobachtet werden. \n Manchmal ist mir, als folgt mir ein Schatten, immer gerade so, \n das ich ihn aus dem Augenwinkel erkennen, jedoch nie ganz zu orten vermag.\nDer Schatten selbst scheint immer ein anderer zu sein, jedoch lassen sie sich aufgrund ihrer Eigenschaften \n grundsätzlich in vier Kategorien einteilen.\n\nDie runden Schatten verweilen meist stationär und verschmelzen mit der Umgebung, \n wenn man sich ihnen nähert.\nIhr Erscheinen wird meist von einem kaum hörbarem Pfeifen angekündigt, welches sich in schrillen, \n fast unerträglichen Tonhöhen dem klang des Cosmos anschließt.\n\nDie langen und dünnen Schatten sind so dünn, dass man sie mit bloßen Auge kaum zu erkennen vermag.\nIhr Kopf erstreckt sich über das ganze Firmament bis zum gegenüberliegenden Horizon aus.\nSie sind schnell und überaus gerissen. Sie können mit kleinen Hautfetzen abgelenkt werden.' + ('\n\n' + pictureLandscape))),
+					$author$project$Data$Page$fromString('\nDer gelbe scheint der Klügste zu sein, war er mir fast unentdeckt geblieben. \n Ich konnte ihn einmal beobachten wie er mit einem der Ortsansässigen kommunizierte.\n Wobei die Sprache selbst nicht aus Lauten zu bestehen schien.\n\n![Ein gelbes Quadrat. Es ist perfekt symmetrisch und scheinbar wurde über ein schwarzes \n Quadrat der gleichen Größe gezeichnet. \n Daneben sind schwarze Punkte in verschiedenen Größen und Formen zu erkennen.](abb3.jpg)\n\nDie vierte Kategorie ist die, die mich heute noch heimsucht. Sie ist die Schlimmste. \n Allumfassend frisst sie alles um sich herum auf. \n Scheinbar aus Nichts bestehend breitet sie sich ca. im Tempo eines trabenden Pferdes aus.\n Nichts kann sie aufhalten.\n\n> Ein großer schwarzer Tintenfleck bedeckt das restliche Blatt\n')
+				]),
+			title: 'Die Beobachter'
+		});
+}();
 var $dtwrks$elm_book$ElmBook$Internal$ComponentOptions$Block = {$: 'Block'};
 var $dtwrks$elm_book$ElmBook$Internal$ComponentOptions$ComponentOptions = function (a) {
 	return {$: 'ComponentOptions', a: a};
@@ -15638,7 +15644,7 @@ var $author$project$View$Chapter$view = F2(
 					A2(
 						$elm$core$Maybe$map,
 						function (c) {
-							return _Utils_eq(c.currentPage, c.maxPage);
+							return _Utils_eq(c.currentPage, c.maxPage) || c.isClosed;
 						},
 						A2(
 							$elm$core$Maybe$andThen,
