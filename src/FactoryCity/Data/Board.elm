@@ -17,7 +17,6 @@ module FactoryCity.Data.Board exposing
 import FactoryCity.Data.CellType as CellType exposing (CellType, ContainerSort(..), MovableSort(..))
 import FactoryCity.Data.Item exposing (Item(..))
 import Grid.Bordered as Grid exposing (Grid)
-import Position
 
 
 columns : Int

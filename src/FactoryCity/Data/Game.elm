@@ -10,7 +10,6 @@ import FactoryCity.Data.Board as Board exposing (Board, columns, rows)
 import FactoryCity.Data.CellType as CellType exposing (CellType, ContainerSort(..), RemovableSort(..))
 import FactoryCity.Data.Deck as Deck exposing (Deck)
 import FactoryCity.Data.Item as Item exposing (Item(..))
-import FactoryCity.Data.RemoteShop as RemoteShop
 import Grid.Bordered as Grid
 import Http
 import Position
@@ -434,7 +433,7 @@ update msg game =
                 Err () ->
                     defaultCase
 
-        ClickedBuy item n ->
+        ClickedBuy item _ ->
             let
                 key : String
                 key =

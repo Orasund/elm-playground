@@ -13,7 +13,6 @@ import FactoryCity.View.Details as Details
 import FactoryCity.View.Settings as Settings
 import FactoryCity.View.Shop as Shop
 import Framework.Grid as Grid
-import Position
 
 
 arrangement : List (List Tab)

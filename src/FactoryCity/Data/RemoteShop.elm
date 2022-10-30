@@ -3,14 +3,9 @@ module FactoryCity.Data.RemoteShop exposing (default)
 --,insert, remove, sync)
 
 import Bag exposing (Bag)
-import FactoryCity.Data as Data
 import FactoryCity.Data.CellType exposing (ContainerSort(..))
 import FactoryCity.Data.Item as Item exposing (Item(..))
 import Firestore exposing (Error(..))
-import Firestore.Codec as Codec exposing (Codec)
-import Firestore.Encode as E
-import Http
-import Task exposing (Task)
 
 
 type alias RemoteShop =
@@ -49,7 +44,8 @@ toBag { chips, iron, scrap, stone, wood, chipboard } =
         |> Bag.fromList
 
 
-codec : Codec RemoteShop
+
+{--codec : Codec RemoteShop
 codec =
     Codec.document RemoteShop
         |> Codec.optional (Chips |> Item.itemToString) .chips Codec.int 0
@@ -84,7 +80,7 @@ mapTask =
 
 
 
-{--sync : Task Http.Error (Bag String)
+sync : Task Http.Error (Bag String)
 sync =
     Data.firestore
         |> Firestore.get (codec |> Codec.asDecoder)

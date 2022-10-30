@@ -8,8 +8,7 @@ import Element.Font as Font
 import FactoryCity.Data as Data
 import FactoryCity.Data.CellType exposing (ContainerSort(..), RemovableSort(..))
 import FactoryCity.Data.Game as Game exposing (Game, Tab(..))
-import FactoryCity.Data.Item as Item exposing (Item(..))
-import FactoryCity.Data.RemoteShop as RemoteShop
+import FactoryCity.Data.Item exposing (Item(..))
 import FactoryCity.View.Game as Game
 import Framework.Color as Color
 import Framework.Grid as Grid
@@ -17,9 +16,7 @@ import Framework.Heading as Heading
 import Grid.Bordered as Grid
 import Http exposing (Error(..))
 import Maybe.Extra as Maybe
-import Position
 import Random exposing (Seed)
-import Task
 import Time
 import View.WrappedColumn as WrappedColumn
 
@@ -82,7 +79,7 @@ type alias Action =
 init : TransitionData -> ( Model, Cmd Msg )
 init { shop, seed, source } =
     let
-        ( wrappedColumn, cmd ) =
+        ( wrappedColumn, _ ) =
             WrappedColumn.init
                 { labels = Game.tabToLabel
                 , arrangement = Game.arrangement

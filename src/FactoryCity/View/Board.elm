@@ -10,7 +10,6 @@ import FactoryCity.Data.Item as Item
 import FactoryCity.View.Text as Text
 import Framework.Grid as Grid
 import Grid.Bordered as Grid exposing (Grid)
-import Position
 
 
 viewCell : Float -> ( Int, Int ) -> Maybe (( Int, Int ) -> msg) -> Maybe CellType -> Element msg

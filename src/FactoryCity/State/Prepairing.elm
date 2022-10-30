@@ -51,7 +51,7 @@ init : ( Model, Cmd Msg )
 init =
     ( { scale = Nothing
       , seed = Nothing
-      , shop = Nothing
+      , shop = Just RemoteShop.default
       , error = Nothing
       }
     , Cmd.batch
