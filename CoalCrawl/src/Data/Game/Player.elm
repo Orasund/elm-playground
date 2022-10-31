@@ -3,6 +3,7 @@ module Data.Game.Player exposing (..)
 import AStar
 import Data.Block exposing (Block(..))
 import Data.Game exposing (Game)
+import Data.Game.Wagon
 import Data.Game.Wall
 import Data.Player
 import Data.Position
@@ -40,6 +41,9 @@ passTime game =
                             Data.Block.Wall ->
                                 Random.constant game
 
+                            Data.Block.Wagon _ ->
+                                game |> putIntoWagon |> Random.constant
+
                     Nothing ->
                         moveTowardsSelected game
                             |> Random.constant
@@ -59,6 +63,9 @@ moveTowardsSelected game =
                                         True
 
                                     Just Data.Block.Train ->
+                                        True
+
+                                    Just (Data.Block.Wagon _) ->
                                         True
 
                                     _ ->
@@ -95,10 +102,44 @@ moveTowardsSelected game =
                     Just Train ->
                         { game | player = game.player |> Data.Player.moveTo pos }
 
+                    Just (Wagon content) ->
+                        let
+                            newWagonPos =
+                                game.player.pos
+                                    |> Data.Position.vecTo pos
+                                    |> Data.Position.plus pos
+                        in
+                        game
+                            |> Data.Game.Wagon.moveTo newWagonPos ( pos, content )
+                            |> (\g -> { g | player = g.player |> Data.Player.moveTo pos })
+
                     _ ->
                         game
             )
         |> Maybe.withDefault game
+
+
+putIntoWagon : Game -> Game
+putIntoWagon game =
+    case Dict.get game.selected game.world of
+        Just (Data.Block.Wagon list) ->
+            game.player
+                |> Data.Player.dropItem
+                |> Maybe.map
+                    (\( player, item ) ->
+                        game
+                            |> (\g ->
+                                    { g
+                                        | world = g.world |> Dict.insert g.selected (Data.Block.Wagon (item :: list))
+                                        , player = player
+                                    }
+                               )
+                    )
+                |> Maybe.withDefault game
+                |> Data.Game.Wagon.unload ( game.selected, list )
+
+        _ ->
+            game
 
 
 putIntoTrain : Game -> Game

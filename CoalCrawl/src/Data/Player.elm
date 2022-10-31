@@ -1,5 +1,6 @@
 module Data.Player exposing (..)
 
+import Data.Block exposing (Block(..))
 import Data.Item exposing (Item)
 
 
@@ -16,7 +17,9 @@ fromPos pos =
 
 moveTo : ( Int, Int ) -> Player -> Player
 moveTo pos player =
-    { player | pos = pos }
+    { player
+        | pos = pos
+    }
 
 
 hold : Item -> Player -> Maybe Player

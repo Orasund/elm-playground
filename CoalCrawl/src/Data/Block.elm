@@ -9,3 +9,4 @@ type Block
     | Wall
     | Train
     | Track
+    | Wagon (List Item)

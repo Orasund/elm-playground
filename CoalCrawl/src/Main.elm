@@ -2,7 +2,7 @@ module Main exposing (..)
 
 import Browser exposing (Document)
 import Config
-import Data.Block exposing (Block)
+import Data.Block exposing (Block(..))
 import Data.Game exposing (Game)
 import Data.Game.Behavior
 import Data.Info
@@ -11,6 +11,7 @@ import Html
 import Layout
 import Random exposing (Generator, Seed)
 import Time
+import View.Button
 import View.Info
 import View.Screen
 
@@ -39,6 +40,7 @@ type Msg
     | TileClicked ( Int, Int )
     | TimePassed
     | TogglePause
+    | BuildWagon
 
 
 restart : Seed -> Model
@@ -72,17 +74,22 @@ view model =
            else
             "Pause"
           )
-            |> (\text ->
-                    Html.text text
-                        |> Layout.buttonEl { onPress = Just TogglePause, label = text } []
-               )
+            |> View.Button.toHtml TogglePause
         , model.game.world
             |> Dict.get model.game.selected
             |> Maybe.map
                 (\block ->
-                    block
+                    [ block
                         |> Data.Info.fromBlock model.game
                         |> View.Info.toHtml
+                    , case block of
+                        Data.Block.Ground Nothing ->
+                            "Build Wagon" |> View.Button.toHtml BuildWagon
+
+                        _ ->
+                            Layout.none
+                    ]
+                        |> Layout.column []
                 )
             |> Maybe.withDefault Layout.none
         ]
@@ -125,6 +132,11 @@ update msg model =
 
         TogglePause ->
             ( { model | paused = not model.paused }, Cmd.none )
+
+        BuildWagon ->
+            ( { model | game = model.game |> Data.Game.buildWagon }
+            , Cmd.none
+            )
 
 
 subscriptions : Model -> Sub Msg

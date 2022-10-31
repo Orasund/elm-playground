@@ -2,7 +2,7 @@ module Data.Info exposing (..)
 
 import Data.Block exposing (Block)
 import Data.Game exposing (Game)
-import Data.Item
+import Data.Item exposing (Item)
 
 
 type alias Info =
@@ -30,19 +30,25 @@ withAdditionalInfo additionalInfos info =
     { info | additionalInfo = additionalInfos }
 
 
+itemInfo : Item -> String
+itemInfo item =
+    case item of
+        Data.Item.Coal ->
+            "Coal"
+
+
 fromBlock : Game -> Block -> Info
 fromBlock game block =
     case block of
         Data.Block.Ground maybeItem ->
-            "Ground"
-                |> fromTitle
+            fromTitle "Ground"
                 |> withContent
                     (maybeItem
                         |> Maybe.map
                             (\item ->
-                                case item of
-                                    Data.Item.Coal ->
-                                        [ "Coal" ]
+                                item
+                                    |> itemInfo
+                                    |> List.singleton
                             )
                         |> Maybe.withDefault []
                     )
@@ -65,3 +71,7 @@ fromBlock game block =
 
         Data.Block.Track ->
             fromTitle "Track"
+
+        Data.Block.Wagon list ->
+            fromTitle "Wheelbarrow"
+                |> withContent (list |> List.map itemInfo)

@@ -1,10 +1,9 @@
 module View.Screen exposing (..)
 
 import Config
-import Data.Block exposing (Block)
 import Data.Game exposing (Game)
 import Data.Tile
-import Dict exposing (Dict)
+import Dict
 import Html exposing (Html)
 import Html.Attributes as Attr
 import Layout

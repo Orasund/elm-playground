@@ -3,7 +3,6 @@ module Data.Tile exposing (..)
 import Data.Block exposing (Block(..))
 import Data.Item exposing (Item)
 import Data.Player exposing (Player)
-import Html.Attributes exposing (title)
 
 
 type alias Tile =
@@ -50,6 +49,10 @@ fromPlayer player =
         |> withBold
 
 
+fromWheelbarrow =
+    { color = "Gray", content = 'W' } |> new
+
+
 fromBlock : Block -> Tile
 fromBlock block =
     case block of
@@ -73,3 +76,6 @@ fromBlock block =
 
         Track ->
             { color = "Black", content = '=' } |> new
+
+        Wagon _ ->
+            fromWheelbarrow

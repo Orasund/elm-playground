@@ -14,9 +14,9 @@ toHtml tile =
                     |> String.fromChar
                     |> Html.text
                     |> Layout.el
-                        ([ Attr.style "width" "16px"
-                         , Attr.style "height" "16px"
-                         , Attr.style "font-size" "16px"
+                        ([ Attr.style "width" "32px"
+                         , Attr.style "height" "32px"
+                         , Attr.style "font-size" "24px"
                          , Attr.style "color" color
                          ]
                             ++ (if bold then

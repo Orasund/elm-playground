@@ -5,7 +5,6 @@ import Data.Block exposing (Block(..))
 import Data.Player exposing (Player)
 import Data.Train exposing (Train)
 import Dict exposing (Dict)
-import Random exposing (Generator)
 
 
 type alias Game =
@@ -19,6 +18,11 @@ type alias Game =
 select : ( Int, Int ) -> Game -> Game
 select pos game =
     { game | selected = pos }
+
+
+buildWagon : Game -> Game
+buildWagon game =
+    { game | world = game.world |> Dict.insert game.selected (Data.Block.Wagon []) }
 
 
 new : Game

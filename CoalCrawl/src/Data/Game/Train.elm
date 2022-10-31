@@ -3,6 +3,7 @@ module Data.Game.Train exposing (..)
 import Config
 import Data.Block
 import Data.Game exposing (Game)
+import Data.Game.Wagon
 import Data.Game.Wall
 import Data.Position
 import Data.Train
@@ -46,6 +47,15 @@ passTime game =
                             else
                                 turnToHQ game
                                     |> Random.constant
+
+                        Data.Block.Wagon list ->
+                            newPos
+                                |> (\( x, y ) -> Random.uniform ( x - 1, y ) [ ( x + 1, y ) ])
+                                |> Random.map
+                                    (\newWagonPos ->
+                                        game
+                                            |> Data.Game.Wagon.moveTo newWagonPos ( newPos, list )
+                                    )
 
                         _ ->
                             game
