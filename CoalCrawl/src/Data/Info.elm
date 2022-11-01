@@ -56,8 +56,7 @@ fromBlock game block =
         Data.Block.Train ->
             fromTitle "Train"
                 |> withContent
-                    ([ String.fromInt game.train.coal ++ "x Coal"
-                     , String.fromInt game.train.tracks ++ "x Tracks"
+                    ([ String.fromInt game.train.tracks ++ "x Tracks"
                      ]
                         ++ (game.train.items.bag
                                 |> Bag.toAssociationList

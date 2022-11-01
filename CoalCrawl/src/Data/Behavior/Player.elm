@@ -81,22 +81,7 @@ moveTowardsSelected game =
             (\pos ->
                 case Dict.get pos game.world of
                     Just (Ground maybeItem) ->
-                        maybeItem
-                            |> Maybe.andThen
-                                (\item ->
-                                    game.player
-                                        |> Data.Player.hold item
-                                )
-                            |> Maybe.map
-                                (\player ->
-                                    { game
-                                        | player = player
-                                        , world =
-                                            game.world
-                                                |> Dict.insert pos (Ground Nothing)
-                                    }
-                                )
-                            |> Maybe.withDefault game
+                        game
                             |> (\g -> { g | player = g.player |> Data.Player.moveTo pos })
 
                     Just Train ->
@@ -116,7 +101,33 @@ moveTowardsSelected game =
                     _ ->
                         game
             )
+        |> Maybe.map (\g -> pickUp g.player.pos g)
         |> Maybe.withDefault game
+
+
+pickUp : ( Int, Int ) -> Game -> Game
+pickUp pos game =
+    case Dict.get pos game.world of
+        Just (Ground maybeItem) ->
+            maybeItem
+                |> Maybe.andThen
+                    (\item ->
+                        game.player
+                            |> Data.Player.hold item
+                    )
+                |> Maybe.map
+                    (\player ->
+                        { game
+                            | player = player
+                            , world =
+                                game.world
+                                    |> Dict.insert pos (Ground Nothing)
+                        }
+                    )
+                |> Maybe.withDefault game
+
+        _ ->
+            game
 
 
 putIntoWagon : Game -> Game

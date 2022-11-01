@@ -6,7 +6,6 @@ import Data.Item exposing (Item)
 
 type alias Train =
     { pos : ( Int, Int )
-    , coal : Int
     , coalNeeded : Int
     , dir : ( Int, Int )
     , moving : Bool
@@ -21,7 +20,6 @@ type alias Train =
 fromPos : ( Int, Int ) -> Train
 fromPos pos =
     { pos = pos
-    , coal = 0
     , coalNeeded = 4
     , dir = ( 0, -1 )
     , moving = False
@@ -58,23 +56,13 @@ turnAround train =
 
 addItem : Item -> Train -> Train
 addItem item train =
-    case item of
-        Data.Item.Coal ->
-            addCoal train
-
-        Data.Item.IronOre ->
-            { train
-                | items =
-                    train.items
-                        |> (\items -> { items | bag = Bag.insert 1 (item |> train.items.encode) items.bag })
-            }
-
-
-addCoal : Train -> Train
-addCoal train =
-    { train | coal = train.coal + 1 }
+    { train
+        | items =
+            train.items
+                |> (\items -> { items | bag = Bag.insert 1 (item |> train.items.encode) items.bag })
+    }
         |> (\t ->
-                if t.coal >= t.coalNeeded || (train.tracks > 0) then
+                if (item == Data.Item.Coal) && (countCoal t >= t.coalNeeded || (train.tracks > 0)) then
                     { t | moving = True }
 
                 else
@@ -82,12 +70,27 @@ addCoal train =
            )
 
 
+countCoal : Train -> Int
+countCoal train =
+    train.items.bag |> Bag.count (Data.Item.Coal |> train.items.encode)
+
+
 removeCoal : Train -> Maybe Train
 removeCoal train =
-    if train.coal > 0 then
-        { train | coal = train.coal - 1 }
+    if countCoal train > 0 then
+        { train
+            | items =
+                train.items
+                    |> (\items ->
+                            { items
+                                | bag =
+                                    items.bag
+                                        |> Bag.remove 1 (Data.Item.Coal |> Data.Item.toString)
+                            }
+                       )
+        }
             |> (\t ->
-                    if t.coal == 0 then
+                    if countCoal t == 0 then
                         { t | moving = False }
 
                     else

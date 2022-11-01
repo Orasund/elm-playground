@@ -5593,7 +5593,6 @@ var $author$project$Data$Item$toString = function (item) {
 };
 var $author$project$Data$Train$fromPos = function (pos) {
 	return {
-		coal: 0,
 		coalNeeded: 4,
 		dir: _Utils_Tuple2(0, -1),
 		items: {bag: $JohnBugner$elm_bag$Bag$empty, encode: $author$project$Data$Item$toString},
@@ -6931,37 +6930,29 @@ var $krisajenkins$elm_astar$AStar$findPath = $krisajenkins$elm_astar$AStar$Gener
 var $elm$core$Set$fromList = function (list) {
 	return A3($elm$core$List$foldl, $elm$core$Set$insert, $elm$core$Set$empty, list);
 };
-var $author$project$Data$Player$hold = F2(
-	function (item, player) {
-		var _v0 = player.item;
-		if (_v0.$ === 'Just') {
-			return $elm$core$Maybe$Nothing;
-		} else {
-			return $elm$core$Maybe$Just(
-				_Utils_update(
-					player,
-					{
-						item: $elm$core$Maybe$Just(item)
-					}));
-		}
-	});
 var $elm$core$List$singleton = function (value) {
 	return _List_fromArray(
 		[value]);
 };
-var $author$project$Data$Train$addCoal = function (train) {
-	return function (t) {
-		return ((_Utils_cmp(t.coal, t.coalNeeded) > -1) || (train.tracks > 0)) ? _Utils_update(
-			t,
-			{moving: true}) : t;
-	}(
-		_Utils_update(
-			train,
-			{coal: train.coal + 1}));
-};
 var $JohnBugner$elm_bag$Bag$dict = function (_v0) {
 	var d = _v0.a;
 	return d;
+};
+var $JohnBugner$elm_bag$Bag$count = F2(
+	function (v, b) {
+		return A2(
+			$elm$core$Maybe$withDefault,
+			0,
+			A2(
+				$elm$core$Dict$get,
+				v,
+				$JohnBugner$elm_bag$Bag$dict(b)));
+	});
+var $author$project$Data$Train$countCoal = function (train) {
+	return A2(
+		$JohnBugner$elm_bag$Bag$count,
+		train.items.encode($author$project$Data$Item$Coal),
+		train.items.bag);
 };
 var $JohnBugner$elm_bag$Bag$insert = F3(
 	function (n_, v, b) {
@@ -6978,10 +6969,14 @@ var $JohnBugner$elm_bag$Bag$insert = F3(
 	});
 var $author$project$Data$Train$addItem = F2(
 	function (item, train) {
-		if (item.$ === 'Coal') {
-			return $author$project$Data$Train$addCoal(train);
-		} else {
-			return _Utils_update(
+		return function (t) {
+			return (_Utils_eq(item, $author$project$Data$Item$Coal) && ((_Utils_cmp(
+				$author$project$Data$Train$countCoal(t),
+				t.coalNeeded) > -1) || (train.tracks > 0))) ? _Utils_update(
+				t,
+				{moving: true}) : t;
+		}(
+			_Utils_update(
 				train,
 				{
 					items: function (items) {
@@ -6995,8 +6990,7 @@ var $author$project$Data$Train$addItem = F2(
 									items.bag)
 							});
 					}(train.items)
-				});
-		}
+				}));
 	});
 var $author$project$Data$Position$neighbors = function (_v0) {
 	var x = _v0.a;
@@ -7097,6 +7091,52 @@ var $author$project$Data$Player$moveTo = F2(
 			player,
 			{pos: pos});
 	});
+var $author$project$Data$Player$hold = F2(
+	function (item, player) {
+		var _v0 = player.item;
+		if (_v0.$ === 'Just') {
+			return $elm$core$Maybe$Nothing;
+		} else {
+			return $elm$core$Maybe$Just(
+				_Utils_update(
+					player,
+					{
+						item: $elm$core$Maybe$Just(item)
+					}));
+		}
+	});
+var $author$project$Data$Behavior$Player$pickUp = F2(
+	function (pos, game) {
+		var _v0 = A2($elm$core$Dict$get, pos, game.world);
+		if ((_v0.$ === 'Just') && (_v0.a.$ === 'Ground')) {
+			var maybeItem = _v0.a.a;
+			return A2(
+				$elm$core$Maybe$withDefault,
+				game,
+				A2(
+					$elm$core$Maybe$map,
+					function (player) {
+						return _Utils_update(
+							game,
+							{
+								player: player,
+								world: A3(
+									$elm$core$Dict$insert,
+									pos,
+									$author$project$Data$Block$Ground($elm$core$Maybe$Nothing),
+									game.world)
+							});
+					},
+					A2(
+						$elm$core$Maybe$andThen,
+						function (item) {
+							return A2($author$project$Data$Player$hold, item, game.player);
+						},
+						maybeItem)));
+		} else {
+			return game;
+		}
+	});
 var $author$project$Data$Position$plus = F2(
 	function (_v0, _v1) {
 		var x1 = _v0.a;
@@ -7130,116 +7170,98 @@ var $author$project$Data$Behavior$Player$moveTowardsSelected = function (game) {
 		game,
 		A2(
 			$elm$core$Maybe$map,
-			function (pos) {
-				var _v2 = A2($elm$core$Dict$get, pos, game.world);
-				_v2$3:
-				while (true) {
-					if (_v2.$ === 'Just') {
-						switch (_v2.a.$) {
-							case 'Ground':
-								var maybeItem = _v2.a.a;
-								return function (g) {
-									return _Utils_update(
-										g,
-										{
-											player: A2($author$project$Data$Player$moveTo, pos, g.player)
-										});
-								}(
-									A2(
-										$elm$core$Maybe$withDefault,
-										game,
-										A2(
-											$elm$core$Maybe$map,
-											function (player) {
-												return _Utils_update(
-													game,
-													{
-														player: player,
-														world: A3(
-															$elm$core$Dict$insert,
-															pos,
-															$author$project$Data$Block$Ground($elm$core$Maybe$Nothing),
-															game.world)
-													});
-											},
-											A2(
-												$elm$core$Maybe$andThen,
-												function (item) {
-													return A2($author$project$Data$Player$hold, item, game.player);
-												},
-												maybeItem))));
-							case 'Train':
-								var _v3 = _v2.a;
-								return _Utils_update(
-									game,
-									{
-										player: A2($author$project$Data$Player$moveTo, pos, game.player)
-									});
-							case 'Wagon':
-								var content = _v2.a.a;
-								var newWagonPos = A2(
-									$author$project$Data$Position$plus,
-									pos,
-									A2($author$project$Data$Position$vecTo, pos, game.player.pos));
-								return function (g) {
-									return _Utils_update(
-										g,
-										{
-											player: A2($author$project$Data$Player$moveTo, pos, g.player)
-										});
-								}(
-									A3(
-										$author$project$Data$Behavior$Wagon$moveTo,
-										newWagonPos,
-										_Utils_Tuple2(pos, content),
-										game));
-							default:
-								break _v2$3;
-						}
-					} else {
-						break _v2$3;
-					}
-				}
-				return game;
+			function (g) {
+				return A2($author$project$Data$Behavior$Player$pickUp, g.player.pos, g);
 			},
 			A2(
-				$elm$core$Maybe$andThen,
-				$elm$core$List$head,
-				A4(
-					$krisajenkins$elm_astar$AStar$findPath,
-					$krisajenkins$elm_astar$AStar$straightLineCost,
-					function (pos) {
-						return $elm$core$Set$fromList(
-							A2(
-								$elm$core$List$filter,
-								function (p) {
-									return _Utils_eq(p, game.selected) || function () {
-										var _v0 = A2($elm$core$Dict$get, p, game.world);
-										_v0$3:
-										while (true) {
-											if (_v0.$ === 'Just') {
-												switch (_v0.a.$) {
-													case 'Ground':
-														return true;
-													case 'Train':
-														var _v1 = _v0.a;
-														return true;
-													case 'Wagon':
-														return true;
-													default:
-														break _v0$3;
+				$elm$core$Maybe$map,
+				function (pos) {
+					var _v2 = A2($elm$core$Dict$get, pos, game.world);
+					_v2$3:
+					while (true) {
+						if (_v2.$ === 'Just') {
+							switch (_v2.a.$) {
+								case 'Ground':
+									var maybeItem = _v2.a.a;
+									return function (g) {
+										return _Utils_update(
+											g,
+											{
+												player: A2($author$project$Data$Player$moveTo, pos, g.player)
+											});
+									}(game);
+								case 'Train':
+									var _v3 = _v2.a;
+									return _Utils_update(
+										game,
+										{
+											player: A2($author$project$Data$Player$moveTo, pos, game.player)
+										});
+								case 'Wagon':
+									var content = _v2.a.a;
+									var newWagonPos = A2(
+										$author$project$Data$Position$plus,
+										pos,
+										A2($author$project$Data$Position$vecTo, pos, game.player.pos));
+									return function (g) {
+										return _Utils_update(
+											g,
+											{
+												player: A2($author$project$Data$Player$moveTo, pos, g.player)
+											});
+									}(
+										A3(
+											$author$project$Data$Behavior$Wagon$moveTo,
+											newWagonPos,
+											_Utils_Tuple2(pos, content),
+											game));
+								default:
+									break _v2$3;
+							}
+						} else {
+							break _v2$3;
+						}
+					}
+					return game;
+				},
+				A2(
+					$elm$core$Maybe$andThen,
+					$elm$core$List$head,
+					A4(
+						$krisajenkins$elm_astar$AStar$findPath,
+						$krisajenkins$elm_astar$AStar$straightLineCost,
+						function (pos) {
+							return $elm$core$Set$fromList(
+								A2(
+									$elm$core$List$filter,
+									function (p) {
+										return _Utils_eq(p, game.selected) || function () {
+											var _v0 = A2($elm$core$Dict$get, p, game.world);
+											_v0$3:
+											while (true) {
+												if (_v0.$ === 'Just') {
+													switch (_v0.a.$) {
+														case 'Ground':
+															return true;
+														case 'Train':
+															var _v1 = _v0.a;
+															return true;
+														case 'Wagon':
+															return true;
+														default:
+															break _v0$3;
+													}
+												} else {
+													break _v0$3;
 												}
-											} else {
-												break _v0$3;
 											}
-										}
-										return false;
-									}();
-								},
-								$author$project$Data$Position$neighbors(pos)));
-					},
-					game.player.pos,
-					game.selected))));
+											return false;
+										}();
+									},
+									$author$project$Data$Position$neighbors(pos)));
+						},
+						game.player.pos,
+						game.selected)))));
 };
 var $author$project$Data$Player$dropItem = function (player) {
 	return A2(
@@ -7378,16 +7400,31 @@ var $author$project$Data$Train$move = function (train) {
 			pos: $author$project$Data$Train$forwardPos(train)
 		});
 };
+var $JohnBugner$elm_bag$Bag$remove = function (n) {
+	return $JohnBugner$elm_bag$Bag$insert(-n);
+};
 var $author$project$Data$Train$removeCoal = function (train) {
-	return (train.coal > 0) ? $elm$core$Maybe$Just(
+	return ($author$project$Data$Train$countCoal(train) > 0) ? $elm$core$Maybe$Just(
 		function (t) {
-			return (!t.coal) ? _Utils_update(
+			return (!$author$project$Data$Train$countCoal(t)) ? _Utils_update(
 				t,
 				{moving: false}) : t;
 		}(
 			_Utils_update(
 				train,
-				{coal: train.coal - 1}))) : $elm$core$Maybe$Nothing;
+				{
+					items: function (items) {
+						return _Utils_update(
+							items,
+							{
+								bag: A3(
+									$JohnBugner$elm_bag$Bag$remove,
+									1,
+									$author$project$Data$Item$toString($author$project$Data$Item$Coal),
+									items.bag)
+							});
+					}(train.items)
+				}))) : $elm$core$Maybe$Nothing;
 };
 var $author$project$Data$Behavior$Train$move = function (game) {
 	var newPos = $author$project$Data$Train$forwardPos(game.train);
@@ -7697,7 +7734,6 @@ var $author$project$Data$Info$fromBlock = F2(
 						_Utils_ap(
 							_List_fromArray(
 								[
-									$elm$core$String$fromInt(game.train.coal) + 'x Coal',
 									$elm$core$String$fromInt(game.train.tracks) + 'x Tracks'
 								]),
 							A2(
