@@ -1,10 +1,10 @@
-module Data.Game.Train exposing (..)
+module Data.Behavior.Train exposing (..)
 
 import Config
+import Data.Behavior.Wagon
+import Data.Behavior.Wall
 import Data.Block
 import Data.Game exposing (Game)
-import Data.Game.Wagon
-import Data.Game.Wall
 import Data.Position
 import Data.Train
 import Dict
@@ -54,7 +54,7 @@ passTime game =
                                 |> Random.map
                                     (\newWagonPos ->
                                         game
-                                            |> Data.Game.Wagon.moveTo newWagonPos ( newPos, list )
+                                            |> Data.Behavior.Wagon.moveTo newWagonPos ( newPos, list )
                                     )
 
                         _ ->
@@ -126,6 +126,6 @@ mine game =
         :: Data.Position.neighbors newPos
         |> List.foldl
             (\pos ->
-                Random.andThen (Data.Game.Wall.mine pos)
+                Random.andThen (Data.Behavior.Wall.mine pos)
             )
             (Random.constant game)

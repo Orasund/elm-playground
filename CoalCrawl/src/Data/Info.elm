@@ -1,5 +1,6 @@
 module Data.Info exposing (..)
 
+import Bag
 import Data.Block exposing (Block)
 import Data.Game exposing (Game)
 import Data.Item exposing (Item)
@@ -30,13 +31,6 @@ withAdditionalInfo additionalInfos info =
     { info | additionalInfo = additionalInfos }
 
 
-itemInfo : Item -> String
-itemInfo item =
-    case item of
-        Data.Item.Coal ->
-            "Coal"
-
-
 fromBlock : Game -> Block -> Info
 fromBlock game block =
     case block of
@@ -47,14 +41,14 @@ fromBlock game block =
                         |> Maybe.map
                             (\item ->
                                 item
-                                    |> itemInfo
+                                    |> Data.Item.toString
                                     |> List.singleton
                             )
                         |> Maybe.withDefault []
                     )
 
-        Data.Block.CoalVein ->
-            fromTitle "Coal Vein"
+        Data.Block.Vein item ->
+            Data.Item.toString item ++ " Vein" |> fromTitle
 
         Data.Block.Wall ->
             fromTitle "Wall"
@@ -62,9 +56,14 @@ fromBlock game block =
         Data.Block.Train ->
             fromTitle "Train"
                 |> withContent
-                    [ String.fromInt game.train.coal ++ "x Coal"
-                    , String.fromInt game.train.tracks ++ "x Tracks"
-                    ]
+                    ([ String.fromInt game.train.coal ++ "x Coal"
+                     , String.fromInt game.train.tracks ++ "x Tracks"
+                     ]
+                        ++ (game.train.items.bag
+                                |> Bag.toAssociationList
+                                |> List.map (\( k, n ) -> String.fromInt n ++ "x " ++ k)
+                           )
+                    )
                 |> withAdditionalInfo
                     [ "Needs " ++ String.fromInt game.train.coalNeeded ++ " Coal to go back to HQ"
                     ]
@@ -74,4 +73,4 @@ fromBlock game block =
 
         Data.Block.Wagon list ->
             fromTitle "Wheelbarrow"
-                |> withContent (list |> List.map itemInfo)
+                |> withContent (list |> List.map Data.Item.toString)

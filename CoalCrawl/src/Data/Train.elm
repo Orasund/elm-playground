@@ -1,5 +1,6 @@
 module Data.Train exposing (..)
 
+import Bag exposing (Bag)
 import Data.Item exposing (Item)
 
 
@@ -10,6 +11,10 @@ type alias Train =
     , dir : ( Int, Int )
     , moving : Bool
     , tracks : Int
+    , items :
+        { bag : Bag String
+        , encode : Item -> String
+        }
     }
 
 
@@ -21,6 +26,7 @@ fromPos pos =
     , dir = ( 0, -1 )
     , moving = False
     , tracks = 0
+    , items = { bag = Bag.empty, encode = Data.Item.toString }
     }
 
 
@@ -55,6 +61,13 @@ addItem item train =
     case item of
         Data.Item.Coal ->
             addCoal train
+
+        Data.Item.IronOre ->
+            { train
+                | items =
+                    train.items
+                        |> (\items -> { items | bag = Bag.insert 1 (item |> train.items.encode) items.bag })
+            }
 
 
 addCoal : Train -> Train

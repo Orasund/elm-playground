@@ -1,4 +1,4 @@
-module Data.Game.Wagon exposing (..)
+module Data.Behavior.Wagon exposing (..)
 
 import Data.Block
 import Data.Game exposing (Game)

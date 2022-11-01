@@ -5443,12 +5443,15 @@ var $elm$random$Random$independentSeed = $elm$random$Random$Generator(
 			A4($elm$random$Random$map3, makeIndependentSeed, gen, gen, gen),
 			seed0);
 	});
-var $author$project$Data$Block$CoalVein = {$: 'CoalVein'};
+var $author$project$Data$Item$Coal = {$: 'Coal'};
 var $author$project$Data$Block$Ground = function (a) {
 	return {$: 'Ground', a: a};
 };
 var $author$project$Data$Block$Track = {$: 'Track'};
 var $author$project$Data$Block$Train = {$: 'Train'};
+var $author$project$Data$Block$Vein = function (a) {
+	return {$: 'Vein', a: a};
+};
 var $elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
 var $elm$core$Dict$empty = $elm$core$Dict$RBEmpty_elm_builtin;
 var $elm$core$Dict$Black = {$: 'Black'};
@@ -5575,11 +5578,25 @@ var $elm$core$Dict$fromList = function (assocs) {
 var $author$project$Data$Player$fromPos = function (pos) {
 	return {item: $elm$core$Maybe$Nothing, pos: pos};
 };
+var $JohnBugner$elm_bag$Bag$Bag = function (a) {
+	return {$: 'Bag', a: a};
+};
+var $JohnBugner$elm_bag$Bag$empty = $JohnBugner$elm_bag$Bag$Bag($elm$core$Dict$empty);
+var $author$project$Data$Item$coalString = 'Coal';
+var $author$project$Data$Item$ironOreString = 'Iron Ore';
+var $author$project$Data$Item$toString = function (item) {
+	if (item.$ === 'Coal') {
+		return $author$project$Data$Item$coalString;
+	} else {
+		return $author$project$Data$Item$ironOreString;
+	}
+};
 var $author$project$Data$Train$fromPos = function (pos) {
 	return {
 		coal: 0,
 		coalNeeded: 4,
 		dir: _Utils_Tuple2(0, -1),
+		items: {bag: $JohnBugner$elm_bag$Bag$empty, encode: $author$project$Data$Item$toString},
 		moving: false,
 		pos: pos,
 		tracks: 0
@@ -5621,7 +5638,9 @@ var $author$project$Data$Game$new = function () {
 					A2(
 						$elm$core$List$map,
 						function (pos) {
-							return _Utils_Tuple2(pos, $author$project$Data$Block$CoalVein);
+							return _Utils_Tuple2(
+								pos,
+								$author$project$Data$Block$Vein($author$project$Data$Item$Coal));
 						},
 						coals))))
 	};
@@ -6002,7 +6021,7 @@ var $elm$core$List$member = F2(
 			},
 			xs);
 	});
-var $author$project$Data$Item$Coal = {$: 'Coal'};
+var $author$project$Data$Item$IronOre = {$: 'IronOre'};
 var $author$project$Data$Block$Wall = {$: 'Wall'};
 var $elm$core$Maybe$andThen = F2(
 	function (callback, maybeValue) {
@@ -6023,7 +6042,97 @@ var $elm$core$Maybe$map = F2(
 			return $elm$core$Maybe$Nothing;
 		}
 	});
+var $elm$random$Random$map2 = F3(
+	function (func, _v0, _v1) {
+		var genA = _v0.a;
+		var genB = _v1.a;
+		return $elm$random$Random$Generator(
+			function (seed0) {
+				var _v2 = genA(seed0);
+				var a = _v2.a;
+				var seed1 = _v2.b;
+				var _v3 = genB(seed1);
+				var b = _v3.a;
+				var seed2 = _v3.b;
+				return _Utils_Tuple2(
+					A2(func, a, b),
+					seed2);
+			});
+	});
 var $elm$core$Basics$neq = _Utils_notEqual;
+var $elm$random$Random$addOne = function (value) {
+	return _Utils_Tuple2(1, value);
+};
+var $elm$core$Basics$abs = function (n) {
+	return (n < 0) ? (-n) : n;
+};
+var $elm$random$Random$float = F2(
+	function (a, b) {
+		return $elm$random$Random$Generator(
+			function (seed0) {
+				var seed1 = $elm$random$Random$next(seed0);
+				var range = $elm$core$Basics$abs(b - a);
+				var n1 = $elm$random$Random$peel(seed1);
+				var n0 = $elm$random$Random$peel(seed0);
+				var lo = (134217727 & n1) * 1.0;
+				var hi = (67108863 & n0) * 1.0;
+				var val = ((hi * 134217728.0) + lo) / 9007199254740992.0;
+				var scaled = (val * range) + a;
+				return _Utils_Tuple2(
+					scaled,
+					$elm$random$Random$next(seed1));
+			});
+	});
+var $elm$random$Random$getByWeight = F3(
+	function (_v0, others, countdown) {
+		getByWeight:
+		while (true) {
+			var weight = _v0.a;
+			var value = _v0.b;
+			if (!others.b) {
+				return value;
+			} else {
+				var second = others.a;
+				var otherOthers = others.b;
+				if (_Utils_cmp(
+					countdown,
+					$elm$core$Basics$abs(weight)) < 1) {
+					return value;
+				} else {
+					var $temp$_v0 = second,
+						$temp$others = otherOthers,
+						$temp$countdown = countdown - $elm$core$Basics$abs(weight);
+					_v0 = $temp$_v0;
+					others = $temp$others;
+					countdown = $temp$countdown;
+					continue getByWeight;
+				}
+			}
+		}
+	});
+var $elm$core$List$sum = function (numbers) {
+	return A3($elm$core$List$foldl, $elm$core$Basics$add, 0, numbers);
+};
+var $elm$random$Random$weighted = F2(
+	function (first, others) {
+		var normalize = function (_v0) {
+			var weight = _v0.a;
+			return $elm$core$Basics$abs(weight);
+		};
+		var total = normalize(first) + $elm$core$List$sum(
+			A2($elm$core$List$map, normalize, others));
+		return A2(
+			$elm$random$Random$map,
+			A2($elm$random$Random$getByWeight, first, others),
+			A2($elm$random$Random$float, 0, total));
+	});
+var $elm$random$Random$uniform = F2(
+	function (value, valueList) {
+		return A2(
+			$elm$random$Random$weighted,
+			$elm$random$Random$addOne(value),
+			A2($elm$core$List$map, $elm$random$Random$addOne, valueList));
+	});
 var $elm$core$Dict$getMin = function (dict) {
 	getMin:
 	while (true) {
@@ -6406,7 +6515,7 @@ var $elm$core$Maybe$withDefault = F2(
 			return _default;
 		}
 	});
-var $author$project$Data$Game$Wall$mine = F2(
+var $author$project$Data$Behavior$Wall$mine = F2(
 	function (_v0, game) {
 		var x = _v0.a;
 		var y = _v0.b;
@@ -6431,22 +6540,28 @@ var $author$project$Data$Game$Wall$mine = F2(
 									var pos = _v2.b;
 									return $elm$random$Random$andThen(
 										function (d) {
-											return A2(
-												$elm$random$Random$map,
-												function (_int) {
-													return A3(
-														$elm$core$Dict$update,
-														pos,
-														function (maybe) {
-															return $elm$core$Maybe$Just(
-																A2(
-																	$elm$core$Maybe$withDefault,
-																	(!(!_int)) ? $author$project$Data$Block$CoalVein : $author$project$Data$Block$Wall,
-																	maybe));
-														},
-														d);
-												},
-												A2($elm$random$Random$int, 0, prob));
+											return A3(
+												$elm$random$Random$map2,
+												F2(
+													function (_int, item) {
+														return A3(
+															$elm$core$Dict$update,
+															pos,
+															function (maybe) {
+																return $elm$core$Maybe$Just(
+																	A2(
+																		$elm$core$Maybe$withDefault,
+																		(!(!_int)) ? $author$project$Data$Block$Vein(item) : $author$project$Data$Block$Wall,
+																		maybe));
+															},
+															d);
+													}),
+												A2($elm$random$Random$int, 0, prob),
+												A2(
+													$elm$random$Random$uniform,
+													$author$project$Data$Item$Coal,
+													_List_fromArray(
+														[$author$project$Data$Item$IronOre])));
 										});
 								},
 								$elm$random$Random$constant(dict),
@@ -6480,9 +6595,10 @@ var $author$project$Data$Game$Wall$mine = F2(
 					$elm$core$Maybe$andThen,
 					function (block) {
 						switch (block.$) {
-							case 'CoalVein':
+							case 'Vein':
+								var item = block.a;
 								return $elm$core$Maybe$Just(
-									$elm$core$Maybe$Just($author$project$Data$Item$Coal));
+									$elm$core$Maybe$Just(item));
 							case 'Wall':
 								return $elm$core$Maybe$Just($elm$core$Maybe$Nothing);
 							default:
@@ -6843,9 +6959,44 @@ var $author$project$Data$Train$addCoal = function (train) {
 			train,
 			{coal: train.coal + 1}));
 };
+var $JohnBugner$elm_bag$Bag$dict = function (_v0) {
+	var d = _v0.a;
+	return d;
+};
+var $JohnBugner$elm_bag$Bag$insert = F3(
+	function (n_, v, b) {
+		var f = function (ma) {
+			var n__ = n_ + A2($elm$core$Maybe$withDefault, 0, ma);
+			return (n__ > 0) ? $elm$core$Maybe$Just(n__) : $elm$core$Maybe$Nothing;
+		};
+		return $JohnBugner$elm_bag$Bag$Bag(
+			A3(
+				$elm$core$Dict$update,
+				v,
+				f,
+				$JohnBugner$elm_bag$Bag$dict(b)));
+	});
 var $author$project$Data$Train$addItem = F2(
 	function (item, train) {
-		return $author$project$Data$Train$addCoal(train);
+		if (item.$ === 'Coal') {
+			return $author$project$Data$Train$addCoal(train);
+		} else {
+			return _Utils_update(
+				train,
+				{
+					items: function (items) {
+						return _Utils_update(
+							items,
+							{
+								bag: A3(
+									$JohnBugner$elm_bag$Bag$insert,
+									1,
+									train.items.encode(item),
+									items.bag)
+							});
+					}(train.items)
+				});
+		}
 	});
 var $author$project$Data$Position$neighbors = function (_v0) {
 	var x = _v0.a;
@@ -6858,7 +7009,7 @@ var $author$project$Data$Position$neighbors = function (_v0) {
 			_Utils_Tuple2(x, y - 1)
 		]);
 };
-var $author$project$Data$Game$Wagon$unload = F2(
+var $author$project$Data$Behavior$Wagon$unload = F2(
 	function (_v0, game) {
 		var pos = _v0.a;
 		var content = _v0.b;
@@ -6883,7 +7034,7 @@ var $author$project$Data$Game$Wagon$unload = F2(
 			}(
 				A3($elm$core$List$foldl, $author$project$Data$Train$addItem, game.train, content))) : game;
 	});
-var $author$project$Data$Game$Wagon$moveTo = F3(
+var $author$project$Data$Behavior$Wagon$moveTo = F3(
 	function (newWagonPos, _v0, game) {
 		var pos = _v0.a;
 		var content = _v0.b;
@@ -6891,7 +7042,7 @@ var $author$project$Data$Game$Wagon$moveTo = F3(
 			var world = _v4.a;
 			var p = _v4.b;
 			return A2(
-				$author$project$Data$Game$Wagon$unload,
+				$author$project$Data$Behavior$Wagon$unload,
 				_Utils_Tuple2(p, content),
 				_Utils_update(
 					game,
@@ -6954,9 +7105,6 @@ var $author$project$Data$Position$plus = F2(
 		var y2 = _v1.b;
 		return _Utils_Tuple2(x1 + x2, y1 + y2);
 	});
-var $elm$core$Basics$abs = function (n) {
-	return (n < 0) ? (-n) : n;
-};
 var $krisajenkins$elm_astar$AStar$straightLineCost = F2(
 	function (_v0, _v1) {
 		var x1 = _v0.a;
@@ -6976,7 +7124,7 @@ var $author$project$Data$Position$vecTo = F2(
 			p,
 			_Utils_Tuple2(-x, -y));
 	});
-var $author$project$Data$Game$Player$moveTowardsSelected = function (game) {
+var $author$project$Data$Behavior$Player$moveTowardsSelected = function (game) {
 	return A2(
 		$elm$core$Maybe$withDefault,
 		game,
@@ -7041,7 +7189,7 @@ var $author$project$Data$Game$Player$moveTowardsSelected = function (game) {
 										});
 								}(
 									A3(
-										$author$project$Data$Game$Wagon$moveTo,
+										$author$project$Data$Behavior$Wagon$moveTo,
 										newWagonPos,
 										_Utils_Tuple2(pos, content),
 										game));
@@ -7105,7 +7253,7 @@ var $author$project$Data$Player$dropItem = function (player) {
 		},
 		player.item);
 };
-var $author$project$Data$Game$Player$putIntoTrain = function (game) {
+var $author$project$Data$Behavior$Player$putIntoTrain = function (game) {
 	return A2(
 		$elm$core$Maybe$withDefault,
 		game,
@@ -7127,12 +7275,12 @@ var $author$project$Data$Game$Player$putIntoTrain = function (game) {
 			},
 			$author$project$Data$Player$dropItem(game.player)));
 };
-var $author$project$Data$Game$Player$putIntoWagon = function (game) {
+var $author$project$Data$Behavior$Player$putIntoWagon = function (game) {
 	var _v0 = A2($elm$core$Dict$get, game.selected, game.world);
 	if ((_v0.$ === 'Just') && (_v0.a.$ === 'Wagon')) {
 		var list = _v0.a.a;
 		return A2(
-			$author$project$Data$Game$Wagon$unload,
+			$author$project$Data$Behavior$Wagon$unload,
 			_Utils_Tuple2(game.selected, list),
 			A2(
 				$elm$core$Maybe$withDefault,
@@ -7161,30 +7309,31 @@ var $author$project$Data$Game$Player$putIntoWagon = function (game) {
 		return game;
 	}
 };
-var $author$project$Data$Game$Player$passTime = function (game) {
+var $author$project$Data$Behavior$Player$passTime = function (game) {
 	return function (maybe) {
 		if (maybe.$ === 'Just') {
 			var block = maybe.a;
 			switch (block.$) {
-				case 'CoalVein':
-					return A2($author$project$Data$Game$Wall$mine, game.selected, game);
+				case 'Vein':
+					var veinType = block.a;
+					return A2($author$project$Data$Behavior$Wall$mine, game.selected, game);
 				case 'Train':
 					return $elm$random$Random$constant(
-						$author$project$Data$Game$Player$putIntoTrain(game));
+						$author$project$Data$Behavior$Player$putIntoTrain(game));
 				case 'Ground':
 					return $elm$random$Random$constant(
-						$author$project$Data$Game$Player$moveTowardsSelected(game));
+						$author$project$Data$Behavior$Player$moveTowardsSelected(game));
 				case 'Track':
 					return $elm$random$Random$constant(game);
 				case 'Wall':
 					return $elm$random$Random$constant(game);
 				default:
 					return $elm$random$Random$constant(
-						$author$project$Data$Game$Player$putIntoWagon(game));
+						$author$project$Data$Behavior$Player$putIntoWagon(game));
 			}
 		} else {
 			return $elm$random$Random$constant(
-				$author$project$Data$Game$Player$moveTowardsSelected(game));
+				$author$project$Data$Behavior$Player$moveTowardsSelected(game));
 		}
 	}(
 		A2(
@@ -7208,13 +7357,13 @@ var $author$project$Data$Train$forwardPos = function (train) {
 	return _Utils_Tuple2(x + dirX, y + dirY);
 };
 var $author$project$Config$hqPos = _Utils_Tuple2(($author$project$Config$width / 2) | 0, 0);
-var $author$project$Data$Game$Train$mine = function (game) {
+var $author$project$Data$Behavior$Train$mine = function (game) {
 	var newPos = $author$project$Data$Train$forwardPos(game.train);
 	return A3(
 		$elm$core$List$foldl,
 		function (pos) {
 			return $elm$random$Random$andThen(
-				$author$project$Data$Game$Wall$mine(pos));
+				$author$project$Data$Behavior$Wall$mine(pos));
 		},
 		$elm$random$Random$constant(game),
 		A2(
@@ -7240,7 +7389,7 @@ var $author$project$Data$Train$removeCoal = function (train) {
 				train,
 				{coal: train.coal - 1}))) : $elm$core$Maybe$Nothing;
 };
-var $author$project$Data$Game$Train$move = function (game) {
+var $author$project$Data$Behavior$Train$move = function (game) {
 	var newPos = $author$project$Data$Train$forwardPos(game.train);
 	return A2(
 		$elm$core$Maybe$withDefault,
@@ -7284,7 +7433,7 @@ var $author$project$Data$Train$removeTrack = function (train) {
 				train,
 				{coalNeeded: train.coalNeeded + 2, tracks: train.tracks - 1}))) : $elm$core$Maybe$Nothing;
 };
-var $author$project$Data$Game$Train$placeTrack = function (game) {
+var $author$project$Data$Behavior$Train$placeTrack = function (game) {
 	var newPos = $author$project$Data$Train$forwardPos(game.train);
 	return A2(
 		$elm$core$Maybe$withDefault,
@@ -7316,7 +7465,7 @@ var $author$project$Data$Train$stop = function (train) {
 		train,
 		{moving: false});
 };
-var $author$project$Data$Game$Train$turnToHQ = function (game) {
+var $author$project$Data$Behavior$Train$turnToHQ = function (game) {
 	return _Utils_update(
 		game,
 		{
@@ -7324,80 +7473,10 @@ var $author$project$Data$Game$Train$turnToHQ = function (game) {
 				$author$project$Data$Train$stop(game.train))
 		});
 };
-var $elm$random$Random$addOne = function (value) {
-	return _Utils_Tuple2(1, value);
-};
-var $elm$random$Random$float = F2(
-	function (a, b) {
-		return $elm$random$Random$Generator(
-			function (seed0) {
-				var seed1 = $elm$random$Random$next(seed0);
-				var range = $elm$core$Basics$abs(b - a);
-				var n1 = $elm$random$Random$peel(seed1);
-				var n0 = $elm$random$Random$peel(seed0);
-				var lo = (134217727 & n1) * 1.0;
-				var hi = (67108863 & n0) * 1.0;
-				var val = ((hi * 134217728.0) + lo) / 9007199254740992.0;
-				var scaled = (val * range) + a;
-				return _Utils_Tuple2(
-					scaled,
-					$elm$random$Random$next(seed1));
-			});
-	});
-var $elm$random$Random$getByWeight = F3(
-	function (_v0, others, countdown) {
-		getByWeight:
-		while (true) {
-			var weight = _v0.a;
-			var value = _v0.b;
-			if (!others.b) {
-				return value;
-			} else {
-				var second = others.a;
-				var otherOthers = others.b;
-				if (_Utils_cmp(
-					countdown,
-					$elm$core$Basics$abs(weight)) < 1) {
-					return value;
-				} else {
-					var $temp$_v0 = second,
-						$temp$others = otherOthers,
-						$temp$countdown = countdown - $elm$core$Basics$abs(weight);
-					_v0 = $temp$_v0;
-					others = $temp$others;
-					countdown = $temp$countdown;
-					continue getByWeight;
-				}
-			}
-		}
-	});
-var $elm$core$List$sum = function (numbers) {
-	return A3($elm$core$List$foldl, $elm$core$Basics$add, 0, numbers);
-};
-var $elm$random$Random$weighted = F2(
-	function (first, others) {
-		var normalize = function (_v0) {
-			var weight = _v0.a;
-			return $elm$core$Basics$abs(weight);
-		};
-		var total = normalize(first) + $elm$core$List$sum(
-			A2($elm$core$List$map, normalize, others));
-		return A2(
-			$elm$random$Random$map,
-			A2($elm$random$Random$getByWeight, first, others),
-			A2($elm$random$Random$float, 0, total));
-	});
-var $elm$random$Random$uniform = F2(
-	function (value, valueList) {
-		return A2(
-			$elm$random$Random$weighted,
-			$elm$random$Random$addOne(value),
-			A2($elm$core$List$map, $elm$random$Random$addOne, valueList));
-	});
-var $author$project$Data$Game$Train$passTime = function (game) {
+var $author$project$Data$Behavior$Train$passTime = function (game) {
 	var newPos = $author$project$Data$Train$forwardPos(game.train);
 	return _Utils_eq(game.train.pos, $author$project$Config$hqPos) ? $elm$random$Random$constant(
-		$author$project$Data$Game$Train$move(
+		$author$project$Data$Behavior$Train$move(
 			_Utils_update(
 				game,
 				{
@@ -7412,11 +7491,11 @@ var $author$project$Data$Game$Train$passTime = function (game) {
 				switch (block.$) {
 					case 'Track':
 						return $elm$random$Random$constant(
-							$author$project$Data$Game$Train$move(game));
+							$author$project$Data$Behavior$Train$move(game));
 					case 'Ground':
 						var maybeItem = block.a;
-						return (game.train.tracks > 0) ? $author$project$Data$Game$Train$mine(
-							$author$project$Data$Game$Train$placeTrack(
+						return (game.train.tracks > 0) ? $author$project$Data$Behavior$Train$mine(
+							$author$project$Data$Behavior$Train$placeTrack(
 								function (train) {
 									return _Utils_update(
 										game,
@@ -7431,14 +7510,14 @@ var $author$project$Data$Game$Train$passTime = function (game) {
 												return A2($author$project$Data$Train$addItem, item, game.train);
 											},
 											maybeItem))))) : $elm$random$Random$constant(
-							$author$project$Data$Game$Train$turnToHQ(game));
+							$author$project$Data$Behavior$Train$turnToHQ(game));
 					case 'Wagon':
 						var list = block.a;
 						return A2(
 							$elm$random$Random$map,
 							function (newWagonPos) {
 								return A3(
-									$author$project$Data$Game$Wagon$moveTo,
+									$author$project$Data$Behavior$Wagon$moveTo,
 									newWagonPos,
 									_Utils_Tuple2(newPos, list),
 									game);
@@ -7457,17 +7536,17 @@ var $author$project$Data$Game$Train$passTime = function (game) {
 					default:
 						return A2(
 							$elm$random$Random$map,
-							$author$project$Data$Game$Train$turnToHQ,
-							$author$project$Data$Game$Train$mine(game));
+							$author$project$Data$Behavior$Train$turnToHQ,
+							$author$project$Data$Behavior$Train$mine(game));
 				}
 			},
 			A2($elm$core$Dict$get, newPos, game.world))) : $elm$random$Random$constant(game));
 };
-var $author$project$Data$Game$Behavior$passTime = function (game) {
+var $author$project$Data$Behavior$passTime = function (game) {
 	return A2(
 		$elm$random$Random$andThen,
-		$author$project$Data$Game$Train$passTime,
-		$author$project$Data$Game$Player$passTime(game));
+		$author$project$Data$Behavior$Train$passTime,
+		$author$project$Data$Behavior$Player$passTime(game));
 };
 var $author$project$Data$Game$select = F2(
 	function (pos, game) {
@@ -7526,7 +7605,7 @@ var $author$project$Main$update = F2(
 				return _Utils_Tuple2(
 					A2(
 						$author$project$Main$updateGame,
-						$author$project$Data$Game$Behavior$passTime,
+						$author$project$Data$Behavior$passTime,
 						$author$project$Main$updateCamera(model)),
 					$elm$core$Platform$Cmd$none);
 			case 'TogglePause':
@@ -7566,8 +7645,9 @@ var $Orasund$elm_layout$Layout$column = function (attrs) {
 var $author$project$Data$Info$fromTitle = function (title) {
 	return {additionalInfo: _List_Nil, content: _List_Nil, title: title};
 };
-var $author$project$Data$Info$itemInfo = function (item) {
-	return 'Coal';
+var $JohnBugner$elm_bag$Bag$toAssociationList = function (b) {
+	return $elm$core$Dict$toList(
+		$JohnBugner$elm_bag$Bag$dict(b));
 };
 var $author$project$Data$Info$withAdditionalInfo = F2(
 	function (additionalInfos, info) {
@@ -7595,12 +7675,14 @@ var $author$project$Data$Info$fromBlock = F2(
 							$elm$core$Maybe$map,
 							function (item) {
 								return $elm$core$List$singleton(
-									$author$project$Data$Info$itemInfo(item));
+									$author$project$Data$Item$toString(item));
 							},
 							maybeItem)),
 					$author$project$Data$Info$fromTitle('Ground'));
-			case 'CoalVein':
-				return $author$project$Data$Info$fromTitle('Coal Vein');
+			case 'Vein':
+				var item = block.a;
+				return $author$project$Data$Info$fromTitle(
+					$author$project$Data$Item$toString(item) + ' Vein');
 			case 'Wall':
 				return $author$project$Data$Info$fromTitle('Wall');
 			case 'Train':
@@ -7612,11 +7694,20 @@ var $author$project$Data$Info$fromBlock = F2(
 						]),
 					A2(
 						$author$project$Data$Info$withContent,
-						_List_fromArray(
-							[
-								$elm$core$String$fromInt(game.train.coal) + 'x Coal',
-								$elm$core$String$fromInt(game.train.tracks) + 'x Tracks'
-							]),
+						_Utils_ap(
+							_List_fromArray(
+								[
+									$elm$core$String$fromInt(game.train.coal) + 'x Coal',
+									$elm$core$String$fromInt(game.train.tracks) + 'x Tracks'
+								]),
+							A2(
+								$elm$core$List$map,
+								function (_v1) {
+									var k = _v1.a;
+									var n = _v1.b;
+									return $elm$core$String$fromInt(n) + ('x ' + k);
+								},
+								$JohnBugner$elm_bag$Bag$toAssociationList(game.train.items.bag))),
 						$author$project$Data$Info$fromTitle('Train')));
 			case 'Track':
 				return $author$project$Data$Info$fromTitle('Track');
@@ -7624,7 +7715,7 @@ var $author$project$Data$Info$fromBlock = F2(
 				var list = block.a;
 				return A2(
 					$author$project$Data$Info$withContent,
-					A2($elm$core$List$map, $author$project$Data$Info$itemInfo, list),
+					A2($elm$core$List$map, $author$project$Data$Item$toString, list),
 					$author$project$Data$Info$fromTitle('Wheelbarrow'));
 		}
 	});
@@ -7686,7 +7777,11 @@ var $Orasund$elm_layout$Layout$el = F2(
 				[content]));
 	});
 var $author$project$Data$Tile$fromItem = function (item) {
-	return _Utils_chr('c');
+	if (item.$ === 'Coal') {
+		return _Utils_chr('c');
+	} else {
+		return _Utils_chr('i');
+	}
 };
 var $author$project$Data$Tile$new = function (args) {
 	return {bold: false, color: args.color, content: args.content};
@@ -7696,6 +7791,7 @@ var $author$project$Data$Tile$fromWheelbarrow = $author$project$Data$Tile$new(
 		color: 'Gray',
 		content: _Utils_chr('W')
 	});
+var $elm$core$Char$toUpper = _Char_toUpper;
 var $author$project$Data$Tile$fromBlock = function (block) {
 	switch (block.$) {
 		case 'Ground':
@@ -7708,11 +7804,13 @@ var $author$project$Data$Tile$fromBlock = function (block) {
 						_Utils_chr('.'),
 						A2($elm$core$Maybe$map, $author$project$Data$Tile$fromItem, maybeItem))
 				});
-		case 'CoalVein':
+		case 'Vein':
+			var item = block.a;
 			return $author$project$Data$Tile$new(
 				{
 					color: 'Black',
-					content: _Utils_chr('C')
+					content: $elm$core$Char$toUpper(
+						$author$project$Data$Tile$fromItem(item))
 				});
 		case 'Wall':
 			return $author$project$Data$Tile$new(

@@ -1,4 +1,4 @@
-module Data.Game.Wall exposing (..)
+module Data.Behavior.Wall exposing (..)
 
 import Data.Block
 import Data.Game exposing (Game)
@@ -14,8 +14,8 @@ mine ( x, y ) game =
         |> Maybe.andThen
             (\block ->
                 case block of
-                    Data.Block.CoalVein ->
-                        Just (Just Data.Item.Coal)
+                    Data.Block.Vein item ->
+                        Just (Just item)
 
                     Data.Block.Wall ->
                         Just Nothing
@@ -40,23 +40,24 @@ mine ( x, y ) game =
                                     (\( prob, pos ) ->
                                         Random.andThen
                                             (\d ->
-                                                Random.int 0 prob
-                                                    |> Random.map
-                                                        (\int ->
-                                                            d
-                                                                |> Dict.update pos
-                                                                    (\maybe ->
-                                                                        maybe
-                                                                            |> Maybe.withDefault
-                                                                                (if int /= 0 then
-                                                                                    Data.Block.CoalVein
+                                                Random.map2
+                                                    (\int item ->
+                                                        d
+                                                            |> Dict.update pos
+                                                                (\maybe ->
+                                                                    maybe
+                                                                        |> Maybe.withDefault
+                                                                            (if int /= 0 then
+                                                                                Data.Block.Vein item
 
-                                                                                 else
-                                                                                    Data.Block.Wall
-                                                                                )
-                                                                            |> Just
-                                                                    )
-                                                        )
+                                                                             else
+                                                                                Data.Block.Wall
+                                                                            )
+                                                                        |> Just
+                                                                )
+                                                    )
+                                                    (Random.int 0 prob)
+                                                    (Random.uniform Data.Item.Coal [ Data.Item.IronOre ])
                                             )
                                     )
                                     (Random.constant dict)

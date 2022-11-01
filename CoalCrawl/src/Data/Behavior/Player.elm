@@ -1,10 +1,10 @@
-module Data.Game.Player exposing (..)
+module Data.Behavior.Player exposing (..)
 
 import AStar
+import Data.Behavior.Wagon
+import Data.Behavior.Wall
 import Data.Block exposing (Block(..))
 import Data.Game exposing (Game)
-import Data.Game.Wagon
-import Data.Game.Wall
 import Data.Player
 import Data.Position
 import Data.Train
@@ -25,8 +25,8 @@ passTime game =
                 case maybe of
                     Just block ->
                         case block of
-                            Data.Block.CoalVein ->
-                                Data.Game.Wall.mine game.selected game
+                            Data.Block.Vein veinType ->
+                                Data.Behavior.Wall.mine game.selected game
 
                             Data.Block.Train ->
                                 putIntoTrain game |> Random.constant
@@ -110,7 +110,7 @@ moveTowardsSelected game =
                                     |> Data.Position.plus pos
                         in
                         game
-                            |> Data.Game.Wagon.moveTo newWagonPos ( pos, content )
+                            |> Data.Behavior.Wagon.moveTo newWagonPos ( pos, content )
                             |> (\g -> { g | player = g.player |> Data.Player.moveTo pos })
 
                     _ ->
@@ -136,7 +136,7 @@ putIntoWagon game =
                                )
                     )
                 |> Maybe.withDefault game
-                |> Data.Game.Wagon.unload ( game.selected, list )
+                |> Data.Behavior.Wagon.unload ( game.selected, list )
 
         _ ->
             game

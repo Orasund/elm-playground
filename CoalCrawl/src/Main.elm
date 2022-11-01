@@ -2,9 +2,9 @@ module Main exposing (..)
 
 import Browser exposing (Document)
 import Config
+import Data.Behavior
 import Data.Block exposing (Block(..))
 import Data.Game exposing (Game)
-import Data.Game.Behavior
 import Data.Info
 import Dict exposing (Dict)
 import Html
@@ -126,7 +126,7 @@ update msg model =
         TimePassed ->
             ( model
                 |> updateCamera
-                |> updateGame Data.Game.Behavior.passTime
+                |> updateGame Data.Behavior.passTime
             , Cmd.none
             )
 

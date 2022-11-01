@@ -5,7 +5,7 @@ import Data.Item exposing (Item)
 
 type Block
     = Ground (Maybe Item)
-    | CoalVein
+    | Vein Item
     | Wall
     | Train
     | Track

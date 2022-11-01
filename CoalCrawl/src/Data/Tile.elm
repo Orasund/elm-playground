@@ -1,6 +1,7 @@
 module Data.Tile exposing (..)
 
 import Data.Block exposing (Block(..))
+import Data.Info
 import Data.Item exposing (Item)
 import Data.Player exposing (Player)
 
@@ -36,6 +37,9 @@ fromItem item =
         Data.Item.Coal ->
             'c'
 
+        Data.Item.IronOre ->
+            'i'
+
 
 fromPlayer : Player -> Tile
 fromPlayer player =
@@ -65,8 +69,8 @@ fromBlock block =
             }
                 |> new
 
-        CoalVein ->
-            { color = "Black", content = 'C' } |> new
+        Vein item ->
+            { color = "Black", content = item |> fromItem |> Char.toUpper } |> new
 
         Wall ->
             { color = "Black", content = '#' } |> new
