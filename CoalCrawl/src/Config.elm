@@ -15,3 +15,11 @@ hqPos =
 
 maxCameraDistance =
     5
+
+
+wagonCost =
+    16
+
+
+trackCost =
+    1

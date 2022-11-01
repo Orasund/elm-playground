@@ -1,13 +1,19 @@
 module Main exposing (..)
 
+import AnyBag
 import Browser exposing (Document)
 import Config
 import Data.Behavior
 import Data.Block exposing (Block(..))
+import Data.Entity
+import Data.Floor
 import Data.Game exposing (Game)
 import Data.Info
-import Dict exposing (Dict)
+import Data.Item
+import Data.World
+import Dict
 import Html
+import Html.Attributes as Attr
 import Layout
 import Random exposing (Generator, Seed)
 import Time
@@ -20,17 +26,19 @@ type alias Model =
     { game : Game
     , camera : ( Int, Int )
     , paused : Bool
+    , promt : Maybe String
     , seed : Seed
     }
 
 
-updateGame : (Game -> Generator Game) -> Model -> Model
+updateGame : (Game -> Generator ( Game, Maybe String )) -> Model -> Model
 updateGame fun model =
     Random.step (fun model.game) model.seed
-        |> (\( game, seed ) ->
+        |> (\( ( game, promt ), seed ) ->
                 { model
                     | game = game
                     , seed = seed
+                    , promt = promt
                 }
            )
 
@@ -40,7 +48,7 @@ type Msg
     | TileClicked ( Int, Int )
     | TimePassed
     | TogglePause
-    | BuildWagon
+    | Build { cost : Int, block : Block }
 
 
 restart : Seed -> Model
@@ -50,6 +58,7 @@ restart seed =
                 { game = game
                 , paused = False
                 , camera = game.player.pos
+                , promt = Nothing
                 , seed = seed
                 }
            )
@@ -67,7 +76,16 @@ view : Model -> Document Msg
 view model =
     { title = "Coal Crawl"
     , body =
-        [ model.game |> View.Screen.fromGame { onPress = TileClicked, camera = model.camera }
+        [ model.promt
+            |> Maybe.map
+                (\s ->
+                    s
+                        |> Html.text
+                        |> Layout.el [ Layout.fill, Attr.style "background-color" "yellow" ]
+                )
+            |> Maybe.withDefault Layout.none
+            |> Layout.el [ Layout.alignAtCenter, Attr.style "height" "32px" ]
+        , model.game |> View.Screen.fromGame { onPress = TileClicked, camera = model.camera }
         , (if model.paused then
             "Unpause"
 
@@ -76,23 +94,54 @@ view model =
           )
             |> View.Button.toHtml TogglePause
         , model.game.world
-            |> Dict.get model.game.selected
+            |> Data.World.get model.game.selected
             |> Maybe.map
                 (\block ->
-                    [ block
+                    (block
                         |> Data.Info.fromBlock model.game
                         |> View.Info.toHtml
-                    , case block of
-                        Data.Block.Ground Nothing ->
-                            "Build Wagon" |> View.Button.toHtml BuildWagon
+                    )
+                        :: (case block of
+                                Data.Block.FloorBlock (Data.Floor.Ground Nothing) ->
+                                    [ { block =
+                                            Data.Entity.Wagon (AnyBag.empty Data.Item.toString)
+                                                |> Data.Block.EntityBlock
+                                      , cost = Config.wagonCost
+                                      }
+                                    , { block = Data.Floor.Track |> Data.Block.FloorBlock
+                                      , cost = Config.trackCost
+                                      }
+                                    ]
+                                        |> List.map
+                                            (\args ->
+                                                [ "Build "
+                                                    ++ (Data.Info.fromBlock model.game args.block).title
+                                                    |> View.Button.toHtml (Build args)
+                                                , "Costs "
+                                                    ++ String.fromInt args.cost
+                                                    ++ " Iron, you got "
+                                                    ++ (model.game.train.items
+                                                            |> AnyBag.count Data.Item.IronOre
+                                                            |> String.fromInt
+                                                       )
+                                                    ++ " Iron."
+                                                    |> Html.text
+                                                ]
+                                                    |> Layout.row [ Layout.spacing 8 ]
+                                            )
 
-                        _ ->
-                            Layout.none
-                    ]
+                                _ ->
+                                    []
+                           )
                         |> Layout.column []
                 )
             |> Maybe.withDefault Layout.none
         ]
+            |> Layout.column []
+            |> List.singleton
+            |> Layout.row [ Layout.fill, Layout.centerContent ]
+            |> Layout.container []
+            |> List.singleton
     }
 
 
@@ -133,8 +182,8 @@ update msg model =
         TogglePause ->
             ( { model | paused = not model.paused }, Cmd.none )
 
-        BuildWagon ->
-            ( { model | game = model.game |> Data.Game.buildWagon }
+        Build { cost, block } ->
+            ( { model | game = model.game |> Data.Game.buildBlock cost block }
             , Cmd.none
             )
 

@@ -1,15 +1,19 @@
 module Data.Game exposing (..)
 
+import AnyBag
 import Config
 import Data.Block exposing (Block(..))
+import Data.Entity
+import Data.Floor
 import Data.Item
 import Data.Player exposing (Player)
 import Data.Train exposing (Train)
+import Data.World exposing (World)
 import Dict exposing (Dict)
 
 
 type alias Game =
-    { world : Dict ( Int, Int ) Block
+    { world : World
     , player : Player
     , train : Train
     , selected : ( Int, Int )
@@ -21,9 +25,18 @@ select pos game =
     { game | selected = pos }
 
 
-buildWagon : Game -> Game
-buildWagon game =
-    { game | world = game.world |> Dict.insert game.selected (Data.Block.Wagon []) }
+buildBlock : Int -> Block -> Game -> Game
+buildBlock cost block game =
+    game.train
+        |> Data.Train.removeItem cost Data.Item.IronOre
+        |> Maybe.map
+            (\train ->
+                { game
+                    | world = game.world |> Data.World.insert game.selected block
+                    , train = train
+                }
+            )
+        |> Maybe.withDefault game
 
 
 new : Game
@@ -37,7 +50,12 @@ new =
 
         tracks =
             List.range 0 1
-                |> List.map (\i -> ( ( Config.width // 2, i ), Data.Block.Track ))
+                |> List.map
+                    (\i ->
+                        ( ( Config.width // 2, i )
+                        , Data.Block.EntityBlock Data.Entity.RailwayTrack
+                        )
+                    )
 
         coals =
             [ ( Config.width // 2, 4 )
@@ -46,12 +64,12 @@ new =
             ]
     in
     { world =
-        [ ( train, Data.Block.Train )
-        , ( player, Data.Block.Ground Nothing )
+        [ ( train, Data.Block.FloorBlock Data.Floor.Train )
+        , ( player, Data.Block.FloorBlock (Data.Floor.Ground Nothing) )
         ]
             ++ tracks
-            ++ (coals |> List.map (\pos -> ( pos, Data.Block.Vein Data.Item.Coal )))
-            |> Dict.fromList
+            ++ (coals |> List.map (\pos -> ( pos, Data.Entity.Vein Data.Item.Coal |> Data.Block.EntityBlock )))
+            |> Data.World.fromList
     , player = player |> Data.Player.fromPos
     , train = train |> Data.Train.fromPos
     , selected = player

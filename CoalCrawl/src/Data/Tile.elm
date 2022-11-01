@@ -1,7 +1,9 @@
 module Data.Tile exposing (..)
 
-import Data.Block exposing (Block(..))
-import Data.Info
+import Data.Block exposing (Block)
+import Data.Entity exposing (Entity)
+import Data.Floor exposing (Floor)
+import Data.Game exposing (Game)
 import Data.Item exposing (Item)
 import Data.Player exposing (Player)
 
@@ -10,6 +12,7 @@ type alias Tile =
     { color : String
     , content : Char
     , bold : Bool
+    , big : Bool
     }
 
 
@@ -18,12 +21,18 @@ new args =
     { color = args.color
     , content = args.content
     , bold = False
+    , big = False
     }
 
 
 withBold : Tile -> Tile
 withBold tile =
     { tile | bold = True }
+
+
+withBigFont : Tile -> Tile
+withBigFont tile =
+    { tile | big = True }
 
 
 wall : Tile
@@ -53,14 +62,10 @@ fromPlayer player =
         |> withBold
 
 
-fromWheelbarrow =
-    { color = "Gray", content = 'W' } |> new
-
-
-fromBlock : Block -> Tile
-fromBlock block =
-    case block of
-        Ground maybeItem ->
+fromFloor : Game -> Floor -> Tile
+fromFloor game floor =
+    case floor of
+        Data.Floor.Ground maybeItem ->
             { color = "Gray"
             , content =
                 maybeItem
@@ -69,17 +74,41 @@ fromBlock block =
             }
                 |> new
 
-        Vein item ->
+        Data.Floor.Track ->
+            { color = "Gray", content = '+' } |> new
+
+        Data.Floor.Train ->
+            { color = "Black", content = 'T' }
+                |> new
+                |> (if game.train.moving then
+                        withBold
+
+                    else
+                        identity
+                   )
+
+
+fromEntity : Entity -> Tile
+fromEntity entity =
+    case entity of
+        Data.Entity.Vein item ->
             { color = "Black", content = item |> fromItem |> Char.toUpper } |> new
 
-        Wall ->
+        Data.Entity.Wall ->
             { color = "Black", content = '#' } |> new
 
-        Train ->
-            { color = "Black", content = 'T' } |> new
-
-        Track ->
+        Data.Entity.RailwayTrack ->
             { color = "Black", content = '=' } |> new
 
-        Wagon _ ->
-            fromWheelbarrow
+        Data.Entity.Wagon _ ->
+            { color = "Gray", content = 'W' } |> new
+
+
+fromBlock : Game -> Block -> Tile
+fromBlock game block =
+    case block of
+        Data.Block.FloorBlock floor ->
+            fromFloor game floor
+
+        Data.Block.EntityBlock entity ->
+            fromEntity entity

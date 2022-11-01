@@ -1,6 +1,5 @@
 module View.Info exposing (..)
 
-import Data.Block exposing (Block)
 import Data.Info exposing (Info)
 import Html exposing (Html)
 import Layout

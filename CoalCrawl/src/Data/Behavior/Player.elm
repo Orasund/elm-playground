@@ -1,13 +1,17 @@
 module Data.Behavior.Player exposing (..)
 
 import AStar
+import AnyBag
 import Data.Behavior.Wagon
 import Data.Behavior.Wall
 import Data.Block exposing (Block(..))
+import Data.Entity
+import Data.Floor
 import Data.Game exposing (Game)
 import Data.Player
 import Data.Position
 import Data.Train
+import Data.World
 import Dict
 import Random exposing (Generator)
 import Set
@@ -16,7 +20,7 @@ import Set
 passTime : Game -> Generator Game
 passTime game =
     (if Data.Position.neighbors game.player.pos |> List.member game.selected then
-        Dict.get game.selected game.world
+        Data.World.get game.selected game.world
 
      else
         Nothing
@@ -25,29 +29,38 @@ passTime game =
                 case maybe of
                     Just block ->
                         case block of
-                            Data.Block.Vein veinType ->
-                                Data.Behavior.Wall.mine game.selected game
+                            Data.Block.FloorBlock floor ->
+                                case floor of
+                                    Data.Floor.Train ->
+                                        putIntoTrain game |> Random.constant
 
-                            Data.Block.Train ->
-                                putIntoTrain game |> Random.constant
+                                    Data.Floor.Ground _ ->
+                                        moveTowardsSelected game
+                                            |> Random.constant
 
-                            Data.Block.Ground _ ->
-                                moveTowardsSelected game
-                                    |> Random.constant
+                                    Data.Floor.Track ->
+                                        moveTowardsSelected game
+                                            |> Random.constant
 
-                            Data.Block.Track ->
-                                Random.constant game
+                            Data.Block.EntityBlock entity ->
+                                case entity of
+                                    Data.Entity.RailwayTrack ->
+                                        Random.constant game
 
-                            Data.Block.Wall ->
-                                Random.constant game
+                                    Data.Entity.Wall ->
+                                        Random.constant game
 
-                            Data.Block.Wagon _ ->
-                                game |> putIntoWagon |> Random.constant
+                                    Data.Entity.Wagon _ ->
+                                        game |> putIntoWagon |> Random.constant
+
+                                    Data.Entity.Vein _ ->
+                                        Data.Behavior.Wall.mine game.selected game
 
                     Nothing ->
                         moveTowardsSelected game
                             |> Random.constant
            )
+        |> Random.map (\g -> pickUp g.player.pos g)
 
 
 moveTowardsSelected : Game -> Game
@@ -58,14 +71,11 @@ moveTowardsSelected game =
                 |> List.filter
                     (\p ->
                         (p == game.selected)
-                            || (case Dict.get p game.world of
-                                    Just (Data.Block.Ground _) ->
+                            || (case Data.World.get p game.world of
+                                    Just (Data.Block.FloorBlock _) ->
                                         True
 
-                                    Just Data.Block.Train ->
-                                        True
-
-                                    Just (Data.Block.Wagon _) ->
+                                    Just (Data.Block.EntityBlock (Data.Entity.Wagon _)) ->
                                         True
 
                                     _ ->
@@ -79,15 +89,8 @@ moveTowardsSelected game =
         |> Maybe.andThen List.head
         |> Maybe.map
             (\pos ->
-                case Dict.get pos game.world of
-                    Just (Ground maybeItem) ->
-                        game
-                            |> (\g -> { g | player = g.player |> Data.Player.moveTo pos })
-
-                    Just Train ->
-                        { game | player = game.player |> Data.Player.moveTo pos }
-
-                    Just (Wagon content) ->
+                case Data.World.get pos game.world of
+                    Just (Data.Block.EntityBlock (Data.Entity.Wagon content)) ->
                         let
                             newWagonPos =
                                 game.player.pos
@@ -98,17 +101,19 @@ moveTowardsSelected game =
                             |> Data.Behavior.Wagon.moveTo newWagonPos ( pos, content )
                             |> (\g -> { g | player = g.player |> Data.Player.moveTo pos })
 
+                    Just (Data.Block.FloorBlock _) ->
+                        { game | player = game.player |> Data.Player.moveTo pos }
+
                     _ ->
                         game
             )
-        |> Maybe.map (\g -> pickUp g.player.pos g)
         |> Maybe.withDefault game
 
 
 pickUp : ( Int, Int ) -> Game -> Game
 pickUp pos game =
-    case Dict.get pos game.world of
-        Just (Ground maybeItem) ->
+    case Data.World.get pos game.world of
+        Just (Data.Block.FloorBlock (Data.Floor.Ground maybeItem)) ->
             maybeItem
                 |> Maybe.andThen
                     (\item ->
@@ -121,7 +126,7 @@ pickUp pos game =
                             | player = player
                             , world =
                                 game.world
-                                    |> Dict.insert pos (Ground Nothing)
+                                    |> Data.World.insert pos (Data.Floor.Ground Nothing |> Data.Block.FloorBlock)
                         }
                     )
                 |> Maybe.withDefault game
@@ -132,22 +137,25 @@ pickUp pos game =
 
 putIntoWagon : Game -> Game
 putIntoWagon game =
-    case Dict.get game.selected game.world of
-        Just (Data.Block.Wagon list) ->
+    case Data.World.get game.selected game.world of
+        Just (Data.Block.EntityBlock (Data.Entity.Wagon anyBag)) ->
             game.player
                 |> Data.Player.dropItem
                 |> Maybe.map
                     (\( player, item ) ->
                         game
                             |> (\g ->
-                                    { g
-                                        | world = g.world |> Dict.insert g.selected (Data.Block.Wagon (item :: list))
-                                        , player = player
-                                    }
+                                    anyBag
+                                        |> AnyBag.insert 1 item
+                                        |> Data.Entity.Wagon
+                                        |> Data.Block.EntityBlock
+                                        |> (\block -> g.world |> Data.World.insert g.selected block)
                                )
+                            |> (\world -> { game | world = world })
+                            |> (\g -> { g | player = player })
                     )
                 |> Maybe.withDefault game
-                |> Data.Behavior.Wagon.unload ( game.selected, list )
+                |> Data.Behavior.Wagon.unload ( game.selected, anyBag )
 
         _ ->
             game

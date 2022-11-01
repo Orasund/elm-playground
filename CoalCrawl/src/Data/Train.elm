@@ -1,6 +1,6 @@
 module Data.Train exposing (..)
 
-import Bag exposing (Bag)
+import AnyBag exposing (AnyBag)
 import Data.Item exposing (Item)
 
 
@@ -10,10 +10,7 @@ type alias Train =
     , dir : ( Int, Int )
     , moving : Bool
     , tracks : Int
-    , items :
-        { bag : Bag String
-        , encode : Item -> String
-        }
+    , items : AnyBag String Item
     }
 
 
@@ -24,7 +21,7 @@ fromPos pos =
     , dir = ( 0, -1 )
     , moving = False
     , tracks = 0
-    , items = { bag = Bag.empty, encode = Data.Item.toString }
+    , items = AnyBag.empty Data.Item.toString
     }
 
 
@@ -54,15 +51,14 @@ turnAround train =
     { train | dir = ( x, -y ) }
 
 
-addItem : Item -> Train -> Train
-addItem item train =
-    { train
-        | items =
-            train.items
-                |> (\items -> { items | bag = Bag.insert 1 (item |> train.items.encode) items.bag })
-    }
+addAll : AnyBag String Item -> Train -> Train
+addAll bag train =
+    { train | items = train.items |> AnyBag.union bag }
         |> (\t ->
-                if (item == Data.Item.Coal) && (countCoal t >= t.coalNeeded || (train.tracks > 0)) then
+                if
+                    AnyBag.member Data.Item.Coal bag
+                        && (AnyBag.count Data.Item.Coal t.items >= t.coalNeeded || (train.tracks > 0))
+                then
                     { t | moving = True }
 
                 else
@@ -70,36 +66,33 @@ addItem item train =
            )
 
 
-countCoal : Train -> Int
-countCoal train =
-    train.items.bag |> Bag.count (Data.Item.Coal |> train.items.encode)
+addItem : Item -> Train -> Train
+addItem item =
+    AnyBag.fromList Data.Item.toString [ item ]
+        |> addAll
 
 
-removeCoal : Train -> Maybe Train
-removeCoal train =
-    if countCoal train > 0 then
+removeItem : Int -> Item -> Train -> Maybe Train
+removeItem n item train =
+    (if AnyBag.count item train.items >= n then
         { train
             | items =
                 train.items
-                    |> (\items ->
-                            { items
-                                | bag =
-                                    items.bag
-                                        |> Bag.remove 1 (Data.Item.Coal |> Data.Item.toString)
-                            }
-                       )
+                    |> AnyBag.remove n item
         }
-            |> (\t ->
-                    if countCoal t == 0 then
-                        { t | moving = False }
-
-                    else
-                        t
-               )
             |> Just
 
-    else
+     else
         Nothing
+    )
+        |> Maybe.map
+            (\t ->
+                if item == Data.Item.Coal && AnyBag.count Data.Item.Coal t.items == 0 then
+                    { t | moving = False }
+
+                else
+                    t
+            )
 
 
 addTracks : Int -> Train -> Train
@@ -119,13 +112,6 @@ removeTrack train =
             | tracks = train.tracks - 1
             , coalNeeded = train.coalNeeded + 2
         }
-            |> (\t ->
-                    if t.tracks == 0 then
-                        t
-
-                    else
-                        t
-               )
             |> Just
 
     else

@@ -4,10 +4,13 @@ import Config
 import Data.Behavior.Wagon
 import Data.Behavior.Wall
 import Data.Block
+import Data.Entity
+import Data.Floor
 import Data.Game exposing (Game)
+import Data.Item
 import Data.Position
 import Data.Train
-import Dict
+import Data.World
 import Random exposing (Generator)
 
 
@@ -25,42 +28,62 @@ passTime game =
                     |> Data.Train.turnAround
         }
             |> move
+            |> Maybe.withDefault game
             |> Random.constant
 
     else if game.train.moving && (game.player.pos /= newPos) then
-        Dict.get newPos game.world
-            |> Maybe.map
+        Data.World.get newPos game.world
+            |> Maybe.andThen
                 (\block ->
                     case block of
-                        Data.Block.Track ->
-                            move game |> Random.constant
+                        Data.Block.FloorBlock floor ->
+                            case floor of
+                                Data.Floor.Ground maybeItem ->
+                                    if game.train.tracks > 0 then
+                                        maybeItem
+                                            |> Maybe.map (\item -> game.train |> Data.Train.addItem item)
+                                            |> Maybe.withDefault game.train
+                                            |> (\train -> { game | train = train })
+                                            |> placeTrack
+                                            |> Maybe.map mine
 
-                        Data.Block.Ground maybeItem ->
-                            if game.train.tracks > 0 then
-                                maybeItem
-                                    |> Maybe.map (\item -> game.train |> Data.Train.addItem item)
-                                    |> Maybe.withDefault game.train
-                                    |> (\train -> { game | train = train })
-                                    |> placeTrack
-                                    |> mine
+                                    else
+                                        turnToHQ game
+                                            |> Random.constant
+                                            |> Just
 
-                            else
-                                turnToHQ game
-                                    |> Random.constant
-
-                        Data.Block.Wagon list ->
-                            newPos
-                                |> (\( x, y ) -> Random.uniform ( x - 1, y ) [ ( x + 1, y ) ])
-                                |> Random.map
-                                    (\newWagonPos ->
+                                _ ->
+                                    if game.train.tracks > 0 then
                                         game
-                                            |> Data.Behavior.Wagon.moveTo newWagonPos ( newPos, list )
-                                    )
+                                            |> placeTrack
+                                            |> Maybe.map mine
 
-                        _ ->
-                            game
-                                |> mine
-                                |> Random.map turnToHQ
+                                    else
+                                        game
+                                            |> mine
+                                            |> Random.map turnToHQ
+                                            |> Just
+
+                        Data.Block.EntityBlock entity ->
+                            case entity of
+                                Data.Entity.RailwayTrack ->
+                                    move game |> Maybe.map Random.constant
+
+                                Data.Entity.Wagon list ->
+                                    newPos
+                                        |> (\( x, y ) -> Random.uniform ( x - 1, y ) [ ( x + 1, y ) ])
+                                        |> Random.map
+                                            (\newWagonPos ->
+                                                game
+                                                    |> Data.Behavior.Wagon.moveTo newWagonPos ( newPos, list )
+                                            )
+                                        |> Just
+
+                                _ ->
+                                    game
+                                        |> mine
+                                        |> Random.map turnToHQ
+                                        |> Just
                 )
             |> Maybe.withDefault (Random.constant game)
 
@@ -73,7 +96,7 @@ turnToHQ game =
     { game | train = game.train |> Data.Train.stop |> Data.Train.turnAround }
 
 
-placeTrack : Game -> Game
+placeTrack : Game -> Maybe Game
 placeTrack game =
     let
         newPos =
@@ -86,34 +109,33 @@ placeTrack game =
                 { game
                     | world =
                         game.world
-                            |> Dict.insert newPos Data.Block.Track
+                            |> Data.World.insertEntity newPos Data.Entity.RailwayTrack
                     , train = train
                 }
             )
-        |> Maybe.withDefault game
 
 
-move : Game -> Game
+move : Game -> Maybe Game
 move game =
     let
         newPos =
             Data.Train.forwardPos game.train
     in
     game.train
-        |> Data.Train.removeCoal
+        |> Data.Train.removeItem 1 Data.Item.Coal
         |> Maybe.map
             (\train ->
                 game
                     |> (\g -> { g | train = train })
                     |> (\g ->
                             g.world
-                                |> Dict.insert g.train.pos Data.Block.Track
-                                |> Dict.insert newPos Data.Block.Train
+                                |> Data.World.insertEntity g.train.pos Data.Entity.RailwayTrack
+                                |> Data.World.removeEntity newPos
+                                |> Data.World.insertFloor newPos Data.Floor.Train
                                 |> (\world -> { g | world = world })
                        )
                     |> (\g -> { g | train = g.train |> Data.Train.move })
             )
-        |> Maybe.withDefault game
 
 
 mine : Game -> Generator Game

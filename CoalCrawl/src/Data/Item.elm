@@ -6,20 +6,11 @@ type Item
     | IronOre
 
 
-coalString : String
-coalString =
-    "Coal"
-
-
-ironOreString =
-    "Iron Ore"
-
-
 toString : Item -> String
 toString item =
     case item of
         Coal ->
-            coalString
+            "Coal"
 
         IronOre ->
-            ironOreString
+            "Iron Ore"

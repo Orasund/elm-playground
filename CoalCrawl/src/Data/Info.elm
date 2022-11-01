@@ -1,9 +1,11 @@
 module Data.Info exposing (..)
 
-import Bag
+import AnyBag
 import Data.Block exposing (Block)
+import Data.Entity exposing (Entity(..))
+import Data.Floor exposing (Floor)
 import Data.Game exposing (Game)
-import Data.Item exposing (Item)
+import Data.Item
 
 
 type alias Info =
@@ -31,10 +33,10 @@ withAdditionalInfo additionalInfos info =
     { info | additionalInfo = additionalInfos }
 
 
-fromBlock : Game -> Block -> Info
-fromBlock game block =
-    case block of
-        Data.Block.Ground maybeItem ->
+fromFloor : Game -> Floor -> Info
+fromFloor game floor =
+    case floor of
+        Data.Floor.Ground maybeItem ->
             fromTitle "Ground"
                 |> withContent
                     (maybeItem
@@ -47,19 +49,15 @@ fromBlock game block =
                         |> Maybe.withDefault []
                     )
 
-        Data.Block.Vein item ->
-            Data.Item.toString item ++ " Vein" |> fromTitle
+        Data.Floor.Track ->
+            fromTitle "Track"
 
-        Data.Block.Wall ->
-            fromTitle "Wall"
-
-        Data.Block.Train ->
+        Data.Floor.Train ->
             fromTitle "Train"
                 |> withContent
-                    ([ String.fromInt game.train.tracks ++ "x Tracks"
-                     ]
-                        ++ (game.train.items.bag
-                                |> Bag.toAssociationList
+                    ((String.fromInt game.train.tracks ++ "x Tracks")
+                        :: (game.train.items
+                                |> AnyBag.toAssociationList
                                 |> List.map (\( k, n ) -> String.fromInt n ++ "x " ++ k)
                            )
                     )
@@ -67,9 +65,33 @@ fromBlock game block =
                     [ "Needs " ++ String.fromInt game.train.coalNeeded ++ " Coal to go back to HQ"
                     ]
 
-        Data.Block.Track ->
-            fromTitle "Track"
 
-        Data.Block.Wagon list ->
-            fromTitle "Wheelbarrow"
-                |> withContent (list |> List.map Data.Item.toString)
+fromEntity : Entity -> Info
+fromEntity entity =
+    case entity of
+        Data.Entity.Vein item ->
+            Data.Item.toString item ++ " Vein" |> fromTitle
+
+        Data.Entity.Wall ->
+            fromTitle "Wall"
+
+        Data.Entity.RailwayTrack ->
+            fromTitle "Railway Track"
+
+        Data.Entity.Wagon list ->
+            fromTitle "Wagon"
+                |> withContent
+                    (list
+                        |> AnyBag.toAssociationList
+                        |> List.map (\( k, n ) -> String.fromInt n ++ "x " ++ k)
+                    )
+
+
+fromBlock : Game -> Block -> Info
+fromBlock game block =
+    case block of
+        Data.Block.FloorBlock floor ->
+            fromFloor game floor
+
+        Data.Block.EntityBlock entity ->
+            fromEntity entity

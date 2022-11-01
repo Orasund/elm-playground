@@ -1,35 +1,45 @@
 module Data.Behavior.Wall exposing (..)
 
 import Data.Block
+import Data.Entity
+import Data.Floor
 import Data.Game exposing (Game)
 import Data.Item
-import Dict
+import Data.World
 import Random exposing (Generator)
 
 
 mine : ( Int, Int ) -> Game -> Generator Game
 mine ( x, y ) game =
     game.world
-        |> Dict.get ( x, y )
+        |> Data.World.get ( x, y )
         |> Maybe.andThen
             (\block ->
                 case block of
-                    Data.Block.Vein item ->
-                        Just (Just item)
+                    Data.Block.EntityBlock entity ->
+                        case entity of
+                            Data.Entity.Vein item ->
+                                Just (Just item)
 
-                    Data.Block.Wall ->
-                        Just Nothing
+                            Data.Entity.Wall ->
+                                Just Nothing
 
-                    _ ->
+                            _ ->
+                                Nothing
+
+                    Data.Block.FloorBlock _ ->
                         Nothing
             )
         |> Maybe.map
             (\maybeItem ->
                 game.world
-                    |> Dict.insert ( x, y ) (Data.Block.Ground maybeItem)
-                    |> Dict.update ( x, y - 1 )
+                    |> Data.World.removeEntity ( x, y )
+                    |> Data.World.insertFloor ( x, y ) (Data.Floor.Ground maybeItem)
+                    |> Data.World.update ( x, y - 1 )
                         (\maybe ->
-                            maybe |> Maybe.withDefault Data.Block.Wall |> Just
+                            maybe
+                                |> Maybe.withDefault (Data.Block.EntityBlock Data.Entity.Wall)
+                                |> Just
                         )
                     |> (\dict ->
                             [ ( 2, ( x, y + 1 ) )
@@ -43,15 +53,17 @@ mine ( x, y ) game =
                                                 Random.map2
                                                     (\int item ->
                                                         d
-                                                            |> Dict.update pos
+                                                            |> Data.World.update pos
                                                                 (\maybe ->
                                                                     maybe
                                                                         |> Maybe.withDefault
-                                                                            (if int /= 0 then
-                                                                                Data.Block.Vein item
+                                                                            ((if int /= 0 then
+                                                                                Data.Entity.Vein item
 
-                                                                             else
-                                                                                Data.Block.Wall
+                                                                              else
+                                                                                Data.Entity.Wall
+                                                                             )
+                                                                                |> Data.Block.EntityBlock
                                                                             )
                                                                         |> Just
                                                                 )

@@ -1,35 +1,39 @@
 module Data.Behavior.Wagon exposing (..)
 
+import AnyBag exposing (AnyBag)
 import Data.Block
+import Data.Entity
+import Data.Floor
 import Data.Game exposing (Game)
 import Data.Item exposing (Item)
 import Data.Position
 import Data.Train
+import Data.World
 import Dict
 
 
-moveTo : ( Int, Int ) -> ( ( Int, Int ), List Item ) -> Game -> Game
+moveTo : ( Int, Int ) -> ( ( Int, Int ), AnyBag String Item ) -> Game -> Game
 moveTo newWagonPos ( pos, content ) game =
-    (case Dict.get newWagonPos game.world of
-        Just (Data.Block.Ground maybeItem) ->
+    (case Data.World.get newWagonPos game.world of
+        Just (Data.Block.FloorBlock (Data.Floor.Ground maybeItem)) ->
             ( game.world
-                |> Dict.insert newWagonPos
+                |> Data.World.insertEntity newWagonPos
                     (maybeItem
                         |> Maybe.map List.singleton
                         |> Maybe.withDefault []
-                        |> (\l -> l ++ content)
-                        |> Data.Block.Wagon
+                        |> (\l -> l |> List.foldl (AnyBag.insert 1) content)
+                        |> Data.Entity.Wagon
                     )
-                |> Dict.insert pos (Data.Block.Ground Nothing)
+                |> Data.World.removeEntity pos
             , newWagonPos
             )
 
         _ ->
-            case Dict.get game.player.pos game.world of
-                Just (Data.Block.Ground Nothing) ->
+            case Data.World.get game.player.pos game.world of
+                Just (Data.Block.FloorBlock (Data.Floor.Ground Nothing)) ->
                     ( game.world
-                        |> Dict.insert game.player.pos (Data.Block.Wagon content)
-                        |> Dict.insert pos (Data.Block.Ground Nothing)
+                        |> Data.World.insertEntity game.player.pos (Data.Entity.Wagon content)
+                        |> Data.World.removeEntity pos
                     , game.player.pos
                     )
 
@@ -39,17 +43,16 @@ moveTo newWagonPos ( pos, content ) game =
         |> (\( world, p ) -> { game | world = world } |> unload ( p, content ))
 
 
-unload : ( ( Int, Int ), List Item ) -> Game -> Game
+unload : ( ( Int, Int ), AnyBag String Item ) -> Game -> Game
 unload ( pos, content ) game =
     if List.member game.train.pos (Data.Position.neighbors pos) then
-        content
-            |> List.foldl Data.Train.addItem game.train
+        Data.Train.addAll content game.train
             |> (\train -> { game | train = train })
             |> (\g ->
                     { g
                         | world =
                             g.world
-                                |> Dict.insert pos (Data.Block.Wagon [])
+                                |> Data.World.insertEntity pos (Data.Entity.Wagon (AnyBag.empty Data.Item.toString))
                     }
                )
 

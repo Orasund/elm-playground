@@ -3,7 +3,7 @@ module View.Screen exposing (..)
 import Config
 import Data.Game exposing (Game)
 import Data.Tile
-import Dict
+import Data.World
 import Html exposing (Html)
 import Html.Attributes as Attr
 import Layout
@@ -33,8 +33,8 @@ fromGame args game =
 
                             else
                                 game.world
-                                    |> Dict.get pos
-                                    |> Maybe.map Data.Tile.fromBlock
+                                    |> Data.World.get pos
+                                    |> Maybe.map (Data.Tile.fromBlock game)
                                     |> Maybe.withDefault Data.Tile.wall
                                     |> View.Tile.toHtml
                                     |> Layout.el
