@@ -6,6 +6,7 @@ import Data.Item exposing (Item)
 
 type Entity
     = Vein Item
-    | Wall
+    | Wall { unstable : Bool }
     | RailwayTrack
     | Wagon (AnyBag String Item)
+    | Water

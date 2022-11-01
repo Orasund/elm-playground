@@ -11,7 +11,6 @@ import Data.Game exposing (Game)
 import Data.Info
 import Data.Item
 import Data.World
-import Dict
 import Html
 import Html.Attributes as Attr
 import Layout
@@ -19,26 +18,30 @@ import Random exposing (Generator, Seed)
 import Time
 import View.Button
 import View.Info
+import View.Modal
+import View.Promt
 import View.Screen
 
 
 type alias Model =
     { game : Game
     , camera : ( Int, Int )
-    , paused : Bool
+    , slowedDown : Bool
     , promt : Maybe String
+    , showModal : Bool
     , seed : Seed
     }
 
 
-updateGame : (Game -> Generator ( Game, Maybe String )) -> Model -> Model
+updateGame : (Game -> Generator ( Game, { promt : Maybe String, showModal : Bool } )) -> Model -> Model
 updateGame fun model =
     Random.step (fun model.game) model.seed
-        |> (\( ( game, promt ), seed ) ->
+        |> (\( ( game, { promt, showModal } ), seed ) ->
                 { model
                     | game = game
                     , seed = seed
                     , promt = promt
+                    , showModal = showModal
                 }
            )
 
@@ -47,8 +50,9 @@ type Msg
     = Restart Seed
     | TileClicked ( Int, Int )
     | TimePassed
-    | TogglePause
+    | ToggleSlowdown
     | Build { cost : Int, block : Block }
+    | CloseModal
 
 
 restart : Seed -> Model
@@ -56,10 +60,11 @@ restart seed =
     Data.Game.new
         |> (\game ->
                 { game = game
-                , paused = False
+                , slowedDown = False
                 , camera = game.player.pos
                 , promt = Nothing
                 , seed = seed
+                , showModal = False
                 }
            )
 
@@ -77,22 +82,30 @@ view model =
     { title = "Coal Crawl"
     , body =
         [ model.promt
-            |> Maybe.map
-                (\s ->
-                    s
-                        |> Html.text
-                        |> Layout.el [ Layout.fill, Attr.style "background-color" "yellow" ]
-                )
-            |> Maybe.withDefault Layout.none
-            |> Layout.el [ Layout.alignAtCenter, Attr.style "height" "32px" ]
-        , model.game |> View.Screen.fromGame { onPress = TileClicked, camera = model.camera }
-        , (if model.paused then
-            "Unpause"
+            |> View.Promt.fromString
+        , [ model.game
+                |> View.Screen.fromGame { onPress = TileClicked, camera = model.camera }
+                |> Layout.el
+                    (if model.showModal then
+                        [ Attr.style "backdrop-filter" "brightness(0.5)" ]
+
+                     else
+                        []
+                    )
+          , if model.showModal then
+                View.Modal.toHtml CloseModal model.game
+
+            else
+                Layout.none
+          ]
+            |> Html.div [ Attr.style "position" "relative" ]
+        , (if model.slowedDown then
+            "Stop Slow Motion"
 
            else
-            "Pause"
+            "Start Slow Motion"
           )
-            |> View.Button.toHtml TogglePause
+            |> View.Button.toHtml ToggleSlowdown
         , model.game.world
             |> Data.World.get model.game.selected
             |> Maybe.map
@@ -121,7 +134,7 @@ view model =
                                                     ++ String.fromInt args.cost
                                                     ++ " Iron, you got "
                                                     ++ (model.game.train.items
-                                                            |> AnyBag.count Data.Item.IronOre
+                                                            |> AnyBag.count Data.Item.Iron
                                                             |> String.fromInt
                                                        )
                                                     ++ " Iron."
@@ -137,7 +150,7 @@ view model =
                 )
             |> Maybe.withDefault Layout.none
         ]
-            |> Layout.column []
+            |> Layout.column [ Layout.spacing 8 ]
             |> List.singleton
             |> Layout.row [ Layout.fill, Layout.centerContent ]
             |> Layout.container []
@@ -179,18 +192,21 @@ update msg model =
             , Cmd.none
             )
 
-        TogglePause ->
-            ( { model | paused = not model.paused }, Cmd.none )
+        ToggleSlowdown ->
+            ( { model | slowedDown = not model.slowedDown }, Cmd.none )
 
         Build { cost, block } ->
             ( { model | game = model.game |> Data.Game.buildBlock cost block }
             , Cmd.none
             )
 
+        CloseModal ->
+            ( { model | showModal = False }, Cmd.none )
+
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    if model.paused then
+    if model.slowedDown || model.showModal then
         Sub.none
 
     else

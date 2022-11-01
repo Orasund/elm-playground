@@ -3,7 +3,8 @@ module Data.Item exposing (..)
 
 type Item
     = Coal
-    | IronOre
+    | Iron
+    | Gold
 
 
 toString : Item -> String
@@ -12,5 +13,8 @@ toString item =
         Coal ->
             "Coal"
 
-        IronOre ->
-            "Iron Ore"
+        Iron ->
+            "Iron"
+
+        Gold ->
+            "Gold"

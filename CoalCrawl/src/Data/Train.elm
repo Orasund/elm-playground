@@ -57,7 +57,7 @@ addAll bag train =
         |> (\t ->
                 if
                     AnyBag.member Data.Item.Coal bag
-                        && (AnyBag.count Data.Item.Coal t.items >= t.coalNeeded || (train.tracks > 0))
+                        && (AnyBag.count Data.Item.Coal t.items >= t.coalNeeded || (t.tracks > 0))
                 then
                     { t | moving = True }
 

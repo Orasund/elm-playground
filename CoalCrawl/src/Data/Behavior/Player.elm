@@ -2,6 +2,7 @@ module Data.Behavior.Player exposing (..)
 
 import AStar
 import AnyBag
+import Config
 import Data.Behavior.Wagon
 import Data.Behavior.Wall
 import Data.Block exposing (Block(..))
@@ -45,7 +46,7 @@ passTime game =
                                     Data.Entity.RailwayTrack ->
                                         Random.constant game
 
-                                    Data.Entity.Wall ->
+                                    Data.Entity.Wall _ ->
                                         Random.constant game
 
                                     Data.Entity.Wagon _ ->
@@ -54,10 +55,21 @@ passTime game =
                                     Data.Entity.Vein _ ->
                                         Data.Behavior.Wall.mine game.selected game
 
+                                    Data.Entity.Water ->
+                                        game |> walkThroughWater game.selected |> Random.constant
+
                     Nothing ->
                         moveTowardsSelected game
            )
         |> Random.map (\g -> pickUp g.player.pos g)
+
+
+walkThroughWater : ( Int, Int ) -> Game -> Game
+walkThroughWater pos game =
+    game.world
+        |> Data.World.removeEntity pos
+        |> Data.World.insertEntity game.player.pos Data.Entity.Water
+        |> (\world -> { game | world = world, player = game.player |> Data.Player.moveTo pos })
 
 
 moveTowardsSelected : Game -> Generator Game
@@ -73,6 +85,9 @@ moveTowardsSelected game =
                                         True
 
                                     Just (Data.Block.EntityBlock (Data.Entity.Wagon _)) ->
+                                        True
+
+                                    Just (Data.Block.EntityBlock Data.Entity.Water) ->
                                         True
 
                                     _ ->
@@ -97,6 +112,9 @@ moveTowardsSelected game =
                         game
                             |> Data.Behavior.Wagon.moveTo newWagonPos ( pos, content )
                             |> Random.map (\g -> { g | player = g.player |> Data.Player.moveTo pos })
+
+                    Just (Data.Block.EntityBlock Data.Entity.Water) ->
+                        game |> walkThroughWater pos |> Random.constant
 
                     Just (Data.Block.FloorBlock _) ->
                         { game | player = game.player |> Data.Player.moveTo pos }
@@ -137,21 +155,26 @@ putIntoWagon : Game -> Game
 putIntoWagon game =
     case Data.World.get game.selected game.world of
         Just (Data.Block.EntityBlock (Data.Entity.Wagon anyBag)) ->
-            game.player
-                |> Data.Player.dropItem
-                |> Maybe.map
-                    (\( player, item ) ->
-                        game
-                            |> (\g ->
-                                    anyBag
-                                        |> AnyBag.insert 1 item
-                                        |> Data.Entity.Wagon
-                                        |> Data.Block.EntityBlock
-                                        |> (\block -> g.world |> Data.World.insert g.selected block)
-                               )
-                            |> (\world -> { game | world = world })
-                            |> (\g -> { g | player = player })
-                    )
+            (if AnyBag.size anyBag < Config.wagonMaxItems then
+                game.player
+                    |> Data.Player.dropItem
+                    |> Maybe.map
+                        (\( player, item ) ->
+                            game
+                                |> (\g ->
+                                        anyBag
+                                            |> AnyBag.insert 1 item
+                                            |> Data.Entity.Wagon
+                                            |> Data.Block.EntityBlock
+                                            |> (\block -> g.world |> Data.World.insert g.selected block)
+                                   )
+                                |> (\world -> { game | world = world })
+                                |> (\g -> { g | player = player })
+                        )
+
+             else
+                Nothing
+            )
                 |> Maybe.withDefault game
                 |> Data.Behavior.Wagon.unload ( game.selected, anyBag )
 

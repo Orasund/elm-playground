@@ -1,6 +1,7 @@
 module Data.Info exposing (..)
 
 import AnyBag
+import Config
 import Data.Block exposing (Block)
 import Data.Entity exposing (Entity(..))
 import Data.Floor exposing (Floor)
@@ -72,8 +73,12 @@ fromEntity entity =
         Data.Entity.Vein item ->
             Data.Item.toString item ++ " Vein" |> fromTitle
 
-        Data.Entity.Wall ->
-            fromTitle "Wall"
+        Data.Entity.Wall { unstable } ->
+            if unstable then
+                fromTitle "Rotten Wall"
+
+            else
+                fromTitle "Wall"
 
         Data.Entity.RailwayTrack ->
             fromTitle "Railway Track"
@@ -85,6 +90,14 @@ fromEntity entity =
                         |> AnyBag.toAssociationList
                         |> List.map (\( k, n ) -> String.fromInt n ++ "x " ++ k)
                     )
+                |> withAdditionalInfo
+                    [ "Can store up to "
+                        ++ String.fromInt Config.wagonMaxItems
+                        ++ " items. You can also push it along."
+                    ]
+
+        Data.Entity.Water ->
+            fromTitle "Water"
 
 
 fromBlock : Game -> Block -> Info

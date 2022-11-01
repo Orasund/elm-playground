@@ -18,42 +18,33 @@ moveTo newWagonPos ( pos, content ) game =
         moveOnTrack newWagonPos ( pos, content ) game
 
      else
-        (case Data.World.get newWagonPos game.world of
-            Just (Data.Block.FloorBlock (Data.Floor.Ground maybeItem)) ->
-                ( game.world
-                    |> Data.World.insertEntity newWagonPos
-                        (maybeItem
-                            |> Maybe.map List.singleton
-                            |> Maybe.withDefault []
-                            |> (\l -> l |> List.foldl (AnyBag.insert 1) content)
-                            |> Data.Entity.Wagon
-                        )
-                    |> Data.World.removeEntity pos
-                , newWagonPos
-                )
-
-            Just (Data.Block.FloorBlock Data.Floor.Track) ->
-                ( game.world
-                    |> Data.World.insertEntity newWagonPos (Data.Entity.Wagon content)
-                    |> Data.World.removeEntity pos
-                , newWagonPos
-                )
-
-            _ ->
-                case Data.World.get game.player.pos game.world of
-                    Just (Data.Block.FloorBlock (Data.Floor.Ground Nothing)) ->
-                        ( game.world
-                            |> Data.World.insertEntity game.player.pos (Data.Entity.Wagon content)
-                            |> Data.World.removeEntity pos
-                        , game.player.pos
-                        )
-
-                    _ ->
-                        ( game.world, pos )
-        )
+        moveOnGround newWagonPos ( pos, content ) game
             |> Random.constant
     )
         |> Random.map (\( world, p ) -> { game | world = world } |> unload ( p, content ))
+
+
+moveOnGround : ( Int, Int ) -> ( ( Int, Int ), AnyBag String Item ) -> Game -> ( World, ( Int, Int ) )
+moveOnGround newWagonPos ( pos, content ) game =
+    case Data.World.get newWagonPos game.world of
+        Just (Data.Block.FloorBlock _) ->
+            ( game.world
+                |> Data.World.insertEntity newWagonPos (Data.Entity.Wagon content)
+                |> Data.World.removeEntity pos
+            , newWagonPos
+            )
+
+        _ ->
+            case Data.World.get game.player.pos game.world of
+                Just (Data.Block.FloorBlock (Data.Floor.Ground Nothing)) ->
+                    ( game.world
+                        |> Data.World.insertEntity game.player.pos (Data.Entity.Wagon content)
+                        |> Data.World.removeEntity pos
+                    , game.player.pos
+                    )
+
+                _ ->
+                    ( game.world, pos )
 
 
 moveOnTrack : ( Int, Int ) -> ( ( Int, Int ), AnyBag String Item ) -> Game -> Generator ( World, ( Int, Int ) )
@@ -78,10 +69,7 @@ moveOnTrack alternativePos ( pos, content ) game =
                     )
 
         [] ->
-            game.world
-                |> Data.World.insertEntity alternativePos (Data.Entity.Wagon content)
-                |> Data.World.removeEntity pos
-                |> (\world -> ( world, alternativePos ))
+            moveOnGround alternativePos ( pos, content ) game
                 |> Random.constant
 
 

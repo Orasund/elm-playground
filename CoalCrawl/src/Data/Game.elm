@@ -28,7 +28,7 @@ select pos game =
 buildBlock : Int -> Block -> Game -> Game
 buildBlock cost block game =
     game.train
-        |> Data.Train.removeItem cost Data.Item.IronOre
+        |> Data.Train.removeItem cost Data.Item.Iron
         |> Maybe.map
             (\train ->
                 { game

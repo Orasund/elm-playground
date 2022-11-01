@@ -51,3 +51,8 @@ union b1 b2 =
 member : a -> AnyBag comparable a -> Bool
 member a bag =
     bag.content |> Bag.member (bag.encode a)
+
+
+size : AnyBag comparable a -> Int
+size bag =
+    Bag.size bag.content

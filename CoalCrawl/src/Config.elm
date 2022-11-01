@@ -18,7 +18,11 @@ maxCameraDistance =
 
 
 wagonCost =
-    16
+    8
+
+
+wagonMaxItems =
+    100
 
 
 trackCost =

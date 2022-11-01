@@ -7,6 +7,7 @@ import Data.World
 import Html exposing (Html)
 import Html.Attributes as Attr
 import Layout
+import View.Color
 import View.Tile
 
 
@@ -27,28 +28,35 @@ fromGame args game =
                                     , playerY + y - Config.height // 2
                                     )
                             in
-                            if pos == game.player.pos then
+                            (if pos == game.player.pos then
                                 Data.Tile.fromPlayer game.player
-                                    |> View.Tile.toHtml
+                                    |> Just
 
-                            else
+                             else
                                 game.world
                                     |> Data.World.get pos
                                     |> Maybe.map (Data.Tile.fromBlock game)
-                                    |> Maybe.withDefault Data.Tile.wall
-                                    |> View.Tile.toHtml
-                                    |> Layout.el
-                                        ((if game.selected == pos then
-                                            [ Attr.style "background-color" "yellow" ]
+                            )
+                                |> (\maybe ->
+                                        maybe
+                                            |> Maybe.withDefault Data.Tile.wall
+                                            |> View.Tile.toHtml
+                                            |> Layout.el
+                                                ((if game.selected == pos then
+                                                    [ Attr.style "background-color" View.Color.yellow ]
 
-                                          else
-                                            []
-                                         )
-                                            ++ Layout.asButton
-                                                { onPress = pos |> args.onPress |> Just
-                                                , label = "Activate"
-                                                }
-                                        )
+                                                  else if maybe == Nothing then
+                                                    [ Attr.style "background-color" View.Color.black ]
+
+                                                  else
+                                                    []
+                                                 )
+                                                    ++ Layout.asButton
+                                                        { onPress = pos |> args.onPress |> Just
+                                                        , label = "Activate"
+                                                        }
+                                                )
+                                   )
                         )
                     |> Layout.row []
             )

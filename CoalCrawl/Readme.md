@@ -1,6 +1,7 @@
 * [x] Iron
-* [ ] Wagon tracks
+* [x] Wagon tracks
+* [ ] Lava
 * [ ] Necromancer
     * [ ] Bomb
-    * [ ] Skeleton - Killed by Walking on it
+    * [x] Skeleton/Rats - Killed by Walking on it
 * [ ] New Biome

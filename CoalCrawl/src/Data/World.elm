@@ -92,3 +92,8 @@ getFloor : ( Int, Int ) -> World -> Maybe Floor
 getFloor pos world =
     world.floor
         |> Dict.get pos
+
+
+getEntities : World -> List ( ( Int, Int ), Entity )
+getEntities world =
+    world.entities |> Dict.toList

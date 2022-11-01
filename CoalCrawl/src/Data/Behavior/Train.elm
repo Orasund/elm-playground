@@ -1,7 +1,6 @@
 module Data.Behavior.Train exposing (..)
 
 import Config
-import Data.Behavior.Wagon
 import Data.Behavior.Wall
 import Data.Block
 import Data.Entity
@@ -14,22 +13,17 @@ import Data.World
 import Random exposing (Generator)
 
 
-passTime : Game -> Generator Game
+passTime : Game -> Generator ( Game, Bool )
 passTime game =
     let
         newPos =
             game.train |> Data.Train.forwardPos
+
+        returnGame =
+            Random.map (\g -> ( g, False ))
     in
     if game.train.pos == Config.hqPos then
-        { game
-            | train =
-                game.train
-                    |> Data.Train.addTracks 8
-                    |> Data.Train.turnAround
-        }
-            |> move
-            |> Maybe.withDefault game
-            |> Random.constant
+        stockUpAtBase game |> Random.constant
 
     else if game.train.moving && (game.player.pos /= newPos) then
         Data.World.get newPos game.world
@@ -78,15 +72,34 @@ passTime game =
                                         |> Just
 
                                 _ ->
-                                    game
-                                        |> mine
-                                        |> Random.map turnToHQ
-                                        |> Just
+                                    if game.train.tracks > 0 then
+                                        game |> Random.constant |> Just
+
+                                    else
+                                        game
+                                            |> mine
+                                            |> Random.map turnToHQ
+                                            |> Just
                 )
             |> Maybe.withDefault (Random.constant game)
+            |> returnGame
 
     else
         Random.constant game
+            |> returnGame
+
+
+stockUpAtBase : Game -> ( Game, Bool )
+stockUpAtBase game =
+    { game
+        | train =
+            game.train
+                |> Data.Train.addTracks 8
+                |> Data.Train.turnAround
+    }
+        |> move
+        |> Maybe.map (\g -> ( g, True ))
+        |> Maybe.withDefault ( game, False )
 
 
 turnToHQ : Game -> Game
