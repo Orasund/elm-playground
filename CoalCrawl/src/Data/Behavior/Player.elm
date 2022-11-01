@@ -36,11 +36,9 @@ passTime game =
 
                                     Data.Floor.Ground _ ->
                                         moveTowardsSelected game
-                                            |> Random.constant
 
                                     Data.Floor.Track ->
                                         moveTowardsSelected game
-                                            |> Random.constant
 
                             Data.Block.EntityBlock entity ->
                                 case entity of
@@ -58,12 +56,11 @@ passTime game =
 
                     Nothing ->
                         moveTowardsSelected game
-                            |> Random.constant
            )
         |> Random.map (\g -> pickUp g.player.pos g)
 
 
-moveTowardsSelected : Game -> Game
+moveTowardsSelected : Game -> Generator Game
 moveTowardsSelected game =
     AStar.findPath AStar.straightLineCost
         (\pos ->
@@ -99,15 +96,16 @@ moveTowardsSelected game =
                         in
                         game
                             |> Data.Behavior.Wagon.moveTo newWagonPos ( pos, content )
-                            |> (\g -> { g | player = g.player |> Data.Player.moveTo pos })
+                            |> Random.map (\g -> { g | player = g.player |> Data.Player.moveTo pos })
 
                     Just (Data.Block.FloorBlock _) ->
                         { game | player = game.player |> Data.Player.moveTo pos }
+                            |> Random.constant
 
                     _ ->
-                        game
+                        game |> Random.constant
             )
-        |> Maybe.withDefault game
+        |> Maybe.withDefault (Random.constant game)
 
 
 pickUp : ( Int, Int ) -> Game -> Game

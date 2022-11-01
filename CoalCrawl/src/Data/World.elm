@@ -84,6 +84,11 @@ get pos world =
             Just (Data.Block.EntityBlock a)
 
         Nothing ->
-            world.floor
-                |> Dict.get pos
+            getFloor pos world
                 |> Maybe.map Data.Block.FloorBlock
+
+
+getFloor : ( Int, Int ) -> World -> Maybe Floor
+getFloor pos world =
+    world.floor
+        |> Dict.get pos

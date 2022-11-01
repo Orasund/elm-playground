@@ -69,14 +69,12 @@ passTime game =
                                 Data.Entity.RailwayTrack ->
                                     move game |> Maybe.map Random.constant
 
-                                Data.Entity.Wagon list ->
-                                    newPos
-                                        |> (\( x, y ) -> Random.uniform ( x - 1, y ) [ ( x + 1, y ) ])
-                                        |> Random.map
-                                            (\newWagonPos ->
-                                                game
-                                                    |> Data.Behavior.Wagon.moveTo newWagonPos ( newPos, list )
-                                            )
+                                Data.Entity.Wagon anyBag ->
+                                    { game
+                                        | train = Data.Train.addAll anyBag game.train
+                                        , world = game.world |> Data.World.removeEntity newPos
+                                    }
+                                        |> Random.constant
                                         |> Just
 
                                 _ ->
