@@ -9,6 +9,13 @@ height =
     15
 
 
+tileSize =
+    "min(32px, "
+        ++ (String.fromFloat (100 / toFloat width) ++ "vw, ")
+        ++ ("(100vh - 50px)/" ++ String.fromInt height)
+        ++ ")"
+
+
 hqPos =
     ( width // 2, 0 )
 

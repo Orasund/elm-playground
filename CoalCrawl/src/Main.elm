@@ -12,7 +12,7 @@ import Data.Info
 import Data.Item
 import Data.Wagon
 import Data.World
-import Html
+import Html exposing (Html)
 import Html.Attributes as Attr
 import Layout
 import Random exposing (Generator, Seed)
@@ -78,6 +78,72 @@ init () =
     )
 
 
+viewGame : Model -> Html Msg
+viewGame model =
+    [ model.game
+        |> View.Screen.fromGame { onPress = TileClicked, camera = model.camera }
+    , [ (if model.slowedDown then
+            "Stop Slow Motion"
+
+         else
+            "Start Slow Motion"
+        )
+            |> View.Button.toHtml ToggleSlowdown
+      , model.game.world
+            |> Data.World.get model.game.selected
+            |> Maybe.map
+                (\block ->
+                    (block
+                        |> Data.Info.fromBlock model.game
+                        |> View.Info.toHtml
+                    )
+                        :: (case block of
+                                Data.Block.FloorBlock (Data.Floor.Ground Nothing) ->
+                                    [ { block =
+                                            Data.Entity.Wagon Data.Wagon.emptyWagon
+                                                |> Data.Block.EntityBlock
+                                      , cost = Config.wagonCost
+                                      }
+                                    , { block = Data.Floor.Track |> Data.Block.FloorBlock
+                                      , cost = Config.trackCost
+                                      }
+                                    ]
+                                        |> List.map
+                                            (\args ->
+                                                [ "Build "
+                                                    ++ (Data.Info.fromBlock model.game args.block).title
+                                                    |> View.Button.toHtml (Build args)
+                                                , "Costs "
+                                                    ++ String.fromInt args.cost
+                                                    ++ " Iron, you got "
+                                                    ++ (model.game.train.items
+                                                            |> AnyBag.count Data.Item.Iron
+                                                            |> String.fromInt
+                                                       )
+                                                    ++ " Iron."
+                                                    |> Html.text
+                                                ]
+                                                    |> Layout.row [ Layout.spacing 8 ]
+                                            )
+
+                                _ ->
+                                    []
+                           )
+                        |> Layout.column []
+                )
+            |> Maybe.withDefault Layout.none
+      ]
+        |> Layout.column [ Layout.spacing 8, Attr.style "width" "300px" ]
+    ]
+        |> Layout.row
+            (if model.showModal then
+                [ Attr.style "backdrop-filter" "brightness(0.5)" ]
+
+             else
+                []
+            )
+
+
 view : Model -> Document Msg
 view model =
     { title = "Coal Crawl"
@@ -89,15 +155,7 @@ view model =
             []
         , [ model.promt
                 |> View.Promt.fromString
-          , [ model.game
-                |> View.Screen.fromGame { onPress = TileClicked, camera = model.camera }
-                |> Layout.el
-                    (if model.showModal then
-                        [ Attr.style "backdrop-filter" "brightness(0.5)" ]
-
-                     else
-                        []
-                    )
+          , [ viewGame model
             , if model.showModal then
                 View.Modal.toHtml CloseModal model.game
 
@@ -105,56 +163,6 @@ view model =
                 Layout.none
             ]
                 |> Html.div [ Attr.style "position" "relative" ]
-          , (if model.slowedDown then
-                "Stop Slow Motion"
-
-             else
-                "Start Slow Motion"
-            )
-                |> View.Button.toHtml ToggleSlowdown
-          , model.game.world
-                |> Data.World.get model.game.selected
-                |> Maybe.map
-                    (\block ->
-                        (block
-                            |> Data.Info.fromBlock model.game
-                            |> View.Info.toHtml
-                        )
-                            :: (case block of
-                                    Data.Block.FloorBlock (Data.Floor.Ground Nothing) ->
-                                        [ { block =
-                                                Data.Entity.Wagon Data.Wagon.emptyWagon
-                                                    |> Data.Block.EntityBlock
-                                          , cost = Config.wagonCost
-                                          }
-                                        , { block = Data.Floor.Track |> Data.Block.FloorBlock
-                                          , cost = Config.trackCost
-                                          }
-                                        ]
-                                            |> List.map
-                                                (\args ->
-                                                    [ "Build "
-                                                        ++ (Data.Info.fromBlock model.game args.block).title
-                                                        |> View.Button.toHtml (Build args)
-                                                    , "Costs "
-                                                        ++ String.fromInt args.cost
-                                                        ++ " Iron, you got "
-                                                        ++ (model.game.train.items
-                                                                |> AnyBag.count Data.Item.Iron
-                                                                |> String.fromInt
-                                                           )
-                                                        ++ " Iron."
-                                                        |> Html.text
-                                                    ]
-                                                        |> Layout.row [ Layout.spacing 8 ]
-                                                )
-
-                                    _ ->
-                                        []
-                               )
-                            |> Layout.column []
-                    )
-                |> Maybe.withDefault Layout.none
           ]
             |> Layout.column [ Layout.spacing 8 ]
             |> List.singleton

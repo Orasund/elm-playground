@@ -58,6 +58,6 @@ fromGame args game =
                                                 )
                                    )
                         )
-                    |> Layout.row []
+                    |> Layout.row [ Layout.noWrap ]
             )
         |> Layout.column []

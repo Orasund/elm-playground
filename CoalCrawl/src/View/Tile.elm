@@ -1,5 +1,6 @@
 module View.Tile exposing (..)
 
+import Config
 import Data.Tile exposing (Tile)
 import Html exposing (Html)
 import Html.Attributes as Attr
@@ -14,9 +15,9 @@ toHtml tile =
                     |> String.fromChar
                     |> Html.text
                     |> Layout.el
-                        ([ Attr.style "width" "32px"
-                         , Attr.style "height" "32px"
-                         , Attr.style "font-size" "24px"
+                        ([ Attr.style "width" Config.tileSize
+                         , Attr.style "height" Config.tileSize
+                         , Attr.style "font-size" Config.tileSize
                          , Attr.style "color" color
                          ]
                             ++ (if bold then
@@ -28,7 +29,7 @@ toHtml tile =
                                     []
                                )
                             ++ (if big then
-                                    [ Attr.style "font-size" "32px" ]
+                                    [ Attr.style "font-size" Config.tileSize ]
 
                                 else
                                     []
