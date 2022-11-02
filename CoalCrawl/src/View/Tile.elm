@@ -20,7 +20,9 @@ toHtml tile =
                          , Attr.style "color" color
                          ]
                             ++ (if bold then
-                                    [ Attr.style "font-weight" "bold" ]
+                                    [ Attr.style "font-weight" "bold"
+                                    , Attr.class "animate__animated animate__pulse animate__infinite"
+                                    ]
 
                                 else
                                     []

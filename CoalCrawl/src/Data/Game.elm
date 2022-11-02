@@ -1,6 +1,5 @@
 module Data.Game exposing (..)
 
-import AnyBag
 import Config
 import Data.Block exposing (Block(..))
 import Data.Entity
@@ -9,7 +8,6 @@ import Data.Item
 import Data.Player exposing (Player)
 import Data.Train exposing (Train)
 import Data.World exposing (World)
-import Dict exposing (Dict)
 
 
 type alias Game =

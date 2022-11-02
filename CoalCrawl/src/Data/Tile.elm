@@ -1,5 +1,7 @@
 module Data.Tile exposing (..)
 
+import AnyBag
+import Config
 import Data.Block exposing (Block)
 import Data.Entity exposing (Entity)
 import Data.Floor exposing (Floor)
@@ -108,8 +110,16 @@ fromEntity entity =
         Data.Entity.RailwayTrack ->
             { color = View.Color.black, content = '=' } |> new
 
-        Data.Entity.Wagon _ ->
-            { color = View.Color.gray, content = 'W' } |> new
+        Data.Entity.Wagon wagon ->
+            { color =
+                if AnyBag.size wagon.items == Config.wagonMaxItems then
+                    View.Color.black
+
+                else
+                    View.Color.gray
+            , content = 'W'
+            }
+                |> new
 
         Data.Entity.Water ->
             { color = View.Color.blue, content = '~' } |> new

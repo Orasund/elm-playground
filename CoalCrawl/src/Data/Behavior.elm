@@ -4,10 +4,12 @@ import AnyBag
 import Config
 import Data.Behavior.Player
 import Data.Behavior.Train
+import Data.Behavior.Wagon
 import Data.Behavior.Wall
 import Data.Entity
 import Data.Game exposing (Game)
 import Data.Item
+import Data.Position
 import Data.World
 import Random exposing (Generator)
 
@@ -30,6 +32,23 @@ passTime game =
 
                                     else
                                         identity
+
+                                Data.Entity.Wagon wagon ->
+                                    wagon.movedFrom
+                                        |> Maybe.map
+                                            (\movedFrom ->
+                                                Random.andThen
+                                                    (Data.Behavior.Wagon.move
+                                                        { backPos = movedFrom
+                                                        , forwardPos =
+                                                            movedFrom
+                                                                |> Data.Position.vecTo pos
+                                                                |> Data.Position.plus pos
+                                                        }
+                                                        ( pos, wagon )
+                                                    )
+                                            )
+                                        |> Maybe.withDefault identity
 
                                 _ ->
                                     identity

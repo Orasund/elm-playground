@@ -25,20 +25,10 @@ toHtml closeModal game =
     , "New Crafting Recipe unlocked:"
         |> Html.text
         |> Layout.el []
-    , Html.node "style"
-        []
-        [ """@keyframes newRecipe {
-  from {
-    transform: rotate(-10deg);
-  }
-  to {
-    transform: rotate(10deg);
-  }""" |> Html.text
-        ]
     , "W"
         |> Html.text
         |> Layout.el
-            [ Attr.style "animation" "newRecipe 2s infinite ease-in-out alternate"
+            [ Attr.class "animate__animated animate__bounce animate__infinite"
             , Attr.style "font-size" "64px"
             , Attr.style "height" "64px"
             , Attr.style "width" "64px"

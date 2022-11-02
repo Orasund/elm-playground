@@ -83,10 +83,10 @@ fromEntity entity =
         Data.Entity.RailwayTrack ->
             fromTitle "Railway Track"
 
-        Data.Entity.Wagon list ->
+        Data.Entity.Wagon wagon ->
             fromTitle "Wagon"
                 |> withContent
-                    (list
+                    (wagon.items
                         |> AnyBag.toAssociationList
                         |> List.map (\( k, n ) -> String.fromInt n ++ "x " ++ k)
                     )

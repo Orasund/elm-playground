@@ -22,7 +22,7 @@ wagonCost =
 
 
 wagonMaxItems =
-    100
+    20
 
 
 trackCost =

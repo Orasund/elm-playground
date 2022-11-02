@@ -63,9 +63,9 @@ passTime game =
                                 Data.Entity.RailwayTrack ->
                                     move game |> Maybe.map Random.constant
 
-                                Data.Entity.Wagon anyBag ->
+                                Data.Entity.Wagon wagon ->
                                     { game
-                                        | train = Data.Train.addAll anyBag game.train
+                                        | train = Data.Train.addAll wagon.items game.train
                                         , world = game.world |> Data.World.removeEntity newPos
                                     }
                                         |> Random.constant
@@ -73,7 +73,9 @@ passTime game =
 
                                 _ ->
                                     if game.train.tracks > 0 then
-                                        game |> Random.constant |> Just
+                                        game
+                                            |> mine
+                                            |> Just
 
                                     else
                                         game

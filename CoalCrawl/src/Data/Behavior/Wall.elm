@@ -21,11 +21,11 @@ mine ( x, y ) game =
                             Data.Entity.Vein item ->
                                 Just (Just item)
 
-                            Data.Entity.Wall _ ->
-                                Just Nothing
+                            Data.Entity.RailwayTrack ->
+                                Nothing
 
                             _ ->
-                                Nothing
+                                Just Nothing
 
                     Data.Block.FloorBlock _ ->
                         Nothing
@@ -55,30 +55,22 @@ mine ( x, y ) game =
 
 exposedUnstableWall : ( Int, Int ) -> Game -> Generator Game
 exposedUnstableWall ( x, y ) game =
-    Random.int 0 5
-        |> Random.andThen
-            (\int ->
-                if int == 0 then
-                    game.world
-                        |> Data.World.insertEntity ( x, y ) Data.Entity.Water
-                        |> generateContent
-                            { probability =
-                                [ ( 0, ( x, y - 1 ) )
-                                , ( 0.5, ( x, y + 1 ) )
-                                , ( 1, ( x - 1, y ) )
-                                , ( 1, ( x + 1, y ) )
-                                ]
-                            , content =
-                                Random.weighted ( 1, Data.Entity.Wall { unstable = True } )
-                                    [ ( 1, Data.Entity.Vein Data.Item.Iron )
-                                    , ( 1 / 4, Data.Entity.Vein Data.Item.Coal )
-                                    , ( 1 / 8, Data.Entity.Vein Data.Item.Gold )
-                                    ]
-                            }
-
-                else
-                    Random.constant game.world
-            )
+    game.world
+        |> Data.World.insertEntity ( x, y ) Data.Entity.Water
+        |> generateContent
+            { probability =
+                [ ( 0, ( x, y - 1 ) )
+                , ( 0.5, ( x, y + 1 ) )
+                , ( 0.5, ( x - 1, y ) )
+                , ( 0.5, ( x + 1, y ) )
+                ]
+            , content =
+                Random.weighted ( 1, Data.Entity.Wall { unstable = True } )
+                    [ ( 1 / 2, Data.Entity.Vein Data.Item.Iron )
+                    , ( 1 / 8, Data.Entity.Vein Data.Item.Coal )
+                    , ( 1 / 8, Data.Entity.Vein Data.Item.Gold )
+                    ]
+            }
         |> Random.map (\world -> { game | world = world })
 
 
