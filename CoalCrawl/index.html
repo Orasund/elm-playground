@@ -8828,9 +8828,22 @@ var $author$project$Main$viewGame = function (model) {
 				_List_fromArray(
 					[
 						A2(
-						$author$project$View$Button$toHtml,
-						$author$project$Main$ToggleSlowdown,
-						model.slowedDown ? 'Stop Slow Motion' : 'Start Slow Motion'),
+						$Orasund$elm_layout$Layout$row,
+						_List_fromArray(
+							[
+								$Orasund$elm_layout$Layout$spacing(8)
+							]),
+						_List_fromArray(
+							[
+								A2(
+								$author$project$View$Button$toHtml,
+								$author$project$Main$ToggleSlowdown,
+								model.slowedDown ? 'Stop Slow Motion' : 'Start Slow Motion'),
+								A2(
+								$author$project$View$Button$toHtml,
+								$author$project$Main$Restart(model.seed),
+								'Restarts')
+							])),
 						A2(
 						$elm$core$Maybe$withDefault,
 						$Orasund$elm_layout$Layout$none,

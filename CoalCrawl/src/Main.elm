@@ -82,13 +82,16 @@ viewGame : Model -> Html Msg
 viewGame model =
     [ model.game
         |> View.Screen.fromGame { onPress = TileClicked, camera = model.camera }
-    , [ (if model.slowedDown then
+    , [ [ (if model.slowedDown then
             "Stop Slow Motion"
 
-         else
+           else
             "Start Slow Motion"
-        )
+          )
             |> View.Button.toHtml ToggleSlowdown
+        , View.Button.toHtml (Restart model.seed) "Restarts"
+        ]
+            |> Layout.row [ Layout.spacing 8 ]
       , model.game.world
             |> Data.World.get model.game.selected
             |> Maybe.map
