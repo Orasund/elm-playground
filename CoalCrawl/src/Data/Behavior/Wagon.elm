@@ -85,8 +85,7 @@ moveOnTrack args ( pos, wagon ) game =
                                         , player =
                                             game.player
                                                 |> Data.Player.startRiding
-
-                                        -- |> Data.Player.moveTo pos
+                                                |> Data.Player.moveTo pos
                                       }
                                     , p
                                     )
@@ -94,8 +93,18 @@ moveOnTrack args ( pos, wagon ) game =
                     )
 
         [] ->
-            { game | player = game.player |> Data.Player.stopRiding }
+            game
                 |> moveOnGround args ( pos, wagon |> Data.Wagon.stop )
+                |> (\( g, p ) ->
+                        ( { g
+                            | player =
+                                g.player
+                                    |> Data.Player.stopRiding
+                                    |> Data.Player.moveTo p
+                          }
+                        , p
+                        )
+                   )
                 |> Random.constant
 
 

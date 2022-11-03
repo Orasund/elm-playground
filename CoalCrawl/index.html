@@ -6799,6 +6799,12 @@ var $author$project$Data$Wagon$moveFrom = F2(
 				movedFrom: $elm$core$Maybe$Just(movedFrom)
 			});
 	});
+var $author$project$Data$Player$moveTo = F2(
+	function (pos, player) {
+		return _Utils_update(
+			player,
+			{pos: pos});
+	});
 var $author$project$Data$Position$neighbors = function (_v0) {
 	var x = _v0.a;
 	var y = _v0.b;
@@ -6860,7 +6866,10 @@ var $author$project$Data$Behavior$Wagon$moveOnTrack = F3(
 							_Utils_update(
 								game,
 								{
-									player: $author$project$Data$Player$startRiding(game.player),
+									player: A2(
+										$author$project$Data$Player$moveTo,
+										pos,
+										$author$project$Data$Player$startRiding(game.player)),
 									world: world
 								}),
 							p);
@@ -6878,17 +6887,27 @@ var $author$project$Data$Behavior$Wagon$moveOnTrack = F3(
 				A2($elm$random$Random$uniform, head, tail));
 		} else {
 			return $elm$random$Random$constant(
-				A3(
-					$author$project$Data$Behavior$Wagon$moveOnGround,
-					args,
-					_Utils_Tuple2(
-						pos,
-						$author$project$Data$Wagon$stop(wagon)),
-					_Utils_update(
-						game,
-						{
-							player: $author$project$Data$Player$stopRiding(game.player)
-						})));
+				function (_v2) {
+					var g = _v2.a;
+					var p = _v2.b;
+					return _Utils_Tuple2(
+						_Utils_update(
+							g,
+							{
+								player: A2(
+									$author$project$Data$Player$moveTo,
+									p,
+									$author$project$Data$Player$stopRiding(g.player))
+							}),
+						p);
+				}(
+					A3(
+						$author$project$Data$Behavior$Wagon$moveOnGround,
+						args,
+						_Utils_Tuple2(
+							pos,
+							$author$project$Data$Wagon$stop(wagon)),
+						game)));
 		}
 	});
 var $elm$core$Dict$member = F2(
@@ -7444,12 +7463,6 @@ var $krisajenkins$elm_astar$AStar$findPath = $krisajenkins$elm_astar$AStar$Gener
 var $elm$core$Set$fromList = function (list) {
 	return A3($elm$core$List$foldl, $elm$core$Set$insert, $elm$core$Set$empty, list);
 };
-var $author$project$Data$Player$moveTo = F2(
-	function (pos, player) {
-		return _Utils_update(
-			player,
-			{pos: pos});
-	});
 var $author$project$Data$Position$plus = F2(
 	function (_v0, _v1) {
 		var x1 = _v0.a;
