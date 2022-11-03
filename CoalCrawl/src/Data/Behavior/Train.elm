@@ -38,19 +38,20 @@ passTime game =
                                             |> Maybe.map (\item -> game.train |> Data.Train.addItem item)
                                             |> Maybe.withDefault game.train
                                             |> (\train -> { game | train = train })
-                                            |> placeTrack
-                                            |> Maybe.map mine
+                                            |> mineAndPlaceTrack
 
                                     else
                                         turnToHQ game
                                             |> Random.constant
                                             |> Just
 
+                                Data.Floor.RailwayTrack ->
+                                    move game |> Maybe.map Random.constant
+
                                 _ ->
                                     if game.train.tracks > 0 then
                                         game
-                                            |> placeTrack
-                                            |> Maybe.map mine
+                                            |> mineAndPlaceTrack
 
                                     else
                                         game
@@ -60,9 +61,6 @@ passTime game =
 
                         Data.Block.EntityBlock entity ->
                             case entity of
-                                Data.Entity.RailwayTrack ->
-                                    move game |> Maybe.map Random.constant
-
                                 Data.Entity.Wagon wagon ->
                                     { game
                                         | train = Data.Train.addAll wagon.items game.train
@@ -74,7 +72,8 @@ passTime game =
                                 _ ->
                                     if game.train.tracks > 0 then
                                         game
-                                            |> mine
+                                            --|> mine
+                                            |> Random.constant
                                             |> Just
 
                                     else
@@ -109,8 +108,8 @@ turnToHQ game =
     { game | train = game.train |> Data.Train.stop |> Data.Train.turnAround }
 
 
-placeTrack : Game -> Maybe Game
-placeTrack game =
+mineAndPlaceTrack : Game -> Maybe (Generator Game)
+mineAndPlaceTrack game =
     let
         newPos =
             Data.Train.forwardPos game.train
@@ -119,12 +118,16 @@ placeTrack game =
         |> Data.Train.removeTrack
         |> Maybe.map
             (\train ->
-                { game
-                    | world =
-                        game.world
-                            |> Data.World.insertEntity newPos Data.Entity.RailwayTrack
-                    , train = train
-                }
+                { game | train = train }
+                    |> mine
+                    |> Random.map
+                        (\g ->
+                            { g
+                                | world =
+                                    g.world
+                                        |> Data.World.insertFloor newPos Data.Floor.RailwayTrack
+                            }
+                        )
             )
 
 
@@ -142,9 +145,8 @@ move game =
                     |> (\g -> { g | train = train })
                     |> (\g ->
                             g.world
-                                |> Data.World.insertEntity g.train.pos Data.Entity.RailwayTrack
-                                |> Data.World.removeEntity newPos
-                                |> Data.World.insertFloor newPos Data.Floor.Train
+                                |> Data.World.removeEntity g.train.pos
+                                |> Data.World.insertEntity newPos Data.Entity.Train
                                 |> (\world -> { g | world = world })
                        )
                     |> (\g -> { g | train = g.train |> Data.Train.move })

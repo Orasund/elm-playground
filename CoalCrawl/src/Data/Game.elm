@@ -37,6 +37,22 @@ buildBlock cost block game =
         |> Maybe.withDefault game
 
 
+destroyBlock : Game -> Game
+destroyBlock game =
+    game.world
+        |> (case Data.World.get game.selected game.world of
+                Just (Data.Block.EntityBlock _) ->
+                    Data.World.removeEntity game.selected
+
+                Just (Data.Block.FloorBlock _) ->
+                    Data.World.insertFloor game.selected Data.Floor.ground
+
+                Nothing ->
+                    identity
+           )
+        |> (\world -> { game | world = world })
+
+
 new : Game
 new =
     let
@@ -51,7 +67,7 @@ new =
                 |> List.map
                     (\i ->
                         ( ( Config.width // 2, i )
-                        , Data.Block.EntityBlock Data.Entity.RailwayTrack
+                        , Data.Block.FloorBlock Data.Floor.RailwayTrack
                         )
                     )
 
@@ -62,7 +78,7 @@ new =
             ]
     in
     { world =
-        [ ( train, Data.Block.FloorBlock Data.Floor.Train )
+        [ ( train, Data.Block.EntityBlock Data.Entity.Train )
         , ( player, Data.Block.FloorBlock (Data.Floor.Ground Nothing) )
         ]
             ++ tracks

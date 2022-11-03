@@ -5,8 +5,8 @@ import Data.Item exposing (Item)
 
 type Floor
     = Ground (Maybe Item)
+    | RailwayTrack
     | Track
-    | Train
 
 
 ground : Floor

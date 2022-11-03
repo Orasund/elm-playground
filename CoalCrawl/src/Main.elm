@@ -54,6 +54,7 @@ type Msg
     | ToggleSlowdown
     | Build { cost : Int, block : Block }
     | CloseModal
+    | DestroyBlock
 
 
 restart : Seed -> Model
@@ -128,6 +129,11 @@ viewGame model =
                                                 ]
                                                     |> Layout.row [ Layout.spacing 8 ]
                                             )
+
+                                Data.Block.FloorBlock Data.Floor.Track ->
+                                    "Destroy"
+                                        |> View.Button.toHtml DestroyBlock
+                                        |> List.singleton
 
                                 _ ->
                                     []
@@ -216,6 +222,9 @@ update msg model =
             ( { model | game = model.game |> Data.Game.buildBlock cost block }
             , Cmd.none
             )
+
+        DestroyBlock ->
+            ( { model | game = model.game |> Data.Game.destroyBlock }, Cmd.none )
 
         CloseModal ->
             ( { model | showModal = False }, Cmd.none )

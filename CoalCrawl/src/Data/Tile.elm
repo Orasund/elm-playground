@@ -68,8 +68,8 @@ fromPlayer player =
         |> withBold
 
 
-fromFloor : Game -> Floor -> Tile
-fromFloor game floor =
+fromFloor : Floor -> Tile
+fromFloor floor =
     case floor of
         Data.Floor.Ground maybeItem ->
             { color = View.Color.gray
@@ -83,19 +83,12 @@ fromFloor game floor =
         Data.Floor.Track ->
             { color = View.Color.gray, content = '+' } |> new
 
-        Data.Floor.Train ->
-            { color = View.Color.black, content = 'T' }
-                |> new
-                |> (if game.train.moving then
-                        withBold
-
-                    else
-                        identity
-                   )
+        Data.Floor.RailwayTrack ->
+            { color = View.Color.black, content = '=' } |> new
 
 
-fromEntity : Entity -> Tile
-fromEntity entity =
+fromEntity : Game -> Entity -> Tile
+fromEntity game entity =
     case entity of
         Data.Entity.Vein item ->
             { color = View.Color.black, content = item |> fromItem |> Char.toUpper } |> new
@@ -106,9 +99,6 @@ fromEntity entity =
 
             else
                 { color = View.Color.black, content = '#' } |> new
-
-        Data.Entity.RailwayTrack ->
-            { color = View.Color.black, content = '=' } |> new
 
         Data.Entity.Wagon wagon ->
             { color =
@@ -124,12 +114,22 @@ fromEntity entity =
         Data.Entity.Water ->
             { color = View.Color.blue, content = '~' } |> new
 
+        Data.Entity.Train ->
+            { color = View.Color.black, content = 'T' }
+                |> new
+                |> (if game.train.moving || game.train.tracks > 0 then
+                        withBold
+
+                    else
+                        identity
+                   )
+
 
 fromBlock : Game -> Block -> Tile
 fromBlock game block =
     case block of
         Data.Block.FloorBlock floor ->
-            fromFloor game floor
+            fromFloor floor
 
         Data.Block.EntityBlock entity ->
-            fromEntity entity
+            fromEntity game entity

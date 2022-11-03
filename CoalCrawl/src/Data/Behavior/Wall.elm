@@ -11,46 +11,45 @@ import Random exposing (Generator)
 
 mine : ( Int, Int ) -> Game -> Generator Game
 mine ( x, y ) game =
-    game.world
-        |> Data.World.get ( x, y )
-        |> Maybe.andThen
-            (\block ->
-                case block of
-                    Data.Block.EntityBlock entity ->
-                        case entity of
-                            Data.Entity.Vein item ->
-                                Just (Just item)
+    case game.world |> Data.World.get ( x, y ) of
+        Just (Data.Block.EntityBlock entity) ->
+            (case entity of
+                Data.Entity.Vein item ->
+                    Just (Just item)
 
-                            Data.Entity.RailwayTrack ->
-                                Nothing
+                Data.Entity.Train ->
+                    Nothing
 
-                            _ ->
-                                Just Nothing
+                Data.Entity.Wagon _ ->
+                    Nothing
 
-                    Data.Block.FloorBlock _ ->
-                        Nothing
+                _ ->
+                    Just Nothing
             )
-        |> Maybe.map
-            (\maybeItem ->
-                game.world
-                    |> Data.World.removeEntity ( x, y )
-                    |> Data.World.insertFloor ( x, y ) (Data.Floor.Ground maybeItem)
-                    |> generateContent
-                        { probability =
-                            [ ( 0, ( x, y - 1 ) )
-                            , ( 0.8, ( x, y + 1 ) )
-                            , ( 0.5, ( x - 1, y ) )
-                            , ( 0.5, ( x + 1, y ) )
-                            ]
-                        , content =
-                            Random.weighted ( 1, Data.Entity.Vein Data.Item.Coal )
-                                [ ( 1 / 2, Data.Entity.Vein Data.Item.Iron )
-                                , ( 1 / 8, Data.Entity.Wall { unstable = True } )
-                                ]
-                        }
-                    |> Random.map (\world -> { game | world = world })
-            )
-        |> Maybe.withDefault (Random.constant game)
+                |> Maybe.map
+                    (\maybeItem ->
+                        game.world
+                            |> Data.World.removeEntity ( x, y )
+                            |> Data.World.insertFloor ( x, y ) (Data.Floor.Ground maybeItem)
+                            |> generateContent
+                                { probability =
+                                    [ ( 0, ( x, y - 1 ) )
+                                    , ( 0.8, ( x, y + 1 ) )
+                                    , ( 0.5, ( x - 1, y ) )
+                                    , ( 0.5, ( x + 1, y ) )
+                                    ]
+                                , content =
+                                    Random.weighted ( 1, Data.Entity.Vein Data.Item.Coal )
+                                        [ ( 1 / 2, Data.Entity.Vein Data.Item.Iron )
+                                        , ( 1 / 8, Data.Entity.Wall { unstable = True } )
+                                        ]
+                                }
+                            |> Random.map (\world -> { game | world = world })
+                    )
+                |> Maybe.withDefault (Random.constant game)
+
+        _ ->
+            Random.constant game
 
 
 exposedUnstableWall : ( Int, Int ) -> Game -> Generator Game

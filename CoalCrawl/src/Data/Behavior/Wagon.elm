@@ -4,10 +4,11 @@ import Data.Block
 import Data.Entity
 import Data.Floor
 import Data.Game exposing (Game)
+import Data.Player
 import Data.Position
 import Data.Train
 import Data.Wagon exposing (Wagon)
-import Data.World exposing (World)
+import Data.World
 import Random exposing (Generator)
 
 
@@ -21,40 +22,42 @@ move args ( pos, wagon ) game =
         moveOnTrack args ( pos, wagon ) game
 
      else
-        moveOnGround args.forwardPos ( pos, wagon ) game
+        moveOnGround args ( pos, wagon ) game
             |> Random.constant
     )
-        |> Random.map (\( world, p ) -> { game | world = world } |> unload ( p, wagon ))
+        |> Random.map (\( g, p ) -> g |> unload ( p, wagon ))
 
 
-moveOnGround : ( Int, Int ) -> ( ( Int, Int ), Wagon ) -> Game -> ( World, ( Int, Int ) )
-moveOnGround newWagonPos ( pos, wagon ) game =
-    case Data.World.get newWagonPos game.world of
+moveOnGround : { backPos : ( Int, Int ), forwardPos : ( Int, Int ) } -> ( ( Int, Int ), Wagon ) -> Game -> ( Game, ( Int, Int ) )
+moveOnGround args ( pos, wagon ) game =
+    case Data.World.get args.forwardPos game.world of
         Just (Data.Block.FloorBlock _) ->
             ( game.world
-                |> Data.World.insertEntity newWagonPos (Data.Entity.Wagon wagon)
+                |> Data.World.insertEntity args.forwardPos (Data.Entity.Wagon wagon)
                 |> Data.World.removeEntity pos
-            , newWagonPos
+                |> (\world -> { game | world = world })
+            , args.forwardPos
             )
 
         _ ->
-            case Data.World.get game.player.pos game.world of
+            case Data.World.get args.backPos game.world of
                 Just (Data.Block.FloorBlock _) ->
                     ( game.world
-                        |> Data.World.insertEntity game.player.pos (Data.Entity.Wagon wagon)
+                        |> Data.World.insertEntity args.backPos (Data.Entity.Wagon wagon)
                         |> Data.World.removeEntity pos
-                    , game.player.pos
+                        |> (\world -> { game | world = world })
+                    , args.backPos
                     )
 
                 _ ->
-                    ( game.world, pos )
+                    ( game, pos )
 
 
 moveOnTrack :
     { backPos : ( Int, Int ), forwardPos : ( Int, Int ) }
     -> ( ( Int, Int ), Wagon )
     -> Game
-    -> Generator ( World, ( Int, Int ) )
+    -> Generator ( Game, ( Int, Int ) )
 moveOnTrack args ( pos, wagon ) game =
     case
         pos
@@ -76,11 +79,23 @@ moveOnTrack args ( pos, wagon ) game =
                                     |> Data.Entity.Wagon
                                 )
                             |> Data.World.removeEntity pos
-                            |> (\world -> ( world, p ))
+                            |> (\world ->
+                                    ( { game
+                                        | world = world
+                                        , player =
+                                            game.player
+                                                |> Data.Player.startRiding
+
+                                        -- |> Data.Player.moveTo pos
+                                      }
+                                    , p
+                                    )
+                               )
                     )
 
         [] ->
-            moveOnGround args.forwardPos ( pos, wagon |> Data.Wagon.stop ) game
+            { game | player = game.player |> Data.Player.stopRiding }
+                |> moveOnGround args ( pos, wagon |> Data.Wagon.stop )
                 |> Random.constant
 
 

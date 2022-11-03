@@ -34,8 +34,8 @@ withAdditionalInfo additionalInfos info =
     { info | additionalInfo = additionalInfos }
 
 
-fromFloor : Game -> Floor -> Info
-fromFloor game floor =
+fromFloor : Floor -> Info
+fromFloor floor =
     case floor of
         Data.Floor.Ground maybeItem ->
             fromTitle "Ground"
@@ -53,22 +53,12 @@ fromFloor game floor =
         Data.Floor.Track ->
             fromTitle "Track"
 
-        Data.Floor.Train ->
-            fromTitle "Train"
-                |> withContent
-                    ((String.fromInt game.train.tracks ++ "x Tracks")
-                        :: (game.train.items
-                                |> AnyBag.toAssociationList
-                                |> List.map (\( k, n ) -> String.fromInt n ++ "x " ++ k)
-                           )
-                    )
-                |> withAdditionalInfo
-                    [ "Needs " ++ String.fromInt game.train.coalNeeded ++ " Coal to go back to HQ"
-                    ]
+        Data.Floor.RailwayTrack ->
+            fromTitle "Railway Track"
 
 
-fromEntity : Entity -> Info
-fromEntity entity =
+fromEntity : Game -> Entity -> Info
+fromEntity game entity =
     case entity of
         Data.Entity.Vein item ->
             Data.Item.toString item ++ " Vein" |> fromTitle
@@ -79,9 +69,6 @@ fromEntity entity =
 
             else
                 fromTitle "Wall"
-
-        Data.Entity.RailwayTrack ->
-            fromTitle "Railway Track"
 
         Data.Entity.Wagon wagon ->
             fromTitle "Wagon"
@@ -99,12 +86,25 @@ fromEntity entity =
         Data.Entity.Water ->
             fromTitle "Water"
 
+        Data.Entity.Train ->
+            fromTitle "Train"
+                |> withContent
+                    ((String.fromInt game.train.tracks ++ "x Tracks")
+                        :: (game.train.items
+                                |> AnyBag.toAssociationList
+                                |> List.map (\( k, n ) -> String.fromInt n ++ "x " ++ k)
+                           )
+                    )
+                |> withAdditionalInfo
+                    [ "Needs " ++ String.fromInt game.train.coalNeeded ++ " Coal to go back to HQ"
+                    ]
+
 
 fromBlock : Game -> Block -> Info
 fromBlock game block =
     case block of
         Data.Block.FloorBlock floor ->
-            fromFloor game floor
+            fromFloor floor
 
         Data.Block.EntityBlock entity ->
-            fromEntity entity
+            fromEntity game entity

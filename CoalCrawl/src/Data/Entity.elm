@@ -7,6 +7,6 @@ import Data.Wagon exposing (Wagon)
 type Entity
     = Vein Item
     | Wall { unstable : Bool }
-    | RailwayTrack
     | Wagon Wagon
     | Water
+    | Train

@@ -30,19 +30,19 @@ passTime game =
                         case block of
                             Data.Block.FloorBlock floor ->
                                 case floor of
-                                    Data.Floor.Train ->
-                                        putIntoTrain game |> Random.constant
-
                                     Data.Floor.Ground _ ->
                                         moveTowardsSelected game
 
                                     Data.Floor.Track ->
                                         moveTowardsSelected game
 
+                                    Data.Floor.RailwayTrack ->
+                                        moveTowardsSelected game
+
                             Data.Block.EntityBlock entity ->
                                 case entity of
-                                    Data.Entity.RailwayTrack ->
-                                        Random.constant game
+                                    Data.Entity.Train ->
+                                        putIntoTrain game |> Random.constant
 
                                     Data.Entity.Wall _ ->
                                         Random.constant game
@@ -51,7 +51,9 @@ passTime game =
                                         game |> putIntoWagon |> Random.constant
 
                                     Data.Entity.Vein _ ->
-                                        Data.Behavior.Wall.mine game.selected game
+                                        game
+                                            |> Data.Behavior.Wall.mine game.selected
+                                            |> Random.andThen moveTowardsSelected
 
                                     Data.Entity.Water ->
                                         game |> walkThroughWater game.selected
@@ -94,56 +96,60 @@ walkThroughWater pos game =
 
 moveTowardsSelected : Game -> Generator Game
 moveTowardsSelected game =
-    AStar.findPath AStar.straightLineCost
-        (\pos ->
-            Data.Position.neighbors pos
-                |> List.filter
-                    (\p ->
-                        (p == game.selected)
-                            || (case Data.World.get p game.world of
-                                    Just (Data.Block.FloorBlock _) ->
-                                        True
+    if game.player.riding then
+        Random.constant game
 
-                                    Just (Data.Block.EntityBlock (Data.Entity.Wagon _)) ->
-                                        True
-
-                                    Just (Data.Block.EntityBlock Data.Entity.Water) ->
-                                        True
-
-                                    _ ->
-                                        False
-                               )
-                    )
-                |> Set.fromList
-        )
-        game.player.pos
-        game.selected
-        |> Maybe.andThen List.head
-        |> Maybe.map
+    else
+        AStar.findPath AStar.straightLineCost
             (\pos ->
-                case Data.World.get pos game.world of
-                    Just (Data.Block.EntityBlock (Data.Entity.Wagon content)) ->
-                        let
-                            newWagonPos =
-                                game.player.pos
-                                    |> Data.Position.vecTo pos
-                                    |> Data.Position.plus pos
-                        in
-                        game
-                            |> Data.Behavior.Wagon.move { backPos = game.player.pos, forwardPos = newWagonPos } ( pos, content )
-                            |> Random.map (\g -> { g | player = g.player |> Data.Player.moveTo pos })
+                Data.Position.neighbors pos
+                    |> List.filter
+                        (\p ->
+                            (p == game.selected)
+                                || (case Data.World.get p game.world of
+                                        Just (Data.Block.FloorBlock _) ->
+                                            True
 
-                    Just (Data.Block.EntityBlock Data.Entity.Water) ->
-                        game |> walkThroughWater pos
+                                        Just (Data.Block.EntityBlock (Data.Entity.Wagon _)) ->
+                                            True
 
-                    Just (Data.Block.FloorBlock _) ->
-                        { game | player = game.player |> Data.Player.moveTo pos }
-                            |> Random.constant
+                                        Just (Data.Block.EntityBlock Data.Entity.Water) ->
+                                            True
 
-                    _ ->
-                        game |> Random.constant
+                                        _ ->
+                                            False
+                                   )
+                        )
+                    |> Set.fromList
             )
-        |> Maybe.withDefault (Random.constant game)
+            game.player.pos
+            game.selected
+            |> Maybe.andThen List.head
+            |> Maybe.map
+                (\pos ->
+                    case Data.World.get pos game.world of
+                        Just (Data.Block.EntityBlock (Data.Entity.Wagon content)) ->
+                            let
+                                newWagonPos =
+                                    game.player.pos
+                                        |> Data.Position.vecTo pos
+                                        |> Data.Position.plus pos
+                            in
+                            game
+                                |> Data.Behavior.Wagon.move { backPos = game.player.pos, forwardPos = newWagonPos } ( pos, content )
+                                |> Random.map (\g -> { g | player = g.player |> Data.Player.moveTo pos })
+
+                        Just (Data.Block.EntityBlock Data.Entity.Water) ->
+                            game |> walkThroughWater pos
+
+                        Just (Data.Block.FloorBlock _) ->
+                            { game | player = game.player |> Data.Player.moveTo pos }
+                                |> Random.constant
+
+                        _ ->
+                            game |> Random.constant
+                )
+            |> Maybe.withDefault (Random.constant game)
 
 
 pickUp : ( Int, Int ) -> Game -> Game
