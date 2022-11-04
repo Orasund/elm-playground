@@ -2,15 +2,16 @@ module Data.Behavior exposing (..)
 
 import AnyBag
 import Config
+import Data.Actor
 import Data.Behavior.Player
 import Data.Behavior.Train
 import Data.Behavior.Wagon
 import Data.Entity
 import Data.Game exposing (Game)
 import Data.Item
-import Data.Position
 import Data.World
 import Data.World.Generation
+import Dict
 import Random exposing (Generator)
 
 
@@ -34,20 +35,23 @@ passTime game =
                                                 |> Random.map (\world -> { it | world = world })
                                         )
 
-                                Data.Entity.Wagon wagon ->
-                                    wagon.movedFrom
+                                Data.Entity.Actor id ->
+                                    game.world.actors
+                                        |> Dict.get id
                                         |> Maybe.map
-                                            (\movedFrom ->
-                                                Random.andThen
-                                                    (Data.Behavior.Wagon.move
-                                                        { backPos = movedFrom
-                                                        , forwardPos =
-                                                            movedFrom
-                                                                |> Data.Position.vecTo pos
-                                                                |> Data.Position.plus pos
-                                                        }
-                                                        ( pos, wagon )
-                                                    )
+                                            (\( _, actor ) ->
+                                                case actor of
+                                                    Data.Actor.Wagon wagon ->
+                                                        wagon.movedFrom
+                                                            |> Maybe.map
+                                                                (\movedFrom ->
+                                                                    Random.andThen
+                                                                        (Data.Behavior.Wagon.move
+                                                                            { backPos = movedFrom }
+                                                                            id
+                                                                        )
+                                                                )
+                                                            |> Maybe.withDefault identity
                                             )
                                         |> Maybe.withDefault identity
 

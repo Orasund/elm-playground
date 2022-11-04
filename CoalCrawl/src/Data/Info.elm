@@ -2,11 +2,13 @@ module Data.Info exposing (..)
 
 import AnyBag
 import Config
+import Data.Actor exposing (Actor)
 import Data.Block exposing (Block)
 import Data.Entity exposing (Entity(..))
 import Data.Floor exposing (Floor)
 import Data.Game exposing (Game)
 import Data.Item
+import Dict
 
 
 type alias Info =
@@ -97,20 +99,6 @@ fromEntity game entity =
             }
                 |> new
 
-        Data.Entity.Wagon wagon ->
-            new
-                { title = "Wagon"
-                , description =
-                    "Can store up to "
-                        ++ String.fromInt Config.wagonMaxItems
-                        ++ " items. You can also push it along."
-                }
-                |> withContent
-                    (wagon.items
-                        |> AnyBag.toAssociationList
-                        |> List.map (\( k, n ) -> String.fromInt n ++ "x " ++ k)
-                    )
-
         Data.Entity.Water ->
             new
                 { title = "Water"
@@ -141,6 +129,35 @@ fromEntity game entity =
                 |> withContent
                     (anyBag
                         |> AnyBag.fromList Data.Item.toString
+                        |> AnyBag.toAssociationList
+                        |> List.map (\( k, n ) -> String.fromInt n ++ "x " ++ k)
+                    )
+
+        Data.Entity.Actor id ->
+            game.world.actors
+                |> Dict.get id
+                |> Maybe.map (\( _, actor ) -> fromActor actor)
+                |> Maybe.withDefault
+                    (new
+                        { title = "Unkown Actor"
+                        , description = "This is a bug. Please report how to managed to create this entity"
+                        }
+                    )
+
+
+fromActor : Actor -> Info
+fromActor actor =
+    case actor of
+        Data.Actor.Wagon wagon ->
+            new
+                { title = "Wagon"
+                , description =
+                    "Can store up to "
+                        ++ String.fromInt Config.wagonMaxItems
+                        ++ " items. You can also push it along."
+                }
+                |> withContent
+                    (wagon.items
                         |> AnyBag.toAssociationList
                         |> List.map (\( k, n ) -> String.fromInt n ++ "x " ++ k)
                     )

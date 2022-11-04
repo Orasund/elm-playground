@@ -7,23 +7,23 @@ import Data.Item exposing (Item)
 type alias Player =
     { pos : ( Int, Int )
     , item : Maybe Item
-    , riding : Bool
+    , riding : Maybe ( Int, Int )
     }
 
 
 fromPos : ( Int, Int ) -> Player
 fromPos pos =
-    { pos = pos, item = Nothing, riding = False }
+    { pos = pos, item = Nothing, riding = Nothing }
 
 
-startRiding : Player -> Player
-startRiding player =
-    { player | riding = True }
+startRiding : ( Int, Int ) -> Player -> Player
+startRiding pos player =
+    { player | riding = Just pos }
 
 
 stopRiding : Player -> Player
 stopRiding player =
-    { player | riding = False }
+    { player | riding = Nothing }
 
 
 moveTo : ( Int, Int ) -> Player -> Player

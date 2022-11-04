@@ -3,9 +3,10 @@ module Main exposing (..)
 import AnyBag
 import Browser exposing (Document)
 import Config
+import Data.Actor exposing (Actor)
 import Data.Behavior
 import Data.Block exposing (Block(..))
-import Data.Entity
+import Data.Entity exposing (Entity(..))
 import Data.Floor
 import Data.Game exposing (Game)
 import Data.Info
@@ -52,7 +53,8 @@ type Msg
     | TileClicked ( Int, Int )
     | TimePassed
     | ToggleSlowdown
-    | Build { cost : Int, block : Block }
+    | BuildBlock { cost : Int, block : Block }
+    | BuildActor { cost : Int, actor : Actor }
     | CloseModal
     | DestroyBlock
 
@@ -103,20 +105,32 @@ viewGame model =
                     )
                         :: (case block of
                                 Data.Block.FloorBlock (Data.Floor.Ground Nothing) ->
-                                    [ { block =
-                                            Data.Entity.Wagon Data.Wagon.emptyWagon
-                                                |> Data.Block.EntityBlock
+                                    [ { actor = Data.Actor.Wagon Data.Wagon.emptyWagon
                                       , cost = Config.wagonCost
                                       }
+                                        |> (\args ->
+                                                { cost = args.cost
+                                                , button =
+                                                    "Build "
+                                                        ++ (Data.Info.fromActor args.actor).title
+                                                        |> View.Button.toHtml (BuildActor args)
+                                                }
+                                           )
                                     , { block = Data.Floor.Track |> Data.Block.FloorBlock
                                       , cost = Config.trackCost
                                       }
+                                        |> (\args ->
+                                                { cost = args.cost
+                                                , button =
+                                                    "Build "
+                                                        ++ (Data.Info.fromBlock model.game args.block).title
+                                                        |> View.Button.toHtml (BuildBlock args)
+                                                }
+                                           )
                                     ]
                                         |> List.map
                                             (\args ->
-                                                [ "Build "
-                                                    ++ (Data.Info.fromBlock model.game args.block).title
-                                                    |> View.Button.toHtml (Build args)
+                                                [ args.button
                                                 , "Costs "
                                                     ++ String.fromInt args.cost
                                                     ++ " Iron, you got "
@@ -218,10 +232,13 @@ update msg model =
         ToggleSlowdown ->
             ( { model | slowedDown = not model.slowedDown }, Cmd.none )
 
-        Build { cost, block } ->
+        BuildBlock { cost, block } ->
             ( { model | game = model.game |> Data.Game.buildBlock cost block }
             , Cmd.none
             )
+
+        BuildActor { cost, actor } ->
+            ( { model | game = model.game |> Data.Game.buildActor cost actor }, Cmd.none )
 
         DestroyBlock ->
             ( { model | game = model.game |> Data.Game.destroyBlock }, Cmd.none )
@@ -233,7 +250,7 @@ update msg model =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     if model.slowedDown || model.showModal then
-        Sub.none
+        Time.every 400 (\_ -> TimePassed)
 
     else
         Time.every 200 (\_ -> TimePassed)

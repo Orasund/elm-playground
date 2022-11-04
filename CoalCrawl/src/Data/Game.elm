@@ -1,6 +1,7 @@
 module Data.Game exposing (..)
 
 import Config
+import Data.Actor exposing (Actor)
 import Data.Block exposing (Block(..))
 import Data.Entity
 import Data.Floor
@@ -31,6 +32,20 @@ buildBlock cost block game =
             (\train ->
                 { game
                     | world = game.world |> Data.World.insert game.selected block
+                    , train = train
+                }
+            )
+        |> Maybe.withDefault game
+
+
+buildActor : Int -> Actor -> Game -> Game
+buildActor cost actor game =
+    game.train
+        |> Data.Train.removeItem cost Data.Item.Iron
+        |> Maybe.map
+            (\train ->
+                { game
+                    | world = game.world |> Data.World.insertActor game.selected actor
                     , train = train
                 }
             )

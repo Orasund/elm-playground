@@ -1,6 +1,7 @@
 module Data.Behavior.Player exposing (..)
 
 import AStar
+import Data.Actor
 import Data.Behavior.Wagon
 import Data.Block exposing (Block(..))
 import Data.Entity
@@ -12,6 +13,7 @@ import Data.Train
 import Data.Wagon
 import Data.World
 import Data.World.Generation
+import Dict
 import Random exposing (Generator)
 import Set
 
@@ -50,8 +52,16 @@ passTime game =
                                     Data.Entity.Cave _ ->
                                         Random.constant game
 
-                                    Data.Entity.Wagon _ ->
-                                        game |> putIntoWagon |> Random.constant
+                                    Data.Entity.Actor id ->
+                                        game.world.actors
+                                            |> Dict.get id
+                                            |> Maybe.map
+                                                (\( _, actor ) ->
+                                                    case actor of
+                                                        Data.Actor.Wagon _ ->
+                                                            game |> putIntoWagon |> Random.constant
+                                                )
+                                            |> Maybe.withDefault (Random.constant game)
 
                                     Data.Entity.Vein _ ->
                                         game.world
@@ -103,60 +113,61 @@ walkThroughWater pos game =
 
 moveTowardsSelected : Game -> Generator Game
 moveTowardsSelected game =
-    if game.player.riding then
-        Random.constant game
+    case game.player.riding of
+        Just pos ->
+            { game | player = game.player |> Data.Player.moveTo pos }
+                |> Random.constant
 
-    else
-        AStar.findPath AStar.straightLineCost
-            (\pos ->
-                Data.Position.neighbors pos
-                    |> List.filter
-                        (\p ->
-                            (p == game.selected)
-                                || (case Data.World.get p game.world of
-                                        Just (Data.Block.FloorBlock _) ->
-                                            True
-
-                                        Just (Data.Block.EntityBlock (Data.Entity.Wagon _)) ->
-                                            True
-
-                                        Just (Data.Block.EntityBlock Data.Entity.Water) ->
-                                            True
-
-                                        _ ->
-                                            False
-                                   )
-                        )
-                    |> Set.fromList
-            )
-            game.player.pos
-            game.selected
-            |> Maybe.andThen List.head
-            |> Maybe.map
+        Nothing ->
+            AStar.findPath AStar.straightLineCost
                 (\pos ->
-                    case Data.World.get pos game.world of
-                        Just (Data.Block.EntityBlock (Data.Entity.Wagon content)) ->
-                            let
-                                newWagonPos =
-                                    game.player.pos
-                                        |> Data.Position.vecTo pos
-                                        |> Data.Position.plus pos
-                            in
-                            game
-                                |> Data.Behavior.Wagon.move { backPos = game.player.pos, forwardPos = newWagonPos } ( pos, content )
-                                |> Random.map (\g -> { g | player = g.player |> Data.Player.moveTo pos })
+                    Data.Position.neighbors pos
+                        |> List.filter
+                            (\p ->
+                                (p == game.selected)
+                                    || (case Data.World.get p game.world of
+                                            Just (Data.Block.FloorBlock _) ->
+                                                True
 
-                        Just (Data.Block.EntityBlock Data.Entity.Water) ->
-                            game |> walkThroughWater pos
+                                            Just (Data.Block.EntityBlock (Data.Entity.Actor _)) ->
+                                                True
 
-                        Just (Data.Block.FloorBlock _) ->
-                            { game | player = game.player |> Data.Player.moveTo pos }
-                                |> Random.constant
+                                            Just (Data.Block.EntityBlock Data.Entity.Water) ->
+                                                True
 
-                        _ ->
-                            game |> Random.constant
+                                            _ ->
+                                                False
+                                       )
+                            )
+                        |> Set.fromList
                 )
-            |> Maybe.withDefault (Random.constant game)
+                game.player.pos
+                game.selected
+                |> Maybe.andThen List.head
+                |> Maybe.map
+                    (\pos ->
+                        case Data.World.get pos game.world of
+                            Just (Data.Block.EntityBlock (Data.Entity.Actor id)) ->
+                                case game.world.actors |> Dict.get id |> Maybe.map Tuple.second of
+                                    Just (Data.Actor.Wagon _) ->
+                                        game
+                                            |> Data.Behavior.Wagon.move { backPos = game.player.pos } id
+                                            |> Random.map (\g -> { g | player = g.player |> Data.Player.moveTo pos })
+
+                                    Nothing ->
+                                        game |> Random.constant
+
+                            Just (Data.Block.EntityBlock Data.Entity.Water) ->
+                                game |> walkThroughWater pos
+
+                            Just (Data.Block.FloorBlock _) ->
+                                { game | player = game.player |> Data.Player.moveTo pos }
+                                    |> Random.constant
+
+                            _ ->
+                                game |> Random.constant
+                    )
+                |> Maybe.withDefault (Random.constant game)
 
 
 pickUp : ( Int, Int ) -> Game -> Game
@@ -227,29 +238,29 @@ takeFromRubble game =
 putIntoWagon : Game -> Game
 putIntoWagon game =
     case Data.World.get game.selected game.world of
-        Just (Data.Block.EntityBlock (Data.Entity.Wagon wagon)) ->
-            (if Data.Wagon.isFull wagon then
-                Nothing
+        Just (Data.Block.EntityBlock (Data.Entity.Actor id)) ->
+            case game.world.actors |> Dict.get id |> Maybe.map Tuple.second of
+                Just (Data.Actor.Wagon wagon) ->
+                    (if Data.Wagon.isFull wagon then
+                        Nothing
 
-             else
-                game.player
-                    |> Data.Player.dropItem
-                    |> Maybe.map
-                        (\( player, item ) ->
-                            game
-                                |> (\g ->
-                                        wagon
-                                            |> Data.Wagon.insert item
-                                            |> Data.Entity.Wagon
-                                            |> Data.Block.EntityBlock
-                                            |> (\block -> g.world |> Data.World.insert g.selected block)
-                                   )
-                                |> (\world -> { game | world = world })
-                                |> (\g -> { g | player = player })
-                        )
-            )
-                |> Maybe.withDefault game
-                |> Data.Behavior.Wagon.unload ( game.selected, wagon )
+                     else
+                        game.player
+                            |> Data.Player.dropItem
+                            |> Maybe.map
+                                (\( player, item ) ->
+                                    wagon
+                                        |> Data.Wagon.insert item
+                                        |> (\w2 -> game.world |> Data.World.updateActor id (\_ -> Data.Actor.Wagon w2))
+                                        |> (\world -> { game | world = world })
+                                        |> (\g -> { g | player = player })
+                                )
+                    )
+                        |> Maybe.withDefault game
+                        |> Data.Behavior.Wagon.unload id
+
+                Nothing ->
+                    game
 
         _ ->
             game

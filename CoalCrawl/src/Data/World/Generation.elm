@@ -20,7 +20,7 @@ mine ( x, y ) world =
                 Data.Entity.Train ->
                     Nothing
 
-                Data.Entity.Wagon _ ->
+                Data.Entity.Actor _ ->
                     Nothing
 
                 _ ->

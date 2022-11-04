@@ -1,6 +1,7 @@
 module Data.Behavior.Train exposing (..)
 
 import Config
+import Data.Actor
 import Data.Block
 import Data.Entity
 import Data.Floor
@@ -10,6 +11,7 @@ import Data.Position
 import Data.Train
 import Data.World
 import Data.World.Generation
+import Dict
 import Random exposing (Generator)
 
 
@@ -61,13 +63,19 @@ passTime game =
 
                         Data.Block.EntityBlock entity ->
                             case entity of
-                                Data.Entity.Wagon wagon ->
-                                    { game
-                                        | train = Data.Train.addAll wagon.items game.train
-                                        , world = game.world |> Data.World.removeEntity newPos
-                                    }
-                                        |> Random.constant
-                                        |> Just
+                                Data.Entity.Actor id ->
+                                    game.world.actors
+                                        |> Dict.get id
+                                        |> Maybe.map
+                                            (\( _, actor ) ->
+                                                case actor of
+                                                    Data.Actor.Wagon wagon ->
+                                                        { game
+                                                            | train = Data.Train.addAll wagon.items game.train
+                                                            , world = game.world |> Data.World.removeEntity newPos
+                                                        }
+                                                            |> Random.constant
+                                            )
 
                                 _ ->
                                     if game.train.tracks > 0 then

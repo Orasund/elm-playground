@@ -2,12 +2,14 @@ module Data.Tile exposing (..)
 
 import AnyBag
 import Config
+import Data.Actor exposing (Actor(..))
 import Data.Block exposing (Block)
 import Data.Entity exposing (Entity)
 import Data.Floor exposing (Floor)
 import Data.Game exposing (Game)
 import Data.Item exposing (Item)
 import Data.Player exposing (Player)
+import Dict
 import View.Color
 
 
@@ -99,17 +101,6 @@ fromEntity game entity =
         Data.Entity.Cave _ ->
             { color = View.Color.red, content = '#' } |> new
 
-        Data.Entity.Wagon wagon ->
-            { color =
-                if AnyBag.size wagon.items == Config.wagonMaxItems then
-                    View.Color.black
-
-                else
-                    View.Color.gray
-            , content = 'W'
-            }
-                |> new
-
         Data.Entity.Water ->
             { color = View.Color.blue, content = '~' } |> new
 
@@ -125,6 +116,28 @@ fromEntity game entity =
 
         Data.Entity.Rubble _ ->
             { color = View.Color.black, content = '%' }
+                |> new
+
+        Data.Entity.Actor id ->
+            game.world.actors
+                |> Dict.get id
+                |> Maybe.map (\( _, actor ) -> fromActor actor)
+                |> Maybe.withDefault
+                    (new { color = View.Color.red, content = '?' })
+
+
+fromActor : Actor -> Tile
+fromActor actor =
+    case actor of
+        Data.Actor.Wagon wagon ->
+            { color =
+                if AnyBag.size wagon.items == Config.wagonMaxItems then
+                    View.Color.black
+
+                else
+                    View.Color.gray
+            , content = 'W'
+            }
                 |> new
 
 
