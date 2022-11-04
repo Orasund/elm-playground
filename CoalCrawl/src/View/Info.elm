@@ -9,6 +9,8 @@ toHtml : Info -> Html msg
 toHtml info =
     [ Html.text info.title
         |> Layout.el []
+    , Html.text info.description
+        |> Layout.paragraph []
     , (if info.content == [] then
         "Contains no items"
 

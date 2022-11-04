@@ -1,7 +1,7 @@
-module Data.Behavior.Wall exposing (..)
+module Data.Behavior.Generation exposing (..)
 
 import Data.Block
-import Data.Entity exposing (Entity)
+import Data.Entity exposing (CaveType, Entity)
 import Data.Floor
 import Data.Game exposing (Game)
 import Data.Item
@@ -9,9 +9,9 @@ import Data.World exposing (World)
 import Random exposing (Generator)
 
 
-mine : ( Int, Int ) -> Game -> Generator Game
-mine ( x, y ) game =
-    case game.world |> Data.World.get ( x, y ) of
+mine : ( Int, Int ) -> World -> Generator World
+mine ( x, y ) world =
+    case world |> Data.World.get ( x, y ) of
         Just (Data.Block.EntityBlock entity) ->
             (case entity of
                 Data.Entity.Vein item ->
@@ -28,7 +28,7 @@ mine ( x, y ) game =
             )
                 |> Maybe.map
                     (\maybeItem ->
-                        game.world
+                        world
                             |> Data.World.removeEntity ( x, y )
                             |> Data.World.insertFloor ( x, y ) (Data.Floor.Ground maybeItem)
                             |> generateContent
@@ -41,21 +41,20 @@ mine ( x, y ) game =
                                 , content =
                                     Random.weighted ( 1, Data.Entity.Vein Data.Item.Coal )
                                         [ ( 1 / 2, Data.Entity.Vein Data.Item.Iron )
-                                        , ( 1 / 8, Data.Entity.Wall { unstable = True } )
+                                        , ( 1 / 8, Data.Entity.Cave Data.Entity.WaterCave )
                                         , ( 1 / 8, Data.Entity.Rubble [ Data.Item.Coal, Data.Item.Coal, Data.Item.Iron ] )
                                         ]
                                 }
-                            |> Random.map (\world -> { game | world = world })
                     )
-                |> Maybe.withDefault (Random.constant game)
+                |> Maybe.withDefault (Random.constant world)
 
         _ ->
-            Random.constant game
+            Random.constant world
 
 
-exposedUnstableWall : ( Int, Int ) -> Game -> Generator Game
-exposedUnstableWall ( x, y ) game =
-    game.world
+exposedCave : CaveType -> ( Int, Int ) -> World -> Generator World
+exposedCave caveType ( x, y ) world =
+    world
         |> Data.World.insertEntity ( x, y ) Data.Entity.Water
         |> generateContent
             { probability =
@@ -65,13 +64,12 @@ exposedUnstableWall ( x, y ) game =
                 , ( 0.5, ( x + 1, y ) )
                 ]
             , content =
-                Random.weighted ( 1, Data.Entity.Wall { unstable = True } )
+                Random.weighted ( 1, Data.Entity.Cave Data.Entity.WaterCave )
                     [ ( 1 / 2, Data.Entity.Vein Data.Item.Iron )
                     , ( 1 / 8, Data.Entity.Vein Data.Item.Coal )
                     , ( 1 / 8, Data.Entity.Vein Data.Item.Gold )
                     ]
             }
-        |> Random.map (\world -> { game | world = world })
 
 
 generateContent : { probability : List ( Float, ( Int, Int ) ), content : Generator Entity } -> World -> Generator World
@@ -92,7 +90,7 @@ generateContent args dict =
                                                         entity
 
                                                       else
-                                                        Data.Entity.Wall { unstable = False }
+                                                        Data.Entity.Wall
                                                      )
                                                         |> Data.Block.EntityBlock
                                                     )

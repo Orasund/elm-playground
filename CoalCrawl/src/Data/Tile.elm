@@ -93,8 +93,11 @@ fromEntity game entity =
         Data.Entity.Vein item ->
             { color = View.Color.black, content = item |> fromItem |> Char.toUpper } |> new
 
-        Data.Entity.Wall _ ->
+        Data.Entity.Wall ->
             { color = View.Color.black, content = '#' } |> new
+
+        Data.Entity.Cave _ ->
+            { color = View.Color.red, content = '#' } |> new
 
         Data.Entity.Wagon wagon ->
             { color =

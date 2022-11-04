@@ -2,10 +2,10 @@ module Data.Behavior exposing (..)
 
 import AnyBag
 import Config
+import Data.Behavior.Generation
 import Data.Behavior.Player
 import Data.Behavior.Train
 import Data.Behavior.Wagon
-import Data.Behavior.Wall
 import Data.Entity
 import Data.Game exposing (Game)
 import Data.Item
@@ -26,12 +26,13 @@ passTime game =
                     |> List.foldl
                         (\( pos, entity ) ->
                             case entity of
-                                Data.Entity.Wall { unstable } ->
-                                    if unstable then
-                                        Random.andThen (Data.Behavior.Wall.exposedUnstableWall pos)
-
-                                    else
-                                        identity
+                                Data.Entity.Cave caveType ->
+                                    Random.andThen
+                                        (\it ->
+                                            it.world
+                                                |> Data.Behavior.Generation.exposedCave caveType pos
+                                                |> Random.map (\world -> { it | world = world })
+                                        )
 
                                 Data.Entity.Wagon wagon ->
                                     wagon.movedFrom

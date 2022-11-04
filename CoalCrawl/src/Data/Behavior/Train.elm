@@ -1,7 +1,7 @@
 module Data.Behavior.Train exposing (..)
 
 import Config
-import Data.Behavior.Wall
+import Data.Behavior.Generation
 import Data.Block
 import Data.Entity
 import Data.Floor
@@ -163,6 +163,7 @@ mine game =
         :: Data.Position.neighbors newPos
         |> List.foldl
             (\pos ->
-                Random.andThen (Data.Behavior.Wall.mine pos)
+                Random.andThen (Data.Behavior.Generation.mine pos)
             )
-            (Random.constant game)
+            (Random.constant game.world)
+        |> Random.map (\world -> { game | world = world })

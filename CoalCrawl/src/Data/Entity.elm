@@ -1,13 +1,17 @@
 module Data.Entity exposing (..)
 
-import AnyBag exposing (AnyBag)
 import Data.Item exposing (Item)
 import Data.Wagon exposing (Wagon)
 
 
+type CaveType
+    = WaterCave
+
+
 type Entity
     = Vein Item
-    | Wall { unstable : Bool }
+    | Wall
+    | Cave CaveType
     | Wagon Wagon
     | Water
     | Train

@@ -1,8 +1,8 @@
 module Data.Behavior.Player exposing (..)
 
 import AStar
+import Data.Behavior.Generation
 import Data.Behavior.Wagon
-import Data.Behavior.Wall
 import Data.Block exposing (Block(..))
 import Data.Entity
 import Data.Floor
@@ -44,22 +44,26 @@ passTime game =
                                     Data.Entity.Train ->
                                         putIntoTrain game |> Random.constant
 
-                                    Data.Entity.Wall _ ->
+                                    Data.Entity.Wall ->
+                                        Random.constant game
+
+                                    Data.Entity.Cave _ ->
                                         Random.constant game
 
                                     Data.Entity.Wagon _ ->
                                         game |> putIntoWagon |> Random.constant
 
                                     Data.Entity.Vein _ ->
-                                        game
-                                            |> Data.Behavior.Wall.mine game.selected
+                                        game.world
+                                            |> Data.Behavior.Generation.mine game.selected
+                                            |> Random.map (\world -> { game | world = world })
                                             |> Random.andThen moveTowardsSelected
 
                                     Data.Entity.Water ->
                                         game |> walkThroughWater game.selected
 
                                     Data.Entity.Rubble _ ->
-                                        game |> takeFromRubble |> Random.constant
+                                        game |> takeFromRubble
 
                     Nothing ->
                         moveTowardsSelected game
@@ -180,35 +184,44 @@ pickUp pos game =
             game
 
 
-takeFromRubble : Game -> Game
+takeFromRubble : Game -> Generator Game
 takeFromRubble game =
     case Data.World.get game.selected game.world of
         Just (Data.Block.EntityBlock (Data.Entity.Rubble list)) ->
-            case list of
-                head :: tail ->
-                    game.player
-                        |> Data.Player.hold head
-                        |> Maybe.map
-                            (\player ->
-                                game.world
-                                    |> Data.World.insertEntity game.selected
-                                        (Data.Entity.Rubble tail)
-                                    |> (\world ->
-                                            { game
-                                                | world = world
-                                                , player = player
-                                            }
-                                       )
-                            )
-                        |> Maybe.withDefault game
+            Random.int 0 (List.length list - 1)
+                |> Random.andThen
+                    (\i ->
+                        let
+                            l1 =
+                                List.take i list
+                        in
+                        case list |> List.drop i of
+                            head :: tail ->
+                                game.player
+                                    |> Data.Player.hold head
+                                    |> Maybe.map
+                                        (\player ->
+                                            game.world
+                                                |> Data.World.insertEntity game.selected
+                                                    (Data.Entity.Rubble (l1 ++ tail))
+                                                |> (\world ->
+                                                        { game
+                                                            | world = world
+                                                            , player = player
+                                                        }
+                                                   )
+                                        )
+                                    |> Maybe.withDefault game
+                                    |> Random.constant
 
-                [] ->
-                    game.world
-                        |> Data.World.removeEntity game.selected
-                        |> (\world -> { game | world = world })
+                            [] ->
+                                game.world
+                                    |> Data.Behavior.Generation.mine game.selected
+                                    |> Random.map (\world -> { game | world = world })
+                    )
 
         _ ->
-            game
+            game |> Random.constant
 
 
 putIntoWagon : Game -> Game
