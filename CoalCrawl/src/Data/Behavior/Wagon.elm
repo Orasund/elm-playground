@@ -22,35 +22,36 @@ move args ( pos, wagon ) game =
         moveOnTrack args ( pos, wagon ) game
 
      else
-        moveOnGround args ( pos, wagon ) game
+        (moveOnGround args ( pos, wagon ) game
+            |> (\p ->
+                    ( { game
+                        | world =
+                            game.world
+                                |> Data.World.insertEntity p (Data.Entity.Wagon wagon)
+                                |> Data.World.removeEntity pos
+                      }
+                    , p
+                    )
+               )
+        )
             |> Random.constant
     )
         |> Random.map (\( g, p ) -> g |> unload ( p, wagon ))
 
 
-moveOnGround : { backPos : ( Int, Int ), forwardPos : ( Int, Int ) } -> ( ( Int, Int ), Wagon ) -> Game -> ( Game, ( Int, Int ) )
+moveOnGround : { backPos : ( Int, Int ), forwardPos : ( Int, Int ) } -> ( ( Int, Int ), Wagon ) -> Game -> ( Int, Int )
 moveOnGround args ( pos, wagon ) game =
     case Data.World.get args.forwardPos game.world of
         Just (Data.Block.FloorBlock _) ->
-            ( game.world
-                |> Data.World.insertEntity args.forwardPos (Data.Entity.Wagon wagon)
-                |> Data.World.removeEntity pos
-                |> (\world -> { game | world = world })
-            , args.forwardPos
-            )
+            args.forwardPos
 
         _ ->
             case Data.World.get args.backPos game.world of
                 Just (Data.Block.FloorBlock _) ->
-                    ( game.world
-                        |> Data.World.insertEntity args.backPos (Data.Entity.Wagon wagon)
-                        |> Data.World.removeEntity pos
-                        |> (\world -> { game | world = world })
-                    , args.backPos
-                    )
+                    args.backPos
 
                 _ ->
-                    ( game, pos )
+                    pos
 
 
 moveOnTrack :
@@ -94,11 +95,15 @@ moveOnTrack args ( pos, wagon ) game =
 
         [] ->
             game
-                |> moveOnGround args ( pos, wagon |> Data.Wagon.stop )
-                |> (\( g, p ) ->
-                        ( { g
-                            | player =
-                                g.player
+                |> moveOnGround args ( pos, wagon )
+                |> (\p ->
+                        ( { game
+                            | world =
+                                game.world
+                                    |> Data.World.insertEntity p (Data.Entity.Wagon (wagon |> Data.Wagon.stop))
+                                    |> Data.World.removeEntity pos
+                            , player =
+                                game.player
                                     |> Data.Player.stopRiding
                                     |> Data.Player.moveTo p
                           }
@@ -111,15 +116,12 @@ moveOnTrack args ( pos, wagon ) game =
 unload : ( ( Int, Int ), Wagon ) -> Game -> Game
 unload ( pos, wagon ) game =
     if List.member game.train.pos (Data.Position.neighbors pos) then
-        Data.Train.addAll wagon.items game.train
-            |> (\train -> { game | train = train })
-            |> (\g ->
-                    { g
-                        | world =
-                            g.world
-                                |> Data.World.insertEntity pos (Data.Entity.Wagon (Data.Wagon.unload wagon))
-                    }
-               )
+        { game
+            | train = Data.Train.addAll wagon.items game.train
+            , world =
+                game.world
+                    |> Data.World.insertEntity pos (Data.Entity.Wagon (Data.Wagon.unload wagon))
+        }
 
     else
         game

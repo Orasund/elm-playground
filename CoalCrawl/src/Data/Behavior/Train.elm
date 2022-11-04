@@ -1,7 +1,6 @@
 module Data.Behavior.Train exposing (..)
 
 import Config
-import Data.Behavior.Generation
 import Data.Block
 import Data.Entity
 import Data.Floor
@@ -10,6 +9,7 @@ import Data.Item
 import Data.Position
 import Data.Train
 import Data.World
+import Data.World.Generation
 import Random exposing (Generator)
 
 
@@ -95,7 +95,7 @@ stockUpAtBase game =
     { game
         | train =
             game.train
-                |> Data.Train.addTracks 8
+                |> Data.Train.addTracks Config.tracksPerTrip
                 |> Data.Train.turnAround
     }
         |> move
@@ -163,7 +163,7 @@ mine game =
         :: Data.Position.neighbors newPos
         |> List.foldl
             (\pos ->
-                Random.andThen (Data.Behavior.Generation.mine pos)
+                Random.andThen (Data.World.Generation.mine pos)
             )
             (Random.constant game.world)
         |> Random.map (\world -> { game | world = world })

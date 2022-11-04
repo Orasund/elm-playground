@@ -28,6 +28,10 @@ wagonCost =
     8
 
 
+tracksPerTrip =
+    8
+
+
 wagonMaxItems =
     20
 

@@ -2,7 +2,6 @@ module Data.Behavior exposing (..)
 
 import AnyBag
 import Config
-import Data.Behavior.Generation
 import Data.Behavior.Player
 import Data.Behavior.Train
 import Data.Behavior.Wagon
@@ -11,6 +10,7 @@ import Data.Game exposing (Game)
 import Data.Item
 import Data.Position
 import Data.World
+import Data.World.Generation
 import Random exposing (Generator)
 
 
@@ -30,7 +30,7 @@ passTime game =
                                     Random.andThen
                                         (\it ->
                                             it.world
-                                                |> Data.Behavior.Generation.exposedCave caveType pos
+                                                |> Data.World.Generation.exposedCave caveType pos
                                                 |> Random.map (\world -> { it | world = world })
                                         )
 

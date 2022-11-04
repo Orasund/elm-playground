@@ -88,6 +88,9 @@ fromEntity game entity =
                 (case caveType of
                     Data.Entity.WaterCave ->
                         "Water"
+
+                    Data.Entity.RubbleCave ->
+                        "Rubble"
                 )
                     ++ " Cave"
             , description = "Helper Block to generate caves"

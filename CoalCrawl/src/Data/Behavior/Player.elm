@@ -1,7 +1,6 @@
 module Data.Behavior.Player exposing (..)
 
 import AStar
-import Data.Behavior.Generation
 import Data.Behavior.Wagon
 import Data.Block exposing (Block(..))
 import Data.Entity
@@ -12,6 +11,7 @@ import Data.Position
 import Data.Train
 import Data.Wagon
 import Data.World
+import Data.World.Generation
 import Random exposing (Generator)
 import Set
 
@@ -55,7 +55,7 @@ passTime game =
 
                                     Data.Entity.Vein _ ->
                                         game.world
-                                            |> Data.Behavior.Generation.mine game.selected
+                                            |> Data.World.Generation.mine game.selected
                                             |> Random.map (\world -> { game | world = world })
                                             |> Random.andThen moveTowardsSelected
 
@@ -216,7 +216,7 @@ takeFromRubble game =
 
                             [] ->
                                 game.world
-                                    |> Data.Behavior.Generation.mine game.selected
+                                    |> Data.World.Generation.mine game.selected
                                     |> Random.map (\world -> { game | world = world })
                     )
 
