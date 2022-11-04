@@ -93,12 +93,8 @@ fromEntity game entity =
         Data.Entity.Vein item ->
             { color = View.Color.black, content = item |> fromItem |> Char.toUpper } |> new
 
-        Data.Entity.Wall { unstable } ->
-            if unstable then
-                { color = View.Color.black, content = '%' } |> new
-
-            else
-                { color = View.Color.black, content = '#' } |> new
+        Data.Entity.Wall _ ->
+            { color = View.Color.black, content = '#' } |> new
 
         Data.Entity.Wagon wagon ->
             { color =
@@ -123,6 +119,10 @@ fromEntity game entity =
                     else
                         identity
                    )
+
+        Data.Entity.Rubble _ ->
+            { color = View.Color.black, content = '%' }
+                |> new
 
 
 fromBlock : Game -> Block -> Tile

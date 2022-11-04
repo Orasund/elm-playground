@@ -58,6 +58,9 @@ passTime game =
                                     Data.Entity.Water ->
                                         game |> walkThroughWater game.selected
 
+                                    Data.Entity.Rubble _ ->
+                                        game |> takeFromRubble |> Random.constant
+
                     Nothing ->
                         moveTowardsSelected game
            )
@@ -172,6 +175,37 @@ pickUp pos game =
                         }
                     )
                 |> Maybe.withDefault game
+
+        _ ->
+            game
+
+
+takeFromRubble : Game -> Game
+takeFromRubble game =
+    case Data.World.get game.selected game.world of
+        Just (Data.Block.EntityBlock (Data.Entity.Rubble list)) ->
+            case list of
+                head :: tail ->
+                    game.player
+                        |> Data.Player.hold head
+                        |> Maybe.map
+                            (\player ->
+                                game.world
+                                    |> Data.World.insertEntity game.selected
+                                        (Data.Entity.Rubble tail)
+                                    |> (\world ->
+                                            { game
+                                                | world = world
+                                                , player = player
+                                            }
+                                       )
+                            )
+                        |> Maybe.withDefault game
+
+                [] ->
+                    game.world
+                        |> Data.World.removeEntity game.selected
+                        |> (\world -> { game | world = world })
 
         _ ->
             game

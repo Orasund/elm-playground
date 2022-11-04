@@ -42,6 +42,7 @@ mine ( x, y ) game =
                                     Random.weighted ( 1, Data.Entity.Vein Data.Item.Coal )
                                         [ ( 1 / 2, Data.Entity.Vein Data.Item.Iron )
                                         , ( 1 / 8, Data.Entity.Wall { unstable = True } )
+                                        , ( 1 / 8, Data.Entity.Rubble [ Data.Item.Coal, Data.Item.Coal, Data.Item.Iron ] )
                                         ]
                                 }
                             |> Random.map (\world -> { game | world = world })

@@ -99,6 +99,15 @@ fromEntity game entity =
                     [ "Needs " ++ String.fromInt game.train.coalNeeded ++ " Coal to go back to HQ"
                     ]
 
+        Data.Entity.Rubble anyBag ->
+            fromTitle "Rubble"
+                |> withContent
+                    (anyBag
+                        |> AnyBag.fromList Data.Item.toString
+                        |> AnyBag.toAssociationList
+                        |> List.map (\( k, n ) -> String.fromInt n ++ "x " ++ k)
+                    )
+
 
 fromBlock : Game -> Block -> Info
 fromBlock game block =

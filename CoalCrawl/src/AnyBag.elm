@@ -1,6 +1,7 @@
 module AnyBag exposing (..)
 
 import Bag exposing (Bag)
+import Set
 
 
 type alias AnyBag comparable a =
