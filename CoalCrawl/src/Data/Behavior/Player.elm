@@ -14,6 +14,7 @@ import Data.Wagon
 import Data.World
 import Data.World.Generation
 import Dict
+import Html exposing (i)
 import Random exposing (Generator)
 import Set
 
@@ -114,8 +115,31 @@ walkThroughWater pos game =
 moveTowardsSelected : Game -> Generator Game
 moveTowardsSelected game =
     case game.player.riding of
-        Just pos ->
-            { game | player = game.player |> Data.Player.moveTo pos }
+        Just id ->
+            game.world
+                |> Data.World.getActor id
+                |> Maybe.map
+                    (\( _, actor ) ->
+                        case actor of
+                            Data.Actor.Wagon wagon ->
+                                { game
+                                    | player =
+                                        wagon.movedFrom
+                                            |> Maybe.map
+                                                (\pos ->
+                                                    game.player
+                                                        |> Data.Player.moveTo pos
+                                                        |> (if pos == game.selected then
+                                                                Data.Player.stopRiding
+
+                                                            else
+                                                                identity
+                                                           )
+                                                )
+                                            |> Maybe.withDefault (game.player |> Data.Player.stopRiding)
+                                }
+                    )
+                |> Maybe.withDefault game
                 |> Random.constant
 
         Nothing ->
@@ -152,7 +176,7 @@ moveTowardsSelected game =
                                     Just (Data.Actor.Wagon _) ->
                                         game
                                             |> Data.Behavior.Wagon.move { backPos = game.player.pos } id
-                                            |> Random.map (\g -> { g | player = g.player |> Data.Player.moveTo pos })
+                                            |> Random.map (\g -> { g | player = g.player |> Data.Player.startRiding id })
 
                                     Nothing ->
                                         game |> Random.constant

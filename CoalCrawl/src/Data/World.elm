@@ -106,8 +106,8 @@ get pos world =
                 |> Maybe.map Data.Block.FloorBlock
 
 
-getActor : ( Int, Int ) -> World -> Maybe Actor
-getActor pos world =
+getActorAt : ( Int, Int ) -> World -> Maybe Actor
+getActorAt pos world =
     world.entities
         |> Dict.get pos
         |> Maybe.andThen
@@ -121,6 +121,12 @@ getActor pos world =
                     _ ->
                         Nothing
             )
+
+
+getActor : Int -> World -> Maybe ( ( Int, Int ), Actor )
+getActor id world =
+    world.actors
+        |> Dict.get id
 
 
 updateActor : Int -> (Actor -> Actor) -> World -> World

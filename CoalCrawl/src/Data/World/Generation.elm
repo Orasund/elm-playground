@@ -88,7 +88,10 @@ exposedCave caveType ( x, y ) world =
 
         RubbleCave ->
             Random.uniform (Data.Block.FloorBlock Data.Floor.ground)
-                [ Data.Block.FloorBlock Data.Floor.ground, Data.Block.EntityBlock Data.Entity.rubble ]
+                [ Data.Block.FloorBlock Data.Floor.ground
+                , Data.Block.FloorBlock Data.Floor.ground
+                , Data.Block.EntityBlock Data.Entity.rubble
+                ]
                 |> Random.andThen
                     (\block ->
                         world
