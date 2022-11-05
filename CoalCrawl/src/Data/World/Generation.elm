@@ -95,6 +95,7 @@ exposedCave caveType ( x, y ) world =
                 |> Random.andThen
                     (\block ->
                         world
+                            |> Data.World.removeEntity ( x, y )
                             |> Data.World.insert ( x, y ) block
                             |> generateContent
                                 { probability =
@@ -122,20 +123,21 @@ generateContent args dict =
                         Random.map2
                             (\float entity ->
                                 d
-                                    |> Data.World.update pos
-                                        (\maybe ->
-                                            maybe
-                                                |> Maybe.withDefault
-                                                    ((if float < prob then
-                                                        entity
+                                    |> Data.World.get pos
+                                    |> (\maybe ->
+                                            if maybe == Nothing then
+                                                d
+                                                    |> Data.World.insertEntity pos
+                                                        (if float < prob then
+                                                            entity
 
-                                                      else
-                                                        Data.Entity.Wall
-                                                     )
-                                                        |> Data.Block.EntityBlock
-                                                    )
-                                                |> Just
-                                        )
+                                                         else
+                                                            Data.Entity.Wall
+                                                        )
+
+                                            else
+                                                d
+                                       )
                             )
                             (Random.float 0 1)
                             args.content

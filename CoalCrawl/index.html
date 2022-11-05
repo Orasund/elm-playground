@@ -6631,17 +6631,6 @@ var $elm$random$Random$map2 = F3(
 					seed2);
 			});
 	});
-var $author$project$Data$World$update = F3(
-	function (pos, fun, world) {
-		return function (block) {
-			return A3($author$project$Data$World$insert, pos, block, world);
-		}(
-			A2(
-				$elm$core$Maybe$withDefault,
-				$author$project$Data$Block$FloorBlock($author$project$Data$Floor$ground),
-				fun(
-					A2($author$project$Data$World$get, pos, world))));
-	});
 var $author$project$Data$World$Generation$generateContent = F2(
 	function (args, dict) {
 		return A3(
@@ -6655,18 +6644,14 @@ var $author$project$Data$World$Generation$generateContent = F2(
 							$elm$random$Random$map2,
 							F2(
 								function (_float, entity) {
-									return A3(
-										$author$project$Data$World$update,
-										pos,
-										function (maybe) {
-											return $elm$core$Maybe$Just(
-												A2(
-													$elm$core$Maybe$withDefault,
-													$author$project$Data$Block$EntityBlock(
-														(_Utils_cmp(_float, prob) < 0) ? entity : $author$project$Data$Entity$Wall),
-													maybe));
-										},
-										d);
+									return function (maybe) {
+										return _Utils_eq(maybe, $elm$core$Maybe$Nothing) ? A3(
+											$author$project$Data$World$insertEntity,
+											pos,
+											(_Utils_cmp(_float, prob) < 0) ? entity : $author$project$Data$Entity$Wall,
+											d) : d;
+									}(
+										A2($author$project$Data$World$get, pos, d));
 								}),
 							A2($elm$random$Random$float, 0, 1),
 							args.content);
@@ -6821,7 +6806,10 @@ var $author$project$Data$World$Generation$exposedCave = F3(
 							$author$project$Data$World$insert,
 							_Utils_Tuple2(x, y),
 							block,
-							world));
+							A2(
+								$author$project$Data$World$removeEntity,
+								_Utils_Tuple2(x, y),
+								world)));
 				},
 				A2(
 					$elm$random$Random$uniform,
@@ -7751,7 +7739,10 @@ var $author$project$Data$Behavior$Player$moveTowardsSelected = function (game) {
 													return _Utils_update(
 														g,
 														{
-															player: A2($author$project$Data$Player$startRiding, id, g.player)
+															player: A2(
+																$author$project$Data$Player$moveTo,
+																pos,
+																A2($author$project$Data$Player$startRiding, id, g.player))
 														});
 												},
 												A3(

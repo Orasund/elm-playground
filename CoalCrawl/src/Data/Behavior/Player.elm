@@ -176,7 +176,15 @@ moveTowardsSelected game =
                                     Just (Data.Actor.Wagon _) ->
                                         game
                                             |> Data.Behavior.Wagon.move { backPos = game.player.pos } id
-                                            |> Random.map (\g -> { g | player = g.player |> Data.Player.startRiding id })
+                                            |> Random.map
+                                                (\g ->
+                                                    { g
+                                                        | player =
+                                                            g.player
+                                                                |> Data.Player.startRiding id
+                                                                |> Data.Player.moveTo pos
+                                                    }
+                                                )
 
                                     Nothing ->
                                         game |> Random.constant

@@ -84,15 +84,6 @@ updateEntity pos fun world =
     { world | entities = world.entities |> Dict.update pos fun }
 
 
-update : ( Int, Int ) -> (Maybe Block -> Maybe Block) -> World -> World
-update pos fun world =
-    world
-        |> get pos
-        |> fun
-        |> Maybe.withDefault (Data.Block.FloorBlock Data.Floor.ground)
-        |> (\block -> insert pos block world)
-
-
 {-| gets entites first, floor second
 -}
 get : ( Int, Int ) -> World -> Maybe Block
