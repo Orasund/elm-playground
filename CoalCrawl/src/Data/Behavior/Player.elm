@@ -50,9 +50,6 @@ passTime game =
                                     Data.Entity.Wall ->
                                         Random.constant game
 
-                                    Data.Entity.Cave _ ->
-                                        Random.constant game
-
                                     Data.Entity.Actor id ->
                                         game.world.actors
                                             |> Dict.get id
@@ -61,6 +58,9 @@ passTime game =
                                                     case actor of
                                                         Data.Actor.Wagon _ ->
                                                             game |> putIntoWagon |> Random.constant
+
+                                                        Data.Actor.Cave _ ->
+                                                            Random.constant game
                                                 )
                                             |> Maybe.withDefault (Random.constant game)
 
@@ -107,7 +107,7 @@ walkThroughWater pos game =
             (\p ->
                 game.world
                     |> Data.World.removeEntity pos
-                    |> Data.World.insertEntity p Data.Entity.Water
+                    |> Data.World.insertEntityAt p Data.Entity.Water
                     |> (\world -> { game | world = world, player = game.player |> Data.Player.moveTo pos })
             )
 
@@ -138,6 +138,9 @@ moveTowardsSelected game =
                                                 )
                                             |> Maybe.withDefault (game.player |> Data.Player.stopRiding)
                                 }
+
+                            _ ->
+                                { game | player = game.player |> Data.Player.stopRiding }
                     )
                 |> Maybe.withDefault game
                 |> Random.constant
@@ -153,8 +156,16 @@ moveTowardsSelected game =
                                             Just (Data.Block.FloorBlock _) ->
                                                 True
 
-                                            Just (Data.Block.EntityBlock (Data.Entity.Actor _)) ->
-                                                True
+                                            Just (Data.Block.EntityBlock (Data.Entity.Actor id)) ->
+                                                case game.world |> Data.World.getActor id of
+                                                    Just ( _, Data.Actor.Wagon _ ) ->
+                                                        True
+
+                                                    Just ( _, Data.Actor.Cave _ ) ->
+                                                        False
+
+                                                    Nothing ->
+                                                        False
 
                                             Just (Data.Block.EntityBlock Data.Entity.Water) ->
                                                 True
@@ -181,12 +192,18 @@ moveTowardsSelected game =
                                                     { g
                                                         | player =
                                                             g.player
-                                                                |> Data.Player.startRiding id
                                                                 |> Data.Player.moveTo pos
+                                                                |> (case game.world |> Data.World.getFloor pos of
+                                                                        Just Data.Floor.Track ->
+                                                                            Data.Player.startRiding id
+
+                                                                        _ ->
+                                                                            identity
+                                                                   )
                                                     }
                                                 )
 
-                                    Nothing ->
+                                    _ ->
                                         game |> Random.constant
 
                             Just (Data.Block.EntityBlock Data.Entity.Water) ->
@@ -245,7 +262,7 @@ takeFromRubble game =
                                     |> Maybe.map
                                         (\player ->
                                             game.world
-                                                |> Data.World.insertEntity game.selected
+                                                |> Data.World.insertEntityAt game.selected
                                                     (Data.Entity.Rubble (l1 ++ tail))
                                                 |> (\world ->
                                                         { game
@@ -291,7 +308,7 @@ putIntoWagon game =
                         |> Maybe.withDefault game
                         |> Data.Behavior.Wagon.unload id
 
-                Nothing ->
+                _ ->
                     game
 
         _ ->

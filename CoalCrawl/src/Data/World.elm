@@ -33,26 +33,41 @@ insert : ( Int, Int ) -> Block -> World -> World
 insert pos block world =
     case block of
         Data.Block.FloorBlock floor ->
-            insertFloor pos floor world
+            insertFloorAt pos floor world
 
         Data.Block.EntityBlock entity ->
-            insertEntity pos entity world
+            insertEntityAt pos entity world
 
 
-insertFloor : ( Int, Int ) -> Floor -> World -> World
-insertFloor pos floor world =
+insertFloor : Floor -> ( Int, Int ) -> World -> World
+insertFloor floor pos =
+    insertFloorAt pos floor
+
+
+insertFloorAt : ( Int, Int ) -> Floor -> World -> World
+insertFloorAt pos floor world =
     { world | floor = world.floor |> Dict.insert pos floor }
 
 
-insertEntity : ( Int, Int ) -> Entity -> World -> World
-insertEntity pos entity world =
+insertEntity : Entity -> ( Int, Int ) -> World -> World
+insertEntity entity pos =
+    insertEntityAt pos entity
+
+
+insertEntityAt : ( Int, Int ) -> Entity -> World -> World
+insertEntityAt pos entity world =
     { world
         | entities = world.entities |> Dict.insert pos entity
     }
 
 
-insertActor : ( Int, Int ) -> Actor -> World -> World
-insertActor pos actor world =
+insertActor : Actor -> ( Int, Int ) -> World -> World
+insertActor actor pos =
+    insertActorAt pos actor
+
+
+insertActorAt : ( Int, Int ) -> Actor -> World -> World
+insertActorAt pos actor world =
     { world
         | entities =
             world.entities
@@ -76,6 +91,13 @@ removeEntity pos world =
                             |> Maybe.withDefault Data.Floor.ground
                             |> Just
                     )
+        , actors =
+            case world.entities |> Dict.get pos of
+                Just (Data.Entity.Actor id) ->
+                    world.actors |> Dict.remove id
+
+                _ ->
+                    world.actors
     }
 
 

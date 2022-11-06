@@ -1,8 +1,9 @@
 module Data.World.Generation exposing (..)
 
 import Config
+import Data.Actor exposing (CaveType(..))
 import Data.Block
-import Data.Entity exposing (CaveType(..), Entity)
+import Data.Entity
 import Data.Floor
 import Data.Item
 import Data.World exposing (World)
@@ -30,7 +31,7 @@ mine ( x, y ) world =
                     (\maybeItem ->
                         world
                             |> Data.World.removeEntity ( x, y )
-                            |> Data.World.insertFloor ( x, y ) (Data.Floor.Ground maybeItem)
+                            |> Data.World.insertFloorAt ( x, y ) (Data.Floor.Ground maybeItem)
                             |> generateContent
                                 { probability =
                                     [ ( 0, ( x, y - 1 ) )
@@ -40,22 +41,22 @@ mine ( x, y ) world =
                                     ]
                                 , content =
                                     if y < Config.tracksPerTrip then
-                                        Random.weighted ( 1, Data.Entity.Vein Data.Item.Coal )
-                                            [ ( 1 / 8, Data.Entity.rubble )
+                                        Random.weighted ( 1, Data.World.insertEntity (Data.Entity.Vein Data.Item.Coal) )
+                                            [ ( 1 / 8, Data.World.insertActor (Data.Actor.Cave Data.Actor.CoalCave) )
                                             ]
 
                                     else if y < Config.tracksPerTrip * 2 then
-                                        Random.weighted ( 1, Data.Entity.Vein Data.Item.Iron )
-                                            [ ( 1 / 2, Data.Entity.Vein Data.Item.Coal )
-                                            , ( 1 / 8, Data.Entity.Cave Data.Entity.RubbleCave )
-                                            , ( 1 / 8, Data.Entity.rubble )
+                                        Random.weighted ( 1, Data.World.insertEntity (Data.Entity.Vein Data.Item.Iron) )
+                                            [ ( 1 / 2, Data.World.insertEntity (Data.Entity.Vein Data.Item.Coal) )
+                                            , ( 1 / 4, Data.World.insertActor (Data.Actor.Cave Data.Actor.CoalCave) )
+                                            , ( 1 / 8, Data.World.insertActor (Data.Actor.Cave Data.Actor.RubbleCave) )
                                             ]
 
                                     else
-                                        Random.weighted ( 1, Data.Entity.Vein Data.Item.Coal )
-                                            [ ( 1, Data.Entity.Vein Data.Item.Iron )
-                                            , ( 1 / 4, Data.Entity.rubble )
-                                            , ( 1 / 8, Data.Entity.Cave Data.Entity.WaterCave )
+                                        Random.weighted ( 1, Data.World.insertEntity (Data.Entity.Vein Data.Item.Coal) )
+                                            [ ( 1, Data.World.insertEntity (Data.Entity.Vein Data.Item.Iron) )
+                                            , ( 1 / 4, Data.World.insertEntity Data.Entity.rubble )
+                                            , ( 1 / 8, Data.World.insertActor (Data.Actor.Cave Data.Actor.WaterCave) )
                                             ]
                                 }
                     )
@@ -70,7 +71,7 @@ exposedCave caveType ( x, y ) world =
     case caveType of
         WaterCave ->
             world
-                |> Data.World.insertEntity ( x, y ) Data.Entity.Water
+                |> Data.World.insertEntityAt ( x, y ) Data.Entity.Water
                 |> generateContent
                     { probability =
                         [ ( 0, ( x, y - 1 ) )
@@ -79,18 +80,18 @@ exposedCave caveType ( x, y ) world =
                         , ( 0.5, ( x + 1, y ) )
                         ]
                     , content =
-                        Random.weighted ( 1, Data.Entity.Cave Data.Entity.WaterCave )
-                            [ ( 1 / 2, Data.Entity.Vein Data.Item.Iron )
-                            , ( 1 / 8, Data.Entity.Vein Data.Item.Coal )
-                            , ( 1 / 8, Data.Entity.Vein Data.Item.Gold )
+                        Random.weighted ( 1, \pos -> Data.World.insertActorAt pos (Data.Actor.Cave Data.Actor.WaterCave) )
+                            [ ( 1 / 2, \pos -> Data.World.insertEntityAt pos (Data.Entity.Vein Data.Item.Iron) )
+                            , ( 1 / 8, \pos -> Data.World.insertEntityAt pos (Data.Entity.Vein Data.Item.Coal) )
+                            , ( 1 / 8, \pos -> Data.World.insertEntityAt pos (Data.Entity.Vein Data.Item.Gold) )
                             ]
                     }
 
         RubbleCave ->
             Random.uniform (Data.Block.FloorBlock Data.Floor.ground)
-                [ Data.Block.FloorBlock Data.Floor.ground
+                [ Data.Block.EntityBlock Data.Entity.rubble
                 , Data.Block.FloorBlock Data.Floor.ground
-                , Data.Block.EntityBlock Data.Entity.rubble
+                , Data.Block.FloorBlock Data.Floor.ground
                 ]
                 |> Random.andThen
                     (\block ->
@@ -105,15 +106,33 @@ exposedCave caveType ( x, y ) world =
                                     , ( 0.7, ( x + 1, y ) )
                                     ]
                                 , content =
-                                    Random.weighted ( 1, Data.Entity.Cave Data.Entity.RubbleCave )
-                                        [ ( 1 / 2, Data.Entity.Vein Data.Item.Coal )
-                                        , ( 1 / 8, Data.Entity.Vein Data.Item.Iron )
+                                    Random.weighted ( 1, Data.World.insertActor (Data.Actor.Cave Data.Actor.RubbleCave) )
+                                        [ ( 1 / 2, Data.World.insertEntity (Data.Entity.Vein Data.Item.Coal) )
+                                        , ( 1 / 8, Data.World.insertEntity (Data.Entity.Vein Data.Item.Iron) )
                                         ]
                                 }
                     )
 
+        CoalCave ->
+            world
+                |> Data.World.removeEntity ( x, y )
+                |> Data.World.insert ( x, y ) (Data.Block.FloorBlock (Data.Floor.Ground (Just Data.Item.Coal)))
+                |> generateContent
+                    { probability =
+                        [ ( 0, ( x, y - 1 ) )
+                        , ( 0.5, ( x, y + 1 ) )
+                        , ( 0.5, ( x - 1, y ) )
+                        , ( 0.5, ( x + 1, y ) )
+                        ]
+                    , content =
+                        Random.weighted ( 1, Data.World.insertActor (Data.Actor.Cave Data.Actor.CoalCave) )
+                            [ ( 1 / 2, Data.World.insertEntity (Data.Entity.Vein Data.Item.Coal) )
+                            , ( 1 / 8, Data.World.insertEntity (Data.Entity.Vein Data.Item.Iron) )
+                            ]
+                    }
 
-generateContent : { probability : List ( Float, ( Int, Int ) ), content : Generator Entity } -> World -> Generator World
+
+generateContent : { probability : List ( Float, ( Int, Int ) ), content : Generator (( Int, Int ) -> World -> World) } -> World -> Generator World
 generateContent args dict =
     args.probability
         |> List.foldl
@@ -121,19 +140,19 @@ generateContent args dict =
                 Random.andThen
                     (\d ->
                         Random.map2
-                            (\float entity ->
+                            (\float updateAt ->
                                 d
                                     |> Data.World.get pos
                                     |> (\maybe ->
                                             if maybe == Nothing then
                                                 d
-                                                    |> Data.World.insertEntity pos
-                                                        (if float < prob then
-                                                            entity
+                                                    |> (if float < prob then
+                                                            updateAt
 
-                                                         else
-                                                            Data.Entity.Wall
-                                                        )
+                                                        else
+                                                            Data.World.insertEntity Data.Entity.Wall
+                                                       )
+                                                        pos
 
                                             else
                                                 d

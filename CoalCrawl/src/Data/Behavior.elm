@@ -27,14 +27,6 @@ passTime game =
                     |> List.foldl
                         (\( pos, entity ) ->
                             case entity of
-                                Data.Entity.Cave caveType ->
-                                    Random.andThen
-                                        (\it ->
-                                            it.world
-                                                |> Data.World.Generation.exposedCave caveType pos
-                                                |> Random.map (\world -> { it | world = world })
-                                        )
-
                                 Data.Entity.Actor id ->
                                     game.world.actors
                                         |> Dict.get id
@@ -52,6 +44,14 @@ passTime game =
                                                                         )
                                                                 )
                                                             |> Maybe.withDefault identity
+
+                                                    Data.Actor.Cave caveType ->
+                                                        Random.andThen
+                                                            (\it ->
+                                                                it.world
+                                                                    |> Data.World.Generation.exposedCave caveType pos
+                                                                    |> Random.map (\world -> { it | world = world })
+                                                            )
                                             )
                                         |> Maybe.withDefault identity
 

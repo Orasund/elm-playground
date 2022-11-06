@@ -70,6 +70,24 @@ fromFloor floor =
                 }
 
 
+fromTrain : Game -> Info
+fromTrain game =
+    new
+        { title = "Train"
+        , description = "Stores all your items. If it has tracks stored, it will place them and move forward. Needs coal to move. Will regularly fetch new tracks from above ground."
+        }
+        |> withContent
+            ((String.fromInt game.train.tracks ++ "x Tracks")
+                :: (game.train.items
+                        |> AnyBag.toAssociationList
+                        |> List.map (\( k, n ) -> String.fromInt n ++ "x " ++ k)
+                   )
+            )
+        |> withAdditionalInfo
+            [ "Needs " ++ String.fromInt game.train.coalNeeded ++ " Coal to go back to HQ"
+            ]
+
+
 fromEntity : Game -> Entity -> Info
 fromEntity game entity =
     case entity of
@@ -85,20 +103,6 @@ fromEntity game entity =
                 , description = "Can be mind by bombs, but will not drop anything."
                 }
 
-        Data.Entity.Cave caveType ->
-            { title =
-                (case caveType of
-                    Data.Entity.WaterCave ->
-                        "Water"
-
-                    Data.Entity.RubbleCave ->
-                        "Rubble"
-                )
-                    ++ " Cave"
-            , description = "Helper Block to generate caves"
-            }
-                |> new
-
         Data.Entity.Water ->
             new
                 { title = "Water"
@@ -106,20 +110,7 @@ fromEntity game entity =
                 }
 
         Data.Entity.Train ->
-            new
-                { title = "Train"
-                , description = "Stores all your items. If it has tracks stored, it will place them and move forward. Needs coal to move. Will regularly fetch new tracks from above ground."
-                }
-                |> withContent
-                    ((String.fromInt game.train.tracks ++ "x Tracks")
-                        :: (game.train.items
-                                |> AnyBag.toAssociationList
-                                |> List.map (\( k, n ) -> String.fromInt n ++ "x " ++ k)
-                           )
-                    )
-                |> withAdditionalInfo
-                    [ "Needs " ++ String.fromInt game.train.coalNeeded ++ " Coal to go back to HQ"
-                    ]
+            fromTrain game
 
         Data.Entity.Rubble anyBag ->
             new
@@ -161,6 +152,23 @@ fromActor actor =
                         |> AnyBag.toAssociationList
                         |> List.map (\( k, n ) -> String.fromInt n ++ "x " ++ k)
                     )
+
+        Data.Actor.Cave caveType ->
+            { title =
+                (case caveType of
+                    Data.Actor.WaterCave ->
+                        "Water"
+
+                    Data.Actor.RubbleCave ->
+                        "Rubble"
+
+                    Data.Actor.CoalCave ->
+                        "Coal"
+                )
+                    ++ " Cave"
+            , description = "Helper Block to generate caves"
+            }
+                |> new
 
 
 fromBlock : Game -> Block -> Info

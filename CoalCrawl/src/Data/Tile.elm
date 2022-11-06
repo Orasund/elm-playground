@@ -17,7 +17,7 @@ type alias Tile =
     { color : String
     , content : Char
     , bold : Bool
-    , big : Bool
+    , animation : Bool
     }
 
 
@@ -26,7 +26,7 @@ new args =
     { color = args.color
     , content = args.content
     , bold = False
-    , big = False
+    , animation = False
     }
 
 
@@ -35,9 +35,9 @@ withBold tile =
     { tile | bold = True }
 
 
-withBigFont : Tile -> Tile
-withBigFont tile =
-    { tile | big = True }
+withAnimation : Tile -> Tile
+withAnimation tile =
+    { tile | animation = True }
 
 
 wall : Tile
@@ -98,9 +98,6 @@ fromEntity game entity =
         Data.Entity.Wall ->
             { color = View.Color.black, content = '#' } |> new
 
-        Data.Entity.Cave _ ->
-            { color = View.Color.red, content = '#' } |> new
-
         Data.Entity.Water ->
             { color = View.Color.blue, content = '~' } |> new
 
@@ -139,6 +136,11 @@ fromActor actor =
             , content = 'W'
             }
                 |> new
+
+        Data.Actor.Cave _ ->
+            { color = View.Color.red, content = '#' }
+                |> new
+                |> withBold
 
 
 fromBlock : Game -> Block -> Tile

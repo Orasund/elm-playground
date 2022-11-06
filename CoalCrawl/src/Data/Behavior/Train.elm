@@ -66,7 +66,7 @@ passTime game =
                                 Data.Entity.Actor id ->
                                     game.world.actors
                                         |> Dict.get id
-                                        |> Maybe.map
+                                        |> Maybe.andThen
                                             (\( _, actor ) ->
                                                 case actor of
                                                     Data.Actor.Wagon wagon ->
@@ -75,6 +75,10 @@ passTime game =
                                                             , world = game.world |> Data.World.removeEntity newPos
                                                         }
                                                             |> Random.constant
+                                                            |> Just
+
+                                                    Data.Actor.Cave _ ->
+                                                        Nothing
                                             )
 
                                 _ ->
@@ -133,7 +137,7 @@ mineAndPlaceTrack game =
                             { g
                                 | world =
                                     g.world
-                                        |> Data.World.insertFloor newPos Data.Floor.RailwayTrack
+                                        |> Data.World.insertFloorAt newPos Data.Floor.RailwayTrack
                             }
                         )
             )
@@ -154,7 +158,7 @@ move game =
                     |> (\g ->
                             g.world
                                 |> Data.World.removeEntity g.train.pos
-                                |> Data.World.insertEntity newPos Data.Entity.Train
+                                |> Data.World.insertEntityAt newPos Data.Entity.Train
                                 |> (\world -> { g | world = world })
                        )
                     |> (\g -> { g | train = g.train |> Data.Train.move })

@@ -3,15 +3,9 @@ module Data.Entity exposing (..)
 import Data.Item exposing (Item)
 
 
-type CaveType
-    = WaterCave
-    | RubbleCave
-
-
 type Entity
     = Vein Item
     | Wall
-    | Cave CaveType
     | Water
     | Train
     | Rubble (List Item)

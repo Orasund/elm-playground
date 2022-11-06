@@ -45,7 +45,7 @@ buildActor cost actor game =
         |> Maybe.map
             (\train ->
                 { game
-                    | world = game.world |> Data.World.insertActor game.selected actor
+                    | world = game.world |> Data.World.insertActorAt game.selected actor
                     , train = train
                 }
             )
@@ -60,7 +60,7 @@ destroyBlock game =
                     Data.World.removeEntity game.selected
 
                 Just (Data.Block.FloorBlock _) ->
-                    Data.World.insertFloor game.selected Data.Floor.ground
+                    Data.World.insertFloorAt game.selected Data.Floor.ground
 
                 Nothing ->
                     identity

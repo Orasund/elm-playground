@@ -10,7 +10,7 @@ import Layout
 toHtml : Tile -> Html msg
 toHtml tile =
     tile
-        |> (\{ content, color, bold, big } ->
+        |> (\{ content, color, bold, animation } ->
                 content
                     |> String.fromChar
                     |> Html.text
@@ -21,15 +21,13 @@ toHtml tile =
                          , Attr.style "color" color
                          ]
                             ++ (if bold then
-                                    [ Attr.style "font-weight" "bold"
-                                    , Attr.class "animate__animated animate__pulse animate__infinite"
-                                    ]
+                                    [ Attr.style "font-weight" "bold" ]
 
                                 else
                                     []
                                )
-                            ++ (if big then
-                                    [ Attr.style "font-size" Config.tileSize ]
+                            ++ (if animation then
+                                    [ Attr.class "animate__animated animate__pulse animate__infinite" ]
 
                                 else
                                     []

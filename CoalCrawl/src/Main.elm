@@ -95,6 +95,7 @@ viewGame model =
         , View.Button.toHtml (Restart model.seed) "Restarts"
         ]
             |> Layout.row [ Layout.spacing 8 ]
+      , Data.Info.fromTrain model.game |> View.Info.justContent
       , model.game.world
             |> Data.World.get model.game.selected
             |> Maybe.map
