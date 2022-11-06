@@ -1,28 +1,21 @@
 module Main exposing (..)
 
-import AnyBag
 import Browser exposing (Document)
 import Config
 import Data.Actor exposing (Actor)
 import Data.Behavior
 import Data.Block exposing (Block(..))
 import Data.Entity exposing (Entity(..))
-import Data.Floor
 import Data.Game exposing (Game)
-import Data.Info
-import Data.Item
-import Data.Wagon
-import Data.World
-import Html exposing (Html)
+import Data.Item exposing (Item)
+import Html
 import Html.Attributes as Attr
 import Layout
 import Random exposing (Generator, Seed)
 import Time
-import View.Button
-import View.Info
+import View.Game
 import View.Modal
 import View.Promt
-import View.Screen
 
 
 type alias Model =
@@ -53,8 +46,8 @@ type Msg
     | TileClicked ( Int, Int )
     | TimePassed
     | ToggleSlowdown
-    | BuildBlock { cost : Int, block : Block }
-    | BuildActor { cost : Int, actor : Actor }
+    | BuildBlock { cost : ( Item, Int ), block : Block }
+    | BuildActor { cost : ( Item, Int ), actor : Actor }
     | CloseModal
     | DestroyBlock
 
@@ -81,93 +74,6 @@ init () =
     )
 
 
-viewGame : Model -> Html Msg
-viewGame model =
-    [ model.game
-        |> View.Screen.fromGame { onPress = TileClicked, camera = model.camera }
-    , [ [ (if model.slowedDown then
-            "Stop Slow Motion"
-
-           else
-            "Start Slow Motion"
-          )
-            |> View.Button.toHtml ToggleSlowdown
-        , View.Button.toHtml (Restart model.seed) "Restarts"
-        ]
-            |> Layout.row [ Layout.spacing 8 ]
-      , Data.Info.fromTrain model.game |> View.Info.justContent
-      , model.game.world
-            |> Data.World.get model.game.selected
-            |> Maybe.map
-                (\block ->
-                    (block
-                        |> Data.Info.fromBlock model.game
-                        |> View.Info.toHtml
-                    )
-                        :: (case block of
-                                Data.Block.FloorBlock (Data.Floor.Ground Nothing) ->
-                                    [ { actor = Data.Actor.Wagon Data.Wagon.emptyWagon
-                                      , cost = Config.wagonCost
-                                      }
-                                        |> (\args ->
-                                                { cost = args.cost
-                                                , button =
-                                                    "Build "
-                                                        ++ (Data.Info.fromActor args.actor).title
-                                                        |> View.Button.toHtml (BuildActor args)
-                                                }
-                                           )
-                                    , { block = Data.Floor.Track |> Data.Block.FloorBlock
-                                      , cost = Config.trackCost
-                                      }
-                                        |> (\args ->
-                                                { cost = args.cost
-                                                , button =
-                                                    "Build "
-                                                        ++ (Data.Info.fromBlock model.game args.block).title
-                                                        |> View.Button.toHtml (BuildBlock args)
-                                                }
-                                           )
-                                    ]
-                                        |> List.map
-                                            (\args ->
-                                                [ args.button
-                                                , "Costs "
-                                                    ++ String.fromInt args.cost
-                                                    ++ " Iron, you got "
-                                                    ++ (model.game.train.items
-                                                            |> AnyBag.count Data.Item.Iron
-                                                            |> String.fromInt
-                                                       )
-                                                    ++ " Iron."
-                                                    |> Html.text
-                                                ]
-                                                    |> Layout.row [ Layout.spacing 8 ]
-                                            )
-
-                                Data.Block.FloorBlock Data.Floor.Track ->
-                                    "Destroy"
-                                        |> View.Button.toHtml DestroyBlock
-                                        |> List.singleton
-
-                                _ ->
-                                    []
-                           )
-                        |> Layout.column []
-                )
-            |> Maybe.withDefault Layout.none
-      ]
-        |> Layout.column [ Layout.spacing 8, Attr.style "width" "300px" ]
-    ]
-        |> Layout.row
-            (if model.showModal then
-                [ Attr.style "backdrop-filter" "brightness(0.5)" ]
-
-             else
-                []
-            )
-
-
 view : Model -> Document Msg
 view model =
     { title = "Coal Crawl"
@@ -179,7 +85,24 @@ view model =
             []
         , [ model.promt
                 |> View.Promt.fromString
-          , [ viewGame model
+          , [ model.game
+                |> View.Game.toHtml
+                    { tileClicked = TileClicked
+                    , toggleSlowdown = ToggleSlowdown
+                    , restart = Restart model.seed
+                    , destroyBlock = DestroyBlock
+                    , buildActor = BuildActor
+                    , buildBlock = BuildBlock
+                    , camera = model.camera
+                    , slowedDown = model.slowedDown
+                    }
+                |> Layout.row
+                    (if model.showModal then
+                        [ Attr.style "backdrop-filter" "brightness(0.5)" ]
+
+                     else
+                        []
+                    )
             , if model.showModal then
                 View.Modal.toHtml CloseModal model.game
 
@@ -250,7 +173,10 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    if model.slowedDown || model.showModal then
+    if model.showModal then
+        Sub.none
+
+    else if model.slowedDown then
         Time.every 400 (\_ -> TimePassed)
 
     else

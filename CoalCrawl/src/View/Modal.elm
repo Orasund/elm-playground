@@ -45,7 +45,7 @@ toHtml closeModal game =
         |> Html.text
         |> Layout.el []
     , "Continue"
-        |> View.Button.toHtml closeModal
+        |> View.Button.toHtml (Just closeModal)
     ]
         |> Layout.column
             [ Attr.style "padding" "16px"

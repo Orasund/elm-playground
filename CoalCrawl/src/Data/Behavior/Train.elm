@@ -79,6 +79,9 @@ passTime game =
 
                                                     Data.Actor.Cave _ ->
                                                         Nothing
+
+                                                    Data.Actor.Bomb _ ->
+                                                        Just (Random.constant game)
                                             )
 
                                 _ ->

@@ -14,4 +14,4 @@ type Entity
 
 rubble : Entity
 rubble =
-    Rubble [ Data.Item.Coal, Data.Item.Coal, Data.Item.Iron ]
+    Rubble [ Data.Item.Coal, Data.Item.Iron ]

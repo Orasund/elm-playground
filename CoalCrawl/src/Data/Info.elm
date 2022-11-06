@@ -74,7 +74,7 @@ fromTrain : Game -> Info
 fromTrain game =
     new
         { title = "Train"
-        , description = "Stores all your items. If it has tracks stored, it will place them and move forward. Needs coal to move. Will regularly fetch new tracks from above ground."
+        , description = ""
         }
         |> withContent
             ((String.fromInt game.train.tracks ++ "x Tracks")
@@ -84,7 +84,7 @@ fromTrain game =
                    )
             )
         |> withAdditionalInfo
-            [ "Needs " ++ String.fromInt game.train.coalNeeded ++ " Coal to go back to HQ"
+            [ "Needs " ++ String.fromInt game.train.coalNeeded ++ " Coal to go back to HQ."
             ]
 
 
@@ -94,7 +94,7 @@ fromEntity game entity =
         Data.Entity.Vein item ->
             new
                 { title = Data.Item.toString item ++ " Vein"
-                , description = "Drops one " ++ Data.Item.toString item ++ "when mined"
+                , description = "Drops one " ++ Data.Item.toString item ++ " when mined."
                 }
 
         Data.Entity.Wall ->
@@ -110,7 +110,10 @@ fromEntity game entity =
                 }
 
         Data.Entity.Train ->
-            fromTrain game
+            new
+                { title = "Train"
+                , description = "Stores all your items. If it has tracks stored, it will place them and move forward. Needs coal to move. Will regularly fetch new tracks from above ground."
+                }
 
         Data.Entity.Rubble anyBag ->
             new
@@ -167,6 +170,12 @@ fromActor actor =
                 )
                     ++ " Cave"
             , description = "Helper Block to generate caves"
+            }
+                |> new
+
+        Data.Actor.Bomb { explodesIn } ->
+            { title = "Bomb"
+            , description = "Explodes in " ++ String.fromInt explodesIn ++ " turns."
             }
                 |> new
 

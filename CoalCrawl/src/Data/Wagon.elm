@@ -28,11 +28,6 @@ moveFrom movedFrom wagon =
     { wagon | movedFrom = Just movedFrom }
 
 
-stop : Wagon -> Wagon
-stop wagon =
-    { wagon | movedFrom = Nothing }
-
-
 isFull : Wagon -> Bool
 isFull wagon =
     AnyBag.size wagon.items >= Config.wagonMaxItems

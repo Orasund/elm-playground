@@ -3,60 +3,56 @@ module Data.Behavior exposing (..)
 import AnyBag
 import Config
 import Data.Actor
+import Data.Behavior.Bomb
 import Data.Behavior.Player
 import Data.Behavior.Train
 import Data.Behavior.Wagon
-import Data.Entity
 import Data.Game exposing (Game)
 import Data.Item
 import Data.World
 import Data.World.Generation
-import Dict
 import Random exposing (Generator)
 
 
 passTime : Game -> Generator ( Game, { promt : Maybe String, showModal : Bool } )
 passTime game =
     game
-        |> Data.Behavior.Player.passTime
+        |> Data.Behavior.Player.act
         |> Random.andThen Data.Behavior.Train.passTime
         |> Random.andThen
             (\( g, showModal ) ->
                 g.world
-                    |> Data.World.getEntities
+                    |> Data.World.getActors
                     |> List.foldl
-                        (\( pos, entity ) ->
-                            case entity of
-                                Data.Entity.Actor id ->
-                                    game.world.actors
-                                        |> Dict.get id
+                        (\( id, ( pos, actor ) ) ->
+                            case actor of
+                                Data.Actor.Wagon wagon ->
+                                    wagon.movedFrom
                                         |> Maybe.map
-                                            (\( _, actor ) ->
-                                                case actor of
-                                                    Data.Actor.Wagon wagon ->
-                                                        wagon.movedFrom
-                                                            |> Maybe.map
-                                                                (\movedFrom ->
-                                                                    Random.andThen
-                                                                        (Data.Behavior.Wagon.move
-                                                                            { backPos = movedFrom }
-                                                                            id
-                                                                        )
-                                                                )
-                                                            |> Maybe.withDefault identity
-
-                                                    Data.Actor.Cave caveType ->
-                                                        Random.andThen
-                                                            (\it ->
-                                                                it.world
-                                                                    |> Data.World.Generation.exposedCave caveType pos
-                                                                    |> Random.map (\world -> { it | world = world })
-                                                            )
+                                            (\movedFrom ->
+                                                Random.andThen
+                                                    (Data.Behavior.Wagon.act
+                                                        { backPos = movedFrom }
+                                                        id
+                                                    )
                                             )
                                         |> Maybe.withDefault identity
 
-                                _ ->
-                                    identity
+                                Data.Actor.Cave caveType ->
+                                    Random.andThen
+                                        (\it ->
+                                            it.world
+                                                |> Data.World.Generation.exposedCave caveType pos
+                                                |> Random.map (\world -> { it | world = world })
+                                        )
+
+                                Data.Actor.Bomb _ ->
+                                    Random.andThen
+                                        (\it ->
+                                            it.world
+                                                |> Data.Behavior.Bomb.timePassed id
+                                                |> Random.map (\world -> { it | world = world })
+                                        )
                         )
                         (Random.constant g)
                     |> Random.map (\g0 -> ( g0, showModal ))

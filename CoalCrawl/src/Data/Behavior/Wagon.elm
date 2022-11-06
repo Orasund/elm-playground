@@ -12,39 +12,54 @@ import Dict
 import Random exposing (Generator)
 
 
-move :
+act :
     { backPos : ( Int, Int ) }
     -> Int
     -> Game
     -> Generator Game
-move { backPos } id game =
+act args id game =
     case game.world.actors |> Dict.get id of
         Just ( pos, Data.Actor.Wagon wagon ) ->
-            let
-                forwardPos =
-                    backPos
-                        |> Data.Position.vecTo pos
-                        |> Data.Position.plus pos
+            if Data.World.getFloor pos game.world == Just Data.Floor.Track then
+                game
+                    |> move args id ( pos, wagon )
 
-                args =
-                    { backPos = backPos, forwardPos = forwardPos }
-            in
-            (if Data.World.getFloor pos game.world == Just Data.Floor.Track then
-                game.world
-                    |> moveOnTrack args id
-
-             else
-                game.world
-                    |> moveOnGround args ( pos, wagon )
-                    |> (\p -> game.world |> Data.World.moveActorTo p id)
-                    |> Random.constant
-                    |> Just
-            )
-                |> Maybe.map (Random.map (\world -> { game | world = world } |> unload id))
-                |> Maybe.withDefault (Random.constant game)
+            else
+                Random.constant game
 
         _ ->
             Random.constant game
+
+
+move : { backPos : ( Int, Int ) } -> Int -> ( ( Int, Int ), Wagon ) -> Game -> Generator Game
+move { backPos } id ( pos, wagon ) game =
+    let
+        forwardPos =
+            backPos
+                |> Data.Position.vecTo pos
+                |> Data.Position.plus pos
+
+        positions =
+            { backPos = backPos, forwardPos = forwardPos }
+    in
+    (if Data.World.getFloor pos game.world == Just Data.Floor.Track then
+        game.world
+            |> moveOnTrack positions ( pos, wagon )
+
+     else
+        game.world
+            |> moveOnGround positions ( pos, wagon )
+            |> Random.constant
+    )
+        |> Random.map
+            (\p ->
+                game.world
+                    |> Data.World.moveActorTo p id
+                    |> Data.World.updateActor id
+                        (\_ -> Data.Actor.Wagon (wagon |> Data.Wagon.moveFrom pos))
+            )
+        |> Random.map (\world -> { game | world = world })
+        |> Random.map (unload id)
 
 
 moveOnGround : { backPos : ( Int, Int ), forwardPos : ( Int, Int ) } -> ( ( Int, Int ), Wagon ) -> World -> ( Int, Int )
@@ -64,49 +79,26 @@ moveOnGround args ( pos, wagon ) world =
 
 moveOnTrack :
     { backPos : ( Int, Int ), forwardPos : ( Int, Int ) }
-    -> Int
+    -> ( ( Int, Int ), Wagon )
     -> World
-    -> Maybe (Generator World)
-moveOnTrack args id world =
-    case world.actors |> Dict.get id of
-        Just ( pos, Data.Actor.Wagon wagon ) ->
-            case
-                pos
-                    |> Data.Position.neighbors
-                    |> List.filter
-                        (\p ->
-                            (p /= args.backPos)
-                                && (Data.World.get p world == Just (Data.Block.FloorBlock Data.Floor.Track))
-                        )
-            of
-                head :: tail ->
-                    Random.uniform head tail
-                        |> Random.map
-                            (\p ->
-                                world
-                                    |> Data.World.updateActor id
-                                        (\_ ->
-                                            wagon
-                                                |> Data.Wagon.moveFrom pos
-                                                |> Data.Actor.Wagon
-                                        )
-                                    |> Data.World.moveActorTo p id
-                            )
-                        |> Just
+    -> Generator ( Int, Int )
+moveOnTrack args ( pos, wagon ) world =
+    case
+        pos
+            |> Data.Position.neighbors
+            |> List.filter
+                (\p ->
+                    (p /= args.backPos)
+                        && (Data.World.get p world == Just (Data.Block.FloorBlock Data.Floor.Track))
+                )
+    of
+        head :: tail ->
+            Random.uniform head tail
 
-                [] ->
-                    world
-                        |> moveOnGround args ( pos, wagon )
-                        |> (\p ->
-                                world
-                                    |> Data.World.updateActor id (\_ -> Data.Actor.Wagon (wagon |> Data.Wagon.stop))
-                                    |> Data.World.moveActorTo p id
-                           )
-                        |> Random.constant
-                        |> Just
-
-        _ ->
-            Nothing
+        [] ->
+            world
+                |> moveOnGround args ( pos, wagon )
+                |> Random.constant
 
 
 unload : Int -> Game -> Game

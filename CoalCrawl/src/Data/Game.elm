@@ -5,7 +5,7 @@ import Data.Actor exposing (Actor)
 import Data.Block exposing (Block(..))
 import Data.Entity
 import Data.Floor
-import Data.Item
+import Data.Item exposing (Item)
 import Data.Player exposing (Player)
 import Data.Train exposing (Train)
 import Data.World exposing (World)
@@ -24,10 +24,10 @@ select pos game =
     { game | selected = pos }
 
 
-buildBlock : Int -> Block -> Game -> Game
-buildBlock cost block game =
+buildBlock : ( Item, Int ) -> Block -> Game -> Game
+buildBlock ( item, cost ) block game =
     game.train
-        |> Data.Train.removeItem cost Data.Item.Iron
+        |> Data.Train.removeItem cost item
         |> Maybe.map
             (\train ->
                 { game
@@ -38,10 +38,10 @@ buildBlock cost block game =
         |> Maybe.withDefault game
 
 
-buildActor : Int -> Actor -> Game -> Game
-buildActor cost actor game =
+buildActor : ( Item, Int ) -> Actor -> Game -> Game
+buildActor ( item, cost ) actor game =
     game.train
-        |> Data.Train.removeItem cost Data.Item.Iron
+        |> Data.Train.removeItem cost item
         |> Maybe.map
             (\train ->
                 { game

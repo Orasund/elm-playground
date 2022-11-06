@@ -178,3 +178,8 @@ getFloor pos world =
 getEntities : World -> List ( ( Int, Int ), Entity )
 getEntities world =
     world.entities |> Dict.toList
+
+
+getActors : World -> List ( Int, ( ( Int, Int ), Actor ) )
+getActors world =
+    world.actors |> Dict.toList

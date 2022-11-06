@@ -142,6 +142,19 @@ fromActor actor =
                 |> new
                 |> withBold
 
+        Data.Actor.Bomb bomb ->
+            { color = View.Color.red, content = 'b' }
+                |> new
+                |> (if
+                        (bomb.explodesIn > Config.bombExplosionTime // 2)
+                            || (bomb.explodesIn < Config.bombExplosionTime && modBy 2 bomb.explodesIn == 0)
+                    then
+                        withBold
+
+                    else
+                        identity
+                   )
+
 
 fromBlock : Game -> Block -> Tile
 fromBlock game block =

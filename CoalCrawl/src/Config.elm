@@ -33,8 +33,16 @@ tracksPerTrip =
 
 
 wagonMaxItems =
-    20
+    10
 
 
 trackCost =
     1
+
+
+bombCost =
+    1
+
+
+bombExplosionTime =
+    10
