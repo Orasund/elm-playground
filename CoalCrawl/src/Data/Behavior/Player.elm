@@ -21,14 +21,12 @@ import Set
 
 act : Game -> Generator Game
 act game =
-    game
-        |> (if Data.Position.neighbors game.player.pos |> List.member game.selected then
-                interactWith game.selected
+    (if Data.Position.neighbors game.player.pos |> List.member game.selected then
+        interactWith game.selected game
 
-            else
-                Random.constant
-           )
-        |> Random.andThen (\g -> moveTowards g.selected g)
+     else
+        moveTowards game.selected game
+    )
         |> Random.map (\g -> pickUp g.player.pos g)
 
 

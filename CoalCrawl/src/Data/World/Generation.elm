@@ -1,5 +1,6 @@
 module Data.World.Generation exposing (..)
 
+import AnyBag
 import Config
 import Data.Actor exposing (CaveType(..))
 import Data.Block
@@ -16,22 +17,37 @@ mine ( x, y ) world =
         Just (Data.Block.EntityBlock entity) ->
             (case entity of
                 Data.Entity.Vein item ->
-                    Just (Just item)
+                    [ item ]
+                        |> Just
 
                 Data.Entity.Train ->
                     Nothing
 
-                Data.Entity.Actor _ ->
-                    Nothing
+                Data.Entity.Actor id ->
+                    case world |> Data.World.getActor id |> Maybe.map Tuple.second of
+                        Just (Data.Actor.Wagon _) ->
+                            Nothing
+
+                        _ ->
+                            Nothing
 
                 _ ->
-                    Just Nothing
+                    Just []
             )
                 |> Maybe.map
-                    (\maybeItem ->
+                    (\items ->
                         world
                             |> Data.World.removeEntity ( x, y )
-                            |> Data.World.insertFloorAt ( x, y ) (Data.Floor.Ground maybeItem)
+                            |> (case items of
+                                    [] ->
+                                        Data.World.insertFloorAt ( x, y ) (Data.Floor.Ground Nothing)
+
+                                    [ item ] ->
+                                        Data.World.insertFloorAt ( x, y ) (Data.Floor.Ground (Just item))
+
+                                    _ ->
+                                        Data.World.insertEntityAt ( x, y ) (Data.Entity.Rubble items)
+                               )
                             |> generateContent
                                 { probability =
                                     [ ( 0, ( x, y - 1 ) )

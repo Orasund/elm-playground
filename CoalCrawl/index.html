@@ -6605,6 +6605,9 @@ var $author$project$Data$Actor$Cave = function (a) {
 };
 var $author$project$Data$Actor$CoalCave = {$: 'CoalCave'};
 var $author$project$Data$Item$Iron = {$: 'Iron'};
+var $author$project$Data$Entity$Rubble = function (a) {
+	return {$: 'Rubble', a: a};
+};
 var $author$project$Data$Actor$RubbleCave = {$: 'RubbleCave'};
 var $author$project$Data$Actor$WaterCave = {$: 'WaterCave'};
 var $author$project$Data$Entity$Wall = {$: 'Wall'};
@@ -6677,16 +6680,21 @@ var $author$project$Data$World$Generation$generateContent = F2(
 			$elm$random$Random$constant(dict),
 			args.probability);
 	});
+var $author$project$Data$World$getActor = F2(
+	function (id, world) {
+		return A2($elm$core$Dict$get, id, world.actors);
+	});
 var $author$project$Data$World$insertActor = F2(
 	function (actor, pos) {
 		return A2($author$project$Data$World$insertActorAt, pos, actor);
 	});
-var $author$project$Data$Entity$Rubble = function (a) {
-	return {$: 'Rubble', a: a};
-};
 var $author$project$Data$Entity$rubble = $author$project$Data$Entity$Rubble(
 	_List_fromArray(
 		[$author$project$Data$Item$Coal, $author$project$Data$Item$Iron]));
+var $elm$core$Tuple$second = function (_v0) {
+	var y = _v0.b;
+	return y;
+};
 var $author$project$Config$tracksPerTrip = 8;
 var $elm$random$Random$getByWeight = F3(
 	function (_v0, others, countdown) {
@@ -6746,7 +6754,7 @@ var $author$project$Data$World$Generation$mine = F2(
 				$elm$random$Random$constant(world),
 				A2(
 					$elm$core$Maybe$map,
-					function (maybeItem) {
+					function (items) {
 						return A2(
 							$author$project$Data$World$Generation$generateContent,
 							{
@@ -6818,10 +6826,28 @@ var $author$project$Data$World$Generation$mine = F2(
 										_Utils_Tuple2(x + 1, y))
 									])
 							},
-							A3(
-								$author$project$Data$World$insertFloorAt,
-								_Utils_Tuple2(x, y),
-								$author$project$Data$Floor$Ground(maybeItem),
+							function () {
+								if (!items.b) {
+									return A2(
+										$author$project$Data$World$insertFloorAt,
+										_Utils_Tuple2(x, y),
+										$author$project$Data$Floor$Ground($elm$core$Maybe$Nothing));
+								} else {
+									if (!items.b.b) {
+										var item = items.a;
+										return A2(
+											$author$project$Data$World$insertFloorAt,
+											_Utils_Tuple2(x, y),
+											$author$project$Data$Floor$Ground(
+												$elm$core$Maybe$Just(item)));
+									} else {
+										return A2(
+											$author$project$Data$World$insertEntityAt,
+											_Utils_Tuple2(x, y),
+											$author$project$Data$Entity$Rubble(items));
+									}
+								}
+							}()(
 								A2(
 									$author$project$Data$World$removeEntity,
 									_Utils_Tuple2(x, y),
@@ -6832,13 +6858,23 @@ var $author$project$Data$World$Generation$mine = F2(
 							case 'Vein':
 								var item = entity.a;
 								return $elm$core$Maybe$Just(
-									$elm$core$Maybe$Just(item));
+									_List_fromArray(
+										[item]));
 							case 'Train':
 								return $elm$core$Maybe$Nothing;
 							case 'Actor':
-								return $elm$core$Maybe$Nothing;
+								var id = entity.a;
+								var _v3 = A2(
+									$elm$core$Maybe$map,
+									$elm$core$Tuple$second,
+									A2($author$project$Data$World$getActor, id, world));
+								if ((_v3.$ === 'Just') && (_v3.a.$ === 'Wagon')) {
+									return $elm$core$Maybe$Nothing;
+								} else {
+									return $elm$core$Maybe$Nothing;
+								}
 							default:
-								return $elm$core$Maybe$Just($elm$core$Maybe$Nothing);
+								return $elm$core$Maybe$Just(_List_Nil);
 						}
 					}()));
 		} else {
@@ -6891,10 +6927,6 @@ var $elm$core$List$head = function (list) {
 	} else {
 		return $elm$core$Maybe$Nothing;
 	}
-};
-var $elm$core$Tuple$second = function (_v0) {
-	var y = _v0.b;
-	return y;
 };
 var $elm$core$List$sortBy = _List_sortBy;
 var $krisajenkins$elm_astar$AStar$Generalised$cheapestOpen = F2(
@@ -7174,10 +7206,6 @@ var $krisajenkins$elm_astar$AStar$findPath = $krisajenkins$elm_astar$AStar$Gener
 var $elm$core$Set$fromList = function (list) {
 	return A3($elm$core$List$foldl, $elm$core$Set$insert, $elm$core$Set$empty, list);
 };
-var $author$project$Data$World$getActor = F2(
-	function (id, world) {
-		return A2($elm$core$Dict$get, id, world.actors);
-	});
 var $author$project$Data$Floor$Track = {$: 'Track'};
 var $author$project$Data$Actor$Wagon = function (a) {
 	return {$: 'Wagon', a: a};
@@ -8163,14 +8191,9 @@ var $author$project$Data$Behavior$Player$act = function (game) {
 			return A2($author$project$Data$Behavior$Player$pickUp, g.player.pos, g);
 		},
 		A2(
-			$elm$random$Random$andThen,
-			function (g) {
-				return A2($author$project$Data$Behavior$Player$moveTowards, g.selected, g);
-			},
-			(A2(
-				$elm$core$List$member,
-				game.selected,
-				$author$project$Data$Position$neighbors(game.player.pos)) ? $author$project$Data$Behavior$Player$interactWith(game.selected) : $elm$random$Random$constant)(game)));
+			$elm$core$List$member,
+			game.selected,
+			$author$project$Data$Position$neighbors(game.player.pos)) ? A2($author$project$Data$Behavior$Player$interactWith, game.selected, game) : A2($author$project$Data$Behavior$Player$moveTowards, game.selected, game));
 };
 var $author$project$Data$Behavior$Wagon$act = F3(
 	function (args, id, game) {
