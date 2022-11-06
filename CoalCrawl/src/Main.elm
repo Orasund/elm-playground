@@ -1,4 +1,4 @@
-module Main exposing (..)
+port module Main exposing (..)
 
 import Browser exposing (Document)
 import Config
@@ -8,6 +8,8 @@ import Data.Block exposing (Block(..))
 import Data.Entity exposing (Entity(..))
 import Data.Game exposing (Game)
 import Data.Item exposing (Item)
+import Data.Sound exposing (Sound)
+import Dict
 import Html
 import Html.Attributes as Attr
 import Layout
@@ -16,6 +18,12 @@ import Time
 import View.Game
 import View.Modal
 import View.Promt
+
+
+port loadSound : ( String, String ) -> Cmd msg
+
+
+port playSound : String -> Cmd msg
 
 
 type alias Model =
@@ -28,16 +36,23 @@ type alias Model =
     }
 
 
-updateGame : (Game -> Generator ( Game, { promt : Maybe String, showModal : Bool } )) -> Model -> Model
+updateGame : (Game -> Generator ( Game, { promt : Maybe String, showModal : Bool, playSound : Maybe Sound } )) -> Model -> ( Model, Cmd msg )
 updateGame fun model =
     Random.step (fun model.game) model.seed
-        |> (\( ( game, { promt, showModal } ), seed ) ->
-                { model
+        |> (\( ( game, args ), seed ) ->
+                ( { model
                     | game = game
                     , seed = seed
-                    , promt = promt
-                    , showModal = showModal
-                }
+                    , promt = args.promt
+                    , showModal = args.showModal
+                  }
+                , args.playSound
+                    |> Maybe.map
+                        (\sound ->
+                            sound |> Data.Sound.toString |> playSound
+                        )
+                    |> Maybe.withDefault Cmd.none
+                )
            )
 
 
@@ -61,7 +76,7 @@ restart seed =
                 , camera = game.player.pos
                 , promt = Nothing
                 , seed = seed
-                , showModal = False
+                , showModal = True
                 }
            )
 
@@ -147,11 +162,9 @@ update msg model =
             )
 
         TimePassed ->
-            ( model
+            model
                 |> updateCamera
                 |> updateGame Data.Behavior.passTime
-            , Cmd.none
-            )
 
         ToggleSlowdown ->
             ( { model | slowedDown = not model.slowedDown }, Cmd.none )
@@ -168,7 +181,11 @@ update msg model =
             ( { model | game = model.game |> Data.Game.destroyBlock }, Cmd.none )
 
         CloseModal ->
-            ( { model | showModal = False }, Cmd.none )
+            ( { model | showModal = False }
+            , Data.Sound.asList
+                |> List.map (\sound -> loadSound ( Data.Sound.toFile sound, Data.Sound.toString sound ))
+                |> Cmd.batch
+            )
 
 
 subscriptions : Model -> Sub Msg

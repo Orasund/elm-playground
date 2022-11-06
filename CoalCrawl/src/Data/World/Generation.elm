@@ -1,6 +1,5 @@
 module Data.World.Generation exposing (..)
 
-import AnyBag
 import Config
 import Data.Actor exposing (CaveType(..))
 import Data.Block

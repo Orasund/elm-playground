@@ -136,6 +136,16 @@ fromActor actor =
             , content = 'W'
             }
                 |> new
+                |> (\it ->
+                        if AnyBag.size wagon.items == 0 then
+                            it
+
+                        else if AnyBag.size wagon.items == Config.wagonMaxItems then
+                            it |> withAnimation |> withBold
+
+                        else
+                            it |> withBold
+                   )
 
         Data.Actor.Cave _ ->
             { color = View.Color.red, content = '#' }

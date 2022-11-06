@@ -9,18 +9,24 @@ import Data.Behavior.Train
 import Data.Behavior.Wagon
 import Data.Game exposing (Game)
 import Data.Item
+import Data.Sound exposing (Sound)
 import Data.World
 import Data.World.Generation
 import Random exposing (Generator)
 
 
-passTime : Game -> Generator ( Game, { promt : Maybe String, showModal : Bool } )
+passTime : Game -> Generator ( Game, { promt : Maybe String, showModal : Bool, playSound : Maybe Sound } )
 passTime game =
     game
         |> Data.Behavior.Player.act
-        |> Random.andThen Data.Behavior.Train.passTime
         |> Random.andThen
-            (\( g, showModal ) ->
+            (\( g, playSound ) ->
+                g
+                    |> Data.Behavior.Train.passTime
+                    |> Random.map (\( g0, showModal ) -> ( g0, showModal, playSound ))
+            )
+        |> Random.andThen
+            (\( g, showModal, playSound ) ->
                 g.world
                     |> Data.World.getActors
                     |> List.foldl
@@ -55,9 +61,17 @@ passTime game =
                                         )
                         )
                         (Random.constant g)
-                    |> Random.map (\g0 -> ( g0, showModal ))
+                    |> Random.map (\g0 -> ( g0, showModal, playSound ))
             )
-        |> Random.map (\( g, showModal ) -> ( g, { promt = promt g, showModal = showModal } ))
+        |> Random.map
+            (\( g, showModal, playSound ) ->
+                ( g
+                , { promt = promt g
+                  , showModal = showModal
+                  , playSound = playSound
+                  }
+                )
+            )
 
 
 promt : Game -> Maybe String

@@ -9,17 +9,17 @@ import Data.Floor
 import Data.Game exposing (Game)
 import Data.Player
 import Data.Position
+import Data.Sound exposing (Sound)
 import Data.Train
 import Data.Wagon
 import Data.World
 import Data.World.Generation
 import Dict
-import Html exposing (i)
 import Random exposing (Generator)
 import Set
 
 
-act : Game -> Generator Game
+act : Game -> Generator ( Game, Maybe Sound )
 act game =
     (if Data.Position.neighbors game.player.pos |> List.member game.selected then
         interactWith game.selected game
@@ -86,7 +86,6 @@ interactWith pos game =
                                 game |> takeFromRubble
             )
         |> Maybe.withDefault (Random.constant game)
-        |> Random.map (\g -> pickUp g.player.pos g)
 
 
 walkThroughWater : ( Int, Int ) -> Game -> Generator Game
@@ -197,7 +196,7 @@ moveTowards targetPos game =
             Random.constant game
 
 
-pickUp : ( Int, Int ) -> Game -> Game
+pickUp : ( Int, Int ) -> Game -> ( Game, Maybe Sound )
 pickUp pos game =
     case Data.World.get pos game.world of
         Just (Data.Block.FloorBlock (Data.Floor.Ground maybeItem)) ->
@@ -209,17 +208,19 @@ pickUp pos game =
                     )
                 |> Maybe.map
                     (\player ->
-                        { game
+                        ( { game
                             | player = player
                             , world =
                                 game.world
                                     |> Data.World.insert pos (Data.Floor.Ground Nothing |> Data.Block.FloorBlock)
-                        }
+                          }
+                        , Just Data.Sound.PickUp
+                        )
                     )
-                |> Maybe.withDefault game
+                |> Maybe.withDefault ( game, Nothing )
 
         _ ->
-            game
+            ( game, Nothing )
 
 
 takeFromRubble : Game -> Generator Game
