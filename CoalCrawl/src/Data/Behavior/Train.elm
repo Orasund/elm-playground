@@ -120,7 +120,7 @@ stockUpAtBase game =
 
 turnToHQ : Game -> Game
 turnToHQ game =
-    { game | train = game.train |> Data.Train.stop |> Data.Train.turnAround }
+    { game | train = game.train |> Data.Train.turnAround }
 
 
 mineAndPlaceTrack : Game -> Maybe (Generator Game)

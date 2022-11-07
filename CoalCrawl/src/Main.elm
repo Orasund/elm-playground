@@ -9,7 +9,6 @@ import Data.Entity exposing (Entity(..))
 import Data.Game exposing (Game)
 import Data.Item exposing (Item)
 import Data.Sound exposing (Sound)
-import Dict
 import Html
 import Html.Attributes as Attr
 import Layout
@@ -26,6 +25,9 @@ port loadSound : ( String, String ) -> Cmd msg
 port playSound : String -> Cmd msg
 
 
+port setVolume : Float -> Cmd msg
+
+
 type alias Model =
     { game : Game
     , camera : ( Int, Int )
@@ -33,10 +35,11 @@ type alias Model =
     , promt : Maybe String
     , showModal : Bool
     , seed : Seed
+    , volume : Int
     }
 
 
-updateGame : (Game -> Generator ( Game, { promt : Maybe String, showModal : Bool, playSound : Maybe Sound } )) -> Model -> ( Model, Cmd msg )
+updateGame : (Game -> Generator ( Game, { promt : Maybe String, showModal : Bool, playSound : List Sound } )) -> Model -> ( Model, Cmd msg )
 updateGame fun model =
     Random.step (fun model.game) model.seed
         |> (\( ( game, args ), seed ) ->
@@ -47,11 +50,11 @@ updateGame fun model =
                     , showModal = args.showModal
                   }
                 , args.playSound
-                    |> Maybe.map
+                    |> List.map
                         (\sound ->
                             sound |> Data.Sound.toString |> playSound
                         )
-                    |> Maybe.withDefault Cmd.none
+                    |> Cmd.batch
                 )
            )
 
@@ -65,6 +68,7 @@ type Msg
     | BuildActor { cost : ( Item, Int ), actor : Actor }
     | CloseModal
     | DestroyBlock
+    | SetVolume String
 
 
 restart : Seed -> Model
@@ -77,6 +81,7 @@ restart seed =
                 , promt = Nothing
                 , seed = seed
                 , showModal = True
+                , volume = 100
                 }
            )
 
@@ -110,6 +115,8 @@ view model =
                     , buildBlock = BuildBlock
                     , camera = model.camera
                     , slowedDown = model.slowedDown
+                    , setVolume = SetVolume
+                    , volume = model.volume
                     }
                 |> Layout.row
                     (if model.showModal then
@@ -186,6 +193,11 @@ update msg model =
                 |> List.map (\sound -> loadSound ( Data.Sound.toFile sound, Data.Sound.toString sound ))
                 |> Cmd.batch
             )
+
+        SetVolume amount ->
+            String.toInt amount
+                |> Maybe.map (\int -> ( { model | volume = int }, setVolume (toFloat int / 100) ))
+                |> Maybe.withDefault ( model, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg

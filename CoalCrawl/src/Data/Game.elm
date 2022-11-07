@@ -94,6 +94,7 @@ new =
     in
     { world =
         [ ( train, Data.Block.EntityBlock Data.Entity.Train )
+        , ( train, Data.Block.FloorBlock Data.Floor.RailwayTrack )
         , ( player, Data.Block.FloorBlock (Data.Floor.Ground Nothing) )
         ]
             ++ tracks

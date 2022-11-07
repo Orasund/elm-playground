@@ -4,21 +4,25 @@ module Data.Sound exposing (..)
 type Sound
     = Mine
     | PickUp
+    | Unload
 
 
 asList : List Sound
 asList =
-    [ Mine, PickUp ]
+    [ Mine, PickUp, Unload ]
 
 
 toFile : Sound -> String
 toFile sound =
     case sound of
         Mine ->
-            "footstep_concrete_000.ogg"
+            "mine.mp3"
 
         PickUp ->
-            "select_006.ogg"
+            "pickup.mp3"
+
+        Unload ->
+            "unload.mp3"
 
 
 toString : Sound -> String
@@ -29,3 +33,6 @@ toString sound =
 
         PickUp ->
             "PickUp"
+
+        Unload ->
+            "Unload"

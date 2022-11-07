@@ -15,7 +15,7 @@ import Data.World.Generation
 import Random exposing (Generator)
 
 
-passTime : Game -> Generator ( Game, { promt : Maybe String, showModal : Bool, playSound : Maybe Sound } )
+passTime : Game -> Generator ( Game, { promt : Maybe String, showModal : Bool, playSound : List Sound } )
 passTime game =
     game
         |> Data.Behavior.Player.act
@@ -37,31 +37,34 @@ passTime game =
                                         |> Maybe.map
                                             (\movedFrom ->
                                                 Random.andThen
-                                                    (Data.Behavior.Wagon.act
-                                                        { backPos = movedFrom }
-                                                        id
+                                                    (\( g0, l ) ->
+                                                        g0
+                                                            |> Data.Behavior.Wagon.act
+                                                                { backPos = movedFrom }
+                                                                id
+                                                            |> Random.map (Tuple.mapSecond ((++) l))
                                                     )
                                             )
                                         |> Maybe.withDefault identity
 
                                 Data.Actor.Cave caveType ->
                                     Random.andThen
-                                        (\it ->
+                                        (\( it, l ) ->
                                             it.world
                                                 |> Data.World.Generation.exposedCave caveType pos
-                                                |> Random.map (\world -> { it | world = world })
+                                                |> Random.map (\world -> ( { it | world = world }, l ))
                                         )
 
                                 Data.Actor.Bomb _ ->
                                     Random.andThen
-                                        (\it ->
+                                        (\( it, l ) ->
                                             it.world
                                                 |> Data.Behavior.Bomb.timePassed id
-                                                |> Random.map (\world -> { it | world = world })
+                                                |> Random.map (\world -> ( { it | world = world }, l ))
                                         )
                         )
-                        (Random.constant g)
-                    |> Random.map (\g0 -> ( g0, showModal, playSound ))
+                        (Random.constant ( g, playSound ))
+                    |> Random.map (\( g0, l ) -> ( g0, showModal, l ))
             )
         |> Random.map
             (\( g, showModal, playSound ) ->

@@ -17,12 +17,13 @@
 			node: document.getElementById('myapp')
 		});
 		app.ports.loadSound.subscribe(function (args) {
-			console.log("loading sounds")
 			loadSound(args[0], args[1]);
 		});
 		app.ports.playSound.subscribe(function (message) {
-			console.log("play sound")
 			playSound(message);
+		});
+		app.ports.setVolume.subscribe(function (message) {
+			setVolume(message);
 		});
 
 	</script>

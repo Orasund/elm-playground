@@ -19,7 +19,7 @@ import Random exposing (Generator)
 import Set
 
 
-act : Game -> Generator ( Game, Maybe Sound )
+act : Game -> Generator ( Game, List Sound )
 act game =
     (if Data.Position.neighbors game.player.pos |> List.member game.selected then
         interactWith game.selected game
@@ -27,34 +27,28 @@ act game =
      else
         moveTowards game.selected game
     )
-        |> Random.map (\g -> pickUp g.player.pos g)
+        |> Random.map (\( g, l ) -> pickUp g.player.pos g |> Tuple.mapSecond ((++) l))
 
 
-interactWith : ( Int, Int ) -> Game -> Generator Game
+interactWith : ( Int, Int ) -> Game -> Generator ( Game, List Sound )
 interactWith pos game =
     game.world
         |> Data.World.get pos
         |> Maybe.map
             (\block ->
                 case block of
-                    Data.Block.FloorBlock floor ->
-                        case floor of
-                            Data.Floor.Ground _ ->
-                                moveTowards game.selected game
-
-                            Data.Floor.Track ->
-                                moveTowards game.selected game
-
-                            Data.Floor.RailwayTrack ->
-                                moveTowards game.selected game
+                    Data.Block.FloorBlock _ ->
+                        moveTowards game.selected game
 
                     Data.Block.EntityBlock entity ->
                         case entity of
                             Data.Entity.Train ->
-                                putIntoTrain game |> Random.constant
+                                putIntoTrain game
+                                    |> Random.constant
 
                             Data.Entity.Wall ->
                                 Random.constant game
+                                    |> Random.map (\g -> ( g, [] ))
 
                             Data.Entity.Actor id ->
                                 game.world.actors
@@ -67,25 +61,31 @@ interactWith pos game =
 
                                                 Data.Actor.Cave _ ->
                                                     Random.constant game
+                                                        |> Random.map (\g -> ( g, [] ))
 
                                                 Data.Actor.Bomb _ ->
                                                     Random.constant game
+                                                        |> Random.map (\g -> ( g, [] ))
                                         )
-                                    |> Maybe.withDefault (Random.constant game)
+                                    |> Maybe.withDefault (Random.constant ( game, [] ))
 
                             Data.Entity.Vein _ ->
                                 game.world
                                     |> Data.World.Generation.mine game.selected
                                     |> Random.map (\world -> { game | world = world })
                                     |> Random.andThen (moveTowards game.selected)
+                                    |> Random.map (Tuple.mapSecond ((++) [ Data.Sound.Mine ]))
 
                             Data.Entity.Water ->
-                                game |> walkThroughWater game.selected
+                                game
+                                    |> walkThroughWater game.selected
+                                    |> Random.map (\g -> ( g, [] ))
 
                             Data.Entity.Rubble _ ->
-                                game |> takeFromRubble
+                                game
+                                    |> takeFromRubble
             )
-        |> Maybe.withDefault (Random.constant game)
+        |> Maybe.withDefault (Random.constant ( game, [] ))
 
 
 walkThroughWater : ( Int, Int ) -> Game -> Generator Game
@@ -118,7 +118,7 @@ walkThroughWater pos game =
             )
 
 
-moveTowards : ( Int, Int ) -> Game -> Generator Game
+moveTowards : ( Int, Int ) -> Game -> Generator ( Game, List Sound )
 moveTowards targetPos game =
     case
         AStar.findPath AStar.straightLineCost
@@ -171,32 +171,36 @@ moveTowards targetPos game =
                                     id
                                     ( pos, wagon )
                                 |> Random.map
-                                    (\g -> { g | player = g.player |> Data.Player.moveTo pos })
+                                    (Tuple.mapFirst (\g -> { g | player = g.player |> Data.Player.moveTo pos }))
 
                         _ ->
-                            game |> Random.constant
+                            ( game, [] ) |> Random.constant
 
                 Just (Data.Block.EntityBlock Data.Entity.Water) ->
-                    game |> walkThroughWater pos
+                    game
+                        |> walkThroughWater pos
+                        |> Random.map (\g -> ( g, [] ))
 
                 Just (Data.Block.EntityBlock (Data.Entity.Vein _)) ->
                     game.world
                         |> Data.World.Generation.mine pos
                         |> Random.map (\world -> { game | world = world })
                         |> Random.andThen (moveTowards targetPos)
+                        |> Random.map (Tuple.mapSecond ((++) [ Data.Sound.Mine ]))
 
                 Just (Data.Block.FloorBlock _) ->
                     { game | player = game.player |> Data.Player.moveTo pos }
+                        |> (\g -> ( g, [] ))
                         |> Random.constant
 
                 _ ->
-                    game |> Random.constant
+                    ( game, [] ) |> Random.constant
 
         Nothing ->
-            Random.constant game
+            Random.constant ( game, [] )
 
 
-pickUp : ( Int, Int ) -> Game -> ( Game, Maybe Sound )
+pickUp : ( Int, Int ) -> Game -> ( Game, List Sound )
 pickUp pos game =
     case Data.World.get pos game.world of
         Just (Data.Block.FloorBlock (Data.Floor.Ground maybeItem)) ->
@@ -214,16 +218,16 @@ pickUp pos game =
                                 game.world
                                     |> Data.World.insert pos (Data.Floor.Ground Nothing |> Data.Block.FloorBlock)
                           }
-                        , Just Data.Sound.PickUp
+                        , [ Data.Sound.PickUp ]
                         )
                     )
-                |> Maybe.withDefault ( game, Nothing )
+                |> Maybe.withDefault ( game, [] )
 
         _ ->
-            ( game, Nothing )
+            ( game, [] )
 
 
-takeFromRubble : Game -> Generator Game
+takeFromRubble : Game -> Generator ( Game, List Sound )
 takeFromRubble game =
     case Data.World.get game.selected game.world of
         Just (Data.Block.EntityBlock (Data.Entity.Rubble list)) ->
@@ -244,26 +248,29 @@ takeFromRubble game =
                                                 |> Data.World.insertEntityAt game.selected
                                                     (Data.Entity.Rubble (l1 ++ tail))
                                                 |> (\world ->
-                                                        { game
+                                                        ( { game
                                                             | world = world
                                                             , player = player
-                                                        }
+                                                          }
+                                                        , [ Data.Sound.PickUp ]
+                                                        )
                                                    )
                                         )
-                                    |> Maybe.withDefault game
+                                    |> Maybe.withDefault ( game, [] )
                                     |> Random.constant
 
                             [] ->
                                 game.world
                                     |> Data.World.Generation.mine game.selected
                                     |> Random.map (\world -> { game | world = world })
+                                    |> Random.map (\g -> ( g, [] ))
                     )
 
         _ ->
-            game |> Random.constant
+            ( game, [] ) |> Random.constant
 
 
-putIntoWagon : Game -> Game
+putIntoWagon : Game -> ( Game, List Sound )
 putIntoWagon game =
     case Data.World.get game.selected game.world of
         Just (Data.Block.EntityBlock (Data.Entity.Actor id)) ->
@@ -281,25 +288,30 @@ putIntoWagon game =
                                         |> Data.Wagon.insert item
                                         |> (\w2 -> game.world |> Data.World.updateActor id (\_ -> Data.Actor.Wagon w2))
                                         |> (\world -> { game | world = world })
-                                        |> (\g -> { g | player = player })
+                                        |> (\g -> ( { g | player = player }, [ Data.Sound.Unload ] ))
                                 )
                     )
-                        |> Maybe.withDefault game
-                        |> Data.Behavior.Wagon.unload id
+                        |> Maybe.withDefault ( game, [] )
+                        |> (\( g, l ) ->
+                                g
+                                    |> Data.Behavior.Wagon.unload id
+                                    |> Tuple.mapSecond ((++) l)
+                           )
 
                 _ ->
-                    game
+                    ( game, [] )
 
         _ ->
-            game
+            ( game, [] )
 
 
-putIntoTrain : Game -> Game
+putIntoTrain : Game -> ( Game, List Sound )
 putIntoTrain game =
     Data.Player.dropItem game.player
         |> Maybe.map
             (\( player, item ) ->
                 { game | player = player }
                     |> (\g -> { g | train = g.train |> Data.Train.addItem item })
+                    |> (\g -> ( g, [ Data.Sound.Unload ] ))
             )
-        |> Maybe.withDefault game
+        |> Maybe.withDefault ( game, [] )

@@ -1,10 +1,12 @@
 module Data.Behavior.Wagon exposing (..)
 
+import AnyBag
 import Data.Actor exposing (Actor(..))
 import Data.Block
 import Data.Floor
 import Data.Game exposing (Game)
 import Data.Position
+import Data.Sound exposing (Sound)
 import Data.Train
 import Data.Wagon exposing (Wagon)
 import Data.World exposing (World)
@@ -16,7 +18,7 @@ act :
     { backPos : ( Int, Int ) }
     -> Int
     -> Game
-    -> Generator Game
+    -> Generator ( Game, List Sound )
 act args id game =
     case game.world.actors |> Dict.get id of
         Just ( pos, Data.Actor.Wagon wagon ) ->
@@ -25,13 +27,13 @@ act args id game =
                     |> move args id ( pos, wagon )
 
             else
-                Random.constant game
+                Random.constant ( game, [] )
 
         _ ->
-            Random.constant game
+            Random.constant ( game, [] )
 
 
-move : { backPos : ( Int, Int ) } -> Int -> ( ( Int, Int ), Wagon ) -> Game -> Generator Game
+move : { backPos : ( Int, Int ) } -> Int -> ( ( Int, Int ), Wagon ) -> Game -> Generator ( Game, List Sound )
 move { backPos } id ( pos, wagon ) game =
     let
         forwardPos =
@@ -101,20 +103,22 @@ moveOnTrack args ( pos, wagon ) world =
                 |> Random.constant
 
 
-unload : Int -> Game -> Game
+unload : Int -> Game -> ( Game, List Sound )
 unload id game =
     case game.world.actors |> Dict.get id of
         Just ( pos, Data.Actor.Wagon wagon ) ->
-            if List.member game.train.pos (Data.Position.neighbors pos) then
-                { game
+            if List.member game.train.pos (Data.Position.neighbors pos) && (AnyBag.size wagon.items > 0) then
+                ( { game
                     | train = Data.Train.addAll wagon.items game.train
                     , world =
                         game.world
                             |> Data.World.updateActor id (\_ -> Data.Actor.Wagon (Data.Wagon.unload wagon))
-                }
+                  }
+                , [ Data.Sound.Unload ]
+                )
 
             else
-                game
+                ( game, [] )
 
         _ ->
-            game
+            ( game, [] )
