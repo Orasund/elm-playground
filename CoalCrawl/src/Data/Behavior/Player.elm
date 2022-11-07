@@ -4,12 +4,13 @@ import AStar
 import Data.Actor
 import Data.Behavior.Wagon
 import Data.Block exposing (Block(..))
+import Data.Effect exposing (Effect)
 import Data.Entity
 import Data.Floor
 import Data.Game exposing (Game)
 import Data.Player
 import Data.Position
-import Data.Sound exposing (Sound)
+import Data.Sound
 import Data.Train
 import Data.Wagon
 import Data.World
@@ -19,7 +20,7 @@ import Random exposing (Generator)
 import Set
 
 
-act : Game -> Generator ( Game, List Sound )
+act : Game -> Generator ( Game, List Effect )
 act game =
     (if Data.Position.neighbors game.player.pos |> List.member game.selected then
         interactWith game.selected game
@@ -30,7 +31,7 @@ act game =
         |> Random.map (\( g, l ) -> pickUp g.player.pos g |> Tuple.mapSecond ((++) l))
 
 
-interactWith : ( Int, Int ) -> Game -> Generator ( Game, List Sound )
+interactWith : ( Int, Int ) -> Game -> Generator ( Game, List Effect )
 interactWith pos game =
     game.world
         |> Data.World.get pos
@@ -72,9 +73,8 @@ interactWith pos game =
                             Data.Entity.Vein _ ->
                                 game.world
                                     |> Data.World.Generation.mine game.selected
-                                    |> Random.map (\world -> { game | world = world })
-                                    |> Random.andThen (moveTowards game.selected)
-                                    |> Random.map (Tuple.mapSecond ((++) [ Data.Sound.Mine ]))
+                                    |> Random.map (\world -> ( { game | world = world }, [ Data.Effect.PlaySound Data.Sound.Mine ] ))
+                                    |> Data.Effect.andThen (moveTowards game.selected)
 
                             Data.Entity.Water ->
                                 game
@@ -118,7 +118,7 @@ walkThroughWater pos game =
             )
 
 
-moveTowards : ( Int, Int ) -> Game -> Generator ( Game, List Sound )
+moveTowards : ( Int, Int ) -> Game -> Generator ( Game, List Effect )
 moveTowards targetPos game =
     case
         AStar.findPath AStar.straightLineCost
@@ -184,9 +184,13 @@ moveTowards targetPos game =
                 Just (Data.Block.EntityBlock (Data.Entity.Vein _)) ->
                     game.world
                         |> Data.World.Generation.mine pos
-                        |> Random.map (\world -> { game | world = world })
-                        |> Random.andThen (moveTowards targetPos)
-                        |> Random.map (Tuple.mapSecond ((++) [ Data.Sound.Mine ]))
+                        |> Random.map
+                            (\world ->
+                                ( { game | world = world }
+                                , [ Data.Effect.PlaySound Data.Sound.Mine ]
+                                )
+                            )
+                        |> Data.Effect.andThen (moveTowards targetPos)
 
                 Just (Data.Block.FloorBlock _) ->
                     { game | player = game.player |> Data.Player.moveTo pos }
@@ -200,7 +204,7 @@ moveTowards targetPos game =
             Random.constant ( game, [] )
 
 
-pickUp : ( Int, Int ) -> Game -> ( Game, List Sound )
+pickUp : ( Int, Int ) -> Game -> ( Game, List Effect )
 pickUp pos game =
     case Data.World.get pos game.world of
         Just (Data.Block.FloorBlock (Data.Floor.Ground maybeItem)) ->
@@ -218,7 +222,7 @@ pickUp pos game =
                                 game.world
                                     |> Data.World.insert pos (Data.Floor.Ground Nothing |> Data.Block.FloorBlock)
                           }
-                        , [ Data.Sound.PickUp ]
+                        , [ Data.Effect.PlaySound Data.Sound.PickUp ]
                         )
                     )
                 |> Maybe.withDefault ( game, [] )
@@ -227,7 +231,7 @@ pickUp pos game =
             ( game, [] )
 
 
-takeFromRubble : Game -> Generator ( Game, List Sound )
+takeFromRubble : Game -> Generator ( Game, List Effect )
 takeFromRubble game =
     case Data.World.get game.selected game.world of
         Just (Data.Block.EntityBlock (Data.Entity.Rubble list)) ->
@@ -252,7 +256,7 @@ takeFromRubble game =
                                                             | world = world
                                                             , player = player
                                                           }
-                                                        , [ Data.Sound.PickUp ]
+                                                        , [ Data.Effect.PlaySound Data.Sound.PickUp ]
                                                         )
                                                    )
                                         )
@@ -270,7 +274,7 @@ takeFromRubble game =
             ( game, [] ) |> Random.constant
 
 
-putIntoWagon : Game -> ( Game, List Sound )
+putIntoWagon : Game -> ( Game, List Effect )
 putIntoWagon game =
     case Data.World.get game.selected game.world of
         Just (Data.Block.EntityBlock (Data.Entity.Actor id)) ->
@@ -288,7 +292,11 @@ putIntoWagon game =
                                         |> Data.Wagon.insert item
                                         |> (\w2 -> game.world |> Data.World.updateActor id (\_ -> Data.Actor.Wagon w2))
                                         |> (\world -> { game | world = world })
-                                        |> (\g -> ( { g | player = player }, [ Data.Sound.Unload ] ))
+                                        |> (\g ->
+                                                ( { g | player = player }
+                                                , [ Data.Effect.PlaySound Data.Sound.Unload ]
+                                                )
+                                           )
                                 )
                     )
                         |> Maybe.withDefault ( game, [] )
@@ -305,13 +313,13 @@ putIntoWagon game =
             ( game, [] )
 
 
-putIntoTrain : Game -> ( Game, List Sound )
+putIntoTrain : Game -> ( Game, List Effect )
 putIntoTrain game =
     Data.Player.dropItem game.player
         |> Maybe.map
             (\( player, item ) ->
                 { game | player = player }
                     |> (\g -> { g | train = g.train |> Data.Train.addItem item })
-                    |> (\g -> ( g, [ Data.Sound.Unload ] ))
+                    |> (\g -> ( g, [ Data.Effect.PlaySound Data.Sound.Unload ] ))
             )
         |> Maybe.withDefault ( game, [] )

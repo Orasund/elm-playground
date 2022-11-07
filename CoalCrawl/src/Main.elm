@@ -5,10 +5,11 @@ import Config
 import Data.Actor exposing (Actor)
 import Data.Behavior
 import Data.Block exposing (Block(..))
+import Data.Effect exposing (Effect)
 import Data.Entity exposing (Entity(..))
 import Data.Game exposing (Game)
 import Data.Item exposing (Item)
-import Data.Sound exposing (Sound)
+import Data.Sound
 import Html
 import Html.Attributes as Attr
 import Layout
@@ -39,23 +40,25 @@ type alias Model =
     }
 
 
-updateGame : (Game -> Generator ( Game, { promt : Maybe String, showModal : Bool, playSound : List Sound } )) -> Model -> ( Model, Cmd msg )
+updateGame : (Game -> Generator ( Game, List Effect )) -> Model -> ( Model, Cmd msg )
 updateGame fun model =
     Random.step (fun model.game) model.seed
-        |> (\( ( game, args ), seed ) ->
-                ( { model
-                    | game = game
-                    , seed = seed
-                    , promt = args.promt
-                    , showModal = args.showModal
-                  }
-                , args.playSound
-                    |> List.map
-                        (\sound ->
-                            sound |> Data.Sound.toString |> playSound
+        |> (\( ( game, list ), seed ) ->
+                list
+                    |> List.foldl
+                        (\effect ->
+                            case effect of
+                                Data.Effect.PlaySound sound ->
+                                    Tuple.mapSecond ((::) (sound |> Data.Sound.toString |> playSound))
+
+                                Data.Effect.OpenModal ->
+                                    Tuple.mapFirst (\m -> { m | showModal = True })
+
+                                Data.Effect.ShowPromt string ->
+                                    Tuple.mapFirst (\m -> { m | promt = Just string })
                         )
-                    |> Cmd.batch
-                )
+                        ( { model | game = game, seed = seed }, [] )
+                    |> Tuple.mapSecond Cmd.batch
            )
 
 

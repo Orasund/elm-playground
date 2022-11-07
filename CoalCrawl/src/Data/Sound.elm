@@ -5,11 +5,12 @@ type Sound
     = Mine
     | PickUp
     | Unload
+    | MovingTrain
 
 
 asList : List Sound
 asList =
-    [ Mine, PickUp, Unload ]
+    [ Mine, PickUp, Unload, MovingTrain ]
 
 
 toFile : Sound -> String
@@ -24,6 +25,9 @@ toFile sound =
         Unload ->
             "unload.mp3"
 
+        MovingTrain ->
+            "movingTrain.mp3"
+
 
 toString : Sound -> String
 toString sound =
@@ -36,3 +40,6 @@ toString sound =
 
         Unload ->
             "Unload"
+
+        MovingTrain ->
+            "MovingTrain"

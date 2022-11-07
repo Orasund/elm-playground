@@ -3,11 +3,13 @@ module Data.Behavior.Train exposing (..)
 import Config
 import Data.Actor
 import Data.Block
+import Data.Effect exposing (Effect)
 import Data.Entity
 import Data.Floor
 import Data.Game exposing (Game)
 import Data.Item
 import Data.Position
+import Data.Sound
 import Data.Train
 import Data.World
 import Data.World.Generation
@@ -15,14 +17,14 @@ import Dict
 import Random exposing (Generator)
 
 
-passTime : Game -> Generator ( Game, Bool )
+passTime : Game -> Generator ( Game, List Effect )
 passTime game =
     let
         newPos =
             game.train |> Data.Train.forwardPos
 
         returnGame =
-            Random.map (\g -> ( g, False ))
+            Random.map (\g -> ( g, [] ))
     in
     if game.train.pos == Config.hqPos then
         stockUpAtBase game |> Random.constant
@@ -41,24 +43,30 @@ passTime game =
                                             |> Maybe.withDefault game.train
                                             |> (\train -> { game | train = train })
                                             |> mineAndPlaceTrack
+                                            |> Maybe.map returnGame
 
                                     else
                                         turnToHQ game
                                             |> Random.constant
+                                            |> returnGame
                                             |> Just
 
                                 Data.Floor.RailwayTrack ->
-                                    move game |> Maybe.map Random.constant
+                                    move game
+                                        |> Maybe.map (\g -> ( g, [ Data.Effect.PlaySound Data.Sound.MovingTrain ] ))
+                                        |> Maybe.map Random.constant
 
                                 _ ->
                                     if game.train.tracks > 0 then
                                         game
                                             |> mineAndPlaceTrack
+                                            |> Maybe.map returnGame
 
                                     else
                                         game
                                             |> mine
                                             |> Random.map turnToHQ
+                                            |> returnGame
                                             |> Just
 
                         Data.Block.EntityBlock entity ->
@@ -75,13 +83,16 @@ passTime game =
                                                             , world = game.world |> Data.World.removeEntity newPos
                                                         }
                                                             |> Random.constant
+                                                            |> returnGame
                                                             |> Just
 
                                                     Data.Actor.Cave _ ->
                                                         Nothing
 
                                                     Data.Actor.Bomb _ ->
-                                                        Just (Random.constant game)
+                                                        Random.constant game
+                                                            |> returnGame
+                                                            |> Just
                                             )
 
                                 _ ->
@@ -89,23 +100,23 @@ passTime game =
                                         game
                                             --|> mine
                                             |> Random.constant
+                                            |> returnGame
                                             |> Just
 
                                     else
                                         game
                                             |> mine
                                             |> Random.map turnToHQ
+                                            |> returnGame
                                             |> Just
                 )
-            |> Maybe.withDefault (Random.constant game)
-            |> returnGame
+            |> Maybe.withDefault (Random.constant ( game, [] ))
 
     else
-        Random.constant game
-            |> returnGame
+        Random.constant ( game, [] )
 
 
-stockUpAtBase : Game -> ( Game, Bool )
+stockUpAtBase : Game -> ( Game, List Effect )
 stockUpAtBase game =
     { game
         | train =
@@ -114,8 +125,8 @@ stockUpAtBase game =
                 |> Data.Train.turnAround
     }
         |> move
-        |> Maybe.map (\g -> ( g, True ))
-        |> Maybe.withDefault ( game, False )
+        |> Maybe.map (\g -> ( g, [ Data.Effect.OpenModal ] ))
+        |> Maybe.withDefault ( game, [] )
 
 
 turnToHQ : Game -> Game

@@ -3,10 +3,11 @@ module Data.Behavior.Wagon exposing (..)
 import AnyBag
 import Data.Actor exposing (Actor(..))
 import Data.Block
+import Data.Effect exposing (Effect)
 import Data.Floor
 import Data.Game exposing (Game)
 import Data.Position
-import Data.Sound exposing (Sound)
+import Data.Sound
 import Data.Train
 import Data.Wagon exposing (Wagon)
 import Data.World exposing (World)
@@ -18,7 +19,7 @@ act :
     { backPos : ( Int, Int ) }
     -> Int
     -> Game
-    -> Generator ( Game, List Sound )
+    -> Generator ( Game, List Effect )
 act args id game =
     case game.world.actors |> Dict.get id of
         Just ( pos, Data.Actor.Wagon wagon ) ->
@@ -33,7 +34,7 @@ act args id game =
             Random.constant ( game, [] )
 
 
-move : { backPos : ( Int, Int ) } -> Int -> ( ( Int, Int ), Wagon ) -> Game -> Generator ( Game, List Sound )
+move : { backPos : ( Int, Int ) } -> Int -> ( ( Int, Int ), Wagon ) -> Game -> Generator ( Game, List Effect )
 move { backPos } id ( pos, wagon ) game =
     let
         forwardPos =
@@ -103,7 +104,7 @@ moveOnTrack args ( pos, wagon ) world =
                 |> Random.constant
 
 
-unload : Int -> Game -> ( Game, List Sound )
+unload : Int -> Game -> ( Game, List Effect )
 unload id game =
     case game.world.actors |> Dict.get id of
         Just ( pos, Data.Actor.Wagon wagon ) ->
@@ -114,7 +115,7 @@ unload id game =
                         game.world
                             |> Data.World.updateActor id (\_ -> Data.Actor.Wagon (Data.Wagon.unload wagon))
                   }
-                , [ Data.Sound.Unload ]
+                , [ Data.Effect.PlaySound Data.Sound.Unload ]
                 )
 
             else

@@ -7,26 +7,21 @@ import Data.Behavior.Bomb
 import Data.Behavior.Player
 import Data.Behavior.Train
 import Data.Behavior.Wagon
+import Data.Effect exposing (Effect)
 import Data.Game exposing (Game)
 import Data.Item
-import Data.Sound exposing (Sound)
 import Data.World
 import Data.World.Generation
 import Random exposing (Generator)
 
 
-passTime : Game -> Generator ( Game, { promt : Maybe String, showModal : Bool, playSound : List Sound } )
+passTime : Game -> Generator ( Game, List Effect )
 passTime game =
     game
         |> Data.Behavior.Player.act
-        |> Random.andThen
-            (\( g, playSound ) ->
-                g
-                    |> Data.Behavior.Train.passTime
-                    |> Random.map (\( g0, showModal ) -> ( g0, showModal, playSound ))
-            )
-        |> Random.andThen
-            (\( g, showModal, playSound ) ->
+        |> Data.Effect.andThen Data.Behavior.Train.passTime
+        |> Data.Effect.andThen
+            (\g ->
                 g.world
                     |> Data.World.getActors
                     |> List.foldl
@@ -36,13 +31,10 @@ passTime game =
                                     wagon.movedFrom
                                         |> Maybe.map
                                             (\movedFrom ->
-                                                Random.andThen
-                                                    (\( g0, l ) ->
-                                                        g0
-                                                            |> Data.Behavior.Wagon.act
-                                                                { backPos = movedFrom }
-                                                                id
-                                                            |> Random.map (Tuple.mapSecond ((++) l))
+                                                Data.Effect.andThen
+                                                    (Data.Behavior.Wagon.act
+                                                        { backPos = movedFrom }
+                                                        id
                                                     )
                                             )
                                         |> Maybe.withDefault identity
@@ -63,17 +55,7 @@ passTime game =
                                                 |> Random.map (\world -> ( { it | world = world }, l ))
                                         )
                         )
-                        (Random.constant ( g, playSound ))
-                    |> Random.map (\( g0, l ) -> ( g0, showModal, l ))
-            )
-        |> Random.map
-            (\( g, showModal, playSound ) ->
-                ( g
-                , { promt = promt g
-                  , showModal = showModal
-                  , playSound = playSound
-                  }
-                )
+                        (Random.constant ( g, [] ))
             )
 
 
