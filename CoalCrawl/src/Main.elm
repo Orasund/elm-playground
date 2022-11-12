@@ -3,12 +3,14 @@ port module Main exposing (..)
 import Browser exposing (Document)
 import Config
 import Data.Actor exposing (Actor)
+import Data.Animation
 import Data.Behavior
 import Data.Block exposing (Block(..))
 import Data.Effect exposing (Effect)
 import Data.Entity exposing (Entity(..))
 import Data.Game exposing (Game)
 import Data.Item exposing (Item)
+import Data.Modal exposing (Modal)
 import Data.Sound
 import Html
 import Html.Attributes as Attr
@@ -34,7 +36,7 @@ type alias Model =
     , camera : ( Int, Int )
     , slowedDown : Bool
     , promt : Maybe String
-    , showModal : Bool
+    , modal : Maybe Modal
     , seed : Seed
     , volume : Int
     }
@@ -52,7 +54,15 @@ updateGame fun model =
                                     Tuple.mapSecond ((::) (sound |> Data.Sound.toString |> playSound))
 
                                 Data.Effect.OpenModal ->
-                                    Tuple.mapFirst (\m -> { m | showModal = True })
+                                    Tuple.mapFirst
+                                        (\m ->
+                                            { m
+                                                | modal =
+                                                    Data.Animation.animate
+                                                        |> Data.Modal.fromAnimation
+                                                        |> Just
+                                            }
+                                        )
 
                                 Data.Effect.ShowPromt string ->
                                     Tuple.mapFirst (\m -> { m | promt = Just string })
@@ -60,7 +70,7 @@ updateGame fun model =
                         ( { model
                             | game = game
                             , seed = seed
-                            , showModal = False
+                            , modal = Nothing
                             , promt = Nothing
                           }
                         , []
@@ -90,7 +100,10 @@ restart seed =
                 , camera = game.player.pos
                 , promt = Nothing
                 , seed = seed
-                , showModal = True
+                , modal =
+                    Data.Animation.animate
+                        |> Data.Modal.fromAnimation
+                        |> Just
                 , volume = 100
                 }
            )
@@ -129,17 +142,18 @@ view model =
                     , volume = model.volume
                     }
                 |> Layout.row
-                    (if model.showModal then
+                    (if model.modal /= Nothing then
                         [ Attr.style "backdrop-filter" "brightness(0.5)" ]
 
                      else
                         []
                     )
-            , if model.showModal then
-                View.Modal.toHtml CloseModal model.game
+            , case model.modal of
+                Just modal ->
+                    View.Modal.toHtml CloseModal model.game modal
 
-              else
-                Layout.none
+                Nothing ->
+                    Layout.none
             ]
                 |> Html.div [ Attr.style "position" "relative" ]
           ]
@@ -179,9 +193,14 @@ update msg model =
             )
 
         TimePassed ->
-            model
-                |> updateCamera
-                |> updateGame Data.Behavior.passTime
+            case model.modal of
+                Just modal ->
+                    ( { model | modal = modal |> Data.Modal.timePassed |> Just }, Cmd.none )
+
+                Nothing ->
+                    model
+                        |> updateCamera
+                        |> updateGame Data.Behavior.passTime
 
         ToggleSlowdown ->
             ( { model | slowedDown = not model.slowedDown }, Cmd.none )
@@ -198,7 +217,7 @@ update msg model =
             ( { model | game = model.game |> Data.Game.destroyBlock }, Cmd.none )
 
         CloseModal ->
-            ( { model | showModal = False }
+            ( { model | modal = Nothing }
             , Data.Sound.asList
                 |> List.map (\sound -> loadSound ( Data.Sound.toFile sound, Data.Sound.toString sound ))
                 |> Cmd.batch
@@ -212,10 +231,7 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    if model.showModal then
-        Sub.none
-
-    else if model.slowedDown then
+    if model.slowedDown then
         Time.every 400 (\_ -> TimePassed)
 
     else

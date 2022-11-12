@@ -3,14 +3,16 @@ module View.Modal exposing (..)
 import AnyBag
 import Config
 import Data.Game exposing (Game)
+import Data.Modal exposing (Modal)
 import Html exposing (Html)
 import Html.Attributes as Attr
 import Layout
+import View.Animation
 import View.Button
 
 
-toHtml : msg -> Game -> Html msg
-toHtml closeModal game =
+toHtml : msg -> Game -> Modal -> Html msg
+toHtml closeModal game modal =
     [ "Level Completed"
         |> Html.text
         |> Layout.heading1 [ Layout.contentCentered ]
@@ -20,9 +22,6 @@ toHtml closeModal game =
                 |> List.map (\( k, n ) -> String.fromInt n ++ "x " ++ k)
                 |> String.join ", "
            )
-        |> Html.text
-        |> Layout.el []
-    , "New Crafting Recipe unlocked:"
         |> Html.text
         |> Layout.el []
     , "W"
@@ -39,6 +38,7 @@ toHtml closeModal game =
         ++ " Iron)"
         |> Html.text
         |> Layout.el [ Layout.alignAtCenter, Layout.centerContent ]
+    , View.Animation.animate modal.animation modal.animationFrame
     , "Can store up to "
         ++ String.fromInt Config.wagonMaxItems
         ++ " items. You can also push it along."
