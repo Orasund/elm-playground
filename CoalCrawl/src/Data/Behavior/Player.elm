@@ -118,43 +118,43 @@ walkThroughWater pos game =
             )
 
 
+canMoveTo : Game -> ( Int, Int ) -> Bool
+canMoveTo game p =
+    case Data.World.get p game.world of
+        Just (Data.Block.FloorBlock _) ->
+            True
+
+        Just (Data.Block.EntityBlock (Data.Entity.Actor id)) ->
+            case game.world |> Data.World.getActor id of
+                Just ( _, Data.Actor.Wagon _ ) ->
+                    True
+
+                Just ( _, Data.Actor.Cave _ ) ->
+                    False
+
+                Just ( _, Data.Actor.Bomb _ ) ->
+                    False
+
+                Nothing ->
+                    False
+
+        Just (Data.Block.EntityBlock Data.Entity.Water) ->
+            True
+
+        Just (Data.Block.EntityBlock (Data.Entity.Vein _)) ->
+            True
+
+        _ ->
+            False
+
+
 moveTowards : ( Int, Int ) -> Game -> Generator ( Game, List Effect )
 moveTowards targetPos game =
     case
         AStar.findPath AStar.straightLineCost
             (\pos ->
                 Data.Position.neighbors pos
-                    |> List.filter
-                        (\p ->
-                            (p == targetPos)
-                                || (case Data.World.get p game.world of
-                                        Just (Data.Block.FloorBlock _) ->
-                                            True
-
-                                        Just (Data.Block.EntityBlock (Data.Entity.Actor id)) ->
-                                            case game.world |> Data.World.getActor id of
-                                                Just ( _, Data.Actor.Wagon _ ) ->
-                                                    True
-
-                                                Just ( _, Data.Actor.Cave _ ) ->
-                                                    False
-
-                                                Just ( _, Data.Actor.Bomb _ ) ->
-                                                    False
-
-                                                Nothing ->
-                                                    False
-
-                                        Just (Data.Block.EntityBlock Data.Entity.Water) ->
-                                            True
-
-                                        Just (Data.Block.EntityBlock (Data.Entity.Vein _)) ->
-                                            True
-
-                                        _ ->
-                                            False
-                                   )
-                        )
+                    |> List.filter (\p -> (p == targetPos) || canMoveTo game p)
                     |> Set.fromList
             )
             game.player.pos
@@ -171,7 +171,7 @@ moveTowards targetPos game =
                                     id
                                     ( pos, wagon )
                                 |> Random.map
-                                    (Tuple.mapFirst (\g -> { g | player = g.player |> Data.Player.moveTo pos }))
+                                    (\g -> ( { g | player = g.player |> Data.Player.moveTo pos }, [] ))
 
                         _ ->
                             ( game, [] ) |> Random.constant
@@ -281,7 +281,7 @@ putIntoWagon game =
             case game.world.actors |> Dict.get id |> Maybe.map Tuple.second of
                 Just (Data.Actor.Wagon wagon) ->
                     (if Data.Wagon.isFull wagon then
-                        Nothing
+                        ( game, [ Data.Effect.PlaySound Data.Sound.Error ] )
 
                      else
                         game.player
@@ -298,8 +298,8 @@ putIntoWagon game =
                                                 )
                                            )
                                 )
+                            |> Maybe.withDefault ( game, [] )
                     )
-                        |> Maybe.withDefault ( game, [] )
                         |> (\( g, l ) ->
                                 g
                                     |> Data.Behavior.Wagon.unload id

@@ -57,15 +57,20 @@ passTime game =
                         )
                         (Random.constant ( g, [] ))
             )
+        |> Random.map (\( g, l ) -> ( g, promt g ++ l ))
 
 
-promt : Game -> Maybe String
+promt : Game -> List Effect
 promt game =
     if AnyBag.count Data.Item.Iron game.train.items >= Config.wagonCost then
-        Just "You can build a wagon (W) when standing on an empty ground"
+        "You can build a wagon (W) when standing on an empty ground"
+            |> Data.Effect.ShowPromt
+            |> List.singleton
 
     else if not (AnyBag.member Data.Item.Coal game.train.items) then
-        Just "Put coal (C) into the Train (T)"
+        "Put coal (C) into the Train (T)"
+            |> Data.Effect.ShowPromt
+            |> List.singleton
 
     else
-        Nothing
+        []

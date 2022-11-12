@@ -33,6 +33,11 @@ isFull wagon =
     AnyBag.size wagon.items >= Config.wagonMaxItems
 
 
+load : AnyBag String Item -> Wagon -> Wagon
+load items wagon =
+    { wagon | items = items }
+
+
 unload : Wagon -> Wagon
 unload wagon =
     { wagon | items = AnyBag.empty Data.Item.toString }

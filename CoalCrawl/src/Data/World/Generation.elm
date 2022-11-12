@@ -67,10 +67,17 @@ mine ( x, y ) world =
                                             , ( 1 / 8, Data.World.insertActor (Data.Actor.Cave Data.Actor.RubbleCave) )
                                             ]
 
+                                    else if y < Config.tracksPerTrip * 3 then
+                                        Random.weighted ( 1, Data.World.insertEntity (Data.Entity.Vein Data.Item.Iron) )
+                                            [ ( 1 / 2, Data.World.insertActor (Data.Actor.Cave Data.Actor.CoalCave) )
+                                            , ( 1 / 4, Data.World.insertActor (Data.Actor.Cave Data.Actor.RubbleCave) )
+                                            , ( 1 / 8, Data.World.insertActor (Data.Actor.Cave Data.Actor.WaterCave) )
+                                            ]
+
                                     else
-                                        Random.weighted ( 1, Data.World.insertEntity (Data.Entity.Vein Data.Item.Coal) )
-                                            [ ( 1, Data.World.insertEntity (Data.Entity.Vein Data.Item.Iron) )
-                                            , ( 1 / 4, Data.World.insertEntity Data.Entity.rubble )
+                                        Random.weighted ( 1, Data.World.insertActor (Data.Actor.Cave Data.Actor.CoalCave) )
+                                            [ ( 1 / 2, Data.World.insertActor (Data.Actor.Cave Data.Actor.RubbleCave) )
+                                            , ( 1 / 4, Data.World.insertActor (Data.Actor.Cave Data.Actor.WaterCave) )
                                             , ( 1 / 8, Data.World.insertActor (Data.Actor.Cave Data.Actor.WaterCave) )
                                             ]
                                 }
@@ -116,14 +123,14 @@ exposedCave caveType ( x, y ) world =
                             |> generateContent
                                 { probability =
                                     [ ( 0, ( x, y - 1 ) )
-                                    , ( 0.5, ( x, y + 1 ) )
-                                    , ( 0.7, ( x - 1, y ) )
-                                    , ( 0.7, ( x + 1, y ) )
+                                    , ( 1, ( x, y + 1 ) )
+                                    , ( 1, ( x - 1, y ) )
+                                    , ( 1, ( x + 1, y ) )
                                     ]
                                 , content =
                                     Random.weighted ( 1, Data.World.insertActor (Data.Actor.Cave Data.Actor.RubbleCave) )
                                         [ ( 1 / 2, Data.World.insertEntity (Data.Entity.Vein Data.Item.Coal) )
-                                        , ( 1 / 8, Data.World.insertEntity (Data.Entity.Vein Data.Item.Iron) )
+                                        , ( 1 / 2, Data.World.insertEntity (Data.Entity.Vein Data.Item.Iron) )
                                         ]
                                 }
                     )
@@ -141,6 +148,24 @@ exposedCave caveType ( x, y ) world =
                         ]
                     , content =
                         Random.weighted ( 1, Data.World.insertActor (Data.Actor.Cave Data.Actor.CoalCave) )
+                            [ ( 1 / 2, Data.World.insertEntity (Data.Entity.Vein Data.Item.Coal) )
+                            , ( 1 / 8, Data.World.insertEntity (Data.Entity.Vein Data.Item.Iron) )
+                            ]
+                    }
+
+        IronCave ->
+            world
+                |> Data.World.removeEntity ( x, y )
+                |> Data.World.insert ( x, y ) (Data.Block.FloorBlock (Data.Floor.Ground (Just Data.Item.Iron)))
+                |> generateContent
+                    { probability =
+                        [ ( 0, ( x, y - 1 ) )
+                        , ( 0.5, ( x, y + 1 ) )
+                        , ( 0.5, ( x - 1, y ) )
+                        , ( 0.5, ( x + 1, y ) )
+                        ]
+                    , content =
+                        Random.weighted ( 1, Data.World.insertActor (Data.Actor.Cave Data.Actor.IronCave) )
                             [ ( 1 / 2, Data.World.insertEntity (Data.Entity.Vein Data.Item.Coal) )
                             , ( 1 / 8, Data.World.insertEntity (Data.Entity.Vein Data.Item.Iron) )
                             ]

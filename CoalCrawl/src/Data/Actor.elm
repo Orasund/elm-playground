@@ -8,6 +8,7 @@ type CaveType
     = WaterCave
     | RubbleCave
     | CoalCave
+    | IronCave
 
 
 type Actor

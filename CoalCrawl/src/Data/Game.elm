@@ -1,5 +1,6 @@
 module Data.Game exposing (..)
 
+import AnyBag
 import Config
 import Data.Actor exposing (Actor)
 import Data.Block exposing (Block(..))
@@ -101,6 +102,15 @@ new =
             ++ (coals |> List.map (\pos -> ( pos, Data.Entity.Vein Data.Item.Coal |> Data.Block.EntityBlock )))
             |> Data.World.fromList
     , player = player |> Data.Player.fromPos
-    , train = train |> Data.Train.fromPos
+    , train =
+        train
+            |> Data.Train.fromPos
+            |> Data.Train.addAll
+                ([ List.repeat 1 Data.Item.Coal
+                 , List.repeat 4 Data.Item.Iron
+                 ]
+                    |> List.concat
+                    |> AnyBag.fromList Data.Item.toString
+                )
     , selected = player
     }

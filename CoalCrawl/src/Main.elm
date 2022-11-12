@@ -57,7 +57,14 @@ updateGame fun model =
                                 Data.Effect.ShowPromt string ->
                                     Tuple.mapFirst (\m -> { m | promt = Just string })
                         )
-                        ( { model | game = game, seed = seed }, [] )
+                        ( { model
+                            | game = game
+                            , seed = seed
+                            , showModal = False
+                            , promt = Nothing
+                          }
+                        , []
+                        )
                     |> Tuple.mapSecond Cmd.batch
            )
 

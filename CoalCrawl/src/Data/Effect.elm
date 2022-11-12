@@ -16,3 +16,11 @@ andThen fun =
         (\( a, l ) ->
             fun a |> Random.map (Tuple.mapSecond ((++) l))
         )
+
+
+map : (a -> ( b, List Effect )) -> Generator ( a, List Effect ) -> Generator ( b, List Effect )
+map fun =
+    Random.map
+        (\( a, l ) ->
+            fun a |> Tuple.mapSecond ((++) l)
+        )
