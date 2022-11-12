@@ -87,10 +87,6 @@ interactWith pos game =
                                 game
                                     |> walkThroughWater game.selected
                                     |> Random.map (\g -> ( g, [] ))
-
-                            Data.Entity.Rubble _ ->
-                                game
-                                    |> takeFromRubble
             )
         |> Maybe.withDefault (Random.constant ( game, [] ))
 
@@ -236,49 +232,6 @@ pickUp pos game =
 
         _ ->
             ( game, [] )
-
-
-takeFromRubble : Game -> Generator ( Game, List Effect )
-takeFromRubble game =
-    case Data.World.get game.selected game.world of
-        Just (Data.Block.EntityBlock (Data.Entity.Rubble list)) ->
-            Random.int 0 (List.length list - 1)
-                |> Random.andThen
-                    (\i ->
-                        let
-                            l1 =
-                                List.take i list
-                        in
-                        case list |> List.drop i of
-                            head :: tail ->
-                                game.player
-                                    |> Data.Player.hold head
-                                    |> Maybe.map
-                                        (\player ->
-                                            game.world
-                                                |> Data.World.insertEntityAt game.selected
-                                                    (Data.Entity.Rubble (l1 ++ tail))
-                                                |> (\world ->
-                                                        ( { game
-                                                            | world = world
-                                                            , player = player
-                                                          }
-                                                        , [ Data.Effect.PlaySound Data.Sound.PickUp ]
-                                                        )
-                                                   )
-                                        )
-                                    |> Maybe.withDefault ( game, [] )
-                                    |> Random.constant
-
-                            [] ->
-                                game.world
-                                    |> Data.World.Generation.mine game.selected
-                                    |> Random.map (\world -> { game | world = world })
-                                    |> Random.map (\g -> ( g, [] ))
-                    )
-
-        _ ->
-            ( game, [] ) |> Random.constant
 
 
 putIntoWagon : Game -> ( Game, List Effect )

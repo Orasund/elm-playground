@@ -115,18 +115,6 @@ fromEntity game entity =
                 , description = "Stores all your items. If it has tracks stored, it will place them and move forward. Needs coal to move. Will regularly fetch new tracks from above ground."
                 }
 
-        Data.Entity.Rubble anyBag ->
-            new
-                { title = "Rubble"
-                , description = "Contains multiple items. Items can be picked up. Will be removed once it does not contain any items."
-                }
-                |> withContent
-                    (anyBag
-                        |> AnyBag.fromList Data.Item.toString
-                        |> AnyBag.toAssociationList
-                        |> List.map (\( k, n ) -> String.fromInt n ++ "x " ++ k)
-                    )
-
         Data.Entity.Actor id ->
             game.world.actors
                 |> Dict.get id
@@ -161,9 +149,6 @@ fromActor actor =
                 (case caveType of
                     Data.Actor.WaterCave ->
                         "Water"
-
-                    Data.Actor.RubbleCave ->
-                        "Rubble"
 
                     Data.Actor.CoalCave ->
                         "Coal"

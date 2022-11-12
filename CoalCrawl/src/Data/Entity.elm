@@ -8,10 +8,4 @@ type Entity
     | Wall
     | Water
     | Train
-    | Rubble (List Item)
     | Actor Int
-
-
-rubble : Entity
-rubble =
-    Rubble [ Data.Item.Coal, Data.Item.Iron ]

@@ -6,7 +6,6 @@ import Data.Wagon exposing (Wagon)
 
 type CaveType
     = WaterCave
-    | RubbleCave
     | CoalCave
     | IronCave
 

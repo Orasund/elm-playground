@@ -111,10 +111,6 @@ fromEntity game entity =
                         identity
                    )
 
-        Data.Entity.Rubble _ ->
-            { color = View.Color.black, content = '%' }
-                |> new
-
         Data.Entity.Actor id ->
             game.world.actors
                 |> Dict.get id
