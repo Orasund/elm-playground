@@ -22,7 +22,10 @@ type alias Game =
 
 select : ( Int, Int ) -> Game -> Game
 select pos game =
-    { game | selected = pos }
+    { game
+        | selected = pos
+        , player = game.player |> Data.Player.startMovingTo pos
+    }
 
 
 buildBlock : ( Item, Int ) -> Block -> Game -> Game

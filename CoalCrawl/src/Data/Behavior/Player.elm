@@ -22,13 +22,20 @@ import Set
 
 act : Game -> Generator ( Game, List Effect )
 act game =
-    (if Data.Position.neighbors game.player.pos |> List.member game.selected then
-        interactWith game.selected game
+    game.player.targetPos
+        |> Maybe.map
+            (\targetPos ->
+                (if Data.Position.neighbors game.player.pos |> List.member targetPos then
+                    game
+                        |> interactWith targetPos
+                        |> Random.map (Tuple.mapFirst (\g -> { g | player = g.player |> Data.Player.stopMoving }))
 
-     else
-        moveTowards game.selected game
-    )
-        |> Random.map (\( g, l ) -> pickUp g.player.pos g |> Tuple.mapSecond ((++) l))
+                 else
+                    moveTowards targetPos game
+                )
+                    |> Random.map (\( g, l ) -> pickUp g.player.pos g |> Tuple.mapSecond ((++) l))
+            )
+        |> Maybe.withDefault (Random.constant ( game, [] ))
 
 
 interactWith : ( Int, Int ) -> Game -> Generator ( Game, List Effect )

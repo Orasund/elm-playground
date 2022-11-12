@@ -6,6 +6,7 @@ import Data.Item exposing (Item)
 
 type alias Player =
     { pos : ( Int, Int )
+    , targetPos : Maybe ( Int, Int )
     , item : Maybe Item
     , riding : Maybe Int
     }
@@ -13,7 +14,11 @@ type alias Player =
 
 fromPos : ( Int, Int ) -> Player
 fromPos pos =
-    { pos = pos, item = Nothing, riding = Nothing }
+    { pos = pos
+    , targetPos = Nothing
+    , item = Nothing
+    , riding = Nothing
+    }
 
 
 startRiding : Int -> Player -> Player
@@ -24,6 +29,16 @@ startRiding id player =
 stopRiding : Player -> Player
 stopRiding player =
     { player | riding = Nothing }
+
+
+startMovingTo : ( Int, Int ) -> Player -> Player
+startMovingTo pos player =
+    { player | targetPos = Just pos }
+
+
+stopMoving : Player -> Player
+stopMoving player =
+    { player | targetPos = Nothing }
 
 
 moveTo : ( Int, Int ) -> Player -> Player

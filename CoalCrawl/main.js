@@ -6214,7 +6214,7 @@ var $author$project$Data$World$fromList = A2(
 	},
 	$author$project$Data$World$empty);
 var $author$project$Data$Player$fromPos = function (pos) {
-	return {item: $elm$core$Maybe$Nothing, pos: pos, riding: $elm$core$Maybe$Nothing};
+	return {item: $elm$core$Maybe$Nothing, pos: pos, riding: $elm$core$Maybe$Nothing, targetPos: $elm$core$Maybe$Nothing};
 };
 var $author$project$AnyBag$empty = function (encode) {
 	return {content: $JohnBugner$elm_bag$Bag$empty, encode: encode};
@@ -6718,6 +6718,12 @@ var $author$project$Main$loadSound = _Platform_outgoingPort(
 	});
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $elm$core$Basics$not = _Basics_not;
+var $elm$random$Random$constant = function (value) {
+	return $elm$random$Random$Generator(
+		function (seed) {
+			return _Utils_Tuple2(value, seed);
+		});
+};
 var $author$project$Data$Effect$PlaySound = function (a) {
 	return {$: 'PlaySound', a: a};
 };
@@ -6752,12 +6758,6 @@ var $author$project$Data$Effect$andThen = function (fun) {
 				$elm$core$Tuple$mapSecond(
 					$elm$core$Basics$append(l)),
 				fun(a));
-		});
-};
-var $elm$random$Random$constant = function (value) {
-	return $elm$random$Random$Generator(
-		function (seed) {
-			return _Utils_Tuple2(value, seed);
 		});
 };
 var $author$project$Data$Actor$Cave = function (a) {
@@ -8423,21 +8423,45 @@ var $author$project$Data$Behavior$Player$pickUp = F2(
 			return _Utils_Tuple2(game, _List_Nil);
 		}
 	});
+var $author$project$Data$Player$stopMoving = function (player) {
+	return _Utils_update(
+		player,
+		{targetPos: $elm$core$Maybe$Nothing});
+};
 var $author$project$Data$Behavior$Player$act = function (game) {
 	return A2(
-		$elm$random$Random$map,
-		function (_v0) {
-			var g = _v0.a;
-			var l = _v0.b;
-			return A2(
-				$elm$core$Tuple$mapSecond,
-				$elm$core$Basics$append(l),
-				A2($author$project$Data$Behavior$Player$pickUp, g.player.pos, g));
-		},
+		$elm$core$Maybe$withDefault,
+		$elm$random$Random$constant(
+			_Utils_Tuple2(game, _List_Nil)),
 		A2(
-			$elm$core$List$member,
-			game.selected,
-			$author$project$Data$Position$neighbors(game.player.pos)) ? A2($author$project$Data$Behavior$Player$interactWith, game.selected, game) : A2($author$project$Data$Behavior$Player$moveTowards, game.selected, game));
+			$elm$core$Maybe$map,
+			function (targetPos) {
+				return A2(
+					$elm$random$Random$map,
+					function (_v0) {
+						var g = _v0.a;
+						var l = _v0.b;
+						return A2(
+							$elm$core$Tuple$mapSecond,
+							$elm$core$Basics$append(l),
+							A2($author$project$Data$Behavior$Player$pickUp, g.player.pos, g));
+					},
+					A2(
+						$elm$core$List$member,
+						targetPos,
+						$author$project$Data$Position$neighbors(game.player.pos)) ? A2(
+						$elm$random$Random$map,
+						$elm$core$Tuple$mapFirst(
+							function (g) {
+								return _Utils_update(
+									g,
+									{
+										player: $author$project$Data$Player$stopMoving(g.player)
+									});
+							}),
+						A2($author$project$Data$Behavior$Player$interactWith, targetPos, game)) : A2($author$project$Data$Behavior$Player$moveTowards, targetPos, game));
+			},
+			game.player.targetPos));
 };
 var $author$project$Data$Behavior$Wagon$act = F3(
 	function (args, id, game) {
@@ -9078,11 +9102,22 @@ var $author$project$Data$Behavior$passTime = function (game) {
 				$author$project$Data$Behavior$Train$passTime,
 				$author$project$Data$Behavior$Player$act(game))));
 };
+var $author$project$Data$Player$startMovingTo = F2(
+	function (pos, player) {
+		return _Utils_update(
+			player,
+			{
+				targetPos: $elm$core$Maybe$Just(pos)
+			});
+	});
 var $author$project$Data$Game$select = F2(
 	function (pos, game) {
 		return _Utils_update(
 			game,
-			{selected: pos});
+			{
+				player: A2($author$project$Data$Player$startMovingTo, pos, game.player),
+				selected: pos
+			});
 	});
 var $elm$json$Json$Encode$float = _Json_wrap;
 var $author$project$Main$setVolume = _Platform_outgoingPort('setVolume', $elm$json$Json$Encode$float);
