@@ -113,26 +113,39 @@ toHtml args game =
                     , Html.text "Build" |> Layout.heading4 []
                     ]
                         ++ (case block of
-                                Data.Block.FloorBlock (Data.Floor.Ground Nothing) ->
-                                    [ { actor = Data.Actor.Wagon Data.Wagon.emptyWagon
-                                      , cost = ( Data.Item.Iron, Config.wagonCost )
-                                      }
+                                Data.Block.FloorBlock floor ->
+                                    ([ { actor = Data.Actor.Wagon Data.Wagon.emptyWagon
+                                       , cost = ( Data.Item.Iron, Config.wagonCost )
+                                       }
                                         |> buildActorButton args.buildActor
-                                    , { actor = Data.Actor.bomb
-                                      , cost = ( Data.Item.Gold, Config.bombCost )
-                                      }
+                                     , { actor = Data.Actor.bomb
+                                       , cost = ( Data.Item.Gold, Config.bombCost )
+                                       }
                                         |> buildActorButton args.buildActor
-                                    , { block = Data.Floor.Track |> Data.Block.FloorBlock
-                                      , cost = ( Data.Item.Iron, Config.trackCost )
-                                      }
-                                        |> buildBlockButton args.buildBlock game
-                                    ]
+                                     ]
                                         |> List.map (buildButton game)
+                                    )
+                                        ++ (case floor of
+                                                Data.Floor.Ground _ ->
+                                                    [ { block = Data.Floor.Track |> Data.Block.FloorBlock
+                                                      , cost = ( Data.Item.Iron, Config.trackCost )
+                                                      }
+                                                        |> buildBlockButton args.buildBlock game
+                                                    ]
+                                                        |> List.map (buildButton game)
 
-                                Data.Block.FloorBlock Data.Floor.Track ->
-                                    "Destroy"
-                                        |> View.Button.toHtml (Just args.destroyBlock)
-                                        |> List.singleton
+                                                _ ->
+                                                    []
+                                           )
+                                        ++ (case floor of
+                                                Data.Floor.Track ->
+                                                    "Destroy"
+                                                        |> View.Button.toHtml (Just args.destroyBlock)
+                                                        |> List.singleton
+
+                                                _ ->
+                                                    []
+                                           )
 
                                 _ ->
                                     []

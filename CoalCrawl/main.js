@@ -5692,7 +5692,6 @@ var $author$project$Data$Player$fromPos = function (pos) {
 };
 var $author$project$Data$Train$fromPos = function (pos) {
 	return {
-		coalNeeded: 4,
 		dir: _Utils_Tuple2(0, -1),
 		items: $author$project$AnyBag$empty($author$project$Data$Item$toString),
 		moving: false,
@@ -7354,6 +7353,11 @@ var $author$project$Data$Behavior$Player$moveTowards = F2(
 		}
 	});
 var $author$project$Data$Sound$Unload = {$: 'Unload'};
+var $author$project$Data$Train$coalNeeded = function (train) {
+	var _v0 = train.pos;
+	var y = _v0.b;
+	return y * 2;
+};
 var $JohnBugner$elm_bag$Bag$dict = function (_v0) {
 	var d = _v0.a;
 	return d;
@@ -7487,7 +7491,7 @@ var $author$project$Data$Train$addAll = F2(
 		return function (t) {
 			return (A2($author$project$AnyBag$member, $author$project$Data$Item$Coal, bag) && ((_Utils_cmp(
 				A2($author$project$AnyBag$count, $author$project$Data$Item$Coal, t.items),
-				t.coalNeeded) > -1) || (t.tracks > 0))) ? _Utils_update(
+				$author$project$Data$Train$coalNeeded(t)) > -1) || (t.tracks > 0))) ? _Utils_update(
 				t,
 				{moving: true}) : t;
 		}(
@@ -8158,7 +8162,7 @@ var $author$project$Data$Train$removeTrack = function (train) {
 	return (train.moving && (train.tracks > 0)) ? $elm$core$Maybe$Just(
 		_Utils_update(
 			train,
-			{coalNeeded: train.coalNeeded + 2, tracks: train.tracks - 1})) : $elm$core$Maybe$Nothing;
+			{tracks: train.tracks - 1})) : $elm$core$Maybe$Nothing;
 };
 var $author$project$Data$Behavior$Train$mineAndPlaceTrack = function (game) {
 	var newPos = $author$project$Data$Train$forwardPos(game.train);
@@ -9922,7 +9926,8 @@ var $author$project$Data$Info$fromTrain = function (game) {
 		$author$project$Data$Info$withAdditionalInfo,
 		_List_fromArray(
 			[
-				'Needs ' + ($elm$core$String$fromInt(game.train.coalNeeded) + ' Coal to go back to HQ.')
+				'Needs ' + ($elm$core$String$fromInt(
+				$author$project$Data$Train$coalNeeded(game.train)) + ' Coal to go back to HQ.')
 			]),
 		A2(
 			$author$project$Data$Info$withContent,
@@ -10154,32 +10159,37 @@ var $author$project$View$Game$toHtml = F2(
 												$elm$html$Html$text('Build'))
 											]),
 										function () {
-											_v0$2:
-											while (true) {
-												if (block.$ === 'FloorBlock') {
-													switch (block.a.$) {
-														case 'Ground':
-															if (block.a.a.$ === 'Nothing') {
-																var _v1 = block.a.a;
+											if (block.$ === 'FloorBlock') {
+												var floor = block.a;
+												return _Utils_ap(
+													A2(
+														$elm$core$List$map,
+														$author$project$View$Game$buildButton(game),
+														_List_fromArray(
+															[
+																A2(
+																$author$project$View$Game$buildActorButton,
+																args.buildActor,
+																{
+																	actor: $author$project$Data$Actor$Wagon($author$project$Data$Wagon$emptyWagon),
+																	cost: _Utils_Tuple2($author$project$Data$Item$Iron, $author$project$Config$wagonCost)
+																}),
+																A2(
+																$author$project$View$Game$buildActorButton,
+																args.buildActor,
+																{
+																	actor: $author$project$Data$Actor$bomb,
+																	cost: _Utils_Tuple2($author$project$Data$Item$Gold, $author$project$Config$bombCost)
+																})
+															])),
+													_Utils_ap(
+														function () {
+															if (floor.$ === 'Ground') {
 																return A2(
 																	$elm$core$List$map,
 																	$author$project$View$Game$buildButton(game),
 																	_List_fromArray(
 																		[
-																			A2(
-																			$author$project$View$Game$buildActorButton,
-																			args.buildActor,
-																			{
-																				actor: $author$project$Data$Actor$Wagon($author$project$Data$Wagon$emptyWagon),
-																				cost: _Utils_Tuple2($author$project$Data$Item$Iron, $author$project$Config$wagonCost)
-																			}),
-																			A2(
-																			$author$project$View$Game$buildActorButton,
-																			args.buildActor,
-																			{
-																				actor: $author$project$Data$Actor$bomb,
-																				cost: _Utils_Tuple2($author$project$Data$Item$Gold, $author$project$Config$bombCost)
-																			}),
 																			A3(
 																			$author$project$View$Game$buildBlockButton,
 																			args.buildBlock,
@@ -10190,23 +10200,23 @@ var $author$project$View$Game$toHtml = F2(
 																			})
 																		]));
 															} else {
-																break _v0$2;
+																return _List_Nil;
 															}
-														case 'Track':
-															var _v2 = block.a;
-															return $elm$core$List$singleton(
-																A2(
-																	$author$project$View$Button$toHtml,
-																	$elm$core$Maybe$Just(args.destroyBlock),
-																	'Destroy'));
-														default:
-															break _v0$2;
-													}
-												} else {
-													break _v0$2;
-												}
+														}(),
+														function () {
+															if (floor.$ === 'Track') {
+																return $elm$core$List$singleton(
+																	A2(
+																		$author$project$View$Button$toHtml,
+																		$elm$core$Maybe$Just(args.destroyBlock),
+																		'Destroy'));
+															} else {
+																return _List_Nil;
+															}
+														}()));
+											} else {
+												return _List_Nil;
 											}
-											return _List_Nil;
 										}()));
 							},
 							A2($author$project$Data$World$get, game.selected, game.world)))
@@ -10332,6 +10342,18 @@ var $Orasund$elm_layout$Layout$heading1 = F2(
 			_List_fromArray(
 				[content]));
 	});
+var $elm$html$Html$h2 = _VirtualDom_node('h2');
+var $Orasund$elm_layout$Layout$heading2 = F2(
+	function (attrs, content) {
+		return A2(
+			$elm$html$Html$h2,
+			A2(
+				$elm$core$List$cons,
+				A2($elm$html$Html$Attributes$style, 'display', 'flex'),
+				attrs),
+			_List_fromArray(
+				[content]));
+	});
 var $author$project$View$Modal$toHtml = F3(
 	function (closeModal, game, modal) {
 		return A2(
@@ -10377,26 +10399,17 @@ var $author$project$View$Modal$toHtml = F3(
 									},
 									$author$project$AnyBag$toAssociationList(game.train.items))))),
 						A2(
-						$Orasund$elm_layout$Layout$el,
-						_List_fromArray(
-							[$Orasund$elm_layout$Layout$centerContent]),
+						$Orasund$elm_layout$Layout$heading2,
+						_List_Nil,
+						$elm$html$Html$text('Hint: Build a Wagon')),
 						A2(
-							$Orasund$elm_layout$Layout$el,
-							_List_fromArray(
-								[
-									$elm$html$Html$Attributes$class('animate__animated animate__bounce animate__infinite'),
-									A2($elm$html$Html$Attributes$style, 'font-size', '64px'),
-									A2($elm$html$Html$Attributes$style, 'height', '64px'),
-									A2($elm$html$Html$Attributes$style, 'width', '64px')
-								]),
-							$elm$html$Html$text('W'))),
+						$Orasund$elm_layout$Layout$paragraph,
+						_List_Nil,
+						$elm$html$Html$text('Build a Wagon by clicking on an empty floor tile and select \"Build Wagon\"')),
 						A2(
 						$Orasund$elm_layout$Layout$el,
-						_List_fromArray(
-							[$Orasund$elm_layout$Layout$alignAtCenter, $Orasund$elm_layout$Layout$centerContent]),
-						$elm$html$Html$text(
-							'Wagon (Needs ' + ($elm$core$String$fromInt($author$project$Config$wagonCost) + ' Iron)'))),
-						A2($author$project$View$Animation$animate, modal.animation, modal.animationFrame),
+						$Orasund$elm_layout$Layout$centered,
+						A2($author$project$View$Animation$animate, modal.animation, modal.animationFrame)),
 						A2(
 						$Orasund$elm_layout$Layout$el,
 						_List_Nil,

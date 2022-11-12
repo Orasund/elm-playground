@@ -24,21 +24,14 @@ toHtml closeModal game modal =
            )
         |> Html.text
         |> Layout.el []
-    , "W"
+    , "Hint: Build a Wagon"
         |> Html.text
-        |> Layout.el
-            [ Attr.class "animate__animated animate__bounce animate__infinite"
-            , Attr.style "font-size" "64px"
-            , Attr.style "height" "64px"
-            , Attr.style "width" "64px"
-            ]
-        |> Layout.el [ Layout.centerContent ]
-    , "Wagon (Needs "
-        ++ String.fromInt Config.wagonCost
-        ++ " Iron)"
+        |> Layout.heading2 []
+    , "Build a Wagon by clicking on an empty floor tile and select \"Build Wagon\""
         |> Html.text
-        |> Layout.el [ Layout.alignAtCenter, Layout.centerContent ]
+        |> Layout.paragraph []
     , View.Animation.animate modal.animation modal.animationFrame
+        |> Layout.el Layout.centered
     , "Can store up to "
         ++ String.fromInt Config.wagonMaxItems
         ++ " items. You can also push it along."

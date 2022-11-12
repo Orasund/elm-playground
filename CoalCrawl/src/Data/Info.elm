@@ -8,6 +8,7 @@ import Data.Entity exposing (Entity(..))
 import Data.Floor exposing (Floor)
 import Data.Game exposing (Game)
 import Data.Item
+import Data.Train
 import Dict
 
 
@@ -84,7 +85,7 @@ fromTrain game =
                    )
             )
         |> withAdditionalInfo
-            [ "Needs " ++ String.fromInt game.train.coalNeeded ++ " Coal to go back to HQ."
+            [ "Needs " ++ String.fromInt (Data.Train.coalNeeded game.train) ++ " Coal to go back to HQ."
             ]
 
 

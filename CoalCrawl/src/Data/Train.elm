@@ -6,7 +6,6 @@ import Data.Item exposing (Item)
 
 type alias Train =
     { pos : ( Int, Int )
-    , coalNeeded : Int
     , dir : ( Int, Int )
     , moving : Bool
     , tracks : Int
@@ -17,7 +16,6 @@ type alias Train =
 fromPos : ( Int, Int ) -> Train
 fromPos pos =
     { pos = pos
-    , coalNeeded = 4
     , dir = ( 0, -1 )
     , moving = False
     , tracks = 0
@@ -51,13 +49,22 @@ turnAround train =
     { train | dir = ( x, -y ) }
 
 
+coalNeeded : Train -> Int
+coalNeeded train =
+    let
+        ( _, y ) =
+            train.pos
+    in
+    y * 2
+
+
 addAll : AnyBag String Item -> Train -> Train
 addAll bag train =
     { train | items = train.items |> AnyBag.union bag }
         |> (\t ->
                 if
                     AnyBag.member Data.Item.Coal bag
-                        && (AnyBag.count Data.Item.Coal t.items >= t.coalNeeded || (t.tracks > 0))
+                        && (AnyBag.count Data.Item.Coal t.items >= coalNeeded t || (t.tracks > 0))
                 then
                     { t | moving = True }
 
@@ -110,7 +117,6 @@ removeTrack train =
     if train.moving && train.tracks > 0 then
         { train
             | tracks = train.tracks - 1
-            , coalNeeded = train.coalNeeded + 2
         }
             |> Just
 
