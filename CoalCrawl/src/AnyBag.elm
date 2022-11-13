@@ -34,6 +34,16 @@ toAssociationList bag =
     bag.content |> Bag.toAssociationList
 
 
+fromAssociationList : (a -> comparable) -> List ( a, Int ) -> AnyBag comparable a
+fromAssociationList encode list =
+    { content =
+        list
+            |> List.map (Tuple.mapFirst encode)
+            |> Bag.fromAssociationList
+    , encode = encode
+    }
+
+
 fromList : (a -> comparable) -> List a -> AnyBag comparable a
 fromList encode list =
     { content = list |> List.map encode |> Bag.fromList, encode = encode }

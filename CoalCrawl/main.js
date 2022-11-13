@@ -5845,82 +5845,6 @@ var $author$project$Data$World$get = F2(
 				A2($author$project$Data$World$getFloor, pos, world));
 		}
 	});
-var $author$project$Data$Actor$Cave = function (a) {
-	return {$: 'Cave', a: a};
-};
-var $author$project$Data$Actor$CoalCave = {$: 'CoalCave'};
-var $author$project$Data$Item$Iron = {$: 'Iron'};
-var $author$project$Data$Actor$IronCave = {$: 'IronCave'};
-var $author$project$Data$Entity$Vein = function (a) {
-	return {$: 'Vein', a: a};
-};
-var $author$project$Data$Entity$Wall = {$: 'Wall'};
-var $author$project$Data$Actor$WaterCave = {$: 'WaterCave'};
-var $elm$core$Basics$abs = function (n) {
-	return (n < 0) ? (-n) : n;
-};
-var $elm$random$Random$float = F2(
-	function (a, b) {
-		return $elm$random$Random$Generator(
-			function (seed0) {
-				var seed1 = $elm$random$Random$next(seed0);
-				var range = $elm$core$Basics$abs(b - a);
-				var n1 = $elm$random$Random$peel(seed1);
-				var n0 = $elm$random$Random$peel(seed0);
-				var lo = (134217727 & n1) * 1.0;
-				var hi = (67108863 & n0) * 1.0;
-				var val = ((hi * 134217728.0) + lo) / 9007199254740992.0;
-				var scaled = (val * range) + a;
-				return _Utils_Tuple2(
-					scaled,
-					$elm$random$Random$next(seed1));
-			});
-	});
-var $elm$random$Random$map2 = F3(
-	function (func, _v0, _v1) {
-		var genA = _v0.a;
-		var genB = _v1.a;
-		return $elm$random$Random$Generator(
-			function (seed0) {
-				var _v2 = genA(seed0);
-				var a = _v2.a;
-				var seed1 = _v2.b;
-				var _v3 = genB(seed1);
-				var b = _v3.a;
-				var seed2 = _v3.b;
-				return _Utils_Tuple2(
-					A2(func, a, b),
-					seed2);
-			});
-	});
-var $author$project$Data$World$Generation$generateContent = F2(
-	function (args, dict) {
-		return A3(
-			$elm$core$List$foldl,
-			function (_v0) {
-				var prob = _v0.a;
-				var pos = _v0.b;
-				return $elm$random$Random$andThen(
-					function (d) {
-						return A3(
-							$elm$random$Random$map2,
-							F2(
-								function (_float, updateAt) {
-									return function (maybe) {
-										return _Utils_eq(maybe, $elm$core$Maybe$Nothing) ? A2(
-											(_Utils_cmp(_float, prob) < 0) ? updateAt : $author$project$Data$World$insertEntity($author$project$Data$Entity$Wall),
-											pos,
-											d) : d;
-									}(
-										A2($author$project$Data$World$get, pos, d));
-								}),
-							A2($elm$random$Random$float, 0, 1),
-							args.content);
-					});
-			},
-			$elm$random$Random$constant(dict),
-			args.probability);
-	});
 var $author$project$Data$World$getActor = F2(
 	function (id, world) {
 		return A2($elm$core$Dict$get, id, world.actors);
@@ -6336,6 +6260,83 @@ var $elm$core$Tuple$second = function (_v0) {
 	var y = _v0.b;
 	return y;
 };
+var $author$project$Data$Actor$Cave = function (a) {
+	return {$: 'Cave', a: a};
+};
+var $author$project$Data$Actor$CoalCave = {$: 'CoalCave'};
+var $author$project$Data$Item$Iron = {$: 'Iron'};
+var $author$project$Data$Actor$IronCave = {$: 'IronCave'};
+var $author$project$Data$Actor$OldMine = {$: 'OldMine'};
+var $author$project$Data$Entity$Vein = function (a) {
+	return {$: 'Vein', a: a};
+};
+var $author$project$Data$Entity$Wall = {$: 'Wall'};
+var $author$project$Data$Actor$WaterCave = {$: 'WaterCave'};
+var $elm$core$Basics$abs = function (n) {
+	return (n < 0) ? (-n) : n;
+};
+var $elm$random$Random$float = F2(
+	function (a, b) {
+		return $elm$random$Random$Generator(
+			function (seed0) {
+				var seed1 = $elm$random$Random$next(seed0);
+				var range = $elm$core$Basics$abs(b - a);
+				var n1 = $elm$random$Random$peel(seed1);
+				var n0 = $elm$random$Random$peel(seed0);
+				var lo = (134217727 & n1) * 1.0;
+				var hi = (67108863 & n0) * 1.0;
+				var val = ((hi * 134217728.0) + lo) / 9007199254740992.0;
+				var scaled = (val * range) + a;
+				return _Utils_Tuple2(
+					scaled,
+					$elm$random$Random$next(seed1));
+			});
+	});
+var $elm$random$Random$map2 = F3(
+	function (func, _v0, _v1) {
+		var genA = _v0.a;
+		var genB = _v1.a;
+		return $elm$random$Random$Generator(
+			function (seed0) {
+				var _v2 = genA(seed0);
+				var a = _v2.a;
+				var seed1 = _v2.b;
+				var _v3 = genB(seed1);
+				var b = _v3.a;
+				var seed2 = _v3.b;
+				return _Utils_Tuple2(
+					A2(func, a, b),
+					seed2);
+			});
+	});
+var $author$project$Data$World$Generation$generateContent = F2(
+	function (args, dict) {
+		return A3(
+			$elm$core$List$foldl,
+			function (_v0) {
+				var prob = _v0.a;
+				var pos = _v0.b;
+				return $elm$random$Random$andThen(
+					function (d) {
+						return A3(
+							$elm$random$Random$map2,
+							F2(
+								function (_float, updateAt) {
+									return function (maybe) {
+										return _Utils_eq(maybe, $elm$core$Maybe$Nothing) ? A2(
+											(_Utils_cmp(_float, prob) < 0) ? updateAt : $author$project$Data$World$insertEntity($author$project$Data$Entity$Wall),
+											pos,
+											d) : d;
+									}(
+										A2($author$project$Data$World$get, pos, d));
+								}),
+							A2($elm$random$Random$float, 0, 1),
+							args.content);
+					});
+			},
+			$elm$random$Random$constant(dict),
+			args.probability);
+	});
 var $author$project$Config$tracksPerTrip = 8;
 var $elm$random$Random$getByWeight = F3(
 	function (_v0, others, countdown) {
@@ -6380,6 +6381,144 @@ var $elm$random$Random$weighted = F2(
 			A2($elm$random$Random$getByWeight, first, others),
 			A2($elm$random$Random$float, 0, total));
 	});
+var $author$project$Data$World$Generation$wall = function (_v0) {
+	var x = _v0.a;
+	var y = _v0.b;
+	return $author$project$Data$World$Generation$generateContent(
+		{
+			content: (_Utils_cmp(y, $author$project$Config$tracksPerTrip) < 0) ? A2(
+				$elm$random$Random$weighted,
+				_Utils_Tuple2(
+					1,
+					$author$project$Data$World$insertEntity(
+						$author$project$Data$Entity$Vein($author$project$Data$Item$Coal))),
+				_List_fromArray(
+					[
+						_Utils_Tuple2(
+						1 / 2,
+						$author$project$Data$World$insertActor(
+							$author$project$Data$Actor$Cave($author$project$Data$Actor$CoalCave))),
+						_Utils_Tuple2(
+						1 / 2,
+						$author$project$Data$World$insertEntity($author$project$Data$Entity$Wall))
+					])) : ((_Utils_cmp(y, $author$project$Config$tracksPerTrip * 2) < 0) ? A2(
+				$elm$random$Random$weighted,
+				_Utils_Tuple2(
+					1,
+					$author$project$Data$World$insertActor(
+						$author$project$Data$Actor$Cave($author$project$Data$Actor$IronCave))),
+				_List_fromArray(
+					[
+						_Utils_Tuple2(
+						1 / 2,
+						$author$project$Data$World$insertEntity(
+							$author$project$Data$Entity$Vein($author$project$Data$Item$Coal))),
+						_Utils_Tuple2(
+						1 / 4,
+						$author$project$Data$World$insertActor(
+							$author$project$Data$Actor$Cave($author$project$Data$Actor$CoalCave))),
+						_Utils_Tuple2(
+						1 / 4,
+						$author$project$Data$World$insertEntity($author$project$Data$Entity$Wall))
+					])) : ((_Utils_cmp(y, $author$project$Config$tracksPerTrip * 3) < 0) ? A2(
+				$elm$random$Random$weighted,
+				_Utils_Tuple2(
+					1,
+					$author$project$Data$World$insertEntity(
+						$author$project$Data$Entity$Vein($author$project$Data$Item$Iron))),
+				_List_fromArray(
+					[
+						_Utils_Tuple2(
+						1 / 2,
+						$author$project$Data$World$insertActor(
+							$author$project$Data$Actor$Cave($author$project$Data$Actor$IronCave))),
+						_Utils_Tuple2(
+						1 / 4,
+						$author$project$Data$World$insertEntity(
+							$author$project$Data$Entity$Vein($author$project$Data$Item$Coal))),
+						_Utils_Tuple2(
+						1 / 8,
+						$author$project$Data$World$insertActor(
+							$author$project$Data$Actor$Cave($author$project$Data$Actor$CoalCave))),
+						_Utils_Tuple2(
+						1 / 8,
+						$author$project$Data$World$insertEntity($author$project$Data$Entity$Wall))
+					])) : ((_Utils_cmp(y, $author$project$Config$tracksPerTrip * 4) < 0) ? A2(
+				$elm$random$Random$weighted,
+				_Utils_Tuple2(
+					1,
+					$author$project$Data$World$insertActor(
+						$author$project$Data$Actor$Cave($author$project$Data$Actor$WaterCave))),
+				_List_fromArray(
+					[
+						_Utils_Tuple2(
+						1 / 2,
+						$author$project$Data$World$insertEntity(
+							$author$project$Data$Entity$Vein($author$project$Data$Item$Iron))),
+						_Utils_Tuple2(
+						1 / 4,
+						$author$project$Data$World$insertActor(
+							$author$project$Data$Actor$Cave($author$project$Data$Actor$IronCave))),
+						_Utils_Tuple2(
+						1 / 8,
+						$author$project$Data$World$insertEntity(
+							$author$project$Data$Entity$Vein($author$project$Data$Item$Coal))),
+						_Utils_Tuple2(
+						1 / 16,
+						$author$project$Data$World$insertActor(
+							$author$project$Data$Actor$Cave($author$project$Data$Actor$CoalCave))),
+						_Utils_Tuple2(
+						1 / 16,
+						$author$project$Data$World$insertEntity($author$project$Data$Entity$Wall))
+					])) : A2(
+				$elm$random$Random$weighted,
+				_Utils_Tuple2(
+					1,
+					$author$project$Data$World$insertActor(
+						$author$project$Data$Actor$Cave($author$project$Data$Actor$OldMine))),
+				_List_fromArray(
+					[
+						_Utils_Tuple2(
+						1 / 2,
+						$author$project$Data$World$insertActor(
+							$author$project$Data$Actor$Cave($author$project$Data$Actor$WaterCave))),
+						_Utils_Tuple2(
+						1 / 4,
+						$author$project$Data$World$insertEntity(
+							$author$project$Data$Entity$Vein($author$project$Data$Item$Iron))),
+						_Utils_Tuple2(
+						1 / 8,
+						$author$project$Data$World$insertActor(
+							$author$project$Data$Actor$Cave($author$project$Data$Actor$IronCave))),
+						_Utils_Tuple2(
+						1 / 16,
+						$author$project$Data$World$insertEntity(
+							$author$project$Data$Entity$Vein($author$project$Data$Item$Coal))),
+						_Utils_Tuple2(
+						1 / 32,
+						$author$project$Data$World$insertActor(
+							$author$project$Data$Actor$Cave($author$project$Data$Actor$CoalCave))),
+						_Utils_Tuple2(
+						1 / 32,
+						$author$project$Data$World$insertEntity($author$project$Data$Entity$Wall))
+					]))))),
+			probability: _List_fromArray(
+				[
+					_Utils_Tuple2(
+					0,
+					_Utils_Tuple2(x, y - 1)),
+					_Utils_Tuple2(
+					1,
+					_Utils_Tuple2(x, y + 1)),
+					_Utils_Tuple2(
+					0.7,
+					_Utils_Tuple2(x - 1, y)),
+					_Utils_Tuple2(
+					0.7,
+					_Utils_Tuple2(x + 1, y))
+				])
+		});
+};
 var $author$project$Data$World$Generation$mine = F2(
 	function (_v0, world) {
 		var x = _v0.a;
@@ -6397,109 +6536,8 @@ var $author$project$Data$World$Generation$mine = F2(
 					$elm$core$Maybe$map,
 					function (items) {
 						return A2(
-							$author$project$Data$World$Generation$generateContent,
-							{
-								content: (_Utils_cmp(y, $author$project$Config$tracksPerTrip) < 0) ? A2(
-									$elm$random$Random$weighted,
-									_Utils_Tuple2(
-										1,
-										$author$project$Data$World$insertEntity(
-											$author$project$Data$Entity$Vein($author$project$Data$Item$Coal))),
-									_List_fromArray(
-										[
-											_Utils_Tuple2(
-											1 / 2,
-											$author$project$Data$World$insertActor(
-												$author$project$Data$Actor$Cave($author$project$Data$Actor$CoalCave))),
-											_Utils_Tuple2(
-											1 / 2,
-											$author$project$Data$World$insertEntity($author$project$Data$Entity$Wall))
-										])) : ((_Utils_cmp(y, $author$project$Config$tracksPerTrip * 2) < 0) ? A2(
-									$elm$random$Random$weighted,
-									_Utils_Tuple2(
-										1,
-										$author$project$Data$World$insertActor(
-											$author$project$Data$Actor$Cave($author$project$Data$Actor$IronCave))),
-									_List_fromArray(
-										[
-											_Utils_Tuple2(
-											1 / 2,
-											$author$project$Data$World$insertEntity(
-												$author$project$Data$Entity$Vein($author$project$Data$Item$Coal))),
-											_Utils_Tuple2(
-											1 / 4,
-											$author$project$Data$World$insertActor(
-												$author$project$Data$Actor$Cave($author$project$Data$Actor$CoalCave))),
-											_Utils_Tuple2(
-											1 / 4,
-											$author$project$Data$World$insertEntity($author$project$Data$Entity$Wall))
-										])) : ((_Utils_cmp(y, $author$project$Config$tracksPerTrip * 3) < 0) ? A2(
-									$elm$random$Random$weighted,
-									_Utils_Tuple2(
-										1,
-										$author$project$Data$World$insertEntity(
-											$author$project$Data$Entity$Vein($author$project$Data$Item$Iron))),
-									_List_fromArray(
-										[
-											_Utils_Tuple2(
-											1 / 2,
-											$author$project$Data$World$insertActor(
-												$author$project$Data$Actor$Cave($author$project$Data$Actor$IronCave))),
-											_Utils_Tuple2(
-											1 / 4,
-											$author$project$Data$World$insertEntity(
-												$author$project$Data$Entity$Vein($author$project$Data$Item$Coal))),
-											_Utils_Tuple2(
-											1 / 8,
-											$author$project$Data$World$insertActor(
-												$author$project$Data$Actor$Cave($author$project$Data$Actor$CoalCave))),
-											_Utils_Tuple2(
-											1 / 8,
-											$author$project$Data$World$insertEntity($author$project$Data$Entity$Wall))
-										])) : A2(
-									$elm$random$Random$weighted,
-									_Utils_Tuple2(
-										1,
-										$author$project$Data$World$insertActor(
-											$author$project$Data$Actor$Cave($author$project$Data$Actor$WaterCave))),
-									_List_fromArray(
-										[
-											_Utils_Tuple2(
-											1 / 2,
-											$author$project$Data$World$insertEntity(
-												$author$project$Data$Entity$Vein($author$project$Data$Item$Iron))),
-											_Utils_Tuple2(
-											1 / 4,
-											$author$project$Data$World$insertActor(
-												$author$project$Data$Actor$Cave($author$project$Data$Actor$IronCave))),
-											_Utils_Tuple2(
-											1 / 8,
-											$author$project$Data$World$insertEntity(
-												$author$project$Data$Entity$Vein($author$project$Data$Item$Coal))),
-											_Utils_Tuple2(
-											1 / 16,
-											$author$project$Data$World$insertActor(
-												$author$project$Data$Actor$Cave($author$project$Data$Actor$CoalCave))),
-											_Utils_Tuple2(
-											1 / 16,
-											$author$project$Data$World$insertEntity($author$project$Data$Entity$Wall))
-										])))),
-								probability: _List_fromArray(
-									[
-										_Utils_Tuple2(
-										0,
-										_Utils_Tuple2(x, y - 1)),
-										_Utils_Tuple2(
-										1,
-										_Utils_Tuple2(x, y + 1)),
-										_Utils_Tuple2(
-										0.7,
-										_Utils_Tuple2(x - 1, y)),
-										_Utils_Tuple2(
-										0.7,
-										_Utils_Tuple2(x + 1, y))
-									])
-							},
+							$author$project$Data$World$Generation$wall,
+							_Utils_Tuple2(x, y),
 							function () {
 								if (!items.b) {
 									return A2(
@@ -6964,14 +7002,11 @@ var $author$project$Data$World$moveActorTo = F3(
 											return pos;
 										})),
 								world.actors),
-							entities: A2(
-								$elm$core$Dict$remove,
-								oldPos,
-								A3(
-									$elm$core$Dict$insert,
-									pos,
-									$author$project$Data$Entity$Actor(id),
-									world.entities))
+							entities: A3(
+								$elm$core$Dict$insert,
+								pos,
+								$author$project$Data$Entity$Actor(id),
+								A2($elm$core$Dict$remove, oldPos, world.entities))
 						});
 				},
 				A2($elm$core$Dict$get, id, world.actors)));
@@ -7082,16 +7117,6 @@ var $author$project$Data$Position$neighbors = function (_v0) {
 		]);
 };
 var $elm$core$Basics$neq = _Utils_notEqual;
-var $elm$random$Random$addOne = function (value) {
-	return _Utils_Tuple2(1, value);
-};
-var $elm$random$Random$uniform = F2(
-	function (value, valueList) {
-		return A2(
-			$elm$random$Random$weighted,
-			$elm$random$Random$addOne(value),
-			A2($elm$core$List$map, $elm$random$Random$addOne, valueList));
-	});
 var $author$project$Data$Behavior$Wagon$moveOnTrack = F3(
 	function (args, _v0, world) {
 		var pos = _v0.a;
@@ -7105,22 +7130,19 @@ var $author$project$Data$Behavior$Wagon$moveOnTrack = F3(
 						$author$project$Data$Block$FloorBlock($author$project$Data$Floor$Track)));
 			},
 			$author$project$Data$Position$neighbors(pos));
-		if (_v1.b) {
-			var head = _v1.a;
-			var tail = _v1.b;
-			return A2(
-				$elm$random$Random$map,
-				function (p) {
-					return _Utils_Tuple2(world, p);
-				},
-				A2($elm$random$Random$uniform, head, tail));
+		if (!_v1.b) {
+			return A3(
+				$author$project$Data$Behavior$Wagon$moveOnGround,
+				args,
+				_Utils_Tuple2(pos, wagon),
+				world);
 		} else {
-			return $elm$random$Random$constant(
-				A3(
-					$author$project$Data$Behavior$Wagon$moveOnGround,
-					args,
-					_Utils_Tuple2(pos, wagon),
-					world));
+			if (!_v1.b.b) {
+				var p = _v1.a;
+				return _Utils_Tuple2(world, p);
+			} else {
+				return _Utils_Tuple2(world, pos);
+			}
 		}
 	});
 var $author$project$Data$Position$plus = F2(
@@ -7150,44 +7172,39 @@ var $author$project$Data$Behavior$Wagon$move = F4(
 			pos,
 			A2($author$project$Data$Position$vecTo, pos, backPos));
 		var positions = {backPos: backPos, forwardPos: forwardPos};
-		return A2(
-			$elm$random$Random$map,
-			function (world) {
-				return _Utils_update(
-					game,
-					{world: world});
-			},
-			A2(
-				$elm$random$Random$map,
-				function (_v2) {
-					var world = _v2.a;
-					var p = _v2.b;
-					return A3(
-						$author$project$Data$World$updateActor,
-						id,
-						function (actor) {
-							if (actor.$ === 'Wagon') {
-								var w = actor.a;
-								return $author$project$Data$Actor$Wagon(
-									A2($author$project$Data$Wagon$moveFrom, pos, w));
-							} else {
-								return actor;
-							}
-						},
-						A3($author$project$Data$World$moveActorTo, p, id, world));
-				},
+		return function (world) {
+			return _Utils_update(
+				game,
+				{world: world});
+		}(
+			function (_v2) {
+				var world = _v2.a;
+				var p = _v2.b;
+				return A3(
+					$author$project$Data$World$updateActor,
+					id,
+					function (actor) {
+						if (actor.$ === 'Wagon') {
+							var w = actor.a;
+							return $author$project$Data$Actor$Wagon(
+								A2($author$project$Data$Wagon$moveFrom, pos, w));
+						} else {
+							return actor;
+						}
+					},
+					A3($author$project$Data$World$moveActorTo, p, id, world));
+			}(
 				_Utils_eq(
 					A2($author$project$Data$World$getFloor, pos, game.world),
 					$elm$core$Maybe$Just($author$project$Data$Floor$Track)) ? A3(
 					$author$project$Data$Behavior$Wagon$moveOnTrack,
 					positions,
 					_Utils_Tuple2(pos, wagon),
-					game.world) : $elm$random$Random$constant(
-					A3(
-						$author$project$Data$Behavior$Wagon$moveOnGround,
-						positions,
-						_Utils_Tuple2(pos, wagon),
-						game.world))));
+					game.world) : A3(
+					$author$project$Data$Behavior$Wagon$moveOnGround,
+					positions,
+					_Utils_Tuple2(pos, wagon),
+					game.world)));
 	});
 var $author$project$Data$Player$moveTo = F2(
 	function (pos, player) {
@@ -7206,6 +7223,16 @@ var $krisajenkins$elm_astar$AStar$straightLineCost = F2(
 		return dx + dy;
 	});
 var $author$project$Data$Entity$Water = {$: 'Water'};
+var $elm$random$Random$addOne = function (value) {
+	return _Utils_Tuple2(1, value);
+};
+var $elm$random$Random$uniform = F2(
+	function (value, valueList) {
+		return A2(
+			$elm$random$Random$weighted,
+			$elm$random$Random$addOne(value),
+			A2($elm$core$List$map, $elm$random$Random$addOne, valueList));
+	});
 var $author$project$Data$Behavior$Player$walkThroughWater = F2(
 	function (pos, game) {
 		return A2(
@@ -7231,7 +7258,7 @@ var $author$project$Data$Behavior$Player$walkThroughWater = F2(
 					var tail = list.b;
 					return A2($elm$random$Random$uniform, head, tail);
 				} else {
-					return $elm$random$Random$constant(game.player.pos);
+					return $elm$random$Random$constant(pos);
 				}
 			}(
 				A2(
@@ -7281,8 +7308,7 @@ var $author$project$Data$Behavior$Player$moveTowards = F2(
 									A2($elm$core$Dict$get, id, game.world.actors));
 								if ((_v2.$ === 'Just') && (_v2.a.$ === 'Wagon')) {
 									var wagon = _v2.a.a;
-									return A2(
-										$elm$random$Random$map,
+									return $elm$random$Random$constant(
 										function (g) {
 											return _Utils_Tuple2(
 												_Utils_update(
@@ -7291,13 +7317,13 @@ var $author$project$Data$Behavior$Player$moveTowards = F2(
 														player: A2($author$project$Data$Player$moveTo, pos, g.player)
 													}),
 												_List_Nil);
-										},
-										A4(
-											$author$project$Data$Behavior$Wagon$move,
-											{backPos: game.player.pos},
-											id,
-											_Utils_Tuple2(pos, wagon),
-											game));
+										}(
+											A4(
+												$author$project$Data$Behavior$Wagon$move,
+												{backPos: game.player.pos},
+												id,
+												_Utils_Tuple2(pos, wagon),
+												game)));
 								} else {
 									return $elm$random$Random$constant(
 										_Utils_Tuple2(game, _List_Nil));
@@ -7834,7 +7860,7 @@ var $author$project$Data$Behavior$Player$interactWith = F2(
 									function (g) {
 										return _Utils_Tuple2(g, _List_Nil);
 									},
-									A2($author$project$Data$Behavior$Player$walkThroughWater, game.selected, game));
+									$elm$random$Random$constant(game));
 						}
 					}
 				},
@@ -7936,8 +7962,8 @@ var $author$project$Data$Behavior$Player$act = function (game) {
 var $author$project$Data$Behavior$Wagon$act = F3(
 	function (args, id, game) {
 		return A2(
-			$elm$random$Random$map,
-			$author$project$Data$Behavior$Wagon$unload(id),
+			$author$project$Data$Behavior$Wagon$unload,
+			id,
 			function () {
 				var _v0 = A2($elm$core$Dict$get, id, game.world.actors);
 				if ((_v0.$ === 'Just') && (_v0.a.b.$ === 'Wagon')) {
@@ -7951,80 +7977,115 @@ var $author$project$Data$Behavior$Wagon$act = F3(
 						args,
 						id,
 						_Utils_Tuple2(pos, wagon),
-						game) : $elm$random$Random$constant(game);
+						game) : game;
 				} else {
-					return $elm$random$Random$constant(game);
+					return game;
 				}
 			}());
 	});
 var $author$project$Data$Item$Gold = {$: 'Gold'};
+var $JohnBugner$elm_bag$Bag$fromAssociationList = A2(
+	$elm$core$List$foldl,
+	function (_v0) {
+		var v = _v0.a;
+		var n = _v0.b;
+		return A2($JohnBugner$elm_bag$Bag$insert, n, v);
+	},
+	$JohnBugner$elm_bag$Bag$empty);
+var $author$project$AnyBag$fromAssociationList = F2(
+	function (encode, list) {
+		return {
+			content: $JohnBugner$elm_bag$Bag$fromAssociationList(
+				A2(
+					$elm$core$List$map,
+					$elm$core$Tuple$mapFirst(encode),
+					list)),
+			encode: encode
+		};
+	});
 var $author$project$Data$World$Generation$exposedCave = F3(
 	function (caveType, _v0, world) {
 		var x = _v0.a;
 		var y = _v0.b;
+		var probability = _List_fromArray(
+			[
+				_Utils_Tuple2(
+				0.2,
+				_Utils_Tuple2(x, y - 1)),
+				_Utils_Tuple2(
+				0.5,
+				_Utils_Tuple2(x, y + 1)),
+				_Utils_Tuple2(
+				0.5,
+				_Utils_Tuple2(x - 1, y)),
+				_Utils_Tuple2(
+				0.5,
+				_Utils_Tuple2(x + 1, y))
+			]);
 		switch (caveType.$) {
 			case 'WaterCave':
 				return A2(
-					$author$project$Data$World$Generation$generateContent,
-					{
-						content: A2(
-							$elm$random$Random$weighted,
-							_Utils_Tuple2(
-								1,
-								function (pos) {
-									return A2(
-										$author$project$Data$World$insertActorAt,
-										pos,
-										$author$project$Data$Actor$Cave($author$project$Data$Actor$WaterCave));
-								}),
-							_List_fromArray(
-								[
+					$elm$random$Random$andThen,
+					function (fun) {
+						return A2(
+							$author$project$Data$World$Generation$generateContent,
+							{
+								content: A2(
+									$elm$random$Random$weighted,
 									_Utils_Tuple2(
-									1 / 2,
-									function (pos) {
-										return A2(
-											$author$project$Data$World$insertEntityAt,
-											pos,
-											$author$project$Data$Entity$Vein($author$project$Data$Item$Iron));
-									}),
-									_Utils_Tuple2(
-									1 / 8,
-									function (pos) {
-										return A2(
-											$author$project$Data$World$insertEntityAt,
-											pos,
-											$author$project$Data$Entity$Vein($author$project$Data$Item$Coal));
-									}),
-									_Utils_Tuple2(
-									1 / 8,
-									function (pos) {
-										return A2(
-											$author$project$Data$World$insertEntityAt,
-											pos,
-											$author$project$Data$Entity$Vein($author$project$Data$Item$Gold));
-									})
-								])),
-						probability: _List_fromArray(
+										1,
+										function (pos) {
+											return A2(
+												$author$project$Data$World$insertActorAt,
+												pos,
+												$author$project$Data$Actor$Cave($author$project$Data$Actor$WaterCave));
+										}),
+									_List_fromArray(
+										[
+											_Utils_Tuple2(
+											1 / 2,
+											function (pos) {
+												return A2(
+													$author$project$Data$World$insertEntityAt,
+													pos,
+													$author$project$Data$Entity$Vein($author$project$Data$Item$Iron));
+											}),
+											_Utils_Tuple2(
+											1 / 8,
+											function (pos) {
+												return A2(
+													$author$project$Data$World$insertEntityAt,
+													pos,
+													$author$project$Data$Entity$Vein($author$project$Data$Item$Coal));
+											}),
+											_Utils_Tuple2(
+											1 / 8,
+											function (pos) {
+												return A2(
+													$author$project$Data$World$insertEntityAt,
+													pos,
+													$author$project$Data$Entity$Vein($author$project$Data$Item$Gold));
+											})
+										])),
+								probability: probability
+							},
+							A2(
+								fun,
+								_Utils_Tuple2(x, y),
+								world));
+					},
+					A2(
+						$elm$random$Random$weighted,
+						_Utils_Tuple2(
+							1,
+							$author$project$Data$World$insertFloor(
+								$author$project$Data$Floor$Ground($elm$core$Maybe$Nothing))),
+						_List_fromArray(
 							[
 								_Utils_Tuple2(
-								0,
-								_Utils_Tuple2(x, y - 1)),
-								_Utils_Tuple2(
-								0.5,
-								_Utils_Tuple2(x, y + 1)),
-								_Utils_Tuple2(
-								0.5,
-								_Utils_Tuple2(x - 1, y)),
-								_Utils_Tuple2(
-								0.5,
-								_Utils_Tuple2(x + 1, y))
-							])
-					},
-					A3(
-						$author$project$Data$World$insertEntityAt,
-						_Utils_Tuple2(x, y),
-						$author$project$Data$Entity$Water,
-						world));
+								1 / 2,
+								$author$project$Data$World$insertEntity($author$project$Data$Entity$Water))
+							])));
 			case 'CoalCave':
 				return A2(
 					$author$project$Data$World$Generation$generateContent,
@@ -8046,21 +8107,7 @@ var $author$project$Data$World$Generation$exposedCave = F3(
 									$author$project$Data$World$insertEntity(
 										$author$project$Data$Entity$Vein($author$project$Data$Item$Iron)))
 								])),
-						probability: _List_fromArray(
-							[
-								_Utils_Tuple2(
-								0,
-								_Utils_Tuple2(x, y - 1)),
-								_Utils_Tuple2(
-								0.5,
-								_Utils_Tuple2(x, y + 1)),
-								_Utils_Tuple2(
-								0.5,
-								_Utils_Tuple2(x - 1, y)),
-								_Utils_Tuple2(
-								0.5,
-								_Utils_Tuple2(x + 1, y))
-							])
+						probability: probability
 					},
 					A3(
 						$author$project$Data$World$insert,
@@ -8072,7 +8119,7 @@ var $author$project$Data$World$Generation$exposedCave = F3(
 							$author$project$Data$World$removeEntity,
 							_Utils_Tuple2(x, y),
 							world)));
-			default:
+			case 'IronCave':
 				return A2(
 					$author$project$Data$World$Generation$generateContent,
 					{
@@ -8093,21 +8140,7 @@ var $author$project$Data$World$Generation$exposedCave = F3(
 									$author$project$Data$World$insertEntity(
 										$author$project$Data$Entity$Vein($author$project$Data$Item$Iron)))
 								])),
-						probability: _List_fromArray(
-							[
-								_Utils_Tuple2(
-								0,
-								_Utils_Tuple2(x, y - 1)),
-								_Utils_Tuple2(
-								0.5,
-								_Utils_Tuple2(x, y + 1)),
-								_Utils_Tuple2(
-								0.5,
-								_Utils_Tuple2(x - 1, y)),
-								_Utils_Tuple2(
-								0.5,
-								_Utils_Tuple2(x + 1, y))
-							])
+						probability: probability
 					},
 					A3(
 						$author$project$Data$World$insert,
@@ -8119,10 +8152,95 @@ var $author$project$Data$World$Generation$exposedCave = F3(
 							$author$project$Data$World$removeEntity,
 							_Utils_Tuple2(x, y),
 							world)));
+			default:
+				return A2(
+					$elm$random$Random$andThen,
+					function (fun) {
+						return A2(
+							$author$project$Data$World$Generation$generateContent,
+							{
+								content: A2(
+									$elm$random$Random$weighted,
+									_Utils_Tuple2(
+										1,
+										$author$project$Data$World$insertActor(
+											$author$project$Data$Actor$Cave($author$project$Data$Actor$OldMine))),
+									_List_fromArray(
+										[
+											_Utils_Tuple2(
+											1 / 2,
+											$author$project$Data$World$insertEntity(
+												$author$project$Data$Entity$Vein($author$project$Data$Item$Coal))),
+											_Utils_Tuple2(
+											1 / 2,
+											$author$project$Data$World$insertEntity(
+												$author$project$Data$Entity$Vein($author$project$Data$Item$Iron)))
+										])),
+								probability: probability
+							},
+							A2(
+								fun,
+								_Utils_Tuple2(x, y),
+								A2(
+									$author$project$Data$World$removeEntity,
+									_Utils_Tuple2(x, y),
+									world)));
+					},
+					A2(
+						$elm$random$Random$weighted,
+						_Utils_Tuple2(
+							1,
+							$author$project$Data$World$insertFloor(
+								$author$project$Data$Floor$Ground($elm$core$Maybe$Nothing))),
+						_List_fromArray(
+							[
+								_Utils_Tuple2(
+								1 / 8,
+								$author$project$Data$World$insertFloor($author$project$Data$Floor$Track)),
+								_Utils_Tuple2(
+								1 / 16,
+								$author$project$Data$World$insertActor(
+									$author$project$Data$Actor$Wagon(
+										A2(
+											$author$project$Data$Wagon$load,
+											A2(
+												$author$project$AnyBag$fromAssociationList,
+												$author$project$Data$Item$toString,
+												_List_fromArray(
+													[
+														_Utils_Tuple2($author$project$Data$Item$Coal, $author$project$Config$wagonMaxItems)
+													])),
+											$author$project$Data$Wagon$emptyWagon)))),
+								_Utils_Tuple2(
+								1 / 32,
+								$author$project$Data$World$insertActor(
+									$author$project$Data$Actor$Wagon(
+										A2(
+											$author$project$Data$Wagon$load,
+											A2(
+												$author$project$AnyBag$fromAssociationList,
+												$author$project$Data$Item$toString,
+												_List_fromArray(
+													[
+														_Utils_Tuple2($author$project$Data$Item$Iron, $author$project$Config$wagonMaxItems)
+													])),
+											$author$project$Data$Wagon$emptyWagon))))
+							])));
 		}
 	});
 var $author$project$Data$World$getActors = function (world) {
 	return $elm$core$Dict$toList(world.actors);
+};
+var $author$project$Data$Effect$map = function (fun) {
+	return $elm$random$Random$map(
+		function (_v0) {
+			var a = _v0.a;
+			var l = _v0.b;
+			return A2(
+				$elm$core$Tuple$mapSecond,
+				$elm$core$Basics$append(l),
+				fun(a));
+		});
 };
 var $author$project$Data$Sound$MovingTrain = {$: 'MovingTrain'};
 var $author$project$Data$Train$forwardPos = function (train) {
@@ -8399,7 +8517,7 @@ var $author$project$Data$Behavior$Train$passTime = function (game) {
 					} else {
 						return (game.train.tracks > 0) ? $elm$core$Maybe$Just(
 							returnGame(
-								$elm$random$Random$constant(game))) : $elm$core$Maybe$Just(
+								$author$project$Data$Behavior$Train$mine(game))) : $elm$core$Maybe$Just(
 							returnGame(
 								A2(
 									$elm$random$Random$map,
@@ -8496,7 +8614,7 @@ var $author$project$Data$Behavior$passTime = function (game) {
 									A2(
 										$elm$core$Maybe$map,
 										function (movedFrom) {
-											return $author$project$Data$Effect$andThen(
+											return $author$project$Data$Effect$map(
 												A2(
 													$author$project$Data$Behavior$Wagon$act,
 													{backPos: movedFrom},
@@ -8770,7 +8888,7 @@ var $author$project$Main$restart = function (seed) {
 			promt: $elm$core$Maybe$Nothing,
 			seed: seed,
 			slowedDown: false,
-			volume: 100
+			volume: 50
 		};
 	}($author$project$Data$Game$new);
 };
@@ -9437,8 +9555,10 @@ var $author$project$Data$Info$fromActor = function (actor) {
 								return 'Water';
 							case 'CoalCave':
 								return 'Coal';
-							default:
+							case 'IronCave':
 								return 'Iron';
+							default:
+								return 'Old Mine';
 						}
 					}() + ' Cave'
 				});

@@ -13,14 +13,13 @@ import Data.Train
 import Data.Wagon exposing (Wagon)
 import Data.World exposing (World)
 import Dict
-import Random exposing (Generator)
 
 
 act :
     { backPos : ( Int, Int ) }
     -> Int
     -> Game
-    -> Generator ( Game, List Effect )
+    -> ( Game, List Effect )
 act args id game =
     (case game.world.actors |> Dict.get id of
         Just ( pos, Data.Actor.Wagon wagon ) ->
@@ -29,15 +28,15 @@ act args id game =
                     |> move args id ( pos, wagon )
 
             else
-                Random.constant game
+                game
 
         _ ->
-            Random.constant game
+            game
     )
-        |> Random.map (unload id)
+        |> unload id
 
 
-move : { backPos : ( Int, Int ) } -> Int -> ( ( Int, Int ), Wagon ) -> Game -> Generator Game
+move : { backPos : ( Int, Int ) } -> Int -> ( ( Int, Int ), Wagon ) -> Game -> Game
 move { backPos } id ( pos, wagon ) game =
     let
         forwardPos =
@@ -55,10 +54,8 @@ move { backPos } id ( pos, wagon ) game =
      else
         game.world
             |> moveOnGround positions ( pos, wagon )
-            |> Random.constant
     )
-        |> Random.map
-            (\( world, p ) ->
+        |> (\( world, p ) ->
                 world
                     |> Data.World.moveActorTo p id
                     |> Data.World.updateActor id
@@ -70,8 +67,8 @@ move { backPos } id ( pos, wagon ) game =
                                 _ ->
                                     actor
                         )
-            )
-        |> Random.map (\world -> { game | world = world })
+           )
+        |> (\world -> { game | world = world })
 
 
 moveOnGround : { backPos : ( Int, Int ), forwardPos : ( Int, Int ) } -> ( ( Int, Int ), Wagon ) -> World -> ( World, ( Int, Int ) )
@@ -121,7 +118,7 @@ moveOnTrack :
     { backPos : ( Int, Int ), forwardPos : ( Int, Int ) }
     -> ( ( Int, Int ), Wagon )
     -> World
-    -> Generator ( World, ( Int, Int ) )
+    -> ( World, ( Int, Int ) )
 moveOnTrack args ( pos, wagon ) world =
     case
         pos
@@ -132,14 +129,15 @@ moveOnTrack args ( pos, wagon ) world =
                         && (Data.World.get p world == Just (Data.Block.FloorBlock Data.Floor.Track))
                 )
     of
-        head :: tail ->
-            Random.uniform head tail
-                |> Random.map (\p -> ( world, p ))
-
         [] ->
             world
                 |> moveOnGround args ( pos, wagon )
-                |> Random.constant
+
+        [ p ] ->
+            ( world, p )
+
+        _ ->
+            ( world, pos )
 
 
 unload : Int -> Game -> ( Game, List Effect )

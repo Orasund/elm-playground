@@ -104,7 +104,7 @@ restart seed =
                     Data.Animation.animate
                         |> Data.Modal.fromAnimation
                         |> Just
-                , volume = 100
+                , volume = 50
                 }
            )
 

@@ -98,8 +98,7 @@ passTime game =
                                 _ ->
                                     if game.train.tracks > 0 then
                                         game
-                                            --|> mine
-                                            |> Random.constant
+                                            |> mine
                                             |> returnGame
                                             |> Just
 

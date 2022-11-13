@@ -158,8 +158,8 @@ moveActorTo pos id world =
                 { world
                     | entities =
                         world.entities
-                            |> Dict.insert pos (Data.Entity.Actor id)
                             |> Dict.remove oldPos
+                            |> Dict.insert pos (Data.Entity.Actor id)
                     , actors =
                         world.actors
                             |> Dict.update id

@@ -84,8 +84,7 @@ interactWith pos game =
                                     |> Data.Effect.andThen (moveTowards game.selected)
 
                             Data.Entity.Water ->
-                                game
-                                    |> walkThroughWater game.selected
+                                Random.constant game
                                     |> Random.map (\g -> ( g, [] ))
             )
         |> Maybe.withDefault (Random.constant ( game, [] ))
@@ -110,7 +109,7 @@ walkThroughWater pos game =
                         Random.uniform head tail
 
                     [] ->
-                        Random.constant game.player.pos
+                        Random.constant pos
            )
         |> Random.map
             (\p ->
@@ -173,8 +172,8 @@ moveTowards targetPos game =
                                 |> Data.Behavior.Wagon.move { backPos = game.player.pos }
                                     id
                                     ( pos, wagon )
-                                |> Random.map
-                                    (\g -> ( { g | player = g.player |> Data.Player.moveTo pos }, [] ))
+                                |> (\g -> ( { g | player = g.player |> Data.Player.moveTo pos }, [] ))
+                                |> Random.constant
 
                         _ ->
                             ( game, [] ) |> Random.constant

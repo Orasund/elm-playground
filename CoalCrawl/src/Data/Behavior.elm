@@ -31,7 +31,7 @@ passTime game =
                                     wagon.movedFrom
                                         |> Maybe.map
                                             (\movedFrom ->
-                                                Data.Effect.andThen
+                                                Data.Effect.map
                                                     (Data.Behavior.Wagon.act
                                                         { backPos = movedFrom }
                                                         id

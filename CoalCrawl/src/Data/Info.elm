@@ -156,6 +156,9 @@ fromActor actor =
 
                     Data.Actor.IronCave ->
                         "Iron"
+
+                    Data.Actor.OldMine ->
+                        "Old Mine"
                 )
                     ++ " Cave"
             , description = "Helper Block to generate caves"
