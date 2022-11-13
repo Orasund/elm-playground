@@ -89,8 +89,20 @@ moveOnGround args ( pos, wagon ) world =
                                         case Data.World.get pos world of
                                             Just (Data.Block.EntityBlock (Data.Entity.Actor id)) ->
                                                 world
-                                                    |> Data.World.updateActor id0 (\_ -> Data.Actor.Wagon (w0 |> Data.Wagon.load wagon.items))
-                                                    |> Data.World.updateActor id (\_ -> Data.Actor.Wagon (wagon |> Data.Wagon.load w0.items))
+                                                    |> Data.World.updateActor id0
+                                                        (\_ ->
+                                                            w0
+                                                                |> Data.Wagon.load wagon.items
+                                                                |> Data.Wagon.moveFrom pos
+                                                                |> Data.Actor.Wagon
+                                                        )
+                                                    |> Data.World.updateActor id
+                                                        (\_ ->
+                                                            wagon
+                                                                |> Data.Wagon.load w0.items
+                                                                |> Data.Wagon.stop
+                                                                |> Data.Actor.Wagon
+                                                        )
 
                                             _ ->
                                                 world
@@ -129,22 +141,22 @@ moveOnTrack args ( pos, wagon ) world =
                         && (Data.World.get p world == Just (Data.Block.FloorBlock Data.Floor.Track))
                 )
     of
-        [] ->
-            world
-                |> moveOnGround args ( pos, wagon )
-
         [ p ] ->
             ( world, p )
 
         _ ->
-            ( world, pos )
+            world
+                |> moveOnGround args ( pos, wagon )
 
 
 unload : Int -> Game -> ( Game, List Effect )
 unload id game =
     case game.world.actors |> Dict.get id of
         Just ( pos, Data.Actor.Wagon wagon ) ->
-            if List.member game.train.pos (Data.Position.neighbors pos) && (AnyBag.size wagon.items > 0) then
+            if
+                List.member game.train.pos (Data.Position.neighbors pos)
+                    && (AnyBag.size wagon.items > 0)
+            then
                 ( { game
                     | train = Data.Train.addAll wagon.items game.train
                     , world =

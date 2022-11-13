@@ -9,11 +9,13 @@ type CaveType
     | CoalCave
     | IronCave
     | OldMine
+    | GoldCave
 
 
 type Actor
     = Wagon Wagon
     | Cave CaveType
+    | Mine CaveType
     | Bomb { explodesIn : Int }
 
 

@@ -148,6 +148,11 @@ fromActor actor =
                 |> new
                 |> withBold
 
+        Data.Actor.Mine _ ->
+            { color = View.Color.red, content = '#' }
+                |> new
+                |> withBold
+
         Data.Actor.Bomb bomb ->
             { color = View.Color.red, content = 'b' }
                 |> new

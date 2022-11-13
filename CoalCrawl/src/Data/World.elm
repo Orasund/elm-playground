@@ -56,9 +56,13 @@ insertEntity entity pos =
 
 insertEntityAt : ( Int, Int ) -> Entity -> World -> World
 insertEntityAt pos entity world =
-    { world
-        | entities = world.entities |> Dict.insert pos entity
-    }
+    world
+        |> removeEntity pos
+        |> (\w ->
+                { w
+                    | entities = world.entities |> Dict.insert pos entity
+                }
+           )
 
 
 insertActor : Actor -> ( Int, Int ) -> World -> World

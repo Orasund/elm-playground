@@ -71,6 +71,10 @@ interactWith pos game =
                                                     Random.constant game
                                                         |> Random.map (\g -> ( g, [] ))
 
+                                                Data.Actor.Mine _ ->
+                                                    Random.constant game
+                                                        |> Random.map (\g -> ( g, [] ))
+
                                                 Data.Actor.Bomb _ ->
                                                     Random.constant game
                                                         |> Random.map (\g -> ( g, [] ))
@@ -84,40 +88,50 @@ interactWith pos game =
                                     |> Data.Effect.andThen (moveTowards game.selected)
 
                             Data.Entity.Water ->
-                                Random.constant game
-                                    |> Random.map (\g -> ( g, [] ))
+                                Random.constant ( game, [] )
             )
         |> Maybe.withDefault (Random.constant ( game, [] ))
 
 
-walkThroughWater : ( Int, Int ) -> Game -> Generator Game
+walkThroughWater : ( Int, Int ) -> Game -> Game
 walkThroughWater pos game =
-    pos
-        |> Data.Position.neighbors
-        |> List.filter
-            (\p ->
-                case game.world |> Data.World.get p of
-                    Just (FloorBlock _) ->
-                        True
+    let
+        forwardPos =
+            game.player.pos
+                |> Data.Position.vecTo pos
+                |> Data.Position.plus pos
+    in
+    (case game.world |> Data.World.get forwardPos of
+        Just (FloorBlock _) ->
+            forwardPos
 
-                    _ ->
-                        False
-            )
-        |> (\list ->
-                case list of
-                    head :: tail ->
-                        Random.uniform head tail
+        _ ->
+            pos
+                |> Data.Position.neighbors
+                |> List.filter
+                    (\p ->
+                        case game.world |> Data.World.get p of
+                            Just (FloorBlock _) ->
+                                p /= game.player.pos
 
-                    [] ->
-                        Random.constant pos
-           )
-        |> Random.map
-            (\p ->
+                            _ ->
+                                False
+                    )
+                |> (\list ->
+                        case list of
+                            [ p ] ->
+                                p
+
+                            _ ->
+                                pos
+                   )
+    )
+        |> (\p ->
                 game.world
                     |> Data.World.removeEntity pos
                     |> Data.World.insertEntityAt p Data.Entity.Water
-                    |> (\world -> { game | world = world, player = game.player |> Data.Player.moveTo pos })
-            )
+           )
+        |> (\world -> { game | world = world, player = game.player |> Data.Player.moveTo pos })
 
 
 canMoveTo : Game -> ( Int, Int ) -> Bool
@@ -132,6 +146,9 @@ canMoveTo game p =
                     True
 
                 Just ( _, Data.Actor.Cave _ ) ->
+                    False
+
+                Just ( _, Data.Actor.Mine _ ) ->
                     False
 
                 Just ( _, Data.Actor.Bomb _ ) ->
@@ -181,7 +198,8 @@ moveTowards targetPos game =
                 Just (Data.Block.EntityBlock Data.Entity.Water) ->
                     game
                         |> walkThroughWater pos
-                        |> Random.map (\g -> ( g, [] ))
+                        |> (\g -> ( g, [] ))
+                        |> Random.constant
 
                 Just (Data.Block.EntityBlock (Data.Entity.Vein _)) ->
                     game.world

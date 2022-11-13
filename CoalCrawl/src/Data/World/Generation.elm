@@ -46,7 +46,15 @@ mine ( x, y ) world =
                                     item :: _ ->
                                         Data.World.insertFloorAt ( x, y ) (Data.Floor.Ground (Just item))
                                )
-                            |> wall ( x, y )
+                            |> generateContent
+                                { probability =
+                                    [ ( 0, ( x, y - 1 ) )
+                                    , ( 1, ( x, y + 1 ) )
+                                    , ( 0.7, ( x - 1, y ) )
+                                    , ( 0.7, ( x + 1, y ) )
+                                    ]
+                                , content = wallGenerator ( x, y )
+                                }
                     )
                 |> Maybe.withDefault (Random.constant world)
 
@@ -54,117 +62,107 @@ mine ( x, y ) world =
             Random.constant world
 
 
-wall : ( Int, Int ) -> World -> Generator World
-wall ( x, y ) =
-    generateContent
-        { probability =
-            [ ( 0, ( x, y - 1 ) )
-            , ( 1, ( x, y + 1 ) )
-            , ( 0.7, ( x - 1, y ) )
-            , ( 0.7, ( x + 1, y ) )
+wallGenerator : ( Int, Int ) -> Generator (( Int, Int ) -> World -> World)
+wallGenerator ( x, y ) =
+    let
+        content i =
+            [ Data.World.insertActor (Data.Actor.Cave Data.Actor.CoalCave)
+            , Data.World.insertEntity (Data.Entity.Vein Data.Item.Coal)
+            , Data.World.insertActor (Data.Actor.Cave Data.Actor.IronCave)
+            , Data.World.insertEntity (Data.Entity.Vein Data.Item.Iron)
+            , Data.World.insertActor (Data.Actor.Cave Data.Actor.WaterCave)
+            , Data.World.insertActor (Data.Actor.Cave Data.Actor.OldMine)
+            , Data.World.insertActor (Data.Actor.Cave Data.Actor.GoldCave)
             ]
-        , content =
-            if y < Config.tracksPerTrip then
-                Random.weighted ( 1, Data.World.insertEntity (Data.Entity.Vein Data.Item.Coal) )
-                    [ ( 1 / 2, Data.World.insertActor (Data.Actor.Cave Data.Actor.CoalCave) )
-                    , ( 1 / 2, Data.World.insertEntity Data.Entity.Wall )
-                    ]
+                |> List.take (i + 1)
+                |> List.reverse
+    in
+    (if y < Config.tracksPerTrip * 1 then
+        content 1
 
-            else if y < Config.tracksPerTrip * 2 then
-                Random.weighted ( 1, Data.World.insertActor (Data.Actor.Cave Data.Actor.IronCave) )
-                    [ ( 1 / 2, Data.World.insertEntity (Data.Entity.Vein Data.Item.Coal) )
-                    , ( 1 / 4, Data.World.insertActor (Data.Actor.Cave Data.Actor.CoalCave) )
-                    , ( 1 / 4, Data.World.insertEntity Data.Entity.Wall )
-                    ]
+     else if y < Config.tracksPerTrip * 2 then
+        content 2
 
-            else if y < Config.tracksPerTrip * 3 then
-                Random.weighted ( 1, Data.World.insertEntity (Data.Entity.Vein Data.Item.Iron) )
-                    [ ( 1 / 2, Data.World.insertActor (Data.Actor.Cave Data.Actor.IronCave) )
-                    , ( 1 / 4, Data.World.insertEntity (Data.Entity.Vein Data.Item.Coal) )
-                    , ( 1 / 8, Data.World.insertActor (Data.Actor.Cave Data.Actor.CoalCave) )
-                    , ( 1 / 8, Data.World.insertEntity Data.Entity.Wall )
-                    ]
+     else if y < Config.tracksPerTrip * 3 then
+        content 3
 
-            else if y < Config.tracksPerTrip * 4 then
-                Random.weighted ( 1, Data.World.insertActor (Data.Actor.Cave Data.Actor.WaterCave) )
-                    [ ( 1 / 2, Data.World.insertEntity (Data.Entity.Vein Data.Item.Iron) )
-                    , ( 1 / 4, Data.World.insertActor (Data.Actor.Cave Data.Actor.IronCave) )
-                    , ( 1 / 8, Data.World.insertEntity (Data.Entity.Vein Data.Item.Coal) )
-                    , ( 1 / 16, Data.World.insertActor (Data.Actor.Cave Data.Actor.CoalCave) )
-                    , ( 1 / 16, Data.World.insertEntity Data.Entity.Wall )
-                    ]
+     else if y < Config.tracksPerTrip * 4 then
+        content 4
 
-            else
-                Random.weighted ( 1, Data.World.insertActor (Data.Actor.Cave Data.Actor.OldMine) )
-                    [ ( 1 / 2, Data.World.insertActor (Data.Actor.Cave Data.Actor.WaterCave) )
-                    , ( 1 / 4, Data.World.insertEntity (Data.Entity.Vein Data.Item.Iron) )
-                    , ( 1 / 8, Data.World.insertActor (Data.Actor.Cave Data.Actor.IronCave) )
-                    , ( 1 / 16, Data.World.insertEntity (Data.Entity.Vein Data.Item.Coal) )
-                    , ( 1 / 32, Data.World.insertActor (Data.Actor.Cave Data.Actor.CoalCave) )
-                    , ( 1 / 32, Data.World.insertEntity Data.Entity.Wall )
-                    ]
-        }
+     else if y < Config.tracksPerTrip * 5 then
+        content 5
+
+     else
+        content 6
+    )
+        |> (\list ->
+                case list of
+                    [] ->
+                        Random.constant (\_ -> identity)
+
+                    head :: tail ->
+                        tail
+                            |> List.indexedMap (\i fun -> ( 1 / (2 ^ (toFloat i + 1)), fun ))
+                            |> Random.weighted ( 1, head )
+           )
+
+
+caveGenerator :
+    { ground : Generator (( Int, Int ) -> World -> World)
+    , cave : CaveType
+    }
+    -> ( Int, Int )
+    -> World
+    -> Generator World
+caveGenerator args ( x, y ) world =
+    let
+        probability =
+            [ ( 0.25, ( x, y - 1 ) )
+            , ( 0.25, ( x, y + 1 ) )
+            , ( 0.25, ( x - 1, y ) )
+            , ( 0.25, ( x + 1, y ) )
+            ]
+
+        pos =
+            ( x, y )
+    in
+    args.ground
+        |> Random.andThen
+            (\fun ->
+                world
+                    |> Data.World.removeEntity pos
+                    |> fun pos
+                    |> generateContent
+                        { probability = probability
+                        , content =
+                            Random.weighted
+                                ( 1
+                                , args.cave
+                                    |> Data.Actor.Cave
+                                    |> Data.World.insertActor
+                                    |> Random.constant
+                                )
+                                [ ( 1 / 4, wallGenerator pos )
+                                ]
+                                |> Random.andThen identity
+                        }
+            )
 
 
 exposedCave : CaveType -> ( Int, Int ) -> World -> Generator World
-exposedCave caveType ( x, y ) world =
-    let
-        probability =
-            [ ( 0.2, ( x, y - 1 ) )
-            , ( 0.5, ( x, y + 1 ) )
-            , ( 0.5, ( x - 1, y ) )
-            , ( 0.5, ( x + 1, y ) )
-            ]
-    in
-    case caveType of
+exposedCave caveType =
+    (case caveType of
         WaterCave ->
-            Random.weighted ( 1, Data.World.insertFloor (Data.Floor.Ground Nothing) )
-                [ ( 1 / 2, Data.World.insertEntity Data.Entity.Water ) ]
-                |> Random.andThen
-                    (\fun ->
-                        world
-                            |> fun ( x, y )
-                            |> generateContent
-                                { probability = probability
-                                , content =
-                                    Random.weighted ( 1, \pos -> Data.World.insertActorAt pos (Data.Actor.Cave Data.Actor.WaterCave) )
-                                        [ ( 1 / 2, \pos -> Data.World.insertEntityAt pos (Data.Entity.Vein Data.Item.Iron) )
-                                        , ( 1 / 8, \pos -> Data.World.insertEntityAt pos (Data.Entity.Vein Data.Item.Coal) )
-                                        , ( 1 / 8, \pos -> Data.World.insertEntityAt pos (Data.Entity.Vein Data.Item.Gold) )
-                                        ]
-                                }
-                    )
+            Random.weighted ( 1, Data.World.insertEntity Data.Entity.Water )
+                [ ( 1 / 2, Data.World.insertFloor (Data.Floor.Ground Nothing) ) ]
 
         CoalCave ->
-            world
-                |> Data.World.removeEntity ( x, y )
-                |> Data.World.insert ( x, y ) (Data.Block.FloorBlock (Data.Floor.Ground (Just Data.Item.Coal)))
-                |> generateContent
-                    { probability = probability
-                    , content =
-                        Random.weighted ( 1, Data.World.insertActor (Data.Actor.Cave Data.Actor.CoalCave) )
-                            [ ( 1 / 2, Data.World.insertEntity (Data.Entity.Vein Data.Item.Coal) )
-                            , ( 1 / 8, Data.World.insertEntity (Data.Entity.Vein Data.Item.Iron) )
-                            ]
-                    }
+            Random.constant (Data.World.insertFloor (Data.Floor.Ground (Just Data.Item.Coal)))
 
         IronCave ->
-            world
-                |> Data.World.removeEntity ( x, y )
-                |> Data.World.insert ( x, y ) (Data.Block.FloorBlock (Data.Floor.Ground (Just Data.Item.Iron)))
-                |> generateContent
-                    { probability = probability
-                    , content =
-                        Random.weighted ( 1, Data.World.insertActor (Data.Actor.Cave Data.Actor.IronCave) )
-                            [ ( 1 / 2, Data.World.insertEntity (Data.Entity.Vein Data.Item.Coal) )
-                            , ( 1 / 8, Data.World.insertEntity (Data.Entity.Vein Data.Item.Iron) )
-                            ]
-                    }
-
-        OldMine ->
-            Random.weighted ( 1, Data.World.insertFloor (Data.Floor.Ground Nothing) )
+            Random.weighted ( 1, Data.World.insertFloor (Data.Floor.Ground (Just Data.Item.Iron)) )
                 [ ( 1 / 8, Data.World.insertFloor Data.Floor.Track )
-                , ( 1 / 16
+                , ( 1 / 32
                   , Data.Wagon.emptyWagon
                         |> Data.Wagon.load
                             ([ ( Data.Item.Coal, Config.wagonMaxItems ) ]
@@ -173,6 +171,11 @@ exposedCave caveType ( x, y ) world =
                         |> Data.Actor.Wagon
                         |> Data.World.insertActor
                   )
+                ]
+
+        OldMine ->
+            Random.weighted ( 1, Data.World.insertFloor (Data.Floor.Ground Nothing) )
+                [ ( 1 / 8, Data.World.insertFloor Data.Floor.Track )
                 , ( 1 / 32
                   , Data.Wagon.emptyWagon
                         |> Data.Wagon.load
@@ -183,20 +186,19 @@ exposedCave caveType ( x, y ) world =
                         |> Data.World.insertActor
                   )
                 ]
-                |> Random.andThen
-                    (\fun ->
-                        world
-                            |> Data.World.removeEntity ( x, y )
-                            |> fun ( x, y )
-                            |> generateContent
-                                { probability = probability
-                                , content =
-                                    Random.weighted ( 1, Data.World.insertActor (Data.Actor.Cave Data.Actor.OldMine) )
-                                        [ ( 1 / 2, Data.World.insertEntity (Data.Entity.Vein Data.Item.Coal) )
-                                        , ( 1 / 2, Data.World.insertEntity (Data.Entity.Vein Data.Item.Iron) )
-                                        ]
-                                }
-                    )
+
+        GoldCave ->
+            Random.weighted ( 1, Data.World.insertFloor (Data.Floor.Ground Nothing) )
+                [ ( 1 / 4, Data.World.insertEntity Data.Entity.Wall )
+                , ( 1 / 8, Data.World.insertFloor (Data.Floor.Ground (Just Data.Item.Gold)) )
+                ]
+    )
+        |> (\ground ->
+                caveGenerator
+                    { ground = ground
+                    , cave = caveType
+                    }
+           )
 
 
 generateContent : { probability : List ( Float, ( Int, Int ) ), content : Generator (( Int, Int ) -> World -> World) } -> World -> Generator World

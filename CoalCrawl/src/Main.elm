@@ -119,7 +119,7 @@ init () =
 
 view : Model -> Document Msg
 view model =
-    { title = "Coal Crawl"
+    { title = "⛏Coal Crawl"
     , body =
         [ Html.node "link"
             [ Attr.rel "stylesheet"

@@ -128,6 +128,24 @@ fromEntity game entity =
                     )
 
 
+cave caveType =
+    case caveType of
+        Data.Actor.WaterCave ->
+            "Water"
+
+        Data.Actor.CoalCave ->
+            "Coal"
+
+        Data.Actor.IronCave ->
+            "Iron"
+
+        Data.Actor.OldMine ->
+            "Old Mine"
+
+        Data.Actor.GoldCave ->
+            "Gold"
+
+
 fromActor : Actor -> Info
 fromActor actor =
     case actor of
@@ -146,22 +164,14 @@ fromActor actor =
                     )
 
         Data.Actor.Cave caveType ->
-            { title =
-                (case caveType of
-                    Data.Actor.WaterCave ->
-                        "Water"
-
-                    Data.Actor.CoalCave ->
-                        "Coal"
-
-                    Data.Actor.IronCave ->
-                        "Iron"
-
-                    Data.Actor.OldMine ->
-                        "Old Mine"
-                )
-                    ++ " Cave"
+            { title = cave caveType ++ " Cave"
             , description = "Helper Block to generate caves"
+            }
+                |> new
+
+        Data.Actor.Mine caveType ->
+            { title = cave caveType ++ " Mine"
+            , description = "Helper Block to generate mines"
             }
                 |> new
 
