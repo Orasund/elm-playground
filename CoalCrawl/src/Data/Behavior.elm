@@ -43,15 +43,17 @@ passTime game =
                                     Random.andThen
                                         (\( it, l ) ->
                                             it.world
+                                                |> Data.World.removeEntity pos
                                                 |> Data.World.Generation.exposedCave caveType pos
                                                 |> Random.map (\world -> ( { it | world = world }, l ))
                                         )
 
-                                Data.Actor.Mine caveType ->
+                                Data.Actor.Mine ->
                                     Random.andThen
                                         (\( it, l ) ->
                                             it.world
-                                                |> Data.World.Generation.exposedCave caveType pos
+                                                |> Data.World.removeEntity pos
+                                                |> Data.World.Generation.mineGenerator pos
                                                 |> Random.map (\world -> ( { it | world = world }, l ))
                                         )
 

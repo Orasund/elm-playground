@@ -72,15 +72,19 @@ insertActor actor pos =
 
 insertActorAt : ( Int, Int ) -> Actor -> World -> World
 insertActorAt pos actor world =
-    { world
-        | entities =
-            world.entities
-                |> Dict.insert pos (Data.Entity.Actor world.nextId)
-        , actors =
-            world.actors
-                |> Dict.insert world.nextId ( pos, actor )
-        , nextId = world.nextId + 1
-    }
+    world
+        |> removeEntity pos
+        |> (\w ->
+                { w
+                    | entities =
+                        world.entities
+                            |> Dict.insert pos (Data.Entity.Actor world.nextId)
+                    , actors =
+                        world.actors
+                            |> Dict.insert world.nextId ( pos, actor )
+                    , nextId = world.nextId + 1
+                }
+           )
 
 
 removeEntity : ( Int, Int ) -> World -> World

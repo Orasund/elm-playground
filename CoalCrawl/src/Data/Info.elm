@@ -169,8 +169,8 @@ fromActor actor =
             }
                 |> new
 
-        Data.Actor.Mine caveType ->
-            { title = cave caveType ++ " Mine"
+        Data.Actor.Mine ->
+            { title = "Mine"
             , description = "Helper Block to generate mines"
             }
                 |> new

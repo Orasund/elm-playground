@@ -71,7 +71,7 @@ interactWith pos game =
                                                     Random.constant game
                                                         |> Random.map (\g -> ( g, [] ))
 
-                                                Data.Actor.Mine _ ->
+                                                Data.Actor.Mine ->
                                                     Random.constant game
                                                         |> Random.map (\g -> ( g, [] ))
 
@@ -148,7 +148,7 @@ canMoveTo game p =
                 Just ( _, Data.Actor.Cave _ ) ->
                     False
 
-                Just ( _, Data.Actor.Mine _ ) ->
+                Just ( _, Data.Actor.Mine ) ->
                     False
 
                 Just ( _, Data.Actor.Bomb _ ) ->

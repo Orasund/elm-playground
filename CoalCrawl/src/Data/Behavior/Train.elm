@@ -89,7 +89,7 @@ passTime game =
                                                     Data.Actor.Cave _ ->
                                                         Nothing
 
-                                                    Data.Actor.Mine _ ->
+                                                    Data.Actor.Mine ->
                                                         Nothing
 
                                                     Data.Actor.Bomb _ ->

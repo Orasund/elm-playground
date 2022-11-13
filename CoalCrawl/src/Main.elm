@@ -12,6 +12,7 @@ import Data.Game exposing (Game)
 import Data.Item exposing (Item)
 import Data.Modal exposing (Modal)
 import Data.Sound
+import Dict
 import Html
 import Html.Attributes as Attr
 import Layout
@@ -198,6 +199,10 @@ update msg model =
                     ( { model | modal = modal |> Data.Modal.timePassed |> Just }, Cmd.none )
 
                 Nothing ->
+                    let
+                        _ =
+                            Dict.size model.game.world.actors |> Debug.log "actors"
+                    in
                     model
                         |> updateCamera
                         |> updateGame Data.Behavior.passTime

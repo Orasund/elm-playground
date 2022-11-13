@@ -6145,21 +6145,24 @@ var $author$project$Data$Entity$Actor = function (a) {
 };
 var $author$project$Data$World$insertActorAt = F3(
 	function (pos, actor, world) {
-		return _Utils_update(
-			world,
-			{
-				actors: A3(
-					$elm$core$Dict$insert,
-					world.nextId,
-					_Utils_Tuple2(pos, actor),
-					world.actors),
-				entities: A3(
-					$elm$core$Dict$insert,
-					pos,
-					$author$project$Data$Entity$Actor(world.nextId),
-					world.entities),
-				nextId: world.nextId + 1
-			});
+		return function (w) {
+			return _Utils_update(
+				w,
+				{
+					actors: A3(
+						$elm$core$Dict$insert,
+						world.nextId,
+						_Utils_Tuple2(pos, actor),
+						world.actors),
+					entities: A3(
+						$elm$core$Dict$insert,
+						pos,
+						$author$project$Data$Entity$Actor(world.nextId),
+						world.entities),
+					nextId: world.nextId + 1
+				});
+		}(
+			A2($author$project$Data$World$removeEntity, pos, world));
 	});
 var $author$project$Data$World$insertActor = F2(
 	function (actor, pos) {
@@ -6561,7 +6564,7 @@ var $author$project$Data$World$Generation$wallGenerator = function (_v0) {
 					tail));
 		}
 	}(
-		(_Utils_cmp(y, $author$project$Config$tracksPerTrip * 1) < 0) ? content(1) : ((_Utils_cmp(y, $author$project$Config$tracksPerTrip * 2) < 0) ? content(2) : ((_Utils_cmp(y, $author$project$Config$tracksPerTrip * 3) < 0) ? content(3) : ((_Utils_cmp(y, $author$project$Config$tracksPerTrip * 4) < 0) ? content(4) : ((_Utils_cmp(y, $author$project$Config$tracksPerTrip * 5) < 0) ? content(5) : content(6))))));
+		(_Utils_cmp(y, $author$project$Config$tracksPerTrip * 0) < 0) ? _List_Nil : ((_Utils_cmp(y, $author$project$Config$tracksPerTrip * 1) < 0) ? content(1) : ((_Utils_cmp(y, $author$project$Config$tracksPerTrip * 2) < 0) ? content(2) : ((_Utils_cmp(y, $author$project$Config$tracksPerTrip * 3) < 0) ? content(3) : ((_Utils_cmp(y, $author$project$Config$tracksPerTrip * 4) < 0) ? content(4) : ((_Utils_cmp(y, $author$project$Config$tracksPerTrip * 5) < 0) ? content(5) : content(6)))))));
 };
 var $author$project$Data$World$Generation$mine = F2(
 	function (_v0, world) {
@@ -6680,16 +6683,17 @@ var $author$project$Data$Behavior$Player$canMoveTo = F2(
 										return false;
 									case 'Mine':
 										var _v4 = _v1.a;
+										var _v5 = _v4.b;
 										return false;
 									default:
-										var _v5 = _v1.a;
+										var _v6 = _v1.a;
 										return false;
 								}
 							} else {
 								return false;
 							}
 						case 'Water':
-							var _v6 = _v0.a.a;
+							var _v7 = _v0.a.a;
 							return true;
 						case 'Vein':
 							return true;
@@ -8054,6 +8058,7 @@ var $author$project$Data$Behavior$Wagon$act = F3(
 			}());
 	});
 var $author$project$Data$Item$Gold = {$: 'Gold'};
+var $author$project$Data$Actor$Mine = {$: 'Mine'};
 var $author$project$Data$World$Generation$caveGenerator = F3(
 	function (args, _v0, world) {
 		var x = _v0.a;
@@ -8061,16 +8066,16 @@ var $author$project$Data$World$Generation$caveGenerator = F3(
 		var probability = _List_fromArray(
 			[
 				_Utils_Tuple2(
-				0.25,
+				0.33,
 				_Utils_Tuple2(x, y - 1)),
 				_Utils_Tuple2(
-				0.25,
+				0.33,
 				_Utils_Tuple2(x, y + 1)),
 				_Utils_Tuple2(
-				0.25,
+				0.33,
 				_Utils_Tuple2(x - 1, y)),
 				_Utils_Tuple2(
-				0.25,
+				0.33,
 				_Utils_Tuple2(x + 1, y))
 			]);
 		var pos = _Utils_Tuple2(x, y);
@@ -8094,7 +8099,11 @@ var $author$project$Data$World$Generation$caveGenerator = F3(
 									[
 										_Utils_Tuple2(
 										1 / 4,
-										$author$project$Data$World$Generation$wallGenerator(pos))
+										$author$project$Data$World$Generation$wallGenerator(pos)),
+										_Utils_Tuple2(
+										1 / 64,
+										$elm$random$Random$constant(
+											$author$project$Data$World$insertActor($author$project$Data$Actor$Mine)))
 									]))),
 						probability: probability
 					},
@@ -8239,6 +8248,105 @@ var $author$project$Data$Effect$map = function (fun) {
 				fun(a));
 		});
 };
+var $author$project$Data$Wagon$fullWagon = function (item) {
+	return A2(
+		$author$project$Data$Wagon$load,
+		A2(
+			$author$project$AnyBag$fromAssociationList,
+			$author$project$Data$Item$toString,
+			_List_fromArray(
+				[
+					_Utils_Tuple2(item, $author$project$Config$wagonMaxItems)
+				])),
+		$author$project$Data$Wagon$emptyWagon);
+};
+var $elm$random$Random$addOne = function (value) {
+	return _Utils_Tuple2(1, value);
+};
+var $elm$random$Random$uniform = F2(
+	function (value, valueList) {
+		return A2(
+			$elm$random$Random$weighted,
+			$elm$random$Random$addOne(value),
+			A2($elm$core$List$map, $elm$random$Random$addOne, valueList));
+	});
+var $author$project$Data$World$Generation$mineGenerator = F2(
+	function (pos, world) {
+		var _v0 = A2(
+			$elm$core$List$filter,
+			function (p) {
+				return _Utils_eq(
+					A2($author$project$Data$World$get, p, world),
+					$elm$core$Maybe$Nothing);
+			},
+			$author$project$Data$Position$neighbors(pos));
+		if (_v0.b) {
+			var head = _v0.a;
+			var tail = _v0.b;
+			return A2(
+				$elm$random$Random$andThen,
+				function (stop) {
+					return stop ? $elm$random$Random$constant(
+						A3(
+							$author$project$Data$World$insertActor,
+							$author$project$Data$Actor$Wagon(
+								$author$project$Data$Wagon$fullWagon($author$project$Data$Item$Coal)),
+							pos,
+							A3(
+								$elm$core$List$foldl,
+								function (p) {
+									return A2(
+										$author$project$Data$World$insertEntity,
+										$author$project$Data$Entity$Vein($author$project$Data$Item$Coal),
+										p);
+								},
+								world,
+								A2(
+									$elm$core$List$filter,
+									function (p) {
+										return _Utils_eq(
+											A2($author$project$Data$World$get, p, world),
+											$elm$core$Maybe$Nothing);
+									},
+									$author$project$Data$Position$neighbors(pos))))) : A2(
+						$elm$random$Random$map,
+						function (nextPos) {
+							return A3(
+								$author$project$Data$World$insertFloor,
+								$author$project$Data$Floor$Track,
+								pos,
+								A2(
+									$author$project$Data$World$removeEntity,
+									pos,
+									A3(
+										$elm$core$List$foldl,
+										function (p) {
+											return _Utils_eq(p, nextPos) ? A2($author$project$Data$World$insertActor, $author$project$Data$Actor$Mine, p) : A2($author$project$Data$World$insertEntity, $author$project$Data$Entity$Wall, p);
+										},
+										world,
+										A2(
+											$elm$core$List$filter,
+											function (p) {
+												return _Utils_eq(
+													A2($author$project$Data$World$get, p, world),
+													$elm$core$Maybe$Nothing);
+											},
+											$author$project$Data$Position$neighbors(pos)))));
+						},
+						A2($elm$random$Random$uniform, head, tail));
+				},
+				A2(
+					$elm$random$Random$weighted,
+					_Utils_Tuple2(1, false),
+					_List_fromArray(
+						[
+							_Utils_Tuple2(1 / 4, true)
+						])));
+		} else {
+			return $elm$random$Random$constant(
+				A2($author$project$Data$World$removeEntity, pos, world));
+		}
+	});
 var $author$project$Data$Sound$MovingTrain = {$: 'MovingTrain'};
 var $author$project$Data$Train$forwardPos = function (train) {
 	var _v0 = train.pos;
@@ -8635,10 +8743,13 @@ var $author$project$Data$Behavior$passTime = function (game) {
 														{world: world}),
 													l);
 											},
-											A3($author$project$Data$World$Generation$exposedCave, caveType, pos, it.world));
+											A3(
+												$author$project$Data$World$Generation$exposedCave,
+												caveType,
+												pos,
+												A2($author$project$Data$World$removeEntity, pos, it.world)));
 									});
 							case 'Mine':
-								var caveType = actor.a;
 								return $elm$random$Random$andThen(
 									function (_v4) {
 										var it = _v4.a;
@@ -8652,7 +8763,10 @@ var $author$project$Data$Behavior$passTime = function (game) {
 														{world: world}),
 													l);
 											},
-											A3($author$project$Data$World$Generation$exposedCave, caveType, pos, it.world));
+											A2(
+												$author$project$Data$World$Generation$mineGenerator,
+												pos,
+												A2($author$project$Data$World$removeEntity, pos, it.world)));
 									});
 							default:
 								return $elm$random$Random$andThen(
@@ -9183,9 +9297,30 @@ var $author$project$Main$loadSound = _Platform_outgoingPort(
 					$elm$json$Json$Encode$string(b)
 				]));
 	});
+var $elm$core$Debug$log = _Debug_log;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $elm$json$Json$Encode$float = _Json_wrap;
 var $author$project$Main$setVolume = _Platform_outgoingPort('setVolume', $elm$json$Json$Encode$float);
+var $elm$core$Dict$sizeHelp = F2(
+	function (n, dict) {
+		sizeHelp:
+		while (true) {
+			if (dict.$ === 'RBEmpty_elm_builtin') {
+				return n;
+			} else {
+				var left = dict.d;
+				var right = dict.e;
+				var $temp$n = A2($elm$core$Dict$sizeHelp, n + 1, right),
+					$temp$dict = left;
+				n = $temp$n;
+				dict = $temp$dict;
+				continue sizeHelp;
+			}
+		}
+	});
+var $elm$core$Dict$size = function (dict) {
+	return A2($elm$core$Dict$sizeHelp, 0, dict);
+};
 var $author$project$Data$Modal$timePassed = function (modal) {
 	return _Utils_update(
 		modal,
@@ -9320,6 +9455,10 @@ var $author$project$Main$update = F2(
 							}),
 						$elm$core$Platform$Cmd$none);
 				} else {
+					var _v2 = A2(
+						$elm$core$Debug$log,
+						'actors',
+						$elm$core$Dict$size(model.game.world.actors));
 					return A2(
 						$author$project$Main$updateGame,
 						$author$project$Data$Behavior$passTime,
@@ -9582,12 +9721,8 @@ var $author$project$Data$Info$fromActor = function (actor) {
 					title: $author$project$Data$Info$cave(caveType) + ' Cave'
 				});
 		case 'Mine':
-			var caveType = actor.a;
 			return $author$project$Data$Info$new(
-				{
-					description: 'Helper Block to generate mines',
-					title: $author$project$Data$Info$cave(caveType) + ' Mine'
-				});
+				{description: 'Helper Block to generate mines', title: 'Mine'});
 		default:
 			var explodesIn = actor.a.explodesIn;
 			return $author$project$Data$Info$new(

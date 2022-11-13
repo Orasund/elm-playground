@@ -18,6 +18,15 @@ emptyWagon =
     }
 
 
+fullWagon : Item -> Wagon
+fullWagon item =
+    emptyWagon
+        |> load
+            ([ ( item, Config.wagonMaxItems ) ]
+                |> AnyBag.fromAssociationList Data.Item.toString
+            )
+
+
 insert : Item -> Wagon -> Wagon
 insert item wagon =
     { wagon | items = AnyBag.insert 1 item wagon.items }

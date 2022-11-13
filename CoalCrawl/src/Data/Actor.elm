@@ -15,7 +15,7 @@ type CaveType
 type Actor
     = Wagon Wagon
     | Cave CaveType
-    | Mine CaveType
+    | Mine
     | Bomb { explodesIn : Int }
 
 

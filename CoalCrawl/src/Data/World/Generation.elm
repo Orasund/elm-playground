@@ -7,6 +7,7 @@ import Data.Block
 import Data.Entity
 import Data.Floor
 import Data.Item
+import Data.Position
 import Data.Wagon
 import Data.World exposing (World)
 import Random exposing (Generator)
@@ -77,7 +78,10 @@ wallGenerator ( x, y ) =
                 |> List.take (i + 1)
                 |> List.reverse
     in
-    (if y < Config.tracksPerTrip * 1 then
+    (if y < Config.tracksPerTrip * 0 then
+        []
+
+     else if y < Config.tracksPerTrip * 1 then
         content 1
 
      else if y < Config.tracksPerTrip * 2 then
@@ -107,6 +111,71 @@ wallGenerator ( x, y ) =
            )
 
 
+mineGenerator : ( Int, Int ) -> World -> Generator World
+mineGenerator pos world =
+    case
+        Data.Position.neighbors pos
+            |> List.filter
+                (\p ->
+                    Data.World.get p world
+                        == Nothing
+                )
+    of
+        head :: tail ->
+            Random.weighted ( 1, False ) [ ( 1 / 4, True ) ]
+                |> Random.andThen
+                    (\stop ->
+                        if stop then
+                            pos
+                                |> Data.Position.neighbors
+                                |> List.filter
+                                    (\p ->
+                                        Data.World.get p world
+                                            == Nothing
+                                    )
+                                |> List.foldl
+                                    (\p ->
+                                        Data.World.insertEntity (Data.Entity.Vein Data.Item.Coal) p
+                                    )
+                                    world
+                                |> Data.World.insertActor
+                                    (Data.Wagon.fullWagon Data.Item.Coal
+                                        |> Data.Actor.Wagon
+                                    )
+                                    pos
+                                |> Random.constant
+
+                        else
+                            Random.uniform head tail
+                                |> Random.map
+                                    (\nextPos ->
+                                        pos
+                                            |> Data.Position.neighbors
+                                            |> List.filter
+                                                (\p ->
+                                                    Data.World.get p world
+                                                        == Nothing
+                                                )
+                                            |> List.foldl
+                                                (\p ->
+                                                    if p == nextPos then
+                                                        Data.World.insertActor Data.Actor.Mine p
+
+                                                    else
+                                                        Data.World.insertEntity Data.Entity.Wall p
+                                                )
+                                                world
+                                            |> Data.World.removeEntity pos
+                                            |> Data.World.insertFloor Data.Floor.Track pos
+                                    )
+                    )
+
+        [] ->
+            world
+                |> Data.World.removeEntity pos
+                |> Random.constant
+
+
 caveGenerator :
     { ground : Generator (( Int, Int ) -> World -> World)
     , cave : CaveType
@@ -117,10 +186,10 @@ caveGenerator :
 caveGenerator args ( x, y ) world =
     let
         probability =
-            [ ( 0.25, ( x, y - 1 ) )
-            , ( 0.25, ( x, y + 1 ) )
-            , ( 0.25, ( x - 1, y ) )
-            , ( 0.25, ( x + 1, y ) )
+            [ ( 0.33, ( x, y - 1 ) )
+            , ( 0.33, ( x, y + 1 ) )
+            , ( 0.33, ( x - 1, y ) )
+            , ( 0.33, ( x + 1, y ) )
             ]
 
         pos =
@@ -143,6 +212,11 @@ caveGenerator args ( x, y ) world =
                                     |> Random.constant
                                 )
                                 [ ( 1 / 4, wallGenerator pos )
+                                , ( 1 / 64
+                                  , Data.Actor.Mine
+                                        |> Data.World.insertActor
+                                        |> Random.constant
+                                  )
                                 ]
                                 |> Random.andThen identity
                         }

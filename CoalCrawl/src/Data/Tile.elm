@@ -148,7 +148,7 @@ fromActor actor =
                 |> new
                 |> withBold
 
-        Data.Actor.Mine _ ->
+        Data.Actor.Mine ->
             { color = View.Color.red, content = '#' }
                 |> new
                 |> withBold
