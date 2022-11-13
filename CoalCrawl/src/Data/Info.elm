@@ -139,9 +139,6 @@ cave caveType =
         Data.Actor.IronCave ->
             "Iron"
 
-        Data.Actor.OldMine ->
-            "Old Mine"
-
         Data.Actor.GoldCave ->
             "Gold"
 

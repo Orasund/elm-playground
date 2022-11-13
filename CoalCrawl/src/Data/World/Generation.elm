@@ -72,7 +72,6 @@ wallGenerator ( x, y ) =
             , Data.World.insertActor (Data.Actor.Cave Data.Actor.IronCave)
             , Data.World.insertEntity (Data.Entity.Vein Data.Item.Iron)
             , Data.World.insertActor (Data.Actor.Cave Data.Actor.WaterCave)
-            , Data.World.insertActor (Data.Actor.Cave Data.Actor.OldMine)
             , Data.World.insertActor (Data.Actor.Cave Data.Actor.GoldCave)
             ]
                 |> List.take (i + 1)
@@ -186,10 +185,10 @@ caveGenerator :
 caveGenerator args ( x, y ) world =
     let
         probability =
-            [ ( 0.33, ( x, y - 1 ) )
-            , ( 0.33, ( x, y + 1 ) )
-            , ( 0.33, ( x - 1, y ) )
-            , ( 0.33, ( x + 1, y ) )
+            [ ( 0.5, ( x, y - 1 ) )
+            , ( 0.5, ( x, y + 1 ) )
+            , ( 0.5, ( x - 1, y ) )
+            , ( 0.5, ( x + 1, y ) )
             ]
 
         pos =
@@ -240,20 +239,6 @@ exposedCave caveType =
                   , Data.Wagon.emptyWagon
                         |> Data.Wagon.load
                             ([ ( Data.Item.Coal, Config.wagonMaxItems ) ]
-                                |> AnyBag.fromAssociationList Data.Item.toString
-                            )
-                        |> Data.Actor.Wagon
-                        |> Data.World.insertActor
-                  )
-                ]
-
-        OldMine ->
-            Random.weighted ( 1, Data.World.insertFloor (Data.Floor.Ground Nothing) )
-                [ ( 1 / 8, Data.World.insertFloor Data.Floor.Track )
-                , ( 1 / 32
-                  , Data.Wagon.emptyWagon
-                        |> Data.Wagon.load
-                            ([ ( Data.Item.Iron, Config.wagonMaxItems ) ]
                                 |> AnyBag.fromAssociationList Data.Item.toString
                             )
                         |> Data.Actor.Wagon

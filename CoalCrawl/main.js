@@ -6339,7 +6339,6 @@ var $author$project$Data$Actor$CoalCave = {$: 'CoalCave'};
 var $author$project$Data$Actor$GoldCave = {$: 'GoldCave'};
 var $author$project$Data$Item$Iron = {$: 'Iron'};
 var $author$project$Data$Actor$IronCave = {$: 'IronCave'};
-var $author$project$Data$Actor$OldMine = {$: 'OldMine'};
 var $author$project$Data$Entity$Vein = function (a) {
 	return {$: 'Vein', a: a};
 };
@@ -6535,8 +6534,6 @@ var $author$project$Data$World$Generation$wallGenerator = function (_v0) {
 						$author$project$Data$Entity$Vein($author$project$Data$Item$Iron)),
 						$author$project$Data$World$insertActor(
 						$author$project$Data$Actor$Cave($author$project$Data$Actor$WaterCave)),
-						$author$project$Data$World$insertActor(
-						$author$project$Data$Actor$Cave($author$project$Data$Actor$OldMine)),
 						$author$project$Data$World$insertActor(
 						$author$project$Data$Actor$Cave($author$project$Data$Actor$GoldCave))
 					])));
@@ -8066,16 +8063,16 @@ var $author$project$Data$World$Generation$caveGenerator = F3(
 		var probability = _List_fromArray(
 			[
 				_Utils_Tuple2(
-				0.33,
+				0.5,
 				_Utils_Tuple2(x, y - 1)),
 				_Utils_Tuple2(
-				0.33,
+				0.5,
 				_Utils_Tuple2(x, y + 1)),
 				_Utils_Tuple2(
-				0.33,
+				0.5,
 				_Utils_Tuple2(x - 1, y)),
 				_Utils_Tuple2(
-				0.33,
+				0.5,
 				_Utils_Tuple2(x + 1, y))
 			]);
 		var pos = _Utils_Tuple2(x, y);
@@ -8183,33 +8180,6 @@ var $author$project$Data$World$Generation$exposedCave = function (caveType) {
 												_List_fromArray(
 													[
 														_Utils_Tuple2($author$project$Data$Item$Coal, $author$project$Config$wagonMaxItems)
-													])),
-											$author$project$Data$Wagon$emptyWagon))))
-							]));
-				case 'OldMine':
-					return A2(
-						$elm$random$Random$weighted,
-						_Utils_Tuple2(
-							1,
-							$author$project$Data$World$insertFloor(
-								$author$project$Data$Floor$Ground($elm$core$Maybe$Nothing))),
-						_List_fromArray(
-							[
-								_Utils_Tuple2(
-								1 / 8,
-								$author$project$Data$World$insertFloor($author$project$Data$Floor$Track)),
-								_Utils_Tuple2(
-								1 / 32,
-								$author$project$Data$World$insertActor(
-									$author$project$Data$Actor$Wagon(
-										A2(
-											$author$project$Data$Wagon$load,
-											A2(
-												$author$project$AnyBag$fromAssociationList,
-												$author$project$Data$Item$toString,
-												_List_fromArray(
-													[
-														_Utils_Tuple2($author$project$Data$Item$Iron, $author$project$Config$wagonMaxItems)
 													])),
 											$author$project$Data$Wagon$emptyWagon))))
 							]));
@@ -9672,8 +9642,6 @@ var $author$project$Data$Info$cave = function (caveType) {
 			return 'Coal';
 		case 'IronCave':
 			return 'Iron';
-		case 'OldMine':
-			return 'Old Mine';
 		default:
 			return 'Gold';
 	}

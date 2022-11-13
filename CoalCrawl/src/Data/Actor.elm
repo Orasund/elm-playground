@@ -8,7 +8,6 @@ type CaveType
     = WaterCave
     | CoalCave
     | IronCave
-    | OldMine
     | GoldCave
 
 
