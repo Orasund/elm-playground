@@ -5,5 +5,7 @@
 ## Roadmap
 
 * [ ] Lava
-* [ ] Water Source
-    * [ ] Moving Water
+* [ ] Skills
+    * [ ] Wagons pick up items
+      * [ ] Uniform pickup sound
+    * [ ] Game gets faster each level
