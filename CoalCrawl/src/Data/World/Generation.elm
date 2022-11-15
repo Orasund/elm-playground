@@ -185,10 +185,10 @@ caveGenerator :
 caveGenerator args ( x, y ) world =
     let
         probability =
-            [ ( 0.5, ( x, y - 1 ) )
-            , ( 0.5, ( x, y + 1 ) )
-            , ( 0.5, ( x - 1, y ) )
-            , ( 0.5, ( x + 1, y ) )
+            [ ( 0.3, ( x, y - 1 ) )
+            , ( 0.3, ( x, y + 1 ) )
+            , ( 0.3, ( x - 1, y ) )
+            , ( 0.3, ( x + 1, y ) )
             ]
 
         pos =

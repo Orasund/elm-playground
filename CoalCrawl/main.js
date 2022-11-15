@@ -5429,6 +5429,7 @@ var $elm$random$Random$independentSeed = $elm$random$Random$Generator(
 			A4($elm$random$Random$map3, makeIndependentSeed, gen, gen, gen),
 			seed0);
 	});
+var $author$project$View$Sidebar$DetailTab = {$: 'DetailTab'};
 var $author$project$Data$Item$Coal = {$: 'Coal'};
 var $author$project$Data$Floor$Ground = function (a) {
 	return {$: 'Ground', a: a};
@@ -8063,16 +8064,16 @@ var $author$project$Data$World$Generation$caveGenerator = F3(
 		var probability = _List_fromArray(
 			[
 				_Utils_Tuple2(
-				0.5,
+				0.3,
 				_Utils_Tuple2(x, y - 1)),
 				_Utils_Tuple2(
-				0.5,
+				0.3,
 				_Utils_Tuple2(x, y + 1)),
 				_Utils_Tuple2(
-				0.5,
+				0.3,
 				_Utils_Tuple2(x - 1, y)),
 				_Utils_Tuple2(
-				0.5,
+				0.3,
 				_Utils_Tuple2(x + 1, y))
 			]);
 		var pos = _Utils_Tuple2(x, y);
@@ -8987,6 +8988,7 @@ var $author$project$Main$restart = function (seed) {
 				$author$project$Data$Modal$fromAnimation($author$project$Data$Animation$animate)),
 			promt: $elm$core$Maybe$Nothing,
 			seed: seed,
+			sidebarTab: $elm$core$Maybe$Just($author$project$View$Sidebar$DetailTab),
 			slowedDown: false,
 			volume: 50
 		};
@@ -9483,7 +9485,7 @@ var $author$project$Main$update = F2(
 										$author$project$Data$Sound$toString(sound)));
 							},
 							$author$project$Data$Sound$asList)));
-			default:
+			case 'SetVolume':
 				var amount = msg.a;
 				return A2(
 					$elm$core$Maybe$withDefault,
@@ -9498,6 +9500,13 @@ var $author$project$Main$update = F2(
 								$author$project$Main$setVolume(_int / 100));
 						},
 						$elm$core$String$toInt(amount)));
+			default:
+				var tab = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{sidebarTab: tab}),
+					$elm$core$Platform$Cmd$none);
 		}
 	});
 var $author$project$Main$BuildActor = function (a) {
@@ -9508,6 +9517,9 @@ var $author$project$Main$BuildBlock = function (a) {
 };
 var $author$project$Main$CloseModal = {$: 'CloseModal'};
 var $author$project$Main$DestroyBlock = {$: 'DestroyBlock'};
+var $author$project$Main$SetTab = function (a) {
+	return {$: 'SetTab', a: a};
+};
 var $author$project$Main$SetVolume = function (a) {
 	return {$: 'SetVolume', a: a};
 };
@@ -9560,58 +9572,8 @@ var $Orasund$elm_layout$Layout$fillPortion = function (n) {
 		$elm$core$String$fromInt(n));
 };
 var $Orasund$elm_layout$Layout$fill = $Orasund$elm_layout$Layout$fillPortion(1);
-var $Orasund$elm_layout$Layout$alignAtCenter = A2($elm$html$Html$Attributes$style, 'align-items', 'center');
-var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
-var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
-var $Orasund$elm_layout$Layout$none = $elm$html$Html$text('');
-var $author$project$View$Color$yellow = 'Yellow';
-var $author$project$View$Promt$fromString = function (maybe) {
-	return A2(
-		$Orasund$elm_layout$Layout$el,
-		_List_fromArray(
-			[
-				$Orasund$elm_layout$Layout$alignAtCenter,
-				A2($elm$html$Html$Attributes$style, 'height', '32px')
-			]),
-		A2(
-			$elm$core$Maybe$withDefault,
-			$Orasund$elm_layout$Layout$none,
-			A2(
-				$elm$core$Maybe$map,
-				function (s) {
-					return A2(
-						$Orasund$elm_layout$Layout$el,
-						_List_fromArray(
-							[
-								$Orasund$elm_layout$Layout$fill,
-								A2($elm$html$Html$Attributes$style, 'background-color', $author$project$View$Color$yellow),
-								A2($elm$html$Html$Attributes$style, 'height', '32px'),
-								A2($elm$html$Html$Attributes$style, 'padding', '0px 8px'),
-								$Orasund$elm_layout$Layout$alignAtCenter
-							]),
-						$elm$html$Html$text(s));
-				},
-				maybe)));
-};
-var $elm$html$Html$Attributes$stringProperty = F2(
-	function (key, string) {
-		return A2(
-			_VirtualDom_property,
-			key,
-			$elm$json$Json$Encode$string(string));
-	});
-var $elm$html$Html$Attributes$href = function (url) {
-	return A2(
-		$elm$html$Html$Attributes$stringProperty,
-		'href',
-		_VirtualDom_noJavaScriptUri(url));
-};
-var $elm$virtual_dom$VirtualDom$node = function (tag) {
-	return _VirtualDom_node(
-		_VirtualDom_noScript(tag));
-};
-var $elm$html$Html$node = $elm$virtual_dom$VirtualDom$node;
-var $elm$html$Html$Attributes$rel = _VirtualDom_attribute('rel');
+var $author$project$Config$height = 15;
+var $Orasund$elm_layout$Layout$noWrap = A2($elm$html$Html$Attributes$style, 'flex-wrap', 'nowrap');
 var $Orasund$elm_layout$Layout$row = function (attrs) {
 	return $elm$html$Html$div(
 		_Utils_ap(
@@ -9623,169 +9585,6 @@ var $Orasund$elm_layout$Layout$row = function (attrs) {
 				]),
 			attrs));
 };
-var $elm$core$String$fromFloat = _String_fromNumber;
-var $Orasund$elm_layout$Layout$spacing = function (n) {
-	return A2(
-		$elm$html$Html$Attributes$style,
-		'gap',
-		$elm$core$String$fromFloat(n) + 'px');
-};
-var $author$project$Config$bombExplosionTime = 10;
-var $author$project$Data$Actor$bomb = $author$project$Data$Actor$Bomb(
-	{explodesIn: $author$project$Config$bombExplosionTime});
-var $author$project$Config$bombCost = 1;
-var $author$project$Data$Info$cave = function (caveType) {
-	switch (caveType.$) {
-		case 'WaterCave':
-			return 'Water';
-		case 'CoalCave':
-			return 'Coal';
-		case 'IronCave':
-			return 'Iron';
-		default:
-			return 'Gold';
-	}
-};
-var $author$project$Data$Info$new = function (args) {
-	return {additionalInfo: _List_Nil, content: _List_Nil, description: args.description, title: args.title};
-};
-var $JohnBugner$elm_bag$Bag$toAssociationList = function (b) {
-	return $elm$core$Dict$toList(
-		$JohnBugner$elm_bag$Bag$dict(b));
-};
-var $author$project$AnyBag$toAssociationList = function (bag) {
-	return $JohnBugner$elm_bag$Bag$toAssociationList(bag.content);
-};
-var $author$project$Data$Info$withContent = F2(
-	function (content, info) {
-		return _Utils_update(
-			info,
-			{content: content});
-	});
-var $author$project$Data$Info$fromActor = function (actor) {
-	switch (actor.$) {
-		case 'Wagon':
-			var wagon = actor.a;
-			return A2(
-				$author$project$Data$Info$withContent,
-				A2(
-					$elm$core$List$map,
-					function (_v1) {
-						var k = _v1.a;
-						var n = _v1.b;
-						return $elm$core$String$fromInt(n) + ('x ' + k);
-					},
-					$author$project$AnyBag$toAssociationList(wagon.items)),
-				$author$project$Data$Info$new(
-					{
-						description: 'Can store up to ' + ($elm$core$String$fromInt($author$project$Config$wagonMaxItems) + ' items. You can also push it along.'),
-						title: 'Wagon'
-					}));
-		case 'Cave':
-			var caveType = actor.a;
-			return $author$project$Data$Info$new(
-				{
-					description: 'Helper Block to generate caves',
-					title: $author$project$Data$Info$cave(caveType) + ' Cave'
-				});
-		case 'Mine':
-			return $author$project$Data$Info$new(
-				{description: 'Helper Block to generate mines', title: 'Mine'});
-		default:
-			var explodesIn = actor.a.explodesIn;
-			return $author$project$Data$Info$new(
-				{
-					description: 'Explodes in ' + ($elm$core$String$fromInt(explodesIn) + ' turns.'),
-					title: 'Bomb'
-				});
-	}
-};
-var $author$project$View$Game$buildActorButton = F2(
-	function (buildActor, args) {
-		return {
-			build: $author$project$Data$Info$fromActor(args.actor).title,
-			cost: args.cost,
-			onPress: buildActor(args)
-		};
-	});
-var $author$project$Data$Info$fromEntity = F2(
-	function (game, entity) {
-		switch (entity.$) {
-			case 'Vein':
-				var item = entity.a;
-				return $author$project$Data$Info$new(
-					{
-						description: 'Drops one ' + ($author$project$Data$Item$toString(item) + ' when mined.'),
-						title: $author$project$Data$Item$toString(item) + ' Vein'
-					});
-			case 'Wall':
-				return $author$project$Data$Info$new(
-					{description: 'Can be mind by bombs, but will not drop anything.', title: 'Wall'});
-			case 'Water':
-				return $author$project$Data$Info$new(
-					{description: 'Will be pushed aside when you walk through it. Wagons can\'t pass through it.', title: 'Water'});
-			case 'Train':
-				return $author$project$Data$Info$new(
-					{description: 'Stores all your items. If it has tracks stored, it will place them and move forward. Needs coal to move. Will regularly fetch new tracks from above ground.', title: 'Train'});
-			default:
-				var id = entity.a;
-				return A2(
-					$elm$core$Maybe$withDefault,
-					$author$project$Data$Info$new(
-						{description: 'This is a bug. Please report how to managed to create this entity', title: 'Unkown Actor'}),
-					A2(
-						$elm$core$Maybe$map,
-						function (_v1) {
-							var actor = _v1.b;
-							return $author$project$Data$Info$fromActor(actor);
-						},
-						A2($elm$core$Dict$get, id, game.world.actors)));
-		}
-	});
-var $author$project$Data$Info$fromFloor = function (floor) {
-	switch (floor.$) {
-		case 'Ground':
-			var maybeItem = floor.a;
-			return A2(
-				$author$project$Data$Info$withContent,
-				A2(
-					$elm$core$Maybe$withDefault,
-					_List_Nil,
-					A2(
-						$elm$core$Maybe$map,
-						function (item) {
-							return $elm$core$List$singleton(
-								$author$project$Data$Item$toString(item));
-						},
-						maybeItem)),
-				$author$project$Data$Info$new(
-					{description: 'May contain an item that can be picked up.', title: 'Ground'}));
-		case 'Track':
-			return $author$project$Data$Info$new(
-				{description: 'Pushed wagons will automatically move to adjacent tracks', title: 'Track'});
-		default:
-			return $author$project$Data$Info$new(
-				{description: 'Trains will move along railway tracks', title: 'Railway Track'});
-	}
-};
-var $author$project$Data$Info$fromBlock = F2(
-	function (game, block) {
-		if (block.$ === 'FloorBlock') {
-			var floor = block.a;
-			return $author$project$Data$Info$fromFloor(floor);
-		} else {
-			var entity = block.a;
-			return A2($author$project$Data$Info$fromEntity, game, entity);
-		}
-	});
-var $author$project$View$Game$buildBlockButton = F3(
-	function (buildBlock, game, args) {
-		return {
-			build: A2($author$project$Data$Info$fromBlock, game, args.block).title,
-			cost: args.cost,
-			onPress: buildBlock(args)
-		};
-	});
 var $elm$virtual_dom$VirtualDom$attribute = F2(
 	function (key, value) {
 		return A2(
@@ -9832,74 +9631,9 @@ var $Orasund$elm_layout$Layout$asButton = function (args) {
 				},
 				args.onPress)));
 };
-var $Orasund$elm_layout$Layout$asEl = A2($elm$html$Html$Attributes$style, 'display', 'flex');
-var $elm$html$Html$button = _VirtualDom_node('button');
-var $Orasund$elm_layout$Layout$buttonEl = F3(
-	function (args, attrs, content) {
-		return A2(
-			$elm$html$Html$button,
-			A2(
-				$elm$core$List$cons,
-				$Orasund$elm_layout$Layout$asEl,
-				_Utils_ap(
-					$Orasund$elm_layout$Layout$asButton(args),
-					attrs)),
-			_List_fromArray(
-				[content]));
-	});
-var $elm$json$Json$Encode$bool = _Json_wrap;
-var $elm$html$Html$Attributes$boolProperty = F2(
-	function (key, bool) {
-		return A2(
-			_VirtualDom_property,
-			key,
-			$elm$json$Json$Encode$bool(bool));
-	});
-var $elm$html$Html$Attributes$disabled = $elm$html$Html$Attributes$boolProperty('disabled');
-var $author$project$View$Button$toHtml = F2(
-	function (onPress, label) {
-		return A3(
-			$Orasund$elm_layout$Layout$buttonEl,
-			{label: label, onPress: onPress},
-			function () {
-				if (onPress.$ === 'Just') {
-					return _List_Nil;
-				} else {
-					return _List_fromArray(
-						[
-							$elm$html$Html$Attributes$disabled(true)
-						]);
-				}
-			}(),
-			$elm$html$Html$text(label));
-	});
-var $author$project$View$Game$buildButton = F2(
-	function (game, args) {
-		var _v0 = args.cost;
-		var item = _v0.a;
-		var cost = _v0.b;
-		var gotAmount = A2($author$project$AnyBag$count, item, game.train.items);
-		return A2(
-			$Orasund$elm_layout$Layout$row,
-			_List_fromArray(
-				[
-					$Orasund$elm_layout$Layout$spacing(8)
-				]),
-			_List_fromArray(
-				[
-					$elm$html$Html$text(args.build),
-					A2(
-					$author$project$View$Button$toHtml,
-					(_Utils_cmp(cost, gotAmount) < 1) ? $elm$core$Maybe$Just(args.onPress) : $elm$core$Maybe$Nothing,
-					'Build for ' + ($elm$core$String$fromInt(cost) + (' ' + $author$project$Data$Item$toString(item)))),
-					$elm$html$Html$text(
-					'You got ' + ($elm$core$String$fromInt(gotAmount) + (' ' + ($author$project$Data$Item$toString(item) + '.'))))
-				]));
-	});
-var $author$project$Config$height = 15;
-var $Orasund$elm_layout$Layout$noWrap = A2($elm$html$Html$Attributes$style, 'flex-wrap', 'nowrap');
 var $author$project$View$Color$black = 'Black';
 var $author$project$View$Color$blue = 'Blue';
+var $author$project$Config$bombExplosionTime = 10;
 var $author$project$View$Color$gray = 'Gray';
 var $elm$core$Basics$modBy = _Basics_modBy;
 var $author$project$Data$Tile$new = function (args) {
@@ -10064,14 +9798,25 @@ var $author$project$Data$Tile$fromPlayer = function (player) {
 					A2($elm$core$Maybe$map, $author$project$Data$Tile$fromItem, player.item))
 			}));
 };
+var $Orasund$elm_layout$Layout$alignAtCenter = A2($elm$html$Html$Attributes$style, 'align-items', 'center');
 var $Orasund$elm_layout$Layout$contentCentered = A2($elm$html$Html$Attributes$style, 'justify-content', 'center');
 var $Orasund$elm_layout$Layout$centered = _List_fromArray(
 	[$Orasund$elm_layout$Layout$contentCentered, $Orasund$elm_layout$Layout$alignAtCenter]);
+var $elm$html$Html$Attributes$stringProperty = F2(
+	function (key, string) {
+		return A2(
+			_VirtualDom_property,
+			key,
+			$elm$json$Json$Encode$string(string));
+	});
 var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
 var $elm$core$String$cons = _String_cons;
 var $elm$core$String$fromChar = function (_char) {
 	return A2($elm$core$String$cons, _char, '');
 };
+var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
+var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
+var $elm$core$String$fromFloat = _String_fromNumber;
 var $author$project$Config$tileSize = 'min(32px, ' + (($elm$core$String$fromFloat(100 / $author$project$Config$width) + 'vw, ') + (('(100vh - 50px)/' + $elm$core$String$fromInt($author$project$Config$height)) + ')'));
 var $author$project$View$Tile$toHtml = function (tile) {
 	return function (_v0) {
@@ -10109,6 +9854,7 @@ var $author$project$Data$Tile$wall = $author$project$Data$Tile$new(
 		color: $author$project$View$Color$black,
 		content: _Utils_chr(' ')
 	});
+var $author$project$View$Color$yellow = 'Yellow';
 var $author$project$View$Screen$tile = F3(
 	function (maybeOnPress, pos, game) {
 		return function (maybe) {
@@ -10171,49 +9917,272 @@ var $author$project$View$Screen$fromGame = F2(
 				},
 				A2($elm$core$List$range, 0, $author$project$Config$height - 1)));
 	});
-var $author$project$Data$Info$withAdditionalInfo = F2(
-	function (additionalInfos, info) {
-		return _Utils_update(
-			info,
-			{additionalInfo: additionalInfos});
-	});
-var $author$project$Data$Info$fromTrain = function (game) {
+var $Orasund$elm_layout$Layout$none = $elm$html$Html$text('');
+var $author$project$View$Promt$fromString = function (maybe) {
 	return A2(
-		$author$project$Data$Info$withAdditionalInfo,
+		$Orasund$elm_layout$Layout$el,
 		_List_fromArray(
 			[
-				'Needs ' + ($elm$core$String$fromInt(
-				$author$project$Data$Train$coalNeeded(game.train)) + ' Coal to go back to HQ.')
+				$Orasund$elm_layout$Layout$alignAtCenter,
+				A2($elm$html$Html$Attributes$style, 'height', '32px')
 			]),
 		A2(
-			$author$project$Data$Info$withContent,
+			$elm$core$Maybe$withDefault,
+			$Orasund$elm_layout$Layout$none,
 			A2(
-				$elm$core$List$cons,
-				$elm$core$String$fromInt(game.train.tracks) + 'x Tracks',
+				$elm$core$Maybe$map,
+				function (s) {
+					return A2(
+						$Orasund$elm_layout$Layout$el,
+						_List_fromArray(
+							[
+								$Orasund$elm_layout$Layout$fill,
+								A2($elm$html$Html$Attributes$style, 'background-color', $author$project$View$Color$yellow),
+								A2($elm$html$Html$Attributes$style, 'height', '32px'),
+								A2($elm$html$Html$Attributes$style, 'padding', '0px 8px'),
+								$Orasund$elm_layout$Layout$alignAtCenter
+							]),
+						$elm$html$Html$text(s));
+				},
+				maybe)));
+};
+var $elm$html$Html$Attributes$href = function (url) {
+	return A2(
+		$elm$html$Html$Attributes$stringProperty,
+		'href',
+		_VirtualDom_noJavaScriptUri(url));
+};
+var $elm$virtual_dom$VirtualDom$node = function (tag) {
+	return _VirtualDom_node(
+		_VirtualDom_noScript(tag));
+};
+var $elm$html$Html$node = $elm$virtual_dom$VirtualDom$node;
+var $elm$html$Html$Attributes$rel = _VirtualDom_attribute('rel');
+var $author$project$Data$Actor$bomb = $author$project$Data$Actor$Bomb(
+	{explodesIn: $author$project$Config$bombExplosionTime});
+var $author$project$Config$bombCost = 1;
+var $author$project$Data$Info$cave = function (caveType) {
+	switch (caveType.$) {
+		case 'WaterCave':
+			return 'Water';
+		case 'CoalCave':
+			return 'Coal';
+		case 'IronCave':
+			return 'Iron';
+		default:
+			return 'Gold';
+	}
+};
+var $author$project$Data$Info$new = function (args) {
+	return {additionalInfo: _List_Nil, content: _List_Nil, description: args.description, title: args.title};
+};
+var $JohnBugner$elm_bag$Bag$toAssociationList = function (b) {
+	return $elm$core$Dict$toList(
+		$JohnBugner$elm_bag$Bag$dict(b));
+};
+var $author$project$AnyBag$toAssociationList = function (bag) {
+	return $JohnBugner$elm_bag$Bag$toAssociationList(bag.content);
+};
+var $author$project$Data$Info$withContent = F2(
+	function (content, info) {
+		return _Utils_update(
+			info,
+			{content: content});
+	});
+var $author$project$Data$Info$fromActor = function (actor) {
+	switch (actor.$) {
+		case 'Wagon':
+			var wagon = actor.a;
+			return A2(
+				$author$project$Data$Info$withContent,
 				A2(
 					$elm$core$List$map,
-					function (_v0) {
-						var k = _v0.a;
-						var n = _v0.b;
+					function (_v1) {
+						var k = _v1.a;
+						var n = _v1.b;
 						return $elm$core$String$fromInt(n) + ('x ' + k);
 					},
-					$author$project$AnyBag$toAssociationList(game.train.items))),
-			$author$project$Data$Info$new(
-				{description: '', title: 'Train'})));
+					$author$project$AnyBag$toAssociationList(wagon.items)),
+				$author$project$Data$Info$new(
+					{
+						description: 'Can store up to ' + ($elm$core$String$fromInt($author$project$Config$wagonMaxItems) + ' items. You can also push it along.'),
+						title: 'Wagon'
+					}));
+		case 'Cave':
+			var caveType = actor.a;
+			return $author$project$Data$Info$new(
+				{
+					description: 'Helper Block to generate caves',
+					title: $author$project$Data$Info$cave(caveType) + ' Cave'
+				});
+		case 'Mine':
+			return $author$project$Data$Info$new(
+				{description: 'Helper Block to generate mines', title: 'Mine'});
+		default:
+			var explodesIn = actor.a.explodesIn;
+			return $author$project$Data$Info$new(
+				{
+					description: 'Explodes in ' + ($elm$core$String$fromInt(explodesIn) + ' turns.'),
+					title: 'Bomb'
+				});
+	}
 };
-var $elm$html$Html$h4 = _VirtualDom_node('h4');
-var $Orasund$elm_layout$Layout$heading4 = F2(
-	function (attrs, content) {
+var $author$project$View$Sidebar$buildActorButton = F2(
+	function (buildActor, args) {
+		return {
+			build: $author$project$Data$Info$fromActor(args.actor).title,
+			cost: args.cost,
+			onPress: buildActor(args)
+		};
+	});
+var $author$project$Data$Info$fromEntity = F2(
+	function (game, entity) {
+		switch (entity.$) {
+			case 'Vein':
+				var item = entity.a;
+				return $author$project$Data$Info$new(
+					{
+						description: 'Drops one ' + ($author$project$Data$Item$toString(item) + ' when mined.'),
+						title: $author$project$Data$Item$toString(item) + ' Vein'
+					});
+			case 'Wall':
+				return $author$project$Data$Info$new(
+					{description: 'Can be mind by bombs, but will not drop anything.', title: 'Wall'});
+			case 'Water':
+				return $author$project$Data$Info$new(
+					{description: 'Will be pushed aside when you walk through it. Wagons can\'t pass through it.', title: 'Water'});
+			case 'Train':
+				return $author$project$Data$Info$new(
+					{description: 'Stores all your items. If it has tracks stored, it will place them and move forward. Needs coal to move. Will regularly fetch new tracks from above ground.', title: 'Train'});
+			default:
+				var id = entity.a;
+				return A2(
+					$elm$core$Maybe$withDefault,
+					$author$project$Data$Info$new(
+						{description: 'This is a bug. Please report how to managed to create this entity', title: 'Unkown Actor'}),
+					A2(
+						$elm$core$Maybe$map,
+						function (_v1) {
+							var actor = _v1.b;
+							return $author$project$Data$Info$fromActor(actor);
+						},
+						A2($elm$core$Dict$get, id, game.world.actors)));
+		}
+	});
+var $author$project$Data$Info$fromFloor = function (floor) {
+	switch (floor.$) {
+		case 'Ground':
+			var maybeItem = floor.a;
+			return A2(
+				$author$project$Data$Info$withContent,
+				A2(
+					$elm$core$Maybe$withDefault,
+					_List_Nil,
+					A2(
+						$elm$core$Maybe$map,
+						function (item) {
+							return $elm$core$List$singleton(
+								$author$project$Data$Item$toString(item));
+						},
+						maybeItem)),
+				$author$project$Data$Info$new(
+					{description: 'May contain an item that can be picked up.', title: 'Ground'}));
+		case 'Track':
+			return $author$project$Data$Info$new(
+				{description: 'Pushed wagons will automatically move to adjacent tracks', title: 'Track'});
+		default:
+			return $author$project$Data$Info$new(
+				{description: 'Trains will move along railway tracks', title: 'Railway Track'});
+	}
+};
+var $author$project$Data$Info$fromBlock = F2(
+	function (game, block) {
+		if (block.$ === 'FloorBlock') {
+			var floor = block.a;
+			return $author$project$Data$Info$fromFloor(floor);
+		} else {
+			var entity = block.a;
+			return A2($author$project$Data$Info$fromEntity, game, entity);
+		}
+	});
+var $author$project$View$Sidebar$buildBlockButton = F3(
+	function (buildBlock, game, args) {
+		return {
+			build: A2($author$project$Data$Info$fromBlock, game, args.block).title,
+			cost: args.cost,
+			onPress: buildBlock(args)
+		};
+	});
+var $Orasund$elm_layout$Layout$spacing = function (n) {
+	return A2(
+		$elm$html$Html$Attributes$style,
+		'gap',
+		$elm$core$String$fromFloat(n) + 'px');
+};
+var $Orasund$elm_layout$Layout$asEl = A2($elm$html$Html$Attributes$style, 'display', 'flex');
+var $elm$html$Html$button = _VirtualDom_node('button');
+var $Orasund$elm_layout$Layout$buttonEl = F3(
+	function (args, attrs, content) {
 		return A2(
-			$elm$html$Html$h4,
+			$elm$html$Html$button,
 			A2(
 				$elm$core$List$cons,
-				A2($elm$html$Html$Attributes$style, 'display', 'flex'),
-				attrs),
+				$Orasund$elm_layout$Layout$asEl,
+				_Utils_ap(
+					$Orasund$elm_layout$Layout$asButton(args),
+					attrs)),
 			_List_fromArray(
 				[content]));
 	});
-var $elm$html$Html$input = _VirtualDom_node('input');
+var $elm$json$Json$Encode$bool = _Json_wrap;
+var $elm$html$Html$Attributes$boolProperty = F2(
+	function (key, bool) {
+		return A2(
+			_VirtualDom_property,
+			key,
+			$elm$json$Json$Encode$bool(bool));
+	});
+var $elm$html$Html$Attributes$disabled = $elm$html$Html$Attributes$boolProperty('disabled');
+var $author$project$View$Button$toHtml = F2(
+	function (onPress, label) {
+		return A3(
+			$Orasund$elm_layout$Layout$buttonEl,
+			{label: label, onPress: onPress},
+			function () {
+				if (onPress.$ === 'Just') {
+					return _List_Nil;
+				} else {
+					return _List_fromArray(
+						[
+							$elm$html$Html$Attributes$disabled(true)
+						]);
+				}
+			}(),
+			$elm$html$Html$text(label));
+	});
+var $author$project$View$Sidebar$buildButton = F2(
+	function (game, args) {
+		var _v0 = args.cost;
+		var item = _v0.a;
+		var cost = _v0.b;
+		var gotAmount = A2($author$project$AnyBag$count, item, game.train.items);
+		return A2(
+			$Orasund$elm_layout$Layout$row,
+			_List_fromArray(
+				[
+					$Orasund$elm_layout$Layout$spacing(8)
+				]),
+			_List_fromArray(
+				[
+					$elm$html$Html$text(args.build),
+					A2(
+					$author$project$View$Button$toHtml,
+					(_Utils_cmp(cost, gotAmount) < 1) ? $elm$core$Maybe$Just(args.onPress) : $elm$core$Maybe$Nothing,
+					'Build for ' + ($elm$core$String$fromInt(cost) + (' ' + $author$project$Data$Item$toString(item)))),
+					$elm$html$Html$text(
+					'You got ' + ($elm$core$String$fromInt(gotAmount) + (' ' + ($author$project$Data$Item$toString(item) + '.'))))
+				]));
+	});
 var $elm$html$Html$h3 = _VirtualDom_node('h3');
 var $Orasund$elm_layout$Layout$heading3 = F2(
 	function (attrs, content) {
@@ -10226,33 +10195,7 @@ var $Orasund$elm_layout$Layout$heading3 = F2(
 			_List_fromArray(
 				[content]));
 	});
-var $author$project$View$Info$justContent = function (info) {
-	return A2(
-		$Orasund$elm_layout$Layout$column,
-		_List_Nil,
-		_Utils_ap(
-			_List_fromArray(
-				[
-					A2(
-					$Orasund$elm_layout$Layout$heading3,
-					_List_Nil,
-					$elm$html$Html$text(info.title)),
-					A2(
-					$Orasund$elm_layout$Layout$el,
-					_List_Nil,
-					$elm$html$Html$text(
-						_Utils_eq(info.content, _List_Nil) ? 'Contains no items' : ('Contains ' + A2($elm$core$String$join, ', ', info.content))))
-				]),
-			A2(
-				$elm$core$List$map,
-				function (string) {
-					return A2(
-						$Orasund$elm_layout$Layout$el,
-						_List_Nil,
-						$elm$html$Html$text(string));
-				},
-				info.additionalInfo)));
-};
+var $elm$html$Html$input = _VirtualDom_node('input');
 var $elm$html$Html$Attributes$max = $elm$html$Html$Attributes$stringProperty('max');
 var $elm$html$Html$Attributes$min = $elm$html$Html$Attributes$stringProperty('min');
 var $elm$html$Html$Events$alwaysStop = function (x) {
@@ -10288,6 +10231,62 @@ var $elm$html$Html$Events$onInput = function (tagger) {
 			$elm$html$Html$Events$alwaysStop,
 			A2($elm$json$Json$Decode$map, tagger, $elm$html$Html$Events$targetValue)));
 };
+var $elm$html$Html$Attributes$type_ = $elm$html$Html$Attributes$stringProperty('type');
+var $elm$html$Html$Attributes$value = $elm$html$Html$Attributes$stringProperty('value');
+var $author$project$View$Sidebar$settings = function (args) {
+	return A2(
+		$Orasund$elm_layout$Layout$column,
+		_List_fromArray(
+			[
+				$Orasund$elm_layout$Layout$spacing(8)
+			]),
+		_List_fromArray(
+			[
+				A2(
+				$Orasund$elm_layout$Layout$row,
+				_List_fromArray(
+					[
+						$Orasund$elm_layout$Layout$spacing(8)
+					]),
+				_List_fromArray(
+					[
+						A2(
+						$author$project$View$Button$toHtml,
+						$elm$core$Maybe$Just(args.toggleSlowdown),
+						args.slowedDown ? 'Stop Slow Motion' : 'Start Slow Motion'),
+						A2(
+						$author$project$View$Button$toHtml,
+						$elm$core$Maybe$Just(args.restart),
+						'Restarts')
+					])),
+				A2(
+				$Orasund$elm_layout$Layout$row,
+				_List_fromArray(
+					[
+						$Orasund$elm_layout$Layout$spacing(8)
+					]),
+				_List_fromArray(
+					[
+						$elm$html$Html$text('Volume'),
+						A2(
+						$elm$html$Html$input,
+						_List_fromArray(
+							[
+								$elm$html$Html$Attributes$type_('range'),
+								$elm$html$Html$Attributes$min('0'),
+								$elm$html$Html$Attributes$max('100'),
+								$elm$html$Html$Attributes$value(
+								$elm$core$String$fromInt(args.volume)),
+								$elm$html$Html$Events$onInput(args.setVolume)
+							]),
+						_List_Nil)
+					]))
+			]));
+};
+var $author$project$View$Sidebar$BuildTab = {$: 'BuildTab'};
+var $author$project$View$Sidebar$SettingTab = {$: 'SettingTab'};
+var $author$project$View$Sidebar$tabList = _List_fromArray(
+	[$author$project$View$Sidebar$SettingTab, $author$project$View$Sidebar$DetailTab, $author$project$View$Sidebar$BuildTab]);
 var $elm$html$Html$p = _VirtualDom_node('p');
 var $Orasund$elm_layout$Layout$paragraph = F2(
 	function (attrs, content) {
@@ -10307,10 +10306,7 @@ var $author$project$View$Info$toHtml = function (info) {
 		_Utils_ap(
 			_List_fromArray(
 				[
-					A2(
-					$Orasund$elm_layout$Layout$heading3,
-					_List_Nil,
-					$elm$html$Html$text(info.title)),
+					$elm$html$Html$text('Selected: ' + info.title),
 					A2(
 					$Orasund$elm_layout$Layout$paragraph,
 					_List_Nil,
@@ -10331,153 +10327,163 @@ var $author$project$View$Info$toHtml = function (info) {
 				},
 				info.additionalInfo)));
 };
+var $author$project$View$Sidebar$toString = function (tab) {
+	switch (tab.$) {
+		case 'SettingTab':
+			return 'Settings';
+		case 'DetailTab':
+			return 'Detail';
+		default:
+			return 'Build';
+	}
+};
 var $author$project$Config$trackCost = 1;
-var $elm$html$Html$Attributes$type_ = $elm$html$Html$Attributes$stringProperty('type');
-var $elm$html$Html$Attributes$value = $elm$html$Html$Attributes$stringProperty('value');
-var $author$project$View$Game$toHtml = F2(
+var $author$project$View$Sidebar$sidebar = F2(
 	function (args, game) {
-		return _List_fromArray(
-			[
-				A2(
-				$author$project$View$Screen$fromGame,
-				{camera: args.camera, onPress: args.tileClicked},
-				game),
-				A2(
-				$Orasund$elm_layout$Layout$column,
-				_List_fromArray(
-					[
-						$Orasund$elm_layout$Layout$spacing(8),
-						A2($elm$html$Html$Attributes$style, 'width', '300px')
-					]),
-				_List_fromArray(
-					[
-						A2(
-						$Orasund$elm_layout$Layout$row,
-						_List_fromArray(
-							[
-								$Orasund$elm_layout$Layout$spacing(8)
-							]),
-						_List_fromArray(
-							[
-								A2(
+		var selected = A2($author$project$Data$World$get, game.selected, game.world);
+		return A2(
+			$Orasund$elm_layout$Layout$column,
+			_List_fromArray(
+				[
+					$Orasund$elm_layout$Layout$spacing(8),
+					A2($elm$html$Html$Attributes$style, 'padding', '8px'),
+					A2($elm$html$Html$Attributes$style, 'position', 'absolute'),
+					A2($elm$html$Html$Attributes$style, 'top', '0'),
+					A2($elm$html$Html$Attributes$style, 'left', '0')
+				]),
+			_List_fromArray(
+				[
+					A2(
+					$Orasund$elm_layout$Layout$row,
+					_List_fromArray(
+						[
+							$Orasund$elm_layout$Layout$spacing(8)
+						]),
+					A2(
+						$elm$core$List$map,
+						function (tab) {
+							return A2(
 								$author$project$View$Button$toHtml,
-								$elm$core$Maybe$Just(args.toggleSlowdown),
-								args.slowedDown ? 'Stop Slow Motion' : 'Start Slow Motion'),
-								A2(
-								$author$project$View$Button$toHtml,
-								$elm$core$Maybe$Just(args.restart),
-								'Restarts')
-							])),
-						A2(
-						$Orasund$elm_layout$Layout$row,
-						_List_fromArray(
-							[
-								$Orasund$elm_layout$Layout$spacing(8)
-							]),
-						_List_fromArray(
-							[
-								$elm$html$Html$text('Volume'),
-								A2(
-								$elm$html$Html$input,
+								_Utils_eq(
+									$elm$core$Maybe$Just(tab),
+									args.tab) ? $elm$core$Maybe$Just(
+									args.setTab($elm$core$Maybe$Nothing)) : $elm$core$Maybe$Just(
+									args.setTab(
+										$elm$core$Maybe$Just(tab))),
+								$author$project$View$Sidebar$toString(tab));
+						},
+						$author$project$View$Sidebar$tabList)),
+					A2(
+					$elm$core$Maybe$withDefault,
+					$Orasund$elm_layout$Layout$none,
+					A2(
+						$elm$core$Maybe$map,
+						function (tab) {
+							return A2(
+								$Orasund$elm_layout$Layout$column,
 								_List_fromArray(
 									[
-										$elm$html$Html$Attributes$type_('range'),
-										$elm$html$Html$Attributes$min('0'),
-										$elm$html$Html$Attributes$max('100'),
-										$elm$html$Html$Attributes$value(
-										$elm$core$String$fromInt(args.volume)),
-										$elm$html$Html$Events$onInput(args.setVolume)
+										$Orasund$elm_layout$Layout$spacing(8),
+										A2($elm$html$Html$Attributes$style, 'width', '300px'),
+										A2($elm$html$Html$Attributes$style, 'background-color', 'white'),
+										A2($elm$html$Html$Attributes$style, 'padding', '8px'),
+										A2($elm$html$Html$Attributes$style, 'border-radius', '16px'),
+										A2($elm$html$Html$Attributes$style, 'border', 'solid 1px black')
 									]),
-								_List_Nil)
-							])),
-						$author$project$View$Info$justContent(
-						$author$project$Data$Info$fromTrain(game)),
-						A2(
-						$elm$core$Maybe$withDefault,
-						$Orasund$elm_layout$Layout$none,
-						A2(
-							$elm$core$Maybe$map,
-							function (block) {
-								return A2(
-									$Orasund$elm_layout$Layout$column,
-									_List_fromArray(
-										[
-											$Orasund$elm_layout$Layout$spacing(8)
-										]),
-									_Utils_ap(
-										_List_fromArray(
-											[
-												$author$project$View$Info$toHtml(
-												A2($author$project$Data$Info$fromBlock, game, block)),
-												A2(
-												$Orasund$elm_layout$Layout$heading4,
-												_List_Nil,
-												$elm$html$Html$text('Build'))
-											]),
+								_List_fromArray(
+									[
+										A2(
+										$Orasund$elm_layout$Layout$heading3,
+										_List_Nil,
+										$elm$html$Html$text(
+											$author$project$View$Sidebar$toString(tab))),
 										function () {
-											if (block.$ === 'FloorBlock') {
-												var floor = block.a;
-												return _Utils_ap(
+										switch (tab.$) {
+											case 'SettingTab':
+												return $author$project$View$Sidebar$settings(
+													{restart: args.restart, setVolume: args.setVolume, slowedDown: args.slowedDown, toggleSlowdown: args.toggleSlowdown, volume: args.volume});
+											case 'DetailTab':
+												return A2(
+													$elm$core$Maybe$withDefault,
+													$elm$html$Html$text('Nothing selected'),
 													A2(
-														$elm$core$List$map,
-														$author$project$View$Game$buildButton(game),
+														$elm$core$Maybe$map,
+														function (block) {
+															return $author$project$View$Info$toHtml(
+																A2($author$project$Data$Info$fromBlock, game, block));
+														},
+														selected));
+											default:
+												if ((selected.$ === 'Just') && (selected.a.$ === 'FloorBlock')) {
+													var floor = selected.a.a;
+													return A2(
+														$Orasund$elm_layout$Layout$column,
 														_List_fromArray(
 															[
-																A2(
-																$author$project$View$Game$buildActorButton,
-																args.buildActor,
-																{
-																	actor: $author$project$Data$Actor$Wagon($author$project$Data$Wagon$emptyWagon),
-																	cost: _Utils_Tuple2($author$project$Data$Item$Iron, $author$project$Config$wagonCost)
-																}),
-																A2(
-																$author$project$View$Game$buildActorButton,
-																args.buildActor,
-																{
-																	actor: $author$project$Data$Actor$bomb,
-																	cost: _Utils_Tuple2($author$project$Data$Item$Gold, $author$project$Config$bombCost)
-																})
-															])),
-													_Utils_ap(
-														function () {
-															if (floor.$ === 'Ground') {
-																return A2(
-																	$elm$core$List$map,
-																	$author$project$View$Game$buildButton(game),
-																	_List_fromArray(
-																		[
-																			A3(
-																			$author$project$View$Game$buildBlockButton,
-																			args.buildBlock,
-																			game,
-																			{
-																				block: $author$project$Data$Block$FloorBlock($author$project$Data$Floor$Track),
-																				cost: _Utils_Tuple2($author$project$Data$Item$Iron, $author$project$Config$trackCost)
-																			})
-																		]));
-															} else {
-																return _List_Nil;
-															}
-														}(),
-														function () {
-															if (floor.$ === 'Track') {
-																return $elm$core$List$singleton(
-																	A2(
-																		$author$project$View$Button$toHtml,
-																		$elm$core$Maybe$Just(args.destroyBlock),
-																		'Destroy'));
-															} else {
-																return _List_Nil;
-															}
-														}()));
-											} else {
-												return _List_Nil;
-											}
-										}()));
-							},
-							A2($author$project$Data$World$get, game.selected, game.world)))
-					]))
-			]);
+																$Orasund$elm_layout$Layout$spacing(8)
+															]),
+														_Utils_ap(
+															A2(
+																$elm$core$List$map,
+																$author$project$View$Sidebar$buildButton(game),
+																_List_fromArray(
+																	[
+																		A2(
+																		$author$project$View$Sidebar$buildActorButton,
+																		args.buildActor,
+																		{
+																			actor: $author$project$Data$Actor$Wagon($author$project$Data$Wagon$emptyWagon),
+																			cost: _Utils_Tuple2($author$project$Data$Item$Iron, $author$project$Config$wagonCost)
+																		}),
+																		A2(
+																		$author$project$View$Sidebar$buildActorButton,
+																		args.buildActor,
+																		{
+																			actor: $author$project$Data$Actor$bomb,
+																			cost: _Utils_Tuple2($author$project$Data$Item$Gold, $author$project$Config$bombCost)
+																		})
+																	])),
+															_Utils_ap(
+																function () {
+																	if (floor.$ === 'Ground') {
+																		return A2(
+																			$elm$core$List$map,
+																			$author$project$View$Sidebar$buildButton(game),
+																			_List_fromArray(
+																				[
+																					A3(
+																					$author$project$View$Sidebar$buildBlockButton,
+																					args.buildBlock,
+																					game,
+																					{
+																						block: $author$project$Data$Block$FloorBlock($author$project$Data$Floor$Track),
+																						cost: _Utils_Tuple2($author$project$Data$Item$Iron, $author$project$Config$trackCost)
+																					})
+																				]));
+																	} else {
+																		return _List_Nil;
+																	}
+																}(),
+																function () {
+																	if (floor.$ === 'Track') {
+																		return $elm$core$List$singleton(
+																			A2(
+																				$author$project$View$Button$toHtml,
+																				$elm$core$Maybe$Just(args.destroyBlock),
+																				'Destroy'));
+																	} else {
+																		return _List_Nil;
+																	}
+																}())));
+												} else {
+													return $elm$html$Html$text('You can only build on empty floor tiles');
+												}
+										}
+									}()
+									]));
+						},
+						args.tab))
+				]));
 	});
 var $author$project$View$Screen$animation = F2(
 	function (args, game) {
@@ -10720,29 +10726,78 @@ var $author$project$Main$view = function (model) {
 										[
 											A2(
 											$Orasund$elm_layout$Layout$row,
-											(!_Utils_eq(model.modal, $elm$core$Maybe$Nothing)) ? _List_fromArray(
+											_Utils_ap(
+												(!_Utils_eq(model.modal, $elm$core$Maybe$Nothing)) ? _List_fromArray(
+													[
+														A2($elm$html$Html$Attributes$style, 'backdrop-filter', 'brightness(0.5)')
+													]) : _List_Nil,
+												_List_fromArray(
+													[
+														A2($elm$html$Html$Attributes$style, 'position', 'relative')
+													])),
+											_List_fromArray(
 												[
-													A2($elm$html$Html$Attributes$style, 'backdrop-filter', 'brightness(0.5)')
-												]) : _List_Nil,
-											A2(
-												$author$project$View$Game$toHtml,
-												{
-													buildActor: $author$project$Main$BuildActor,
-													buildBlock: $author$project$Main$BuildBlock,
-													camera: model.camera,
-													destroyBlock: $author$project$Main$DestroyBlock,
-													restart: $author$project$Main$Restart(model.seed),
-													setVolume: $author$project$Main$SetVolume,
-													slowedDown: model.slowedDown,
-													tileClicked: $author$project$Main$TileClicked,
-													toggleSlowdown: $author$project$Main$ToggleSlowdown,
-													volume: model.volume
-												},
-												model.game)),
+													A2(
+													$author$project$View$Screen$fromGame,
+													{camera: model.camera, onPress: $author$project$Main$TileClicked},
+													model.game),
+													A2(
+													$author$project$View$Sidebar$sidebar,
+													{
+														buildActor: $author$project$Main$BuildActor,
+														buildBlock: $author$project$Main$BuildBlock,
+														destroyBlock: $author$project$Main$DestroyBlock,
+														restart: $author$project$Main$Restart(model.seed),
+														setTab: $author$project$Main$SetTab,
+														setVolume: $author$project$Main$SetVolume,
+														slowedDown: model.slowedDown,
+														tab: model.sidebarTab,
+														toggleSlowdown: $author$project$Main$ToggleSlowdown,
+														volume: model.volume
+													},
+													model.game),
+													A2(
+													$Orasund$elm_layout$Layout$column,
+													_List_fromArray(
+														[
+															A2($elm$html$Html$Attributes$style, 'position', 'absolute'),
+															A2($elm$html$Html$Attributes$style, 'top', '0'),
+															A2($elm$html$Html$Attributes$style, 'right', '0'),
+															A2($elm$html$Html$Attributes$style, 'color', 'white'),
+															A2($elm$html$Html$Attributes$style, 'padding', '8px')
+														]),
+													_List_fromArray(
+														[
+															A2(
+															$Orasund$elm_layout$Layout$el,
+															_List_Nil,
+															$elm$html$Html$text(
+																function (content) {
+																	return A2($elm$core$String$join, ', ', content);
+																}(
+																	A2(
+																		$elm$core$List$map,
+																		function (_v0) {
+																			var k = _v0.a;
+																			var n = _v0.b;
+																			return $elm$core$String$fromInt(n) + ('x ' + k);
+																		},
+																		A2(
+																			$elm$core$List$cons,
+																			_Utils_Tuple2('Tracks', model.game.train.tracks),
+																			$author$project$AnyBag$toAssociationList(model.game.train.items)))))),
+															A2(
+															$Orasund$elm_layout$Layout$el,
+															_List_Nil,
+															$elm$html$Html$text(
+																'Needs ' + ($elm$core$String$fromInt(
+																	$author$project$Data$Train$coalNeeded(model.game.train) - A2($author$project$AnyBag$count, $author$project$Data$Item$Coal, model.game.train.items)) + ' for the next Level')))
+														]))
+												])),
 											function () {
-											var _v0 = model.modal;
-											if (_v0.$ === 'Just') {
-												var modal = _v0.a;
+											var _v1 = model.modal;
+											if (_v1.$ === 'Just') {
+												var modal = _v1.a;
 												return A3($author$project$View$Modal$toHtml, $author$project$Main$CloseModal, model.game, modal);
 											} else {
 												return $Orasund$elm_layout$Layout$none;

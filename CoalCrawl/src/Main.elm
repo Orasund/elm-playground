@@ -1,5 +1,6 @@
 port module Main exposing (..)
 
+import AnyBag
 import Browser exposing (Document)
 import Config
 import Data.Actor exposing (Actor)
@@ -12,15 +13,17 @@ import Data.Game exposing (Game)
 import Data.Item exposing (Item)
 import Data.Modal exposing (Modal)
 import Data.Sound
+import Data.Train
 import Dict
 import Html
 import Html.Attributes as Attr
 import Layout
 import Random exposing (Generator, Seed)
 import Time
-import View.Game
 import View.Modal
 import View.Promt
+import View.Screen
+import View.Sidebar exposing (SidebarTab(..))
 
 
 port loadSound : ( String, String ) -> Cmd msg
@@ -40,6 +43,7 @@ type alias Model =
     , modal : Maybe Modal
     , seed : Seed
     , volume : Int
+    , sidebarTab : Maybe SidebarTab
     }
 
 
@@ -90,6 +94,7 @@ type Msg
     | CloseModal
     | DestroyBlock
     | SetVolume String
+    | SetTab (Maybe SidebarTab)
 
 
 restart : Seed -> Model
@@ -106,6 +111,7 @@ restart seed =
                         |> Data.Modal.fromAnimation
                         |> Just
                 , volume = 50
+                , sidebarTab = Just DetailTab
                 }
            )
 
@@ -129,25 +135,58 @@ view model =
             []
         , [ model.promt
                 |> View.Promt.fromString
-          , [ model.game
-                |> View.Game.toHtml
-                    { tileClicked = TileClicked
-                    , toggleSlowdown = ToggleSlowdown
-                    , restart = Restart model.seed
-                    , destroyBlock = DestroyBlock
-                    , buildActor = BuildActor
-                    , buildBlock = BuildBlock
-                    , camera = model.camera
-                    , slowedDown = model.slowedDown
-                    , setVolume = SetVolume
-                    , volume = model.volume
-                    }
+          , [ [ model.game
+                    |> View.Screen.fromGame
+                        { onPress = TileClicked
+                        , camera = model.camera
+                        }
+              , model.game
+                    |> View.Sidebar.sidebar
+                        { toggleSlowdown = ToggleSlowdown
+                        , restart = Restart model.seed
+                        , destroyBlock = DestroyBlock
+                        , buildActor = BuildActor
+                        , buildBlock = BuildBlock
+                        , slowedDown = model.slowedDown
+                        , setVolume = SetVolume
+                        , volume = model.volume
+                        , setTab = SetTab
+                        , tab = model.sidebarTab
+                        }
+              , [ (( "Tracks", model.game.train.tracks )
+                    :: (model.game.train.items
+                            |> AnyBag.toAssociationList
+                       )
+                    |> List.map (\( k, n ) -> String.fromInt n ++ "x " ++ k)
+                  )
+                    |> (\content -> content |> String.join ", ")
+                    |> Html.text
+                    |> Layout.el []
+                , "Needs "
+                    ++ (Data.Train.coalNeeded model.game.train
+                            - AnyBag.count Data.Item.Coal model.game.train.items
+                            |> String.fromInt
+                       )
+                    ++ " for the next Level"
+                    |> Html.text
+                    |> Layout.el []
+                ]
+                    |> Layout.column
+                        [ Attr.style "position" "absolute"
+                        , Attr.style "top" "0"
+                        , Attr.style "right" "0"
+                        , Attr.style "color" "white"
+                        , Attr.style "padding" "8px"
+                        ]
+              ]
                 |> Layout.row
-                    (if model.modal /= Nothing then
+                    ((if model.modal /= Nothing then
                         [ Attr.style "backdrop-filter" "brightness(0.5)" ]
 
-                     else
+                      else
                         []
+                     )
+                        ++ [ Attr.style "position" "relative" ]
                     )
             , case model.modal of
                 Just modal ->
@@ -232,6 +271,9 @@ update msg model =
             String.toInt amount
                 |> Maybe.map (\int -> ( { model | volume = int }, setVolume (toFloat int / 100) ))
                 |> Maybe.withDefault ( model, Cmd.none )
+
+        SetTab tab ->
+            ( { model | sidebarTab = tab }, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
