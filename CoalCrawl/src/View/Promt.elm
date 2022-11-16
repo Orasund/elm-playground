@@ -22,4 +22,3 @@ fromString maybe =
                         ]
             )
         |> Maybe.withDefault Layout.none
-        |> Layout.el [ Layout.alignAtCenter, Attr.style "height" "32px" ]

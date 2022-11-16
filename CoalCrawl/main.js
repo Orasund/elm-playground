@@ -9816,8 +9816,7 @@ var $elm$core$String$fromChar = function (_char) {
 };
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
-var $elm$core$String$fromFloat = _String_fromNumber;
-var $author$project$Config$tileSize = 'min(32px, ' + (($elm$core$String$fromFloat(100 / $author$project$Config$width) + 'vw, ') + (('(100vh - 50px)/' + $elm$core$String$fromInt($author$project$Config$height)) + ')'));
+var $author$project$Config$tileSize = 'min(' + (('100vw/' + ($elm$core$String$fromInt($author$project$Config$width) + ', ')) + (('100vh/' + $elm$core$String$fromInt($author$project$Config$height)) + ')'));
 var $author$project$View$Tile$toHtml = function (tile) {
 	return function (_v0) {
 		var content = _v0.content;
@@ -9920,31 +9919,24 @@ var $author$project$View$Screen$fromGame = F2(
 var $Orasund$elm_layout$Layout$none = $elm$html$Html$text('');
 var $author$project$View$Promt$fromString = function (maybe) {
 	return A2(
-		$Orasund$elm_layout$Layout$el,
-		_List_fromArray(
-			[
-				$Orasund$elm_layout$Layout$alignAtCenter,
-				A2($elm$html$Html$Attributes$style, 'height', '32px')
-			]),
+		$elm$core$Maybe$withDefault,
+		$Orasund$elm_layout$Layout$none,
 		A2(
-			$elm$core$Maybe$withDefault,
-			$Orasund$elm_layout$Layout$none,
-			A2(
-				$elm$core$Maybe$map,
-				function (s) {
-					return A2(
-						$Orasund$elm_layout$Layout$el,
-						_List_fromArray(
-							[
-								$Orasund$elm_layout$Layout$fill,
-								A2($elm$html$Html$Attributes$style, 'background-color', $author$project$View$Color$yellow),
-								A2($elm$html$Html$Attributes$style, 'height', '32px'),
-								A2($elm$html$Html$Attributes$style, 'padding', '0px 8px'),
-								$Orasund$elm_layout$Layout$alignAtCenter
-							]),
-						$elm$html$Html$text(s));
-				},
-				maybe)));
+			$elm$core$Maybe$map,
+			function (s) {
+				return A2(
+					$Orasund$elm_layout$Layout$el,
+					_List_fromArray(
+						[
+							$Orasund$elm_layout$Layout$fill,
+							A2($elm$html$Html$Attributes$style, 'background-color', $author$project$View$Color$yellow),
+							A2($elm$html$Html$Attributes$style, 'height', '32px'),
+							A2($elm$html$Html$Attributes$style, 'padding', '0px 8px'),
+							$Orasund$elm_layout$Layout$alignAtCenter
+						]),
+					$elm$html$Html$text(s));
+			},
+			maybe));
 };
 var $elm$html$Html$Attributes$href = function (url) {
 	return A2(
@@ -10113,6 +10105,7 @@ var $author$project$View$Sidebar$buildBlockButton = F3(
 			onPress: buildBlock(args)
 		};
 	});
+var $elm$core$String$fromFloat = _String_fromNumber;
 var $Orasund$elm_layout$Layout$spacing = function (n) {
 	return A2(
 		$elm$html$Html$Attributes$style,
@@ -10708,102 +10701,102 @@ var $author$project$Main$view = function (model) {
 						[$Orasund$elm_layout$Layout$fill, $Orasund$elm_layout$Layout$centerContent]),
 					$elm$core$List$singleton(
 						A2(
-							$Orasund$elm_layout$Layout$column,
+							$elm$html$Html$div,
 							_List_fromArray(
 								[
-									$Orasund$elm_layout$Layout$spacing(8)
+									A2($elm$html$Html$Attributes$style, 'position', 'relative')
 								]),
 							_List_fromArray(
 								[
-									$author$project$View$Promt$fromString(model.promt),
 									A2(
-									$elm$html$Html$div,
-									_List_fromArray(
-										[
-											A2($elm$html$Html$Attributes$style, 'position', 'relative')
-										]),
+									$Orasund$elm_layout$Layout$row,
+									_Utils_ap(
+										(!_Utils_eq(model.modal, $elm$core$Maybe$Nothing)) ? _List_fromArray(
+											[
+												A2($elm$html$Html$Attributes$style, 'backdrop-filter', 'brightness(0.5)')
+											]) : _List_Nil,
+										_List_fromArray(
+											[
+												A2($elm$html$Html$Attributes$style, 'position', 'relative')
+											])),
 									_List_fromArray(
 										[
 											A2(
-											$Orasund$elm_layout$Layout$row,
-											_Utils_ap(
-												(!_Utils_eq(model.modal, $elm$core$Maybe$Nothing)) ? _List_fromArray(
-													[
-														A2($elm$html$Html$Attributes$style, 'backdrop-filter', 'brightness(0.5)')
-													]) : _List_Nil,
-												_List_fromArray(
-													[
-														A2($elm$html$Html$Attributes$style, 'position', 'relative')
-													])),
+											$author$project$View$Screen$fromGame,
+											{camera: model.camera, onPress: $author$project$Main$TileClicked},
+											model.game),
+											A2(
+											$author$project$View$Sidebar$sidebar,
+											{
+												buildActor: $author$project$Main$BuildActor,
+												buildBlock: $author$project$Main$BuildBlock,
+												destroyBlock: $author$project$Main$DestroyBlock,
+												restart: $author$project$Main$Restart(model.seed),
+												setTab: $author$project$Main$SetTab,
+												setVolume: $author$project$Main$SetVolume,
+												slowedDown: model.slowedDown,
+												tab: model.sidebarTab,
+												toggleSlowdown: $author$project$Main$ToggleSlowdown,
+												volume: model.volume
+											},
+											model.game),
+											A2(
+											$Orasund$elm_layout$Layout$column,
+											_List_fromArray(
+												[
+													A2($elm$html$Html$Attributes$style, 'position', 'absolute'),
+													A2($elm$html$Html$Attributes$style, 'top', '0'),
+													A2($elm$html$Html$Attributes$style, 'right', '0'),
+													A2($elm$html$Html$Attributes$style, 'color', 'white'),
+													A2($elm$html$Html$Attributes$style, 'padding', '8px')
+												]),
 											_List_fromArray(
 												[
 													A2(
-													$author$project$View$Screen$fromGame,
-													{camera: model.camera, onPress: $author$project$Main$TileClicked},
-													model.game),
-													A2(
-													$author$project$View$Sidebar$sidebar,
-													{
-														buildActor: $author$project$Main$BuildActor,
-														buildBlock: $author$project$Main$BuildBlock,
-														destroyBlock: $author$project$Main$DestroyBlock,
-														restart: $author$project$Main$Restart(model.seed),
-														setTab: $author$project$Main$SetTab,
-														setVolume: $author$project$Main$SetVolume,
-														slowedDown: model.slowedDown,
-														tab: model.sidebarTab,
-														toggleSlowdown: $author$project$Main$ToggleSlowdown,
-														volume: model.volume
-													},
-													model.game),
-													A2(
-													$Orasund$elm_layout$Layout$column,
-													_List_fromArray(
-														[
-															A2($elm$html$Html$Attributes$style, 'position', 'absolute'),
-															A2($elm$html$Html$Attributes$style, 'top', '0'),
-															A2($elm$html$Html$Attributes$style, 'right', '0'),
-															A2($elm$html$Html$Attributes$style, 'color', 'white'),
-															A2($elm$html$Html$Attributes$style, 'padding', '8px')
-														]),
-													_List_fromArray(
-														[
+													$Orasund$elm_layout$Layout$el,
+													_List_Nil,
+													$elm$html$Html$text(
+														function (content) {
+															return A2($elm$core$String$join, ', ', content);
+														}(
 															A2(
-															$Orasund$elm_layout$Layout$el,
-															_List_Nil,
-															$elm$html$Html$text(
-																function (content) {
-																	return A2($elm$core$String$join, ', ', content);
-																}(
-																	A2(
-																		$elm$core$List$map,
-																		function (_v0) {
-																			var k = _v0.a;
-																			var n = _v0.b;
-																			return $elm$core$String$fromInt(n) + ('x ' + k);
-																		},
-																		A2(
-																			$elm$core$List$cons,
-																			_Utils_Tuple2('Tracks', model.game.train.tracks),
-																			$author$project$AnyBag$toAssociationList(model.game.train.items)))))),
-															A2(
-															$Orasund$elm_layout$Layout$el,
-															_List_Nil,
-															$elm$html$Html$text(
-																'Needs ' + ($elm$core$String$fromInt(
-																	$author$project$Data$Train$coalNeeded(model.game.train) - A2($author$project$AnyBag$count, $author$project$Data$Item$Coal, model.game.train.items)) + ' for the next Level')))
-														]))
+																$elm$core$List$map,
+																function (_v0) {
+																	var k = _v0.a;
+																	var n = _v0.b;
+																	return $elm$core$String$fromInt(n) + ('x ' + k);
+																},
+																A2(
+																	$elm$core$List$cons,
+																	_Utils_Tuple2('Tracks', model.game.train.tracks),
+																	$author$project$AnyBag$toAssociationList(model.game.train.items)))))),
+													A2(
+													$Orasund$elm_layout$Layout$el,
+													_List_Nil,
+													$elm$html$Html$text(
+														'Needs ' + ($elm$core$String$fromInt(
+															$author$project$Data$Train$coalNeeded(model.game.train) - A2($author$project$AnyBag$count, $author$project$Data$Item$Coal, model.game.train.items)) + ' for the next Level')))
 												])),
-											function () {
-											var _v1 = model.modal;
-											if (_v1.$ === 'Just') {
-												var modal = _v1.a;
-												return A3($author$project$View$Modal$toHtml, $author$project$Main$CloseModal, model.game, modal);
-											} else {
-												return $Orasund$elm_layout$Layout$none;
-											}
-										}()
-										]))
+											A2(
+											$Orasund$elm_layout$Layout$el,
+											_List_fromArray(
+												[
+													A2($elm$html$Html$Attributes$style, 'position', 'absolute'),
+													A2($elm$html$Html$Attributes$style, 'left', '20%'),
+													A2($elm$html$Html$Attributes$style, 'bottom', '0'),
+													A2($elm$html$Html$Attributes$style, 'width', '60%')
+												]),
+											$author$project$View$Promt$fromString(model.promt))
+										])),
+									function () {
+									var _v1 = model.modal;
+									if (_v1.$ === 'Just') {
+										var modal = _v1.a;
+										return A3($author$project$View$Modal$toHtml, $author$project$Main$CloseModal, model.game, modal);
+									} else {
+										return $Orasund$elm_layout$Layout$none;
+									}
+								}()
 								])))))
 			]),
 		title: '⛏Coal Crawl'

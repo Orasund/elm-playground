@@ -133,36 +133,34 @@ view model =
             , Attr.href "https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
             ]
             []
-        , [ model.promt
-                |> View.Promt.fromString
-          , [ [ model.game
-                    |> View.Screen.fromGame
-                        { onPress = TileClicked
-                        , camera = model.camera
-                        }
-              , model.game
-                    |> View.Sidebar.sidebar
-                        { toggleSlowdown = ToggleSlowdown
-                        , restart = Restart model.seed
-                        , destroyBlock = DestroyBlock
-                        , buildActor = BuildActor
-                        , buildBlock = BuildBlock
-                        , slowedDown = model.slowedDown
-                        , setVolume = SetVolume
-                        , volume = model.volume
-                        , setTab = SetTab
-                        , tab = model.sidebarTab
-                        }
-              , [ (( "Tracks", model.game.train.tracks )
+        , [ [ model.game
+                |> View.Screen.fromGame
+                    { onPress = TileClicked
+                    , camera = model.camera
+                    }
+            , model.game
+                |> View.Sidebar.sidebar
+                    { toggleSlowdown = ToggleSlowdown
+                    , restart = Restart model.seed
+                    , destroyBlock = DestroyBlock
+                    , buildActor = BuildActor
+                    , buildBlock = BuildBlock
+                    , slowedDown = model.slowedDown
+                    , setVolume = SetVolume
+                    , volume = model.volume
+                    , setTab = SetTab
+                    , tab = model.sidebarTab
+                    }
+            , [ (( "Tracks", model.game.train.tracks )
                     :: (model.game.train.items
                             |> AnyBag.toAssociationList
                        )
                     |> List.map (\( k, n ) -> String.fromInt n ++ "x " ++ k)
-                  )
+                )
                     |> (\content -> content |> String.join ", ")
                     |> Html.text
                     |> Layout.el []
-                , "Needs "
+              , "Needs "
                     ++ (Data.Train.coalNeeded model.game.train
                             - AnyBag.count Data.Item.Coal model.game.train.items
                             |> String.fromInt
@@ -170,15 +168,23 @@ view model =
                     ++ " for the next Level"
                     |> Html.text
                     |> Layout.el []
-                ]
-                    |> Layout.column
-                        [ Attr.style "position" "absolute"
-                        , Attr.style "top" "0"
-                        , Attr.style "right" "0"
-                        , Attr.style "color" "white"
-                        , Attr.style "padding" "8px"
-                        ]
               ]
+                |> Layout.column
+                    [ Attr.style "position" "absolute"
+                    , Attr.style "top" "0"
+                    , Attr.style "right" "0"
+                    , Attr.style "color" "white"
+                    , Attr.style "padding" "8px"
+                    ]
+            , model.promt
+                |> View.Promt.fromString
+                |> Layout.el
+                    [ Attr.style "position" "absolute"
+                    , Attr.style "left" "20%"
+                    , Attr.style "bottom" "0"
+                    , Attr.style "width" "60%"
+                    ]
+            ]
                 |> Layout.row
                     ((if model.modal /= Nothing then
                         [ Attr.style "backdrop-filter" "brightness(0.5)" ]
@@ -188,16 +194,14 @@ view model =
                      )
                         ++ [ Attr.style "position" "relative" ]
                     )
-            , case model.modal of
+          , case model.modal of
                 Just modal ->
                     View.Modal.toHtml CloseModal model.game modal
 
                 Nothing ->
                     Layout.none
-            ]
-                |> Html.div [ Attr.style "position" "relative" ]
           ]
-            |> Layout.column [ Layout.spacing 8 ]
+            |> Html.div [ Attr.style "position" "relative" ]
             |> List.singleton
             |> Layout.row [ Layout.fill, Layout.centerContent ]
             |> Layout.container [ Attr.style "background-color" "white" ]

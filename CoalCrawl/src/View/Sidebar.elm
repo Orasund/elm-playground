@@ -8,7 +8,6 @@ import Data.Floor
 import Data.Game exposing (Game)
 import Data.Info
 import Data.Item exposing (Item)
-import Data.Train
 import Data.Wagon
 import Data.World
 import Html exposing (Html)

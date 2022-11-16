@@ -10,9 +10,9 @@ height =
 
 
 tileSize =
-    "min(32px, "
-        ++ (String.fromFloat (100 / toFloat width) ++ "vw, ")
-        ++ ("(100vh - 50px)/" ++ String.fromInt height)
+    "min("
+        ++ ("100vw/" ++ String.fromInt width ++ ", ")
+        ++ ("100vh/" ++ String.fromInt height)
         ++ ")"
 
 
