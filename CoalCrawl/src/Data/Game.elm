@@ -76,24 +76,24 @@ new : Game
 new =
     let
         train =
-            ( Config.width // 2, 2 )
+            ( 0, 2 )
 
         player =
-            ( Config.width // 2, 3 )
+            ( 0, 3 )
 
         tracks =
             List.range 0 1
                 |> List.map
                     (\i ->
-                        ( ( Config.width // 2, i )
+                        ( ( 0, i )
                         , Data.Block.FloorBlock Data.Floor.RailwayTrack
                         )
                     )
 
         coals =
-            [ ( Config.width // 2, 4 )
-            , ( Config.width // 2 - 1, 3 )
-            , ( Config.width // 2 + 1, 3 )
+            [ ( 0, 4 )
+            , ( 0 - 1, 3 )
+            , ( 0 + 1, 3 )
             ]
     in
     { world =
@@ -110,7 +110,6 @@ new =
             |> Data.Train.fromPos
             |> Data.Train.addAll
                 ([ List.repeat 1 Data.Item.Coal
-                 , List.repeat 4 Data.Item.Iron
                  ]
                     |> List.concat
                     |> AnyBag.fromList Data.Item.toString

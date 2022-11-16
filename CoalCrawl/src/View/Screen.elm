@@ -4,6 +4,7 @@ import Config
 import Data.Game exposing (Game)
 import Data.Tile
 import Data.World
+import Data.Zoom exposing (Zoom)
 import Html exposing (Html)
 import Html.Attributes as Attr
 import Layout
@@ -19,19 +20,19 @@ animation args game =
                 List.range 0 (args.width - 1)
                     |> List.map
                         (\x ->
-                            tile Nothing ( x, y ) game
+                            tile { onPress = Nothing, zoom = Data.Zoom.none } ( x, y ) game
                         )
                     |> Layout.row [ Layout.noWrap ]
             )
         |> Layout.column []
 
 
-fromGame : { onPress : ( Int, Int ) -> msg, camera : ( Int, Int ) } -> Game -> Html msg
+fromGame : { onPress : ( Int, Int ) -> msg, camera : ( Int, Int ), zoom : Zoom } -> Game -> Html msg
 fromGame args game =
-    List.range 0 (Config.height - 1)
+    List.range 0 (Config.height args.zoom - 1)
         |> List.map
             (\y ->
-                List.range 0 (Config.width - 1)
+                List.range 0 (Config.width args.zoom - 1)
                     |> List.map
                         (\x ->
                             let
@@ -39,19 +40,19 @@ fromGame args game =
                                     args.camera
 
                                 pos =
-                                    ( playerX + x - Config.width // 2
-                                    , playerY + y - Config.height // 2
+                                    ( playerX + x - Config.width args.zoom // 2
+                                    , playerY + y - Config.height args.zoom // 2
                                     )
                             in
-                            tile (args.onPress pos |> Just) pos game
+                            tile { onPress = args.onPress pos |> Just, zoom = args.zoom } pos game
                         )
                     |> Layout.row [ Layout.noWrap ]
             )
         |> Layout.column []
 
 
-tile : Maybe msg -> ( Int, Int ) -> Game -> Html msg
-tile maybeOnPress pos game =
+tile : { onPress : Maybe msg, zoom : Zoom } -> ( Int, Int ) -> Game -> Html msg
+tile args pos game =
     (if pos == game.player.pos then
         Data.Tile.fromPlayer game.player
             |> Just
@@ -64,7 +65,7 @@ tile maybeOnPress pos game =
         |> (\maybe ->
                 maybe
                     |> Maybe.withDefault Data.Tile.wall
-                    |> View.Tile.toHtml
+                    |> View.Tile.toHtml args.zoom
                     |> Layout.el
                         ((if game.selected == pos then
                             [ Attr.style "background-color" View.Color.yellow ]
@@ -75,11 +76,11 @@ tile maybeOnPress pos game =
                           else
                             []
                          )
-                            ++ (maybeOnPress
+                            ++ (args.onPress
                                     |> Maybe.map
                                         (\_ ->
                                             Layout.asButton
-                                                { onPress = maybeOnPress
+                                                { onPress = args.onPress
                                                 , label = "Activate"
                                                 }
                                         )

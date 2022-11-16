@@ -8,4 +8,4 @@
 * [ ] Skills
     * [ ] Wagons pick up items
       * [ ] Uniform pickup sound
-    * [ ] Game gets faster each level
+    * [x] Game gets faster each level

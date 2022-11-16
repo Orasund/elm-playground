@@ -11,10 +11,10 @@ toString : Item -> String
 toString item =
     case item of
         Coal ->
-            "Coal"
+            "\u{1FAA8} Coal"
 
         Iron ->
-            "Iron"
+            "🔩 Iron"
 
         Gold ->
-            "Gold"
+            "\u{1FA99} Gold"

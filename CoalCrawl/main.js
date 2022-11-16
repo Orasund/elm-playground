@@ -5429,7 +5429,7 @@ var $elm$random$Random$independentSeed = $elm$random$Random$Generator(
 			A4($elm$random$Random$map3, makeIndependentSeed, gen, gen, gen),
 			seed0);
 	});
-var $author$project$View$Sidebar$DetailTab = {$: 'DetailTab'};
+var $author$project$View$Tab$DetailTab = {$: 'DetailTab'};
 var $author$project$Data$Item$Coal = {$: 'Coal'};
 var $author$project$Data$Floor$Ground = function (a) {
 	return {$: 'Ground', a: a};
@@ -5450,11 +5450,11 @@ var $author$project$AnyBag$empty = function (encode) {
 var $author$project$Data$Item$toString = function (item) {
 	switch (item.$) {
 		case 'Coal':
-			return 'Coal';
+			return '\uD83E\uDEA8 Coal';
 		case 'Iron':
-			return 'Iron';
+			return '🔩 Iron';
 		default:
-			return 'Gold';
+			return '\uD83E\uDE99 Gold';
 	}
 };
 var $author$project$Data$Wagon$emptyWagon = {
@@ -8064,16 +8064,16 @@ var $author$project$Data$World$Generation$caveGenerator = F3(
 		var probability = _List_fromArray(
 			[
 				_Utils_Tuple2(
-				0.3,
+				0.45,
 				_Utils_Tuple2(x, y - 1)),
 				_Utils_Tuple2(
-				0.3,
+				0.45,
 				_Utils_Tuple2(x, y + 1)),
 				_Utils_Tuple2(
-				0.3,
+				0.45,
 				_Utils_Tuple2(x - 1, y)),
 				_Utils_Tuple2(
-				0.3,
+				0.45,
 				_Utils_Tuple2(x + 1, y))
 			]);
 		var pos = _Utils_Tuple2(x, y);
@@ -8149,7 +8149,12 @@ var $author$project$Data$World$Generation$exposedCave = function (caveType) {
 								_Utils_Tuple2(
 								1 / 2,
 								$author$project$Data$World$insertFloor(
-									$author$project$Data$Floor$Ground($elm$core$Maybe$Nothing)))
+									$author$project$Data$Floor$Ground($elm$core$Maybe$Nothing))),
+								_Utils_Tuple2(
+								1 / 4,
+								$author$project$Data$World$insertFloor(
+									$author$project$Data$Floor$Ground(
+										$elm$core$Maybe$Just($author$project$Data$Item$Gold))))
 							]));
 				case 'CoalCave':
 					return $elm$random$Random$constant(
@@ -8328,8 +8333,7 @@ var $author$project$Data$Train$forwardPos = function (train) {
 	var dirY = _v1.b;
 	return _Utils_Tuple2(x + dirX, y + dirY);
 };
-var $author$project$Config$width = 21;
-var $author$project$Config$hqPos = _Utils_Tuple2(($author$project$Config$width / 2) | 0, 0);
+var $author$project$Config$hqPos = _Utils_Tuple2(0, 0);
 var $author$project$Data$Behavior$Train$mine = function (game) {
 	var newPos = $author$project$Data$Train$forwardPos(game.train);
 	return A2(
@@ -8920,21 +8924,21 @@ var $elm$core$List$repeat = F2(
 		return A3($elm$core$List$repeatHelp, _List_Nil, n, value);
 	});
 var $author$project$Data$Game$new = function () {
-	var train = _Utils_Tuple2(($author$project$Config$width / 2) | 0, 2);
+	var train = _Utils_Tuple2(0, 2);
 	var tracks = A2(
 		$elm$core$List$map,
 		function (i) {
 			return _Utils_Tuple2(
-				_Utils_Tuple2(($author$project$Config$width / 2) | 0, i),
+				_Utils_Tuple2(0, i),
 				$author$project$Data$Block$FloorBlock($author$project$Data$Floor$RailwayTrack));
 		},
 		A2($elm$core$List$range, 0, 1));
-	var player = _Utils_Tuple2(($author$project$Config$width / 2) | 0, 3);
+	var player = _Utils_Tuple2(0, 3);
 	var coals = _List_fromArray(
 		[
-			_Utils_Tuple2(($author$project$Config$width / 2) | 0, 4),
-			_Utils_Tuple2((($author$project$Config$width / 2) | 0) - 1, 3),
-			_Utils_Tuple2((($author$project$Config$width / 2) | 0) + 1, 3)
+			_Utils_Tuple2(0, 4),
+			_Utils_Tuple2(0 - 1, 3),
+			_Utils_Tuple2(0 + 1, 3)
 		]);
 	return {
 		player: $author$project$Data$Player$fromPos(player),
@@ -8947,8 +8951,7 @@ var $author$project$Data$Game$new = function () {
 				$elm$core$List$concat(
 					_List_fromArray(
 						[
-							A2($elm$core$List$repeat, 1, $author$project$Data$Item$Coal),
-							A2($elm$core$List$repeat, 4, $author$project$Data$Item$Iron)
+							A2($elm$core$List$repeat, 1, $author$project$Data$Item$Coal)
 						]))),
 			$author$project$Data$Train$fromPos(train)),
 		world: $author$project$Data$World$fromList(
@@ -8988,9 +8991,11 @@ var $author$project$Main$restart = function (seed) {
 				$author$project$Data$Modal$fromAnimation($author$project$Data$Animation$animate)),
 			promt: $elm$core$Maybe$Nothing,
 			seed: seed,
-			sidebarTab: $elm$core$Maybe$Just($author$project$View$Sidebar$DetailTab),
+			sidebarTab: $elm$core$Maybe$Just($author$project$View$Tab$DetailTab),
 			slowedDown: false,
-			volume: 50
+			tickInterval: 200,
+			volume: 50,
+			zoomPercent: 50
 		};
 	}($author$project$Data$Game$new);
 };
@@ -9175,12 +9180,12 @@ var $elm$time$Time$every = F2(
 var $author$project$Main$subscriptions = function (model) {
 	return model.slowedDown ? A2(
 		$elm$time$Time$every,
-		400,
+		model.tickInterval * 2,
 		function (_v0) {
 			return $author$project$Main$TimePassed;
 		}) : A2(
 		$elm$time$Time$every,
-		200,
+		model.tickInterval,
 		function (_v1) {
 			return $author$project$Main$TimePassed;
 		});
@@ -9326,7 +9331,39 @@ var $author$project$Data$Sound$toString = function (sound) {
 			return 'Error';
 	}
 };
-var $author$project$Config$maxCameraDistance = 5;
+var $author$project$Data$Zoom$Zoom = function (a) {
+	return {$: 'Zoom', a: a};
+};
+var $author$project$Data$Zoom$fromPercent = function (n) {
+	var power = n / 100;
+	return $author$project$Data$Zoom$Zoom(
+		A2($elm$core$Basics$pow, 3, power));
+};
+var $author$project$Data$Zoom$get = function (_v0) {
+	var v = _v0.a;
+	return v;
+};
+var $elm$core$Basics$round = _Basics_round;
+var $author$project$Config$height = function (zoom) {
+	return $elm$core$Basics$round(
+		15 * $author$project$Data$Zoom$get(zoom));
+};
+var $elm$core$Basics$min = F2(
+	function (x, y) {
+		return (_Utils_cmp(x, y) < 0) ? x : y;
+	});
+var $author$project$Config$maxCameraDistance = F3(
+	function (z, w, h) {
+		return $elm$core$Basics$round(
+			A2(
+				$elm$core$Basics$min,
+				w(z),
+				h(z)) / 4);
+	});
+var $author$project$Config$width = function (zoom) {
+	return $elm$core$Basics$round(
+		21 * $author$project$Data$Zoom$get(zoom));
+};
 var $author$project$Main$updateCamera = function (model) {
 	var _v0 = model.camera;
 	var x = _v0.a;
@@ -9336,7 +9373,11 @@ var $author$project$Main$updateCamera = function (model) {
 	var pY = _v1.b;
 	return (_Utils_cmp(
 		$elm$core$Basics$abs(pX - x) + $elm$core$Basics$abs(pY - y),
-		$author$project$Config$maxCameraDistance) > 0) ? _Utils_update(
+		A3(
+			$author$project$Config$maxCameraDistance,
+			$author$project$Data$Zoom$fromPercent(model.zoomPercent),
+			$author$project$Config$width,
+			$author$project$Config$height)) > 0) ? _Utils_update(
 		model,
 		{
 			camera: _Utils_Tuple2(pX, pY)
@@ -9370,7 +9411,8 @@ var $author$project$Main$updateGame = F2(
 											m,
 											{
 												modal: $elm$core$Maybe$Just(
-													$author$project$Data$Modal$fromAnimation($author$project$Data$Animation$animate))
+													$author$project$Data$Modal$fromAnimation($author$project$Data$Animation$animate)),
+												tickInterval: m.tickInterval * 1.1
 											});
 									});
 							default:
@@ -9499,14 +9541,29 @@ var $author$project$Main$update = F2(
 									{volume: _int}),
 								$author$project$Main$setVolume(_int / 100));
 						},
-						$elm$core$String$toInt(amount)));
-			default:
+						amount));
+			case 'SetTab':
 				var tab = msg.a;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{sidebarTab: tab}),
 					$elm$core$Platform$Cmd$none);
+			default:
+				var amount = msg.a;
+				return A2(
+					$elm$core$Maybe$withDefault,
+					_Utils_Tuple2(model, $elm$core$Platform$Cmd$none),
+					A2(
+						$elm$core$Maybe$map,
+						function (_float) {
+							return _Utils_Tuple2(
+								_Utils_update(
+									model,
+									{zoomPercent: _float}),
+								$elm$core$Platform$Cmd$none);
+						},
+						amount));
 		}
 	});
 var $author$project$Main$BuildActor = function (a) {
@@ -9522,6 +9579,9 @@ var $author$project$Main$SetTab = function (a) {
 };
 var $author$project$Main$SetVolume = function (a) {
 	return {$: 'SetVolume', a: a};
+};
+var $author$project$Main$SetZoom = function (a) {
+	return {$: 'SetZoom', a: a};
 };
 var $author$project$Main$TileClicked = function (a) {
 	return {$: 'TileClicked', a: a};
@@ -9572,7 +9632,6 @@ var $Orasund$elm_layout$Layout$fillPortion = function (n) {
 		$elm$core$String$fromInt(n));
 };
 var $Orasund$elm_layout$Layout$fill = $Orasund$elm_layout$Layout$fillPortion(1);
-var $author$project$Config$height = 15;
 var $Orasund$elm_layout$Layout$noWrap = A2($elm$html$Html$Attributes$style, 'flex-wrap', 'nowrap');
 var $Orasund$elm_layout$Layout$row = function (attrs) {
 	return $elm$html$Html$div(
@@ -9816,38 +9875,52 @@ var $elm$core$String$fromChar = function (_char) {
 };
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
-var $author$project$Config$tileSize = 'min(' + (('100vw/' + ($elm$core$String$fromInt($author$project$Config$width) + ', ')) + (('100vh/' + $elm$core$String$fromInt($author$project$Config$height)) + ')'));
-var $author$project$View$Tile$toHtml = function (tile) {
-	return function (_v0) {
-		var content = _v0.content;
-		var color = _v0.color;
-		var bold = _v0.bold;
-		var animation = _v0.animation;
-		return A2(
-			$Orasund$elm_layout$Layout$el,
-			_Utils_ap(
-				_List_fromArray(
-					[
-						A2($elm$html$Html$Attributes$style, 'width', $author$project$Config$tileSize),
-						A2($elm$html$Html$Attributes$style, 'height', $author$project$Config$tileSize),
-						A2($elm$html$Html$Attributes$style, 'font-size', $author$project$Config$tileSize),
-						A2($elm$html$Html$Attributes$style, 'color', color)
-					]),
-				_Utils_ap(
-					bold ? _List_fromArray(
-						[
-							A2($elm$html$Html$Attributes$style, 'font-weight', 'bold')
-						]) : _List_Nil,
-					_Utils_ap(
-						animation ? _List_fromArray(
-							[
-								$elm$html$Html$Attributes$class('animate__animated animate__pulse animate__infinite')
-							]) : _List_Nil,
-						$Orasund$elm_layout$Layout$centered))),
-			$elm$html$Html$text(
-				$elm$core$String$fromChar(content)));
-	}(tile);
+var $author$project$Config$tileSize = function (zoom) {
+	return 'min(' + (('100vw/' + ($elm$core$String$fromInt(
+		$author$project$Config$width(zoom)) + ', ')) + (('100vh/' + $elm$core$String$fromInt(
+		$author$project$Config$height(zoom))) + ')'));
 };
+var $author$project$View$Tile$toHtml = F2(
+	function (zoom, tile) {
+		return function (_v0) {
+			var content = _v0.content;
+			var color = _v0.color;
+			var bold = _v0.bold;
+			var animation = _v0.animation;
+			return A2(
+				$Orasund$elm_layout$Layout$el,
+				_Utils_ap(
+					_List_fromArray(
+						[
+							A2(
+							$elm$html$Html$Attributes$style,
+							'width',
+							$author$project$Config$tileSize(zoom)),
+							A2(
+							$elm$html$Html$Attributes$style,
+							'height',
+							$author$project$Config$tileSize(zoom)),
+							A2(
+							$elm$html$Html$Attributes$style,
+							'font-size',
+							$author$project$Config$tileSize(zoom)),
+							A2($elm$html$Html$Attributes$style, 'color', color)
+						]),
+					_Utils_ap(
+						bold ? _List_fromArray(
+							[
+								A2($elm$html$Html$Attributes$style, 'font-weight', 'bold')
+							]) : _List_Nil,
+						_Utils_ap(
+							animation ? _List_fromArray(
+								[
+									$elm$html$Html$Attributes$class('animate__animated animate__pulse animate__infinite')
+								]) : _List_Nil,
+							$Orasund$elm_layout$Layout$centered))),
+				$elm$html$Html$text(
+					$elm$core$String$fromChar(content)));
+		}(tile);
+	});
 var $author$project$Data$Tile$wall = $author$project$Data$Tile$new(
 	{
 		color: $author$project$View$Color$black,
@@ -9855,7 +9928,7 @@ var $author$project$Data$Tile$wall = $author$project$Data$Tile$new(
 	});
 var $author$project$View$Color$yellow = 'Yellow';
 var $author$project$View$Screen$tile = F3(
-	function (maybeOnPress, pos, game) {
+	function (args, pos, game) {
 		return function (maybe) {
 			return A2(
 				$Orasund$elm_layout$Layout$el,
@@ -9874,10 +9947,12 @@ var $author$project$View$Screen$tile = F3(
 							$elm$core$Maybe$map,
 							function (_v0) {
 								return $Orasund$elm_layout$Layout$asButton(
-									{label: 'Activate', onPress: maybeOnPress});
+									{label: 'Activate', onPress: args.onPress});
 							},
-							maybeOnPress))),
-				$author$project$View$Tile$toHtml(
+							args.onPress))),
+				A2(
+					$author$project$View$Tile$toHtml,
+					args.zoom,
 					A2($elm$core$Maybe$withDefault, $author$project$Data$Tile$wall, maybe)));
 		}(
 			_Utils_eq(pos, game.player.pos) ? $elm$core$Maybe$Just(
@@ -9904,17 +9979,28 @@ var $author$project$View$Screen$fromGame = F2(
 								var _v0 = args.camera;
 								var playerX = _v0.a;
 								var playerY = _v0.b;
-								var pos = _Utils_Tuple2((playerX + x) - (($author$project$Config$width / 2) | 0), (playerY + y) - (($author$project$Config$height / 2) | 0));
+								var pos = _Utils_Tuple2(
+									(playerX + x) - (($author$project$Config$width(args.zoom) / 2) | 0),
+									(playerY + y) - (($author$project$Config$height(args.zoom) / 2) | 0));
 								return A3(
 									$author$project$View$Screen$tile,
-									$elm$core$Maybe$Just(
-										args.onPress(pos)),
+									{
+										onPress: $elm$core$Maybe$Just(
+											args.onPress(pos)),
+										zoom: args.zoom
+									},
 									pos,
 									game);
 							},
-							A2($elm$core$List$range, 0, $author$project$Config$width - 1)));
+							A2(
+								$elm$core$List$range,
+								0,
+								$author$project$Config$width(args.zoom) - 1)));
 				},
-				A2($elm$core$List$range, 0, $author$project$Config$height - 1)));
+				A2(
+					$elm$core$List$range,
+					0,
+					$author$project$Config$height(args.zoom) - 1)));
 	});
 var $Orasund$elm_layout$Layout$none = $elm$html$Html$text('');
 var $author$project$View$Promt$fromString = function (maybe) {
@@ -9931,7 +10017,8 @@ var $author$project$View$Promt$fromString = function (maybe) {
 							$Orasund$elm_layout$Layout$fill,
 							A2($elm$html$Html$Attributes$style, 'background-color', $author$project$View$Color$yellow),
 							A2($elm$html$Html$Attributes$style, 'height', '32px'),
-							A2($elm$html$Html$Attributes$style, 'padding', '0px 8px'),
+							A2($elm$html$Html$Attributes$style, 'padding', '0 8px'),
+							A2($elm$html$Html$Attributes$style, 'border-radius', '8px'),
 							$Orasund$elm_layout$Layout$alignAtCenter
 						]),
 					$elm$html$Html$text(s));
@@ -10019,7 +10106,7 @@ var $author$project$Data$Info$fromActor = function (actor) {
 				});
 	}
 };
-var $author$project$View$Sidebar$buildActorButton = F2(
+var $author$project$View$Tab$buildActorButton = F2(
 	function (buildActor, args) {
 		return {
 			build: $author$project$Data$Info$fromActor(args.actor).title,
@@ -10097,7 +10184,7 @@ var $author$project$Data$Info$fromBlock = F2(
 			return A2($author$project$Data$Info$fromEntity, game, entity);
 		}
 	});
-var $author$project$View$Sidebar$buildBlockButton = F3(
+var $author$project$View$Tab$buildBlockButton = F3(
 	function (buildBlock, game, args) {
 		return {
 			build: A2($author$project$Data$Info$fromBlock, game, args.block).title,
@@ -10153,7 +10240,7 @@ var $author$project$View$Button$toHtml = F2(
 			}(),
 			$elm$html$Html$text(label));
 	});
-var $author$project$View$Sidebar$buildButton = F2(
+var $author$project$View$Tab$buildButton = F2(
 	function (game, args) {
 		var _v0 = args.cost;
 		var item = _v0.a;
@@ -10226,7 +10313,35 @@ var $elm$html$Html$Events$onInput = function (tagger) {
 };
 var $elm$html$Html$Attributes$type_ = $elm$html$Html$Attributes$stringProperty('type');
 var $elm$html$Html$Attributes$value = $elm$html$Html$Attributes$stringProperty('value');
-var $author$project$View$Sidebar$settings = function (args) {
+var $author$project$View$Tab$Settings$percentRange = function (args) {
+	return A2(
+		$Orasund$elm_layout$Layout$row,
+		_List_fromArray(
+			[
+				$Orasund$elm_layout$Layout$spacing(8)
+			]),
+		_List_fromArray(
+			[
+				$elm$html$Html$text(args.name),
+				A2(
+				$elm$html$Html$input,
+				_List_fromArray(
+					[
+						$elm$html$Html$Attributes$type_('range'),
+						$elm$html$Html$Attributes$min('0'),
+						$elm$html$Html$Attributes$max('100'),
+						$elm$html$Html$Attributes$value(
+						$elm$core$String$fromInt(args.value)),
+						$elm$html$Html$Events$onInput(
+						function (_int) {
+							return args.onInput(
+								$elm$core$String$toInt(_int));
+						})
+					]),
+				_List_Nil)
+			]));
+};
+var $author$project$View$Tab$Settings$settings = function (args) {
 	return A2(
 		$Orasund$elm_layout$Layout$column,
 		_List_fromArray(
@@ -10252,34 +10367,16 @@ var $author$project$View$Sidebar$settings = function (args) {
 						$elm$core$Maybe$Just(args.restart),
 						'Restarts')
 					])),
-				A2(
-				$Orasund$elm_layout$Layout$row,
-				_List_fromArray(
-					[
-						$Orasund$elm_layout$Layout$spacing(8)
-					]),
-				_List_fromArray(
-					[
-						$elm$html$Html$text('Volume'),
-						A2(
-						$elm$html$Html$input,
-						_List_fromArray(
-							[
-								$elm$html$Html$Attributes$type_('range'),
-								$elm$html$Html$Attributes$min('0'),
-								$elm$html$Html$Attributes$max('100'),
-								$elm$html$Html$Attributes$value(
-								$elm$core$String$fromInt(args.volume)),
-								$elm$html$Html$Events$onInput(args.setVolume)
-							]),
-						_List_Nil)
-					]))
+				$author$project$View$Tab$Settings$percentRange(
+				{name: 'Volume', onInput: args.setVolume, value: args.volume}),
+				$author$project$View$Tab$Settings$percentRange(
+				{name: 'Zoom', onInput: args.setZoom, value: args.zoom})
 			]));
 };
-var $author$project$View$Sidebar$BuildTab = {$: 'BuildTab'};
-var $author$project$View$Sidebar$SettingTab = {$: 'SettingTab'};
-var $author$project$View$Sidebar$tabList = _List_fromArray(
-	[$author$project$View$Sidebar$SettingTab, $author$project$View$Sidebar$DetailTab, $author$project$View$Sidebar$BuildTab]);
+var $author$project$View$Tab$BuildTab = {$: 'BuildTab'};
+var $author$project$View$Tab$SettingTab = {$: 'SettingTab'};
+var $author$project$View$Tab$tabList = _List_fromArray(
+	[$author$project$View$Tab$SettingTab, $author$project$View$Tab$DetailTab, $author$project$View$Tab$BuildTab]);
 var $elm$html$Html$p = _VirtualDom_node('p');
 var $Orasund$elm_layout$Layout$paragraph = F2(
 	function (attrs, content) {
@@ -10320,7 +10417,7 @@ var $author$project$View$Info$toHtml = function (info) {
 				},
 				info.additionalInfo)));
 };
-var $author$project$View$Sidebar$toString = function (tab) {
+var $author$project$View$Tab$toString = function (tab) {
 	switch (tab.$) {
 		case 'SettingTab':
 			return 'Settings';
@@ -10331,7 +10428,7 @@ var $author$project$View$Sidebar$toString = function (tab) {
 	}
 };
 var $author$project$Config$trackCost = 1;
-var $author$project$View$Sidebar$sidebar = F2(
+var $author$project$View$Tab$sidebar = F2(
 	function (args, game) {
 		var selected = A2($author$project$Data$World$get, game.selected, game.world);
 		return A2(
@@ -10363,9 +10460,9 @@ var $author$project$View$Sidebar$sidebar = F2(
 									args.setTab($elm$core$Maybe$Nothing)) : $elm$core$Maybe$Just(
 									args.setTab(
 										$elm$core$Maybe$Just(tab))),
-								$author$project$View$Sidebar$toString(tab));
+								$author$project$View$Tab$toString(tab));
 						},
-						$author$project$View$Sidebar$tabList)),
+						$author$project$View$Tab$tabList)),
 					A2(
 					$elm$core$Maybe$withDefault,
 					$Orasund$elm_layout$Layout$none,
@@ -10377,10 +10474,10 @@ var $author$project$View$Sidebar$sidebar = F2(
 								_List_fromArray(
 									[
 										$Orasund$elm_layout$Layout$spacing(8),
-										A2($elm$html$Html$Attributes$style, 'width', '300px'),
+										A2($elm$html$Html$Attributes$style, 'width', '200px'),
 										A2($elm$html$Html$Attributes$style, 'background-color', 'white'),
 										A2($elm$html$Html$Attributes$style, 'padding', '8px'),
-										A2($elm$html$Html$Attributes$style, 'border-radius', '16px'),
+										A2($elm$html$Html$Attributes$style, 'border-radius', '8px'),
 										A2($elm$html$Html$Attributes$style, 'border', 'solid 1px black')
 									]),
 								_List_fromArray(
@@ -10389,12 +10486,12 @@ var $author$project$View$Sidebar$sidebar = F2(
 										$Orasund$elm_layout$Layout$heading3,
 										_List_Nil,
 										$elm$html$Html$text(
-											$author$project$View$Sidebar$toString(tab))),
+											$author$project$View$Tab$toString(tab))),
 										function () {
 										switch (tab.$) {
 											case 'SettingTab':
-												return $author$project$View$Sidebar$settings(
-													{restart: args.restart, setVolume: args.setVolume, slowedDown: args.slowedDown, toggleSlowdown: args.toggleSlowdown, volume: args.volume});
+												return $author$project$View$Tab$Settings$settings(
+													{restart: args.restart, setVolume: args.setVolume, setZoom: args.setZoom, slowedDown: args.slowedDown, toggleSlowdown: args.toggleSlowdown, volume: args.volume, zoom: args.zoom});
 											case 'DetailTab':
 												return A2(
 													$elm$core$Maybe$withDefault,
@@ -10418,18 +10515,18 @@ var $author$project$View$Sidebar$sidebar = F2(
 														_Utils_ap(
 															A2(
 																$elm$core$List$map,
-																$author$project$View$Sidebar$buildButton(game),
+																$author$project$View$Tab$buildButton(game),
 																_List_fromArray(
 																	[
 																		A2(
-																		$author$project$View$Sidebar$buildActorButton,
+																		$author$project$View$Tab$buildActorButton,
 																		args.buildActor,
 																		{
 																			actor: $author$project$Data$Actor$Wagon($author$project$Data$Wagon$emptyWagon),
 																			cost: _Utils_Tuple2($author$project$Data$Item$Iron, $author$project$Config$wagonCost)
 																		}),
 																		A2(
-																		$author$project$View$Sidebar$buildActorButton,
+																		$author$project$View$Tab$buildActorButton,
 																		args.buildActor,
 																		{
 																			actor: $author$project$Data$Actor$bomb,
@@ -10441,11 +10538,11 @@ var $author$project$View$Sidebar$sidebar = F2(
 																	if (floor.$ === 'Ground') {
 																		return A2(
 																			$elm$core$List$map,
-																			$author$project$View$Sidebar$buildButton(game),
+																			$author$project$View$Tab$buildButton(game),
 																			_List_fromArray(
 																				[
 																					A3(
-																					$author$project$View$Sidebar$buildBlockButton,
+																					$author$project$View$Tab$buildBlockButton,
 																					args.buildBlock,
 																					game,
 																					{
@@ -10478,6 +10575,7 @@ var $author$project$View$Sidebar$sidebar = F2(
 						args.tab))
 				]));
 	});
+var $author$project$Data$Zoom$none = $author$project$Data$Zoom$Zoom(1);
 var $author$project$View$Screen$animation = F2(
 	function (args, game) {
 		return A2(
@@ -10495,7 +10593,7 @@ var $author$project$View$Screen$animation = F2(
 							function (x) {
 								return A3(
 									$author$project$View$Screen$tile,
-									$elm$core$Maybe$Nothing,
+									{onPress: $elm$core$Maybe$Nothing, zoom: $author$project$Data$Zoom$none},
 									_Utils_Tuple2(x, y),
 									game);
 							},
@@ -10621,7 +10719,8 @@ var $author$project$View$Modal$toHtml = F3(
 					A2($elm$html$Html$Attributes$style, 'width', '80%'),
 					A2($elm$html$Html$Attributes$style, 'height', '80%'),
 					A2($elm$html$Html$Attributes$style, 'background-color', 'white'),
-					A2($elm$html$Html$Attributes$style, 'border-radius', '16px')
+					A2($elm$html$Html$Attributes$style, 'border-radius', '16px'),
+					A2($elm$html$Html$Attributes$style, 'border', 'solid 1px black')
 				]),
 			A2(
 				$Orasund$elm_layout$Layout$column,
@@ -10723,10 +10822,14 @@ var $author$project$Main$view = function (model) {
 										[
 											A2(
 											$author$project$View$Screen$fromGame,
-											{camera: model.camera, onPress: $author$project$Main$TileClicked},
+											{
+												camera: model.camera,
+												onPress: $author$project$Main$TileClicked,
+												zoom: $author$project$Data$Zoom$fromPercent(model.zoomPercent)
+											},
 											model.game),
 											A2(
-											$author$project$View$Sidebar$sidebar,
+											$author$project$View$Tab$sidebar,
 											{
 												buildActor: $author$project$Main$BuildActor,
 												buildBlock: $author$project$Main$BuildBlock,
@@ -10734,10 +10837,12 @@ var $author$project$Main$view = function (model) {
 												restart: $author$project$Main$Restart(model.seed),
 												setTab: $author$project$Main$SetTab,
 												setVolume: $author$project$Main$SetVolume,
+												setZoom: $author$project$Main$SetZoom,
 												slowedDown: model.slowedDown,
 												tab: model.sidebarTab,
 												toggleSlowdown: $author$project$Main$ToggleSlowdown,
-												volume: model.volume
+												volume: model.volume,
+												zoom: model.zoomPercent
 											},
 											model.game),
 											A2(
@@ -10745,10 +10850,12 @@ var $author$project$Main$view = function (model) {
 											_List_fromArray(
 												[
 													A2($elm$html$Html$Attributes$style, 'position', 'absolute'),
-													A2($elm$html$Html$Attributes$style, 'top', '0'),
-													A2($elm$html$Html$Attributes$style, 'right', '0'),
-													A2($elm$html$Html$Attributes$style, 'color', 'white'),
-													A2($elm$html$Html$Attributes$style, 'padding', '8px')
+													A2($elm$html$Html$Attributes$style, 'top', '8px'),
+													A2($elm$html$Html$Attributes$style, 'right', '8px'),
+													A2($elm$html$Html$Attributes$style, 'background-color', 'white'),
+													A2($elm$html$Html$Attributes$style, 'padding', '8px'),
+													A2($elm$html$Html$Attributes$style, 'border-radius', '8px'),
+													A2($elm$html$Html$Attributes$style, 'border', 'solid 1px black')
 												]),
 											_List_fromArray(
 												[
@@ -10783,7 +10890,7 @@ var $author$project$Main$view = function (model) {
 												[
 													A2($elm$html$Html$Attributes$style, 'position', 'absolute'),
 													A2($elm$html$Html$Attributes$style, 'left', '20%'),
-													A2($elm$html$Html$Attributes$style, 'bottom', '0'),
+													A2($elm$html$Html$Attributes$style, 'bottom', '8px'),
 													A2($elm$html$Html$Attributes$style, 'width', '60%')
 												]),
 											$author$project$View$Promt$fromString(model.promt))

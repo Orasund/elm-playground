@@ -14,6 +14,7 @@ import Data.Item exposing (Item)
 import Data.Modal exposing (Modal)
 import Data.Sound
 import Data.Train
+import Data.Zoom
 import Dict
 import Html
 import Html.Attributes as Attr
@@ -23,7 +24,7 @@ import Time
 import View.Modal
 import View.Promt
 import View.Screen
-import View.Sidebar exposing (SidebarTab(..))
+import View.Tab exposing (SidebarTab(..))
 
 
 port loadSound : ( String, String ) -> Cmd msg
@@ -44,6 +45,8 @@ type alias Model =
     , seed : Seed
     , volume : Int
     , sidebarTab : Maybe SidebarTab
+    , tickInterval : Float
+    , zoomPercent : Int
     }
 
 
@@ -66,6 +69,7 @@ updateGame fun model =
                                                     Data.Animation.animate
                                                         |> Data.Modal.fromAnimation
                                                         |> Just
+                                                , tickInterval = m.tickInterval * 1.1
                                             }
                                         )
 
@@ -93,8 +97,9 @@ type Msg
     | BuildActor { cost : ( Item, Int ), actor : Actor }
     | CloseModal
     | DestroyBlock
-    | SetVolume String
+    | SetVolume (Maybe Int)
     | SetTab (Maybe SidebarTab)
+    | SetZoom (Maybe Int)
 
 
 restart : Seed -> Model
@@ -112,6 +117,8 @@ restart seed =
                         |> Just
                 , volume = 50
                 , sidebarTab = Just DetailTab
+                , tickInterval = 200
+                , zoomPercent = 50
                 }
            )
 
@@ -137,9 +144,10 @@ view model =
                 |> View.Screen.fromGame
                     { onPress = TileClicked
                     , camera = model.camera
+                    , zoom = Data.Zoom.fromPercent model.zoomPercent
                     }
             , model.game
-                |> View.Sidebar.sidebar
+                |> View.Tab.sidebar
                     { toggleSlowdown = ToggleSlowdown
                     , restart = Restart model.seed
                     , destroyBlock = DestroyBlock
@@ -148,6 +156,8 @@ view model =
                     , slowedDown = model.slowedDown
                     , setVolume = SetVolume
                     , volume = model.volume
+                    , setZoom = SetZoom
+                    , zoom = model.zoomPercent
                     , setTab = SetTab
                     , tab = model.sidebarTab
                     }
@@ -171,17 +181,19 @@ view model =
               ]
                 |> Layout.column
                     [ Attr.style "position" "absolute"
-                    , Attr.style "top" "0"
-                    , Attr.style "right" "0"
-                    , Attr.style "color" "white"
+                    , Attr.style "top" "8px"
+                    , Attr.style "right" "8px"
+                    , Attr.style "background-color" "white"
                     , Attr.style "padding" "8px"
+                    , Attr.style "border-radius" "8px"
+                    , Attr.style "border" "solid 1px black"
                     ]
             , model.promt
                 |> View.Promt.fromString
                 |> Layout.el
                     [ Attr.style "position" "absolute"
                     , Attr.style "left" "20%"
-                    , Attr.style "bottom" "0"
+                    , Attr.style "bottom" "8px"
                     , Attr.style "width" "60%"
                     ]
             ]
@@ -218,7 +230,10 @@ updateCamera model =
         ( x, y ) =
             model.camera
     in
-    if abs (pX - x) + abs (pY - y) > Config.maxCameraDistance then
+    if
+        (abs (pX - x) + abs (pY - y))
+            > Config.maxCameraDistance (Data.Zoom.fromPercent model.zoomPercent) Config.width Config.height
+    then
         { model | camera = ( pX, pY ) }
 
     else
@@ -272,21 +287,27 @@ update msg model =
             )
 
         SetVolume amount ->
-            String.toInt amount
+            amount
                 |> Maybe.map (\int -> ( { model | volume = int }, setVolume (toFloat int / 100) ))
                 |> Maybe.withDefault ( model, Cmd.none )
 
         SetTab tab ->
             ( { model | sidebarTab = tab }, Cmd.none )
 
+        SetZoom amount ->
+            amount
+                |> Maybe.map (\float -> ( { model | zoomPercent = float }, Cmd.none ))
+                |> Maybe.withDefault ( model, Cmd.none )
+
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
     if model.slowedDown then
-        Time.every 400 (\_ -> TimePassed)
+        Time.every (model.tickInterval * 2)
+            (\_ -> TimePassed)
 
     else
-        Time.every 200 (\_ -> TimePassed)
+        Time.every model.tickInterval (\_ -> TimePassed)
 
 
 main : Program () Model Msg

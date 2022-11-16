@@ -1,27 +1,33 @@
 module Config exposing (..)
 
-
-width =
-    21
+import Data.Zoom exposing (Zoom)
 
 
-height =
-    15
+width : Zoom -> Int
+width zoom =
+    21 * Data.Zoom.get zoom |> round
 
 
-tileSize =
+height : Zoom -> Int
+height zoom =
+    15 * Data.Zoom.get zoom |> round
+
+
+tileSize zoom =
     "min("
-        ++ ("100vw/" ++ String.fromInt width ++ ", ")
-        ++ ("100vh/" ++ String.fromInt height)
+        ++ ("100vw/" ++ String.fromInt (width zoom) ++ ", ")
+        ++ ("100vh/" ++ String.fromInt (height zoom))
         ++ ")"
 
 
 hqPos =
-    ( width // 2, 0 )
+    ( 0, 0 )
 
 
-maxCameraDistance =
-    5
+maxCameraDistance z w h =
+    toFloat (min (w z) (h z))
+        / 4
+        |> round
 
 
 wagonCost =

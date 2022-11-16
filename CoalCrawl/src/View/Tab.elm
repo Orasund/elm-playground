@@ -1,4 +1,4 @@
-module View.Sidebar exposing (..)
+module View.Tab exposing (..)
 
 import AnyBag
 import Config
@@ -16,6 +16,7 @@ import Html.Events as Events
 import Layout
 import View.Button
 import View.Info
+import View.Tab.Settings
 
 
 type SidebarTab
@@ -87,46 +88,14 @@ buildBlockButton buildBlock game args =
     }
 
 
-settings :
-    { restart : msg
-    , slowedDown : Bool
-    , setVolume : String -> msg
-    , toggleSlowdown : msg
-    , volume : Int
-    }
-    -> Html msg
-settings args =
-    [ [ (if args.slowedDown then
-            "Stop Slow Motion"
-
-         else
-            "Start Slow Motion"
-        )
-            |> View.Button.toHtml (Just args.toggleSlowdown)
-      , View.Button.toHtml (Just args.restart) "Restarts"
-      ]
-        |> Layout.row [ Layout.spacing 8 ]
-    , [ Html.text "Volume"
-      , Html.input
-            [ Attr.type_ "range"
-            , Attr.min "0"
-            , Attr.max "100"
-            , Attr.value (String.fromInt args.volume)
-            , Events.onInput args.setVolume
-            ]
-            []
-      ]
-        |> Layout.row [ Layout.spacing 8 ]
-    ]
-        |> Layout.column [ Layout.spacing 8 ]
-
-
 sidebar :
     { toggleSlowdown : msg
     , slowedDown : Bool
     , restart : msg
-    , setVolume : String -> msg
+    , setVolume : Maybe Int -> msg
     , volume : Int
+    , setZoom : Maybe Int -> msg
+    , zoom : Int
     , destroyBlock : msg
     , buildActor : { cost : ( Item, Int ), actor : Actor } -> msg
     , buildBlock : { cost : ( Item, Int ), block : Block } -> msg
@@ -167,12 +136,14 @@ sidebar args game =
                     |> Layout.heading3 []
                 , case tab of
                     SettingTab ->
-                        settings
+                        View.Tab.Settings.settings
                             { restart = args.restart
                             , slowedDown = args.slowedDown
                             , setVolume = args.setVolume
                             , toggleSlowdown = args.toggleSlowdown
                             , volume = args.volume
+                            , setZoom = args.setZoom
+                            , zoom = args.zoom
                             }
 
                     DetailTab ->
@@ -231,10 +202,10 @@ sidebar args game =
                 ]
                     |> Layout.column
                         [ Layout.spacing 8
-                        , Attr.style "width" "300px"
+                        , Attr.style "width" "200px"
                         , Attr.style "background-color" "white"
                         , Attr.style "padding" "8px"
-                        , Attr.style "border-radius" "16px"
+                        , Attr.style "border-radius" "8px"
                         , Attr.style "border" "solid 1px black"
                         ]
             )

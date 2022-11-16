@@ -185,10 +185,10 @@ caveGenerator :
 caveGenerator args ( x, y ) world =
     let
         probability =
-            [ ( 0.3, ( x, y - 1 ) )
-            , ( 0.3, ( x, y + 1 ) )
-            , ( 0.3, ( x - 1, y ) )
-            , ( 0.3, ( x + 1, y ) )
+            [ ( 0.45, ( x, y - 1 ) )
+            , ( 0.45, ( x, y + 1 ) )
+            , ( 0.45, ( x - 1, y ) )
+            , ( 0.45, ( x + 1, y ) )
             ]
 
         pos =
@@ -227,7 +227,9 @@ exposedCave caveType =
     (case caveType of
         WaterCave ->
             Random.weighted ( 1, Data.World.insertEntity Data.Entity.Water )
-                [ ( 1 / 2, Data.World.insertFloor (Data.Floor.Ground Nothing) ) ]
+                [ ( 1 / 2, Data.World.insertFloor (Data.Floor.Ground Nothing) )
+                , ( 1 / 4, Data.World.insertFloor (Data.Floor.Ground (Just Data.Item.Gold)) )
+                ]
 
         CoalCave ->
             Random.constant (Data.World.insertFloor (Data.Floor.Ground (Just Data.Item.Coal)))

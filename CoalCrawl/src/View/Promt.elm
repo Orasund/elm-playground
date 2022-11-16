@@ -17,7 +17,8 @@ fromString maybe =
                         [ Layout.fill
                         , Attr.style "background-color" View.Color.yellow
                         , Attr.style "height" "32px"
-                        , Attr.style "padding" "0px 8px"
+                        , Attr.style "padding" "0 8px"
+                        , Attr.style "border-radius" "8px"
                         , Layout.alignAtCenter
                         ]
             )

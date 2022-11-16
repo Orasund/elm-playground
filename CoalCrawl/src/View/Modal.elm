@@ -53,4 +53,5 @@ toHtml closeModal game modal =
             , Attr.style "height" "80%"
             , Attr.style "background-color" "white"
             , Attr.style "border-radius" "16px"
+            , Attr.style "border" "solid 1px black"
             ]
