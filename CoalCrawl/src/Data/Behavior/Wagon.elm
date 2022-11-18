@@ -28,15 +28,19 @@ act args id game =
                     |> move args id ( pos, wagon )
 
             else
-                game
+                ( game, [] )
 
         _ ->
-            game
+            ( game, [] )
     )
-        |> unload id
+        |> (\( g, l ) ->
+                g
+                    |> unload id
+                    |> Tuple.mapSecond ((++) l)
+           )
 
 
-move : { backPos : ( Int, Int ) } -> Int -> ( ( Int, Int ), Wagon ) -> Game -> Game
+move : { backPos : ( Int, Int ) } -> Int -> ( ( Int, Int ), Wagon ) -> Game -> ( Game, List Effect )
 move { backPos } id ( pos, wagon ) game =
     let
         forwardPos =
@@ -55,7 +59,7 @@ move { backPos } id ( pos, wagon ) game =
         game.world
             |> moveOnGround positions ( pos, wagon )
     )
-        |> (\( world, p ) ->
+        |> (\( world, p, effects ) ->
                 world
                     |> Data.World.moveActorTo p id
                     |> Data.World.updateActor id
@@ -67,11 +71,11 @@ move { backPos } id ( pos, wagon ) game =
                                 _ ->
                                     actor
                         )
+                    |> (\w -> ( { game | world = w }, effects ))
            )
-        |> (\world -> { game | world = world })
 
 
-moveOnGround : { backPos : ( Int, Int ), forwardPos : ( Int, Int ) } -> ( ( Int, Int ), Wagon ) -> World -> ( World, ( Int, Int ) )
+moveOnGround : { backPos : ( Int, Int ), forwardPos : ( Int, Int ) } -> ( ( Int, Int ), Wagon ) -> World -> ( World, ( Int, Int ), List Effect )
 moveOnGround args ( pos, wagon ) world =
     case Data.World.get args.forwardPos world of
         Just (Data.Block.FloorBlock floor) ->
@@ -80,24 +84,28 @@ moveOnGround args ( pos, wagon ) world =
                     case floor of
                         Data.Floor.Ground (Just item) ->
                             if Data.Wagon.isFull wagon then
-                                ( world, args.forwardPos )
+                                ( world, args.forwardPos, [] )
 
                             else
-                                world
-                                    |> Data.World.updateActor id
-                                        (\_ ->
-                                            wagon
-                                                |> Data.Wagon.insert item
-                                                |> Data.Actor.Wagon
-                                        )
-                                    |> Data.World.insertFloor Data.Floor.ground pos
-                                    |> (\w -> ( w, args.forwardPos ))
+                                wagon
+                                    |> Data.Wagon.insert item
+                                    |> (\( wag, sound ) ->
+                                            world
+                                                |> Data.World.updateActor id (\_ -> Data.Actor.Wagon wag)
+                                                |> Data.World.insertFloor Data.Floor.ground args.forwardPos
+                                                |> (\w ->
+                                                        ( w
+                                                        , args.forwardPos
+                                                        , [ Data.Effect.PlaySound sound ]
+                                                        )
+                                                   )
+                                       )
 
                         _ ->
-                            ( world, args.forwardPos )
+                            ( world, args.forwardPos, [] )
 
                 _ ->
-                    ( world, args.forwardPos )
+                    ( world, args.forwardPos, [] )
 
         Just (Data.Block.EntityBlock entity) ->
             ( case entity of
@@ -142,17 +150,18 @@ moveOnGround args ( pos, wagon ) world =
 
                 _ ->
                     pos
+            , []
             )
 
         Nothing ->
-            ( world, pos )
+            ( world, pos, [] )
 
 
 moveOnTrack :
     { backPos : ( Int, Int ), forwardPos : ( Int, Int ) }
     -> ( ( Int, Int ), Wagon )
     -> World
-    -> ( World, ( Int, Int ) )
+    -> ( World, ( Int, Int ), List Effect )
 moveOnTrack args ( pos, wagon ) world =
     case
         pos
@@ -164,7 +173,7 @@ moveOnTrack args ( pos, wagon ) world =
                 )
     of
         [ p ] ->
-            ( world, p )
+            ( world, p, [] )
 
         _ ->
             world

@@ -6,6 +6,7 @@
 
 * [ ] Lava
 * [ ] Skills
-    * [ ] Wagons pick up items
+    * [x] Wagons pick up items
       * [ ] Uniform pickup sound
     * [x] Game gets faster each level
+* [ ] Ground can contain more items

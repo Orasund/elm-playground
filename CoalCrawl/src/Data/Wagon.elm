@@ -3,6 +3,7 @@ module Data.Wagon exposing (..)
 import AnyBag exposing (AnyBag)
 import Config
 import Data.Item exposing (Item)
+import Data.Sound exposing (Sound)
 
 
 type alias Wagon =
@@ -27,9 +28,11 @@ fullWagon item =
             )
 
 
-insert : Item -> Wagon -> Wagon
+insert : Item -> Wagon -> ( Wagon, Sound )
 insert item wagon =
-    { wagon | items = AnyBag.insert 1 item wagon.items }
+    ( { wagon | items = AnyBag.insert 1 item wagon.items }
+    , Data.Sound.PickUp
+    )
 
 
 moveFrom : ( Int, Int ) -> Wagon -> Wagon

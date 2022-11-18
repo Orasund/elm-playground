@@ -7152,6 +7152,7 @@ var $author$project$Data$Wagon$moveFrom = F2(
 				movedFrom: $elm$core$Maybe$Just(movedFrom)
 			});
 	});
+var $author$project$Data$Sound$PickUp = {$: 'PickUp'};
 var $JohnBugner$elm_bag$Bag$dict = function (_v0) {
 	var d = _v0.a;
 	return d;
@@ -7183,11 +7184,13 @@ var $author$project$AnyBag$insert = F3(
 	});
 var $author$project$Data$Wagon$insert = F2(
 	function (item, wagon) {
-		return _Utils_update(
-			wagon,
-			{
-				items: A3($author$project$AnyBag$insert, 1, item, wagon.items)
-			});
+		return _Utils_Tuple2(
+			_Utils_update(
+				wagon,
+				{
+					items: A3($author$project$AnyBag$insert, 1, item, wagon.items)
+				}),
+			$author$project$Data$Sound$PickUp);
 	});
 var $elm$core$Basics$always = F2(
 	function (a, _v0) {
@@ -7252,30 +7255,40 @@ var $author$project$Data$Behavior$Wagon$moveOnGround = F3(
 					var id = _v2.a.a.a;
 					if ((floor.$ === 'Ground') && (floor.a.$ === 'Just')) {
 						var item = floor.a.a;
-						return $author$project$Data$Wagon$isFull(wagon) ? _Utils_Tuple2(world, args.forwardPos) : function (w) {
-							return _Utils_Tuple2(w, args.forwardPos);
-						}(
-							A3(
-								$author$project$Data$World$insertFloor,
-								$author$project$Data$Floor$ground,
-								pos,
+						return $author$project$Data$Wagon$isFull(wagon) ? _Utils_Tuple3(world, args.forwardPos, _List_Nil) : function (_v4) {
+							var wag = _v4.a;
+							var sound = _v4.b;
+							return function (w) {
+								return _Utils_Tuple3(
+									w,
+									args.forwardPos,
+									_List_fromArray(
+										[
+											$author$project$Data$Effect$PlaySound(sound)
+										]));
+							}(
 								A3(
-									$author$project$Data$World$updateActor,
-									id,
-									function (_v4) {
-										return $author$project$Data$Actor$Wagon(
-											A2($author$project$Data$Wagon$insert, item, wagon));
-									},
-									world)));
+									$author$project$Data$World$insertFloor,
+									$author$project$Data$Floor$ground,
+									args.forwardPos,
+									A3(
+										$author$project$Data$World$updateActor,
+										id,
+										function (_v5) {
+											return $author$project$Data$Actor$Wagon(wag);
+										},
+										world)));
+						}(
+							A2($author$project$Data$Wagon$insert, item, wagon));
 					} else {
-						return _Utils_Tuple2(world, args.forwardPos);
+						return _Utils_Tuple3(world, args.forwardPos, _List_Nil);
 					}
 				} else {
-					return _Utils_Tuple2(world, args.forwardPos);
+					return _Utils_Tuple3(world, args.forwardPos, _List_Nil);
 				}
 			} else {
 				var entity = _v1.a.a;
-				return _Utils_Tuple2(
+				return _Utils_Tuple3(
 					function () {
 						if (entity.$ === 'Actor') {
 							var id0 = entity.a;
@@ -7284,17 +7297,17 @@ var $author$project$Data$Behavior$Wagon$moveOnGround = F3(
 								world,
 								A2(
 									$elm$core$Maybe$map,
-									function (_v6) {
-										var actor = _v6.b;
+									function (_v7) {
+										var actor = _v7.b;
 										if (actor.$ === 'Wagon') {
 											var w0 = actor.a;
-											var _v8 = A2($author$project$Data$World$get, pos, world);
-											if (((_v8.$ === 'Just') && (_v8.a.$ === 'EntityBlock')) && (_v8.a.a.$ === 'Actor')) {
-												var id = _v8.a.a.a;
+											var _v9 = A2($author$project$Data$World$get, pos, world);
+											if (((_v9.$ === 'Just') && (_v9.a.$ === 'EntityBlock')) && (_v9.a.a.$ === 'Actor')) {
+												var id = _v9.a.a.a;
 												return A3(
 													$author$project$Data$World$updateActor,
 													id,
-													function (_v10) {
+													function (_v11) {
 														return $author$project$Data$Actor$Wagon(
 															$author$project$Data$Wagon$stop(
 																A2($author$project$Data$Wagon$load, w0.items, wagon)));
@@ -7302,7 +7315,7 @@ var $author$project$Data$Behavior$Wagon$moveOnGround = F3(
 													A3(
 														$author$project$Data$World$updateActor,
 														id0,
-														function (_v9) {
+														function (_v10) {
 															return $author$project$Data$Actor$Wagon(
 																A2(
 																	$author$project$Data$Wagon$moveFrom,
@@ -7323,16 +7336,17 @@ var $author$project$Data$Behavior$Wagon$moveOnGround = F3(
 						}
 					}(),
 					function () {
-						var _v11 = A2($author$project$Data$World$get, args.backPos, world);
-						if ((_v11.$ === 'Just') && (_v11.a.$ === 'FloorBlock')) {
+						var _v12 = A2($author$project$Data$World$get, args.backPos, world);
+						if ((_v12.$ === 'Just') && (_v12.a.$ === 'FloorBlock')) {
 							return args.backPos;
 						} else {
 							return pos;
 						}
-					}());
+					}(),
+					_List_Nil);
 			}
 		} else {
-			return _Utils_Tuple2(world, pos);
+			return _Utils_Tuple3(world, pos, _List_Nil);
 		}
 	});
 var $elm$core$Basics$neq = _Utils_notEqual;
@@ -7351,7 +7365,7 @@ var $author$project$Data$Behavior$Wagon$moveOnTrack = F3(
 			$author$project$Data$Position$neighbors(pos));
 		if (_v1.b && (!_v1.b.b)) {
 			var p = _v1.a;
-			return _Utils_Tuple2(world, p);
+			return _Utils_Tuple3(world, p, _List_Nil);
 		} else {
 			return A3(
 				$author$project$Data$Behavior$Wagon$moveOnGround,
@@ -7387,15 +7401,18 @@ var $author$project$Data$Behavior$Wagon$move = F4(
 			pos,
 			A2($author$project$Data$Position$vecTo, pos, backPos));
 		var positions = {backPos: backPos, forwardPos: forwardPos};
-		return function (world) {
-			return _Utils_update(
-				game,
-				{world: world});
-		}(
-			function (_v2) {
-				var world = _v2.a;
-				var p = _v2.b;
-				return A3(
+		return function (_v2) {
+			var world = _v2.a;
+			var p = _v2.b;
+			var effects = _v2.c;
+			return function (w) {
+				return _Utils_Tuple2(
+					_Utils_update(
+						game,
+						{world: w}),
+					effects);
+			}(
+				A3(
 					$author$project$Data$World$updateActor,
 					id,
 					function (actor) {
@@ -7407,19 +7424,19 @@ var $author$project$Data$Behavior$Wagon$move = F4(
 							return actor;
 						}
 					},
-					A3($author$project$Data$World$moveActorTo, p, id, world));
-			}(
-				_Utils_eq(
-					A2($author$project$Data$World$getFloor, pos, game.world),
-					$elm$core$Maybe$Just($author$project$Data$Floor$Track)) ? A3(
-					$author$project$Data$Behavior$Wagon$moveOnTrack,
-					positions,
-					_Utils_Tuple2(pos, wagon),
-					game.world) : A3(
-					$author$project$Data$Behavior$Wagon$moveOnGround,
-					positions,
-					_Utils_Tuple2(pos, wagon),
-					game.world)));
+					A3($author$project$Data$World$moveActorTo, p, id, world)));
+		}(
+			_Utils_eq(
+				A2($author$project$Data$World$getFloor, pos, game.world),
+				$elm$core$Maybe$Just($author$project$Data$Floor$Track)) ? A3(
+				$author$project$Data$Behavior$Wagon$moveOnTrack,
+				positions,
+				_Utils_Tuple2(pos, wagon),
+				game.world) : A3(
+				$author$project$Data$Behavior$Wagon$moveOnGround,
+				positions,
+				_Utils_Tuple2(pos, wagon),
+				game.world));
 	});
 var $author$project$Data$Player$moveTo = F2(
 	function (pos, player) {
@@ -7522,15 +7539,15 @@ var $author$project$Data$Behavior$Player$moveTowards = F2(
 								if ((_v2.$ === 'Just') && (_v2.a.$ === 'Wagon')) {
 									var wagon = _v2.a.a;
 									return $elm$random$Random$constant(
-										function (g) {
-											return _Utils_Tuple2(
-												_Utils_update(
+										A2(
+											$elm$core$Tuple$mapFirst,
+											function (g) {
+												return _Utils_update(
 													g,
 													{
 														player: A2($author$project$Data$Player$moveTo, pos, g.player)
-													}),
-												_List_Nil);
-										}(
+													});
+											},
 											A4(
 												$author$project$Data$Behavior$Wagon$move,
 												{backPos: game.player.pos},
@@ -7877,9 +7894,9 @@ var $author$project$Data$Behavior$Player$putIntoWagon = function (game) {
 			A2($elm$core$Dict$get, id, game.world.actors));
 		if ((_v1.$ === 'Just') && (_v1.a.$ === 'Wagon')) {
 			var wagon = _v1.a.a;
-			return function (_v4) {
-				var g = _v4.a;
-				var l = _v4.b;
+			return function (_v5) {
+				var g = _v5.a;
+				var l = _v5.b;
 				return A2(
 					$elm$core$Tuple$mapSecond,
 					$elm$core$Basics$append(l),
@@ -7898,30 +7915,37 @@ var $author$project$Data$Behavior$Player$putIntoWagon = function (game) {
 						function (_v2) {
 							var player = _v2.a;
 							var item = _v2.b;
-							return function (g) {
+							return function (_v4) {
+								var g = _v4.a;
+								var sound = _v4.b;
 								return _Utils_Tuple2(
 									_Utils_update(
 										g,
 										{player: player}),
 									_List_fromArray(
 										[
-											$author$project$Data$Effect$PlaySound($author$project$Data$Sound$Unload)
+											$author$project$Data$Effect$PlaySound($author$project$Data$Sound$Unload),
+											$author$project$Data$Effect$PlaySound(sound)
 										]));
 							}(
-								function (world) {
-									return _Utils_update(
-										game,
-										{world: world});
-								}(
-									function (w2) {
-										return A3(
-											$author$project$Data$World$updateActor,
-											id,
-											function (_v3) {
-												return $author$project$Data$Actor$Wagon(w2);
-											},
-											game.world);
-									}(
+								A2(
+									$elm$core$Tuple$mapFirst,
+									function (world) {
+										return _Utils_update(
+											game,
+											{world: world});
+									},
+									A2(
+										$elm$core$Tuple$mapFirst,
+										function (w2) {
+											return A3(
+												$author$project$Data$World$updateActor,
+												id,
+												function (_v3) {
+													return $author$project$Data$Actor$Wagon(w2);
+												},
+												game.world);
+										},
 										A2($author$project$Data$Wagon$insert, item, wagon))));
 						},
 						$author$project$Data$Player$dropItem(game.player))));
@@ -8004,7 +8028,6 @@ var $author$project$Data$Behavior$Player$interactWith = F2(
 				},
 				A2($author$project$Data$World$get, pos, game.world)));
 	});
-var $author$project$Data$Sound$PickUp = {$: 'PickUp'};
 var $author$project$Data$Player$hold = F2(
 	function (item, player) {
 		var _v0 = player.item;
@@ -8099,9 +8122,14 @@ var $author$project$Data$Behavior$Player$act = function (game) {
 };
 var $author$project$Data$Behavior$Wagon$act = F3(
 	function (args, id, game) {
-		return A2(
-			$author$project$Data$Behavior$Wagon$unload,
-			id,
+		return function (_v2) {
+			var g = _v2.a;
+			var l = _v2.b;
+			return A2(
+				$elm$core$Tuple$mapSecond,
+				$elm$core$Basics$append(l),
+				A2($author$project$Data$Behavior$Wagon$unload, id, g));
+		}(
 			function () {
 				var _v0 = A2($elm$core$Dict$get, id, game.world.actors);
 				if ((_v0.$ === 'Just') && (_v0.a.b.$ === 'Wagon')) {
@@ -8115,9 +8143,9 @@ var $author$project$Data$Behavior$Wagon$act = F3(
 						args,
 						id,
 						_Utils_Tuple2(pos, wagon),
-						game) : game;
+						game) : _Utils_Tuple2(game, _List_Nil);
 				} else {
-					return game;
+					return _Utils_Tuple2(game, _List_Nil);
 				}
 			}());
 	});

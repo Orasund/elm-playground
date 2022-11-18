@@ -184,7 +184,10 @@ moveTowards targetPos game =
                                 |> Data.Behavior.Wagon.move { backPos = game.player.pos }
                                     id
                                     ( pos, wagon )
-                                |> (\g -> ( { g | player = g.player |> Data.Player.moveTo pos }, [] ))
+                                |> Tuple.mapFirst
+                                    (\g ->
+                                        { g | player = g.player |> Data.Player.moveTo pos }
+                                    )
                                 |> Random.constant
 
                         _ ->
@@ -262,11 +265,13 @@ putIntoWagon game =
                                 (\( player, item ) ->
                                     wagon
                                         |> Data.Wagon.insert item
-                                        |> (\w2 -> game.world |> Data.World.updateActor id (\_ -> Data.Actor.Wagon w2))
-                                        |> (\world -> { game | world = world })
-                                        |> (\g ->
+                                        |> Tuple.mapFirst (\w2 -> game.world |> Data.World.updateActor id (\_ -> Data.Actor.Wagon w2))
+                                        |> Tuple.mapFirst (\world -> { game | world = world })
+                                        |> (\( g, sound ) ->
                                                 ( { g | player = player }
-                                                , [ Data.Effect.PlaySound Data.Sound.Unload ]
+                                                , [ Data.Effect.PlaySound Data.Sound.Unload
+                                                  , Data.Effect.PlaySound sound
+                                                  ]
                                                 )
                                            )
                                 )
