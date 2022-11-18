@@ -67,15 +67,7 @@ interactWith pos game =
                                                 Data.Actor.Wagon _ ->
                                                     game |> putIntoWagon |> Random.constant
 
-                                                Data.Actor.Cave _ ->
-                                                    Random.constant game
-                                                        |> Random.map (\g -> ( g, [] ))
-
-                                                Data.Actor.Mine ->
-                                                    Random.constant game
-                                                        |> Random.map (\g -> ( g, [] ))
-
-                                                Data.Actor.Bomb _ ->
+                                                _ ->
                                                     Random.constant game
                                                         |> Random.map (\g -> ( g, [] ))
                                         )
@@ -152,6 +144,9 @@ canMoveTo game p =
                     False
 
                 Just ( _, Data.Actor.Bomb _ ) ->
+                    False
+
+                Just ( _, Data.Actor.FallingCoal ) ->
                     False
 
                 Nothing ->

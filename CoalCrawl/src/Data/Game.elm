@@ -58,18 +58,41 @@ buildActor ( item, cost ) actor game =
 
 destroyBlock : Game -> Game
 destroyBlock game =
-    game.world
-        |> (case Data.World.get game.selected game.world of
-                Just (Data.Block.EntityBlock _) ->
-                    Data.World.removeEntity game.selected
+    case Data.World.get game.selected game.world of
+        Just (Data.Block.EntityBlock entity) ->
+            case entity of
+                Data.Entity.Actor id ->
+                    case game.world |> Data.World.getActor id of
+                        Just ( _, Data.Actor.Wagon _ ) ->
+                            { game
+                                | train =
+                                    game.train
+                                        |> Data.Train.addAll
+                                            (AnyBag.fromAssociationList Data.Item.toString
+                                                [ ( Data.Item.Iron, Config.wagonCost ) ]
+                                            )
+                                , world =
+                                    game.world
+                                        |> Data.World.removeEntity game.selected
+                            }
 
-                Just (Data.Block.FloorBlock _) ->
-                    Data.World.insertFloorAt game.selected Data.Floor.ground
+                        _ ->
+                            game.world
+                                |> Data.World.removeEntity game.selected
+                                |> (\world -> { game | world = world })
 
-                Nothing ->
-                    identity
-           )
-        |> (\world -> { game | world = world })
+                _ ->
+                    game.world
+                        |> Data.World.removeEntity game.selected
+                        |> (\world -> { game | world = world })
+
+        Just (Data.Block.FloorBlock _) ->
+            game.world
+                |> Data.World.insertFloorAt game.selected Data.Floor.ground
+                |> (\world -> { game | world = world })
+
+        Nothing ->
+            game
 
 
 new : Game
@@ -105,14 +128,6 @@ new =
             ++ (coals |> List.map (\pos -> ( pos, Data.Entity.Vein Data.Item.Coal |> Data.Block.EntityBlock )))
             |> Data.World.fromList
     , player = player |> Data.Player.fromPos
-    , train =
-        train
-            |> Data.Train.fromPos
-            |> Data.Train.addAll
-                ([ List.repeat 1 Data.Item.Coal
-                 ]
-                    |> List.concat
-                    |> AnyBag.fromList Data.Item.toString
-                )
+    , train = train |> Data.Train.fromPos
     , selected = player
     }

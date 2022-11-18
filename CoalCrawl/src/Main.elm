@@ -24,7 +24,7 @@ import Time
 import View.Modal
 import View.Promt
 import View.Screen
-import View.Tab exposing (SidebarTab(..))
+import View.Tab exposing (Tab(..))
 
 
 port loadSound : ( String, String ) -> Cmd msg
@@ -44,7 +44,7 @@ type alias Model =
     , modal : Maybe Modal
     , seed : Seed
     , volume : Int
-    , sidebarTab : Maybe SidebarTab
+    , sidebarTab : Maybe Tab
     , tickInterval : Float
     , zoomPercent : Int
     }
@@ -98,7 +98,7 @@ type Msg
     | CloseModal
     | DestroyBlock
     | SetVolume (Maybe Int)
-    | SetTab (Maybe SidebarTab)
+    | SetTab (Maybe Tab)
     | SetZoom (Maybe Int)
 
 

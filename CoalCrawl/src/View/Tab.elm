@@ -4,6 +4,7 @@ import AnyBag
 import Config
 import Data.Actor exposing (Actor)
 import Data.Block exposing (Block)
+import Data.Entity
 import Data.Floor
 import Data.Game exposing (Game)
 import Data.Info
@@ -12,25 +13,24 @@ import Data.Wagon
 import Data.World
 import Html exposing (Html)
 import Html.Attributes as Attr
-import Html.Events as Events
 import Layout
 import View.Button
 import View.Info
 import View.Tab.Settings
 
 
-type SidebarTab
+type Tab
     = SettingTab
     | DetailTab
     | BuildTab
 
 
-tabList : List SidebarTab
+tabList : List Tab
 tabList =
     [ SettingTab, DetailTab, BuildTab ]
 
 
-toString : SidebarTab -> String
+toString : Tab -> String
 toString tab =
     case tab of
         SettingTab ->
@@ -99,8 +99,8 @@ sidebar :
     , destroyBlock : msg
     , buildActor : { cost : ( Item, Int ), actor : Actor } -> msg
     , buildBlock : { cost : ( Item, Int ), block : Block } -> msg
-    , setTab : Maybe SidebarTab -> msg
-    , tab : Maybe SidebarTab
+    , setTab : Maybe Tab -> msg
+    , tab : Maybe Tab
     }
     -> Game
     -> Html msg
@@ -150,9 +150,34 @@ sidebar args game =
                         selected
                             |> Maybe.map
                                 (\block ->
-                                    block
+                                    (block
                                         |> Data.Info.fromBlock game
                                         |> View.Info.toHtml
+                                    )
+                                        :: (case block of
+                                                Data.Block.EntityBlock (Data.Entity.Actor id) ->
+                                                    case game.world |> Data.World.getActor id of
+                                                        Just ( _, Data.Actor.Wagon wagon ) ->
+                                                            if AnyBag.isEmpty wagon.items then
+                                                                "Destroy"
+                                                                    |> View.Button.toHtml (Just args.destroyBlock)
+                                                                    |> List.singleton
+
+                                                            else
+                                                                []
+
+                                                        _ ->
+                                                            []
+
+                                                Data.Block.FloorBlock Data.Floor.Track ->
+                                                    "Destroy"
+                                                        |> View.Button.toHtml (Just args.destroyBlock)
+                                                        |> List.singleton
+
+                                                _ ->
+                                                    []
+                                           )
+                                        |> Layout.column []
                                 )
                             |> Maybe.withDefault
                                 (Html.text "Nothing selected")
@@ -179,15 +204,6 @@ sidebar args game =
                                                     |> buildBlockButton args.buildBlock game
                                                 ]
                                                     |> List.map (buildButton game)
-
-                                            _ ->
-                                                []
-                                       )
-                                    ++ (case floor of
-                                            Data.Floor.Track ->
-                                                "Destroy"
-                                                    |> View.Button.toHtml (Just args.destroyBlock)
-                                                    |> List.singleton
 
                                             _ ->
                                                 []

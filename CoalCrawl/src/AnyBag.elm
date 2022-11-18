@@ -14,6 +14,11 @@ empty encode =
     { content = Bag.empty, encode = encode }
 
 
+isEmpty : AnyBag comparable a -> Bool
+isEmpty anyBag =
+    Bag.isEmpty anyBag.content
+
+
 insert : Int -> a -> AnyBag comparable a -> AnyBag comparable a
 insert n a bag =
     { bag | content = Bag.insert n (bag.encode a) bag.content }

@@ -77,7 +77,10 @@ wallGenerator ( x, y ) =
                 |> List.take (i + 1)
                 |> List.reverse
     in
-    (if y < Config.tracksPerTrip * 0 then
+    (if modBy Config.tracksPerTrip y == 0 && (x == -2 || x == 2) then
+        [ Data.World.insertEntity (Data.Entity.Vein Data.Item.Gold) ]
+
+     else if y < Config.tracksPerTrip * 0 then
         []
 
      else if y < Config.tracksPerTrip * 1 then
@@ -194,7 +197,13 @@ caveGenerator args ( x, y ) world =
         pos =
             ( x, y )
     in
-    args.ground
+    (if modBy Config.tracksPerTrip y == 0 && (x == -2 || x == 2) then
+        Data.World.insertEntity (Data.Entity.Vein Data.Item.Gold)
+            |> Random.constant
+
+     else
+        args.ground
+    )
         |> Random.andThen
             (\fun ->
                 world
@@ -232,7 +241,8 @@ exposedCave caveType =
                 ]
 
         CoalCave ->
-            Random.constant (Data.World.insertFloor (Data.Floor.Ground (Just Data.Item.Coal)))
+            Random.weighted ( 1, Data.World.insertFloor (Data.Floor.Ground (Just Data.Item.Coal)) )
+                [ ( 1 / 4, Data.World.insertActor Data.Actor.FallingCoal ) ]
 
         IronCave ->
             Random.weighted ( 1, Data.World.insertFloor (Data.Floor.Ground (Just Data.Item.Iron)) )

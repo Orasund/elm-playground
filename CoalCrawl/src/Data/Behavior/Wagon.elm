@@ -74,8 +74,30 @@ move { backPos } id ( pos, wagon ) game =
 moveOnGround : { backPos : ( Int, Int ), forwardPos : ( Int, Int ) } -> ( ( Int, Int ), Wagon ) -> World -> ( World, ( Int, Int ) )
 moveOnGround args ( pos, wagon ) world =
     case Data.World.get args.forwardPos world of
-        Just (Data.Block.FloorBlock _) ->
-            ( world, args.forwardPos )
+        Just (Data.Block.FloorBlock floor) ->
+            case Data.World.get pos world of
+                Just (Data.Block.EntityBlock (Data.Entity.Actor id)) ->
+                    case floor of
+                        Data.Floor.Ground (Just item) ->
+                            if Data.Wagon.isFull wagon then
+                                ( world, args.forwardPos )
+
+                            else
+                                world
+                                    |> Data.World.updateActor id
+                                        (\_ ->
+                                            wagon
+                                                |> Data.Wagon.insert item
+                                                |> Data.Actor.Wagon
+                                        )
+                                    |> Data.World.insertFloor Data.Floor.ground pos
+                                    |> (\w -> ( w, args.forwardPos ))
+
+                        _ ->
+                            ( world, args.forwardPos )
+
+                _ ->
+                    ( world, args.forwardPos )
 
         Just (Data.Block.EntityBlock entity) ->
             ( case entity of

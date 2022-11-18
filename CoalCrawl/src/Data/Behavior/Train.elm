@@ -1,5 +1,6 @@
 module Data.Behavior.Train exposing (..)
 
+import AnyBag
 import Config
 import Data.Actor
 import Data.Block
@@ -52,9 +53,21 @@ passTime game =
                                             |> Just
 
                                 Data.Floor.RailwayTrack ->
-                                    move game
-                                        |> Maybe.map (\g -> ( g, [ Data.Effect.PlaySound Data.Sound.MovingTrain ] ))
-                                        |> Maybe.map Random.constant
+                                    if game.train.tracks > 0 then
+                                        move game
+                                            |> Maybe.map (\g -> ( g, [ Data.Effect.PlaySound Data.Sound.MovingTrain ] ))
+                                            |> Maybe.map Random.constant
+
+                                    else if
+                                        Data.Train.coalNeeded game.train
+                                            <= AnyBag.count Data.Item.Coal game.train.items
+                                    then
+                                        move game
+                                            |> Maybe.map (\g -> ( g, [ Data.Effect.PlaySound Data.Sound.MovingTrain ] ))
+                                            |> Maybe.map Random.constant
+
+                                    else
+                                        Nothing
 
                                 _ ->
                                     if game.train.tracks > 0 then
@@ -79,7 +92,12 @@ passTime game =
                                                 case actor of
                                                     Data.Actor.Wagon wagon ->
                                                         { game
-                                                            | train = Data.Train.addAll wagon.items game.train
+                                                            | train =
+                                                                game.train
+                                                                    |> Data.Train.addAll
+                                                                        (wagon.items
+                                                                            |> AnyBag.insert (Config.wagonCost // 2) Data.Item.Iron
+                                                                        )
                                                             , world = game.world |> Data.World.removeEntity newPos
                                                         }
                                                             |> Random.constant
@@ -90,6 +108,9 @@ passTime game =
                                                         Nothing
 
                                                     Data.Actor.Mine ->
+                                                        Nothing
+
+                                                    Data.Actor.FallingCoal ->
                                                         Nothing
 
                                                     Data.Actor.Bomb _ ->

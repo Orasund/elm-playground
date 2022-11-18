@@ -16,6 +16,7 @@ type Actor
     | Cave CaveType
     | Mine
     | Bomb { explodesIn : Int }
+    | FallingCoal
 
 
 bomb : Actor

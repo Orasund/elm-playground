@@ -4,6 +4,7 @@ import AnyBag
 import Config
 import Data.Actor
 import Data.Behavior.Bomb
+import Data.Behavior.FallingCoal
 import Data.Behavior.Player
 import Data.Behavior.Train
 import Data.Behavior.Wagon
@@ -54,6 +55,14 @@ passTime game =
                                             it.world
                                                 |> Data.World.removeEntity pos
                                                 |> Data.World.Generation.mineGenerator pos
+                                                |> Random.map (\world -> ( { it | world = world }, l ))
+                                        )
+
+                                Data.Actor.FallingCoal ->
+                                    Random.andThen
+                                        (\( it, l ) ->
+                                            it.world
+                                                |> Data.Behavior.FallingCoal.act pos
                                                 |> Random.map (\world -> ( { it | world = world }, l ))
                                         )
 

@@ -172,6 +172,12 @@ fromActor actor =
             }
                 |> new
 
+        Data.Actor.FallingCoal ->
+            { title = "Falling Coal"
+            , description = "Helper Block to generate coal"
+            }
+                |> new
+
         Data.Actor.Bomb { explodesIn } ->
             { title = "Bomb"
             , description = "Explodes in " ++ String.fromInt explodesIn ++ " turns."
