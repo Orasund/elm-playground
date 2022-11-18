@@ -10,7 +10,7 @@ import Dict exposing (Dict)
 
 type alias World =
     { floor : Dict ( Int, Int ) Floor
-    , items : Dict ( Int, Int ) Item
+    , items : Dict ( Int, Int ) (List Item)
     , entities : Dict ( Int, Int ) Entity
     , actors : Dict Int ( ( Int, Int ), Actor )
     , nextId : Int
@@ -50,7 +50,15 @@ insertItem item pos =
 insertItemAt : ( Int, Int ) -> Item -> World -> World
 insertItemAt pos item world =
     { world
-        | items = world.items |> Dict.insert pos item
+        | items =
+            world.items
+                |> Dict.update pos
+                    (\maybe ->
+                        maybe
+                            |> Maybe.withDefault []
+                            |> (::) item
+                            |> Just
+                    )
         , floor =
             world.floor
                 |> Dict.update pos
@@ -112,7 +120,24 @@ insertActorAt pos actor world =
 
 removeItem : ( Int, Int ) -> World -> World
 removeItem pos world =
-    { world | items = world.items |> Dict.remove pos }
+    { world
+        | items =
+            world.items
+                |> Dict.update pos
+                    (Maybe.andThen
+                        (\maybe ->
+                            case maybe of
+                                [ _ ] ->
+                                    Nothing
+
+                                _ :: tail ->
+                                    Just tail
+
+                                [] ->
+                                    Nothing
+                        )
+                    )
+    }
 
 
 removeFloor : ( Int, Int ) -> World -> World
@@ -155,7 +180,9 @@ get : ( Int, Int ) -> World -> Maybe ( Block, Maybe Item )
 get pos world =
     let
         items =
-            world.items |> Dict.get pos
+            world.items
+                |> Dict.get pos
+                |> Maybe.andThen List.head
     in
     world
         |> getBlock pos

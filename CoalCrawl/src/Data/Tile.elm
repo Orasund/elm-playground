@@ -170,19 +170,21 @@ fromActor actor =
 
 
 fromBlock : Game -> ( Block, Maybe Item ) -> Tile
-fromBlock game ( block, item ) =
-    (case block of
+fromBlock game ( block, items ) =
+    case block of
         Data.Block.FloorBlock floor ->
             fromFloor floor
+                |> (\tile ->
+                        { tile
+                            | content =
+                                case items of
+                                    Just item ->
+                                        fromItem item
+
+                                    Nothing ->
+                                        tile.content
+                        }
+                   )
 
         Data.Block.EntityBlock entity ->
             fromEntity game entity
-    )
-        |> (\tile ->
-                { tile
-                    | content =
-                        item
-                            |> Maybe.map fromItem
-                            |> Maybe.withDefault tile.content
-                }
-           )

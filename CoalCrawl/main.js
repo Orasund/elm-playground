@@ -6183,7 +6183,17 @@ var $author$project$Data$World$insertItemAt = F3(
 							A2($elm$core$Maybe$withDefault, $author$project$Data$Floor$Ground, floor));
 					},
 					world.floor),
-				items: A3($elm$core$Dict$insert, pos, item, world.items)
+				items: A3(
+					$elm$core$Dict$update,
+					pos,
+					function (maybe) {
+						return $elm$core$Maybe$Just(
+							A2(
+								$elm$core$List$cons,
+								item,
+								A2($elm$core$Maybe$withDefault, _List_Nil, maybe)));
+					},
+					world.items)
 			});
 	});
 var $author$project$Data$World$insertItem = F2(
@@ -6242,6 +6252,15 @@ var $elm$core$List$filter = F2(
 			_List_Nil,
 			list);
 	});
+var $elm$core$Maybe$andThen = F2(
+	function (callback, maybeValue) {
+		if (maybeValue.$ === 'Just') {
+			var value = maybeValue.a;
+			return callback(value);
+		} else {
+			return $elm$core$Maybe$Nothing;
+		}
+	});
 var $author$project$Data$Block$EntityBlock = function (a) {
 	return {$: 'EntityBlock', a: a};
 };
@@ -6263,9 +6282,21 @@ var $author$project$Data$World$getBlock = F2(
 				A2($author$project$Data$World$getFloor, pos, world));
 		}
 	});
+var $elm$core$List$head = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return $elm$core$Maybe$Just(x);
+	} else {
+		return $elm$core$Maybe$Nothing;
+	}
+};
 var $author$project$Data$World$get = F2(
 	function (pos, world) {
-		var items = A2($elm$core$Dict$get, pos, world.items);
+		var items = A2(
+			$elm$core$Maybe$andThen,
+			$elm$core$List$head,
+			A2($elm$core$Dict$get, pos, world.items));
 		return A2(
 			$elm$core$Maybe$map,
 			function (block) {
@@ -6753,15 +6784,6 @@ var $author$project$Data$World$Generation$mine = F2(
 			return $elm$random$Random$constant(world);
 		}
 	});
-var $elm$core$Maybe$andThen = F2(
-	function (callback, maybeValue) {
-		if (maybeValue.$ === 'Just') {
-			var value = maybeValue.a;
-			return callback(value);
-		} else {
-			return $elm$core$Maybe$Nothing;
-		}
-	});
 var $author$project$Data$Behavior$Player$canMoveTo = F2(
 	function (game, p) {
 		var _v0 = A2($author$project$Data$World$get, p, game.world);
@@ -6835,15 +6857,6 @@ var $elm$core$List$filterMap = F2(
 			_List_Nil,
 			xs);
 	});
-var $elm$core$List$head = function (list) {
-	if (list.b) {
-		var x = list.a;
-		var xs = list.b;
-		return $elm$core$Maybe$Just(x);
-	} else {
-		return $elm$core$Maybe$Nothing;
-	}
-};
 var $elm$core$List$sortBy = _List_sortBy;
 var $krisajenkins$elm_astar$AStar$Generalised$cheapestOpen = F2(
 	function (costFn, model) {
@@ -7283,7 +7296,23 @@ var $author$project$Data$World$removeItem = F2(
 		return _Utils_update(
 			world,
 			{
-				items: A2($elm$core$Dict$remove, pos, world.items)
+				items: A3(
+					$elm$core$Dict$update,
+					pos,
+					$elm$core$Maybe$andThen(
+						function (maybe) {
+							if (maybe.b) {
+								if (!maybe.b.b) {
+									return $elm$core$Maybe$Nothing;
+								} else {
+									var tail = maybe.b;
+									return $elm$core$Maybe$Just(tail);
+								}
+							} else {
+								return $elm$core$Maybe$Nothing;
+							}
+						}),
+					world.items)
 			});
 	});
 var $author$project$Data$Wagon$stop = function (wagon) {
@@ -10046,26 +10075,28 @@ var $author$project$Data$Tile$fromFloor = function (floor) {
 var $author$project$Data$Tile$fromBlock = F2(
 	function (game, _v0) {
 		var block = _v0.a;
-		var item = _v0.b;
-		return function (tile) {
-			return _Utils_update(
-				tile,
-				{
-					content: A2(
-						$elm$core$Maybe$withDefault,
-						tile.content,
-						A2($elm$core$Maybe$map, $author$project$Data$Tile$fromItem, item))
-				});
-		}(
-			function () {
-				if (block.$ === 'FloorBlock') {
-					var floor = block.a;
-					return $author$project$Data$Tile$fromFloor(floor);
-				} else {
-					var entity = block.a;
-					return A2($author$project$Data$Tile$fromEntity, game, entity);
-				}
-			}());
+		var items = _v0.b;
+		if (block.$ === 'FloorBlock') {
+			var floor = block.a;
+			return function (tile) {
+				return _Utils_update(
+					tile,
+					{
+						content: function () {
+							if (items.$ === 'Just') {
+								var item = items.a;
+								return $author$project$Data$Tile$fromItem(item);
+							} else {
+								return tile.content;
+							}
+						}()
+					});
+			}(
+				$author$project$Data$Tile$fromFloor(floor));
+		} else {
+			var entity = block.a;
+			return A2($author$project$Data$Tile$fromEntity, game, entity);
+		}
 	});
 var $author$project$View$Color$green = 'Green';
 var $author$project$Data$Tile$fromPlayer = function (player) {
