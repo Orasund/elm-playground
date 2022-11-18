@@ -12,4 +12,4 @@
       * [x] Uniform pickup sound
     * [x] Game gets faster each level
     * [ ] Train places tracks + carts when moving
-* [ ] Ground can contain more items
+* [x] Ground can contain more items

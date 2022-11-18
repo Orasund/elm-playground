@@ -200,6 +200,16 @@ getBlock pos world =
                 |> Maybe.map Data.Block.FloorBlock
 
 
+isFloor : ( Int, Int ) -> World -> Bool
+isFloor pos world =
+    case world |> getBlock pos of
+        Just (Data.Block.FloorBlock _) ->
+            True
+
+        _ ->
+            False
+
+
 getActorAt : ( Int, Int ) -> World -> Maybe ( Int, Actor )
 getActorAt pos world =
     world.entities

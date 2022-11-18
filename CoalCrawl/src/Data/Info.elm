@@ -156,6 +156,12 @@ fromActor actor =
             }
                 |> new
 
+        Data.Actor.Path ->
+            { title = "Path"
+            , description = "Helper Block to generate paths"
+            }
+                |> new
+
         Data.Actor.Mine ->
             { title = "Mine"
             , description = "Helper Block to generate mines"

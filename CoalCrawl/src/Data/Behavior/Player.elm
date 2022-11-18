@@ -139,6 +139,9 @@ canMoveTo game p =
                 Just ( _, Data.Actor.Cave _ ) ->
                     False
 
+                Just ( _, Data.Actor.Path ) ->
+                    False
+
                 Just ( _, Data.Actor.Mine ) ->
                     False
 

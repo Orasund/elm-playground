@@ -17,6 +17,7 @@ type Actor
     | Mine
     | Bomb { explodesIn : Int }
     | FallingCoal
+    | Path
 
 
 bomb : Actor

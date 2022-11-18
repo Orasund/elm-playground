@@ -113,6 +113,9 @@ passTime game =
                                                     Data.Actor.FallingCoal ->
                                                         Nothing
 
+                                                    Data.Actor.Path ->
+                                                        Nothing
+
                                                     Data.Actor.Bomb _ ->
                                                         Random.constant game
                                                             |> returnGame

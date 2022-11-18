@@ -155,6 +155,10 @@ fromActor actor =
                 |> new
                 |> withBold
 
+        Data.Actor.Path ->
+            { color = View.Color.red, content = '.' }
+                |> new
+
         Data.Actor.Bomb bomb ->
             { color = View.Color.red, content = 'b' }
                 |> new

@@ -74,16 +74,14 @@ wallGenerator ( x, y ) =
             , Data.World.insertEntity (Data.Entity.Vein Data.Item.Coal)
             , Data.World.insertActor (Data.Actor.Cave Data.Actor.IronCave)
             , Data.World.insertEntity (Data.Entity.Vein Data.Item.Iron)
+            , Data.World.insertActor Data.Actor.Path
             , Data.World.insertActor (Data.Actor.Cave Data.Actor.WaterCave)
             , Data.World.insertActor (Data.Actor.Cave Data.Actor.GoldCave)
             ]
                 |> List.take (i + 1)
                 |> List.reverse
     in
-    (if modBy Config.tracksPerTrip y == 0 && (x == -2 || x == 2) then
-        [ Data.World.insertEntity (Data.Entity.Vein Data.Item.Gold) ]
-
-     else if y < Config.tracksPerTrip * 0 then
+    (if y < Config.tracksPerTrip * 0 then
         []
 
      else if y < Config.tracksPerTrip * 1 then
@@ -181,6 +179,15 @@ mineGenerator pos world =
                 |> Random.constant
 
 
+baseProbability : ( Int, Int ) -> List ( Float, ( Int, Int ) )
+baseProbability ( x, y ) =
+    [ ( 0.2, ( x, y - 1 ) )
+    , ( 0.45, ( x, y + 1 ) )
+    , ( 0.45, ( x - 1, y ) )
+    , ( 0.45, ( x + 1, y ) )
+    ]
+
+
 caveGenerator :
     { ground : Generator (( Int, Int ) -> World -> World)
     , cave : CaveType
@@ -191,22 +198,12 @@ caveGenerator :
 caveGenerator args ( x, y ) world =
     let
         probability =
-            [ ( 0.45, ( x, y - 1 ) )
-            , ( 0.45, ( x, y + 1 ) )
-            , ( 0.45, ( x - 1, y ) )
-            , ( 0.45, ( x + 1, y ) )
-            ]
+            baseProbability ( x, y )
 
         pos =
             ( x, y )
     in
-    (if modBy Config.tracksPerTrip y == 0 && (x == -2 || x == 2) then
-        Data.World.insertEntity (Data.Entity.Vein Data.Item.Gold)
-            |> Random.constant
-
-     else
-        args.ground
-    )
+    args.ground
         |> Random.andThen
             (\fun ->
                 world
@@ -275,6 +272,8 @@ exposedCave caveType =
            )
 
 
+{-| base function for generating content
+-}
 generateContent : { probability : List ( Float, ( Int, Int ) ), content : Generator (( Int, Int ) -> World -> World) } -> World -> Generator World
 generateContent args dict =
     args.probability

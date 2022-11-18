@@ -5,6 +5,7 @@ import Config
 import Data.Actor
 import Data.Behavior.Bomb
 import Data.Behavior.FallingCoal
+import Data.Behavior.Path
 import Data.Behavior.Player
 import Data.Behavior.Train
 import Data.Behavior.Wagon
@@ -71,6 +72,14 @@ passTime game =
                                         (\( it, l ) ->
                                             it.world
                                                 |> Data.Behavior.Bomb.timePassed id
+                                                |> Random.map (\world -> ( { it | world = world }, l ))
+                                        )
+
+                                Data.Actor.Path ->
+                                    Random.andThen
+                                        (\( it, l ) ->
+                                            it.world
+                                                |> Data.Behavior.Path.act pos
                                                 |> Random.map (\world -> ( { it | world = world }, l ))
                                         )
                         )
