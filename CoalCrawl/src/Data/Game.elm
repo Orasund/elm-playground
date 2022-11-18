@@ -59,7 +59,7 @@ buildActor ( item, cost ) actor game =
 destroyBlock : Game -> Game
 destroyBlock game =
     case Data.World.get game.selected game.world of
-        Just (Data.Block.EntityBlock entity) ->
+        Just ( Data.Block.EntityBlock entity, _ ) ->
             case entity of
                 Data.Entity.Actor id ->
                     case game.world |> Data.World.getActor id of
@@ -86,9 +86,9 @@ destroyBlock game =
                         |> Data.World.removeEntity game.selected
                         |> (\world -> { game | world = world })
 
-        Just (Data.Block.FloorBlock _) ->
+        Just ( Data.Block.FloorBlock _, _ ) ->
             game.world
-                |> Data.World.insertFloorAt game.selected Data.Floor.ground
+                |> Data.World.removeFloor game.selected
                 |> (\world -> { game | world = world })
 
         Nothing ->
@@ -122,7 +122,7 @@ new =
     { world =
         [ ( train, Data.Block.EntityBlock Data.Entity.Train )
         , ( train, Data.Block.FloorBlock Data.Floor.RailwayTrack )
-        , ( player, Data.Block.FloorBlock (Data.Floor.Ground Nothing) )
+        , ( player, Data.Block.FloorBlock Data.Floor.Ground )
         ]
             ++ tracks
             ++ (coals |> List.map (\pos -> ( pos, Data.Entity.Vein Data.Item.Coal |> Data.Block.EntityBlock )))

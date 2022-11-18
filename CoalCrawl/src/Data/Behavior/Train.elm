@@ -35,9 +35,9 @@ passTime game =
             |> Maybe.andThen
                 (\block ->
                     case block of
-                        Data.Block.FloorBlock floor ->
+                        ( Data.Block.FloorBlock floor, maybeItem ) ->
                             case floor of
-                                Data.Floor.Ground maybeItem ->
+                                Data.Floor.Ground ->
                                     if game.train.tracks > 0 then
                                         maybeItem
                                             |> Maybe.map (\item -> game.train |> Data.Train.addItem item)
@@ -82,7 +82,7 @@ passTime game =
                                             |> returnGame
                                             |> Just
 
-                        Data.Block.EntityBlock entity ->
+                        ( Data.Block.EntityBlock entity, _ ) ->
                             case entity of
                                 Data.Entity.Actor id ->
                                     game.world.actors

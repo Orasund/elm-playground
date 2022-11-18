@@ -16,7 +16,7 @@ import Random exposing (Generator)
 mine : ( Int, Int ) -> World -> Generator World
 mine ( x, y ) world =
     case world |> Data.World.get ( x, y ) of
-        Just (Data.Block.EntityBlock entity) ->
+        Just ( Data.Block.EntityBlock entity, _ ) ->
             (case entity of
                 Data.Entity.Vein item ->
                     [ item ]
@@ -42,10 +42,13 @@ mine ( x, y ) world =
                             |> Data.World.removeEntity ( x, y )
                             |> (case items of
                                     [] ->
-                                        Data.World.insertFloorAt ( x, y ) (Data.Floor.Ground Nothing)
+                                        Data.World.insertFloorAt ( x, y ) Data.Floor.Ground
 
                                     item :: _ ->
-                                        Data.World.insertFloorAt ( x, y ) (Data.Floor.Ground (Just item))
+                                        \w ->
+                                            w
+                                                |> Data.World.insertFloorAt ( x, y ) Data.Floor.Ground
+                                                |> Data.World.insertItemAt ( x, y ) item
                                )
                             |> generateContent
                                 { probability =
@@ -236,16 +239,16 @@ exposedCave caveType =
     (case caveType of
         WaterCave ->
             Random.weighted ( 1, Data.World.insertEntity Data.Entity.Water )
-                [ ( 1 / 2, Data.World.insertFloor (Data.Floor.Ground Nothing) )
-                , ( 1 / 4, Data.World.insertFloor (Data.Floor.Ground (Just Data.Item.Gold)) )
+                [ ( 1 / 2, Data.World.insertFloor Data.Floor.Ground )
+                , ( 1 / 4, Data.World.insertItem Data.Item.Gold )
                 ]
 
         CoalCave ->
-            Random.weighted ( 1, Data.World.insertFloor (Data.Floor.Ground (Just Data.Item.Coal)) )
+            Random.weighted ( 1, Data.World.insertItem Data.Item.Coal )
                 [ ( 1 / 4, Data.World.insertActor Data.Actor.FallingCoal ) ]
 
         IronCave ->
-            Random.weighted ( 1, Data.World.insertFloor (Data.Floor.Ground (Just Data.Item.Iron)) )
+            Random.weighted ( 1, Data.World.insertItem Data.Item.Iron )
                 [ ( 1 / 8, Data.World.insertFloor Data.Floor.Track )
                 , ( 1 / 32
                   , Data.Wagon.emptyWagon
@@ -259,9 +262,9 @@ exposedCave caveType =
                 ]
 
         GoldCave ->
-            Random.weighted ( 1, Data.World.insertFloor (Data.Floor.Ground Nothing) )
+            Random.weighted ( 1, Data.World.insertFloor Data.Floor.Ground )
                 [ ( 1 / 4, Data.World.insertEntity Data.Entity.Wall )
-                , ( 1 / 8, Data.World.insertFloor (Data.Floor.Ground (Just Data.Item.Gold)) )
+                , ( 1 / 8, Data.World.insertItem Data.Item.Gold )
                 ]
     )
         |> (\ground ->

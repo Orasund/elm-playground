@@ -29,7 +29,7 @@ emptyWorld args =
         |> List.concatMap
             (\y ->
                 List.range 0 (args.width - 1)
-                    |> List.map (\x -> ( ( x, y ), Data.Block.FloorBlock Data.Floor.ground ))
+                    |> List.map (\x -> ( ( x, y ), Data.Block.FloorBlock Data.Floor.Ground ))
             )
         |> Data.World.fromList
 
@@ -56,9 +56,9 @@ animate =
             { world =
                 emptyWorld { width = width, height = height }
                     |> Data.World.insertEntity Data.Entity.Train train
-                    |> Data.World.insertFloor (Data.Floor.Ground (Just Data.Item.Coal)) ( 1, 0 )
-                    |> Data.World.insertFloor (Data.Floor.Ground (Just Data.Item.Coal)) ( 0, 1 )
-                    |> Data.World.insertFloor (Data.Floor.Ground (Just Data.Item.Coal)) ( 1, 2 )
+                    |> Data.World.insertItem Data.Item.Coal ( 1, 0 )
+                    |> Data.World.insertItem Data.Item.Coal ( 0, 1 )
+                    |> Data.World.insertItem Data.Item.Coal ( 1, 2 )
                     |> Data.World.insertActor (Data.Actor.Wagon Data.Wagon.emptyWagon) wagon
             , player = Data.Player.fromPos player
             , train = Data.Train.fromPos train

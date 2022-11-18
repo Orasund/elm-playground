@@ -42,21 +42,11 @@ withAdditionalInfo additionalInfos info =
 fromFloor : Floor -> Info
 fromFloor floor =
     case floor of
-        Data.Floor.Ground maybeItem ->
+        Data.Floor.Ground ->
             new
                 { title = "Ground"
                 , description = "May contain an item that can be picked up."
                 }
-                |> withContent
-                    (maybeItem
-                        |> Maybe.map
-                            (\item ->
-                                item
-                                    |> Data.Item.toString
-                                    |> List.singleton
-                            )
-                        |> Maybe.withDefault []
-                    )
 
         Data.Floor.Track ->
             new

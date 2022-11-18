@@ -16,7 +16,7 @@ act pos world =
         |> List.filter
             (\p ->
                 case world |> Data.World.get p of
-                    Just (Data.Block.FloorBlock _) ->
+                    Just ( Data.Block.FloorBlock _, _ ) ->
                         True
 
                     _ ->

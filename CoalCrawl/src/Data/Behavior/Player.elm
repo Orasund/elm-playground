@@ -6,7 +6,6 @@ import Data.Behavior.Wagon
 import Data.Block exposing (Block(..))
 import Data.Effect exposing (Effect)
 import Data.Entity
-import Data.Floor
 import Data.Game exposing (Game)
 import Data.Player
 import Data.Position
@@ -41,7 +40,7 @@ act game =
 interactWith : ( Int, Int ) -> Game -> Generator ( Game, List Effect )
 interactWith pos game =
     game.world
-        |> Data.World.get pos
+        |> Data.World.getBlock pos
         |> Maybe.map
             (\block ->
                 case block of
@@ -94,7 +93,7 @@ walkThroughWater pos game =
                 |> Data.Position.plus pos
     in
     (case game.world |> Data.World.get forwardPos of
-        Just (FloorBlock _) ->
+        Just ( FloorBlock _, _ ) ->
             forwardPos
 
         _ ->
@@ -103,7 +102,7 @@ walkThroughWater pos game =
                 |> List.filter
                     (\p ->
                         case game.world |> Data.World.get p of
-                            Just (FloorBlock _) ->
+                            Just ( FloorBlock _, _ ) ->
                                 p /= game.player.pos
 
                             _ ->
@@ -129,10 +128,10 @@ walkThroughWater pos game =
 canMoveTo : Game -> ( Int, Int ) -> Bool
 canMoveTo game p =
     case Data.World.get p game.world of
-        Just (Data.Block.FloorBlock _) ->
+        Just ( Data.Block.FloorBlock _, _ ) ->
             True
 
-        Just (Data.Block.EntityBlock (Data.Entity.Actor id)) ->
+        Just ( Data.Block.EntityBlock (Data.Entity.Actor id), _ ) ->
             case game.world |> Data.World.getActor id of
                 Just ( _, Data.Actor.Wagon _ ) ->
                     True
@@ -152,10 +151,10 @@ canMoveTo game p =
                 Nothing ->
                     False
 
-        Just (Data.Block.EntityBlock Data.Entity.Water) ->
+        Just ( Data.Block.EntityBlock Data.Entity.Water, _ ) ->
             True
 
-        Just (Data.Block.EntityBlock (Data.Entity.Vein _)) ->
+        Just ( Data.Block.EntityBlock (Data.Entity.Vein _), _ ) ->
             True
 
         _ ->
@@ -177,7 +176,7 @@ moveTowards targetPos game =
     of
         Just pos ->
             case Data.World.get pos game.world of
-                Just (Data.Block.EntityBlock (Data.Entity.Actor id)) ->
+                Just ( Data.Block.EntityBlock (Data.Entity.Actor id), _ ) ->
                     case game.world.actors |> Dict.get id |> Maybe.map Tuple.second of
                         Just (Data.Actor.Wagon wagon) ->
                             game
@@ -193,13 +192,13 @@ moveTowards targetPos game =
                         _ ->
                             ( game, [] ) |> Random.constant
 
-                Just (Data.Block.EntityBlock Data.Entity.Water) ->
+                Just ( Data.Block.EntityBlock Data.Entity.Water, _ ) ->
                     game
                         |> walkThroughWater pos
                         |> (\g -> ( g, [] ))
                         |> Random.constant
 
-                Just (Data.Block.EntityBlock (Data.Entity.Vein _)) ->
+                Just ( Data.Block.EntityBlock (Data.Entity.Vein _), _ ) ->
                     game.world
                         |> Data.World.Generation.mine pos
                         |> Random.map
@@ -210,7 +209,7 @@ moveTowards targetPos game =
                             )
                         |> Data.Effect.andThen (moveTowards targetPos)
 
-                Just (Data.Block.FloorBlock _) ->
+                Just ( Data.Block.FloorBlock _, _ ) ->
                     { game | player = game.player |> Data.Player.moveTo pos }
                         |> (\g -> ( g, [] ))
                         |> Random.constant
@@ -225,20 +224,16 @@ moveTowards targetPos game =
 pickUp : ( Int, Int ) -> Game -> ( Game, List Effect )
 pickUp pos game =
     case Data.World.get pos game.world of
-        Just (Data.Block.FloorBlock (Data.Floor.Ground maybeItem)) ->
-            maybeItem
-                |> Maybe.andThen
-                    (\item ->
-                        game.player
-                            |> Data.Player.hold item
-                    )
+        Just ( _, Just item ) ->
+            game.player
+                |> Data.Player.hold item
                 |> Maybe.map
                     (\player ->
                         ( { game
                             | player = player
                             , world =
                                 game.world
-                                    |> Data.World.insert pos (Data.Floor.Ground Nothing |> Data.Block.FloorBlock)
+                                    |> Data.World.removeItem pos
                           }
                         , [ Data.Effect.PlaySound Data.Sound.PickUp ]
                         )
@@ -251,40 +246,35 @@ pickUp pos game =
 
 putIntoWagon : Game -> ( Game, List Effect )
 putIntoWagon game =
-    case Data.World.get game.selected game.world of
-        Just (Data.Block.EntityBlock (Data.Entity.Actor id)) ->
-            case game.world.actors |> Dict.get id |> Maybe.map Tuple.second of
-                Just (Data.Actor.Wagon wagon) ->
-                    (if Data.Wagon.isFull wagon then
-                        ( game, [ Data.Effect.PlaySound Data.Sound.Error ] )
+    case Data.World.getActorAt game.selected game.world of
+        Just ( id, Data.Actor.Wagon wagon ) ->
+            (if Data.Wagon.isFull wagon then
+                ( game, [ Data.Effect.PlaySound Data.Sound.Error ] )
 
-                     else
-                        game.player
-                            |> Data.Player.dropItem
-                            |> Maybe.map
-                                (\( player, item ) ->
-                                    wagon
-                                        |> Data.Wagon.insert item
-                                        |> Tuple.mapFirst (\w2 -> game.world |> Data.World.updateActor id (\_ -> Data.Actor.Wagon w2))
-                                        |> Tuple.mapFirst (\world -> { game | world = world })
-                                        |> (\( g, sound ) ->
-                                                ( { g | player = player }
-                                                , [ Data.Effect.PlaySound Data.Sound.Unload
-                                                  , Data.Effect.PlaySound sound
-                                                  ]
-                                                )
-                                           )
-                                )
-                            |> Maybe.withDefault ( game, [] )
-                    )
-                        |> (\( g, l ) ->
-                                g
-                                    |> Data.Behavior.Wagon.unload id
-                                    |> Tuple.mapSecond ((++) l)
-                           )
-
-                _ ->
-                    ( game, [] )
+             else
+                game.player
+                    |> Data.Player.dropItem
+                    |> Maybe.map
+                        (\( player, item ) ->
+                            wagon
+                                |> Data.Wagon.insert item
+                                |> Tuple.mapFirst (\w2 -> game.world |> Data.World.updateActor id (\_ -> Data.Actor.Wagon w2))
+                                |> Tuple.mapFirst (\world -> { game | world = world })
+                                |> (\( g, sound ) ->
+                                        ( { g | player = player }
+                                        , [ Data.Effect.PlaySound Data.Sound.Unload
+                                          , Data.Effect.PlaySound sound
+                                          ]
+                                        )
+                                   )
+                        )
+                    |> Maybe.withDefault ( game, [] )
+            )
+                |> (\( g, l ) ->
+                        g
+                            |> Data.Behavior.Wagon.unload id
+                            |> Tuple.mapSecond ((++) l)
+                   )
 
         _ ->
             ( game, [] )

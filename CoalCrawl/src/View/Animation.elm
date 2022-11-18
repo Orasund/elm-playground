@@ -15,7 +15,7 @@ emptyWorld args =
         |> List.concatMap
             (\y ->
                 List.range 0 (args.width - 1)
-                    |> List.map (\x -> ( ( x, y ), Data.Block.FloorBlock Data.Floor.ground ))
+                    |> List.map (\x -> ( ( x, y ), Data.Block.FloorBlock Data.Floor.Ground ))
             )
         |> Data.World.fromList
 

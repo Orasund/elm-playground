@@ -78,11 +78,11 @@ move { backPos } id ( pos, wagon ) game =
 moveOnGround : { backPos : ( Int, Int ), forwardPos : ( Int, Int ) } -> ( ( Int, Int ), Wagon ) -> World -> ( World, ( Int, Int ), List Effect )
 moveOnGround args ( pos, wagon ) world =
     case Data.World.get args.forwardPos world of
-        Just (Data.Block.FloorBlock floor) ->
-            case Data.World.get pos world of
-                Just (Data.Block.EntityBlock (Data.Entity.Actor id)) ->
-                    case floor of
-                        Data.Floor.Ground (Just item) ->
+        Just ( Data.Block.FloorBlock _, maybeItem ) ->
+            case maybeItem of
+                Just item ->
+                    case Data.World.getActorAt pos world of
+                        Just ( id, _ ) ->
                             if Data.Wagon.isFull wagon then
                                 ( world, args.forwardPos, [] )
 
@@ -92,7 +92,7 @@ moveOnGround args ( pos, wagon ) world =
                                     |> (\( wag, sound ) ->
                                             world
                                                 |> Data.World.updateActor id (\_ -> Data.Actor.Wagon wag)
-                                                |> Data.World.insertFloor Data.Floor.ground args.forwardPos
+                                                |> Data.World.removeItem args.forwardPos
                                                 |> (\w ->
                                                         ( w
                                                         , args.forwardPos
@@ -104,10 +104,10 @@ moveOnGround args ( pos, wagon ) world =
                         _ ->
                             ( world, args.forwardPos, [] )
 
-                _ ->
+                Nothing ->
                     ( world, args.forwardPos, [] )
 
-        Just (Data.Block.EntityBlock entity) ->
+        Just ( Data.Block.EntityBlock entity, _ ) ->
             ( case entity of
                 Data.Entity.Actor id0 ->
                     world
@@ -116,8 +116,8 @@ moveOnGround args ( pos, wagon ) world =
                             (\( _, actor ) ->
                                 case actor of
                                     Data.Actor.Wagon w0 ->
-                                        case Data.World.get pos world of
-                                            Just (Data.Block.EntityBlock (Data.Entity.Actor id)) ->
+                                        case Data.World.getActorAt pos world of
+                                            Just ( id, _ ) ->
                                                 world
                                                     |> Data.World.updateActor id0
                                                         (\_ ->
@@ -145,7 +145,7 @@ moveOnGround args ( pos, wagon ) world =
                 _ ->
                     world
             , case Data.World.get args.backPos world of
-                Just (Data.Block.FloorBlock _) ->
+                Just ( Data.Block.FloorBlock _, _ ) ->
                     args.backPos
 
                 _ ->
@@ -169,7 +169,13 @@ moveOnTrack args ( pos, wagon ) world =
             |> List.filter
                 (\p ->
                     (p /= args.backPos)
-                        && (Data.World.get p world == Just (Data.Block.FloorBlock Data.Floor.Track))
+                        && (case Data.World.get p world of
+                                Just ( Data.Block.FloorBlock Data.Floor.Track, _ ) ->
+                                    True
+
+                                _ ->
+                                    False
+                           )
                 )
     of
         [ p ] ->

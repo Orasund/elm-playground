@@ -2,13 +2,15 @@ module Data.World exposing (..)
 
 import Data.Actor exposing (Actor)
 import Data.Block exposing (Block)
-import Data.Entity exposing (Entity(..))
+import Data.Entity exposing (Entity)
 import Data.Floor exposing (Floor)
+import Data.Item exposing (Item)
 import Dict exposing (Dict)
 
 
 type alias World =
     { floor : Dict ( Int, Int ) Floor
+    , items : Dict ( Int, Int ) Item
     , entities : Dict ( Int, Int ) Entity
     , actors : Dict Int ( ( Int, Int ), Actor )
     , nextId : Int
@@ -18,6 +20,7 @@ type alias World =
 empty : World
 empty =
     { floor = Dict.empty
+    , items = Dict.empty
     , entities = Dict.empty
     , actors = Dict.empty
     , nextId = 0
@@ -37,6 +40,26 @@ insert pos block world =
 
         Data.Block.EntityBlock entity ->
             insertEntityAt pos entity world
+
+
+insertItem : Item -> ( Int, Int ) -> World -> World
+insertItem item pos =
+    insertItemAt pos item
+
+
+insertItemAt : ( Int, Int ) -> Item -> World -> World
+insertItemAt pos item world =
+    { world
+        | items = world.items |> Dict.insert pos item
+        , floor =
+            world.floor
+                |> Dict.update pos
+                    (\floor ->
+                        floor
+                            |> Maybe.withDefault Data.Floor.Ground
+                            |> Just
+                    )
+    }
 
 
 insertFloor : Floor -> ( Int, Int ) -> World -> World
@@ -87,6 +110,18 @@ insertActorAt pos actor world =
            )
 
 
+removeItem : ( Int, Int ) -> World -> World
+removeItem pos world =
+    { world | items = world.items |> Dict.remove pos }
+
+
+removeFloor : ( Int, Int ) -> World -> World
+removeFloor pos world =
+    { world
+        | floor = world.floor |> Dict.insert pos Data.Floor.Ground
+    }
+
+
 removeEntity : ( Int, Int ) -> World -> World
 removeEntity pos world =
     { world
@@ -96,7 +131,7 @@ removeEntity pos world =
                 |> Dict.update pos
                     (\maybe ->
                         maybe
-                            |> Maybe.withDefault Data.Floor.ground
+                            |> Maybe.withDefault Data.Floor.Ground
                             |> Just
                     )
         , actors =
@@ -116,8 +151,19 @@ updateEntity pos fun world =
 
 {-| gets entites first, floor second
 -}
-get : ( Int, Int ) -> World -> Maybe Block
+get : ( Int, Int ) -> World -> Maybe ( Block, Maybe Item )
 get pos world =
+    let
+        items =
+            world.items |> Dict.get pos
+    in
+    world
+        |> getBlock pos
+        |> Maybe.map (\block -> ( block, items ))
+
+
+getBlock : ( Int, Int ) -> World -> Maybe Block
+getBlock pos world =
     case world.entities |> Dict.get pos of
         Just a ->
             Just (Data.Block.EntityBlock a)
@@ -127,7 +173,7 @@ get pos world =
                 |> Maybe.map Data.Block.FloorBlock
 
 
-getActorAt : ( Int, Int ) -> World -> Maybe Actor
+getActorAt : ( Int, Int ) -> World -> Maybe ( Int, Actor )
 getActorAt pos world =
     world.entities
         |> Dict.get pos
@@ -137,7 +183,7 @@ getActorAt pos world =
                     Data.Entity.Actor id ->
                         world.actors
                             |> Dict.get id
-                            |> Maybe.map Tuple.second
+                            |> Maybe.map (\( _, actor ) -> ( id, actor ))
 
                     _ ->
                         Nothing

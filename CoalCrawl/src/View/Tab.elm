@@ -149,7 +149,7 @@ sidebar args game =
                     DetailTab ->
                         selected
                             |> Maybe.map
-                                (\block ->
+                                (\( block, _ ) ->
                                     (block
                                         |> Data.Info.fromBlock game
                                         |> View.Info.toHtml
@@ -184,7 +184,7 @@ sidebar args game =
 
                     BuildTab ->
                         case selected of
-                            Just (Data.Block.FloorBlock floor) ->
+                            Just ( Data.Block.FloorBlock floor, _ ) ->
                                 (([ { actor = Data.Actor.Wagon Data.Wagon.emptyWagon
                                     , cost = ( Data.Item.Iron, Config.wagonCost )
                                     }
@@ -197,7 +197,7 @@ sidebar args game =
                                     |> List.map (buildButton game)
                                  )
                                     ++ (case floor of
-                                            Data.Floor.Ground _ ->
+                                            Data.Floor.Ground ->
                                                 [ { block = Data.Floor.Track |> Data.Block.FloorBlock
                                                   , cost = ( Data.Item.Iron, Config.trackCost )
                                                   }

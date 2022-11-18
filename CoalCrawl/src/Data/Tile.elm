@@ -73,12 +73,9 @@ fromPlayer player =
 fromFloor : Floor -> Tile
 fromFloor floor =
     case floor of
-        Data.Floor.Ground maybeItem ->
+        Data.Floor.Ground ->
             { color = View.Color.gray
-            , content =
-                maybeItem
-                    |> Maybe.map fromItem
-                    |> Maybe.withDefault '.'
+            , content = '.'
             }
                 |> new
 
@@ -172,11 +169,20 @@ fromActor actor =
                    )
 
 
-fromBlock : Game -> Block -> Tile
-fromBlock game block =
-    case block of
+fromBlock : Game -> ( Block, Maybe Item ) -> Tile
+fromBlock game ( block, item ) =
+    (case block of
         Data.Block.FloorBlock floor ->
             fromFloor floor
 
         Data.Block.EntityBlock entity ->
             fromEntity game entity
+    )
+        |> (\tile ->
+                { tile
+                    | content =
+                        item
+                            |> Maybe.map fromItem
+                            |> Maybe.withDefault tile.content
+                }
+           )
