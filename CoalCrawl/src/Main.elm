@@ -15,12 +15,12 @@ import Data.Modal exposing (Modal)
 import Data.Sound
 import Data.Train
 import Data.Zoom
-import Dict
 import Html
 import Html.Attributes as Attr
 import Layout
 import Random exposing (Generator, Seed)
 import Time
+import View.Button
 import View.Modal
 import View.Promt
 import View.Screen
@@ -47,6 +47,7 @@ type alias Model =
     , sidebarTab : Maybe Tab
     , tickInterval : Float
     , zoomPercent : Int
+    , building : Maybe { cost : ( Item, Int ), block : Block }
     }
 
 
@@ -69,8 +70,13 @@ updateGame fun model =
                                                     Data.Animation.animate
                                                         |> Data.Modal.fromAnimation
                                                         |> Just
-                                                , tickInterval = m.tickInterval * 1.1
                                             }
+                                        )
+
+                                Data.Effect.LevelUp ->
+                                    Tuple.mapFirst
+                                        (\m ->
+                                            { m | tickInterval = m.tickInterval * 0.9 }
                                         )
 
                                 Data.Effect.ShowPromt string ->
@@ -94,6 +100,7 @@ type Msg
     | TimePassed
     | ToggleSlowdown
     | BuildBlock { cost : ( Item, Int ), block : Block }
+    | StopBuilding
     | BuildActor { cost : ( Item, Int ), actor : Actor }
     | CloseModal
     | DestroyBlock
@@ -119,6 +126,7 @@ restart seed =
                 , sidebarTab = Just DetailTab
                 , tickInterval = 200
                 , zoomPercent = 50
+                , building = Nothing
                 }
            )
 
@@ -140,72 +148,83 @@ view model =
             , Attr.href "https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
             ]
             []
-        , [ [ model.game
+        , [ model.game
                 |> View.Screen.fromGame
                     { onPress = TileClicked
                     , camera = model.camera
                     , zoom = Data.Zoom.fromPercent model.zoomPercent
                     }
-            , model.game
-                |> View.Tab.sidebar
-                    { toggleSlowdown = ToggleSlowdown
-                    , restart = Restart model.seed
-                    , destroyBlock = DestroyBlock
-                    , buildActor = BuildActor
-                    , buildBlock = BuildBlock
-                    , slowedDown = model.slowedDown
-                    , setVolume = SetVolume
-                    , volume = model.volume
-                    , setZoom = SetZoom
-                    , zoom = model.zoomPercent
-                    , setTab = SetTab
-                    , tab = model.sidebarTab
-                    }
-            , [ (( "Tracks", model.game.train.tracks )
-                    :: (model.game.train.items
-                            |> AnyBag.toAssociationList
-                       )
-                    |> List.map (\( k, n ) -> String.fromInt n ++ "x " ++ k)
-                )
-                    |> (\content -> content |> String.join ", ")
-                    |> Html.text
-                    |> Layout.el []
-              , "Needs "
-                    ++ (Data.Train.coalNeeded model.game.train
-                            - AnyBag.count Data.Item.Coal model.game.train.items
-                            |> String.fromInt
-                       )
-                    ++ " for the next Level"
-                    |> Html.text
-                    |> Layout.el []
-              ]
-                |> Layout.column
-                    [ Attr.style "position" "absolute"
-                    , Attr.style "top" "8px"
-                    , Attr.style "right" "8px"
-                    , Attr.style "background-color" "white"
-                    , Attr.style "padding" "8px"
-                    , Attr.style "border-radius" "8px"
-                    , Attr.style "border" "solid 1px black"
-                    ]
-            , model.promt
-                |> View.Promt.fromString
-                |> Layout.el
-                    [ Attr.style "position" "absolute"
-                    , Attr.style "left" "20%"
-                    , Attr.style "bottom" "8px"
-                    , Attr.style "width" "60%"
-                    ]
-            ]
-                |> Layout.row
+                |> Layout.withStack
                     ((if model.modal /= Nothing then
                         [ Attr.style "backdrop-filter" "brightness(0.5)" ]
 
                       else
                         []
                      )
-                        ++ [ Attr.style "position" "relative" ]
+                        ++ [ Attr.style "position" "relative"
+                           ]
                     )
+                    [ ( [ Attr.style "top" "8px"
+                        , Attr.style "left" "8px"
+                        ]
+                      , case model.building of
+                            Just { cost, block } ->
+                                "Stop Building"
+                                    |> View.Button.toHtml (Just StopBuilding)
+
+                            Nothing ->
+                                model.game
+                                    |> View.Tab.sidebar
+                                        { toggleSlowdown = ToggleSlowdown
+                                        , restart = Restart model.seed
+                                        , destroyBlock = DestroyBlock
+                                        , buildActor = BuildActor
+                                        , buildBlock = BuildBlock
+                                        , slowedDown = model.slowedDown
+                                        , setVolume = SetVolume
+                                        , volume = model.volume
+                                        , setZoom = SetZoom
+                                        , zoom = model.zoomPercent
+                                        , setTab = SetTab
+                                        , tab = model.sidebarTab
+                                        }
+                      )
+                    , ( [ Attr.style "top" "8px"
+                        , Attr.style "right" "8px"
+                        ]
+                      , [ (( "Tracks", model.game.train.tracks )
+                            :: (model.game.train.items
+                                    |> AnyBag.toAssociationList
+                               )
+                            |> List.map (\( k, n ) -> String.fromInt n ++ "x " ++ k)
+                          )
+                            |> (\content -> content |> String.join ", ")
+                            |> Html.text
+                            |> Layout.el []
+                        , "Needs "
+                            ++ (Data.Train.coalNeeded model.game.train
+                                    - AnyBag.count Data.Item.Coal model.game.train.items
+                                    |> String.fromInt
+                               )
+                            ++ " for the next Level"
+                            |> Html.text
+                            |> Layout.el []
+                        ]
+                            |> Layout.column
+                                [ Attr.style "background-color" "white"
+                                , Attr.style "padding" "8px"
+                                , Attr.style "border-radius" "8px"
+                                , Attr.style "border" "solid 1px black"
+                                ]
+                      )
+                    , ( [ Attr.style "left" "20%"
+                        , Attr.style "bottom" "8px"
+                        , Attr.style "width" "60%"
+                        ]
+                      , model.promt
+                            |> View.Promt.fromString
+                      )
+                    ]
           , case model.modal of
                 Just modal ->
                     View.Modal.toHtml CloseModal model.game modal
@@ -213,7 +232,9 @@ view model =
                 Nothing ->
                     Layout.none
           ]
-            |> Html.div [ Attr.style "position" "relative" ]
+            |> Html.div
+                [ Attr.style "position" "relative"
+                ]
             |> List.singleton
             |> Layout.row [ Layout.fill, Layout.centerContent ]
             |> Layout.container [ Attr.style "background-color" "white" ]
@@ -247,7 +268,15 @@ update msg model =
             ( restart seed, Cmd.none )
 
         TileClicked pos ->
-            ( { model | game = model.game |> Data.Game.select pos }
+            ( model.game
+                |> (case model.building of
+                        Just { cost, block } ->
+                            Data.Game.buildBlock pos cost block
+
+                        Nothing ->
+                            Data.Game.select pos
+                   )
+                |> (\game -> { model | game = game })
             , Cmd.none
             )
 
@@ -257,24 +286,37 @@ update msg model =
                     ( { model | modal = modal |> Data.Modal.timePassed |> Just }, Cmd.none )
 
                 Nothing ->
-                    let
-                        _ =
-                            Dict.size model.game.world.actors |> Debug.log "actors"
-                    in
-                    model
-                        |> updateCamera
-                        |> updateGame Data.Behavior.passTime
+                    if model.building == Nothing then
+                        model
+                            |> updateCamera
+                            |> updateGame Data.Behavior.passTime
+
+                    else
+                        ( model, Cmd.none )
 
         ToggleSlowdown ->
             ( { model | slowedDown = not model.slowedDown }, Cmd.none )
 
         BuildBlock { cost, block } ->
-            ( { model | game = model.game |> Data.Game.buildBlock cost block }
+            ( { model
+                | game =
+                    model.game
+                        |> Data.Game.buildBlock model.game.selected cost block
+                , building = Just { cost = cost, block = block }
+              }
             , Cmd.none
             )
 
+        StopBuilding ->
+            ( { model | building = Nothing }, Cmd.none )
+
         BuildActor { cost, actor } ->
-            ( { model | game = model.game |> Data.Game.buildActor cost actor }, Cmd.none )
+            ( { model
+                | game = model.game |> Data.Game.buildActor cost actor
+                , building = Nothing
+              }
+            , Cmd.none
+            )
 
         DestroyBlock ->
             ( { model | game = model.game |> Data.Game.destroyBlock }, Cmd.none )

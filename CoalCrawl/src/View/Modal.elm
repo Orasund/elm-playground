@@ -9,13 +9,24 @@ import Html.Attributes as Attr
 import Layout
 import View.Animation
 import View.Button
+import View.Title
 
 
 toHtml : msg -> Game -> Modal -> Html msg
 toHtml closeModal game modal =
-    [ "Level Completed"
+    [ [ View.Title.coal, View.Title.crawl ]
+        |> List.map
+            (\string ->
+                Html.pre
+                    [ Attr.style "font-family" "monospace"
+                    , Attr.style "font-size" "6px"
+                    ]
+                    [ Html.text string ]
+            )
+        |> Layout.row [ Layout.centerContent ]
+    , "Level Completed"
         |> Html.text
-        |> Layout.heading1 [ Layout.contentCentered ]
+        |> Layout.heading2 [ Layout.contentCentered ]
     , "Items collected sofar: "
         ++ (game.train.items
                 |> AnyBag.toAssociationList

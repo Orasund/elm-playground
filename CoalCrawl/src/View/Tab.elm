@@ -227,10 +227,4 @@ sidebar args game =
             )
         |> Maybe.withDefault Layout.none
     ]
-        |> Layout.column
-            [ Layout.spacing 8
-            , Attr.style "padding" "8px"
-            , Attr.style "position" "absolute"
-            , Attr.style "top" "0"
-            , Attr.style "left" "0"
-            ]
+        |> Layout.column [ Layout.spacing 8 ]

@@ -151,7 +151,7 @@ stockUpAtBase game =
                 |> Data.Train.turnAround
     }
         |> move
-        |> Maybe.map (\g -> ( g, [ Data.Effect.OpenModal ] ))
+        |> Maybe.map (\g -> ( g, [ Data.Effect.OpenModal, Data.Effect.LevelUp ] ))
         |> Maybe.withDefault ( game, [] )
 
 

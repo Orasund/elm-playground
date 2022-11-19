@@ -11,14 +11,14 @@ import Layout
 toHtml : Zoom -> Tile -> Html msg
 toHtml zoom tile =
     tile
-        |> (\{ content, color, bold, animation } ->
+        |> (\{ content, color, size, bold, animation } ->
                 content
                     |> String.fromChar
                     |> Html.text
                     |> Layout.el
                         ([ Attr.style "width" (Config.tileSize zoom)
                          , Attr.style "height" (Config.tileSize zoom)
-                         , Attr.style "font-size" (Config.tileSize zoom)
+                         , Attr.style "font-size" (Config.fontSize size zoom)
                          , Attr.style "color" color
                          ]
                             ++ (if bold then
@@ -28,7 +28,7 @@ toHtml zoom tile =
                                     []
                                )
                             ++ (if animation then
-                                    [ Attr.class "animate__animated animate__pulse animate__infinite" ]
+                                    [ Attr.class "animate__animated animate__pulse animate__infinite animate__faster" ]
 
                                 else
                                     []

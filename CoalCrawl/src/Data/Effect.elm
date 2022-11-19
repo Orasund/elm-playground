@@ -8,6 +8,7 @@ type Effect
     = PlaySound Sound
     | OpenModal
     | ShowPromt String
+    | LevelUp
 
 
 andThen : (a -> Generator ( b, List Effect )) -> Generator ( a, List Effect ) -> Generator ( b, List Effect )

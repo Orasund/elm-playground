@@ -9,12 +9,28 @@ type Item
 
 toString : Item -> String
 toString item =
+    (item
+            |> toChar
+            |> String.fromChar )
+           ++ (
     case item of
         Coal ->
-            "\u{1FAA8} Coal"
+            "Coal"
 
         Iron ->
-            "🔩 Iron"
+            "Iron"
 
         Gold ->
-            "\u{1FA99} Gold"
+            "Gold")
+
+toChar : Item -> Char
+toChar item =
+    case item of
+        Coal ->
+            '⚫'
+
+        Iron ->
+            '🔘'
+
+        Gold ->
+            '🟡'

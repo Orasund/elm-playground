@@ -18,6 +18,7 @@ type alias Tile =
     , content : Char
     , bold : Bool
     , animation : Bool
+    , size : Float
     }
 
 
@@ -27,7 +28,23 @@ new args =
     , content = args.content
     , bold = False
     , animation = False
+    , size = 1
     }
+
+
+emoji : Char -> Tile
+emoji char =
+    { color = View.Color.black
+    , content = char
+    , bold = False
+    , animation = False
+    , size = 0.7
+    }
+
+
+withSmall : Tile -> Tile
+withSmall tile =
+    { tile | size = 0.5 }
 
 
 withBold : Tile -> Tile
@@ -45,52 +62,40 @@ wall =
     { color = View.Color.black, content = ' ' } |> new
 
 
-fromItem : Item -> Char
-fromItem item =
-    case item of
-        Data.Item.Coal ->
-            'c'
-
-        Data.Item.Iron ->
-            'i'
-
-        Data.Item.Gold ->
-            'g'
-
 
 fromPlayer : Player -> Tile
 fromPlayer player =
     { color = View.Color.green
     , content =
         player.item
-            |> Maybe.map fromItem
+            |> Maybe.map Data.Item.toChar
             |> Maybe.withDefault '@'
     }
         |> new
         |> withBold
 
 
-fromFloor : Floor -> Tile
+fromFloor : Floor -> Char
 fromFloor floor =
     case floor of
         Data.Floor.Ground ->
-            { color = View.Color.gray
-            , content = '.'
-            }
-                |> new
+            '.'
 
         Data.Floor.Track ->
-            { color = View.Color.gray, content = '+' } |> new
+            '+'
 
         Data.Floor.RailwayTrack ->
-            { color = View.Color.black, content = '=' } |> new
+            '='
 
 
 fromEntity : Game -> Entity -> Tile
 fromEntity game entity =
     case entity of
         Data.Entity.Vein item ->
-            { color = View.Color.black, content = item |> fromItem |> Char.toUpper } |> new
+            item
+                |> Data.Item.toChar
+                |> Char.toUpper
+                |> emoji
 
         Data.Entity.Wall ->
             { color = View.Color.black, content = '#' } |> new
@@ -177,18 +182,18 @@ fromBlock : Game -> ( Block, Maybe Item ) -> Tile
 fromBlock game ( block, items ) =
     case block of
         Data.Block.FloorBlock floor ->
-            fromFloor floor
-                |> (\tile ->
-                        { tile
-                            | content =
-                                case items of
-                                    Just item ->
-                                        fromItem item
+            (case items of
+                Just item ->
+                    item|> Data.Item.toChar 
+                    |> emoji
+                    |> withSmall
 
-                                    Nothing ->
-                                        tile.content
-                        }
-                   )
+                Nothing ->
+                    { color = View.Color.gray
+                        , content = fromFloor floor}
+                    |> new
+            )
+                
 
         Data.Block.EntityBlock entity ->
             fromEntity game entity

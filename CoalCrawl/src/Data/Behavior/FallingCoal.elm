@@ -13,25 +13,15 @@ act : ( Int, Int ) -> World -> Generator World
 act pos world =
     pos
         |> Data.Position.neighbors
-        |> List.filter
-            (\p ->
-                case world |> Data.World.get p of
-                    Just ( Data.Block.FloorBlock _, _ ) ->
-                        True
-
-                    _ ->
-                        False
-            )
+        |> List.filter (\p -> world |> Data.World.isFloor p)
         |> List.foldl
             (\p ->
                 Random.andThen
                     (\w ->
                         Random.weighted ( 1, Data.World.insertEntity (Data.Entity.Vein Data.Item.Coal) )
-                            [ ( 1, Data.World.insertActor Data.Actor.FallingCoal ) ]
+                            [ ( 1 / 2, Data.World.insertActor Data.Actor.FallingCoal ) ]
                             |> Random.map (\fun -> w |> fun p)
                     )
             )
-            (world
-                |> Data.World.insertEntity (Data.Entity.Vein Data.Item.Coal) pos
-                |> Random.constant
-            )
+            (Random.constant world)
+        |> Random.map (Data.World.insertEntity (Data.Entity.Vein Data.Item.Coal) pos)

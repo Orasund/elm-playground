@@ -28,14 +28,14 @@ select pos game =
     }
 
 
-buildBlock : ( Item, Int ) -> Block -> Game -> Game
-buildBlock ( item, cost ) block game =
+buildBlock : ( Int, Int ) -> ( Item, Int ) -> Block -> Game -> Game
+buildBlock pos ( item, cost ) block game =
     game.train
         |> Data.Train.removeItem cost item
         |> Maybe.map
             (\train ->
                 { game
-                    | world = game.world |> Data.World.insert game.selected block
+                    | world = game.world |> Data.World.insert pos block
                     , train = train
                 }
             )

@@ -20,6 +20,13 @@ tileSize zoom =
         ++ ")"
 
 
+fontSize size zoom =
+    "min("
+        ++ ((100 * size |> String.fromFloat) ++ "vw/" ++ String.fromInt (width zoom) ++ ", ")
+        ++ ((100 * size |> String.fromFloat) ++ "vh/" ++ String.fromInt (height zoom))
+        ++ ")"
+
+
 hqPos =
     ( 0, 0 )
 

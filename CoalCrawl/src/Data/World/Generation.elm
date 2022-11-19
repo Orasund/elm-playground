@@ -150,7 +150,7 @@ mineGenerator pos world =
 
                         else
                             Random.uniform head tail
-                                |> Random.map
+                                |> Random.andThen
                                     (\nextPos ->
                                         pos
                                             |> Data.Position.neighbors
@@ -161,15 +161,21 @@ mineGenerator pos world =
                                                 )
                                             |> List.foldl
                                                 (\p ->
-                                                    if p == nextPos then
-                                                        Data.World.insertActor Data.Actor.Mine p
+                                                    Random.andThen
+                                                        (\it ->
+                                                            if p == nextPos then
+                                                                it
+                                                                    |> Data.World.insertActor Data.Actor.Mine p
+                                                                    |> Random.constant
 
-                                                    else
-                                                        Data.World.insertEntity Data.Entity.Wall p
+                                                            else
+                                                                wallGenerator p
+                                                                    |> Random.map (\fun -> fun p it)
+                                                        )
                                                 )
-                                                world
-                                            |> Data.World.removeEntity pos
-                                            |> Data.World.insertFloor Data.Floor.Track pos
+                                                (Random.constant world)
+                                            |> Random.map (Data.World.removeEntity pos)
+                                            |> Random.map (Data.World.insertFloor Data.Floor.Track pos)
                                     )
                     )
 
@@ -181,7 +187,10 @@ mineGenerator pos world =
 
 baseProbability : ( Int, Int ) -> List ( Float, ( Int, Int ) )
 baseProbability ( x, y ) =
-    [ ( 0.2, ( x, y - 1 ) )
+    [ 
+        ( if y < 0 then
+            0.45
+            else 0, ( x, y - 1 ) )
     , ( 0.45, ( x, y + 1 ) )
     , ( 0.45, ( x - 1, y ) )
     , ( 0.45, ( x + 1, y ) )
