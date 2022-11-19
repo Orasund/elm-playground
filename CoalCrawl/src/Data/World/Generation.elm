@@ -42,17 +42,20 @@ mine ( x, y ) world =
                             |> Data.World.removeEntity ( x, y )
                             |> (case items of
                                     [] ->
-                                        Data.World.insertFloorAt ( x, y ) Data.Floor.Ground
+                                        identity
 
                                     item :: _ ->
-                                        \w ->
-                                            w
-                                                |> Data.World.insertFloorAt ( x, y ) Data.Floor.Ground
-                                                |> Data.World.insertItemAt ( x, y ) item
+                                        Data.World.insertItemAt ( x, y ) item
                                )
                             |> generateContent
                                 { probability =
-                                    [ ( 0, ( x, y - 1 ) )
+                                    [ ( if y > 0 then
+                                            0.7
+
+                                        else
+                                            0
+                                      , ( x, y - 1 )
+                                      )
                                     , ( 1, ( x, y + 1 ) )
                                     , ( 0.7, ( x - 1, y ) )
                                     , ( 0.7, ( x + 1, y ) )
@@ -81,27 +84,14 @@ wallGenerator ( x, y ) =
                 |> List.take (i + 1)
                 |> List.reverse
     in
-    (if y < Config.tracksPerTrip * 0 then
-        []
+    ((y // Config.tracksPerTrip) - (abs x // Config.tracksPerTrip) + 1)
+        |> (\int ->
+                if y < int then
+                    []
 
-     else if y < Config.tracksPerTrip * 1 then
-        content 1
-
-     else if y < Config.tracksPerTrip * 2 then
-        content 2
-
-     else if y < Config.tracksPerTrip * 3 then
-        content 3
-
-     else if y < Config.tracksPerTrip * 4 then
-        content 4
-
-     else if y < Config.tracksPerTrip * 5 then
-        content 5
-
-     else
-        content 6
-    )
+                else
+                    content int
+           )
         |> (\list ->
                 case list of
                     [] ->
@@ -187,10 +177,13 @@ mineGenerator pos world =
 
 baseProbability : ( Int, Int ) -> List ( Float, ( Int, Int ) )
 baseProbability ( x, y ) =
-    [ 
-        ( if y < 0 then
+    [ ( if y < 0 then
             0.45
-            else 0, ( x, y - 1 ) )
+
+        else
+            0
+      , ( x, y - 1 )
+      )
     , ( 0.45, ( x, y + 1 ) )
     , ( 0.45, ( x - 1, y ) )
     , ( 0.45, ( x + 1, y ) )

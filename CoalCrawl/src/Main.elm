@@ -10,6 +10,7 @@ import Data.Block exposing (Block(..))
 import Data.Effect exposing (Effect)
 import Data.Entity exposing (Entity(..))
 import Data.Game exposing (Game)
+import Data.Info
 import Data.Item exposing (Item)
 import Data.Modal exposing (Modal)
 import Data.Sound
@@ -36,6 +37,11 @@ port playSound : String -> Cmd msg
 port setVolume : Float -> Cmd msg
 
 
+type BuildMode
+    = BuildingBlock Block
+    | BuildingActor Actor
+
+
 type alias Model =
     { game : Game
     , camera : ( Int, Int )
@@ -47,7 +53,7 @@ type alias Model =
     , sidebarTab : Maybe Tab
     , tickInterval : Float
     , zoomPercent : Int
-    , building : Maybe { cost : ( Item, Int ), block : Block }
+    , building : Maybe ( ( Item, Int ), BuildMode )
     }
 
 
@@ -99,9 +105,8 @@ type Msg
     | TileClicked ( Int, Int )
     | TimePassed
     | ToggleSlowdown
-    | BuildBlock { cost : ( Item, Int ), block : Block }
+    | StartBuilding ( ( Item, Int ), BuildMode )
     | StopBuilding
-    | BuildActor { cost : ( Item, Int ), actor : Actor }
     | CloseModal
     | DestroyBlock
     | SetVolume (Maybe Int)
@@ -168,9 +173,27 @@ view model =
                         , Attr.style "left" "8px"
                         ]
                       , case model.building of
-                            Just { cost, block } ->
-                                "Stop Building"
+                            Just ( cost, block ) ->
+                                [ "Stop Building"
                                     |> View.Button.toHtml (Just StopBuilding)
+                                , (case block of
+                                    BuildingBlock b ->
+                                        b
+                                            |> Data.Info.fromBlock model.game
+
+                                    BuildingActor a ->
+                                        a |> Data.Info.fromActor
+                                  )
+                                    |> .title
+                                    |> Html.text
+                                    |> Layout.el
+                                        [ Attr.style "background-color" "white"
+                                        , Attr.style "padding" "8px"
+                                        , Attr.style "border-radius" "8px"
+                                        , Attr.style "border" "solid 1px black"
+                                        ]
+                                ]
+                                    |> Layout.column [ Layout.spacing 8 ]
 
                             Nothing ->
                                 model.game
@@ -178,8 +201,12 @@ view model =
                                         { toggleSlowdown = ToggleSlowdown
                                         , restart = Restart model.seed
                                         , destroyBlock = DestroyBlock
-                                        , buildActor = BuildActor
-                                        , buildBlock = BuildBlock
+                                        , buildActor =
+                                            \{ cost, actor } ->
+                                                StartBuilding ( cost, BuildingActor actor )
+                                        , buildBlock =
+                                            \{ cost, block } ->
+                                                StartBuilding ( cost, BuildingBlock block )
                                         , slowedDown = model.slowedDown
                                         , setVolume = SetVolume
                                         , volume = model.volume
@@ -270,8 +297,13 @@ update msg model =
         TileClicked pos ->
             ( model.game
                 |> (case model.building of
-                        Just { cost, block } ->
-                            Data.Game.buildBlock pos cost block
+                        Just ( cost, buildingMode ) ->
+                            case buildingMode of
+                                BuildingBlock block ->
+                                    Data.Game.buildBlock pos cost block
+
+                                BuildingActor actor ->
+                                    Data.Game.buildActor pos cost actor
 
                         Nothing ->
                             Data.Game.select pos
@@ -297,26 +329,11 @@ update msg model =
         ToggleSlowdown ->
             ( { model | slowedDown = not model.slowedDown }, Cmd.none )
 
-        BuildBlock { cost, block } ->
-            ( { model
-                | game =
-                    model.game
-                        |> Data.Game.buildBlock model.game.selected cost block
-                , building = Just { cost = cost, block = block }
-              }
-            , Cmd.none
-            )
+        StartBuilding a ->
+            ( { model | building = Just a }, Cmd.none )
 
         StopBuilding ->
             ( { model | building = Nothing }, Cmd.none )
-
-        BuildActor { cost, actor } ->
-            ( { model
-                | game = model.game |> Data.Game.buildActor cost actor
-                , building = Nothing
-              }
-            , Cmd.none
-            )
 
         DestroyBlock ->
             ( { model | game = model.game |> Data.Game.destroyBlock }, Cmd.none )

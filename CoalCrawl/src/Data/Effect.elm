@@ -11,6 +11,16 @@ type Effect
     | LevelUp
 
 
+withNone : a -> Generator ( a, List Effect )
+withNone a =
+    Random.constant ( a, [] )
+
+
+genWithNone : Generator a -> Generator ( a, List Effect )
+genWithNone =
+    Random.map (\a -> ( a, [] ))
+
+
 andThen : (a -> Generator ( b, List Effect )) -> Generator ( a, List Effect ) -> Generator ( b, List Effect )
 andThen fun =
     Random.andThen

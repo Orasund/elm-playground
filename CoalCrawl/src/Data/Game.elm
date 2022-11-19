@@ -30,26 +30,38 @@ select pos game =
 
 buildBlock : ( Int, Int ) -> ( Item, Int ) -> Block -> Game -> Game
 buildBlock pos ( item, cost ) block game =
+    if
+        case block of
+            FloorBlock _ ->
+                Data.World.getBlock pos game.world
+                    == Just (Data.Block.FloorBlock Data.Floor.Ground)
+
+            EntityBlock _ ->
+                Data.World.isFloor pos game.world
+    then
+        game.train
+            |> Data.Train.removeItem cost item
+            |> Maybe.map
+                (\train ->
+                    { game
+                        | world = game.world |> Data.World.insert pos block
+                        , train = train
+                    }
+                )
+            |> Maybe.withDefault game
+
+    else
+        game
+
+
+buildActor : ( Int, Int ) -> ( Item, Int ) -> Actor -> Game -> Game
+buildActor pos ( item, cost ) actor game =
     game.train
         |> Data.Train.removeItem cost item
         |> Maybe.map
             (\train ->
                 { game
-                    | world = game.world |> Data.World.insert pos block
-                    , train = train
-                }
-            )
-        |> Maybe.withDefault game
-
-
-buildActor : ( Item, Int ) -> Actor -> Game -> Game
-buildActor ( item, cost ) actor game =
-    game.train
-        |> Data.Train.removeItem cost item
-        |> Maybe.map
-            (\train ->
-                { game
-                    | world = game.world |> Data.World.insertActorAt game.selected actor
+                    | world = game.world |> Data.World.insertActorAt pos actor
                     , train = train
                 }
             )
@@ -113,6 +125,14 @@ new =
                         )
                     )
 
+        walls =
+            List.range 0 1
+                |> List.concatMap
+                    (\y ->
+                        [ -1, 1 ]
+                            |> List.map (\x -> ( ( x, y ), Data.Block.EntityBlock Data.Entity.Wall ))
+                    )
+
         coals =
             [ ( 0, 4 )
             , ( 0 - 1, 3 )
@@ -125,6 +145,7 @@ new =
         , ( player, Data.Block.FloorBlock Data.Floor.Ground )
         ]
             ++ tracks
+            ++ walls
             ++ (coals |> List.map (\pos -> ( pos, Data.Entity.Vein Data.Item.Coal |> Data.Block.EntityBlock )))
             |> Data.World.fromList
     , player = player |> Data.Player.fromPos

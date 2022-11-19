@@ -1,7 +1,6 @@
 module Data.Behavior.FallingCoal exposing (..)
 
 import Data.Actor
-import Data.Block
 import Data.Entity
 import Data.Item
 import Data.Position

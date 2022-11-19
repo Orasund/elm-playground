@@ -2,7 +2,7 @@ module Data.Behavior exposing (..)
 
 import AnyBag
 import Config
-import Data.Actor
+import Data.Actor exposing (Actor)
 import Data.Behavior.Bomb
 import Data.Behavior.FallingCoal
 import Data.Behavior.Path
@@ -21,71 +21,63 @@ passTime : Game -> Generator ( Game, List Effect )
 passTime game =
     game
         |> Data.Behavior.Player.act
-        |> Data.Effect.andThen Data.Behavior.Train.passTime
+        |> Data.Effect.andThen Data.Behavior.Train.act
         |> Data.Effect.andThen
             (\g ->
                 g.world
                     |> Data.World.getActors
-                    |> List.foldl
-                        (\( id, ( pos, actor ) ) ->
-                            case actor of
-                                Data.Actor.Wagon wagon ->
-                                    wagon.movedFrom
-                                        |> Maybe.map
-                                            (\movedFrom ->
-                                                Data.Effect.map
-                                                    (Data.Behavior.Wagon.act
-                                                        { backPos = movedFrom }
-                                                        id
-                                                    )
-                                            )
-                                        |> Maybe.withDefault identity
-
-                                Data.Actor.Cave caveType ->
-                                    Random.andThen
-                                        (\( it, l ) ->
-                                            it.world
-                                                |> Data.World.removeEntity pos
-                                                |> Data.World.Generation.exposedCave caveType pos
-                                                |> Random.map (\world -> ( { it | world = world }, l ))
-                                        )
-
-                                Data.Actor.Mine ->
-                                    Random.andThen
-                                        (\( it, l ) ->
-                                            it.world
-                                                |> Data.World.removeEntity pos
-                                                |> Data.World.Generation.mineGenerator pos
-                                                |> Random.map (\world -> ( { it | world = world }, l ))
-                                        )
-
-                                Data.Actor.FallingCoal ->
-                                    Random.andThen
-                                        (\( it, l ) ->
-                                            it.world
-                                                |> Data.Behavior.FallingCoal.act pos
-                                                |> Random.map (\world -> ( { it | world = world }, l ))
-                                        )
-
-                                Data.Actor.Bomb _ ->
-                                    Random.andThen
-                                        (\( it, l ) ->
-                                            it.world
-                                                |> Data.Behavior.Bomb.timePassed id
-                                                |> Random.map (\world -> ( { it | world = world }, l ))
-                                        )
-
-                                Data.Actor.Path ->
-                                    Random.andThen
-                                        (\( it, l ) ->
-                                            it.world
-                                                |> Data.Behavior.Path.act pos
-                                                |> Random.map (\world -> ( { it | world = world }, l ))
-                                        )
-                        )
+                    |> List.foldl (\a -> Data.Effect.andThen (actorsAct a))
                         (Random.constant ( g, [] ))
             )
         |> Random.map (\( g, l ) -> ( g, promt g ++ l ))
+
+
+actorsAct : ( Int, ( ( Int, Int ), Actor ) ) -> Game -> Generator ( Game, List Effect )
+actorsAct ( id, ( pos, actor ) ) game =
+    case actor of
+        Data.Actor.Wagon wagon ->
+            wagon.movedFrom
+                |> Maybe.map
+                    (\movedFrom ->
+                        game
+                            |> Data.Behavior.Wagon.act
+                                { backPos = movedFrom }
+                                id
+                            |> Random.constant
+                    )
+                |> Maybe.withDefault (Data.Effect.withNone game)
+
+        Data.Actor.Cave caveType ->
+            game.world
+                |> Data.World.removeEntity pos
+                |> Data.World.Generation.exposedCave caveType pos
+                |> Random.map (\world -> { game | world = world })
+                |> Data.Effect.genWithNone
+
+        Data.Actor.Mine ->
+            game.world
+                |> Data.World.removeEntity pos
+                |> Data.World.Generation.mineGenerator pos
+                |> Random.map (\world -> { game | world = world })
+                |> Data.Effect.genWithNone
+
+        Data.Actor.FallingCoal ->
+            game.world
+                |> Data.Behavior.FallingCoal.act pos
+                |> Random.map (\world -> { game | world = world })
+                |> Data.Effect.genWithNone
+
+        Data.Actor.Bomb _ ->
+            game.world
+                |> Data.Behavior.Bomb.timePassed id
+                |> Random.map (\world -> { game | world = world })
+                |> Data.Effect.genWithNone
+
+        Data.Actor.Path ->
+            game.world
+                |> Data.Behavior.Path.act pos
+                |> Random.map (\world -> { game | world = world })
+                |> Data.Effect.genWithNone
 
 
 promt : Game -> List Effect

@@ -44,7 +44,7 @@ emoji char =
 
 withSmall : Tile -> Tile
 withSmall tile =
-    { tile | size = 0.5 }
+    { tile | size = 0.2 }
 
 
 withBold : Tile -> Tile

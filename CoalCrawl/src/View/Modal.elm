@@ -19,7 +19,7 @@ toHtml closeModal game modal =
             (\string ->
                 Html.pre
                     [ Attr.style "font-family" "monospace"
-                    , Attr.style "font-size" "6px"
+                    , Attr.style "font-size" "10px"
                     ]
                     [ Html.text string ]
             )

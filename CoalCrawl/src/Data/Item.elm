@@ -10,18 +10,20 @@ type Item
 toString : Item -> String
 toString item =
     (item
-            |> toChar
-            |> String.fromChar )
-           ++ (
-    case item of
-        Coal ->
-            "Coal"
+        |> toChar
+        |> String.fromChar
+    )
+        ++ (case item of
+                Coal ->
+                    "Coal"
 
-        Iron ->
-            "Iron"
+                Iron ->
+                    "Iron"
 
-        Gold ->
-            "Gold")
+                Gold ->
+                    "Gold"
+           )
+
 
 toChar : Item -> Char
 toChar item =
