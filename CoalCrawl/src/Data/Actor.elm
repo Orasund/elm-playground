@@ -19,6 +19,10 @@ type Actor
     | Bomb { explodesIn : Int }
     | Falling Item
     | Path
+    | Excavator
+        { momentum : Maybe ( Int, Int )
+        , hasReversed : Bool
+        }
 
 
 bomb : Actor

@@ -147,6 +147,12 @@ fromActor actor =
                             it |> withBold
                    )
 
+        Data.Actor.Excavator _ ->
+            { color = View.Color.black
+            , content = 'E'
+            }
+                |> new
+
         Data.Actor.Cave _ ->
             { color = View.Color.red, content = '#' }
                 |> new

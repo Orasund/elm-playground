@@ -131,6 +131,20 @@ collideWith ( newPos, entity ) game =
                                     |> returnGame
                                     |> Just
 
+                            Data.Actor.Excavator _ ->
+                                { game
+                                    | train =
+                                        game.train
+                                            |> Data.Train.addAll
+                                                (AnyBag.empty Data.Item.toString
+                                                    |> AnyBag.insert Config.excavatorCost Data.Item.Iron
+                                                )
+                                    , world = game.world |> Data.World.removeEntity newPos
+                                }
+                                    |> Random.constant
+                                    |> returnGame
+                                    |> Just
+
                             Data.Actor.Cave _ ->
                                 Nothing
 

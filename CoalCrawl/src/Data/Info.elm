@@ -186,6 +186,12 @@ fromActor actor =
             }
                 |> new
 
+        Data.Actor.Excavator _ ->
+            { title = "Excavator"
+            , description = "Mines and collect automatically"
+            }
+                |> new
+
 
 fromBlock : Game -> Block -> Info
 fromBlock game block =

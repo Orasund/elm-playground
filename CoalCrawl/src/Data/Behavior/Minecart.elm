@@ -1,4 +1,4 @@
-module Data.Behavior.Wagon exposing (..)
+module Data.Behavior.Minecart exposing (..)
 
 import AnyBag
 import Data.Actor exposing (Actor(..))

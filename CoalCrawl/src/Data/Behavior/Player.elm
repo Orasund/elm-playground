@@ -2,7 +2,7 @@ module Data.Behavior.Player exposing (..)
 
 import AStar
 import Data.Actor
-import Data.Behavior.Wagon
+import Data.Behavior.Minecart
 import Data.Block exposing (Block(..))
 import Data.Effect exposing (Effect)
 import Data.Entity
@@ -65,6 +65,10 @@ interactWith pos game =
                                             case actor of
                                                 Data.Actor.Minecart _ ->
                                                     game |> putIntoWagon |> Random.constant
+
+                                                Data.Actor.Excavator _ ->
+                                                    Random.constant game
+                                                        |> Random.map (\g -> ( g, [] ))
 
                                                 _ ->
                                                     Random.constant game
@@ -139,6 +143,9 @@ canMoveTo game p =
                 Just ( _, Data.Actor.Minecart _ ) ->
                     True
 
+                Just ( _, Data.Actor.Excavator _ ) ->
+                    True
+
                 Just ( _, Data.Actor.Cave _ ) ->
                     False
 
@@ -186,7 +193,7 @@ moveTowards targetPos game =
                     case game.world.actors |> Dict.get id |> Maybe.map Tuple.second of
                         Just (Data.Actor.Minecart wagon) ->
                             game
-                                |> Data.Behavior.Wagon.move { backPos = game.player.pos }
+                                |> Data.Behavior.Minecart.move { backPos = game.player.pos }
                                     id
                                     ( pos, wagon )
                                 |> Tuple.mapFirst
@@ -194,6 +201,21 @@ moveTowards targetPos game =
                                         { g | player = g.player |> Data.Player.moveTo pos }
                                     )
                                 |> Random.constant
+
+                        Just (Data.Actor.Excavator _) ->
+                            game.world
+                                |> Data.World.updateActor id
+                                    (\_ ->
+                                        { momentum =
+                                            game.player.pos
+                                                |> Data.Position.vecTo pos
+                                                |> Just
+                                        , hasReversed = False
+                                        }
+                                            |> Data.Actor.Excavator
+                                    )
+                                |> (\world -> { game | world = world })
+                                |> Data.Effect.withNone
 
                         _ ->
                             ( game, [] ) |> Random.constant
@@ -278,7 +300,7 @@ putIntoWagon game =
             )
                 |> (\( g, l ) ->
                         g
-                            |> Data.Behavior.Wagon.unload id
+                            |> Data.Behavior.Minecart.unload id
                             |> Tuple.mapSecond ((++) l)
                    )
 

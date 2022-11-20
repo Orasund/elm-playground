@@ -4,11 +4,12 @@ import AnyBag
 import Config
 import Data.Actor exposing (Actor)
 import Data.Behavior.Bomb
+import Data.Behavior.Excavator
 import Data.Behavior.FallingCoal
+import Data.Behavior.Minecart
 import Data.Behavior.Path
 import Data.Behavior.Player
 import Data.Behavior.Train
-import Data.Behavior.Wagon
 import Data.Effect exposing (Effect)
 import Data.Game exposing (Game)
 import Data.Item
@@ -40,12 +41,24 @@ actorsAct ( id, ( pos, actor ) ) game =
                 |> Maybe.map
                     (\movedFrom ->
                         game
-                            |> Data.Behavior.Wagon.act
+                            |> Data.Behavior.Minecart.act
                                 { backPos = movedFrom }
                                 id
                             |> Random.constant
                     )
                 |> Maybe.withDefault (Data.Effect.withNone game)
+
+        Data.Actor.Excavator excavator ->
+            case excavator.momentum of
+                Just momentum ->
+                    game.world
+                        |> Data.Behavior.Excavator.move
+                            ( pos, excavator )
+                            id
+                        |> Random.map (Tuple.mapFirst (\world -> { game | world = world }))
+
+                Nothing ->
+                    Data.Effect.withNone game
 
         Data.Actor.Cave caveType ->
             game.world
