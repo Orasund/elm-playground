@@ -276,27 +276,33 @@ putIntoWagon : Game -> ( Game, List Effect )
 putIntoWagon game =
     case Data.World.getActorAt game.selected game.world of
         Just ( id, Data.Actor.Minecart wagon ) ->
-            (if Data.Minecart.isFull wagon then
-                ( game, [ Data.Effect.PlaySound Data.Sound.Error ] )
-
-             else
-                game.player
-                    |> Data.Player.dropItem
-                    |> Maybe.map
-                        (\( player, item ) ->
-                            wagon
-                                |> Data.Minecart.insert item
-                                |> Tuple.mapFirst (\w2 -> game.world |> Data.World.updateActor id (\_ -> Data.Actor.Minecart w2))
-                                |> Tuple.mapFirst (\world -> { game | world = world })
-                                |> (\( g, sound ) ->
-                                        ( { g | player = player }
-                                        , [ Data.Effect.PlaySound Data.Sound.Unload
-                                          , Data.Effect.PlaySound sound
-                                          ]
-                                        )
-                                   )
-                        )
-                    |> Maybe.withDefault ( game, [] )
+            (game.player
+                |> Data.Player.dropItem
+                |> Maybe.map
+                    (\( player, item ) ->
+                        wagon
+                            |> Data.Minecart.insert item
+                            |> Maybe.map
+                                (\t ->
+                                    t
+                                        |> Tuple.mapFirst
+                                            (\w2 ->
+                                                game.world
+                                                    |> Data.World.updateActor id
+                                                        (\_ -> Data.Actor.Minecart w2)
+                                            )
+                                        |> Tuple.mapFirst (\world -> { game | world = world })
+                                        |> (\( g, sound ) ->
+                                                ( { g | player = player }
+                                                , [ Data.Effect.PlaySound Data.Sound.Unload
+                                                  , Data.Effect.PlaySound sound
+                                                  ]
+                                                )
+                                           )
+                                )
+                            |> Maybe.withDefault ( game, [ Data.Effect.PlaySound Data.Sound.Error ] )
+                    )
+                |> Maybe.withDefault ( game, [] )
             )
                 |> (\( g, l ) ->
                         g

@@ -53,11 +53,11 @@ move { backPos } id ( pos, wagon ) game =
     in
     (if Data.World.getFloor pos game.world == Just Data.Floor.Track then
         game.world
-            |> moveOnTrack positions ( pos, wagon )
+            |> moveOnTrack positions ( pos, id, wagon )
 
      else
         game.world
-            |> moveOnGround positions ( pos, wagon )
+            |> moveOnGround positions ( pos, id, wagon )
     )
         |> (\( world, p, effects ) ->
                 world
@@ -75,37 +75,13 @@ move { backPos } id ( pos, wagon ) game =
            )
 
 
-moveOnGround : { backPos : ( Int, Int ), forwardPos : ( Int, Int ) } -> ( ( Int, Int ), Minecart ) -> World -> ( World, ( Int, Int ), List Effect )
-moveOnGround args ( pos, wagon ) world =
+moveOnGround : { backPos : ( Int, Int ), forwardPos : ( Int, Int ) } -> ( ( Int, Int ), Int, Minecart ) -> World -> ( World, ( Int, Int ), List Effect )
+moveOnGround args ( pos, id, wagon ) world =
     case Data.World.get args.forwardPos world of
-        Just ( Data.Block.FloorBlock _, maybeItem ) ->
-            case maybeItem of
-                Just item ->
-                    case Data.World.getActorAt pos world of
-                        Just ( id, _ ) ->
-                            if Data.Minecart.isFull wagon then
-                                ( world, args.forwardPos, [] )
-
-                            else
-                                wagon
-                                    |> Data.Minecart.insert item
-                                    |> (\( wag, sound ) ->
-                                            world
-                                                |> Data.World.updateActor id (\_ -> Data.Actor.Minecart wag)
-                                                |> Data.World.removeItem args.forwardPos
-                                                |> (\w ->
-                                                        ( w
-                                                        , args.forwardPos
-                                                        , [ Data.Effect.PlaySound sound ]
-                                                        )
-                                                   )
-                                       )
-
-                        _ ->
-                            ( world, args.forwardPos, [] )
-
-                Nothing ->
-                    ( world, args.forwardPos, [] )
+        Just ( Data.Block.FloorBlock _, _ ) ->
+            world
+                |> pickup pos id
+                |> (\( w, l ) -> ( w, args.forwardPos, l ))
 
         Just ( Data.Block.EntityBlock entity, _ ) ->
             ( case entity of
@@ -116,26 +92,21 @@ moveOnGround args ( pos, wagon ) world =
                             (\( _, actor ) ->
                                 case actor of
                                     Data.Actor.Minecart w0 ->
-                                        case Data.World.getActorAt pos world of
-                                            Just ( id, _ ) ->
-                                                world
-                                                    |> Data.World.updateActor id0
-                                                        (\_ ->
-                                                            w0
-                                                                |> Data.Minecart.load wagon.items
-                                                                |> Data.Minecart.moveFrom pos
-                                                                |> Data.Actor.Minecart
-                                                        )
-                                                    |> Data.World.updateActor id
-                                                        (\_ ->
-                                                            wagon
-                                                                |> Data.Minecart.load w0.items
-                                                                |> Data.Minecart.stop
-                                                                |> Data.Actor.Minecart
-                                                        )
-
-                                            _ ->
-                                                world
+                                        world
+                                            |> Data.World.updateActor id0
+                                                (\_ ->
+                                                    w0
+                                                        |> Data.Minecart.load wagon.items
+                                                        |> Data.Minecart.moveFrom pos
+                                                        |> Data.Actor.Minecart
+                                                )
+                                            |> Data.World.updateActor id
+                                                (\_ ->
+                                                    wagon
+                                                        |> Data.Minecart.load w0.items
+                                                        |> Data.Minecart.stop
+                                                        |> Data.Actor.Minecart
+                                                )
 
                                     _ ->
                                         world
@@ -159,10 +130,10 @@ moveOnGround args ( pos, wagon ) world =
 
 moveOnTrack :
     { backPos : ( Int, Int ), forwardPos : ( Int, Int ) }
-    -> ( ( Int, Int ), Minecart )
+    -> ( ( Int, Int ), Int, Minecart )
     -> World
     -> ( World, ( Int, Int ), List Effect )
-moveOnTrack args ( pos, wagon ) world =
+moveOnTrack args ( pos, id, wagon ) world =
     case
         pos
             |> Data.Position.neighbors
@@ -183,7 +154,41 @@ moveOnTrack args ( pos, wagon ) world =
 
         _ ->
             world
-                |> moveOnGround args ( pos, wagon )
+                |> moveOnGround args ( pos, id, wagon )
+
+
+pickup : ( Int, Int ) -> Int -> World -> ( World, List Effect )
+pickup pos id w =
+    pos
+        |> Data.Position.neighbors
+        |> List.foldl
+            (\p ( world, l ) ->
+                world
+                    |> Data.World.get p
+                    |> Maybe.andThen Tuple.second
+                    |> Maybe.map
+                        (\item ->
+                            case world |> Data.World.getActor id of
+                                Just ( _, Data.Actor.Minecart minecart ) ->
+                                    minecart
+                                        |> Data.Minecart.insert item
+                                        |> Maybe.map
+                                            (\( m, s ) ->
+                                                ( world
+                                                    |> Data.World.updateActor id
+                                                        (\_ -> Data.Actor.Minecart m)
+                                                    |> Data.World.removeItem p
+                                                , Data.Effect.PlaySound s :: l
+                                                )
+                                            )
+                                        |> Maybe.withDefault ( world, l )
+
+                                _ ->
+                                    ( world, l )
+                        )
+                    |> Maybe.withDefault ( world, l )
+            )
+            ( w, [] )
 
 
 unload : Int -> Game -> ( Game, List Effect )

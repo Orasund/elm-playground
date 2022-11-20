@@ -7224,25 +7224,11 @@ var $author$project$Data$Minecart$moveFrom = F2(
 				movedFrom: $elm$core$Maybe$Just(movedFrom)
 			});
 	});
-var $author$project$Data$World$getActorAt = F2(
-	function (pos, world) {
-		return A2(
-			$elm$core$Maybe$andThen,
-			function (entity) {
-				if (entity.$ === 'Actor') {
-					var id = entity.a;
-					return A2(
-						$elm$core$Maybe$map,
-						function (_v1) {
-							var actor = _v1.b;
-							return _Utils_Tuple2(id, actor);
-						},
-						A2($elm$core$Dict$get, id, world.actors));
-				} else {
-					return $elm$core$Maybe$Nothing;
-				}
-			},
-			A2($elm$core$Dict$get, pos, world.entities));
+var $author$project$Data$Minecart$load = F2(
+	function (items, wagon) {
+		return _Utils_update(
+			wagon,
+			{items: items});
 	});
 var $author$project$Data$Sound$PickUp = {$: 'PickUp'};
 var $JohnBugner$elm_bag$Bag$dict = function (_v0) {
@@ -7274,16 +7260,6 @@ var $author$project$AnyBag$insert = F3(
 					bag.content)
 			});
 	});
-var $author$project$Data$Minecart$insert = F2(
-	function (item, wagon) {
-		return _Utils_Tuple2(
-			_Utils_update(
-				wagon,
-				{
-					items: A3($author$project$AnyBag$insert, 1, item, wagon.items)
-				}),
-			$author$project$Data$Sound$PickUp);
-	});
 var $elm$core$Basics$always = F2(
 	function (a, _v0) {
 		return a;
@@ -7309,12 +7285,28 @@ var $author$project$Data$Minecart$isFull = function (wagon) {
 		$author$project$AnyBag$size(wagon.items),
 		$author$project$Config$wagonMaxItems) > -1;
 };
-var $author$project$Data$Minecart$load = F2(
-	function (items, wagon) {
-		return _Utils_update(
-			wagon,
-			{items: items});
+var $author$project$Data$Minecart$insert = F2(
+	function (item, wagon) {
+		return $author$project$Data$Minecart$isFull(wagon) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(
+			_Utils_Tuple2(
+				_Utils_update(
+					wagon,
+					{
+						items: A3($author$project$AnyBag$insert, 1, item, wagon.items)
+					}),
+				$author$project$Data$Sound$PickUp));
 	});
+var $author$project$Data$Position$neighbors = function (_v0) {
+	var x = _v0.a;
+	var y = _v0.b;
+	return _List_fromArray(
+		[
+			_Utils_Tuple2(x, y + 1),
+			_Utils_Tuple2(x - 1, y),
+			_Utils_Tuple2(x + 1, y),
+			_Utils_Tuple2(x, y - 1)
+		]);
+};
 var $author$project$Data$World$removeItem = F2(
 	function (pos, world) {
 		return _Utils_update(
@@ -7339,11 +7331,6 @@ var $author$project$Data$World$removeItem = F2(
 					world.items)
 			});
 	});
-var $author$project$Data$Minecart$stop = function (wagon) {
-	return _Utils_update(
-		wagon,
-		{movedFrom: $elm$core$Maybe$Nothing});
-};
 var $author$project$Data$World$updateActor = F3(
 	function (id, fun, world) {
 		return function (actors) {
@@ -7358,54 +7345,84 @@ var $author$project$Data$World$updateActor = F3(
 					$elm$core$Tuple$mapSecond(fun)),
 				world.actors));
 	});
+var $author$project$Data$Behavior$Minecart$pickup = F3(
+	function (pos, id, w) {
+		return A3(
+			$elm$core$List$foldl,
+			F2(
+				function (p, _v0) {
+					var world = _v0.a;
+					var l = _v0.b;
+					return A2(
+						$elm$core$Maybe$withDefault,
+						_Utils_Tuple2(world, l),
+						A2(
+							$elm$core$Maybe$map,
+							function (item) {
+								var _v1 = A2($author$project$Data$World$getActor, id, world);
+								if ((_v1.$ === 'Just') && (_v1.a.b.$ === 'Minecart')) {
+									var _v2 = _v1.a;
+									var minecart = _v2.b.a;
+									return A2(
+										$elm$core$Maybe$withDefault,
+										_Utils_Tuple2(world, l),
+										A2(
+											$elm$core$Maybe$map,
+											function (_v3) {
+												var m = _v3.a;
+												var s = _v3.b;
+												return _Utils_Tuple2(
+													A2(
+														$author$project$Data$World$removeItem,
+														p,
+														A3(
+															$author$project$Data$World$updateActor,
+															id,
+															function (_v4) {
+																return $author$project$Data$Actor$Minecart(m);
+															},
+															world)),
+													A2(
+														$elm$core$List$cons,
+														$author$project$Data$Effect$PlaySound(s),
+														l));
+											},
+											A2($author$project$Data$Minecart$insert, item, minecart)));
+								} else {
+									return _Utils_Tuple2(world, l);
+								}
+							},
+							A2(
+								$elm$core$Maybe$andThen,
+								$elm$core$Tuple$second,
+								A2($author$project$Data$World$get, p, world))));
+				}),
+			_Utils_Tuple2(w, _List_Nil),
+			$author$project$Data$Position$neighbors(pos));
+	});
+var $author$project$Data$Minecart$stop = function (wagon) {
+	return _Utils_update(
+		wagon,
+		{movedFrom: $elm$core$Maybe$Nothing});
+};
 var $author$project$Data$Behavior$Minecart$moveOnGround = F3(
 	function (args, _v0, world) {
 		var pos = _v0.a;
-		var wagon = _v0.b;
+		var id = _v0.b;
+		var wagon = _v0.c;
 		var _v1 = A2($author$project$Data$World$get, args.forwardPos, world);
 		if (_v1.$ === 'Just') {
 			if (_v1.a.a.$ === 'FloorBlock') {
 				var _v2 = _v1.a;
-				var maybeItem = _v2.b;
-				if (maybeItem.$ === 'Just') {
-					var item = maybeItem.a;
-					var _v4 = A2($author$project$Data$World$getActorAt, pos, world);
-					if (_v4.$ === 'Just') {
-						var _v5 = _v4.a;
-						var id = _v5.a;
-						return $author$project$Data$Minecart$isFull(wagon) ? _Utils_Tuple3(world, args.forwardPos, _List_Nil) : function (_v6) {
-							var wag = _v6.a;
-							var sound = _v6.b;
-							return function (w) {
-								return _Utils_Tuple3(
-									w,
-									args.forwardPos,
-									_List_fromArray(
-										[
-											$author$project$Data$Effect$PlaySound(sound)
-										]));
-							}(
-								A2(
-									$author$project$Data$World$removeItem,
-									args.forwardPos,
-									A3(
-										$author$project$Data$World$updateActor,
-										id,
-										function (_v7) {
-											return $author$project$Data$Actor$Minecart(wag);
-										},
-										world)));
-						}(
-							A2($author$project$Data$Minecart$insert, item, wagon));
-					} else {
-						return _Utils_Tuple3(world, args.forwardPos, _List_Nil);
-					}
-				} else {
-					return _Utils_Tuple3(world, args.forwardPos, _List_Nil);
-				}
+				return function (_v3) {
+					var w = _v3.a;
+					var l = _v3.b;
+					return _Utils_Tuple3(w, args.forwardPos, l);
+				}(
+					A3($author$project$Data$Behavior$Minecart$pickup, pos, id, world));
 			} else {
-				var _v8 = _v1.a;
-				var entity = _v8.a.a;
+				var _v4 = _v1.a;
+				var entity = _v4.a.a;
 				return _Utils_Tuple3(
 					function () {
 						if (entity.$ === 'Actor') {
@@ -7415,36 +7432,29 @@ var $author$project$Data$Behavior$Minecart$moveOnGround = F3(
 								world,
 								A2(
 									$elm$core$Maybe$map,
-									function (_v10) {
-										var actor = _v10.b;
+									function (_v6) {
+										var actor = _v6.b;
 										if (actor.$ === 'Minecart') {
 											var w0 = actor.a;
-											var _v12 = A2($author$project$Data$World$getActorAt, pos, world);
-											if (_v12.$ === 'Just') {
-												var _v13 = _v12.a;
-												var id = _v13.a;
-												return A3(
+											return A3(
+												$author$project$Data$World$updateActor,
+												id,
+												function (_v9) {
+													return $author$project$Data$Actor$Minecart(
+														$author$project$Data$Minecart$stop(
+															A2($author$project$Data$Minecart$load, w0.items, wagon)));
+												},
+												A3(
 													$author$project$Data$World$updateActor,
-													id,
-													function (_v15) {
+													id0,
+													function (_v8) {
 														return $author$project$Data$Actor$Minecart(
-															$author$project$Data$Minecart$stop(
-																A2($author$project$Data$Minecart$load, w0.items, wagon)));
+															A2(
+																$author$project$Data$Minecart$moveFrom,
+																pos,
+																A2($author$project$Data$Minecart$load, wagon.items, w0)));
 													},
-													A3(
-														$author$project$Data$World$updateActor,
-														id0,
-														function (_v14) {
-															return $author$project$Data$Actor$Minecart(
-																A2(
-																	$author$project$Data$Minecart$moveFrom,
-																	pos,
-																	A2($author$project$Data$Minecart$load, wagon.items, w0)));
-														},
-														world));
-											} else {
-												return world;
-											}
+													world));
 										} else {
 											return world;
 										}
@@ -7455,9 +7465,9 @@ var $author$project$Data$Behavior$Minecart$moveOnGround = F3(
 						}
 					}(),
 					function () {
-						var _v16 = A2($author$project$Data$World$get, args.backPos, world);
-						if ((_v16.$ === 'Just') && (_v16.a.a.$ === 'FloorBlock')) {
-							var _v17 = _v16.a;
+						var _v10 = A2($author$project$Data$World$get, args.backPos, world);
+						if ((_v10.$ === 'Just') && (_v10.a.a.$ === 'FloorBlock')) {
+							var _v11 = _v10.a;
 							return args.backPos;
 						} else {
 							return pos;
@@ -7469,22 +7479,12 @@ var $author$project$Data$Behavior$Minecart$moveOnGround = F3(
 			return _Utils_Tuple3(world, pos, _List_Nil);
 		}
 	});
-var $author$project$Data$Position$neighbors = function (_v0) {
-	var x = _v0.a;
-	var y = _v0.b;
-	return _List_fromArray(
-		[
-			_Utils_Tuple2(x, y + 1),
-			_Utils_Tuple2(x - 1, y),
-			_Utils_Tuple2(x + 1, y),
-			_Utils_Tuple2(x, y - 1)
-		]);
-};
 var $elm$core$Basics$neq = _Utils_notEqual;
 var $author$project$Data$Behavior$Minecart$moveOnTrack = F3(
 	function (args, _v0, world) {
 		var pos = _v0.a;
-		var wagon = _v0.b;
+		var id = _v0.b;
+		var wagon = _v0.c;
 		var _v1 = A2(
 			$elm$core$List$filter,
 			function (p) {
@@ -7507,7 +7507,7 @@ var $author$project$Data$Behavior$Minecart$moveOnTrack = F3(
 			return A3(
 				$author$project$Data$Behavior$Minecart$moveOnGround,
 				args,
-				_Utils_Tuple2(pos, wagon),
+				_Utils_Tuple3(pos, id, wagon),
 				world);
 		}
 	});
@@ -7568,11 +7568,11 @@ var $author$project$Data$Behavior$Minecart$move = F4(
 				$elm$core$Maybe$Just($author$project$Data$Floor$Track)) ? A3(
 				$author$project$Data$Behavior$Minecart$moveOnTrack,
 				positions,
-				_Utils_Tuple2(pos, wagon),
+				_Utils_Tuple3(pos, id, wagon),
 				game.world) : A3(
 				$author$project$Data$Behavior$Minecart$moveOnGround,
 				positions,
-				_Utils_Tuple2(pos, wagon),
+				_Utils_Tuple3(pos, id, wagon),
 				game.world));
 	});
 var $author$project$Data$Player$moveTo = F2(
@@ -7990,6 +7990,26 @@ var $author$project$Data$Behavior$Player$putIntoTrain = function (game) {
 			$author$project$Data$Player$dropItem(game.player)));
 };
 var $author$project$Data$Sound$Error = {$: 'Error'};
+var $author$project$Data$World$getActorAt = F2(
+	function (pos, world) {
+		return A2(
+			$elm$core$Maybe$andThen,
+			function (entity) {
+				if (entity.$ === 'Actor') {
+					var id = entity.a;
+					return A2(
+						$elm$core$Maybe$map,
+						function (_v1) {
+							var actor = _v1.b;
+							return _Utils_Tuple2(id, actor);
+						},
+						A2($elm$core$Dict$get, id, world.actors));
+				} else {
+					return $elm$core$Maybe$Nothing;
+				}
+			},
+			A2($elm$core$Dict$get, pos, world.entities));
+	});
 var $elm$core$List$any = F2(
 	function (isOkay, list) {
 		any:
@@ -8073,12 +8093,7 @@ var $author$project$Data$Behavior$Player$putIntoWagon = function (game) {
 				$elm$core$Basics$append(l),
 				A2($author$project$Data$Behavior$Minecart$unload, id, g));
 		}(
-			$author$project$Data$Minecart$isFull(wagon) ? _Utils_Tuple2(
-				game,
-				_List_fromArray(
-					[
-						$author$project$Data$Effect$PlaySound($author$project$Data$Sound$Error)
-					])) : A2(
+			A2(
 				$elm$core$Maybe$withDefault,
 				_Utils_Tuple2(game, _List_Nil),
 				A2(
@@ -8086,38 +8101,51 @@ var $author$project$Data$Behavior$Player$putIntoWagon = function (game) {
 					function (_v2) {
 						var player = _v2.a;
 						var item = _v2.b;
-						return function (_v4) {
-							var g = _v4.a;
-							var sound = _v4.b;
-							return _Utils_Tuple2(
-								_Utils_update(
-									g,
-									{player: player}),
+						return A2(
+							$elm$core$Maybe$withDefault,
+							_Utils_Tuple2(
+								game,
 								_List_fromArray(
 									[
-										$author$project$Data$Effect$PlaySound($author$project$Data$Sound$Unload),
-										$author$project$Data$Effect$PlaySound(sound)
-									]));
-						}(
+										$author$project$Data$Effect$PlaySound($author$project$Data$Sound$Error)
+									])),
 							A2(
-								$elm$core$Tuple$mapFirst,
-								function (world) {
-									return _Utils_update(
-										game,
-										{world: world});
-								},
-								A2(
-									$elm$core$Tuple$mapFirst,
-									function (w2) {
-										return A3(
-											$author$project$Data$World$updateActor,
-											id,
-											function (_v3) {
-												return $author$project$Data$Actor$Minecart(w2);
+								$elm$core$Maybe$map,
+								function (t) {
+									return function (_v4) {
+										var g = _v4.a;
+										var sound = _v4.b;
+										return _Utils_Tuple2(
+											_Utils_update(
+												g,
+												{player: player}),
+											_List_fromArray(
+												[
+													$author$project$Data$Effect$PlaySound($author$project$Data$Sound$Unload),
+													$author$project$Data$Effect$PlaySound(sound)
+												]));
+									}(
+										A2(
+											$elm$core$Tuple$mapFirst,
+											function (world) {
+												return _Utils_update(
+													game,
+													{world: world});
 											},
-											game.world);
-									},
-									A2($author$project$Data$Minecart$insert, item, wagon))));
+											A2(
+												$elm$core$Tuple$mapFirst,
+												function (w2) {
+													return A3(
+														$author$project$Data$World$updateActor,
+														id,
+														function (_v3) {
+															return $author$project$Data$Actor$Minecart(w2);
+														},
+														game.world);
+												},
+												t)));
+								},
+								A2($author$project$Data$Minecart$insert, item, wagon)));
 					},
 					$author$project$Data$Player$dropItem(game.player))));
 	} else {
@@ -9051,6 +9079,27 @@ var $author$project$Data$World$Generation$mineGenerator = F2(
 				A2($author$project$Data$World$removeEntity, pos, world));
 		}
 	});
+var $author$project$Data$Behavior$Excavator$mine = F2(
+	function (pos, world) {
+		return A3(
+			$elm$core$List$foldl,
+			function (p) {
+				var _v0 = A2($author$project$Data$World$getBlock, p, world);
+				if ((_v0.$ === 'Just') && (_v0.a.$ === 'EntityBlock')) {
+					var entity = _v0.a.a;
+					if (entity.$ === 'Vein') {
+						return $elm$random$Random$andThen(
+							$author$project$Data$World$Generation$mine(p));
+					} else {
+						return $elm$core$Basics$identity;
+					}
+				} else {
+					return $elm$core$Basics$identity;
+				}
+			},
+			$elm$random$Random$constant(world),
+			$author$project$Data$Position$neighbors(pos));
+	});
 var $elm$core$Basics$not = _Basics_not;
 var $author$project$Data$Excavator$reverse = function (excavator) {
 	return A2(
@@ -9100,21 +9149,27 @@ var $author$project$Data$Behavior$Excavator$move = F3(
 									A2(
 										$elm$random$Random$map,
 										A2($author$project$Data$World$moveActorTo, newPos, id),
-										A2($author$project$Data$World$Generation$mine, newPos, world)));
+										A2($author$project$Data$Behavior$Excavator$mine, pos, world)));
 							} else {
-								return $author$project$Data$Effect$withNone(
-									A3(
-										$author$project$Data$World$updateActor,
-										id,
-										function (_v3) {
-											return $author$project$Data$Actor$Excavator(
-												$author$project$Data$Excavator$reverse(excavator));
-										},
-										world));
+								return $author$project$Data$Effect$genWithNone(
+									A2(
+										$author$project$Data$Behavior$Excavator$mine,
+										pos,
+										A3(
+											$author$project$Data$World$updateActor,
+											id,
+											function (_v3) {
+												return $author$project$Data$Actor$Excavator(
+													$author$project$Data$Excavator$reverse(excavator));
+											},
+											world)));
 							}
 						} else {
-							return $author$project$Data$Effect$withNone(
-								A3($author$project$Data$World$moveActorTo, newPos, id, world));
+							return $author$project$Data$Effect$genWithNone(
+								A2(
+									$elm$random$Random$map,
+									A2($author$project$Data$World$moveActorTo, newPos, id),
+									A2($author$project$Data$Behavior$Excavator$mine, pos, world)));
 						}
 					} else {
 						return $author$project$Data$Effect$withNone(world);
@@ -9187,7 +9242,6 @@ var $author$project$Data$Behavior$actorsAct = F2(
 				var excavator = actor.a;
 				var _v3 = excavator.momentum;
 				if (_v3.$ === 'Just') {
-					var momentum = _v3.a;
 					return A2(
 						$elm$random$Random$map,
 						$elm$core$Tuple$mapFirst(

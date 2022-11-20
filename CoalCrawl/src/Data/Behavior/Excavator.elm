@@ -30,7 +30,7 @@ move ( pos, excavator ) id world =
                         case entity of
                             Data.Entity.Vein _ ->
                                 world
-                                    |> Data.World.Generation.mine newPos
+                                    |> mine pos
                                     |> Random.map (Data.World.moveActorTo newPos id)
                                     |> Random.map (\w -> ( w, [ Data.Effect.PlaySound Data.Sound.Mine ] ))
 
@@ -42,14 +42,37 @@ move ( pos, excavator ) id world =
                                                 |> Data.Excavator.reverse
                                                 |> Data.Actor.Excavator
                                         )
-                                    |> Data.Effect.withNone
+                                    |> mine pos
+                                    |> Data.Effect.genWithNone
 
                     Just (Data.Block.FloorBlock _) ->
                         world
-                            |> Data.World.moveActorTo newPos id
-                            |> Data.Effect.withNone
+                            |> mine pos
+                            |> Random.map (Data.World.moveActorTo newPos id)
+                            |> Data.Effect.genWithNone
 
                     Nothing ->
                         world |> Data.Effect.withNone
             )
         |> Maybe.withDefault (Data.Effect.withNone world)
+
+
+mine : ( Int, Int ) -> World -> Generator World
+mine pos world =
+    pos
+        |> Data.Position.neighbors
+        |> List.foldl
+            (\p ->
+                case world |> Data.World.getBlock p of
+                    Just (Data.Block.EntityBlock entity) ->
+                        case entity of
+                            Data.Entity.Vein _ ->
+                                Random.andThen (Data.World.Generation.mine p)
+
+                            _ ->
+                                identity
+
+                    _ ->
+                        identity
+            )
+            (Random.constant world)

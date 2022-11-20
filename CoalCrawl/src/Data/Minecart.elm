@@ -28,11 +28,16 @@ fullWagon item =
             )
 
 
-insert : Item -> Minecart -> ( Minecart, Sound )
+insert : Item -> Minecart -> Maybe ( Minecart, Sound )
 insert item wagon =
-    ( { wagon | items = AnyBag.insert 1 item wagon.items }
-    , Data.Sound.PickUp
-    )
+    if isFull wagon then
+        Nothing
+
+    else
+        ( { wagon | items = AnyBag.insert 1 item wagon.items }
+        , Data.Sound.PickUp
+        )
+            |> Just
 
 
 moveFrom : ( Int, Int ) -> Minecart -> Minecart

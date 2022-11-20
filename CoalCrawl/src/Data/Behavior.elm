@@ -50,7 +50,7 @@ actorsAct ( id, ( pos, actor ) ) game =
 
         Data.Actor.Excavator excavator ->
             case excavator.momentum of
-                Just momentum ->
+                Just _ ->
                     game.world
                         |> Data.Behavior.Excavator.move
                             ( pos, excavator )
