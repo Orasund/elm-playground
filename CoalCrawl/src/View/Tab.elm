@@ -9,7 +9,7 @@ import Data.Floor
 import Data.Game exposing (Game)
 import Data.Info
 import Data.Item exposing (Item)
-import Data.Wagon
+import Data.Minecart
 import Data.World
 import Html exposing (Html)
 import Html.Attributes as Attr
@@ -157,7 +157,7 @@ sidebar args game =
                                         :: (case block of
                                                 Data.Block.EntityBlock (Data.Entity.Actor id) ->
                                                     case game.world |> Data.World.getActor id of
-                                                        Just ( _, Data.Actor.Wagon wagon ) ->
+                                                        Just ( _, Data.Actor.Minecart wagon ) ->
                                                             if AnyBag.isEmpty wagon.items then
                                                                 "Destroy"
                                                                     |> View.Button.toHtml (Just args.destroyBlock)
@@ -183,33 +183,28 @@ sidebar args game =
                                 (Html.text "Nothing selected")
 
                     BuildTab ->
-                        case selected of
-                            Just ( Data.Block.FloorBlock floor, _ ) ->
-                                (([ { actor = Data.Actor.Wagon Data.Wagon.emptyWagon
-                                    , cost = ( Data.Item.Iron, Config.wagonCost )
-                                    }
-                                        |> buildActorButton args.buildActor
-                                  , { actor = Data.Actor.bomb
-                                    , cost = ( Data.Item.Gold, Config.bombCost )
-                                    }
-                                        |> buildActorButton args.buildActor
-                                  ]
+                        (([ { actor = Data.Actor.Minecart Data.Minecart.emptyWagon
+                            , cost = ( Data.Item.Iron, Config.wagonCost )
+                            }
+                                |> buildActorButton args.buildActor
+                          , { actor = Data.Actor.bomb
+                            , cost = ( Data.Item.Gold, Config.bombCost )
+                            }
+                                |> buildActorButton args.buildActor
+                          ]
+                            |> List.map (buildButton game)
+                         )
+                            ++ ([ { block = Data.Floor.Track |> Data.Block.FloorBlock
+                                  , cost = ( Data.Item.Iron, Config.trackCost )
+                                  }
+                                    |> buildBlockButton args.buildBlock game
+                                ]
                                     |> List.map (buildButton game)
-                                 )
-                                    ++ ([ { block = Data.Floor.Track |> Data.Block.FloorBlock
-                                                  , cost = ( Data.Item.Iron, Config.trackCost )
-                                                  }
-                                                    |> buildBlockButton args.buildBlock game
-                                                ]
-                                                    |> List.map (buildButton game)
-                                       )
-                                )
-                                    |> Layout.column
-                                        [ Layout.spacing 8
-                                        ]
-
-                            _ ->
-                                "You can only build on empty floor tiles" |> Html.text
+                               )
+                        )
+                            |> Layout.column
+                                [ Layout.spacing 8
+                                ]
                 ]
                     |> Layout.column
                         [ Layout.spacing 8

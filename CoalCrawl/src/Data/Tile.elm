@@ -62,7 +62,6 @@ wall =
     { color = View.Color.black, content = ' ' } |> new
 
 
-
 fromPlayer : Player -> Tile
 fromPlayer player =
     { color = View.Color.green
@@ -103,6 +102,9 @@ fromEntity game entity =
         Data.Entity.Water ->
             { color = View.Color.blue, content = '~' } |> new
 
+        Data.Entity.Lava ->
+            { color = View.Color.red, content = '~' } |> new
+
         Data.Entity.Train ->
             { color = View.Color.black, content = 'T' }
                 |> new
@@ -124,14 +126,14 @@ fromEntity game entity =
 fromActor : Actor -> Tile
 fromActor actor =
     case actor of
-        Data.Actor.Wagon wagon ->
+        Data.Actor.Minecart wagon ->
             { color =
                 if AnyBag.size wagon.items == Config.wagonMaxItems then
                     View.Color.black
 
                 else
                     View.Color.gray
-            , content = 'W'
+            , content = 'M'
             }
                 |> new
                 |> (\it ->
@@ -155,8 +157,8 @@ fromActor actor =
                 |> new
                 |> withBold
 
-        Data.Actor.FallingCoal ->
-            { color = View.Color.red, content = 'C' }
+        Data.Actor.Falling _ ->
+            { color = View.Color.red, content = '%' }
                 |> new
                 |> withBold
 
@@ -182,18 +184,18 @@ fromBlock : Game -> ( Block, Maybe Item ) -> Tile
 fromBlock game ( block, items ) =
     case block of
         Data.Block.FloorBlock floor ->
-            (case items of
+            case items of
                 Just item ->
-                    item|> Data.Item.toChar 
-                    |> emoji
-                    |> withSmall
+                    item
+                        |> Data.Item.toChar
+                        |> emoji
+                        |> withSmall
 
                 Nothing ->
                     { color = View.Color.gray
-                        , content = fromFloor floor}
-                    |> new
-            )
-                
+                    , content = fromFloor floor
+                    }
+                        |> new
 
         Data.Block.EntityBlock entity ->
             fromEntity game entity

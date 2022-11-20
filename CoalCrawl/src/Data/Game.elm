@@ -56,16 +56,20 @@ buildBlock pos ( item, cost ) block game =
 
 buildActor : ( Int, Int ) -> ( Item, Int ) -> Actor -> Game -> Game
 buildActor pos ( item, cost ) actor game =
-    game.train
-        |> Data.Train.removeItem cost item
-        |> Maybe.map
-            (\train ->
-                { game
-                    | world = game.world |> Data.World.insertActorAt pos actor
-                    , train = train
-                }
-            )
-        |> Maybe.withDefault game
+    if Data.World.isFloor pos game.world then
+        game.train
+            |> Data.Train.removeItem cost item
+            |> Maybe.map
+                (\train ->
+                    { game
+                        | world = game.world |> Data.World.insertActorAt pos actor
+                        , train = train
+                    }
+                )
+            |> Maybe.withDefault game
+
+    else
+        game
 
 
 destroyBlock : Game -> Game
@@ -75,7 +79,7 @@ destroyBlock game =
             case entity of
                 Data.Entity.Actor id ->
                     case game.world |> Data.World.getActor id of
-                        Just ( _, Data.Actor.Wagon _ ) ->
+                        Just ( _, Data.Actor.Minecart _ ) ->
                             { game
                                 | train =
                                     game.train

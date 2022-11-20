@@ -7,5 +7,6 @@ type Entity
     = Vein Item
     | Wall
     | Water
+    | Lava
     | Train
     | Actor Int

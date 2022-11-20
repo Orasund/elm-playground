@@ -117,7 +117,7 @@ collideWith ( newPos, entity ) game =
                 |> Maybe.andThen
                     (\( _, actor ) ->
                         case actor of
-                            Data.Actor.Wagon wagon ->
+                            Data.Actor.Minecart wagon ->
                                 { game
                                     | train =
                                         game.train
@@ -137,7 +137,7 @@ collideWith ( newPos, entity ) game =
                             Data.Actor.Mine ->
                                 Nothing
 
-                            Data.Actor.FallingCoal ->
+                            Data.Actor.Falling _ ->
                                 Nothing
 
                             Data.Actor.Path ->

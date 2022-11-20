@@ -4,9 +4,10 @@
 
 ## Roadmap
 
-* [ ] Lava
-  * [ ] Path Generator
-  * [ ] Lakes
+* [x] Lava
+  * [x] Path Generator
+  * [x] Lakes
+  * [ ] Engine - moves likes a player in a straight line 
 * [ ] Skills
     * [x] Wagons pick up items
       * [x] Uniform pickup sound

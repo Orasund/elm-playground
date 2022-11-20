@@ -1,22 +1,23 @@
 module Data.Actor exposing (..)
 
 import Config
-import Data.Wagon exposing (Wagon)
+import Data.Item exposing (Item)
+import Data.Minecart exposing (Minecart)
 
 
 type CaveType
     = WaterCave
     | CoalCave
     | IronCave
-    | GoldCave
+    | LavaCave
 
 
 type Actor
-    = Wagon Wagon
+    = Minecart Minecart
     | Cave CaveType
     | Mine
     | Bomb { explodesIn : Int }
-    | FallingCoal
+    | Falling Item
     | Path
 
 

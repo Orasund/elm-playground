@@ -7,11 +7,11 @@ import Data.Block exposing (Block(..))
 import Data.Effect exposing (Effect)
 import Data.Entity
 import Data.Game exposing (Game)
+import Data.Minecart
 import Data.Player
 import Data.Position
 import Data.Sound
 import Data.Train
-import Data.Wagon
 import Data.World
 import Data.World.Generation
 import Dict
@@ -63,7 +63,7 @@ interactWith pos game =
                                     |> Maybe.map
                                         (\( _, actor ) ->
                                             case actor of
-                                                Data.Actor.Wagon _ ->
+                                                Data.Actor.Minecart _ ->
                                                     game |> putIntoWagon |> Random.constant
 
                                                 _ ->
@@ -79,6 +79,9 @@ interactWith pos game =
                                     |> Data.Effect.andThen (moveTowards game.selected)
 
                             Data.Entity.Water ->
+                                Random.constant ( game, [] )
+
+                            Data.Entity.Lava ->
                                 Random.constant ( game, [] )
             )
         |> Maybe.withDefault (Random.constant ( game, [] ))
@@ -133,7 +136,7 @@ canMoveTo game p =
 
         Just ( Data.Block.EntityBlock (Data.Entity.Actor id), _ ) ->
             case game.world |> Data.World.getActor id of
-                Just ( _, Data.Actor.Wagon _ ) ->
+                Just ( _, Data.Actor.Minecart _ ) ->
                     True
 
                 Just ( _, Data.Actor.Cave _ ) ->
@@ -148,7 +151,7 @@ canMoveTo game p =
                 Just ( _, Data.Actor.Bomb _ ) ->
                     False
 
-                Just ( _, Data.Actor.FallingCoal ) ->
+                Just ( _, Data.Actor.Falling _ ) ->
                     False
 
                 Nothing ->
@@ -181,7 +184,7 @@ moveTowards targetPos game =
             case Data.World.get pos game.world of
                 Just ( Data.Block.EntityBlock (Data.Entity.Actor id), _ ) ->
                     case game.world.actors |> Dict.get id |> Maybe.map Tuple.second of
-                        Just (Data.Actor.Wagon wagon) ->
+                        Just (Data.Actor.Minecart wagon) ->
                             game
                                 |> Data.Behavior.Wagon.move { backPos = game.player.pos }
                                     id
@@ -250,8 +253,8 @@ pickUp pos game =
 putIntoWagon : Game -> ( Game, List Effect )
 putIntoWagon game =
     case Data.World.getActorAt game.selected game.world of
-        Just ( id, Data.Actor.Wagon wagon ) ->
-            (if Data.Wagon.isFull wagon then
+        Just ( id, Data.Actor.Minecart wagon ) ->
+            (if Data.Minecart.isFull wagon then
                 ( game, [ Data.Effect.PlaySound Data.Sound.Error ] )
 
              else
@@ -260,8 +263,8 @@ putIntoWagon game =
                     |> Maybe.map
                         (\( player, item ) ->
                             wagon
-                                |> Data.Wagon.insert item
-                                |> Tuple.mapFirst (\w2 -> game.world |> Data.World.updateActor id (\_ -> Data.Actor.Wagon w2))
+                                |> Data.Minecart.insert item
+                                |> Tuple.mapFirst (\w2 -> game.world |> Data.World.updateActor id (\_ -> Data.Actor.Minecart w2))
                                 |> Tuple.mapFirst (\world -> { game | world = world })
                                 |> (\( g, sound ) ->
                                         ( { g | player = player }

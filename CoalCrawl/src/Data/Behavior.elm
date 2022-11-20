@@ -35,7 +35,7 @@ passTime game =
 actorsAct : ( Int, ( ( Int, Int ), Actor ) ) -> Game -> Generator ( Game, List Effect )
 actorsAct ( id, ( pos, actor ) ) game =
     case actor of
-        Data.Actor.Wagon wagon ->
+        Data.Actor.Minecart wagon ->
             wagon.movedFrom
                 |> Maybe.map
                     (\movedFrom ->
@@ -61,9 +61,9 @@ actorsAct ( id, ( pos, actor ) ) game =
                 |> Random.map (\world -> { game | world = world })
                 |> Data.Effect.genWithNone
 
-        Data.Actor.FallingCoal ->
+        Data.Actor.Falling item ->
             game.world
-                |> Data.Behavior.FallingCoal.act pos
+                |> Data.Behavior.FallingCoal.act item pos
                 |> Random.map (\world -> { game | world = world })
                 |> Data.Effect.genWithNone
 

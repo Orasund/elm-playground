@@ -5430,57 +5430,23 @@ var $elm$random$Random$independentSeed = $elm$random$Random$Generator(
 			seed0);
 	});
 var $author$project$View$Tab$DetailTab = {$: 'DetailTab'};
+var $author$project$Data$Modal$fromAnimation = function (animation) {
+	return {animation: animation, animationFrame: 0};
+};
 var $author$project$Data$Item$Coal = {$: 'Coal'};
-var $author$project$Data$Entity$Train = {$: 'Train'};
-var $author$project$Data$Actor$Wagon = function (a) {
-	return {$: 'Wagon', a: a};
-};
-var $JohnBugner$elm_bag$Bag$Bag = function (a) {
-	return {$: 'Bag', a: a};
-};
-var $elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
-var $elm$core$Dict$empty = $elm$core$Dict$RBEmpty_elm_builtin;
-var $JohnBugner$elm_bag$Bag$empty = $JohnBugner$elm_bag$Bag$Bag($elm$core$Dict$empty);
-var $author$project$AnyBag$empty = function (encode) {
-	return {content: $JohnBugner$elm_bag$Bag$empty, encode: encode};
-};
-var $elm$core$String$cons = _String_cons;
-var $elm$core$String$fromChar = function (_char) {
-	return A2($elm$core$String$cons, _char, '');
-};
-var $author$project$Data$Item$toChar = function (item) {
-	switch (item.$) {
-		case 'Coal':
-			return _Utils_chr('⚫');
-		case 'Iron':
-			return _Utils_chr('🔘');
-		default:
-			return _Utils_chr('🟡');
-	}
-};
-var $author$project$Data$Item$toString = function (item) {
-	return _Utils_ap(
-		$elm$core$String$fromChar(
-			$author$project$Data$Item$toChar(item)),
-		function () {
-			switch (item.$) {
-				case 'Coal':
-					return 'Coal';
-				case 'Iron':
-					return 'Iron';
-				default:
-					return 'Gold';
-			}
-		}());
-};
-var $author$project$Data$Wagon$emptyWagon = {
-	items: $author$project$AnyBag$empty($author$project$Data$Item$toString),
-	movedFrom: $elm$core$Maybe$Nothing
+var $author$project$Data$Block$EntityBlock = function (a) {
+	return {$: 'EntityBlock', a: a};
 };
 var $author$project$Data$Block$FloorBlock = function (a) {
 	return {$: 'FloorBlock', a: a};
 };
 var $author$project$Data$Floor$Ground = {$: 'Ground'};
+var $author$project$Data$Floor$RailwayTrack = {$: 'RailwayTrack'};
+var $author$project$Data$Entity$Train = {$: 'Train'};
+var $author$project$Data$Entity$Vein = function (a) {
+	return {$: 'Vein', a: a};
+};
+var $author$project$Data$Entity$Wall = {$: 'Wall'};
 var $elm$core$List$append = F2(
 	function (xs, ys) {
 		if (!ys.b) {
@@ -5497,6 +5463,8 @@ var $elm$core$List$concatMap = F2(
 		return $elm$core$List$concat(
 			A2($elm$core$List$map, f, list));
 	});
+var $elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
+var $elm$core$Dict$empty = $elm$core$Dict$RBEmpty_elm_builtin;
 var $author$project$Data$World$empty = {actors: $elm$core$Dict$empty, entities: $elm$core$Dict$empty, floor: $elm$core$Dict$empty, items: $elm$core$Dict$empty, nextId: 0};
 var $elm$core$Dict$Black = {$: 'Black'};
 var $elm$core$Dict$RBNode_elm_builtin = F5(
@@ -6082,6 +6050,118 @@ var $author$project$Data$World$fromList = A2(
 		return A2($author$project$Data$World$insert, p, b);
 	},
 	$author$project$Data$World$empty);
+var $author$project$Data$Player$fromPos = function (pos) {
+	return {item: $elm$core$Maybe$Nothing, pos: pos, riding: $elm$core$Maybe$Nothing, targetPos: $elm$core$Maybe$Nothing};
+};
+var $JohnBugner$elm_bag$Bag$Bag = function (a) {
+	return {$: 'Bag', a: a};
+};
+var $JohnBugner$elm_bag$Bag$empty = $JohnBugner$elm_bag$Bag$Bag($elm$core$Dict$empty);
+var $author$project$AnyBag$empty = function (encode) {
+	return {content: $JohnBugner$elm_bag$Bag$empty, encode: encode};
+};
+var $elm$core$String$cons = _String_cons;
+var $elm$core$String$fromChar = function (_char) {
+	return A2($elm$core$String$cons, _char, '');
+};
+var $author$project$Data$Item$toChar = function (item) {
+	switch (item.$) {
+		case 'Coal':
+			return _Utils_chr('⚫');
+		case 'Iron':
+			return _Utils_chr('🔘');
+		default:
+			return _Utils_chr('🟡');
+	}
+};
+var $author$project$Data$Item$toString = function (item) {
+	return _Utils_ap(
+		$elm$core$String$fromChar(
+			$author$project$Data$Item$toChar(item)),
+		function () {
+			switch (item.$) {
+				case 'Coal':
+					return 'Coal';
+				case 'Iron':
+					return 'Iron';
+				default:
+					return 'Gold';
+			}
+		}());
+};
+var $author$project$Data$Train$fromPos = function (pos) {
+	return {
+		dir: _Utils_Tuple2(0, -1),
+		items: $author$project$AnyBag$empty($author$project$Data$Item$toString),
+		moving: false,
+		pos: pos,
+		tracks: 0
+	};
+};
+var $author$project$Data$Game$new = function () {
+	var walls = A2(
+		$elm$core$List$concatMap,
+		function (y) {
+			return A2(
+				$elm$core$List$map,
+				function (x) {
+					return _Utils_Tuple2(
+						_Utils_Tuple2(x, y),
+						$author$project$Data$Block$EntityBlock($author$project$Data$Entity$Wall));
+				},
+				_List_fromArray(
+					[-1, 1]));
+		},
+		A2($elm$core$List$range, 0, 1));
+	var train = _Utils_Tuple2(0, 2);
+	var tracks = A2(
+		$elm$core$List$map,
+		function (i) {
+			return _Utils_Tuple2(
+				_Utils_Tuple2(0, i),
+				$author$project$Data$Block$FloorBlock($author$project$Data$Floor$RailwayTrack));
+		},
+		A2($elm$core$List$range, 0, 1));
+	var player = _Utils_Tuple2(0, 3);
+	var coals = _List_fromArray(
+		[
+			_Utils_Tuple2(0, 4),
+			_Utils_Tuple2(0 - 1, 3),
+			_Utils_Tuple2(0 + 1, 3)
+		]);
+	return {
+		player: $author$project$Data$Player$fromPos(player),
+		selected: player,
+		train: $author$project$Data$Train$fromPos(train),
+		world: $author$project$Data$World$fromList(
+			_Utils_ap(
+				_List_fromArray(
+					[
+						_Utils_Tuple2(
+						train,
+						$author$project$Data$Block$EntityBlock($author$project$Data$Entity$Train)),
+						_Utils_Tuple2(
+						train,
+						$author$project$Data$Block$FloorBlock($author$project$Data$Floor$RailwayTrack)),
+						_Utils_Tuple2(
+						player,
+						$author$project$Data$Block$FloorBlock($author$project$Data$Floor$Ground))
+					]),
+				_Utils_ap(
+					tracks,
+					_Utils_ap(
+						walls,
+						A2(
+							$elm$core$List$map,
+							function (pos) {
+								return _Utils_Tuple2(
+									pos,
+									$author$project$Data$Block$EntityBlock(
+										$author$project$Data$Entity$Vein($author$project$Data$Item$Coal)));
+							},
+							coals)))))
+	};
+}();
 var $author$project$Data$Animation$emptyWorld = function (args) {
 	return $author$project$Data$World$fromList(
 		A2(
@@ -6145,46 +6225,6 @@ var $elm$core$Dict$fromList = function (assocs) {
 		$elm$core$Dict$empty,
 		assocs);
 };
-var $author$project$Data$Player$fromPos = function (pos) {
-	return {item: $elm$core$Maybe$Nothing, pos: pos, riding: $elm$core$Maybe$Nothing, targetPos: $elm$core$Maybe$Nothing};
-};
-var $author$project$Data$Train$fromPos = function (pos) {
-	return {
-		dir: _Utils_Tuple2(0, -1),
-		items: $author$project$AnyBag$empty($author$project$Data$Item$toString),
-		moving: false,
-		pos: pos,
-		tracks: 0
-	};
-};
-var $author$project$Data$Entity$Actor = function (a) {
-	return {$: 'Actor', a: a};
-};
-var $author$project$Data$World$insertActorAt = F3(
-	function (pos, actor, world) {
-		return function (w) {
-			return _Utils_update(
-				w,
-				{
-					actors: A3(
-						$elm$core$Dict$insert,
-						world.nextId,
-						_Utils_Tuple2(pos, actor),
-						world.actors),
-					entities: A3(
-						$elm$core$Dict$insert,
-						pos,
-						$author$project$Data$Entity$Actor(world.nextId),
-						world.entities),
-					nextId: world.nextId + 1
-				});
-		}(
-			A2($author$project$Data$World$removeEntity, pos, world));
-	});
-var $author$project$Data$World$insertActor = F2(
-	function (actor, pos) {
-		return A2($author$project$Data$World$insertActorAt, pos, actor);
-	});
 var $author$project$Data$World$insertEntity = F2(
 	function (entity, pos) {
 		return A2($author$project$Data$World$insertEntityAt, pos, entity);
@@ -6280,9 +6320,6 @@ var $author$project$Data$Effect$andThen = function (fun) {
 				fun(a));
 		});
 };
-var $author$project$Data$Block$EntityBlock = function (a) {
-	return {$: 'EntityBlock', a: a};
-};
 var $author$project$Data$World$getFloor = F2(
 	function (pos, world) {
 		return A2($elm$core$Dict$get, pos, world.floor);
@@ -6301,7 +6338,6 @@ var $author$project$Data$World$getBlock = F2(
 				A2($author$project$Data$World$getFloor, pos, world));
 		}
 	});
-var $author$project$Data$Entity$Wall = {$: 'Wall'};
 var $elm$core$Basics$abs = function (n) {
 	return (n < 0) ? (-n) : n;
 };
@@ -6410,14 +6446,38 @@ var $author$project$Data$Actor$Cave = function (a) {
 	return {$: 'Cave', a: a};
 };
 var $author$project$Data$Actor$CoalCave = {$: 'CoalCave'};
-var $author$project$Data$Actor$GoldCave = {$: 'GoldCave'};
 var $author$project$Data$Item$Iron = {$: 'Iron'};
 var $author$project$Data$Actor$IronCave = {$: 'IronCave'};
-var $author$project$Data$Actor$Path = {$: 'Path'};
-var $author$project$Data$Entity$Vein = function (a) {
-	return {$: 'Vein', a: a};
-};
+var $author$project$Data$Actor$LavaCave = {$: 'LavaCave'};
 var $author$project$Data$Actor$WaterCave = {$: 'WaterCave'};
+var $author$project$Data$Entity$Actor = function (a) {
+	return {$: 'Actor', a: a};
+};
+var $author$project$Data$World$insertActorAt = F3(
+	function (pos, actor, world) {
+		return function (w) {
+			return _Utils_update(
+				w,
+				{
+					actors: A3(
+						$elm$core$Dict$insert,
+						world.nextId,
+						_Utils_Tuple2(pos, actor),
+						world.actors),
+					entities: A3(
+						$elm$core$Dict$insert,
+						pos,
+						$author$project$Data$Entity$Actor(world.nextId),
+						world.entities),
+					nextId: world.nextId + 1
+				});
+		}(
+			A2($author$project$Data$World$removeEntity, pos, world));
+	});
+var $author$project$Data$World$insertActor = F2(
+	function (actor, pos) {
+		return A2($author$project$Data$World$insertActorAt, pos, actor);
+	});
 var $elm$core$Basics$pow = _Basics_pow;
 var $elm$core$List$takeReverse = F3(
 	function (n, list, kept) {
@@ -6607,11 +6667,12 @@ var $author$project$Data$World$Generation$wallGenerator = function (_v0) {
 						$author$project$Data$Actor$Cave($author$project$Data$Actor$IronCave)),
 						$author$project$Data$World$insertEntity(
 						$author$project$Data$Entity$Vein($author$project$Data$Item$Iron)),
-						$author$project$Data$World$insertActor($author$project$Data$Actor$Path),
 						$author$project$Data$World$insertActor(
 						$author$project$Data$Actor$Cave($author$project$Data$Actor$WaterCave)),
+						$author$project$Data$World$insertEntity(
+						$author$project$Data$Entity$Vein($author$project$Data$Item$Coal)),
 						$author$project$Data$World$insertActor(
-						$author$project$Data$Actor$Cave($author$project$Data$Actor$GoldCave))
+						$author$project$Data$Actor$Cave($author$project$Data$Actor$LavaCave))
 					])));
 	};
 	return function (list) {
@@ -6711,7 +6772,7 @@ var $author$project$Data$World$Generation$mine = F2(
 									$elm$core$Maybe$map,
 									$elm$core$Tuple$second,
 									A2($author$project$Data$World$getActor, id, world));
-								if ((_v4.$ === 'Just') && (_v4.a.$ === 'Wagon')) {
+								if ((_v4.$ === 'Just') && (_v4.a.$ === 'Minecart')) {
 									return $elm$core$Maybe$Nothing;
 								} else {
 									return $elm$core$Maybe$Nothing;
@@ -6741,7 +6802,7 @@ var $author$project$Data$Behavior$Player$canMoveTo = F2(
 							var _v3 = A2($author$project$Data$World$getActor, id, game.world);
 							if (_v3.$ === 'Just') {
 								switch (_v3.a.b.$) {
-									case 'Wagon':
+									case 'Minecart':
 										var _v4 = _v3.a;
 										return true;
 									case 'Cave':
@@ -6760,18 +6821,17 @@ var $author$project$Data$Behavior$Player$canMoveTo = F2(
 										return false;
 									default:
 										var _v11 = _v3.a;
-										var _v12 = _v11.b;
 										return false;
 								}
 							} else {
 								return false;
 							}
 						case 'Water':
-							var _v13 = _v0.a;
-							var _v14 = _v13.a.a;
+							var _v12 = _v0.a;
+							var _v13 = _v12.a.a;
 							return true;
 						case 'Vein':
-							var _v15 = _v0.a;
+							var _v14 = _v0.a;
 							return true;
 						default:
 							break _v0$4;
@@ -7116,6 +7176,9 @@ var $krisajenkins$elm_astar$AStar$findPath = $krisajenkins$elm_astar$AStar$Gener
 var $elm$core$Set$fromList = function (list) {
 	return A3($elm$core$List$foldl, $elm$core$Set$insert, $elm$core$Set$empty, list);
 };
+var $author$project$Data$Actor$Minecart = function (a) {
+	return {$: 'Minecart', a: a};
+};
 var $author$project$Data$Floor$Track = {$: 'Track'};
 var $author$project$Data$World$moveActorTo = F3(
 	function (pos, id, world) {
@@ -7147,7 +7210,7 @@ var $author$project$Data$World$moveActorTo = F3(
 				},
 				A2($elm$core$Dict$get, id, world.actors)));
 	});
-var $author$project$Data$Wagon$moveFrom = F2(
+var $author$project$Data$Minecart$moveFrom = F2(
 	function (movedFrom, wagon) {
 		return _Utils_update(
 			wagon,
@@ -7205,7 +7268,7 @@ var $author$project$AnyBag$insert = F3(
 					bag.content)
 			});
 	});
-var $author$project$Data$Wagon$insert = F2(
+var $author$project$Data$Minecart$insert = F2(
 	function (item, wagon) {
 		return _Utils_Tuple2(
 			_Utils_update(
@@ -7235,12 +7298,12 @@ var $author$project$AnyBag$size = function (bag) {
 	return $JohnBugner$elm_bag$Bag$size(bag.content);
 };
 var $author$project$Config$wagonMaxItems = 10;
-var $author$project$Data$Wagon$isFull = function (wagon) {
+var $author$project$Data$Minecart$isFull = function (wagon) {
 	return _Utils_cmp(
 		$author$project$AnyBag$size(wagon.items),
 		$author$project$Config$wagonMaxItems) > -1;
 };
-var $author$project$Data$Wagon$load = F2(
+var $author$project$Data$Minecart$load = F2(
 	function (items, wagon) {
 		return _Utils_update(
 			wagon,
@@ -7270,7 +7333,7 @@ var $author$project$Data$World$removeItem = F2(
 					world.items)
 			});
 	});
-var $author$project$Data$Wagon$stop = function (wagon) {
+var $author$project$Data$Minecart$stop = function (wagon) {
 	return _Utils_update(
 		wagon,
 		{movedFrom: $elm$core$Maybe$Nothing});
@@ -7304,7 +7367,7 @@ var $author$project$Data$Behavior$Wagon$moveOnGround = F3(
 					if (_v4.$ === 'Just') {
 						var _v5 = _v4.a;
 						var id = _v5.a;
-						return $author$project$Data$Wagon$isFull(wagon) ? _Utils_Tuple3(world, args.forwardPos, _List_Nil) : function (_v6) {
+						return $author$project$Data$Minecart$isFull(wagon) ? _Utils_Tuple3(world, args.forwardPos, _List_Nil) : function (_v6) {
 							var wag = _v6.a;
 							var sound = _v6.b;
 							return function (w) {
@@ -7323,11 +7386,11 @@ var $author$project$Data$Behavior$Wagon$moveOnGround = F3(
 										$author$project$Data$World$updateActor,
 										id,
 										function (_v7) {
-											return $author$project$Data$Actor$Wagon(wag);
+											return $author$project$Data$Actor$Minecart(wag);
 										},
 										world)));
 						}(
-							A2($author$project$Data$Wagon$insert, item, wagon));
+							A2($author$project$Data$Minecart$insert, item, wagon));
 					} else {
 						return _Utils_Tuple3(world, args.forwardPos, _List_Nil);
 					}
@@ -7348,7 +7411,7 @@ var $author$project$Data$Behavior$Wagon$moveOnGround = F3(
 									$elm$core$Maybe$map,
 									function (_v10) {
 										var actor = _v10.b;
-										if (actor.$ === 'Wagon') {
+										if (actor.$ === 'Minecart') {
 											var w0 = actor.a;
 											var _v12 = A2($author$project$Data$World$getActorAt, pos, world);
 											if (_v12.$ === 'Just') {
@@ -7358,19 +7421,19 @@ var $author$project$Data$Behavior$Wagon$moveOnGround = F3(
 													$author$project$Data$World$updateActor,
 													id,
 													function (_v15) {
-														return $author$project$Data$Actor$Wagon(
-															$author$project$Data$Wagon$stop(
-																A2($author$project$Data$Wagon$load, w0.items, wagon)));
+														return $author$project$Data$Actor$Minecart(
+															$author$project$Data$Minecart$stop(
+																A2($author$project$Data$Minecart$load, w0.items, wagon)));
 													},
 													A3(
 														$author$project$Data$World$updateActor,
 														id0,
 														function (_v14) {
-															return $author$project$Data$Actor$Wagon(
+															return $author$project$Data$Actor$Minecart(
 																A2(
-																	$author$project$Data$Wagon$moveFrom,
+																	$author$project$Data$Minecart$moveFrom,
 																	pos,
-																	A2($author$project$Data$Wagon$load, wagon.items, w0)));
+																	A2($author$project$Data$Minecart$load, wagon.items, w0)));
 														},
 														world));
 											} else {
@@ -7484,10 +7547,10 @@ var $author$project$Data$Behavior$Wagon$move = F4(
 					$author$project$Data$World$updateActor,
 					id,
 					function (actor) {
-						if (actor.$ === 'Wagon') {
+						if (actor.$ === 'Minecart') {
 							var w = actor.a;
-							return $author$project$Data$Actor$Wagon(
-								A2($author$project$Data$Wagon$moveFrom, pos, w));
+							return $author$project$Data$Actor$Minecart(
+								A2($author$project$Data$Minecart$moveFrom, pos, w));
 						} else {
 							return actor;
 						}
@@ -7607,7 +7670,7 @@ var $author$project$Data$Behavior$Player$moveTowards = F2(
 									$elm$core$Maybe$map,
 									$elm$core$Tuple$second,
 									A2($elm$core$Dict$get, id, game.world.actors));
-								if ((_v3.$ === 'Just') && (_v3.a.$ === 'Wagon')) {
+								if ((_v3.$ === 'Just') && (_v3.a.$ === 'Minecart')) {
 									var wagon = _v3.a.a;
 									return $elm$random$Random$constant(
 										A2(
@@ -7919,7 +7982,7 @@ var $elm$core$List$member = F2(
 			},
 			xs);
 	});
-var $author$project$Data$Wagon$unload = function (wagon) {
+var $author$project$Data$Minecart$unload = function (wagon) {
 	return _Utils_update(
 		wagon,
 		{
@@ -7929,7 +7992,7 @@ var $author$project$Data$Wagon$unload = function (wagon) {
 var $author$project$Data$Behavior$Wagon$unload = F2(
 	function (id, game) {
 		var _v0 = A2($elm$core$Dict$get, id, game.world.actors);
-		if ((_v0.$ === 'Just') && (_v0.a.b.$ === 'Wagon')) {
+		if ((_v0.$ === 'Just') && (_v0.a.b.$ === 'Minecart')) {
 			var _v1 = _v0.a;
 			var pos = _v1.a;
 			var wagon = _v1.b.a;
@@ -7945,8 +8008,8 @@ var $author$project$Data$Behavior$Wagon$unload = F2(
 							$author$project$Data$World$updateActor,
 							id,
 							function (_v2) {
-								return $author$project$Data$Actor$Wagon(
-									$author$project$Data$Wagon$unload(wagon));
+								return $author$project$Data$Actor$Minecart(
+									$author$project$Data$Minecart$unload(wagon));
 							},
 							game.world)
 					}),
@@ -7960,7 +8023,7 @@ var $author$project$Data$Behavior$Wagon$unload = F2(
 	});
 var $author$project$Data$Behavior$Player$putIntoWagon = function (game) {
 	var _v0 = A2($author$project$Data$World$getActorAt, game.selected, game.world);
-	if ((_v0.$ === 'Just') && (_v0.a.b.$ === 'Wagon')) {
+	if ((_v0.$ === 'Just') && (_v0.a.b.$ === 'Minecart')) {
 		var _v1 = _v0.a;
 		var id = _v1.a;
 		var wagon = _v1.b.a;
@@ -7972,7 +8035,7 @@ var $author$project$Data$Behavior$Player$putIntoWagon = function (game) {
 				$elm$core$Basics$append(l),
 				A2($author$project$Data$Behavior$Wagon$unload, id, g));
 		}(
-			$author$project$Data$Wagon$isFull(wagon) ? _Utils_Tuple2(
+			$author$project$Data$Minecart$isFull(wagon) ? _Utils_Tuple2(
 				game,
 				_List_fromArray(
 					[
@@ -8012,11 +8075,11 @@ var $author$project$Data$Behavior$Player$putIntoWagon = function (game) {
 											$author$project$Data$World$updateActor,
 											id,
 											function (_v3) {
-												return $author$project$Data$Actor$Wagon(w2);
+												return $author$project$Data$Actor$Minecart(w2);
 											},
 											game.world);
 									},
-									A2($author$project$Data$Wagon$insert, item, wagon))));
+									A2($author$project$Data$Minecart$insert, item, wagon))));
 					},
 					$author$project$Data$Player$dropItem(game.player))));
 	} else {
@@ -8057,7 +8120,7 @@ var $author$project$Data$Behavior$Player$interactWith = F2(
 										$elm$core$Maybe$map,
 										function (_v2) {
 											var actor = _v2.b;
-											if (actor.$ === 'Wagon') {
+											if (actor.$ === 'Minecart') {
 												return $elm$random$Random$constant(
 													$author$project$Data$Behavior$Player$putIntoWagon(game));
 											} else {
@@ -8087,6 +8150,9 @@ var $author$project$Data$Behavior$Player$interactWith = F2(
 													]));
 										},
 										A2($author$project$Data$World$Generation$mine, game.selected, game.world)));
+							case 'Water':
+								return $elm$random$Random$constant(
+									_Utils_Tuple2(game, _List_Nil));
 							default:
 								return $elm$random$Random$constant(
 									_Utils_Tuple2(game, _List_Nil));
@@ -8343,7 +8409,7 @@ var $author$project$Data$Behavior$Train$collideWith = F2(
 				function (_v2) {
 					var actor = _v2.b;
 					switch (actor.$) {
-						case 'Wagon':
+						case 'Minecart':
 							var wagon = actor.a;
 							return $elm$core$Maybe$Just(
 								returnGame(
@@ -8361,7 +8427,7 @@ var $author$project$Data$Behavior$Train$collideWith = F2(
 							return $elm$core$Maybe$Nothing;
 						case 'Mine':
 							return $elm$core$Maybe$Nothing;
-						case 'FallingCoal':
+						case 'Falling':
 							return $elm$core$Maybe$Nothing;
 						case 'Path':
 							return $elm$core$Maybe$Nothing;
@@ -8383,7 +8449,6 @@ var $author$project$Data$Behavior$Train$collideWith = F2(
 						$author$project$Data$Behavior$Train$mine(game))));
 		}
 	});
-var $author$project$Data$Floor$RailwayTrack = {$: 'RailwayTrack'};
 var $author$project$Data$Train$removeTrack = function (train) {
 	return (train.moving && (train.tracks > 0)) ? $elm$core$Maybe$Just(
 		_Utils_update(
@@ -8520,7 +8585,9 @@ var $author$project$Data$Behavior$Train$act = function (game) {
 			A2($author$project$Data$World$get, newPos, game.world))) : $elm$random$Random$constant(
 		_Utils_Tuple2(game, _List_Nil)));
 };
-var $author$project$Data$Actor$FallingCoal = {$: 'FallingCoal'};
+var $author$project$Data$Actor$Falling = function (a) {
+	return {$: 'Falling', a: a};
+};
 var $author$project$Data$World$isFloor = F2(
 	function (pos, world) {
 		var _v0 = A2($author$project$Data$World$getBlock, pos, world);
@@ -8530,13 +8597,13 @@ var $author$project$Data$World$isFloor = F2(
 			return false;
 		}
 	});
-var $author$project$Data$Behavior$FallingCoal$act = F2(
-	function (pos, world) {
+var $author$project$Data$Behavior$FallingCoal$act = F3(
+	function (item, pos, world) {
 		return A2(
 			$elm$random$Random$map,
 			A2(
 				$author$project$Data$World$insertEntity,
-				$author$project$Data$Entity$Vein($author$project$Data$Item$Coal),
+				$author$project$Data$Entity$Vein(item),
 				pos),
 			A3(
 				$elm$core$List$foldl,
@@ -8553,12 +8620,13 @@ var $author$project$Data$Behavior$FallingCoal$act = F2(
 									_Utils_Tuple2(
 										1,
 										$author$project$Data$World$insertEntity(
-											$author$project$Data$Entity$Vein($author$project$Data$Item$Coal))),
+											$author$project$Data$Entity$Vein(item))),
 									_List_fromArray(
 										[
 											_Utils_Tuple2(
 											1 / 2,
-											$author$project$Data$World$insertActor($author$project$Data$Actor$FallingCoal))
+											$author$project$Data$World$insertActor(
+												$author$project$Data$Actor$Falling(item)))
 										])));
 						});
 				},
@@ -8570,6 +8638,7 @@ var $author$project$Data$Behavior$FallingCoal$act = F2(
 					},
 					$author$project$Data$Position$neighbors(pos))));
 	});
+var $author$project$Data$Actor$Path = {$: 'Path'};
 var $author$project$Data$Behavior$Path$act = F2(
 	function (pos, world) {
 		var floorNeighbors = $elm$core$List$length(
@@ -8632,7 +8701,7 @@ var $author$project$Data$Behavior$Wagon$act = F3(
 		}(
 			function () {
 				var _v0 = A2($elm$core$Dict$get, id, game.world.actors);
-				if ((_v0.$ === 'Just') && (_v0.a.b.$ === 'Wagon')) {
+				if ((_v0.$ === 'Just') && (_v0.a.b.$ === 'Minecart')) {
 					var _v1 = _v0.a;
 					var pos = _v1.a;
 					var wagon = _v1.b.a;
@@ -8650,6 +8719,7 @@ var $author$project$Data$Behavior$Wagon$act = F3(
 			}());
 	});
 var $author$project$Data$Item$Gold = {$: 'Gold'};
+var $author$project$Data$Entity$Lava = {$: 'Lava'};
 var $author$project$Data$Actor$Mine = {$: 'Mine'};
 var $author$project$Data$World$Generation$baseProbability = function (_v0) {
 	var x = _v0.a;
@@ -8699,6 +8769,10 @@ var $author$project$Data$World$Generation$caveGenerator = F3(
 										1 / 4,
 										$author$project$Data$World$Generation$wallGenerator(pos)),
 										_Utils_Tuple2(
+										1 / 8,
+										$elm$random$Random$constant(
+											$author$project$Data$World$insertActor($author$project$Data$Actor$Path))),
+										_Utils_Tuple2(
 										1 / 64,
 										$elm$random$Random$constant(
 											$author$project$Data$World$insertActor($author$project$Data$Actor$Mine)))
@@ -8712,6 +8786,77 @@ var $author$project$Data$World$Generation$caveGenerator = F3(
 			},
 			args.ground);
 	});
+var $author$project$Data$World$Generation$exposedCave = function (caveType) {
+	return function (ground) {
+		return $author$project$Data$World$Generation$caveGenerator(
+			{cave: caveType, ground: ground});
+	}(
+		function () {
+			switch (caveType.$) {
+				case 'CoalCave':
+					return A2(
+						$elm$random$Random$weighted,
+						_Utils_Tuple2(
+							1,
+							$author$project$Data$World$insertItem($author$project$Data$Item$Coal)),
+						_List_fromArray(
+							[
+								_Utils_Tuple2(
+								1 / 4,
+								$author$project$Data$World$insertActor(
+									$author$project$Data$Actor$Falling($author$project$Data$Item$Coal)))
+							]));
+				case 'IronCave':
+					return A2(
+						$elm$random$Random$weighted,
+						_Utils_Tuple2(
+							1,
+							$author$project$Data$World$insertItem($author$project$Data$Item$Iron)),
+						_List_fromArray(
+							[
+								_Utils_Tuple2(
+								1 / 4,
+								$author$project$Data$World$insertActor(
+									$author$project$Data$Actor$Falling($author$project$Data$Item$Iron))),
+								_Utils_Tuple2(
+								1 / 8,
+								$author$project$Data$World$insertEntity($author$project$Data$Entity$Wall))
+							]));
+				case 'WaterCave':
+					return A2(
+						$elm$random$Random$weighted,
+						_Utils_Tuple2(
+							1,
+							$author$project$Data$World$insertEntity($author$project$Data$Entity$Water)),
+						_List_fromArray(
+							[
+								_Utils_Tuple2(
+								1 / 4,
+								$author$project$Data$World$insertItem($author$project$Data$Item$Gold))
+							]));
+				default:
+					return A2(
+						$elm$random$Random$weighted,
+						_Utils_Tuple2(
+							1,
+							$author$project$Data$World$insertEntity($author$project$Data$Entity$Lava)),
+						_List_fromArray(
+							[
+								_Utils_Tuple2(
+								1 / 4,
+								$author$project$Data$World$insertItem($author$project$Data$Item$Gold))
+							]));
+			}
+		}());
+};
+var $author$project$Data$Effect$genWithNone = $elm$random$Random$map(
+	function (a) {
+		return _Utils_Tuple2(a, _List_Nil);
+	});
+var $author$project$Data$Minecart$emptyWagon = {
+	items: $author$project$AnyBag$empty($author$project$Data$Item$toString),
+	movedFrom: $elm$core$Maybe$Nothing
+};
 var $JohnBugner$elm_bag$Bag$fromAssociationList = A2(
 	$elm$core$List$foldl,
 	function (_v0) {
@@ -8731,95 +8876,9 @@ var $author$project$AnyBag$fromAssociationList = F2(
 			encode: encode
 		};
 	});
-var $author$project$Data$World$insertFloor = F2(
-	function (floor, pos) {
-		return A2($author$project$Data$World$insertFloorAt, pos, floor);
-	});
-var $author$project$Data$World$Generation$exposedCave = function (caveType) {
-	return function (ground) {
-		return $author$project$Data$World$Generation$caveGenerator(
-			{cave: caveType, ground: ground});
-	}(
-		function () {
-			switch (caveType.$) {
-				case 'WaterCave':
-					return A2(
-						$elm$random$Random$weighted,
-						_Utils_Tuple2(
-							1,
-							$author$project$Data$World$insertEntity($author$project$Data$Entity$Water)),
-						_List_fromArray(
-							[
-								_Utils_Tuple2(
-								1 / 2,
-								$author$project$Data$World$insertFloor($author$project$Data$Floor$Ground)),
-								_Utils_Tuple2(
-								1 / 4,
-								$author$project$Data$World$insertItem($author$project$Data$Item$Gold))
-							]));
-				case 'CoalCave':
-					return A2(
-						$elm$random$Random$weighted,
-						_Utils_Tuple2(
-							1,
-							$author$project$Data$World$insertItem($author$project$Data$Item$Coal)),
-						_List_fromArray(
-							[
-								_Utils_Tuple2(
-								1 / 4,
-								$author$project$Data$World$insertActor($author$project$Data$Actor$FallingCoal))
-							]));
-				case 'IronCave':
-					return A2(
-						$elm$random$Random$weighted,
-						_Utils_Tuple2(
-							1,
-							$author$project$Data$World$insertItem($author$project$Data$Item$Iron)),
-						_List_fromArray(
-							[
-								_Utils_Tuple2(
-								1 / 8,
-								$author$project$Data$World$insertFloor($author$project$Data$Floor$Track)),
-								_Utils_Tuple2(
-								1 / 32,
-								$author$project$Data$World$insertActor(
-									$author$project$Data$Actor$Wagon(
-										A2(
-											$author$project$Data$Wagon$load,
-											A2(
-												$author$project$AnyBag$fromAssociationList,
-												$author$project$Data$Item$toString,
-												_List_fromArray(
-													[
-														_Utils_Tuple2($author$project$Data$Item$Coal, $author$project$Config$wagonMaxItems)
-													])),
-											$author$project$Data$Wagon$emptyWagon))))
-							]));
-				default:
-					return A2(
-						$elm$random$Random$weighted,
-						_Utils_Tuple2(
-							1,
-							$author$project$Data$World$insertFloor($author$project$Data$Floor$Ground)),
-						_List_fromArray(
-							[
-								_Utils_Tuple2(
-								1 / 4,
-								$author$project$Data$World$insertEntity($author$project$Data$Entity$Wall)),
-								_Utils_Tuple2(
-								1 / 8,
-								$author$project$Data$World$insertItem($author$project$Data$Item$Gold))
-							]));
-			}
-		}());
-};
-var $author$project$Data$Effect$genWithNone = $elm$random$Random$map(
-	function (a) {
-		return _Utils_Tuple2(a, _List_Nil);
-	});
-var $author$project$Data$Wagon$fullWagon = function (item) {
+var $author$project$Data$Minecart$fullWagon = function (item) {
 	return A2(
-		$author$project$Data$Wagon$load,
+		$author$project$Data$Minecart$load,
 		A2(
 			$author$project$AnyBag$fromAssociationList,
 			$author$project$Data$Item$toString,
@@ -8827,8 +8886,12 @@ var $author$project$Data$Wagon$fullWagon = function (item) {
 				[
 					_Utils_Tuple2(item, $author$project$Config$wagonMaxItems)
 				])),
-		$author$project$Data$Wagon$emptyWagon);
+		$author$project$Data$Minecart$emptyWagon);
 };
+var $author$project$Data$World$insertFloor = F2(
+	function (floor, pos) {
+		return A2($author$project$Data$World$insertFloorAt, pos, floor);
+	});
 var $elm$random$Random$addOne = function (value) {
 	return _Utils_Tuple2(1, value);
 };
@@ -8858,8 +8921,8 @@ var $author$project$Data$World$Generation$mineGenerator = F2(
 					return stop ? $elm$random$Random$constant(
 						A3(
 							$author$project$Data$World$insertActor,
-							$author$project$Data$Actor$Wagon(
-								$author$project$Data$Wagon$fullWagon($author$project$Data$Item$Coal)),
+							$author$project$Data$Actor$Minecart(
+								$author$project$Data$Minecart$fullWagon($author$project$Data$Item$Coal)),
 							pos,
 							A3(
 								$elm$core$List$foldl,
@@ -8973,7 +9036,7 @@ var $author$project$Data$Behavior$actorsAct = F2(
 		var pos = _v1.a;
 		var actor = _v1.b;
 		switch (actor.$) {
-			case 'Wagon':
+			case 'Minecart':
 				var wagon = actor.a;
 				return A2(
 					$elm$core$Maybe$withDefault,
@@ -9017,7 +9080,8 @@ var $author$project$Data$Behavior$actorsAct = F2(
 							$author$project$Data$World$Generation$mineGenerator,
 							pos,
 							A2($author$project$Data$World$removeEntity, pos, game.world))));
-			case 'FallingCoal':
+			case 'Falling':
+				var item = actor.a;
 				return $author$project$Data$Effect$genWithNone(
 					A2(
 						$elm$random$Random$map,
@@ -9026,7 +9090,7 @@ var $author$project$Data$Behavior$actorsAct = F2(
 								game,
 								{world: world});
 						},
-						A2($author$project$Data$Behavior$FallingCoal$act, pos, game.world)));
+						A3($author$project$Data$Behavior$FallingCoal$act, item, pos, game.world)));
 			case 'Bomb':
 				return $author$project$Data$Effect$genWithNone(
 					A2(
@@ -9114,10 +9178,9 @@ var $author$project$Data$Game$select = F2(
 				selected: pos
 			});
 	});
-var $author$project$Data$Animation$animate = function () {
-	var width = 6;
-	var wagon = _Utils_Tuple2(3, 1);
-	var train = _Utils_Tuple2(5, 1);
+var $author$project$Data$Animation$tutorial = function () {
+	var width = 4;
+	var train = _Utils_Tuple2(3, 1);
 	var selections = $elm$core$Dict$fromList(
 		$elm$core$List$reverse(
 			A3(
@@ -9141,15 +9204,14 @@ var $author$project$Data$Animation$animate = function () {
 						_Utils_Tuple2(
 						0,
 						_Utils_Tuple2(0, 1)),
-						_Utils_Tuple2(5, wagon),
+						_Utils_Tuple2(5, train),
 						_Utils_Tuple2(
 						5,
 						_Utils_Tuple2(1, 0)),
-						_Utils_Tuple2(5, wagon),
+						_Utils_Tuple2(5, train),
 						_Utils_Tuple2(
 						5,
 						_Utils_Tuple2(1, 2)),
-						_Utils_Tuple2(5, wagon),
 						_Utils_Tuple2(5, train)
 					])).a));
 	var player = _Utils_Tuple2(2, 1);
@@ -9159,27 +9221,23 @@ var $author$project$Data$Animation$animate = function () {
 		selected: player,
 		train: $author$project$Data$Train$fromPos(train),
 		world: A3(
-			$author$project$Data$World$insertActor,
-			$author$project$Data$Actor$Wagon($author$project$Data$Wagon$emptyWagon),
-			wagon,
+			$author$project$Data$World$insertItem,
+			$author$project$Data$Item$Coal,
+			_Utils_Tuple2(1, 2),
 			A3(
 				$author$project$Data$World$insertItem,
 				$author$project$Data$Item$Coal,
-				_Utils_Tuple2(1, 2),
+				_Utils_Tuple2(0, 1),
 				A3(
 					$author$project$Data$World$insertItem,
 					$author$project$Data$Item$Coal,
-					_Utils_Tuple2(0, 1),
+					_Utils_Tuple2(1, 0),
 					A3(
-						$author$project$Data$World$insertItem,
-						$author$project$Data$Item$Coal,
-						_Utils_Tuple2(1, 0),
-						A3(
-							$author$project$Data$World$insertEntity,
-							$author$project$Data$Entity$Train,
-							train,
-							$author$project$Data$Animation$emptyWorld(
-								{height: height, width: width}))))))
+						$author$project$Data$World$insertEntity,
+						$author$project$Data$Entity$Train,
+						train,
+						$author$project$Data$Animation$emptyWorld(
+							{height: height, width: width})))))
 	};
 	return {
 		frames: $elm$core$Array$fromList(
@@ -9218,76 +9276,9 @@ var $author$project$Data$Animation$animate = function () {
 							initGame,
 							$elm$random$Random$initialSeed(42)),
 						_List_Nil),
-					A2($elm$core$List$range, 0, 40)).b)),
+					A2($elm$core$List$range, 0, 30)).b)),
 		height: height,
 		width: width
-	};
-}();
-var $author$project$Data$Modal$fromAnimation = function (animation) {
-	return {animation: animation, animationFrame: 0};
-};
-var $author$project$Data$Game$new = function () {
-	var walls = A2(
-		$elm$core$List$concatMap,
-		function (y) {
-			return A2(
-				$elm$core$List$map,
-				function (x) {
-					return _Utils_Tuple2(
-						_Utils_Tuple2(x, y),
-						$author$project$Data$Block$EntityBlock($author$project$Data$Entity$Wall));
-				},
-				_List_fromArray(
-					[-1, 1]));
-		},
-		A2($elm$core$List$range, 0, 1));
-	var train = _Utils_Tuple2(0, 2);
-	var tracks = A2(
-		$elm$core$List$map,
-		function (i) {
-			return _Utils_Tuple2(
-				_Utils_Tuple2(0, i),
-				$author$project$Data$Block$FloorBlock($author$project$Data$Floor$RailwayTrack));
-		},
-		A2($elm$core$List$range, 0, 1));
-	var player = _Utils_Tuple2(0, 3);
-	var coals = _List_fromArray(
-		[
-			_Utils_Tuple2(0, 4),
-			_Utils_Tuple2(0 - 1, 3),
-			_Utils_Tuple2(0 + 1, 3)
-		]);
-	return {
-		player: $author$project$Data$Player$fromPos(player),
-		selected: player,
-		train: $author$project$Data$Train$fromPos(train),
-		world: $author$project$Data$World$fromList(
-			_Utils_ap(
-				_List_fromArray(
-					[
-						_Utils_Tuple2(
-						train,
-						$author$project$Data$Block$EntityBlock($author$project$Data$Entity$Train)),
-						_Utils_Tuple2(
-						train,
-						$author$project$Data$Block$FloorBlock($author$project$Data$Floor$RailwayTrack)),
-						_Utils_Tuple2(
-						player,
-						$author$project$Data$Block$FloorBlock($author$project$Data$Floor$Ground))
-					]),
-				_Utils_ap(
-					tracks,
-					_Utils_ap(
-						walls,
-						A2(
-							$elm$core$List$map,
-							function (pos) {
-								return _Utils_Tuple2(
-									pos,
-									$author$project$Data$Block$EntityBlock(
-										$author$project$Data$Entity$Vein($author$project$Data$Item$Coal)));
-							},
-							coals)))))
 	};
 }();
 var $author$project$Main$restart = function (seed) {
@@ -9296,8 +9287,9 @@ var $author$project$Main$restart = function (seed) {
 			building: $elm$core$Maybe$Nothing,
 			camera: game.player.pos,
 			game: game,
+			level: 1,
 			modal: $elm$core$Maybe$Just(
-				$author$project$Data$Modal$fromAnimation($author$project$Data$Animation$animate)),
+				$author$project$Data$Modal$fromAnimation($author$project$Data$Animation$tutorial)),
 			promt: $elm$core$Maybe$Nothing,
 			seed: seed,
 			sidebarTab: $elm$core$Maybe$Just($author$project$View$Tab$DetailTab),
@@ -9506,7 +9498,7 @@ var $author$project$Data$Game$buildActor = F4(
 	function (pos, _v0, actor, game) {
 		var item = _v0.a;
 		var cost = _v0.b;
-		return A2(
+		return A2($author$project$Data$World$isFloor, pos, game.world) ? A2(
 			$elm$core$Maybe$withDefault,
 			game,
 			A2(
@@ -9519,7 +9511,7 @@ var $author$project$Data$Game$buildActor = F4(
 							world: A3($author$project$Data$World$insertActorAt, pos, actor, game.world)
 						});
 				},
-				A3($author$project$Data$Train$removeItem, cost, item, game.train)));
+				A3($author$project$Data$Train$removeItem, cost, item, game.train))) : game;
 	});
 var $author$project$Data$Game$buildBlock = F4(
 	function (pos, _v0, block, game) {
@@ -9566,7 +9558,7 @@ var $author$project$Data$Game$destroyBlock = function (game) {
 			if (entity.$ === 'Actor') {
 				var id = entity.a;
 				var _v3 = A2($author$project$Data$World$getActor, id, game.world);
-				if ((_v3.$ === 'Just') && (_v3.a.b.$ === 'Wagon')) {
+				if ((_v3.$ === 'Just') && (_v3.a.b.$ === 'Minecart')) {
 					var _v4 = _v3.a;
 					return _Utils_update(
 						game,
@@ -9724,6 +9716,115 @@ var $author$project$Main$updateCamera = function (model) {
 			camera: _Utils_Tuple2(pX, pY)
 		}) : model;
 };
+var $author$project$Data$Animation$animate = function () {
+	var width = 6;
+	var wagon = _Utils_Tuple2(3, 1);
+	var train = _Utils_Tuple2(5, 1);
+	var selections = $elm$core$Dict$fromList(
+		$elm$core$List$reverse(
+			A3(
+				$elm$core$List$foldl,
+				F2(
+					function (_v3, _v4) {
+						var i = _v3.a;
+						var p = _v3.b;
+						var l = _v4.a;
+						var time = _v4.b;
+						return _Utils_Tuple2(
+							A2(
+								$elm$core$List$cons,
+								_Utils_Tuple2(i + time, p),
+								l),
+							i + time);
+					}),
+				_Utils_Tuple2(_List_Nil, 0),
+				_List_fromArray(
+					[
+						_Utils_Tuple2(
+						0,
+						_Utils_Tuple2(0, 1)),
+						_Utils_Tuple2(5, wagon),
+						_Utils_Tuple2(
+						5,
+						_Utils_Tuple2(1, 0)),
+						_Utils_Tuple2(5, wagon),
+						_Utils_Tuple2(
+						5,
+						_Utils_Tuple2(1, 2)),
+						_Utils_Tuple2(5, wagon),
+						_Utils_Tuple2(5, train)
+					])).a));
+	var player = _Utils_Tuple2(2, 1);
+	var height = 3;
+	var initGame = {
+		player: $author$project$Data$Player$fromPos(player),
+		selected: player,
+		train: $author$project$Data$Train$fromPos(train),
+		world: A3(
+			$author$project$Data$World$insertActor,
+			$author$project$Data$Actor$Minecart($author$project$Data$Minecart$emptyWagon),
+			wagon,
+			A3(
+				$author$project$Data$World$insertItem,
+				$author$project$Data$Item$Coal,
+				_Utils_Tuple2(1, 2),
+				A3(
+					$author$project$Data$World$insertItem,
+					$author$project$Data$Item$Coal,
+					_Utils_Tuple2(0, 1),
+					A3(
+						$author$project$Data$World$insertItem,
+						$author$project$Data$Item$Coal,
+						_Utils_Tuple2(1, 0),
+						A3(
+							$author$project$Data$World$insertEntity,
+							$author$project$Data$Entity$Train,
+							train,
+							$author$project$Data$Animation$emptyWorld(
+								{height: height, width: width}))))))
+	};
+	return {
+		frames: $elm$core$Array$fromList(
+			$elm$core$List$reverse(
+				A3(
+					$elm$core$List$foldl,
+					F2(
+						function (_int, _v0) {
+							var _v1 = _v0.a;
+							var game = _v1.a;
+							var seed = _v1.b;
+							var l = _v0.b;
+							return _Utils_Tuple2(
+								A2(
+									$elm$core$Tuple$mapFirst,
+									function (_v2) {
+										var g = _v2.a;
+										return A2(
+											$elm$core$Maybe$withDefault,
+											g,
+											A2(
+												$elm$core$Maybe$map,
+												function (pos) {
+													return A2($author$project$Data$Game$select, pos, g);
+												},
+												A2($elm$core$Dict$get, _int, selections)));
+									},
+									A2(
+										$elm$random$Random$step,
+										$author$project$Data$Behavior$passTime(game),
+										seed)),
+								A2($elm$core$List$cons, game, l));
+						}),
+					_Utils_Tuple2(
+						_Utils_Tuple2(
+							initGame,
+							$elm$random$Random$initialSeed(42)),
+						_List_Nil),
+					A2($elm$core$List$range, 0, 40)).b)),
+		height: height,
+		width: width
+	};
+}();
 var $author$project$Main$playSound = _Platform_outgoingPort('playSound', $elm$json$Json$Encode$string);
 var $author$project$Main$updateGame = F2(
 	function (fun, model) {
@@ -9760,7 +9861,7 @@ var $author$project$Main$updateGame = F2(
 									function (m) {
 										return _Utils_update(
 											m,
-											{tickInterval: m.tickInterval * 0.9});
+											{level: m.level + 1, tickInterval: m.tickInterval * 0.9});
 									});
 							default:
 								var string = effect.a;
@@ -10021,7 +10122,7 @@ var $author$project$Data$Info$withContent = F2(
 	});
 var $author$project$Data$Info$fromActor = function (actor) {
 	switch (actor.$) {
-		case 'Wagon':
+		case 'Minecart':
 			var wagon = actor.a;
 			return A2(
 				$author$project$Data$Info$withContent,
@@ -10036,7 +10137,7 @@ var $author$project$Data$Info$fromActor = function (actor) {
 				$author$project$Data$Info$new(
 					{
 						description: 'Can store up to ' + ($elm$core$String$fromInt($author$project$Config$wagonMaxItems) + ' items. You can also push it along.'),
-						title: 'Wagon'
+						title: 'Minecart'
 					}));
 		case 'Cave':
 			var caveType = actor.a;
@@ -10051,9 +10152,13 @@ var $author$project$Data$Info$fromActor = function (actor) {
 		case 'Mine':
 			return $author$project$Data$Info$new(
 				{description: 'Helper Block to generate mines', title: 'Mine'});
-		case 'FallingCoal':
+		case 'Falling':
+			var item = actor.a;
 			return $author$project$Data$Info$new(
-				{description: 'Helper Block to generate coal', title: 'Falling Coal'});
+				{
+					description: 'Helper Block to generate coal',
+					title: 'Falling ' + $author$project$Data$Item$toString(item)
+				});
 		default:
 			var explodesIn = actor.a.explodesIn;
 			return $author$project$Data$Info$new(
@@ -10079,6 +10184,9 @@ var $author$project$Data$Info$fromEntity = F2(
 			case 'Water':
 				return $author$project$Data$Info$new(
 					{description: 'Will be pushed aside when you walk through it. Wagons can\'t pass through it.', title: 'Water'});
+			case 'Lava':
+				return $author$project$Data$Info$new(
+					{description: 'Gets removed if water gets moved into it.', title: 'Lava'});
 			case 'Train':
 				return $author$project$Data$Info$new(
 					{description: 'Stores all your items. If it has tracks stored, it will place them and move forward. Needs coal to move. Will regularly fetch new tracks from above ground.', title: 'Train'});
@@ -10202,7 +10310,7 @@ var $author$project$Data$Tile$withBold = function (tile) {
 };
 var $author$project$Data$Tile$fromActor = function (actor) {
 	switch (actor.$) {
-		case 'Wagon':
+		case 'Minecart':
 			var wagon = actor.a;
 			return function (it) {
 				return (!$author$project$AnyBag$size(wagon.items)) ? it : (_Utils_eq(
@@ -10215,7 +10323,7 @@ var $author$project$Data$Tile$fromActor = function (actor) {
 						color: _Utils_eq(
 							$author$project$AnyBag$size(wagon.items),
 							$author$project$Config$wagonMaxItems) ? $author$project$View$Color$black : $author$project$View$Color$gray,
-						content: _Utils_chr('W')
+						content: _Utils_chr('M')
 					}));
 		case 'Cave':
 			return $author$project$Data$Tile$withBold(
@@ -10231,12 +10339,12 @@ var $author$project$Data$Tile$fromActor = function (actor) {
 						color: $author$project$View$Color$red,
 						content: _Utils_chr('#')
 					}));
-		case 'FallingCoal':
+		case 'Falling':
 			return $author$project$Data$Tile$withBold(
 				$author$project$Data$Tile$new(
 					{
 						color: $author$project$View$Color$red,
-						content: _Utils_chr('C')
+						content: _Utils_chr('%')
 					}));
 		case 'Path':
 			return $author$project$Data$Tile$new(
@@ -10273,6 +10381,12 @@ var $author$project$Data$Tile$fromEntity = F2(
 				return $author$project$Data$Tile$new(
 					{
 						color: $author$project$View$Color$blue,
+						content: _Utils_chr('~')
+					});
+			case 'Lava':
+				return $author$project$Data$Tile$new(
+					{
+						color: $author$project$View$Color$red,
 						content: _Utils_chr('~')
 					});
 			case 'Train':
@@ -10884,7 +10998,7 @@ var $author$project$View$Tab$sidebar = F2(
 																				if (block.a.$ === 'Actor') {
 																					var id = block.a.a;
 																					var _v3 = A2($author$project$Data$World$getActor, id, game.world);
-																					if ((_v3.$ === 'Just') && (_v3.a.b.$ === 'Wagon')) {
+																					if ((_v3.$ === 'Just') && (_v3.a.b.$ === 'Minecart')) {
 																						var _v4 = _v3.a;
 																						var wagon = _v4.b.a;
 																						return $author$project$AnyBag$isEmpty(wagon.items) ? $elm$core$List$singleton(
@@ -10916,53 +11030,47 @@ var $author$project$View$Tab$sidebar = F2(
 														},
 														selected));
 											default:
-												if ((selected.$ === 'Just') && (selected.a.a.$ === 'FloorBlock')) {
-													var _v7 = selected.a;
-													var floor = _v7.a.a;
-													return A2(
-														$Orasund$elm_layout$Layout$column,
-														_List_fromArray(
-															[
-																$Orasund$elm_layout$Layout$spacing(8)
-															]),
-														_Utils_ap(
-															A2(
-																$elm$core$List$map,
-																$author$project$View$Tab$buildButton(game),
-																_List_fromArray(
-																	[
-																		A2(
-																		$author$project$View$Tab$buildActorButton,
-																		args.buildActor,
-																		{
-																			actor: $author$project$Data$Actor$Wagon($author$project$Data$Wagon$emptyWagon),
-																			cost: _Utils_Tuple2($author$project$Data$Item$Iron, $author$project$Config$wagonCost)
-																		}),
-																		A2(
-																		$author$project$View$Tab$buildActorButton,
-																		args.buildActor,
-																		{
-																			actor: $author$project$Data$Actor$bomb,
-																			cost: _Utils_Tuple2($author$project$Data$Item$Gold, $author$project$Config$bombCost)
-																		})
-																	])),
-															A2(
-																$elm$core$List$map,
-																$author$project$View$Tab$buildButton(game),
-																_List_fromArray(
-																	[
-																		A3(
-																		$author$project$View$Tab$buildBlockButton,
-																		args.buildBlock,
-																		game,
-																		{
-																			block: $author$project$Data$Block$FloorBlock($author$project$Data$Floor$Track),
-																			cost: _Utils_Tuple2($author$project$Data$Item$Iron, $author$project$Config$trackCost)
-																		})
-																	]))));
-												} else {
-													return $elm$html$Html$text('You can only build on empty floor tiles');
-												}
+												return A2(
+													$Orasund$elm_layout$Layout$column,
+													_List_fromArray(
+														[
+															$Orasund$elm_layout$Layout$spacing(8)
+														]),
+													_Utils_ap(
+														A2(
+															$elm$core$List$map,
+															$author$project$View$Tab$buildButton(game),
+															_List_fromArray(
+																[
+																	A2(
+																	$author$project$View$Tab$buildActorButton,
+																	args.buildActor,
+																	{
+																		actor: $author$project$Data$Actor$Minecart($author$project$Data$Minecart$emptyWagon),
+																		cost: _Utils_Tuple2($author$project$Data$Item$Iron, $author$project$Config$wagonCost)
+																	}),
+																	A2(
+																	$author$project$View$Tab$buildActorButton,
+																	args.buildActor,
+																	{
+																		actor: $author$project$Data$Actor$bomb,
+																		cost: _Utils_Tuple2($author$project$Data$Item$Gold, $author$project$Config$bombCost)
+																	})
+																])),
+														A2(
+															$elm$core$List$map,
+															$author$project$View$Tab$buildButton(game),
+															_List_fromArray(
+																[
+																	A3(
+																	$author$project$View$Tab$buildBlockButton,
+																	args.buildBlock,
+																	game,
+																	{
+																		block: $author$project$Data$Block$FloorBlock($author$project$Data$Floor$Track),
+																		cost: _Utils_Tuple2($author$project$Data$Item$Iron, $author$project$Config$trackCost)
+																	})
+																]))));
 										}
 									}()
 									]));
@@ -11093,8 +11201,8 @@ var $Orasund$elm_layout$Layout$heading2 = F2(
 				[content]));
 	});
 var $elm$html$Html$pre = _VirtualDom_node('pre');
-var $author$project$View$Modal$toHtml = F3(
-	function (closeModal, game, modal) {
+var $author$project$View$Modal$toHtml = F4(
+	function (closeModal, game, modal, level) {
 		return A2(
 			$Orasund$elm_layout$Layout$el,
 			_List_fromArray(
@@ -11116,7 +11224,7 @@ var $author$project$View$Modal$toHtml = F3(
 						A2($elm$html$Html$Attributes$style, 'width', '100%'),
 						A2($elm$html$Html$Attributes$style, 'height', '100%')
 					]),
-				_List_fromArray(
+				(level === 1) ? _List_fromArray(
 					[
 						A2(
 						$Orasund$elm_layout$Layout$row,
@@ -11130,7 +11238,7 @@ var $author$project$View$Modal$toHtml = F3(
 									_List_fromArray(
 										[
 											A2($elm$html$Html$Attributes$style, 'font-family', 'monospace'),
-											A2($elm$html$Html$Attributes$style, 'font-size', '10px')
+											A2($elm$html$Html$Attributes$style, 'font-size', '8px')
 										]),
 									_List_fromArray(
 										[
@@ -11139,6 +11247,20 @@ var $author$project$View$Modal$toHtml = F3(
 							},
 							_List_fromArray(
 								[$author$project$View$Title$coal, $author$project$View$Title$crawl]))),
+						A2(
+						$Orasund$elm_layout$Layout$el,
+						$Orasund$elm_layout$Layout$centered,
+						A2($author$project$View$Animation$animate, modal.animation, modal.animationFrame)),
+						A2(
+						$Orasund$elm_layout$Layout$paragraph,
+						_List_Nil,
+						$elm$html$Html$text('Reach the bottom of the cave. Collect coal to progress.')),
+						A2(
+						$author$project$View$Button$toHtml,
+						$elm$core$Maybe$Just(closeModal),
+						'Continue')
+					]) : _List_fromArray(
+					[
 						A2(
 						$Orasund$elm_layout$Layout$heading2,
 						_List_fromArray(
@@ -11162,11 +11284,11 @@ var $author$project$View$Modal$toHtml = F3(
 						A2(
 						$Orasund$elm_layout$Layout$heading2,
 						_List_Nil,
-						$elm$html$Html$text('Hint: Build a Wagon')),
+						$elm$html$Html$text('Hint: Build a minecart')),
 						A2(
 						$Orasund$elm_layout$Layout$paragraph,
 						_List_Nil,
-						$elm$html$Html$text('Build a Wagon by clicking on an empty floor tile and select \"Build Wagon\"')),
+						$elm$html$Html$text('Build a minecart by clicking on an empty floor tile and select \"Build Wagon\"')),
 						A2(
 						$Orasund$elm_layout$Layout$el,
 						$Orasund$elm_layout$Layout$centered,
@@ -11267,7 +11389,6 @@ var $author$project$Main$view = function (model) {
 												var _v0 = model.building;
 												if (_v0.$ === 'Just') {
 													var _v1 = _v0.a;
-													var cost = _v1.a;
 													var block = _v1.b;
 													return A2(
 														$Orasund$elm_layout$Layout$column,
@@ -11398,7 +11519,7 @@ var $author$project$Main$view = function (model) {
 									var _v6 = model.modal;
 									if (_v6.$ === 'Just') {
 										var modal = _v6.a;
-										return A3($author$project$View$Modal$toHtml, $author$project$Main$CloseModal, model.game, modal);
+										return A4($author$project$View$Modal$toHtml, $author$project$Main$CloseModal, model.game, modal, model.level);
 									} else {
 										return $Orasund$elm_layout$Layout$none;
 									}

@@ -100,6 +100,12 @@ fromEntity game entity =
                 , description = "Will be pushed aside when you walk through it. Wagons can't pass through it."
                 }
 
+        Data.Entity.Lava ->
+            new
+                { title = "Lava"
+                , description = "Gets removed if water gets moved into it."
+                }
+
         Data.Entity.Train ->
             new
                 { title = "Train"
@@ -129,16 +135,16 @@ cave caveType =
         Data.Actor.IronCave ->
             "Iron"
 
-        Data.Actor.GoldCave ->
+        Data.Actor.LavaCave ->
             "Gold"
 
 
 fromActor : Actor -> Info
 fromActor actor =
     case actor of
-        Data.Actor.Wagon wagon ->
+        Data.Actor.Minecart wagon ->
             new
-                { title = "Wagon"
+                { title = "Minecart"
                 , description =
                     "Can store up to "
                         ++ String.fromInt Config.wagonMaxItems
@@ -168,8 +174,8 @@ fromActor actor =
             }
                 |> new
 
-        Data.Actor.FallingCoal ->
-            { title = "Falling Coal"
+        Data.Actor.Falling item ->
+            { title = "Falling " ++ Data.Item.toString item
             , description = "Helper Block to generate coal"
             }
                 |> new

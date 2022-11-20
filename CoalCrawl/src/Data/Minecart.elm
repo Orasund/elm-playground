@@ -1,4 +1,4 @@
-module Data.Wagon exposing (..)
+module Data.Minecart exposing (..)
 
 import AnyBag exposing (AnyBag)
 import Config
@@ -6,20 +6,20 @@ import Data.Item exposing (Item)
 import Data.Sound exposing (Sound)
 
 
-type alias Wagon =
+type alias Minecart =
     { items : AnyBag String Item
     , movedFrom : Maybe ( Int, Int )
     }
 
 
-emptyWagon : Wagon
+emptyWagon : Minecart
 emptyWagon =
     { items = AnyBag.empty Data.Item.toString
     , movedFrom = Nothing
     }
 
 
-fullWagon : Item -> Wagon
+fullWagon : Item -> Minecart
 fullWagon item =
     emptyWagon
         |> load
@@ -28,33 +28,33 @@ fullWagon item =
             )
 
 
-insert : Item -> Wagon -> ( Wagon, Sound )
+insert : Item -> Minecart -> ( Minecart, Sound )
 insert item wagon =
     ( { wagon | items = AnyBag.insert 1 item wagon.items }
     , Data.Sound.PickUp
     )
 
 
-moveFrom : ( Int, Int ) -> Wagon -> Wagon
+moveFrom : ( Int, Int ) -> Minecart -> Minecart
 moveFrom movedFrom wagon =
     { wagon | movedFrom = Just movedFrom }
 
 
-stop : Wagon -> Wagon
+stop : Minecart -> Minecart
 stop wagon =
     { wagon | movedFrom = Nothing }
 
 
-isFull : Wagon -> Bool
+isFull : Minecart -> Bool
 isFull wagon =
     AnyBag.size wagon.items >= Config.wagonMaxItems
 
 
-load : AnyBag String Item -> Wagon -> Wagon
+load : AnyBag String Item -> Minecart -> Minecart
 load items wagon =
     { wagon | items = items }
 
 
-unload : Wagon -> Wagon
+unload : Minecart -> Minecart
 unload wagon =
     { wagon | items = AnyBag.empty Data.Item.toString }

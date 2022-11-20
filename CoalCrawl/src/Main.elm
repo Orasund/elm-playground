@@ -54,6 +54,7 @@ type alias Model =
     , tickInterval : Float
     , zoomPercent : Int
     , building : Maybe ( ( Item, Int ), BuildMode )
+    , level : Int
     }
 
 
@@ -82,7 +83,10 @@ updateGame fun model =
                                 Data.Effect.LevelUp ->
                                     Tuple.mapFirst
                                         (\m ->
-                                            { m | tickInterval = m.tickInterval * 0.9 }
+                                            { m
+                                                | tickInterval = m.tickInterval * 0.9
+                                                , level = m.level + 1
+                                            }
                                         )
 
                                 Data.Effect.ShowPromt string ->
@@ -124,7 +128,7 @@ restart seed =
                 , promt = Nothing
                 , seed = seed
                 , modal =
-                    Data.Animation.animate
+                    Data.Animation.tutorial
                         |> Data.Modal.fromAnimation
                         |> Just
                 , volume = 50
@@ -132,6 +136,7 @@ restart seed =
                 , tickInterval = 200
                 , zoomPercent = 50
                 , building = Nothing
+                , level = 1
                 }
            )
 
@@ -173,7 +178,7 @@ view model =
                         , Attr.style "left" "8px"
                         ]
                       , case model.building of
-                            Just ( cost, block ) ->
+                            Just ( _, block ) ->
                                 [ "Stop Building"
                                     |> View.Button.toHtml (Just StopBuilding)
                                 , (case block of
@@ -254,7 +259,7 @@ view model =
                     ]
           , case model.modal of
                 Just modal ->
-                    View.Modal.toHtml CloseModal model.game modal
+                    View.Modal.toHtml CloseModal model.game modal model.level
 
                 Nothing ->
                     Layout.none
