@@ -1,6 +1,5 @@
 module Data.Tile exposing (..)
 
-import AnyBag
 import Config
 import Data.Actor exposing (Actor(..))
 import Data.Block exposing (Block)
@@ -9,6 +8,7 @@ import Data.Floor exposing (Floor)
 import Data.Game exposing (Game)
 import Data.Item exposing (Item)
 import Data.Player exposing (Player)
+import Data.Storage
 import Dict
 import View.Color
 
@@ -128,7 +128,7 @@ fromActor actor =
     case actor of
         Data.Actor.Minecart wagon ->
             { color =
-                if AnyBag.size wagon.items == Config.wagonMaxItems then
+                if Data.Storage.isFull wagon.storage then
                     View.Color.black
 
                 else
@@ -137,10 +137,10 @@ fromActor actor =
             }
                 |> new
                 |> (\it ->
-                        if AnyBag.size wagon.items == 0 then
+                        if Data.Storage.isEmpty wagon.storage then
                             it
 
-                        else if AnyBag.size wagon.items == Config.wagonMaxItems then
+                        else if Data.Storage.isFull wagon.storage then
                             it |> withAnimation |> withBold
 
                         else

@@ -8,6 +8,7 @@ import Data.Entity exposing (Entity(..))
 import Data.Floor exposing (Floor)
 import Data.Game exposing (Game)
 import Data.Item
+import Data.Storage
 import Data.Train
 import Dict
 
@@ -151,8 +152,8 @@ fromActor actor =
                         ++ " items. You can also push it along."
                 }
                 |> withContent
-                    (wagon.items
-                        |> AnyBag.toAssociationList
+                    (wagon.storage
+                        |> Data.Storage.toList
                         |> List.map (\( k, n ) -> String.fromInt n ++ "x " ++ k)
                     )
 

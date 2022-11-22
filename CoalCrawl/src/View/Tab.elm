@@ -11,6 +11,7 @@ import Data.Game exposing (Game)
 import Data.Info
 import Data.Item exposing (Item)
 import Data.Minecart
+import Data.Storage
 import Data.World
 import Html exposing (Html)
 import Html.Attributes as Attr
@@ -159,7 +160,7 @@ sidebar args game =
                                                 Data.Block.EntityBlock (Data.Entity.Actor id) ->
                                                     case game.world |> Data.World.getActor id of
                                                         Just ( _, Data.Actor.Minecart wagon ) ->
-                                                            if AnyBag.isEmpty wagon.items then
+                                                            if Data.Storage.isEmpty wagon.storage then
                                                                 "Destroy"
                                                                     |> View.Button.toHtml (Just args.destroyBlock)
                                                                     |> List.singleton

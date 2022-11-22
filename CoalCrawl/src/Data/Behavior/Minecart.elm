@@ -1,6 +1,5 @@
 module Data.Behavior.Minecart exposing (..)
 
-import AnyBag
 import Data.Actor exposing (Actor(..))
 import Data.Block
 import Data.Effect exposing (Effect)
@@ -10,6 +9,7 @@ import Data.Game exposing (Game)
 import Data.Minecart exposing (Minecart)
 import Data.Position
 import Data.Sound
+import Data.Storage
 import Data.Train
 import Data.World exposing (World)
 import Dict
@@ -97,15 +97,15 @@ moveOnGround args ( pos, id, wagon ) world =
                                         world
                                             |> Data.World.updateActor id0
                                                 (\_ ->
-                                                    w0
-                                                        |> Data.Minecart.load wagon.items
+                                                    wagon.storage
+                                                        |> Data.Minecart.setStorageOf w0
                                                         |> Data.Minecart.moveFrom pos
                                                         |> Data.Actor.Minecart
                                                 )
                                             |> Data.World.updateActor id
                                                 (\_ ->
-                                                    wagon
-                                                        |> Data.Minecart.load w0.items
+                                                    w0.storage
+                                                        |> Data.Minecart.setStorageOf wagon
                                                         |> Data.Minecart.stop
                                                         |> Data.Actor.Minecart
                                                 )
@@ -201,16 +201,19 @@ unload id game =
         Just ( pos, Data.Actor.Minecart wagon ) ->
             if
                 List.member game.train.pos (Data.Position.neighbors pos)
-                    && (AnyBag.size wagon.items > 0)
+                    && (Data.Storage.isEmpty wagon.storage |> not)
             then
-                ( { game
-                    | train = Data.Train.addAll wagon.items game.train
-                    , world =
-                        game.world
-                            |> Data.World.updateActor id (\_ -> Data.Actor.Minecart (Data.Minecart.unload wagon))
-                  }
-                , [ Data.Effect.PlaySound Data.Sound.Unload ]
-                )
+                Data.Minecart.unload wagon
+                    |> (\( m, anyBag ) ->
+                            ( { game
+                                | train = Data.Train.addAll anyBag game.train
+                                , world =
+                                    game.world
+                                        |> Data.World.updateActor id (\_ -> Data.Actor.Minecart m)
+                              }
+                            , [ Data.Effect.PlaySound Data.Sound.Unload ]
+                            )
+                       )
 
             else
                 ( game, [] )

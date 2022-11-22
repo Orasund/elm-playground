@@ -122,7 +122,7 @@ collideWith ( newPos, entity ) game =
                                     | train =
                                         game.train
                                             |> Data.Train.addAll
-                                                (wagon.items
+                                                (wagon.storage.items
                                                     |> AnyBag.insert Config.wagonCost Data.Item.Iron
                                                 )
                                     , world = game.world |> Data.World.removeEntity newPos

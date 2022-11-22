@@ -7225,12 +7225,6 @@ var $author$project$Data$Minecart$moveFrom = F2(
 				movedFrom: $elm$core$Maybe$Just(movedFrom)
 			});
 	});
-var $author$project$Data$Minecart$load = F2(
-	function (items, wagon) {
-		return _Utils_update(
-			wagon,
-			{items: items});
-	});
 var $author$project$Data$Sound$PickUp = {$: 'PickUp'};
 var $JohnBugner$elm_bag$Bag$dict = function (_v0) {
 	var d = _v0.a;
@@ -7280,22 +7274,36 @@ var $JohnBugner$elm_bag$Bag$size = A2(
 var $author$project$AnyBag$size = function (bag) {
 	return $JohnBugner$elm_bag$Bag$size(bag.content);
 };
-var $author$project$Config$wagonMaxItems = 10;
-var $author$project$Data$Minecart$isFull = function (wagon) {
-	return _Utils_cmp(
-		$author$project$AnyBag$size(wagon.items),
-		$author$project$Config$wagonMaxItems) > -1;
+var $author$project$Data$Storage$isFull = function (storage) {
+	return _Utils_eq(
+		$author$project$AnyBag$size(storage.items),
+		storage.maxAmount);
 };
+var $author$project$Data$Storage$insert = F2(
+	function (item, storage) {
+		return $author$project$Data$Storage$isFull(storage) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(
+			_Utils_update(
+				storage,
+				{
+					items: A3($author$project$AnyBag$insert, 1, item, storage.items)
+				}));
+	});
+var $author$project$Data$Minecart$setStorageOf = F2(
+	function (minecart, storage) {
+		return _Utils_update(
+			minecart,
+			{storage: storage});
+	});
 var $author$project$Data$Minecart$insert = F2(
-	function (item, wagon) {
-		return $author$project$Data$Minecart$isFull(wagon) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(
-			_Utils_Tuple2(
-				_Utils_update(
-					wagon,
-					{
-						items: A3($author$project$AnyBag$insert, 1, item, wagon.items)
-					}),
-				$author$project$Data$Sound$PickUp));
+	function (item, minecart) {
+		return A2(
+			$elm$core$Maybe$map,
+			function (storage) {
+				return _Utils_Tuple2(
+					A2($author$project$Data$Minecart$setStorageOf, minecart, storage),
+					$author$project$Data$Sound$PickUp);
+			},
+			A2($author$project$Data$Storage$insert, item, minecart.storage));
 	});
 var $author$project$Data$Position$neighbors = function (_v0) {
 	var x = _v0.a;
@@ -7443,7 +7451,7 @@ var $author$project$Data$Behavior$Minecart$moveOnGround = F3(
 												function (_v9) {
 													return $author$project$Data$Actor$Minecart(
 														$author$project$Data$Minecart$stop(
-															A2($author$project$Data$Minecart$load, w0.items, wagon)));
+															A2($author$project$Data$Minecart$setStorageOf, wagon, w0.storage)));
 												},
 												A3(
 													$author$project$Data$World$updateActor,
@@ -7453,7 +7461,7 @@ var $author$project$Data$Behavior$Minecart$moveOnGround = F3(
 															A2(
 																$author$project$Data$Minecart$moveFrom,
 																pos,
-																A2($author$project$Data$Minecart$load, wagon.items, w0)));
+																A2($author$project$Data$Minecart$setStorageOf, w0, wagon.storage)));
 													},
 													world));
 										} else {
@@ -8037,6 +8045,23 @@ var $author$project$Data$World$getActorAt = F2(
 			},
 			A2($elm$core$Dict$get, pos, world.entities));
 	});
+var $elm$core$Dict$isEmpty = function (dict) {
+	if (dict.$ === 'RBEmpty_elm_builtin') {
+		return true;
+	} else {
+		return false;
+	}
+};
+var $JohnBugner$elm_bag$Bag$isEmpty = function (b) {
+	return $elm$core$Dict$isEmpty(
+		$JohnBugner$elm_bag$Bag$dict(b));
+};
+var $author$project$AnyBag$isEmpty = function (anyBag) {
+	return $JohnBugner$elm_bag$Bag$isEmpty(anyBag.content);
+};
+var $author$project$Data$Storage$isEmpty = function (storage) {
+	return $author$project$AnyBag$isEmpty(storage.items);
+};
 var $elm$core$List$any = F2(
 	function (isOkay, list) {
 		any:
@@ -8067,12 +8092,21 @@ var $elm$core$List$member = F2(
 			},
 			xs);
 	});
-var $author$project$Data$Minecart$unload = function (wagon) {
-	return _Utils_update(
-		wagon,
-		{
-			items: $author$project$AnyBag$empty($author$project$Data$Item$toString)
-		});
+var $elm$core$Basics$not = _Basics_not;
+var $author$project$Data$Storage$unload = function (storage) {
+	return _Utils_Tuple2(
+		_Utils_update(
+			storage,
+			{
+				items: $author$project$AnyBag$empty($author$project$Data$Item$toString)
+			}),
+		storage.items);
+};
+var $author$project$Data$Minecart$unload = function (minecart) {
+	return A2(
+		$elm$core$Tuple$mapFirst,
+		$author$project$Data$Minecart$setStorageOf(minecart),
+		$author$project$Data$Storage$unload(minecart.storage));
 };
 var $author$project$Data$Behavior$Minecart$unload = F2(
 	function (id, game) {
@@ -8084,24 +8118,28 @@ var $author$project$Data$Behavior$Minecart$unload = F2(
 			return (A2(
 				$elm$core$List$member,
 				game.train.pos,
-				$author$project$Data$Position$neighbors(pos)) && ($author$project$AnyBag$size(wagon.items) > 0)) ? _Utils_Tuple2(
-				_Utils_update(
-					game,
-					{
-						train: A2($author$project$Data$Train$addAll, wagon.items, game.train),
-						world: A3(
-							$author$project$Data$World$updateActor,
-							id,
-							function (_v2) {
-								return $author$project$Data$Actor$Minecart(
-									$author$project$Data$Minecart$unload(wagon));
-							},
-							game.world)
-					}),
-				_List_fromArray(
-					[
-						$author$project$Data$Effect$PlaySound($author$project$Data$Sound$Unload)
-					])) : _Utils_Tuple2(game, _List_Nil);
+				$author$project$Data$Position$neighbors(pos)) && (!$author$project$Data$Storage$isEmpty(wagon.storage))) ? function (_v2) {
+				var m = _v2.a;
+				var anyBag = _v2.b;
+				return _Utils_Tuple2(
+					_Utils_update(
+						game,
+						{
+							train: A2($author$project$Data$Train$addAll, anyBag, game.train),
+							world: A3(
+								$author$project$Data$World$updateActor,
+								id,
+								function (_v3) {
+									return $author$project$Data$Actor$Minecart(m);
+								},
+								game.world)
+						}),
+					_List_fromArray(
+						[
+							$author$project$Data$Effect$PlaySound($author$project$Data$Sound$Unload)
+						]));
+			}(
+				$author$project$Data$Minecart$unload(wagon)) : _Utils_Tuple2(game, _List_Nil);
 		} else {
 			return _Utils_Tuple2(game, _List_Nil);
 		}
@@ -8521,7 +8559,7 @@ var $author$project$Data$Behavior$Train$collideWith = F2(
 											{
 												train: A2(
 													$author$project$Data$Train$addAll,
-													A3($author$project$AnyBag$insert, $author$project$Config$wagonCost, $author$project$Data$Item$Iron, wagon.items),
+													A3($author$project$AnyBag$insert, $author$project$Config$wagonCost, $author$project$Data$Item$Iron, wagon.storage.items),
 													game.train),
 												world: A2($author$project$Data$World$removeEntity, newPos, game.world)
 											}))));
@@ -8979,9 +9017,16 @@ var $author$project$Data$Effect$genWithNone = $elm$random$Random$map(
 	function (a) {
 		return _Utils_Tuple2(a, _List_Nil);
 	});
+var $author$project$Data$Storage$empty = function (maxAmount) {
+	return {
+		items: $author$project$AnyBag$empty($author$project$Data$Item$toString),
+		maxAmount: maxAmount
+	};
+};
+var $author$project$Config$wagonMaxItems = 10;
 var $author$project$Data$Minecart$emptyWagon = {
-	items: $author$project$AnyBag$empty($author$project$Data$Item$toString),
-	movedFrom: $elm$core$Maybe$Nothing
+	movedFrom: $elm$core$Maybe$Nothing,
+	storage: $author$project$Data$Storage$empty($author$project$Config$wagonMaxItems)
 };
 var $JohnBugner$elm_bag$Bag$fromAssociationList = A2(
 	$elm$core$List$foldl,
@@ -9002,17 +9047,25 @@ var $author$project$AnyBag$fromAssociationList = F2(
 			encode: encode
 		};
 	});
+var $author$project$Data$Storage$full = F2(
+	function (maxAmount, item) {
+		return {
+			items: A2(
+				$author$project$AnyBag$fromAssociationList,
+				$author$project$Data$Item$toString,
+				_List_fromArray(
+					[
+						_Utils_Tuple2(item, maxAmount)
+					])),
+			maxAmount: maxAmount
+		};
+	});
 var $author$project$Data$Minecart$fullWagon = function (item) {
-	return A2(
-		$author$project$Data$Minecart$load,
-		A2(
-			$author$project$AnyBag$fromAssociationList,
-			$author$project$Data$Item$toString,
-			_List_fromArray(
-				[
-					_Utils_Tuple2(item, $author$project$Config$wagonMaxItems)
-				])),
-		$author$project$Data$Minecart$emptyWagon);
+	return _Utils_update(
+		$author$project$Data$Minecart$emptyWagon,
+		{
+			storage: A2($author$project$Data$Storage$full, $author$project$Config$wagonMaxItems, item)
+		});
 };
 var $author$project$Data$World$insertFloor = F2(
 	function (floor, pos) {
@@ -9207,7 +9260,6 @@ var $author$project$Data$Behavior$Excavator$mine = F2(
 			$elm$random$Random$constant(world),
 			$author$project$Data$Position$neighbors(pos));
 	});
-var $elm$core$Basics$not = _Basics_not;
 var $author$project$Data$Excavator$reverse = function (excavator) {
 	return A2(
 		$elm$core$Maybe$withDefault,
@@ -10462,6 +10514,9 @@ var $JohnBugner$elm_bag$Bag$toAssociationList = function (b) {
 var $author$project$AnyBag$toAssociationList = function (bag) {
 	return $JohnBugner$elm_bag$Bag$toAssociationList(bag.content);
 };
+var $author$project$Data$Storage$toList = function (storage) {
+	return $author$project$AnyBag$toAssociationList(storage.items);
+};
 var $author$project$Data$Info$withContent = F2(
 	function (content, info) {
 		return _Utils_update(
@@ -10481,7 +10536,7 @@ var $author$project$Data$Info$fromActor = function (actor) {
 						var n = _v1.b;
 						return $elm$core$String$fromInt(n) + ('x ' + k);
 					},
-					$author$project$AnyBag$toAssociationList(wagon.items)),
+					$author$project$Data$Storage$toList(wagon.storage)),
 				$author$project$Data$Info$new(
 					{
 						description: 'Can store up to ' + ($elm$core$String$fromInt($author$project$Config$wagonMaxItems) + ' items. You can also push it along.'),
@@ -10658,16 +10713,12 @@ var $author$project$Data$Tile$fromActor = function (actor) {
 		case 'Minecart':
 			var wagon = actor.a;
 			return function (it) {
-				return (!$author$project$AnyBag$size(wagon.items)) ? it : (_Utils_eq(
-					$author$project$AnyBag$size(wagon.items),
-					$author$project$Config$wagonMaxItems) ? $author$project$Data$Tile$withBold(
+				return $author$project$Data$Storage$isEmpty(wagon.storage) ? it : ($author$project$Data$Storage$isFull(wagon.storage) ? $author$project$Data$Tile$withBold(
 					$author$project$Data$Tile$withAnimation(it)) : $author$project$Data$Tile$withBold(it));
 			}(
 				$author$project$Data$Tile$new(
 					{
-						color: _Utils_eq(
-							$author$project$AnyBag$size(wagon.items),
-							$author$project$Config$wagonMaxItems) ? $author$project$View$Color$black : $author$project$View$Color$gray,
+						color: $author$project$Data$Storage$isFull(wagon.storage) ? $author$project$View$Color$black : $author$project$View$Color$gray,
 						content: _Utils_chr('M')
 					}));
 		case 'Excavator':
@@ -11080,20 +11131,6 @@ var $Orasund$elm_layout$Layout$heading3 = F2(
 			_List_fromArray(
 				[content]));
 	});
-var $elm$core$Dict$isEmpty = function (dict) {
-	if (dict.$ === 'RBEmpty_elm_builtin') {
-		return true;
-	} else {
-		return false;
-	}
-};
-var $JohnBugner$elm_bag$Bag$isEmpty = function (b) {
-	return $elm$core$Dict$isEmpty(
-		$JohnBugner$elm_bag$Bag$dict(b));
-};
-var $author$project$AnyBag$isEmpty = function (anyBag) {
-	return $JohnBugner$elm_bag$Bag$isEmpty(anyBag.content);
-};
 var $author$project$Data$Excavator$new = {
 	hasReversed: false,
 	items: $author$project$AnyBag$empty($author$project$Data$Item$toString),
@@ -11337,7 +11374,7 @@ var $author$project$View$Tab$sidebar = F2(
 																					if ((_v3.$ === 'Just') && (_v3.a.b.$ === 'Minecart')) {
 																						var _v4 = _v3.a;
 																						var wagon = _v4.b.a;
-																						return $author$project$AnyBag$isEmpty(wagon.items) ? $elm$core$List$singleton(
+																						return $author$project$Data$Storage$isEmpty(wagon.storage) ? $elm$core$List$singleton(
 																							A2(
 																								$author$project$View$Button$toHtml,
 																								$elm$core$Maybe$Just(args.destroyBlock),

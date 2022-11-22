@@ -4,40 +4,44 @@ import AnyBag exposing (AnyBag)
 import Config
 import Data.Item exposing (Item)
 import Data.Sound exposing (Sound)
+import Data.Storage exposing (Storage)
 
 
 type alias Minecart =
-    { items : AnyBag String Item
+    { storage : Storage
     , movedFrom : Maybe ( Int, Int )
     }
 
 
 emptyWagon : Minecart
 emptyWagon =
-    { items = AnyBag.empty Data.Item.toString
+    { storage = Data.Storage.empty Config.wagonMaxItems
     , movedFrom = Nothing
     }
 
 
 fullWagon : Item -> Minecart
 fullWagon item =
-    emptyWagon
-        |> load
-            ([ ( item, Config.wagonMaxItems ) ]
-                |> AnyBag.fromAssociationList Data.Item.toString
-            )
+    { emptyWagon
+        | storage = Data.Storage.full Config.wagonMaxItems item
+    }
+
+
+setStorageOf : Minecart -> Storage -> Minecart
+setStorageOf minecart storage =
+    { minecart | storage = storage }
 
 
 insert : Item -> Minecart -> Maybe ( Minecart, Sound )
-insert item wagon =
-    if isFull wagon then
-        Nothing
-
-    else
-        ( { wagon | items = AnyBag.insert 1 item wagon.items }
-        , Data.Sound.PickUp
-        )
-            |> Just
+insert item minecart =
+    minecart.storage
+        |> Data.Storage.insert item
+        |> Maybe.map
+            (\storage ->
+                ( setStorageOf minecart storage
+                , Data.Sound.PickUp
+                )
+            )
 
 
 moveFrom : ( Int, Int ) -> Minecart -> Minecart
@@ -52,14 +56,18 @@ stop wagon =
 
 isFull : Minecart -> Bool
 isFull wagon =
-    AnyBag.size wagon.items >= Config.wagonMaxItems
+    Data.Storage.isFull wagon.storage
 
 
-load : AnyBag String Item -> Minecart -> Minecart
-load items wagon =
-    { wagon | items = items }
+load : AnyBag String Item -> Minecart -> Maybe Minecart
+load items minecart =
+    minecart.storage
+        |> Data.Storage.load items
+        |> Maybe.map (setStorageOf minecart)
 
 
-unload : Minecart -> Minecart
-unload wagon =
-    { wagon | items = AnyBag.empty Data.Item.toString }
+unload : Minecart -> ( Minecart, AnyBag String Item )
+unload minecart =
+    minecart.storage
+        |> Data.Storage.unload
+        |> Tuple.mapFirst (setStorageOf minecart)
