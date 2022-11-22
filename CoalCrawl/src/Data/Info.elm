@@ -156,27 +156,9 @@ fromActor actor =
                         |> List.map (\( k, n ) -> String.fromInt n ++ "x " ++ k)
                     )
 
-        Data.Actor.Cave caveType ->
-            { title = cave caveType ++ " Cave"
-            , description = "Helper Block to generate caves"
-            }
-                |> new
-
-        Data.Actor.Path ->
-            { title = "Path"
-            , description = "Helper Block to generate paths"
-            }
-                |> new
-
-        Data.Actor.Mine ->
-            { title = "Mine"
-            , description = "Helper Block to generate mines"
-            }
-                |> new
-
-        Data.Actor.Falling item ->
-            { title = "Falling " ++ Data.Item.toString item
-            , description = "Helper Block to generate coal"
+        Data.Actor.Helper _ ->
+            { title = "Helper"
+            , description = "Helper Block used to generate content"
             }
                 |> new
 

@@ -18,7 +18,7 @@ act item pos world =
                 Random.andThen
                     (\w ->
                         Random.weighted ( 1, Data.World.insertEntity (Data.Entity.Vein item) )
-                            [ ( 1 / 2, Data.World.insertActor (Data.Actor.Falling item) ) ]
+                            [ ( 1 / 2, Data.World.insertActor (Data.Actor.Helper (Data.Actor.Falling item)) ) ]
                             |> Random.map (\fun -> w |> fun p)
                     )
             )

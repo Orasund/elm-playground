@@ -146,19 +146,10 @@ canMoveTo game p =
                 Just ( _, Data.Actor.Excavator _ ) ->
                     True
 
-                Just ( _, Data.Actor.Cave _ ) ->
-                    False
-
-                Just ( _, Data.Actor.Path ) ->
-                    False
-
-                Just ( _, Data.Actor.Mine ) ->
+                Just ( _, Data.Actor.Helper _ ) ->
                     False
 
                 Just ( _, Data.Actor.Bomb _ ) ->
-                    False
-
-                Just ( _, Data.Actor.Falling _ ) ->
                     False
 
                 Nothing ->
@@ -192,10 +183,11 @@ moveTowards targetPos game =
                 Just ( Data.Block.EntityBlock (Data.Entity.Actor id), _ ) ->
                     case game.world.actors |> Dict.get id |> Maybe.map Tuple.second of
                         Just (Data.Actor.Minecart wagon) ->
-                            game
+                            game.world
                                 |> Data.Behavior.Minecart.move { backPos = game.player.pos }
                                     id
                                     ( pos, wagon )
+                                |> Tuple.mapFirst (Data.Game.setWorldTo game)
                                 |> Tuple.mapFirst
                                     (\g ->
                                         { g | player = g.player |> Data.Player.moveTo pos }

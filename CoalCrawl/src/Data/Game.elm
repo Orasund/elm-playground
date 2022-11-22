@@ -156,3 +156,13 @@ new =
     , train = train |> Data.Train.fromPos
     , selected = player
     }
+
+
+setWorld : World -> Game -> Game
+setWorld world game =
+    { game | world = world }
+
+
+setWorldTo : Game -> World -> Game
+setWorldTo game world =
+    setWorld world game

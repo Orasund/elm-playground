@@ -145,16 +145,7 @@ collideWith ( newPos, entity ) game =
                                     |> returnGame
                                     |> Just
 
-                            Data.Actor.Cave _ ->
-                                Nothing
-
-                            Data.Actor.Mine ->
-                                Nothing
-
-                            Data.Actor.Falling _ ->
-                                Nothing
-
-                            Data.Actor.Path ->
+                            Data.Actor.Helper _ ->
                                 Nothing
 
                             Data.Actor.Bomb _ ->

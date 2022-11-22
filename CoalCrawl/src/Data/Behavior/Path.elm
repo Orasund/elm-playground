@@ -42,7 +42,7 @@ act pos world =
                                         (\rand ->
                                             if rand < 1 / 3 then
                                                 w
-                                                    |> Data.World.insertActor Data.Actor.Path p
+                                                    |> Data.World.insertActor (Data.Actor.Helper Data.Actor.Path) p
                                                     |> Random.constant
 
                                             else

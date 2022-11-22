@@ -60,37 +60,39 @@ actorsAct ( id, ( pos, actor ) ) game =
                 Nothing ->
                     Data.Effect.withNone game
 
-        Data.Actor.Cave caveType ->
-            game.world
-                |> Data.World.removeEntity pos
-                |> Data.World.Generation.exposedCave caveType pos
-                |> Random.map (\world -> { game | world = world })
-                |> Data.Effect.genWithNone
-
-        Data.Actor.Mine ->
-            game.world
-                |> Data.World.removeEntity pos
-                |> Data.World.Generation.mineGenerator pos
-                |> Random.map (\world -> { game | world = world })
-                |> Data.Effect.genWithNone
-
-        Data.Actor.Falling item ->
-            game.world
-                |> Data.Behavior.FallingCoal.act item pos
-                |> Random.map (\world -> { game | world = world })
-                |> Data.Effect.genWithNone
-
         Data.Actor.Bomb _ ->
             game.world
                 |> Data.Behavior.Bomb.timePassed id
                 |> Random.map (\world -> { game | world = world })
                 |> Data.Effect.genWithNone
 
-        Data.Actor.Path ->
-            game.world
-                |> Data.Behavior.Path.act pos
-                |> Random.map (\world -> { game | world = world })
-                |> Data.Effect.genWithNone
+        Data.Actor.Helper helper ->
+            case helper of
+                Data.Actor.Cave caveType ->
+                    game.world
+                        |> Data.World.removeEntity pos
+                        |> Data.World.Generation.exposedCave caveType pos
+                        |> Random.map (\world -> { game | world = world })
+                        |> Data.Effect.genWithNone
+
+                Data.Actor.Mine ->
+                    game.world
+                        |> Data.World.removeEntity pos
+                        |> Data.World.Generation.mineGenerator pos
+                        |> Random.map (\world -> { game | world = world })
+                        |> Data.Effect.genWithNone
+
+                Data.Actor.Falling item ->
+                    game.world
+                        |> Data.Behavior.FallingCoal.act item pos
+                        |> Random.map (\world -> { game | world = world })
+                        |> Data.Effect.genWithNone
+
+                Data.Actor.Path ->
+                    game.world
+                        |> Data.Behavior.Path.act pos
+                        |> Random.map (\world -> { game | world = world })
+                        |> Data.Effect.genWithNone
 
 
 promt : Game -> List Effect

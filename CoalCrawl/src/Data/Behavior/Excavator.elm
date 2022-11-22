@@ -1,6 +1,7 @@
 module Data.Behavior.Excavator exposing (..)
 
 import Data.Actor
+import Data.Behavior.Minecart
 import Data.Block
 import Data.Effect exposing (Effect)
 import Data.Entity
@@ -27,23 +28,46 @@ move ( pos, excavator ) id world =
                 in
                 case world |> Data.World.getBlock newPos of
                     Just (Data.Block.EntityBlock entity) ->
-                        case entity of
+                        (case entity of
                             Data.Entity.Vein _ ->
                                 world
                                     |> mine pos
                                     |> Random.map (Data.World.moveActorTo newPos id)
                                     |> Random.map (\w -> ( w, [ Data.Effect.PlaySound Data.Sound.Mine ] ))
+                                    |> Just
+
+                            Data.Entity.Actor id0 ->
+                                case world |> Data.World.getActor id0 of
+                                    Just ( _, Data.Actor.Minecart minecart ) ->
+                                        world
+                                            |> Data.Behavior.Minecart.move { backPos = pos }
+                                                id0
+                                                ( newPos, minecart )
+                                            |> Random.constant
+                                            |> Just
+
+                                    _ ->
+                                        Nothing
 
                             _ ->
-                                world
-                                    |> Data.World.updateActor id
-                                        (\_ ->
-                                            excavator
-                                                |> Data.Excavator.reverse
-                                                |> Data.Actor.Excavator
-                                        )
-                                    |> mine pos
-                                    |> Data.Effect.genWithNone
+                                Nothing
+                        )
+                            |> (\maybe ->
+                                    case maybe of
+                                        Just a ->
+                                            a
+
+                                        Nothing ->
+                                            world
+                                                |> Data.World.updateActor id
+                                                    (\_ ->
+                                                        excavator
+                                                            |> Data.Excavator.reverse
+                                                            |> Data.Actor.Excavator
+                                                    )
+                                                |> mine pos
+                                                |> Data.Effect.genWithNone
+                               )
 
                     Just (Data.Block.FloorBlock _) ->
                         world

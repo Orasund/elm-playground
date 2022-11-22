@@ -24,8 +24,9 @@ act args id game =
     (case game.world.actors |> Dict.get id of
         Just ( pos, Data.Actor.Minecart wagon ) ->
             if Data.World.getFloor pos game.world == Just Data.Floor.Track then
-                game
+                game.world
                     |> move args id ( pos, wagon )
+                    |> Tuple.mapFirst (Data.Game.setWorldTo game)
 
             else
                 ( game, [] )
@@ -40,8 +41,8 @@ act args id game =
            )
 
 
-move : { backPos : ( Int, Int ) } -> Int -> ( ( Int, Int ), Minecart ) -> Game -> ( Game, List Effect )
-move { backPos } id ( pos, wagon ) game =
+move : { backPos : ( Int, Int ) } -> Int -> ( ( Int, Int ), Minecart ) -> World -> ( World, List Effect )
+move { backPos } id ( pos, wagon ) world =
     let
         forwardPos =
             backPos
@@ -51,16 +52,16 @@ move { backPos } id ( pos, wagon ) game =
         positions =
             { backPos = backPos, forwardPos = forwardPos }
     in
-    (if Data.World.getFloor pos game.world == Just Data.Floor.Track then
-        game.world
+    (if Data.World.getFloor pos world == Just Data.Floor.Track then
+        world
             |> moveOnTrack positions ( pos, id, wagon )
 
      else
-        game.world
+        world
             |> moveOnGround positions ( pos, id, wagon )
     )
-        |> (\( world, p, effects ) ->
-                world
+        |> (\( world0, p, effects ) ->
+                ( world0
                     |> Data.World.moveActorTo p id
                     |> Data.World.updateActor id
                         (\actor ->
@@ -71,7 +72,8 @@ move { backPos } id ( pos, wagon ) game =
                                 _ ->
                                     actor
                         )
-                    |> (\w -> ( { game | world = w }, effects ))
+                , effects
+                )
            )
 
 

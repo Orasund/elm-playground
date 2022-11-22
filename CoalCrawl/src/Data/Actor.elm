@@ -12,17 +12,21 @@ type CaveType
     | LavaCave
 
 
-type Actor
-    = Minecart Minecart
-    | Cave CaveType
+type Helper
+    = Cave CaveType
     | Mine
-    | Bomb { explodesIn : Int }
     | Falling Item
     | Path
+
+
+type Actor
+    = Minecart Minecart
+    | Bomb { explodesIn : Int }
     | Excavator
         { momentum : Maybe ( Int, Int )
         , hasReversed : Bool
         }
+    | Helper Helper
 
 
 bomb : Actor

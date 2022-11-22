@@ -153,24 +153,10 @@ fromActor actor =
             }
                 |> new
 
-        Data.Actor.Cave _ ->
-            { color = View.Color.red, content = '#' }
+        Data.Actor.Helper _ ->
+            { color = View.Color.red, content = '?' }
                 |> new
                 |> withBold
-
-        Data.Actor.Mine ->
-            { color = View.Color.red, content = '#' }
-                |> new
-                |> withBold
-
-        Data.Actor.Falling _ ->
-            { color = View.Color.red, content = '%' }
-                |> new
-                |> withBold
-
-        Data.Actor.Path ->
-            { color = View.Color.red, content = '.' }
-                |> new
 
         Data.Actor.Bomb bomb ->
             { color = View.Color.red, content = 'b' }
