@@ -103,6 +103,9 @@ walkThroughWater pos game =
         Just ( FloorBlock _, _ ) ->
             forwardPos
 
+        Just ( EntityBlock Data.Entity.Lava, _ ) ->
+            forwardPos
+
         _ ->
             pos
                 |> Data.Position.neighbors
@@ -126,7 +129,6 @@ walkThroughWater pos game =
     )
         |> (\p ->
                 game.world
-                    |> Data.World.removeEntity pos
                     |> Data.World.insertEntityAt p Data.Entity.Water
            )
         |> (\world -> { game | world = world, player = game.player |> Data.Player.moveTo pos })
@@ -194,15 +196,16 @@ moveTowards targetPos game =
                                     )
                                 |> Random.constant
 
-                        Just (Data.Actor.Excavator _) ->
+                        Just (Data.Actor.Excavator excavator) ->
                             game.world
                                 |> Data.World.updateActor id
                                     (\_ ->
-                                        { momentum =
-                                            game.player.pos
-                                                |> Data.Position.vecTo pos
-                                                |> Just
-                                        , hasReversed = False
+                                        { excavator
+                                            | momentum =
+                                                game.player.pos
+                                                    |> Data.Position.vecTo pos
+                                                    |> Just
+                                            , hasReversed = False
                                         }
                                             |> Data.Actor.Excavator
                                     )

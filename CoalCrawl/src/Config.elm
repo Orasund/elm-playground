@@ -45,16 +45,16 @@ excavatorCost =
     2
 
 
-
---0
-
-
 tracksPerTrip =
     8
 
 
 wagonMaxItems =
     10
+
+
+excavatorMaxItems =
+    wagonMaxItems // 2
 
 
 trackCost =

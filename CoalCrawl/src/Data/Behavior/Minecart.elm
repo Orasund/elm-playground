@@ -152,7 +152,9 @@ moveOnTrack args ( pos, id, wagon ) world =
                 )
     of
         [ p ] ->
-            ( world, p, [] )
+            world
+                |> pickup pos id
+                |> (\( w, l ) -> ( w, p, l ))
 
         _ ->
             world

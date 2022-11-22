@@ -178,15 +178,21 @@ updateEntity pos fun world =
 -}
 get : ( Int, Int ) -> World -> Maybe ( Block, Maybe Item )
 get pos world =
-    let
-        items =
-            world.items
-                |> Dict.get pos
-                |> Maybe.andThen List.head
-    in
     world
         |> getBlock pos
-        |> Maybe.map (\block -> ( block, items ))
+        |> Maybe.map
+            (\block ->
+                ( block
+                , getItem pos world
+                )
+            )
+
+
+getItem : ( Int, Int ) -> World -> Maybe Item
+getItem pos world =
+    world.items
+        |> Dict.get pos
+        |> Maybe.andThen List.head
 
 
 getBlock : ( Int, Int ) -> World -> Maybe Block
@@ -231,6 +237,11 @@ getActor : Int -> World -> Maybe ( ( Int, Int ), Actor )
 getActor id world =
     world.actors
         |> Dict.get id
+
+
+setActor : Int -> Actor -> World -> World
+setActor id actor =
+    updateActor id (\_ -> actor)
 
 
 updateActor : Int -> (Actor -> Actor) -> World -> World

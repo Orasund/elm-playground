@@ -168,11 +168,16 @@ fromActor actor =
             }
                 |> new
 
-        Data.Actor.Excavator _ ->
+        Data.Actor.Excavator excavator ->
             { title = "Excavator"
             , description = "Mines and collect automatically"
             }
                 |> new
+                |> withContent
+                    (excavator.items
+                        |> AnyBag.toAssociationList
+                        |> List.map (\( k, n ) -> String.fromInt n ++ "x " ++ k)
+                    )
 
 
 fromBlock : Game -> Block -> Info

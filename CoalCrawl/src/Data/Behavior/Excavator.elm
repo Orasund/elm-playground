@@ -20,19 +20,29 @@ move :
     -> Generator ( World, List Effect )
 move ( pos, excavator ) id world =
     excavator.momentum
-        |> Maybe.map
+        |> Maybe.andThen
             (\momentum ->
                 let
                     newPos =
                         pos |> Data.Position.plus momentum
                 in
-                case world |> Data.World.getBlock newPos of
-                    Just (Data.Block.EntityBlock entity) ->
+                world
+                    |> Data.World.getBlock newPos
+                    |> Maybe.map
+                        (\block ->
+                            { newPos = newPos
+                            , block = block
+                            }
+                        )
+            )
+        |> Maybe.map
+            (\{ newPos, block } ->
+                case block of
+                    Data.Block.EntityBlock entity ->
                         (case entity of
                             Data.Entity.Vein _ ->
                                 world
                                     |> mine pos
-                                    |> Random.map (Data.World.moveActorTo newPos id)
                                     |> Random.map (\w -> ( w, [ Data.Effect.PlaySound Data.Sound.Mine ] ))
                                     |> Just
 
@@ -69,16 +79,38 @@ move ( pos, excavator ) id world =
                                                 |> Data.Effect.genWithNone
                                )
 
-                    Just (Data.Block.FloorBlock _) ->
+                    Data.Block.FloorBlock _ ->
                         world
                             |> mine pos
                             |> Random.map (Data.World.moveActorTo newPos id)
                             |> Data.Effect.genWithNone
-
-                    Nothing ->
-                        world |> Data.Effect.withNone
             )
+        |> Maybe.map (Data.Effect.map (\w -> ( collect ( pos, id, excavator ) w, [] )))
         |> Maybe.withDefault (Data.Effect.withNone world)
+
+
+collect : ( ( Int, Int ), Int, Excavator ) -> World -> World
+collect ( pos, id, e ) w =
+    pos
+        |> Data.Position.neighbors
+        |> List.foldl
+            (\p world ->
+                world
+                    |> Data.World.getItem p
+                    |> Maybe.andThen
+                        (\i ->
+                            e
+                                |> Data.Excavator.insertItem i
+                        )
+                    |> Maybe.map
+                        (\excavator ->
+                            world
+                                |> Data.World.setActor id (Data.Actor.Excavator excavator)
+                                |> Data.World.removeItem p
+                        )
+                    |> Maybe.withDefault world
+            )
+            w
 
 
 mine : ( Int, Int ) -> World -> Generator World
