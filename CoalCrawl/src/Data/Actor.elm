@@ -4,6 +4,7 @@ import Config
 import Data.Excavator exposing (Excavator)
 import Data.Item exposing (Item)
 import Data.Minecart exposing (Minecart)
+import Data.Train exposing (Train)
 
 
 type CaveType
@@ -25,7 +26,7 @@ type Actor
     | Bomb { explodesIn : Int }
     | Excavator Excavator
     | Helper Helper
-    | Train
+    | Train Train
 
 
 bomb : Actor

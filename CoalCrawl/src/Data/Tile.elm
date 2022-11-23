@@ -108,13 +108,13 @@ fromEntity game entity =
         Data.Entity.Actor id ->
             game.world.actors
                 |> Dict.get id
-                |> Maybe.map (\( _, actor ) -> fromActor game actor)
+                |> Maybe.map (\( _, actor ) -> fromActor actor)
                 |> Maybe.withDefault
                     (new { color = View.Color.red, content = '?' })
 
 
-fromActor : Game -> Actor -> Tile
-fromActor game actor =
+fromActor : Actor -> Tile
+fromActor actor =
     case actor of
         Data.Actor.Minecart wagon ->
             { color =
@@ -161,10 +161,10 @@ fromActor game actor =
                         identity
                    )
 
-        Data.Actor.Train ->
+        Data.Actor.Train train ->
             { color = View.Color.black, content = 'T' }
                 |> new
-                |> (if game.train.moving || game.train.tracks > 0 then
+                |> (if train.moving || train.tracks > 0 then
                         withBold
 
                     else

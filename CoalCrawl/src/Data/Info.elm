@@ -64,19 +64,23 @@ fromFloor floor =
 
 fromTrain : Game -> Info
 fromTrain game =
+    let
+        train =
+            game |> Data.Game.getTrain
+    in
     new
         { title = "Train"
         , description = ""
         }
         |> withContent
-            ((String.fromInt game.train.tracks ++ "x Tracks")
-                :: (game.train.items
+            ((String.fromInt train.tracks ++ "x Tracks")
+                :: (train.items
                         |> AnyBag.toAssociationList
                         |> List.map (\( k, n ) -> String.fromInt n ++ "x " ++ k)
                    )
             )
         |> withAdditionalInfo
-            [ "Needs " ++ String.fromInt (Data.Train.coalNeeded game.train) ++ " Coal to go back to HQ."
+            [ "Needs " ++ String.fromInt (Data.Train.coalNeeded train) ++ " Coal to go back to HQ."
             ]
 
 
@@ -174,11 +178,16 @@ fromActor actor =
                         |> List.map (\( k, n ) -> String.fromInt n ++ "x " ++ k)
                     )
 
-        Data.Actor.Train ->
-            new
-                { title = "Train"
-                , description = "Stores all your items. If it has tracks stored, it will place them and move forward. Needs coal to move. Will regularly fetch new tracks from above ground."
-                }
+        Data.Actor.Train train ->
+            { title = "Train"
+            , description = "Stores all your items. If it has tracks stored, it will place them and move forward. Needs coal to move. Will regularly fetch new tracks from above ground."
+            }
+                |> new
+                |> withContent
+                    (train.items
+                        |> AnyBag.toAssociationList
+                        |> List.map (\( k, n ) -> String.fromInt n ++ "x " ++ k)
+                    )
 
 
 fromBlock : Game -> Block -> Info

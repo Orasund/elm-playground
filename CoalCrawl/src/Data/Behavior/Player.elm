@@ -66,7 +66,7 @@ interactWith pos game =
                                                     Random.constant game
                                                         |> Random.map (\g -> ( g, [] ))
 
-                                                Data.Actor.Train ->
+                                                Data.Actor.Train _ ->
                                                     putIntoTrain game
                                                         |> Random.constant
 
@@ -154,7 +154,7 @@ canMoveTo game p =
                 Just ( _, Data.Actor.Bomb _ ) ->
                     False
 
-                Just ( _, Data.Actor.Train ) ->
+                Just ( _, Data.Actor.Train _ ) ->
                     True
 
                 Nothing ->
@@ -192,7 +192,7 @@ moveTowards targetPos game =
                                 |> Data.Behavior.Minecart.move { backPos = game.player.pos }
                                     id
                                     ( pos, wagon )
-                                |> Tuple.mapFirst (Data.Game.setWorldTo game)
+                                |> Tuple.mapFirst (Data.Game.setWorldOf game)
                                 |> Tuple.mapFirst
                                     (\g ->
                                         { g | player = g.player |> Data.Player.moveTo pos }
@@ -317,8 +317,11 @@ putIntoTrain game =
     Data.Player.dropItem game.player
         |> Maybe.map
             (\( player, item ) ->
-                { game | player = player }
-                    |> (\g -> { g | train = g.train |> Data.Train.addItem item })
+                game
+                    |> Data.Game.getTrain
+                    |> Data.Train.addItem item
+                    |> Data.Game.setTrainOf game
+                    |> (\g -> { g | player = player })
                     |> (\g -> ( g, [ Data.Effect.PlaySound Data.Sound.Unload ] ))
             )
         |> Maybe.withDefault ( game, [] )

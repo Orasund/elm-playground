@@ -151,6 +151,10 @@ init () =
 
 view : Model -> Document Msg
 view model =
+    let
+        train =
+            model.game |> Data.Game.getTrain
+    in
     { title = "⛏Coal Crawl"
     , body =
         [ Html.node "link"
@@ -224,8 +228,8 @@ view model =
                     , ( [ Attr.style "top" "8px"
                         , Attr.style "right" "8px"
                         ]
-                      , [ (( "Tracks", model.game.train.tracks )
-                            :: (model.game.train.items
+                      , [ (( "Tracks", train.tracks )
+                            :: (train.items
                                     |> AnyBag.toAssociationList
                                )
                             |> List.map (\( k, n ) -> String.fromInt n ++ "x " ++ k)
@@ -234,8 +238,8 @@ view model =
                             |> Html.text
                             |> Layout.el []
                         , "Needs "
-                            ++ (Data.Train.coalNeeded model.game.train
-                                    - AnyBag.count Data.Item.Coal model.game.train.items
+                            ++ (Data.Train.coalNeeded train
+                                    - AnyBag.count Data.Item.Coal train.items
                                     |> String.fromInt
                                )
                             ++ " for the next Level"

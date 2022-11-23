@@ -94,18 +94,22 @@ actorsAct ( id, ( pos, actor ) ) game =
                         |> Random.map (\world -> { game | world = world })
                         |> Data.Effect.genWithNone
 
-        Data.Actor.Train ->
+        Data.Actor.Train _ ->
             Data.Effect.withNone game
 
 
 promt : Game -> List Effect
 promt game =
-    if AnyBag.count Data.Item.Iron game.train.items >= Config.wagonCost then
+    let
+        train =
+            game |> Data.Game.getTrain
+    in
+    if AnyBag.count Data.Item.Iron train.items >= Config.wagonCost then
         "You can build a wagon (W) when standing on an empty ground"
             |> Data.Effect.ShowPromt
             |> List.singleton
 
-    else if not (AnyBag.member Data.Item.Coal game.train.items) then
+    else if not (AnyBag.member Data.Item.Coal train.items) then
         "Put coal (C) into the Train (T)"
             |> Data.Effect.ShowPromt
             |> List.singleton

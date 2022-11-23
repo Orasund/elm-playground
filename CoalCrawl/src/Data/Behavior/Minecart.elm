@@ -26,7 +26,7 @@ act args id game =
             if Data.World.getFloor pos game.world == Just Data.Floor.Track then
                 game.world
                     |> move args id ( pos, wagon )
-                    |> Tuple.mapFirst (Data.Game.setWorldTo game)
+                    |> Tuple.mapFirst (Data.Game.setWorldOf game)
 
             else
                 ( game, [] )
@@ -200,17 +200,22 @@ unload id game =
     case game.world.actors |> Dict.get id of
         Just ( pos, Data.Actor.Minecart wagon ) ->
             if
-                List.member game.train.pos (Data.Position.neighbors pos)
+                List.member (game |> Data.Game.getTrain |> .pos) (Data.Position.neighbors pos)
                     && (Data.Storage.isEmpty wagon.storage |> not)
             then
                 Data.Minecart.unload wagon
                     |> (\( m, anyBag ) ->
-                            ( { game
-                                | train = Data.Train.addAll anyBag game.train
-                                , world =
-                                    game.world
-                                        |> Data.World.updateActor id (\_ -> Data.Actor.Minecart m)
-                              }
+                            ( game
+                                |> Data.Game.getTrain
+                                |> Data.Train.addAll anyBag
+                                |> Data.Game.setTrainOf game
+                                |> (\g ->
+                                        { g
+                                            | world =
+                                                g.world
+                                                    |> Data.World.updateActor id (\_ -> Data.Actor.Minecart m)
+                                        }
+                                   )
                             , [ Data.Effect.PlaySound Data.Sound.Unload ]
                             )
                        )

@@ -51,7 +51,9 @@ buildButton game args =
             args.cost
 
         gotAmount =
-            game.train.items
+            game
+                |> Data.Game.getTrain
+                |> .items
                 |> AnyBag.count item
     in
     [ Html.text args.build

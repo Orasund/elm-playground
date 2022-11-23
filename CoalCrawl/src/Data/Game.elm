@@ -9,15 +9,44 @@ import Data.Floor
 import Data.Item exposing (Item)
 import Data.Player exposing (Player)
 import Data.Train exposing (Train)
-import Data.World exposing (World)
+import Data.World exposing (World, setActor)
 
 
 type alias Game =
     { world : World
     , player : Player
-    , train : Train
+    , trainId : Int
     , selected : ( Int, Int )
     }
+
+
+getTrain : Game -> Train
+getTrain game =
+    case game.world |> Data.World.getActor game.trainId of
+        Just ( _, Data.Actor.Train train ) ->
+            train
+
+        _ ->
+            Data.Train.fromPos ( 0, 0 )
+
+
+setTrain : Train -> Game -> Game
+setTrain train game =
+    { game
+        | world =
+            game.world
+                |> setActor game.trainId (Data.Actor.Train train)
+    }
+
+
+setTrainOf : Game -> Train -> Game
+setTrainOf game train =
+    setTrain train game
+
+
+setWorldOf : Game -> World -> Game
+setWorldOf game world =
+    setWorld world game
 
 
 select : ( Int, Int ) -> Game -> Game
@@ -39,14 +68,15 @@ buildBlock pos ( item, cost ) block game =
             EntityBlock _ ->
                 Data.World.isFloor pos game.world
     then
-        game.train
+        game
+            |> getTrain
             |> Data.Train.removeItem cost item
             |> Maybe.map
                 (\train ->
                     { game
                         | world = game.world |> Data.World.insert pos block
-                        , train = train
                     }
+                        |> setTrain train
                 )
             |> Maybe.withDefault game
 
@@ -57,14 +87,15 @@ buildBlock pos ( item, cost ) block game =
 buildActor : ( Int, Int ) -> ( Item, Int ) -> Actor -> Game -> Game
 buildActor pos ( item, cost ) actor game =
     if Data.World.isFloor pos game.world then
-        game.train
+        game
+            |> getTrain
             |> Data.Train.removeItem cost item
             |> Maybe.map
                 (\train ->
                     { game
                         | world = game.world |> Data.World.insertActorAt pos actor
-                        , train = train
                     }
+                        |> setTrain train
                 )
             |> Maybe.withDefault game
 
@@ -80,17 +111,20 @@ destroyBlock game =
                 Data.Entity.Actor id ->
                     case game.world |> Data.World.getActor id of
                         Just ( _, Data.Actor.Minecart _ ) ->
-                            { game
-                                | train =
-                                    game.train
-                                        |> Data.Train.addAll
-                                            (AnyBag.fromAssociationList Data.Item.toString
-                                                [ ( Data.Item.Iron, Config.wagonCost ) ]
-                                            )
-                                , world =
-                                    game.world
-                                        |> Data.World.removeEntity game.selected
-                            }
+                            game
+                                |> getTrain
+                                |> Data.Train.addAll
+                                    (AnyBag.fromAssociationList Data.Item.toString
+                                        [ ( Data.Item.Iron, Config.wagonCost ) ]
+                                    )
+                                |> (\train -> game |> setTrain train)
+                                |> (\g ->
+                                        { g
+                                            | world =
+                                                game.world
+                                                    |> Data.World.removeEntity game.selected
+                                        }
+                                   )
 
                         _ ->
                             game.world
@@ -151,9 +185,9 @@ new =
             ++ walls
             ++ (coals |> List.map (\pos -> ( pos, Data.Entity.Vein Data.Item.Coal |> Data.Block.EntityBlock )))
             |> Data.World.fromList
-            |> Data.World.insertActor Data.Actor.Train train
+            |> Data.World.insertActor (Data.Actor.Train (train |> Data.Train.fromPos)) train
     , player = player |> Data.Player.fromPos
-    , train = train |> Data.Train.fromPos
+    , trainId = 0
     , selected = player
     }
 
@@ -161,8 +195,3 @@ new =
 setWorld : World -> Game -> Game
 setWorld world game =
     { game | world = world }
-
-
-setWorldTo : Game -> World -> Game
-setWorldTo game world =
-    setWorld world game

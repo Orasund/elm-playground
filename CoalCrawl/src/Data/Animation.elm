@@ -54,9 +54,9 @@ tutorial =
                     |> Data.World.insertItem Data.Item.Coal ( 1, 0 )
                     |> Data.World.insertItem Data.Item.Coal ( 0, 1 )
                     |> Data.World.insertItem Data.Item.Coal ( 1, 2 )
-                    |> Data.World.insertActor Data.Actor.Train train
+                    |> Data.World.insertActor (Data.Actor.Train (Data.Train.fromPos train)) train
             , player = Data.Player.fromPos player
-            , train = Data.Train.fromPos train
+            , trainId = 0
             , selected = player
             }
 
@@ -119,16 +119,17 @@ animate =
         player =
             ( 2, 1 )
 
+        initGame : Game
         initGame =
             { world =
                 emptyWorld { width = width, height = height }
                     |> Data.World.insertItem Data.Item.Coal ( 1, 0 )
                     |> Data.World.insertItem Data.Item.Coal ( 0, 1 )
                     |> Data.World.insertItem Data.Item.Coal ( 1, 2 )
-                    |> Data.World.insertActor Data.Actor.Train train
+                    |> Data.World.insertActor (Data.Actor.Train (Data.Train.fromPos train)) train
                     |> Data.World.insertActor (Data.Actor.Minecart Data.Minecart.emptyWagon) wagon
             , player = Data.Player.fromPos player
-            , train = Data.Train.fromPos train
+            , trainId = 0
             , selected = player
             }
 

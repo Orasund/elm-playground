@@ -39,7 +39,9 @@ toHtml closeModal game modal level =
             |> Html.text
             |> Layout.heading2 [ Layout.contentCentered ]
         , "Items collected sofar: "
-            ++ (game.train.items
+            ++ (game
+                    |> Data.Game.getTrain
+                    |> .items
                     |> AnyBag.toAssociationList
                     |> List.map (\( k, n ) -> String.fromInt n ++ "x " ++ k)
                     |> String.join ", "
