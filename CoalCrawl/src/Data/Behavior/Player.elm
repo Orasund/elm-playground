@@ -129,6 +129,7 @@ walkThroughWater pos game =
     )
         |> (\p ->
                 game.world
+                    |> Data.World.removeEntity pos
                     |> Data.World.insertEntityAt p Data.Entity.Water
            )
         |> (\world -> { game | world = world, player = game.player |> Data.Player.moveTo pos })

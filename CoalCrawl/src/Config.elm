@@ -42,7 +42,7 @@ wagonCost =
 
 
 excavatorCost =
-    2
+    16
 
 
 tracksPerTrip =

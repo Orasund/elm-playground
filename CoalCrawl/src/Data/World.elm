@@ -8,6 +8,7 @@ import Data.Floor exposing (Floor)
 import Data.Item exposing (Item)
 import Data.Minecart
 import Data.Storage
+import Data.Train
 import Dict exposing (Dict)
 
 
@@ -266,6 +267,13 @@ load pos bag world =
                                                 |> Data.Actor.Minecart
                                             )
                                 )
+
+                    Data.Actor.Train train ->
+                        train
+                            |> Data.Train.addAll bag
+                            |> Data.Actor.Train
+                            |> (\a -> setActor id a world)
+                            |> Just
 
                     _ ->
                         Nothing
