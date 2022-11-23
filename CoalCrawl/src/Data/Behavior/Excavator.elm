@@ -52,7 +52,15 @@ move ( pos, excavator ) id world =
                                         world
                                             |> Data.Behavior.Minecart.move { backPos = pos }
                                                 id0
-                                                ( newPos, minecart )
+                                                ( newPos
+                                                , minecart
+                                                )
+                                            |> Tuple.mapFirst
+                                                (\w ->
+                                                    w
+                                                        |> Data.World.transfer { from = pos, to = newPos }
+                                                        |> Maybe.withDefault w
+                                                )
                                             |> Random.constant
                                             |> Just
 
@@ -85,7 +93,15 @@ move ( pos, excavator ) id world =
                             |> Random.map (Data.World.moveActorTo newPos id)
                             |> Data.Effect.genWithNone
             )
-        |> Maybe.map (Data.Effect.map (\w -> ( collect ( pos, id, excavator ) w, [] )))
+        |> Maybe.map
+            (Data.Effect.map
+                (\w ->
+                    ( w
+                        |> collect ( pos, id, excavator )
+                    , []
+                    )
+                )
+            )
         |> Maybe.withDefault (Data.Effect.withNone world)
 
 

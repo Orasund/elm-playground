@@ -1,10 +1,13 @@
 module Data.World exposing (..)
 
+import AnyBag exposing (AnyBag)
 import Data.Actor exposing (Actor)
 import Data.Block exposing (Block)
 import Data.Entity exposing (Entity)
 import Data.Floor exposing (Floor)
 import Data.Item exposing (Item)
+import Data.Minecart
+import Data.Storage
 import Dict exposing (Dict)
 
 
@@ -242,6 +245,66 @@ getActor id world =
 setActor : Int -> Actor -> World -> World
 setActor id actor =
     updateActor id (\_ -> actor)
+
+
+load : ( Int, Int ) -> AnyBag String Item -> World -> Maybe World
+load pos bag world =
+    world
+        |> getActorAt pos
+        |> Maybe.andThen
+            (\( id, actor ) ->
+                case actor of
+                    Data.Actor.Minecart minecart ->
+                        minecart.storage
+                            |> Data.Storage.load bag
+                            |> Maybe.map
+                                (\storage ->
+                                    world
+                                        |> setActor id
+                                            (storage
+                                                |> Data.Minecart.setStorageOf minecart
+                                                |> Data.Actor.Minecart
+                                            )
+                                )
+
+                    _ ->
+                        Nothing
+            )
+
+
+unload : ( Int, Int ) -> World -> Maybe ( World, AnyBag String Item )
+unload pos world =
+    world
+        |> getActorAt pos
+        |> Maybe.andThen
+            (\( id, actor ) ->
+                case actor of
+                    Data.Actor.Excavator excavator ->
+                        excavator.storage
+                            |> Data.Storage.unload
+                            |> Tuple.mapFirst
+                                (\storage ->
+                                    world
+                                        |> setActor id
+                                            ({ excavator | storage = storage }
+                                                |> Data.Actor.Excavator
+                                            )
+                                )
+                            |> Just
+
+                    _ ->
+                        Nothing
+            )
+
+
+transfer : { from : ( Int, Int ), to : ( Int, Int ) } -> World -> Maybe World
+transfer args w =
+    w
+        |> unload args.from
+        |> Maybe.andThen
+            (\( world, bag ) ->
+                world |> load args.to bag
+            )
 
 
 updateActor : Int -> (Actor -> Actor) -> World -> World

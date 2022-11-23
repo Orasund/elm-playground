@@ -1,13 +1,13 @@
 module Data.Excavator exposing (..)
 
-import AnyBag exposing (AnyBag)
 import Config
 import Data.Item exposing (Item)
+import Data.Storage exposing (Storage)
 
 
 type alias Excavator =
     { momentum : Maybe ( Int, Int )
-    , items : AnyBag String Item
+    , storage : Storage
     , hasReversed : Bool
     }
 
@@ -15,40 +15,16 @@ type alias Excavator =
 new : Excavator
 new =
     { momentum = Nothing
-    , items = AnyBag.empty Data.Item.toString
+    , storage = Data.Storage.empty Config.excavatorMaxItems
     , hasReversed = False
     }
 
 
 insertItem : Item -> Excavator -> Maybe Excavator
 insertItem item excavator =
-    if isFull excavator then
-        Nothing
-
-    else
-        { excavator
-            | items =
-                excavator.items
-                    |> AnyBag.insert 1 item
-        }
-            |> Just
-
-
-isFull : Excavator -> Bool
-isFull excavator =
-    AnyBag.size excavator.items == Config.excavatorMaxItems
-
-
-load : AnyBag String Item -> Excavator -> Excavator
-load items excavator =
-    { excavator | items = items }
-
-
-unload : Excavator -> ( Excavator, AnyBag String Item )
-unload excavator =
-    ( { excavator | items = AnyBag.empty Data.Item.toString }
-    , excavator.items
-    )
+    excavator.storage
+        |> Data.Storage.insert item
+        |> Maybe.map (\storage -> { excavator | storage = storage })
 
 
 reverse : Excavator -> Excavator

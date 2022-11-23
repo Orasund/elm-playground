@@ -55,8 +55,8 @@ isEmpty storage =
 
 load : AnyBag String Item -> Storage -> Maybe Storage
 load items storage =
-    if AnyBag.size items <= storage.maxAmount then
-        Just { storage | items = items }
+    if AnyBag.size items + AnyBag.size storage.items <= storage.maxAmount then
+        Just { storage | items = storage.items |> AnyBag.union items }
 
     else
         Nothing

@@ -175,8 +175,8 @@ fromActor actor =
             }
                 |> new
                 |> withContent
-                    (excavator.items
-                        |> AnyBag.toAssociationList
+                    (excavator.storage
+                        |> Data.Storage.toList
                         |> List.map (\( k, n ) -> String.fromInt n ++ "x " ++ k)
                     )
 
