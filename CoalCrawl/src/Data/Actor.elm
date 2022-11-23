@@ -25,6 +25,7 @@ type Actor
     | Bomb { explodesIn : Int }
     | Excavator Excavator
     | Helper Helper
+    | Train
 
 
 bomb : Actor

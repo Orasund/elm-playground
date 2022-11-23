@@ -94,6 +94,9 @@ actorsAct ( id, ( pos, actor ) ) game =
                         |> Random.map (\world -> { game | world = world })
                         |> Data.Effect.genWithNone
 
+        Data.Actor.Train ->
+            Data.Effect.withNone game
+
 
 promt : Game -> List Effect
 promt game =

@@ -4,7 +4,6 @@ import Array exposing (Array)
 import Data.Actor
 import Data.Behavior
 import Data.Block
-import Data.Entity
 import Data.Floor
 import Data.Game exposing (Game)
 import Data.Item
@@ -52,10 +51,10 @@ tutorial =
         initGame =
             { world =
                 emptyWorld { width = width, height = height }
-                    |> Data.World.insertEntity Data.Entity.Train train
                     |> Data.World.insertItem Data.Item.Coal ( 1, 0 )
                     |> Data.World.insertItem Data.Item.Coal ( 0, 1 )
                     |> Data.World.insertItem Data.Item.Coal ( 1, 2 )
+                    |> Data.World.insertActor Data.Actor.Train train
             , player = Data.Player.fromPos player
             , train = Data.Train.fromPos train
             , selected = player
@@ -123,10 +122,10 @@ animate =
         initGame =
             { world =
                 emptyWorld { width = width, height = height }
-                    |> Data.World.insertEntity Data.Entity.Train train
                     |> Data.World.insertItem Data.Item.Coal ( 1, 0 )
                     |> Data.World.insertItem Data.Item.Coal ( 0, 1 )
                     |> Data.World.insertItem Data.Item.Coal ( 1, 2 )
+                    |> Data.World.insertActor Data.Actor.Train train
                     |> Data.World.insertActor (Data.Actor.Minecart Data.Minecart.emptyWagon) wagon
             , player = Data.Player.fromPos player
             , train = Data.Train.fromPos train

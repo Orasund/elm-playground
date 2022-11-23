@@ -49,10 +49,6 @@ interactWith pos game =
 
                     Data.Block.EntityBlock entity ->
                         case entity of
-                            Data.Entity.Train ->
-                                putIntoTrain game
-                                    |> Random.constant
-
                             Data.Entity.Wall ->
                                 Random.constant game
                                     |> Random.map (\g -> ( g, [] ))
@@ -69,6 +65,10 @@ interactWith pos game =
                                                 Data.Actor.Excavator _ ->
                                                     Random.constant game
                                                         |> Random.map (\g -> ( g, [] ))
+
+                                                Data.Actor.Train ->
+                                                    putIntoTrain game
+                                                        |> Random.constant
 
                                                 _ ->
                                                     Random.constant game
@@ -153,6 +153,9 @@ canMoveTo game p =
 
                 Just ( _, Data.Actor.Bomb _ ) ->
                     False
+
+                Just ( _, Data.Actor.Train ) ->
+                    True
 
                 Nothing ->
                     False

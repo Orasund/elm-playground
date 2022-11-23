@@ -107,12 +107,6 @@ fromEntity game entity =
                 , description = "Gets removed if water gets moved into it."
                 }
 
-        Data.Entity.Train ->
-            new
-                { title = "Train"
-                , description = "Stores all your items. If it has tracks stored, it will place them and move forward. Needs coal to move. Will regularly fetch new tracks from above ground."
-                }
-
         Data.Entity.Actor id ->
             game.world.actors
                 |> Dict.get id
@@ -179,6 +173,12 @@ fromActor actor =
                         |> Data.Storage.toList
                         |> List.map (\( k, n ) -> String.fromInt n ++ "x " ++ k)
                     )
+
+        Data.Actor.Train ->
+            new
+                { title = "Train"
+                , description = "Stores all your items. If it has tracks stored, it will place them and move forward. Needs coal to move. Will regularly fetch new tracks from above ground."
+                }
 
 
 fromBlock : Game -> Block -> Info

@@ -105,26 +105,16 @@ fromEntity game entity =
         Data.Entity.Lava ->
             { color = View.Color.red, content = '~' } |> new
 
-        Data.Entity.Train ->
-            { color = View.Color.black, content = 'T' }
-                |> new
-                |> (if game.train.moving || game.train.tracks > 0 then
-                        withBold
-
-                    else
-                        identity
-                   )
-
         Data.Entity.Actor id ->
             game.world.actors
                 |> Dict.get id
-                |> Maybe.map (\( _, actor ) -> fromActor actor)
+                |> Maybe.map (\( _, actor ) -> fromActor game actor)
                 |> Maybe.withDefault
                     (new { color = View.Color.red, content = '?' })
 
 
-fromActor : Actor -> Tile
-fromActor actor =
+fromActor : Game -> Actor -> Tile
+fromActor game actor =
     case actor of
         Data.Actor.Minecart wagon ->
             { color =
@@ -165,6 +155,16 @@ fromActor actor =
                         (bomb.explodesIn > Config.bombExplosionTime // 2)
                             || (bomb.explodesIn < Config.bombExplosionTime && modBy 2 bomb.explodesIn == 0)
                     then
+                        withBold
+
+                    else
+                        identity
+                   )
+
+        Data.Actor.Train ->
+            { color = View.Color.black, content = 'T' }
+                |> new
+                |> (if game.train.moving || game.train.tracks > 0 then
                         withBold
 
                     else

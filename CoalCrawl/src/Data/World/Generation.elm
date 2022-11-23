@@ -21,16 +21,8 @@ mine ( x, y ) world =
                     [ item ]
                         |> Just
 
-                Data.Entity.Train ->
+                Data.Entity.Actor _ ->
                     Nothing
-
-                Data.Entity.Actor id ->
-                    case world |> Data.World.getActor id |> Maybe.map Tuple.second of
-                        Just (Data.Actor.Minecart _) ->
-                            Nothing
-
-                        _ ->
-                            Nothing
 
                 _ ->
                     Just []

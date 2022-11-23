@@ -8,5 +8,4 @@ type Entity
     | Wall
     | Water
     | Lava
-    | Train
     | Actor Int

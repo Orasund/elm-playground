@@ -144,14 +144,14 @@ new =
             ]
     in
     { world =
-        [ ( train, Data.Block.EntityBlock Data.Entity.Train )
-        , ( train, Data.Block.FloorBlock Data.Floor.RailwayTrack )
+        [ ( train, Data.Block.FloorBlock Data.Floor.RailwayTrack )
         , ( player, Data.Block.FloorBlock Data.Floor.Ground )
         ]
             ++ tracks
             ++ walls
             ++ (coals |> List.map (\pos -> ( pos, Data.Entity.Vein Data.Item.Coal |> Data.Block.EntityBlock )))
             |> Data.World.fromList
+            |> Data.World.insertActor Data.Actor.Train train
     , player = player |> Data.Player.fromPos
     , train = train |> Data.Train.fromPos
     , selected = player

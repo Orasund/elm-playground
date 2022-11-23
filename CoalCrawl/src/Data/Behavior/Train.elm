@@ -148,6 +148,9 @@ collideWith ( newPos, entity ) game =
                             Data.Actor.Helper _ ->
                                 Nothing
 
+                            Data.Actor.Train ->
+                                Nothing
+
                             Data.Actor.Bomb _ ->
                                 Random.constant game
                                     |> returnGame
@@ -224,9 +227,20 @@ move game =
                     |> (\g -> { g | train = train })
                     |> (\g ->
                             g.world
-                                |> Data.World.removeEntity g.train.pos
-                                |> Data.World.insertEntityAt newPos Data.Entity.Train
-                                |> (\world -> { g | world = world })
+                                |> Data.World.getActorAt g.train.pos
+                                |> Maybe.andThen
+                                    (\( id, actor ) ->
+                                        case actor of
+                                            Data.Actor.Train ->
+                                                g.world
+                                                    |> Data.World.moveActorTo newPos id
+                                                    |> (\world -> { g | world = world })
+                                                    |> Just
+
+                                            _ ->
+                                                Nothing
+                                    )
+                                |> Maybe.withDefault g
                        )
                     |> (\g -> { g | train = g.train |> Data.Train.move })
             )
