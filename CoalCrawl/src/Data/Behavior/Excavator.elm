@@ -4,7 +4,7 @@ import Data.Actor
 import Data.Behavior.Minecart
 import Data.Block
 import Data.Effect exposing (Effect)
-import Data.Entity
+import Data.Entity exposing (Entity)
 import Data.Excavator exposing (Excavator)
 import Data.Position
 import Data.Sound
@@ -39,53 +39,9 @@ move ( pos, excavator ) id world =
             (\{ newPos, block } ->
                 case block of
                     Data.Block.EntityBlock entity ->
-                        (case entity of
-                            Data.Entity.Vein _ ->
-                                world
-                                    |> mine pos
-                                    |> Random.map (\w -> ( w, [ Data.Effect.PlaySound Data.Sound.Mine ] ))
-                                    |> Just
-
-                            Data.Entity.Actor id0 ->
-                                case world |> Data.World.getActor id0 of
-                                    Just ( _, Data.Actor.Minecart minecart ) ->
-                                        world
-                                            |> Data.Behavior.Minecart.move { backPos = pos }
-                                                id0
-                                                ( newPos
-                                                , minecart
-                                                )
-                                            |> Tuple.mapFirst
-                                                (\w ->
-                                                    w
-                                                        |> Data.World.transfer { from = pos, to = newPos }
-                                                        |> Maybe.withDefault w
-                                                )
-                                            |> Random.constant
-                                            |> Just
-
-                                    _ ->
-                                        Nothing
-
-                            _ ->
-                                Nothing
-                        )
-                            |> (\maybe ->
-                                    case maybe of
-                                        Just a ->
-                                            a
-
-                                        Nothing ->
-                                            world
-                                                |> Data.World.updateActor id
-                                                    (\_ ->
-                                                        excavator
-                                                            |> Data.Excavator.reverse
-                                                            |> Data.Actor.Excavator
-                                                    )
-                                                |> mine pos
-                                                |> Data.Effect.genWithNone
-                               )
+                        world
+                            |> collideWith ( newPos, entity )
+                                ( pos, id, excavator )
 
                     Data.Block.FloorBlock _ ->
                         world
@@ -103,6 +59,57 @@ move ( pos, excavator ) id world =
                 )
             )
         |> Maybe.withDefault (Data.Effect.withNone world)
+
+
+collideWith : ( ( Int, Int ), Entity ) -> ( ( Int, Int ), Int, Excavator ) -> World -> Generator ( World, List Effect )
+collideWith ( newPos, entity ) ( pos, id, excavator ) world =
+    (case entity of
+        Data.Entity.Vein _ ->
+            world
+                |> mine pos
+                |> Random.map (\w -> ( w, [ Data.Effect.PlaySound Data.Sound.Mine ] ))
+                |> Just
+
+        Data.Entity.Actor id0 ->
+            case world |> Data.World.getActor id0 of
+                Just ( _, Data.Actor.Minecart minecart ) ->
+                    world
+                        |> Data.Behavior.Minecart.move { backPos = pos }
+                            id0
+                            ( newPos
+                            , minecart
+                            )
+                        |> Tuple.mapFirst
+                            (\w ->
+                                w
+                                    |> Data.World.transfer { from = pos, to = newPos }
+                                    |> Maybe.withDefault w
+                            )
+                        |> Random.constant
+                        |> Just
+
+                _ ->
+                    Nothing
+
+        _ ->
+            Nothing
+    )
+        |> (\maybe ->
+                case maybe of
+                    Just a ->
+                        a
+
+                    Nothing ->
+                        world
+                            |> Data.World.updateActor id
+                                (\_ ->
+                                    excavator
+                                        |> Data.Excavator.reverse
+                                        |> Data.Actor.Excavator
+                                )
+                            |> mine pos
+                            |> Data.Effect.genWithNone
+           )
 
 
 collect : ( ( Int, Int ), Int, Excavator ) -> World -> World

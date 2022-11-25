@@ -1,6 +1,6 @@
 module Data.Actor exposing (..)
 
-import Config
+import Data.Bomb exposing (Bomb)
 import Data.Excavator exposing (Excavator)
 import Data.Item exposing (Item)
 import Data.Minecart exposing (Minecart)
@@ -23,12 +23,7 @@ type Helper
 
 type Actor
     = Minecart Minecart
-    | Bomb { explodesIn : Int }
+    | Bomb Bomb
     | Excavator Excavator
     | Helper Helper
     | Train Train
-
-
-bomb : Actor
-bomb =
-    Bomb { explodesIn = Config.bombExplosionTime }

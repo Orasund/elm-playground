@@ -4,6 +4,7 @@ import AnyBag
 import Config
 import Data.Actor exposing (Actor)
 import Data.Block exposing (Block)
+import Data.Bomb
 import Data.Entity
 import Data.Excavator
 import Data.Floor
@@ -195,7 +196,7 @@ sidebar args game =
                             , cost = ( Data.Item.Iron, Config.excavatorCost )
                             }
                                 |> buildActorButton args.buildActor
-                          , { actor = Data.Actor.bomb
+                          , { actor = Data.Actor.Bomb Data.Bomb.new
                             , cost = ( Data.Item.Gold, Config.bombCost )
                             }
                                 |> buildActorButton args.buildActor
