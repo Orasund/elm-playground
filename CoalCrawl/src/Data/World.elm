@@ -3,10 +3,12 @@ module Data.World exposing (..)
 import AnyBag exposing (AnyBag)
 import Data.Actor exposing (Actor)
 import Data.Block exposing (Block)
+import Data.Effect exposing (Effect)
 import Data.Entity exposing (Entity)
 import Data.Floor exposing (Floor)
 import Data.Item exposing (Item)
 import Data.Minecart
+import Data.Sound
 import Data.Storage
 import Data.Train
 import Dict exposing (Dict)
@@ -248,7 +250,7 @@ setActor id actor =
     updateActor id (\_ -> actor)
 
 
-load : ( Int, Int ) -> AnyBag String Item -> World -> Maybe World
+load : ( Int, Int ) -> AnyBag String Item -> World -> Maybe ( World, List Effect )
 load pos bag world =
     world
         |> getActorAt pos
@@ -278,6 +280,7 @@ load pos bag world =
                     _ ->
                         Nothing
             )
+        |> Maybe.map (\w -> ( w, [ Data.Effect.PlaySound Data.Sound.Unload ] ))
 
 
 unload : ( Int, Int ) -> World -> Maybe ( World, AnyBag String Item )
@@ -305,7 +308,7 @@ unload pos world =
             )
 
 
-transfer : { from : ( Int, Int ), to : ( Int, Int ) } -> World -> Maybe World
+transfer : { from : ( Int, Int ), to : ( Int, Int ) } -> World -> Maybe ( World, List Effect )
 transfer args w =
     w
         |> unload args.from

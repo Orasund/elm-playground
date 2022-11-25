@@ -14,7 +14,7 @@ import Data.Behavior.WaterSource
 import Data.Effect exposing (Effect)
 import Data.Game exposing (Game)
 import Data.Item
-import Data.World
+import Data.World exposing (World)
 import Data.World.Generation
 import Random exposing (Generator)
 
@@ -29,72 +29,70 @@ passTime game =
                 g.world
                     |> Data.World.getActors
                     |> List.foldl (\a -> Data.Effect.andThen (actorsAct a))
-                        (Random.constant ( g, [] ))
+                        (Random.constant ( g.world, [] ))
+                    |> Random.map
+                        (Tuple.mapFirst
+                            (Data.Game.setWorldOf g)
+                        )
             )
         |> Random.map (\( g, l ) -> ( g, promt g ++ l ))
 
 
-actorsAct : ( Int, ( ( Int, Int ), Actor ) ) -> Game -> Generator ( Game, List Effect )
-actorsAct ( id, ( pos, actor ) ) game =
+actorsAct : ( Int, ( ( Int, Int ), Actor ) ) -> World -> Generator ( World, List Effect )
+actorsAct ( id, ( pos, actor ) ) world =
     case actor of
         Data.Actor.Minecart _ ->
-            game
+            world
                 |> Data.Behavior.Minecart.act id
+                |> Maybe.withDefault ( world, [] )
                 |> Random.constant
 
         Data.Actor.Excavator excavator ->
             case excavator.momentum of
                 Just _ ->
-                    game.world
+                    world
                         |> Data.Behavior.Excavator.move
                             ( pos, excavator )
                             id
-                        |> Random.map (Tuple.mapFirst (\world -> { game | world = world }))
 
                 Nothing ->
-                    Data.Effect.withNone game
+                    Data.Effect.withNone world
 
         Data.Actor.Bomb _ ->
-            game.world
+            world
                 |> Data.Behavior.Bomb.timePassed id
-                |> Random.map (\world -> { game | world = world })
                 |> Data.Effect.genWithNone
 
         Data.Actor.Helper helper ->
             case helper of
                 Data.Actor.Cave caveType ->
-                    game.world
+                    world
                         |> Data.World.removeEntity pos
                         |> Data.World.Generation.exposedCave caveType pos
-                        |> Random.map (\world -> { game | world = world })
                         |> Data.Effect.genWithNone
 
                 Data.Actor.Mine ->
-                    game.world
+                    world
                         |> Data.World.removeEntity pos
                         |> Data.World.Generation.mineGenerator pos
-                        |> Random.map (\world -> { game | world = world })
                         |> Data.Effect.genWithNone
 
                 Data.Actor.Falling item ->
-                    game.world
+                    world
                         |> Data.Behavior.FallingCoal.act item pos
-                        |> Random.map (\world -> { game | world = world })
                         |> Data.Effect.genWithNone
 
                 Data.Actor.Path ->
-                    game.world
+                    world
                         |> Data.Behavior.Path.act pos
-                        |> Random.map (\world -> { game | world = world })
                         |> Data.Effect.genWithNone
 
         Data.Actor.Train _ ->
-            Data.Effect.withNone game
+            Data.Effect.withNone world
 
         Data.Actor.WaterSource ->
-            game.world
+            world
                 |> Data.Behavior.WaterSource.act pos
-                |> Data.Game.setWorldOf game
                 |> Data.Effect.withNone
 
 

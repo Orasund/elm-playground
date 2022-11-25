@@ -5,36 +5,29 @@ import Data.Block
 import Data.Effect exposing (Effect)
 import Data.Entity
 import Data.Floor
-import Data.Game exposing (Game)
 import Data.Minecart exposing (Minecart)
 import Data.Position
-import Data.Sound
-import Data.Storage
-import Data.Train
 import Data.World exposing (World)
-import Dict
 
 
 act :
     Int
-    -> Game
-    -> ( Game, List Effect )
-act id game =
-    (case game.world.actors |> Dict.get id of
-        Just ( pos, Data.Actor.Minecart wagon ) ->
-            game.world
-                |> move id ( pos, wagon )
-                |> Maybe.map (Tuple.mapFirst (Data.Game.setWorldOf game))
-                |> Maybe.withDefault ( game, [] )
-
-        _ ->
-            ( game, [] )
-    )
-        |> (\( g, l ) ->
+    -> World
+    -> Maybe ( World, List Effect )
+act id world =
+    world
+        |> getMinecart id
+        |> Maybe.andThen
+            (\( pos, wagon ) ->
+                world
+                    |> move id ( pos, wagon )
+            )
+        |> Maybe.andThen
+            (\( g, l ) ->
                 g
                     |> unload id
-                    |> Tuple.mapSecond ((++) l)
-           )
+                    |> Maybe.map (Tuple.mapSecond ((++) l))
+            )
 
 
 move : Int -> ( ( Int, Int ), Minecart ) -> World -> Maybe ( World, List Effect )
@@ -102,6 +95,7 @@ moveOnGround args ( pos, id, wagon ) world =
         |> (\( w, p, l ) ->
                 ( w
                     |> getMinecart id
+                    |> Maybe.map Tuple.second
                     |> Maybe.map Data.Minecart.stop
                     |> Maybe.map Data.Actor.Minecart
                     |> Maybe.map
@@ -119,7 +113,7 @@ moveOnGround args ( pos, id, wagon ) world =
 swapWith : Int -> ( ( Int, Int ), Int ) -> World -> Maybe World
 swapWith id0 ( pos, id1 ) world =
     Maybe.map2
-        (\w0 w1 ->
+        (\( _, w0 ) ( _, w1 ) ->
             world
                 |> Data.World.setActor id0
                     (w1.storage
@@ -162,6 +156,7 @@ moveOnTrack args ( pos, id, wagon ) world =
         [ p ] ->
             world
                 |> getMinecart id
+                |> Maybe.map Tuple.second
                 |> Maybe.map Data.Actor.Minecart
                 |> Maybe.map
                     (\actor ->
@@ -200,6 +195,7 @@ pickup pos id world =
             (\item ->
                 world
                     |> getMinecart id
+                    |> Maybe.map Tuple.second
                     |> Maybe.andThen (Data.Minecart.insert item)
                     |> Maybe.map
                         (\( m, s ) ->
@@ -213,45 +209,38 @@ pickup pos id world =
             )
 
 
-unload : Int -> Game -> ( Game, List Effect )
-unload id game =
-    case game.world.actors |> Dict.get id of
-        Just ( pos, Data.Actor.Minecart wagon ) ->
-            if
-                List.member (game |> Data.Game.getTrain |> .pos) (Data.Position.neighbors pos)
-                    && (Data.Storage.isEmpty wagon.storage |> not)
-            then
-                Data.Minecart.unload wagon
-                    |> (\( m, anyBag ) ->
-                            ( game
-                                |> Data.Game.getTrain
-                                |> Data.Train.addAll anyBag
-                                |> Data.Game.setTrainOf game
-                                |> (\g ->
-                                        g.world
-                                            |> Data.World.setActor id (Data.Actor.Minecart m)
-                                            |> Data.Game.setWorldOf g
-                                   )
-                            , [ Data.Effect.PlaySound Data.Sound.Unload ]
-                            )
-                       )
+unload : Int -> World -> Maybe ( World, List Effect )
+unload id world =
+    world
+        |> getMinecart id
+        |> Maybe.andThen
+            (\( pos, _ ) ->
+                pos
+                    |> Data.Position.neighbors
+                    |> List.filter
+                        (\p ->
+                            case world |> Data.World.getActorAt p of
+                                Just ( _, Data.Actor.Train _ ) ->
+                                    True
 
-            else
-                ( game, [] )
-
-        _ ->
-            ( game, [] )
+                                _ ->
+                                    False
+                        )
+                    |> List.head
+                    |> Maybe.map (\p -> { from = pos, to = p })
+            )
+        |> Maybe.andThen (\args -> Data.World.transfer args world)
 
 
-getMinecart : Int -> World -> Maybe Minecart
+getMinecart : Int -> World -> Maybe ( ( Int, Int ), Minecart )
 getMinecart id world =
     world
         |> Data.World.getActor id
         |> Maybe.andThen
-            (\( _, actor ) ->
+            (\( pos, actor ) ->
                 case actor of
                     Data.Actor.Minecart minecart ->
-                        Just minecart
+                        Just ( pos, minecart )
 
                     _ ->
                         Nothing

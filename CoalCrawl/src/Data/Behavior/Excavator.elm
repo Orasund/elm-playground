@@ -77,13 +77,13 @@ collideWith ( newPos, entity ) ( pos, id, excavator ) world =
                         |> Data.Behavior.Minecart.move id0
                             ( newPos, minecart )
                         |> Maybe.withDefault ( world, [] )
-                        |> Tuple.mapFirst
+                        |> Random.constant
+                        |> Data.Effect.map
                             (\w ->
                                 w
                                     |> Data.World.transfer { from = pos, to = newPos }
-                                    |> Maybe.withDefault w
+                                    |> Maybe.withDefault ( w, [] )
                             )
-                        |> Random.constant
                         |> Just
 
                 _ ->

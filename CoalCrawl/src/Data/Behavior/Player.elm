@@ -274,7 +274,7 @@ putIntoWagon : Game -> ( Game, List Effect )
 putIntoWagon game =
     case Data.World.getActorAt game.selected game.world of
         Just ( id, Data.Actor.Minecart wagon ) ->
-            (game.player
+            game.player
                 |> Data.Player.dropItem
                 |> Maybe.map
                     (\( player, item ) ->
@@ -300,13 +300,17 @@ putIntoWagon game =
                                 )
                             |> Maybe.withDefault ( game, [ Data.Effect.PlaySound Data.Sound.Error ] )
                     )
-                |> Maybe.withDefault ( game, [] )
-            )
-                |> (\( g, l ) ->
-                        g
+                |> Maybe.andThen
+                    (\( g, l ) ->
+                        g.world
                             |> Data.Behavior.Minecart.unload id
-                            |> Tuple.mapSecond ((++) l)
-                   )
+                            |> Maybe.map
+                                (Tuple.mapBoth
+                                    (Data.Game.setWorldOf g)
+                                    ((++) l)
+                                )
+                    )
+                |> Maybe.withDefault ( game, [] )
 
         _ ->
             ( game, [] )
