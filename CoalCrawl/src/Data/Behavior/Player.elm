@@ -156,7 +156,10 @@ canMoveTo game p =
                     False
 
                 Just ( _, Data.Actor.Train _ ) ->
-                    True
+                    False
+
+                Just ( _, Data.Actor.WaterSource ) ->
+                    False
 
                 Nothing ->
                     False
@@ -188,30 +191,26 @@ moveTowards targetPos game =
             case Data.World.get pos game.world of
                 Just ( Data.Block.EntityBlock (Data.Entity.Actor id), _ ) ->
                     case game.world.actors |> Dict.get id |> Maybe.map Tuple.second of
-                        Just (Data.Actor.Minecart wagon) ->
+                        Just (Data.Actor.Minecart minecart) ->
                             game.world
-                                |> Data.Behavior.Minecart.move { backPos = game.player.pos }
-                                    id
-                                    ( pos, wagon )
-                                |> Tuple.mapFirst (Data.Game.setWorldOf game)
-                                |> Tuple.mapFirst
-                                    (\g ->
-                                        { g | player = g.player |> Data.Player.moveTo pos }
+                                |> Data.World.setActor id
+                                    ({ minecart | movedFrom = Just game.player.pos }
+                                        |> Data.Actor.Minecart
                                     )
-                                |> Random.constant
+                                |> Data.Game.setWorldOf game
+                                |> Data.Effect.withNone
 
                         Just (Data.Actor.Excavator excavator) ->
                             game.world
-                                |> Data.World.updateActor id
-                                    (\_ ->
-                                        { excavator
-                                            | momentum =
-                                                game.player.pos
-                                                    |> Data.Position.vecTo pos
-                                                    |> Just
-                                            , hasReversed = False
-                                        }
-                                            |> Data.Actor.Excavator
+                                |> Data.World.setActor id
+                                    ({ excavator
+                                        | momentum =
+                                            game.player.pos
+                                                |> Data.Position.vecTo pos
+                                                |> Just
+                                        , hasReversed = False
+                                     }
+                                        |> Data.Actor.Excavator
                                     )
                                 |> (\world -> { game | world = world })
                                 |> Data.Effect.withNone

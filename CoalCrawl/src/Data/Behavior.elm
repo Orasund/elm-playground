@@ -10,6 +10,7 @@ import Data.Behavior.Minecart
 import Data.Behavior.Path
 import Data.Behavior.Player
 import Data.Behavior.Train
+import Data.Behavior.WaterSource
 import Data.Effect exposing (Effect)
 import Data.Game exposing (Game)
 import Data.Item
@@ -36,17 +37,10 @@ passTime game =
 actorsAct : ( Int, ( ( Int, Int ), Actor ) ) -> Game -> Generator ( Game, List Effect )
 actorsAct ( id, ( pos, actor ) ) game =
     case actor of
-        Data.Actor.Minecart wagon ->
-            wagon.movedFrom
-                |> Maybe.map
-                    (\movedFrom ->
-                        game
-                            |> Data.Behavior.Minecart.act
-                                { backPos = movedFrom }
-                                id
-                            |> Random.constant
-                    )
-                |> Maybe.withDefault (Data.Effect.withNone game)
+        Data.Actor.Minecart _ ->
+            game
+                |> Data.Behavior.Minecart.act id
+                |> Random.constant
 
         Data.Actor.Excavator excavator ->
             case excavator.momentum of
@@ -96,6 +90,12 @@ actorsAct ( id, ( pos, actor ) ) game =
 
         Data.Actor.Train _ ->
             Data.Effect.withNone game
+
+        Data.Actor.WaterSource ->
+            game.world
+                |> Data.Behavior.WaterSource.act pos
+                |> Data.Game.setWorldOf game
+                |> Data.Effect.withNone
 
 
 promt : Game -> List Effect

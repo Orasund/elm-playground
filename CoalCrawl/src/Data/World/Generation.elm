@@ -259,6 +259,7 @@ exposedCave caveType =
         WaterCave ->
             Random.weighted ( 1, Data.World.insertEntity Data.Entity.Water )
                 [ ( 1 / 4, Data.World.insertItem Data.Item.Gold )
+                , ( 1 / 8, Data.World.insertActor Data.Actor.WaterSource )
                 ]
 
         LavaCave ->

@@ -189,6 +189,12 @@ fromActor actor =
                         |> List.map (\( k, n ) -> String.fromInt n ++ "x " ++ k)
                     )
 
+        Data.Actor.WaterSource ->
+            { title = "Water Source"
+            , description = "spawns water around it"
+            }
+                |> new
+
 
 fromBlock : Game -> Block -> Info
 fromBlock game block =

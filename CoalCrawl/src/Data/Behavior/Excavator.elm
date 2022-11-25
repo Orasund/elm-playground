@@ -74,11 +74,9 @@ collideWith ( newPos, entity ) ( pos, id, excavator ) world =
             case world |> Data.World.getActor id0 of
                 Just ( _, Data.Actor.Minecart minecart ) ->
                     world
-                        |> Data.Behavior.Minecart.move { backPos = pos }
-                            id0
-                            ( newPos
-                            , minecart
-                            )
+                        |> Data.Behavior.Minecart.move id0
+                            ( newPos, minecart )
+                        |> Maybe.withDefault ( world, [] )
                         |> Tuple.mapFirst
                             (\w ->
                                 w

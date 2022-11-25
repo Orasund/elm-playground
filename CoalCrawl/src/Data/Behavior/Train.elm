@@ -163,6 +163,12 @@ collideWith ( newPos, entity ) game =
                             Data.Actor.Train _ ->
                                 Nothing
 
+                            Data.Actor.WaterSource ->
+                                game
+                                    |> Random.constant
+                                    |> returnGame
+                                    |> Just
+
                             Data.Actor.Bomb _ ->
                                 Random.constant game
                                     |> returnGame

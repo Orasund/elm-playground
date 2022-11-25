@@ -27,3 +27,4 @@ type Actor
     | Excavator Excavator
     | Helper Helper
     | Train Train
+    | WaterSource
