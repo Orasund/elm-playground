@@ -46,14 +46,13 @@ move id ( pos, wagon ) world =
                         , forwardPos = forwardPos
                         }
                 in
-                (if Data.World.getFloor pos world == Just Data.Floor.Track then
-                    world
-                        |> moveOnTrack positions ( pos, id, wagon )
+                world
+                    |> (if Data.World.getFloor pos world == Just Data.Floor.Track then
+                            moveOnTrack positions ( pos, id, wagon )
 
-                 else
-                    world
-                        |> moveOnGround positions ( pos, id, wagon )
-                )
+                        else
+                            moveOnGround positions ( pos, id, wagon )
+                       )
                     |> (\( world0, p, effects ) ->
                             ( world0
                                 |> Data.World.moveActorTo p id

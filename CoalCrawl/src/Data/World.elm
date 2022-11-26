@@ -8,6 +8,7 @@ import Data.Entity exposing (Entity)
 import Data.Floor exposing (Floor)
 import Data.Item exposing (Item)
 import Data.Minecart
+import Data.Position
 import Data.Sound
 import Data.Storage
 import Data.Train
@@ -315,6 +316,40 @@ transfer args w =
         |> Maybe.andThen
             (\( world, bag ) ->
                 world |> load args.to bag
+            )
+
+
+pushFrom : ( Int, Int ) -> Int -> World -> Maybe World
+pushFrom from id world =
+    world.actors
+        |> Dict.get id
+        |> Maybe.andThen
+            (\( pos, actor ) ->
+                case actor of
+                    Data.Actor.Minecart minecart ->
+                        world
+                            |> setActor id
+                                ({ minecart | movedFrom = Just from }
+                                    |> Data.Actor.Minecart
+                                )
+                            |> Just
+
+                    Data.Actor.Excavator excavator ->
+                        world
+                            |> setActor id
+                                ({ excavator
+                                    | momentum =
+                                        from
+                                            |> Data.Position.vecTo pos
+                                            |> Just
+                                    , hasReversed = False
+                                 }
+                                    |> Data.Actor.Excavator
+                                )
+                            |> Just
+
+                    _ ->
+                        Nothing
             )
 
 

@@ -1,17 +1,16 @@
 module Data.Behavior.Player exposing (..)
 
 import AStar
+import AnyBag
 import Data.Actor
-import Data.Behavior.Minecart
 import Data.Block exposing (Block(..))
 import Data.Effect exposing (Effect)
 import Data.Entity
 import Data.Game exposing (Game)
-import Data.Minecart
+import Data.Item
 import Data.Player
 import Data.Position
 import Data.Sound
-import Data.Train
 import Data.World
 import Data.World.Generation
 import Dict
@@ -56,25 +55,9 @@ interactWith pos game =
                             Data.Entity.Actor id ->
                                 game.world.actors
                                     |> Dict.get id
-                                    |> Maybe.map
-                                        (\( _, actor ) ->
-                                            case actor of
-                                                Data.Actor.Minecart _ ->
-                                                    game |> putIntoWagon |> Random.constant
-
-                                                Data.Actor.Excavator _ ->
-                                                    Random.constant game
-                                                        |> Random.map (\g -> ( g, [] ))
-
-                                                Data.Actor.Train _ ->
-                                                    putIntoTrain game
-                                                        |> Random.constant
-
-                                                _ ->
-                                                    Random.constant game
-                                                        |> Random.map (\g -> ( g, [] ))
-                                        )
-                                    |> Maybe.withDefault (Random.constant ( game, [] ))
+                                    |> Maybe.andThen (\( p, _ ) -> putInto p game)
+                                    |> Maybe.withDefault ( game, [] )
+                                    |> Random.constant
 
                             Data.Entity.Vein _ ->
                                 game.world
@@ -190,33 +173,11 @@ moveTowards targetPos game =
         Just pos ->
             case Data.World.get pos game.world of
                 Just ( Data.Block.EntityBlock (Data.Entity.Actor id), _ ) ->
-                    case game.world.actors |> Dict.get id |> Maybe.map Tuple.second of
-                        Just (Data.Actor.Minecart minecart) ->
-                            game.world
-                                |> Data.World.setActor id
-                                    ({ minecart | movedFrom = Just game.player.pos }
-                                        |> Data.Actor.Minecart
-                                    )
-                                |> Data.Game.setWorldOf game
-                                |> Data.Effect.withNone
-
-                        Just (Data.Actor.Excavator excavator) ->
-                            game.world
-                                |> Data.World.setActor id
-                                    ({ excavator
-                                        | momentum =
-                                            game.player.pos
-                                                |> Data.Position.vecTo pos
-                                                |> Just
-                                        , hasReversed = False
-                                     }
-                                        |> Data.Actor.Excavator
-                                    )
-                                |> (\world -> { game | world = world })
-                                |> Data.Effect.withNone
-
-                        _ ->
-                            ( game, [] ) |> Random.constant
+                    game.world
+                        |> Data.World.pushFrom game.player.pos id
+                        |> Maybe.map (Data.Game.setWorldOf game)
+                        |> Maybe.withDefault game
+                        |> Data.Effect.withNone
 
                 Just ( Data.Block.EntityBlock Data.Entity.Water, _ ) ->
                     game
@@ -270,62 +231,23 @@ pickUp pos game =
             ( game, [] )
 
 
-putIntoWagon : Game -> ( Game, List Effect )
-putIntoWagon game =
-    case Data.World.getActorAt game.selected game.world of
-        Just ( id, Data.Actor.Minecart wagon ) ->
-            game.player
-                |> Data.Player.dropItem
-                |> Maybe.map
-                    (\( player, item ) ->
-                        wagon
-                            |> Data.Minecart.insert item
-                            |> Maybe.map
-                                (\t ->
-                                    t
-                                        |> Tuple.mapFirst
-                                            (\w2 ->
-                                                game.world
-                                                    |> Data.World.updateActor id
-                                                        (\_ -> Data.Actor.Minecart w2)
-                                            )
-                                        |> Tuple.mapFirst (\world -> { game | world = world })
-                                        |> (\( g, sound ) ->
-                                                ( { g | player = player }
-                                                , [ Data.Effect.PlaySound Data.Sound.Unload
-                                                  , Data.Effect.PlaySound sound
-                                                  ]
-                                                )
-                                           )
-                                )
-                            |> Maybe.withDefault ( game, [ Data.Effect.PlaySound Data.Sound.Error ] )
-                    )
-                |> Maybe.andThen
-                    (\( g, l ) ->
-                        g.world
-                            |> Data.Behavior.Minecart.unload id
-                            |> Maybe.map
-                                (Tuple.mapBoth
-                                    (Data.Game.setWorldOf g)
-                                    ((++) l)
-                                )
-                    )
-                |> Maybe.withDefault ( game, [] )
-
-        _ ->
-            ( game, [] )
-
-
-putIntoTrain : Game -> ( Game, List Effect )
-putIntoTrain game =
+putInto : ( Int, Int ) -> Game -> Maybe ( Game, List Effect )
+putInto pos game =
     Data.Player.dropItem game.player
-        |> Maybe.map
+        |> Maybe.andThen
             (\( player, item ) ->
-                game
-                    |> Data.Game.getTrain
-                    |> Data.Train.addItem item
-                    |> Data.Game.setTrainOf game
-                    |> (\g -> { g | player = player })
-                    |> (\g -> ( g, [ Data.Effect.PlaySound Data.Sound.Unload ] ))
+                game.world
+                    |> Data.World.load pos
+                        (AnyBag.fromList Data.Item.toString
+                            [ item ]
+                        )
+                    |> Maybe.map
+                        (Tuple.mapFirst
+                            (\w ->
+                                { game
+                                    | world = w
+                                    , player = player
+                                }
+                            )
+                        )
             )
-        |> Maybe.withDefault ( game, [] )
