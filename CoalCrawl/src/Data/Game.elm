@@ -188,10 +188,6 @@ new =
             |> Data.World.insertActor
                 (train
                     |> Data.Train.fromPos
-                    |> Data.Train.addAll
-                        (AnyBag.fromAssociationList Data.Item.toString
-                            [ ( Data.Item.Iron, 100 ) ]
-                        )
                     |> Data.Actor.Train
                 )
                 train

@@ -36,36 +36,53 @@ move id ( pos, wagon ) world =
     wagon.movedFrom
         |> Maybe.map
             (\movedFrom ->
-                let
-                    forwardPos =
-                        movedFrom
-                            |> Data.Position.vecTo pos
-                            |> Data.Position.plus pos
-
-                    positions =
-                        { backPos = movedFrom
-                        , forwardPos = forwardPos
-                        }
-                in
+                { backPos = movedFrom
+                , forwardPos =
+                    movedFrom
+                        |> Data.Position.vecTo pos
+                        |> Data.Position.plus pos
+                }
+            )
+        |> Maybe.map
+            (\positions ->
                 world
                     |> (if Data.World.getFloor pos world == Just Data.Floor.Track then
-                            moveOnTrack positions ( pos, id, wagon )
+                            moveOnTrack
 
                         else
-                            moveOnGround positions ( pos, id, wagon )
+                            moveOnGround
                        )
-                    |> (\( world0, p, effects ) ->
-                            ( world0
+                        positions
+                        ( pos, id, wagon )
+            )
+        |> Maybe.map
+            (\( w, p, effects ) ->
+                ( w
+                    |> getMinecart id
+                    |> Maybe.map Tuple.second
+                    |> Maybe.map
+                        (if Data.World.getFloor p w == Just Data.Floor.Track then
+                            Data.Minecart.moveFrom pos
+
+                         else
+                            Data.Minecart.stop
+                        )
+                    |> Maybe.map Data.Actor.Minecart
+                    |> Maybe.map
+                        (\actor ->
+                            w
+                                |> Data.World.setActor id actor
                                 |> Data.World.moveActorTo p id
-                            , effects
-                            )
-                       )
+                        )
+                    |> Maybe.withDefault w
+                , effects
+                )
             )
 
 
 moveOnGround : { backPos : ( Int, Int ), forwardPos : ( Int, Int ) } -> ( ( Int, Int ), Int, Minecart ) -> World -> ( World, ( Int, Int ), List Effect )
 moveOnGround args ( pos, id, wagon ) world =
-    (case Data.World.get args.forwardPos world of
+    case Data.World.get args.forwardPos world of
         Just ( Data.Block.FloorBlock _, _ ) ->
             world
                 |> collect pos id
@@ -91,23 +108,6 @@ moveOnGround args ( pos, id, wagon ) world =
 
         Nothing ->
             ( world, pos, [] )
-    )
-        |> (\( w, p, l ) ->
-                ( w
-                    |> getMinecart id
-                    |> Maybe.map Tuple.second
-                    |> Maybe.map Data.Minecart.stop
-                    |> Maybe.map Data.Actor.Minecart
-                    |> Maybe.map
-                        (\actor ->
-                            w
-                                |> Data.World.setActor id actor
-                        )
-                    |> Maybe.withDefault w
-                , p
-                , l
-                )
-           )
 
 
 swapWith : Int -> ( ( Int, Int ), Int ) -> World -> Maybe World
@@ -155,15 +155,6 @@ moveOnTrack args ( pos, id, wagon ) world =
     of
         [ p ] ->
             world
-                |> getMinecart id
-                |> Maybe.map Tuple.second
-                |> Maybe.map Data.Actor.Minecart
-                |> Maybe.map
-                    (\actor ->
-                        world
-                            |> Data.World.setActor id actor
-                    )
-                |> Maybe.withDefault world
                 |> collect pos id
                 |> (\( w, l ) -> ( w, p, l ))
 

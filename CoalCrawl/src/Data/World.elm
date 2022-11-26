@@ -304,6 +304,19 @@ unload pos world =
                                 )
                             |> Just
 
+                    Data.Actor.Minecart minecart ->
+                        minecart.storage
+                            |> Data.Storage.unload
+                            |> Tuple.mapFirst
+                                (\storage ->
+                                    world
+                                        |> setActor id
+                                            ({ minecart | storage = storage }
+                                                |> Data.Actor.Minecart
+                                            )
+                                )
+                            |> Just
+
                     _ ->
                         Nothing
             )
