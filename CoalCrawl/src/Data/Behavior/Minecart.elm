@@ -22,11 +22,12 @@ act id world =
                 world
                     |> move id ( pos, wagon )
             )
-        |> Maybe.andThen
+        |> Maybe.map
             (\( g, l ) ->
                 g
                     |> unload id
-                    |> Maybe.map (Tuple.mapSecond ((++) l))
+                    |> Maybe.withDefault ( g, [] )
+                    |> Tuple.mapSecond ((++) l)
             )
 
 

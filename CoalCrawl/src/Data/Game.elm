@@ -185,7 +185,16 @@ new =
             ++ walls
             ++ (coals |> List.map (\pos -> ( pos, Data.Entity.Vein Data.Item.Coal |> Data.Block.EntityBlock )))
             |> Data.World.fromList
-            |> Data.World.insertActor (Data.Actor.Train (train |> Data.Train.fromPos)) train
+            |> Data.World.insertActor
+                (train
+                    |> Data.Train.fromPos
+                    |> Data.Train.addAll
+                        (AnyBag.fromAssociationList Data.Item.toString
+                            [ ( Data.Item.Iron, 100 ) ]
+                        )
+                    |> Data.Actor.Train
+                )
+                train
     , player = player |> Data.Player.fromPos
     , trainId = 0
     , selected = player

@@ -5441,6 +5441,7 @@ var $author$project$Data$Block$FloorBlock = function (a) {
 	return {$: 'FloorBlock', a: a};
 };
 var $author$project$Data$Floor$Ground = {$: 'Ground'};
+var $author$project$Data$Item$Iron = {$: 'Iron'};
 var $author$project$Data$Floor$RailwayTrack = {$: 'RailwayTrack'};
 var $author$project$Data$Actor$Train = function (a) {
 	return {$: 'Train', a: a};
@@ -5449,25 +5450,102 @@ var $author$project$Data$Entity$Vein = function (a) {
 	return {$: 'Vein', a: a};
 };
 var $author$project$Data$Entity$Wall = {$: 'Wall'};
-var $elm$core$List$append = F2(
-	function (xs, ys) {
-		if (!ys.b) {
-			return xs;
-		} else {
-			return A3($elm$core$List$foldr, $elm$core$List$cons, ys, xs);
+var $author$project$Data$Train$coalNeeded = function (train) {
+	var _v0 = train.pos;
+	var y = _v0.b;
+	return y * 2;
+};
+var $JohnBugner$elm_bag$Bag$dict = function (_v0) {
+	var d = _v0.a;
+	return d;
+};
+var $elm$core$Basics$compare = _Utils_compare;
+var $elm$core$Dict$get = F2(
+	function (targetKey, dict) {
+		get:
+		while (true) {
+			if (dict.$ === 'RBEmpty_elm_builtin') {
+				return $elm$core$Maybe$Nothing;
+			} else {
+				var key = dict.b;
+				var value = dict.c;
+				var left = dict.d;
+				var right = dict.e;
+				var _v1 = A2($elm$core$Basics$compare, targetKey, key);
+				switch (_v1.$) {
+					case 'LT':
+						var $temp$targetKey = targetKey,
+							$temp$dict = left;
+						targetKey = $temp$targetKey;
+						dict = $temp$dict;
+						continue get;
+					case 'EQ':
+						return $elm$core$Maybe$Just(value);
+					default:
+						var $temp$targetKey = targetKey,
+							$temp$dict = right;
+						targetKey = $temp$targetKey;
+						dict = $temp$dict;
+						continue get;
+				}
+			}
 		}
 	});
-var $elm$core$List$concat = function (lists) {
-	return A3($elm$core$List$foldr, $elm$core$List$append, _List_Nil, lists);
-};
-var $elm$core$List$concatMap = F2(
-	function (f, list) {
-		return $elm$core$List$concat(
-			A2($elm$core$List$map, f, list));
+var $elm$core$Maybe$withDefault = F2(
+	function (_default, maybe) {
+		if (maybe.$ === 'Just') {
+			var value = maybe.a;
+			return value;
+		} else {
+			return _default;
+		}
 	});
+var $JohnBugner$elm_bag$Bag$count = F2(
+	function (v, b) {
+		return A2(
+			$elm$core$Maybe$withDefault,
+			0,
+			A2(
+				$elm$core$Dict$get,
+				v,
+				$JohnBugner$elm_bag$Bag$dict(b)));
+	});
+var $author$project$AnyBag$count = F2(
+	function (a, bag) {
+		return A2(
+			$JohnBugner$elm_bag$Bag$count,
+			bag.encode(a),
+			bag.content);
+	});
+var $elm$core$Basics$ge = _Utils_ge;
+var $elm$core$Dict$member = F2(
+	function (key, dict) {
+		var _v0 = A2($elm$core$Dict$get, key, dict);
+		if (_v0.$ === 'Just') {
+			return true;
+		} else {
+			return false;
+		}
+	});
+var $JohnBugner$elm_bag$Bag$member = F2(
+	function (v, b) {
+		return A2(
+			$elm$core$Dict$member,
+			v,
+			$JohnBugner$elm_bag$Bag$dict(b));
+	});
+var $author$project$AnyBag$member = F2(
+	function (a, bag) {
+		return A2(
+			$JohnBugner$elm_bag$Bag$member,
+			bag.encode(a),
+			bag.content);
+	});
+var $JohnBugner$elm_bag$Bag$Bag = function (a) {
+	return {$: 'Bag', a: a};
+};
 var $elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
 var $elm$core$Dict$empty = $elm$core$Dict$RBEmpty_elm_builtin;
-var $author$project$Data$World$empty = {actors: $elm$core$Dict$empty, entities: $elm$core$Dict$empty, floor: $elm$core$Dict$empty, items: $elm$core$Dict$empty, nextId: 0};
 var $elm$core$Dict$Black = {$: 'Black'};
 var $elm$core$Dict$RBNode_elm_builtin = F5(
 	function (a, b, c, d, e) {
@@ -5528,7 +5606,6 @@ var $elm$core$Dict$balance = F5(
 			}
 		}
 	});
-var $elm$core$Basics$compare = _Utils_compare;
 var $elm$core$Dict$insertHelp = F3(
 	function (key, value, dict) {
 		if (dict.$ === 'RBEmpty_elm_builtin') {
@@ -5577,37 +5654,147 @@ var $elm$core$Dict$insert = F3(
 			return x;
 		}
 	});
-var $elm$core$Dict$get = F2(
-	function (targetKey, dict) {
-		get:
+var $elm$core$Dict$foldl = F3(
+	function (func, acc, dict) {
+		foldl:
 		while (true) {
 			if (dict.$ === 'RBEmpty_elm_builtin') {
-				return $elm$core$Maybe$Nothing;
+				return acc;
 			} else {
 				var key = dict.b;
 				var value = dict.c;
 				var left = dict.d;
 				var right = dict.e;
-				var _v1 = A2($elm$core$Basics$compare, targetKey, key);
-				switch (_v1.$) {
-					case 'LT':
-						var $temp$targetKey = targetKey,
-							$temp$dict = left;
-						targetKey = $temp$targetKey;
-						dict = $temp$dict;
-						continue get;
-					case 'EQ':
-						return $elm$core$Maybe$Just(value);
-					default:
-						var $temp$targetKey = targetKey,
-							$temp$dict = right;
-						targetKey = $temp$targetKey;
-						dict = $temp$dict;
-						continue get;
-				}
+				var $temp$func = func,
+					$temp$acc = A3(
+					func,
+					key,
+					value,
+					A3($elm$core$Dict$foldl, func, acc, left)),
+					$temp$dict = right;
+				func = $temp$func;
+				acc = $temp$acc;
+				dict = $temp$dict;
+				continue foldl;
 			}
 		}
 	});
+var $elm$core$Dict$merge = F6(
+	function (leftStep, bothStep, rightStep, leftDict, rightDict, initialResult) {
+		var stepState = F3(
+			function (rKey, rValue, _v0) {
+				stepState:
+				while (true) {
+					var list = _v0.a;
+					var result = _v0.b;
+					if (!list.b) {
+						return _Utils_Tuple2(
+							list,
+							A3(rightStep, rKey, rValue, result));
+					} else {
+						var _v2 = list.a;
+						var lKey = _v2.a;
+						var lValue = _v2.b;
+						var rest = list.b;
+						if (_Utils_cmp(lKey, rKey) < 0) {
+							var $temp$rKey = rKey,
+								$temp$rValue = rValue,
+								$temp$_v0 = _Utils_Tuple2(
+								rest,
+								A3(leftStep, lKey, lValue, result));
+							rKey = $temp$rKey;
+							rValue = $temp$rValue;
+							_v0 = $temp$_v0;
+							continue stepState;
+						} else {
+							if (_Utils_cmp(lKey, rKey) > 0) {
+								return _Utils_Tuple2(
+									list,
+									A3(rightStep, rKey, rValue, result));
+							} else {
+								return _Utils_Tuple2(
+									rest,
+									A4(bothStep, lKey, lValue, rValue, result));
+							}
+						}
+					}
+				}
+			});
+		var _v3 = A3(
+			$elm$core$Dict$foldl,
+			stepState,
+			_Utils_Tuple2(
+				$elm$core$Dict$toList(leftDict),
+				initialResult),
+			rightDict);
+		var leftovers = _v3.a;
+		var intermediateResult = _v3.b;
+		return A3(
+			$elm$core$List$foldl,
+			F2(
+				function (_v4, result) {
+					var k = _v4.a;
+					var v = _v4.b;
+					return A3(leftStep, k, v, result);
+				}),
+			intermediateResult,
+			leftovers);
+	});
+var $JohnBugner$elm_bag$Bag$union = F2(
+	function (b1, b2) {
+		var f = F4(
+			function (v, n1, n2, d) {
+				return A3($elm$core$Dict$insert, v, n1 + n2, d);
+			});
+		return $JohnBugner$elm_bag$Bag$Bag(
+			A6(
+				$elm$core$Dict$merge,
+				$elm$core$Dict$insert,
+				f,
+				$elm$core$Dict$insert,
+				$JohnBugner$elm_bag$Bag$dict(b1),
+				$JohnBugner$elm_bag$Bag$dict(b2),
+				$elm$core$Dict$empty));
+	});
+var $author$project$AnyBag$union = F2(
+	function (b1, b2) {
+		return {
+			content: A2($JohnBugner$elm_bag$Bag$union, b1.content, b2.content),
+			encode: b2.encode
+		};
+	});
+var $author$project$Data$Train$addAll = F2(
+	function (bag, train) {
+		return function (t) {
+			return (A2($author$project$AnyBag$member, $author$project$Data$Item$Coal, bag) && ((_Utils_cmp(
+				A2($author$project$AnyBag$count, $author$project$Data$Item$Coal, t.items),
+				$author$project$Data$Train$coalNeeded(t)) > -1) || (t.tracks > 0))) ? _Utils_update(
+				t,
+				{moving: true}) : t;
+		}(
+			_Utils_update(
+				train,
+				{
+					items: A2($author$project$AnyBag$union, bag, train.items)
+				}));
+	});
+var $elm$core$List$append = F2(
+	function (xs, ys) {
+		if (!ys.b) {
+			return xs;
+		} else {
+			return A3($elm$core$List$foldr, $elm$core$List$cons, ys, xs);
+		}
+	});
+var $elm$core$List$concat = function (lists) {
+	return A3($elm$core$List$foldr, $elm$core$List$append, _List_Nil, lists);
+};
+var $elm$core$List$concatMap = F2(
+	function (f, list) {
+		return $elm$core$List$concat(
+			A2($elm$core$List$map, f, list));
+	});
+var $JohnBugner$elm_bag$Bag$empty = $JohnBugner$elm_bag$Bag$Bag($elm$core$Dict$empty);
 var $elm$core$Dict$getMin = function (dict) {
 	getMin:
 	while (true) {
@@ -5981,15 +6168,47 @@ var $elm$core$Dict$update = F3(
 			return A2($elm$core$Dict$remove, targetKey, dictionary);
 		}
 	});
-var $elm$core$Maybe$withDefault = F2(
-	function (_default, maybe) {
-		if (maybe.$ === 'Just') {
-			var value = maybe.a;
-			return value;
-		} else {
-			return _default;
-		}
+var $JohnBugner$elm_bag$Bag$insert = F3(
+	function (n_, v, b) {
+		var f = function (ma) {
+			var n__ = n_ + A2($elm$core$Maybe$withDefault, 0, ma);
+			return (n__ > 0) ? $elm$core$Maybe$Just(n__) : $elm$core$Maybe$Nothing;
+		};
+		return $JohnBugner$elm_bag$Bag$Bag(
+			A3(
+				$elm$core$Dict$update,
+				v,
+				f,
+				$JohnBugner$elm_bag$Bag$dict(b)));
 	});
+var $JohnBugner$elm_bag$Bag$fromAssociationList = A2(
+	$elm$core$List$foldl,
+	function (_v0) {
+		var v = _v0.a;
+		var n = _v0.b;
+		return A2($JohnBugner$elm_bag$Bag$insert, n, v);
+	},
+	$JohnBugner$elm_bag$Bag$empty);
+var $elm$core$Tuple$mapFirst = F2(
+	function (func, _v0) {
+		var x = _v0.a;
+		var y = _v0.b;
+		return _Utils_Tuple2(
+			func(x),
+			y);
+	});
+var $author$project$AnyBag$fromAssociationList = F2(
+	function (encode, list) {
+		return {
+			content: $JohnBugner$elm_bag$Bag$fromAssociationList(
+				A2(
+					$elm$core$List$map,
+					$elm$core$Tuple$mapFirst(encode),
+					list)),
+			encode: encode
+		};
+	});
+var $author$project$Data$World$empty = {actors: $elm$core$Dict$empty, entities: $elm$core$Dict$empty, floor: $elm$core$Dict$empty, items: $elm$core$Dict$empty, nextId: 0};
 var $author$project$Data$World$removeEntity = F2(
 	function (pos, world) {
 		return _Utils_update(
@@ -6055,10 +6274,6 @@ var $author$project$Data$World$fromList = A2(
 var $author$project$Data$Player$fromPos = function (pos) {
 	return {item: $elm$core$Maybe$Nothing, pos: pos, riding: $elm$core$Maybe$Nothing, targetPos: $elm$core$Maybe$Nothing};
 };
-var $JohnBugner$elm_bag$Bag$Bag = function (a) {
-	return {$: 'Bag', a: a};
-};
-var $JohnBugner$elm_bag$Bag$empty = $JohnBugner$elm_bag$Bag$Bag($elm$core$Dict$empty);
 var $author$project$AnyBag$empty = function (encode) {
 	return {content: $JohnBugner$elm_bag$Bag$empty, encode: encode};
 };
@@ -6166,7 +6381,16 @@ var $author$project$Data$Game$new = function () {
 		world: A3(
 			$author$project$Data$World$insertActor,
 			$author$project$Data$Actor$Train(
-				$author$project$Data$Train$fromPos(train)),
+				A2(
+					$author$project$Data$Train$addAll,
+					A2(
+						$author$project$AnyBag$fromAssociationList,
+						$author$project$Data$Item$toString,
+						_List_fromArray(
+							[
+								_Utils_Tuple2($author$project$Data$Item$Iron, 100)
+							])),
+					$author$project$Data$Train$fromPos(train))),
 			train,
 			$author$project$Data$World$fromList(
 				_Utils_ap(
@@ -6296,14 +6520,6 @@ var $elm$core$Maybe$map = F2(
 		} else {
 			return $elm$core$Maybe$Nothing;
 		}
-	});
-var $elm$core$Tuple$mapFirst = F2(
-	function (func, _v0) {
-		var x = _v0.a;
-		var y = _v0.b;
-		return _Utils_Tuple2(
-			func(x),
-			y);
 	});
 var $elm$random$Random$constant = function (value) {
 	return $elm$random$Random$Generator(
@@ -6478,7 +6694,6 @@ var $author$project$Data$Actor$CoalCave = {$: 'CoalCave'};
 var $author$project$Data$Actor$Helper = function (a) {
 	return {$: 'Helper', a: a};
 };
-var $author$project$Data$Item$Iron = {$: 'Iron'};
 var $author$project$Data$Actor$IronCave = {$: 'IronCave'};
 var $author$project$Data$Actor$LavaCave = {$: 'LavaCave'};
 var $author$project$Data$Actor$WaterCave = {$: 'WaterCave'};
@@ -6905,31 +7120,6 @@ var $krisajenkins$elm_astar$AStar$Generalised$cheapestOpen = F2(
 var $elm$core$Set$Set_elm_builtin = function (a) {
 	return {$: 'Set_elm_builtin', a: a};
 };
-var $elm$core$Dict$foldl = F3(
-	function (func, acc, dict) {
-		foldl:
-		while (true) {
-			if (dict.$ === 'RBEmpty_elm_builtin') {
-				return acc;
-			} else {
-				var key = dict.b;
-				var value = dict.c;
-				var left = dict.d;
-				var right = dict.e;
-				var $temp$func = func,
-					$temp$acc = A3(
-					func,
-					key,
-					value,
-					A3($elm$core$Dict$foldl, func, acc, left)),
-					$temp$dict = right;
-				func = $temp$func;
-				acc = $temp$acc;
-				dict = $temp$dict;
-				continue foldl;
-			}
-		}
-	});
 var $elm$core$Dict$diff = F2(
 	function (t1, t2) {
 		return A3(
@@ -6968,7 +7158,6 @@ var $elm$core$Set$insert = F2(
 	});
 var $elm$core$Elm$JsArray$push = _JsArray_push;
 var $elm$core$Array$bitMask = 4294967295 >>> (32 - $elm$core$Array$shiftStep);
-var $elm$core$Basics$ge = _Utils_ge;
 var $elm$core$Elm$JsArray$singleton = _JsArray_singleton;
 var $elm$core$Elm$JsArray$unsafeGet = _JsArray_unsafeGet;
 var $elm$core$Elm$JsArray$unsafeSet = _JsArray_unsafeSet;
@@ -7477,23 +7666,6 @@ var $author$project$Data$Player$dropItem = function (player) {
 		},
 		player.item);
 };
-var $JohnBugner$elm_bag$Bag$dict = function (_v0) {
-	var d = _v0.a;
-	return d;
-};
-var $JohnBugner$elm_bag$Bag$insert = F3(
-	function (n_, v, b) {
-		var f = function (ma) {
-			var n__ = n_ + A2($elm$core$Maybe$withDefault, 0, ma);
-			return (n__ > 0) ? $elm$core$Maybe$Just(n__) : $elm$core$Maybe$Nothing;
-		};
-		return $JohnBugner$elm_bag$Bag$Bag(
-			A3(
-				$elm$core$Dict$update,
-				v,
-				f,
-				$JohnBugner$elm_bag$Bag$dict(b)));
-	});
 var $JohnBugner$elm_bag$Bag$fromList = A2(
 	$elm$core$List$foldl,
 	$JohnBugner$elm_bag$Bag$insert(1),
@@ -7507,150 +7679,6 @@ var $author$project$AnyBag$fromList = F2(
 		};
 	});
 var $author$project$Data$Sound$Unload = {$: 'Unload'};
-var $author$project$Data$Train$coalNeeded = function (train) {
-	var _v0 = train.pos;
-	var y = _v0.b;
-	return y * 2;
-};
-var $JohnBugner$elm_bag$Bag$count = F2(
-	function (v, b) {
-		return A2(
-			$elm$core$Maybe$withDefault,
-			0,
-			A2(
-				$elm$core$Dict$get,
-				v,
-				$JohnBugner$elm_bag$Bag$dict(b)));
-	});
-var $author$project$AnyBag$count = F2(
-	function (a, bag) {
-		return A2(
-			$JohnBugner$elm_bag$Bag$count,
-			bag.encode(a),
-			bag.content);
-	});
-var $elm$core$Dict$member = F2(
-	function (key, dict) {
-		var _v0 = A2($elm$core$Dict$get, key, dict);
-		if (_v0.$ === 'Just') {
-			return true;
-		} else {
-			return false;
-		}
-	});
-var $JohnBugner$elm_bag$Bag$member = F2(
-	function (v, b) {
-		return A2(
-			$elm$core$Dict$member,
-			v,
-			$JohnBugner$elm_bag$Bag$dict(b));
-	});
-var $author$project$AnyBag$member = F2(
-	function (a, bag) {
-		return A2(
-			$JohnBugner$elm_bag$Bag$member,
-			bag.encode(a),
-			bag.content);
-	});
-var $elm$core$Dict$merge = F6(
-	function (leftStep, bothStep, rightStep, leftDict, rightDict, initialResult) {
-		var stepState = F3(
-			function (rKey, rValue, _v0) {
-				stepState:
-				while (true) {
-					var list = _v0.a;
-					var result = _v0.b;
-					if (!list.b) {
-						return _Utils_Tuple2(
-							list,
-							A3(rightStep, rKey, rValue, result));
-					} else {
-						var _v2 = list.a;
-						var lKey = _v2.a;
-						var lValue = _v2.b;
-						var rest = list.b;
-						if (_Utils_cmp(lKey, rKey) < 0) {
-							var $temp$rKey = rKey,
-								$temp$rValue = rValue,
-								$temp$_v0 = _Utils_Tuple2(
-								rest,
-								A3(leftStep, lKey, lValue, result));
-							rKey = $temp$rKey;
-							rValue = $temp$rValue;
-							_v0 = $temp$_v0;
-							continue stepState;
-						} else {
-							if (_Utils_cmp(lKey, rKey) > 0) {
-								return _Utils_Tuple2(
-									list,
-									A3(rightStep, rKey, rValue, result));
-							} else {
-								return _Utils_Tuple2(
-									rest,
-									A4(bothStep, lKey, lValue, rValue, result));
-							}
-						}
-					}
-				}
-			});
-		var _v3 = A3(
-			$elm$core$Dict$foldl,
-			stepState,
-			_Utils_Tuple2(
-				$elm$core$Dict$toList(leftDict),
-				initialResult),
-			rightDict);
-		var leftovers = _v3.a;
-		var intermediateResult = _v3.b;
-		return A3(
-			$elm$core$List$foldl,
-			F2(
-				function (_v4, result) {
-					var k = _v4.a;
-					var v = _v4.b;
-					return A3(leftStep, k, v, result);
-				}),
-			intermediateResult,
-			leftovers);
-	});
-var $JohnBugner$elm_bag$Bag$union = F2(
-	function (b1, b2) {
-		var f = F4(
-			function (v, n1, n2, d) {
-				return A3($elm$core$Dict$insert, v, n1 + n2, d);
-			});
-		return $JohnBugner$elm_bag$Bag$Bag(
-			A6(
-				$elm$core$Dict$merge,
-				$elm$core$Dict$insert,
-				f,
-				$elm$core$Dict$insert,
-				$JohnBugner$elm_bag$Bag$dict(b1),
-				$JohnBugner$elm_bag$Bag$dict(b2),
-				$elm$core$Dict$empty));
-	});
-var $author$project$AnyBag$union = F2(
-	function (b1, b2) {
-		return {
-			content: A2($JohnBugner$elm_bag$Bag$union, b1.content, b2.content),
-			encode: b2.encode
-		};
-	});
-var $author$project$Data$Train$addAll = F2(
-	function (bag, train) {
-		return function (t) {
-			return (A2($author$project$AnyBag$member, $author$project$Data$Item$Coal, bag) && ((_Utils_cmp(
-				A2($author$project$AnyBag$count, $author$project$Data$Item$Coal, t.items),
-				$author$project$Data$Train$coalNeeded(t)) > -1) || (t.tracks > 0))) ? _Utils_update(
-				t,
-				{moving: true}) : t;
-		}(
-			_Utils_update(
-				train,
-				{
-					items: A2($author$project$AnyBag$union, bag, train.items)
-				}));
-	});
 var $author$project$Data$World$getActorAt = F2(
 	function (pos, world) {
 		return A2(
@@ -8890,15 +8918,17 @@ var $author$project$Data$Behavior$Minecart$unload = F2(
 var $author$project$Data$Behavior$Minecart$act = F2(
 	function (id, world) {
 		return A2(
-			$elm$core$Maybe$andThen,
+			$elm$core$Maybe$map,
 			function (_v1) {
 				var g = _v1.a;
 				var l = _v1.b;
 				return A2(
-					$elm$core$Maybe$map,
-					$elm$core$Tuple$mapSecond(
-						$elm$core$Basics$append(l)),
-					A2($author$project$Data$Behavior$Minecart$unload, id, g));
+					$elm$core$Tuple$mapSecond,
+					$elm$core$Basics$append(l),
+					A2(
+						$elm$core$Maybe$withDefault,
+						_Utils_Tuple2(g, _List_Nil),
+						A2($author$project$Data$Behavior$Minecart$unload, id, g)));
 			},
 			A2(
 				$elm$core$Maybe$andThen,
@@ -9147,25 +9177,6 @@ var $author$project$Data$Minecart$emptyWagon = {
 	movedFrom: $elm$core$Maybe$Nothing,
 	storage: $author$project$Data$Storage$empty($author$project$Config$wagonMaxItems)
 };
-var $JohnBugner$elm_bag$Bag$fromAssociationList = A2(
-	$elm$core$List$foldl,
-	function (_v0) {
-		var v = _v0.a;
-		var n = _v0.b;
-		return A2($JohnBugner$elm_bag$Bag$insert, n, v);
-	},
-	$JohnBugner$elm_bag$Bag$empty);
-var $author$project$AnyBag$fromAssociationList = F2(
-	function (encode, list) {
-		return {
-			content: $JohnBugner$elm_bag$Bag$fromAssociationList(
-				A2(
-					$elm$core$List$map,
-					$elm$core$Tuple$mapFirst(encode),
-					list)),
-			encode: encode
-		};
-	});
 var $author$project$Data$Storage$full = F2(
 	function (maxAmount, item) {
 		return {
