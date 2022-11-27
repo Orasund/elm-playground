@@ -64,18 +64,16 @@ wallGenerator : ( Int, Int ) -> Generator (( Int, Int ) -> World -> World)
 wallGenerator ( x, y ) =
     let
         content i =
-            [ Data.World.insertActor (Data.Actor.Helper (Data.Actor.Cave Data.Actor.CoalCave))
-            , Data.World.insertEntity (Data.Entity.Vein Data.Item.Coal)
+            [ Data.World.insertEntity (Data.Entity.Vein Data.Item.Coal)
             , Data.World.insertActor (Data.Actor.Helper (Data.Actor.Cave Data.Actor.IronCave))
-            , Data.World.insertEntity (Data.Entity.Vein Data.Item.Iron)
             , Data.World.insertActor (Data.Actor.Helper (Data.Actor.Cave Data.Actor.WaterCave))
-            , Data.World.insertEntity (Data.Entity.Vein Data.Item.Coal)
             , Data.World.insertActor (Data.Actor.Helper (Data.Actor.Cave Data.Actor.LavaCave))
             ]
+                |> List.intersperse (Data.World.insertActor (Data.Actor.Helper (Data.Actor.Cave Data.Actor.CoalCave)))
                 |> List.take (i + 1)
                 |> List.reverse
     in
-    ((y // Config.tracksPerTrip) - (abs x // Config.tracksPerTrip) + 1)
+    ((y // Config.tracksPerTrip) - (abs x // (2 * Config.tracksPerTrip)) + 1)
         |> (\int ->
                 if y < int then
                     []
@@ -110,24 +108,26 @@ mineGenerator pos world =
                 |> Random.andThen
                     (\stop ->
                         if stop then
-                            pos
-                                |> Data.Position.neighbors
-                                |> List.filter
-                                    (\p ->
-                                        Data.World.get p world
-                                            == Nothing
+                            Random.weighted ( 1, Data.Item.Coal )
+                                [ ( 1 / 2, Data.Item.Iron ) ]
+                                |> Random.map Data.Minecart.fullWagon
+                                |> Random.map Data.Actor.Minecart
+                                |> Random.map
+                                    (\actor ->
+                                        pos
+                                            |> Data.Position.neighbors
+                                            |> List.filter
+                                                (\p ->
+                                                    Data.World.get p world
+                                                        == Nothing
+                                                )
+                                            |> List.foldl
+                                                (\p ->
+                                                    Data.World.insertEntity (Data.Entity.Vein Data.Item.Coal) p
+                                                )
+                                                world
+                                            |> Data.World.insertActor actor pos
                                     )
-                                |> List.foldl
-                                    (\p ->
-                                        Data.World.insertEntity (Data.Entity.Vein Data.Item.Coal) p
-                                    )
-                                    world
-                                |> Data.World.insertActor
-                                    (Data.Minecart.fullWagon Data.Item.Coal
-                                        |> Data.Actor.Minecart
-                                    )
-                                    pos
-                                |> Random.constant
 
                         else
                             Random.uniform head tail
@@ -220,7 +220,7 @@ caveGenerator args ( x, y ) world =
                                         |> Data.World.insertActor
                                         |> Random.constant
                                   )
-                                , ( 1 / 64
+                                , ( 1 / 16
                                   , Data.Actor.Mine
                                         |> Data.Actor.Helper
                                         |> Data.World.insertActor
@@ -237,7 +237,7 @@ exposedCave caveType =
     (case caveType of
         CoalCave ->
             Random.weighted ( 1, Data.World.insertItem Data.Item.Coal )
-                [ ( 1 / 4
+                [ ( 1 / 2
                   , Data.World.insertActor
                         (Data.Actor.Falling (Data.Entity.Vein Data.Item.Coal)
                             |> Data.Actor.Helper
@@ -247,29 +247,31 @@ exposedCave caveType =
 
         IronCave ->
             Random.weighted ( 1, Data.World.insertItem Data.Item.Iron )
-                [ ( 1 / 4
+                [ ( 1 / 2
                   , Data.World.insertActor
                         (Data.Actor.Falling (Data.Entity.Vein Data.Item.Iron)
                             |> Data.Actor.Helper
                         )
                   )
+                , ( 1 / 4, Data.World.insertItem Data.Item.Coal )
                 , ( 1 / 8, Data.World.insertEntity Data.Entity.Wall )
                 ]
 
         WaterCave ->
-            Random.weighted ( 1, Data.World.insertFloor Data.Floor.Ground )
-                [ ( 1 / 4
+            Random.weighted ( 1, Data.World.insertItem Data.Item.Gold )
+                [ ( 1 / 2
                   , Data.World.insertActor
                         (Data.Actor.Falling Data.Entity.Water
                             |> Data.Actor.Helper
                         )
                   )
-                , ( 1 / 8, Data.World.insertItem Data.Item.Gold )
+                , ( 1 / 4, Data.World.insertItem Data.Item.Coal )
                 ]
 
         LavaCave ->
             Random.weighted ( 1, Data.World.insertEntity Data.Entity.Lava )
-                [ ( 1 / 4, Data.World.insertItem Data.Item.Gold )
+                [ ( 1 / 2, Data.World.insertItem Data.Item.Coal )
+                , ( 1 / 4, Data.World.insertItem Data.Item.Gold )
                 ]
     )
         |> (\ground ->

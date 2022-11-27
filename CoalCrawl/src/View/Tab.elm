@@ -12,7 +12,6 @@ import Data.Game exposing (Game)
 import Data.Info
 import Data.Item exposing (Item)
 import Data.Minecart
-import Data.Storage
 import Data.World
 import Html exposing (Html)
 import Html.Attributes as Attr
@@ -159,28 +158,31 @@ sidebar args game =
                                         |> Data.Info.fromBlock game
                                         |> View.Info.toHtml
                                     )
-                                        :: (case block of
-                                                Data.Block.EntityBlock (Data.Entity.Actor id) ->
-                                                    case game.world |> Data.World.getActor id of
-                                                        Just ( _, Data.Actor.Minecart wagon ) ->
-                                                            if Data.Storage.isEmpty wagon.storage then
-                                                                "Destroy"
-                                                                    |> View.Button.toHtml (Just args.destroyBlock)
-                                                                    |> List.singleton
+                                        :: (if
+                                                case block of
+                                                    Data.Block.EntityBlock (Data.Entity.Actor id) ->
+                                                        case game.world |> Data.World.getActor id of
+                                                            Just ( _, Data.Actor.Minecart _ ) ->
+                                                                True
 
-                                                            else
-                                                                []
+                                                            Just ( _, Data.Actor.Excavator _ ) ->
+                                                                True
 
-                                                        _ ->
-                                                            []
+                                                            _ ->
+                                                                False
 
-                                                Data.Block.FloorBlock Data.Floor.Track ->
-                                                    "Destroy"
-                                                        |> View.Button.toHtml (Just args.destroyBlock)
-                                                        |> List.singleton
+                                                    Data.Block.FloorBlock Data.Floor.Track ->
+                                                        True
 
-                                                _ ->
-                                                    []
+                                                    _ ->
+                                                        False
+                                            then
+                                                "Destroy"
+                                                    |> View.Button.toHtml (Just args.destroyBlock)
+                                                    |> List.singleton
+
+                                            else
+                                                []
                                            )
                                         |> Layout.column []
                                 )

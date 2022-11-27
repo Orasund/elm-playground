@@ -178,9 +178,7 @@ moveOnTrack args ( pos, id, wagon ) world =
                 )
     of
         [ p ] ->
-            world
-                |> collect pos id
-                |> (\( w, l ) -> ( w, p, l ))
+            ( world, p, [] )
 
         _ ->
             world
@@ -202,42 +200,59 @@ collect pos id w =
 
 
 pickup : ( Int, Int ) -> Int -> World -> Maybe ( World, List Effect )
-pickup pos id world =
+pickup from id world =
     world
-        |> Data.World.get pos
-        |> Maybe.andThen Tuple.second
+        |> Data.World.get from
         |> Maybe.andThen
-            (\item ->
-                world
-                    |> Data.World.getActor id
-                    |> Maybe.andThen
-                        (\( from, actor ) ->
-                            case actor of
-                                Data.Actor.Minecart minecart ->
-                                    minecart
-                                        |> Data.Minecart.insert item
-                                        |> Maybe.map
-                                            (Tuple.mapBoth
-                                                (\m ->
-                                                    world
-                                                        |> Data.World.updateActor id
-                                                            (\_ -> Data.Actor.Minecart m)
-                                                        |> Data.World.removeItem pos
-                                                )
-                                                (\s ->
-                                                    s
-                                                        |> Data.Effect.PlaySound
-                                                        |> List.singleton
-                                                )
-                                            )
+            (\( block, maybeItem ) ->
+                case block of
+                    Data.Block.FloorBlock _ ->
+                        Maybe.map2
+                            Data.Minecart.insert
+                            maybeItem
+                            (world
+                                |> getMinecart id
+                                |> Maybe.map Tuple.second
+                            )
+                            |> Maybe.andThen identity
+                            |> Maybe.map
+                                (Tuple.mapBoth
+                                    (\m ->
+                                        world
+                                            |> Data.World.updateActor id
+                                                (\_ -> Data.Actor.Minecart m)
+                                            |> Data.World.removeItem from
+                                    )
+                                    (\s ->
+                                        s
+                                            |> Data.Effect.PlaySound
+                                            |> List.singleton
+                                    )
+                                )
 
-                                Data.Actor.Excavator _ ->
-                                    world
-                                        |> Data.World.transfer { from = from, to = pos }
+                    Data.Block.EntityBlock (Data.Entity.Actor targetId) ->
+                        Maybe.map2
+                            (\actor to ->
+                                case actor of
+                                    Data.Actor.Excavator _ ->
+                                        world
+                                            |> Data.World.transfer { from = from, to = to }
 
-                                _ ->
-                                    Nothing
-                        )
+                                    _ ->
+                                        Nothing
+                            )
+                            (world
+                                |> Data.World.getActor targetId
+                                |> Maybe.map Tuple.second
+                            )
+                            (world
+                                |> getMinecart id
+                                |> Maybe.map Tuple.first
+                            )
+                            |> Maybe.andThen identity
+
+                    _ ->
+                        Nothing
             )
 
 

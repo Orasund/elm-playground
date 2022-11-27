@@ -34,7 +34,7 @@ toHtml closeModal game modal level =
             |> View.Button.toHtml (Just closeModal)
         ]
 
-     else
+     else if level < Config.maxLevel then
         [ "Level Completed"
             |> Html.text
             |> Layout.heading2 [ Layout.contentCentered ]
@@ -61,6 +61,27 @@ toHtml closeModal game modal level =
             ++ " items. You can also push it along."
             |> Html.text
             |> Layout.el []
+        , "Continue"
+            |> View.Button.toHtml (Just closeModal)
+        ]
+
+     else
+        [ "GAME WON!"
+            |> Html.text
+            |> Layout.heading2 [ Layout.contentCentered ]
+        , "Items collected sofar: "
+            ++ (game
+                    |> Data.Game.getTrain
+                    |> .items
+                    |> AnyBag.toAssociationList
+                    |> List.map (\( k, n ) -> String.fromInt n ++ "x " ++ k)
+                    |> String.join ", "
+               )
+            |> Html.text
+            |> Layout.el []
+        , "You reached the end of the cave"
+            |> Html.text
+            |> Layout.heading2 []
         , "Continue"
             |> View.Button.toHtml (Just closeModal)
         ]

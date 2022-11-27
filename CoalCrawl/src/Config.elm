@@ -46,11 +46,15 @@ excavatorCost =
 
 
 excavatorRadius =
-    2
+    4
 
 
 tracksPerTrip =
     8
+
+
+maxLevel =
+    7
 
 
 wagonMaxItems =
