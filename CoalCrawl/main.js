@@ -6701,9 +6701,7 @@ var $author$project$Data$World$Generation$wallGenerator = function (_v0) {
 	return function (list) {
 		if (!list.b) {
 			return $elm$random$Random$constant(
-				function (_v2) {
-					return $elm$core$Basics$identity;
-				});
+				$author$project$Data$World$insertEntity($author$project$Data$Entity$Wall));
 		} else {
 			var head = list.a;
 			var tail = list.b;
@@ -6722,7 +6720,7 @@ var $author$project$Data$World$Generation$wallGenerator = function (_v0) {
 		}
 	}(
 		function (_int) {
-			return (_Utils_cmp(y, _int) < 0) ? _List_Nil : content(_int);
+			return (_Utils_cmp(y, _int) < 1) ? _List_Nil : content(_int);
 		}(
 			(((y / $author$project$Config$tracksPerTrip) | 0) - (($elm$core$Basics$abs(x) / (2 * $author$project$Config$tracksPerTrip)) | 0)) + 1));
 };

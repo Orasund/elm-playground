@@ -75,7 +75,7 @@ wallGenerator ( x, y ) =
     in
     ((y // Config.tracksPerTrip) - (abs x // (2 * Config.tracksPerTrip)) + 1)
         |> (\int ->
-                if y < int then
+                if y <= int then
                     []
 
                 else
@@ -84,7 +84,8 @@ wallGenerator ( x, y ) =
         |> (\list ->
                 case list of
                     [] ->
-                        Random.constant (\_ -> identity)
+                        Data.World.insertEntity Data.Entity.Wall
+                            |> Random.constant
 
                     head :: tail ->
                         tail
