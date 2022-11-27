@@ -5,12 +5,11 @@ import Config
 import Data.Actor exposing (Actor)
 import Data.Behavior.Bomb
 import Data.Behavior.Excavator
-import Data.Behavior.FallingCoal
+import Data.Behavior.Falling
 import Data.Behavior.Minecart
 import Data.Behavior.Path
 import Data.Behavior.Player
 import Data.Behavior.Train
-import Data.Behavior.WaterSource
 import Data.Effect exposing (Effect)
 import Data.Game exposing (Game)
 import Data.Item
@@ -48,15 +47,10 @@ actorsAct ( id, ( pos, actor ) ) world =
                 |> Random.constant
 
         Data.Actor.Excavator excavator ->
-            case excavator.momentum of
-                Just _ ->
-                    world
-                        |> Data.Behavior.Excavator.move
-                            ( pos, excavator )
-                            id
-
-                Nothing ->
-                    Data.Effect.withNone world
+            world
+                |> Data.Behavior.Excavator.act
+                    ( pos, excavator )
+                    id
 
         Data.Actor.Bomb _ ->
             world
@@ -77,9 +71,9 @@ actorsAct ( id, ( pos, actor ) ) world =
                         |> Data.World.Generation.mineGenerator pos
                         |> Data.Effect.genWithNone
 
-                Data.Actor.Falling item ->
+                Data.Actor.Falling entity ->
                     world
-                        |> Data.Behavior.FallingCoal.act item pos
+                        |> Data.Behavior.Falling.act entity pos
                         |> Data.Effect.genWithNone
 
                 Data.Actor.Path ->
@@ -89,11 +83,6 @@ actorsAct ( id, ( pos, actor ) ) world =
 
         Data.Actor.Train _ ->
             Data.Effect.withNone world
-
-        Data.Actor.WaterSource ->
-            world
-                |> Data.Behavior.WaterSource.act pos
-                |> Data.Effect.withNone
 
 
 promt : Game -> List Effect

@@ -7,7 +7,7 @@ import Data.Entity
 import Data.Floor
 import Data.Minecart exposing (Minecart)
 import Data.Position
-import Data.World exposing (World)
+import Data.World exposing (World, transfer)
 
 
 act :
@@ -21,6 +21,12 @@ act id world =
             (\( pos, wagon ) ->
                 world
                     |> move id ( pos, wagon )
+                    |> Maybe.map
+                        (\( g, l ) ->
+                            g
+                                |> collect pos id
+                                |> Tuple.mapSecond ((++) l)
+                        )
             )
         |> Maybe.map
             (\( g, l ) ->
@@ -84,30 +90,50 @@ moveOnGround : { backPos : ( Int, Int ), forwardPos : ( Int, Int ) } -> ( ( Int,
 moveOnGround args ( pos, id, wagon ) world =
     case Data.World.get args.forwardPos world of
         Just ( Data.Block.FloorBlock _, _ ) ->
-            world
-                |> collect pos id
-                |> (\( w, l ) -> ( w, args.forwardPos, l ))
+            ( world, args.forwardPos, [] )
 
         Just ( Data.Block.EntityBlock entity, _ ) ->
-            ( case entity of
+            (case entity of
                 Data.Entity.Actor id0 ->
                     world
-                        |> swapWith id0 ( pos, id )
-                        |> Maybe.withDefault world
+                        |> collideWith id0 ( pos, id )
+                        |> Maybe.withDefault ( world, [] )
 
                 _ ->
-                    world
-            , case Data.World.get args.backPos world of
-                Just ( Data.Block.FloorBlock _, _ ) ->
-                    args.backPos
-
-                _ ->
-                    pos
-            , []
+                    ( world, [] )
             )
+                |> (\( w, l ) ->
+                        ( w
+                        , case Data.World.get args.backPos world of
+                            Just ( Data.Block.FloorBlock _, _ ) ->
+                                args.backPos
+
+                            _ ->
+                                pos
+                        , l
+                        )
+                   )
 
         Nothing ->
             ( world, pos, [] )
+
+
+collideWith : Int -> ( ( Int, Int ), Int ) -> World -> Maybe ( World, List Effect )
+collideWith target ( pos, id1 ) world =
+    world
+        |> Data.World.getActor target
+        |> Maybe.andThen
+            (\( from, actor ) ->
+                case actor of
+                    Data.Actor.Minecart _ ->
+                        world
+                            |> swapWith target ( pos, id1 )
+                            |> Maybe.map (\w -> ( w, [] ))
+
+                    _ ->
+                        world
+                            |> transfer { from = from, to = pos }
+            )
 
 
 swapWith : Int -> ( ( Int, Int ), Int ) -> World -> Maybe World
@@ -118,13 +144,11 @@ swapWith id0 ( pos, id1 ) world =
                 |> Data.World.setActor id0
                     (w1.storage
                         |> Data.Minecart.setStorageOf w0
-                        |> Data.Minecart.moveFrom pos
                         |> Data.Actor.Minecart
                     )
                 |> Data.World.setActor id1
                     (w0.storage
                         |> Data.Minecart.setStorageOf w1
-                        |> Data.Minecart.stop
                         |> Data.Actor.Minecart
                     )
         )
@@ -171,13 +195,13 @@ collect pos id w =
             (\p ( world, l ) ->
                 world
                     |> pickup p id
-                    |> Maybe.map (Tuple.mapSecond (\e -> e :: l))
+                    |> Maybe.map (Tuple.mapSecond (\e -> e ++ l))
                     |> Maybe.withDefault ( world, l )
             )
             ( w, [] )
 
 
-pickup : ( Int, Int ) -> Int -> World -> Maybe ( World, Effect )
+pickup : ( Int, Int ) -> Int -> World -> Maybe ( World, List Effect )
 pickup pos id world =
     world
         |> Data.World.get pos
@@ -185,17 +209,34 @@ pickup pos id world =
         |> Maybe.andThen
             (\item ->
                 world
-                    |> getMinecart id
-                    |> Maybe.map Tuple.second
-                    |> Maybe.andThen (Data.Minecart.insert item)
-                    |> Maybe.map
-                        (\( m, s ) ->
-                            ( world
-                                |> Data.World.updateActor id
-                                    (\_ -> Data.Actor.Minecart m)
-                                |> Data.World.removeItem pos
-                            , Data.Effect.PlaySound s
-                            )
+                    |> Data.World.getActor id
+                    |> Maybe.andThen
+                        (\( from, actor ) ->
+                            case actor of
+                                Data.Actor.Minecart minecart ->
+                                    minecart
+                                        |> Data.Minecart.insert item
+                                        |> Maybe.map
+                                            (Tuple.mapBoth
+                                                (\m ->
+                                                    world
+                                                        |> Data.World.updateActor id
+                                                            (\_ -> Data.Actor.Minecart m)
+                                                        |> Data.World.removeItem pos
+                                                )
+                                                (\s ->
+                                                    s
+                                                        |> Data.Effect.PlaySound
+                                                        |> List.singleton
+                                                )
+                                            )
+
+                                Data.Actor.Excavator _ ->
+                                    world
+                                        |> Data.World.transfer { from = from, to = pos }
+
+                                _ ->
+                                    Nothing
                         )
             )
 

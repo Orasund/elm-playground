@@ -171,12 +171,6 @@ fromActor actor =
                         identity
                    )
 
-        Data.Actor.WaterSource ->
-            { color = View.Color.black
-            , content = '~'
-            }
-                |> new
-
 
 fromBlock : Game -> ( Block, Maybe Item ) -> Tile
 fromBlock game ( block, items ) =

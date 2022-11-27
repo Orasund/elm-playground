@@ -8,7 +8,6 @@ import Data.Entity exposing (Entity)
 import Data.Floor exposing (Floor)
 import Data.Item exposing (Item)
 import Data.Minecart
-import Data.Position
 import Data.Sound
 import Data.Storage
 import Data.Train
@@ -253,8 +252,13 @@ setActor id actor =
 
 load : ( Int, Int ) -> AnyBag String Item -> World -> Maybe ( World, List Effect )
 load pos bag world =
-    world
-        |> getActorAt pos
+    (if AnyBag.isEmpty bag then
+        Nothing
+
+     else
+        world
+            |> getActorAt pos
+    )
         |> Maybe.andThen
             (\( id, actor ) ->
                 case actor of
@@ -337,27 +341,13 @@ pushFrom from id world =
     world.actors
         |> Dict.get id
         |> Maybe.andThen
-            (\( pos, actor ) ->
+            (\( _, actor ) ->
                 case actor of
                     Data.Actor.Minecart minecart ->
                         world
                             |> setActor id
                                 ({ minecart | movedFrom = Just from }
                                     |> Data.Actor.Minecart
-                                )
-                            |> Just
-
-                    Data.Actor.Excavator excavator ->
-                        world
-                            |> setActor id
-                                ({ excavator
-                                    | momentum =
-                                        from
-                                            |> Data.Position.vecTo pos
-                                            |> Just
-                                    , hasReversed = False
-                                 }
-                                    |> Data.Actor.Excavator
                                 )
                             |> Just
 

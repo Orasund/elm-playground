@@ -119,11 +119,9 @@ destroyBlock game =
                                     )
                                 |> (\train -> game |> setTrain train)
                                 |> (\g ->
-                                        { g
-                                            | world =
-                                                game.world
-                                                    |> Data.World.removeEntity game.selected
-                                        }
+                                        g.world
+                                            |> Data.World.removeEntity game.selected
+                                            |> setWorldOf g
                                    )
 
                         _ ->

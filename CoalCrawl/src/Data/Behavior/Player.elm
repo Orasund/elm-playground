@@ -130,7 +130,7 @@ canMoveTo game p =
                     True
 
                 Just ( _, Data.Actor.Excavator _ ) ->
-                    True
+                    False
 
                 Just ( _, Data.Actor.Helper _ ) ->
                     False
@@ -139,9 +139,6 @@ canMoveTo game p =
                     False
 
                 Just ( _, Data.Actor.Train _ ) ->
-                    False
-
-                Just ( _, Data.Actor.WaterSource ) ->
                     False
 
                 Nothing ->

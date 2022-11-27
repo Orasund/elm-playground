@@ -239,7 +239,7 @@ exposedCave caveType =
             Random.weighted ( 1, Data.World.insertItem Data.Item.Coal )
                 [ ( 1 / 4
                   , Data.World.insertActor
-                        (Data.Actor.Falling Data.Item.Coal
+                        (Data.Actor.Falling (Data.Entity.Vein Data.Item.Coal)
                             |> Data.Actor.Helper
                         )
                   )
@@ -249,7 +249,7 @@ exposedCave caveType =
             Random.weighted ( 1, Data.World.insertItem Data.Item.Iron )
                 [ ( 1 / 4
                   , Data.World.insertActor
-                        (Data.Actor.Falling Data.Item.Iron
+                        (Data.Actor.Falling (Data.Entity.Vein Data.Item.Iron)
                             |> Data.Actor.Helper
                         )
                   )
@@ -257,9 +257,14 @@ exposedCave caveType =
                 ]
 
         WaterCave ->
-            Random.weighted ( 1, Data.World.insertEntity Data.Entity.Water )
-                [ ( 1 / 4, Data.World.insertItem Data.Item.Gold )
-                , ( 1 / 8, Data.World.insertActor Data.Actor.WaterSource )
+            Random.weighted ( 1, Data.World.insertFloor Data.Floor.Ground )
+                [ ( 1 / 4
+                  , Data.World.insertActor
+                        (Data.Actor.Falling Data.Entity.Water
+                            |> Data.Actor.Helper
+                        )
+                  )
+                , ( 1 / 8, Data.World.insertItem Data.Item.Gold )
                 ]
 
         LavaCave ->

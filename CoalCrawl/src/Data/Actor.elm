@@ -1,8 +1,8 @@
 module Data.Actor exposing (..)
 
 import Data.Bomb exposing (Bomb)
+import Data.Entity exposing (Entity)
 import Data.Excavator exposing (Excavator)
-import Data.Item exposing (Item)
 import Data.Minecart exposing (Minecart)
 import Data.Train exposing (Train)
 
@@ -17,7 +17,7 @@ type CaveType
 type Helper
     = Cave CaveType
     | Mine
-    | Falling Item
+    | Falling Entity
     | Path
 
 
@@ -27,4 +27,3 @@ type Actor
     | Excavator Excavator
     | Helper Helper
     | Train Train
-    | WaterSource
