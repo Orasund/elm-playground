@@ -195,7 +195,7 @@ sidebar args game =
                             }
                                 |> buildActorButton args.buildActor
                           , { actor = Data.Actor.Excavator Data.Excavator.new
-                            , cost = ( Data.Item.Iron, Config.excavatorCost )
+                            , cost = ( Data.Item.Gold, Config.excavatorCost )
                             }
                                 |> buildActorButton args.buildActor
                           , { actor = Data.Actor.Bomb Data.Bomb.new

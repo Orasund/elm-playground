@@ -42,7 +42,7 @@ wagonCost =
 
 
 excavatorCost =
-    4
+    1
 
 
 excavatorRadius =
@@ -70,7 +70,7 @@ trackCost =
 
 
 bombCost =
-    1
+    2
 
 
 bombExplosionTime =

@@ -12,6 +12,7 @@ type CaveType
     | CoalCave
     | IronCave
     | LavaCave
+    | CollapsedCave
 
 
 type Helper

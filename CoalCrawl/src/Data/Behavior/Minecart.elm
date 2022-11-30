@@ -8,12 +8,13 @@ import Data.Floor
 import Data.Minecart exposing (Minecart)
 import Data.Position
 import Data.World exposing (World, transfer)
+import Random exposing (Generator)
 
 
 act :
     Int
     -> World
-    -> Maybe ( World, List Effect )
+    -> Maybe (Generator ( World, List Effect ))
 act id world =
     world
         |> getMinecart id
@@ -22,22 +23,19 @@ act id world =
                 world
                     |> move id ( pos, wagon )
                     |> Maybe.map
-                        (\( g, l ) ->
-                            g
-                                |> collect pos id
-                                |> Tuple.mapSecond ((++) l)
-                        )
+                        (Data.Effect.map (collect pos id))
             )
         |> Maybe.map
-            (\( g, l ) ->
-                g
-                    |> unload id
-                    |> Maybe.withDefault ( g, [] )
-                    |> Tuple.mapSecond ((++) l)
+            (Data.Effect.map
+                (\g ->
+                    g
+                        |> unload id
+                        |> Maybe.withDefault ( g, [] )
+                )
             )
 
 
-move : Int -> ( ( Int, Int ), Minecart ) -> World -> Maybe ( World, List Effect )
+move : Int -> ( ( Int, Int ), Minecart ) -> World -> Maybe (Generator ( World, List Effect ))
 move id ( pos, wagon ) world =
     wagon.movedFrom
         |> Maybe.map
@@ -48,74 +46,83 @@ move id ( pos, wagon ) world =
                         |> Data.Position.vecTo pos
                         |> Data.Position.plus pos
                 }
-            )
-        |> Maybe.map
-            (\positions ->
-                world
-                    |> (if Data.World.getFloor pos world == Just Data.Floor.Track then
-                            moveOnTrack
+                    |> (\positions ->
+                            world
+                                |> (if Data.World.getFloor pos world == Just Data.Floor.Track then
+                                        moveOnTrack
 
-                        else
-                            moveOnGround
+                                    else
+                                        moveOnGround
+                                   )
+                                    positions
+                                    ( pos, id, wagon )
                        )
-                        positions
-                        ( pos, id, wagon )
             )
+
+
+setMovement : ( Int, ( Int, Int ) ) -> ( Int, Int ) -> World -> World
+setMovement ( id, pos ) p w =
+    w
+        |> getMinecart id
+        |> Maybe.map Tuple.second
         |> Maybe.map
-            (\( w, p, effects ) ->
-                ( w
-                    |> getMinecart id
-                    |> Maybe.map Tuple.second
-                    |> Maybe.map
-                        (if Data.World.getFloor p w == Just Data.Floor.Track then
-                            Data.Minecart.moveFrom pos
+            (if
+                Data.World.getFloor p w
+                    == Just Data.Floor.Track
+             then
+                Data.Minecart.moveFrom pos
 
-                         else
-                            Data.Minecart.stop
-                        )
-                    |> Maybe.map Data.Actor.Minecart
-                    |> Maybe.map
-                        (\actor ->
-                            w
-                                |> Data.World.setActor id actor
-                                |> Data.World.moveActorTo p id
-                        )
-                    |> Maybe.withDefault w
-                , effects
-                )
+             else
+                Data.Minecart.stop
             )
+        |> Maybe.map Data.Actor.Minecart
+        |> Maybe.map
+            (\actor ->
+                w
+                    |> Data.World.setActor id actor
+                    |> Data.World.moveActorTo p id
+            )
+        |> Maybe.withDefault w
 
 
-moveOnGround : { backPos : ( Int, Int ), forwardPos : ( Int, Int ) } -> ( ( Int, Int ), Int, Minecart ) -> World -> ( World, ( Int, Int ), List Effect )
+moveOnGround : { backPos : ( Int, Int ), forwardPos : ( Int, Int ) } -> ( ( Int, Int ), Int, Minecart ) -> World -> Generator ( World, List Effect )
 moveOnGround args ( pos, id, wagon ) world =
-    case Data.World.get args.forwardPos world of
-        Just ( Data.Block.FloorBlock _, _ ) ->
-            ( world, args.forwardPos, [] )
+    world
+        |> Data.World.get args.forwardPos
+        |> Maybe.map
+            (\block ->
+                case block of
+                    ( Data.Block.FloorBlock _, _ ) ->
+                        world
+                            |> setMovement ( id, pos ) args.forwardPos
+                            |> Data.Effect.withNone
 
-        Just ( Data.Block.EntityBlock entity, _ ) ->
-            (case entity of
-                Data.Entity.Actor id0 ->
-                    world
-                        |> collideWith id0 ( pos, id )
-                        |> Maybe.withDefault ( world, [] )
-
-                _ ->
-                    ( world, [] )
-            )
-                |> (\( w, l ) ->
-                        ( w
-                        , case Data.World.get args.backPos world of
-                            Just ( Data.Block.FloorBlock _, _ ) ->
-                                args.backPos
+                    ( Data.Block.EntityBlock entity, _ ) ->
+                        (case entity of
+                            Data.Entity.Actor id0 ->
+                                world
+                                    |> collideWith id0 ( pos, id )
 
                             _ ->
-                                pos
-                        , l
+                                Nothing
                         )
-                   )
+                            |> Maybe.withDefault ( world, [] )
+                            |> (\( w, l ) ->
+                                    ( w
+                                        |> setMovement ( id, pos )
+                                            (case Data.World.get args.backPos world of
+                                                Just ( Data.Block.FloorBlock _, _ ) ->
+                                                    args.backPos
 
-        Nothing ->
-            ( world, pos, [] )
+                                                _ ->
+                                                    pos
+                                            )
+                                    , l
+                                    )
+                                        |> Random.constant
+                               )
+            )
+        |> Maybe.withDefault (world |> Data.Effect.withNone)
 
 
 collideWith : Int -> ( ( Int, Int ), Int ) -> World -> Maybe ( World, List Effect )
@@ -160,27 +167,23 @@ moveOnTrack :
     { backPos : ( Int, Int ), forwardPos : ( Int, Int ) }
     -> ( ( Int, Int ), Int, Minecart )
     -> World
-    -> ( World, ( Int, Int ), List Effect )
+    -> Generator ( World, List Effect )
 moveOnTrack args ( pos, id, wagon ) world =
     case
-        pos
-            |> Data.Position.neighbors
-            |> List.filter
-                (\p ->
-                    (p /= args.backPos)
-                        && (case Data.World.get p world of
-                                Just ( Data.Block.FloorBlock Data.Floor.Track, _ ) ->
-                                    True
-
-                                _ ->
-                                    False
-                           )
-                )
+        world
+            |> neighborTracks pos
+            |> List.filter (\p -> p /= args.backPos)
     of
-        [ p ] ->
-            ( world, p, [] )
+        head :: tail ->
+            Random.uniform head tail
+                |> Random.andThen
+                    (\p ->
+                        world
+                            |> setMovement ( id, pos ) p
+                            |> Data.Effect.withNone
+                    )
 
-        _ ->
+        [] ->
             world
                 |> moveOnGround args ( pos, id, wagon )
 
@@ -277,6 +280,21 @@ unload id world =
                     |> Maybe.map (\p -> { from = pos, to = p })
             )
         |> Maybe.andThen (\args -> Data.World.transfer args world)
+
+
+neighborTracks : ( Int, Int ) -> World -> List ( Int, Int )
+neighborTracks pos world =
+    pos
+        |> Data.Position.neighbors
+        |> List.filter
+            (\p ->
+                case Data.World.get p world of
+                    Just ( Data.Block.FloorBlock Data.Floor.Track, _ ) ->
+                        True
+
+                    _ ->
+                        False
+            )
 
 
 getMinecart : Int -> World -> Maybe ( ( Int, Int ), Minecart )

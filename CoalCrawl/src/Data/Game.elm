@@ -57,13 +57,13 @@ select pos game =
     }
 
 
-buildBlock : ( Int, Int ) -> ( Item, Int ) -> Block -> Game -> Game
+buildBlock : ( Int, Int ) -> ( Item, Int ) -> Block -> Game -> Maybe Game
 buildBlock pos ( item, cost ) block game =
     if
         case block of
             FloorBlock _ ->
-                Data.World.getBlock pos game.world
-                    == Just (Data.Block.FloorBlock Data.Floor.Ground)
+                Data.World.getFloor pos game.world
+                    == Just Data.Floor.Ground
 
             EntityBlock _ ->
                 Data.World.isFloor pos game.world
@@ -79,12 +79,13 @@ buildBlock pos ( item, cost ) block game =
                         |> setTrain train
                 )
             |> Maybe.withDefault game
+            |> Just
 
     else
-        game
+        Nothing
 
 
-buildActor : ( Int, Int ) -> ( Item, Int ) -> Actor -> Game -> Game
+buildActor : ( Int, Int ) -> ( Item, Int ) -> Actor -> Game -> Maybe Game
 buildActor pos ( item, cost ) actor game =
     if Data.World.isFloor pos game.world then
         game
@@ -97,10 +98,9 @@ buildActor pos ( item, cost ) actor game =
                     }
                         |> setTrain train
                 )
-            |> Maybe.withDefault game
 
     else
-        game
+        Nothing
 
 
 destroyBlock : Game -> Game

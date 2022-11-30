@@ -64,12 +64,13 @@ wallGenerator : ( Int, Int ) -> Generator (( Int, Int ) -> World -> World)
 wallGenerator ( x, y ) =
     let
         content i =
-            [ Data.World.insertEntity (Data.Entity.Vein Data.Item.Coal)
+            [ Data.World.insertActor (Data.Actor.Helper (Data.Actor.Cave Data.Actor.CoalCave))
             , Data.World.insertActor (Data.Actor.Helper (Data.Actor.Cave Data.Actor.IronCave))
             , Data.World.insertActor (Data.Actor.Helper (Data.Actor.Cave Data.Actor.WaterCave))
             , Data.World.insertActor (Data.Actor.Helper (Data.Actor.Cave Data.Actor.LavaCave))
+            , Data.World.insertActor (Data.Actor.Helper (Data.Actor.Cave Data.Actor.CollapsedCave))
             ]
-                |> List.intersperse (Data.World.insertActor (Data.Actor.Helper (Data.Actor.Cave Data.Actor.CoalCave)))
+                |> List.intersperse (Data.World.insertEntity (Data.Entity.Vein Data.Item.Coal))
                 |> List.take (i + 1)
                 |> List.reverse
     in
@@ -273,6 +274,13 @@ exposedCave caveType =
             Random.weighted ( 1, Data.World.insertEntity Data.Entity.Lava )
                 [ ( 1 / 2, Data.World.insertItem Data.Item.Coal )
                 , ( 1 / 4, Data.World.insertItem Data.Item.Gold )
+                ]
+
+        CollapsedCave ->
+            Random.weighted ( 1, Data.World.insertEntity Data.Entity.Wall )
+                [ ( 1 / 2, Data.World.insertItem Data.Item.Coal )
+                , ( 1 / 4, Data.World.insertItem Data.Item.Iron )
+                , ( 1 / 8, Data.World.insertItem Data.Item.Gold )
                 ]
     )
         |> (\ground ->

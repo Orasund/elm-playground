@@ -123,21 +123,6 @@ fromEntity game entity =
                     )
 
 
-cave caveType =
-    case caveType of
-        Data.Actor.WaterCave ->
-            "Water"
-
-        Data.Actor.CoalCave ->
-            "Coal"
-
-        Data.Actor.IronCave ->
-            "Iron"
-
-        Data.Actor.LavaCave ->
-            "Gold"
-
-
 fromActor : Actor -> Info
 fromActor actor =
     case actor of

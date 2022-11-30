@@ -43,8 +43,7 @@ actorsAct ( id, ( pos, actor ) ) world =
         Data.Actor.Minecart _ ->
             world
                 |> Data.Behavior.Minecart.act id
-                |> Maybe.withDefault ( world, [] )
-                |> Random.constant
+                |> Maybe.withDefault (world |> Data.Effect.withNone)
 
         Data.Actor.Excavator excavator ->
             world

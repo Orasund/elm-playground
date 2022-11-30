@@ -62,7 +62,7 @@ interactWith pos game =
                             Data.Entity.Vein _ ->
                                 game.world
                                     |> Data.World.Generation.mine game.selected
-                                    |> Random.map (\world -> ( { game | world = world }, [ Data.Effect.PlaySound Data.Sound.Mine ] ))
+                                    |> Random.map (\world -> ( { game | world = world }, [] ))
                                     |> Data.Effect.andThen (moveTowards game.selected)
 
                             Data.Entity.Water ->
@@ -84,10 +84,10 @@ walkThroughWater pos game =
     in
     (case game.world |> Data.World.get forwardPos of
         Just ( FloorBlock _, _ ) ->
-            forwardPos
+            Just forwardPos
 
         Just ( EntityBlock Data.Entity.Lava, _ ) ->
-            forwardPos
+            Just forwardPos
 
         _ ->
             pos
@@ -109,11 +109,15 @@ walkThroughWater pos game =
                             _ ->
                                 pos
                    )
+                |> Just
     )
-        |> (\p ->
+        |> (\maybe ->
                 game.world
                     |> Data.World.removeEntity pos
-                    |> Data.World.insertEntityAt p Data.Entity.Water
+                    |> (maybe
+                            |> Maybe.map (\p -> Data.World.insertEntityAt p Data.Entity.Water)
+                            |> Maybe.withDefault identity
+                       )
            )
         |> (\world -> { game | world = world, player = game.player |> Data.Player.moveTo pos })
 
@@ -185,12 +189,8 @@ moveTowards targetPos game =
                 Just ( Data.Block.EntityBlock (Data.Entity.Vein _), _ ) ->
                     game.world
                         |> Data.World.Generation.mine pos
-                        |> Random.map
-                            (\world ->
-                                ( { game | world = world }
-                                , [ Data.Effect.PlaySound Data.Sound.Mine ]
-                                )
-                            )
+                        |> Random.map (Data.Game.setWorldOf game)
+                        |> Data.Effect.genWithNone
                         |> Data.Effect.andThen (moveTowards targetPos)
 
                 Just ( Data.Block.FloorBlock _, _ ) ->

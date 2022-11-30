@@ -304,22 +304,31 @@ update msg model =
             ( restart seed, Cmd.none )
 
         TileClicked pos ->
-            ( model.game
-                |> (case model.building of
-                        Just ( cost, buildingMode ) ->
-                            case buildingMode of
-                                BuildingBlock block ->
-                                    Data.Game.buildBlock pos cost block
+            model
+                |> updateGame
+                    (\game ->
+                        case model.building of
+                            Just ( cost, buildingMode ) ->
+                                game
+                                    |> (case buildingMode of
+                                            BuildingBlock block ->
+                                                Data.Game.buildBlock pos cost block
 
-                                BuildingActor actor ->
-                                    Data.Game.buildActor pos cost actor
+                                            BuildingActor actor ->
+                                                Data.Game.buildActor pos cost actor
+                                       )
+                                    |> Maybe.map
+                                        (\g ->
+                                            ( g, [ Data.Effect.PlaySound Data.Sound.Build ] )
+                                                |> Random.constant
+                                        )
+                                    |> Maybe.withDefault (model.game |> Data.Effect.withNone)
 
-                        Nothing ->
-                            Data.Game.select pos
-                   )
-                |> (\game -> { model | game = game })
-            , Cmd.none
-            )
+                            Nothing ->
+                                game
+                                    |> Data.Game.select pos
+                                    |> Data.Effect.withNone
+                    )
 
         TimePassed ->
             case model.modal of
