@@ -167,6 +167,9 @@ collideWith ( newPos, entity ) game =
                                 Random.constant game
                                     |> returnGame
                                     |> Just
+
+                            Data.Actor.MovingWater _ ->
+                                Nothing
                     )
 
         _ ->

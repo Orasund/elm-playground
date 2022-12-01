@@ -171,6 +171,12 @@ fromActor actor =
                         identity
                    )
 
+        Data.Actor.MovingWater _ ->
+            { color = View.Color.blue
+            , content = '~'
+            }
+                |> new
+
 
 fromBlock : Game -> ( Block, Maybe Item ) -> Tile
 fromBlock game ( block, items ) =

@@ -6686,6 +6686,9 @@ var $author$project$Data$World$Generation$wallGenerator = function (_v0) {
 								$author$project$Data$Actor$Cave($author$project$Data$Actor$CoalCave))),
 							$author$project$Data$World$insertActor(
 							$author$project$Data$Actor$Helper(
+								$author$project$Data$Actor$Cave($author$project$Data$Actor$WaterCave))),
+							$author$project$Data$World$insertActor(
+							$author$project$Data$Actor$Helper(
 								$author$project$Data$Actor$Cave($author$project$Data$Actor$IronCave))),
 							$author$project$Data$World$insertActor(
 							$author$project$Data$Actor$Helper(
@@ -6814,33 +6817,30 @@ var $author$project$Data$Behavior$Player$canMoveTo = F2(
 							var _v2 = _v0.a;
 							var id = _v2.a.a.a;
 							var _v3 = A2($author$project$Data$World$getActor, id, game.world);
-							if (_v3.$ === 'Just') {
-								switch (_v3.a.b.$) {
-									case 'Minecart':
-										var _v4 = _v3.a;
-										return true;
-									case 'Excavator':
-										var _v5 = _v3.a;
-										return false;
-									case 'Helper':
-										var _v6 = _v3.a;
-										return false;
-									case 'Bomb':
-										var _v7 = _v3.a;
-										return false;
-									default:
-										var _v8 = _v3.a;
-										return false;
+							_v3$2:
+							while (true) {
+								if (_v3.$ === 'Just') {
+									switch (_v3.a.b.$) {
+										case 'Minecart':
+											var _v4 = _v3.a;
+											return true;
+										case 'MovingWater':
+											var _v5 = _v3.a;
+											return true;
+										default:
+											break _v3$2;
+									}
+								} else {
+									break _v3$2;
 								}
-							} else {
-								return false;
 							}
+							return false;
 						case 'Water':
-							var _v9 = _v0.a;
-							var _v10 = _v9.a.a;
+							var _v6 = _v0.a;
+							var _v7 = _v6.a.a;
 							return true;
 						case 'Vein':
-							var _v11 = _v0.a;
+							var _v8 = _v0.a;
 							return true;
 						default:
 							break _v0$4;
@@ -7213,6 +7213,35 @@ var $author$project$Data$Position$neighbors = function (_v0) {
 var $author$project$Data$Actor$Minecart = function (a) {
 	return {$: 'Minecart', a: a};
 };
+var $author$project$Data$Actor$MovingWater = function (a) {
+	return {$: 'MovingWater', a: a};
+};
+var $author$project$Data$Momentum$new = function (pos) {
+	return {
+		momentum: $elm$core$Maybe$Just(pos)
+	};
+};
+var $author$project$Data$Position$plus = F2(
+	function (_v0, _v1) {
+		var x1 = _v0.a;
+		var y1 = _v0.b;
+		var x2 = _v1.a;
+		var y2 = _v1.b;
+		return _Utils_Tuple2(x1 + x2, y1 + y2);
+	});
+var $author$project$Data$Position$vecTo = F2(
+	function (p, _v0) {
+		var x = _v0.a;
+		var y = _v0.b;
+		return A2(
+			$author$project$Data$Position$plus,
+			p,
+			_Utils_Tuple2(-x, -y));
+	});
+var $author$project$Data$Momentum$fromPoints = function (args) {
+	return $author$project$Data$Momentum$new(
+		A2($author$project$Data$Position$vecTo, args.to, args.from));
+};
 var $author$project$Data$World$updateActor = F3(
 	function (id, fun, world) {
 		return function (actors) {
@@ -7241,22 +7270,33 @@ var $author$project$Data$World$pushFrom = F3(
 		return A2(
 			$elm$core$Maybe$andThen,
 			function (_v0) {
+				var to = _v0.a;
 				var actor = _v0.b;
-				if (actor.$ === 'Minecart') {
-					var minecart = actor.a;
-					return $elm$core$Maybe$Just(
-						A3(
-							$author$project$Data$World$setActor,
-							id,
-							$author$project$Data$Actor$Minecart(
-								_Utils_update(
-									minecart,
-									{
-										movedFrom: $elm$core$Maybe$Just(from)
-									})),
-							world));
-				} else {
-					return $elm$core$Maybe$Nothing;
+				switch (actor.$) {
+					case 'Minecart':
+						var minecart = actor.a;
+						return $elm$core$Maybe$Just(
+							A3(
+								$author$project$Data$World$setActor,
+								id,
+								$author$project$Data$Actor$Minecart(
+									_Utils_update(
+										minecart,
+										{
+											movedFrom: $elm$core$Maybe$Just(from)
+										})),
+								world));
+					case 'MovingWater':
+						return $elm$core$Maybe$Just(
+							A3(
+								$author$project$Data$World$setActor,
+								id,
+								$author$project$Data$Actor$MovingWater(
+									$author$project$Data$Momentum$fromPoints(
+										{from: from, to: to})),
+								world));
+					default:
+						return $elm$core$Maybe$Nothing;
 				}
 			},
 			A2($elm$core$Dict$get, id, world.actors));
@@ -7281,94 +7321,18 @@ var $krisajenkins$elm_astar$AStar$straightLineCost = F2(
 		var dx = $elm$core$Basics$abs(x1 - x2);
 		return dx + dy;
 	});
-var $author$project$Data$Entity$Water = {$: 'Water'};
-var $elm$core$Basics$neq = _Utils_notEqual;
-var $author$project$Data$Position$plus = F2(
-	function (_v0, _v1) {
-		var x1 = _v0.a;
-		var y1 = _v0.b;
-		var x2 = _v1.a;
-		var y2 = _v1.b;
-		return _Utils_Tuple2(x1 + x2, y1 + y2);
-	});
-var $author$project$Data$Position$vecTo = F2(
-	function (p, _v0) {
-		var x = _v0.a;
-		var y = _v0.b;
-		return A2(
-			$author$project$Data$Position$plus,
-			p,
-			_Utils_Tuple2(-x, -y));
-	});
 var $author$project$Data$Behavior$Player$walkThroughWater = F2(
 	function (pos, game) {
-		var forwardPos = A2(
-			$author$project$Data$Position$plus,
-			pos,
-			A2($author$project$Data$Position$vecTo, pos, game.player.pos));
-		return function (world) {
-			return _Utils_update(
-				game,
-				{
-					player: A2($author$project$Data$Player$moveTo, pos, game.player),
-					world: world
-				});
-		}(
-			function (maybe) {
-				return A3(
-					$elm$core$Basics$apR,
-					A2(
-						$elm$core$Maybe$map,
-						function (p) {
-							return A2($author$project$Data$World$insertEntityAt, p, $author$project$Data$Entity$Water);
-						},
-						maybe),
-					$elm$core$Maybe$withDefault($elm$core$Basics$identity),
-					A2($author$project$Data$World$removeEntity, pos, game.world));
-			}(
-				function () {
-					var _v0 = A2($author$project$Data$World$get, forwardPos, game.world);
-					_v0$2:
-					while (true) {
-						if (_v0.$ === 'Just') {
-							if (_v0.a.a.$ === 'FloorBlock') {
-								var _v1 = _v0.a;
-								return $elm$core$Maybe$Just(forwardPos);
-							} else {
-								if (_v0.a.a.a.$ === 'Lava') {
-									var _v2 = _v0.a;
-									var _v3 = _v2.a.a;
-									return $elm$core$Maybe$Just(forwardPos);
-								} else {
-									break _v0$2;
-								}
-							}
-						} else {
-							break _v0$2;
-						}
-					}
-					return $elm$core$Maybe$Just(
-						function (list) {
-							if (list.b && (!list.b.b)) {
-								var p = list.a;
-								return p;
-							} else {
-								return pos;
-							}
-						}(
-							A2(
-								$elm$core$List$filter,
-								function (p) {
-									var _v4 = A2($author$project$Data$World$get, p, game.world);
-									if ((_v4.$ === 'Just') && (_v4.a.a.$ === 'FloorBlock')) {
-										var _v5 = _v4.a;
-										return !_Utils_eq(p, game.player.pos);
-									} else {
-										return false;
-									}
-								},
-								$author$project$Data$Position$neighbors(pos))));
-				}()));
+		return A2(
+			$author$project$Data$Game$setWorldOf,
+			game,
+			A3(
+				$author$project$Data$World$insertActor,
+				$author$project$Data$Actor$MovingWater(
+					$author$project$Data$Momentum$fromPoints(
+						{from: game.player.pos, to: pos})),
+				pos,
+				A2($author$project$Data$World$removeEntity, pos, game.world)));
 	});
 var $author$project$Data$Effect$withNone = function (a) {
 	return $elm$random$Random$constant(
@@ -7415,11 +7379,8 @@ var $author$project$Data$Behavior$Player$moveTowards = F2(
 							case 'Water':
 								var _v3 = _v1.a;
 								var _v4 = _v3.a.a;
-								return $elm$random$Random$constant(
-									function (g) {
-										return _Utils_Tuple2(g, _List_Nil);
-									}(
-										A2($author$project$Data$Behavior$Player$walkThroughWater, pos, game)));
+								return $author$project$Data$Effect$withNone(
+									A2($author$project$Data$Behavior$Player$walkThroughWater, pos, game));
 							case 'Vein':
 								var _v5 = _v1.a;
 								return A2(
@@ -8005,6 +7966,7 @@ var $author$project$Data$Game$getTrain = function (game) {
 	}
 };
 var $author$project$Config$hqPos = _Utils_Tuple2(0, 0);
+var $elm$core$Basics$neq = _Utils_notEqual;
 var $author$project$Data$Effect$LevelUp = {$: 'LevelUp'};
 var $author$project$Data$Effect$OpenModal = {$: 'OpenModal'};
 var $author$project$Data$Train$addTracks = F2(
@@ -8275,10 +8237,12 @@ var $author$project$Data$Behavior$Train$collideWith = F2(
 							return $elm$core$Maybe$Nothing;
 						case 'Train':
 							return $elm$core$Maybe$Nothing;
-						default:
+						case 'Bomb':
 							return $elm$core$Maybe$Just(
 								returnGame(
 									$elm$random$Random$constant(game)));
+						default:
+							return $elm$core$Maybe$Nothing;
 					}
 				},
 				A2($author$project$Data$World$getActor, id, game.world));
@@ -9155,6 +9119,177 @@ var $author$project$Data$Behavior$Minecart$act = F2(
 				},
 				A2($author$project$Data$Behavior$Minecart$getMinecart, id, world)));
 	});
+var $author$project$Data$Entity$Lava = {$: 'Lava'};
+var $author$project$Data$Behavior$MovingWater$getLavaNeighbors = F2(
+	function (pos, world) {
+		return A2(
+			$elm$core$List$filter,
+			function (p) {
+				return _Utils_eq(
+					A2($author$project$Data$World$getBlock, p, world),
+					$elm$core$Maybe$Just(
+						$author$project$Data$Block$EntityBlock($author$project$Data$Entity$Lava)));
+			},
+			$author$project$Data$Position$neighbors(pos));
+	});
+var $author$project$Data$Behavior$MovingWater$getMomentum = F2(
+	function (id, world) {
+		return A2(
+			$elm$core$Maybe$andThen,
+			function (_v0) {
+				var pos = _v0.a;
+				var actor = _v0.b;
+				if (actor.$ === 'MovingWater') {
+					var momentum = actor.a;
+					return $elm$core$Maybe$Just(
+						_Utils_Tuple2(pos, momentum));
+				} else {
+					return $elm$core$Maybe$Nothing;
+				}
+			},
+			A2($author$project$Data$World$getActor, id, world));
+	});
+var $author$project$Data$Behavior$MovingWater$destroyNearLava = F2(
+	function (id, world) {
+		return A2(
+			$elm$core$Maybe$withDefault,
+			world,
+			A2(
+				$elm$core$Maybe$map,
+				function (_v0) {
+					var pos = _v0.a;
+					return function (list) {
+						return $elm$core$List$isEmpty(list) ? world : A2(
+							$author$project$Data$World$removeEntity,
+							pos,
+							A3($elm$core$List$foldl, $author$project$Data$World$removeEntity, world, list));
+					}(
+						A2($author$project$Data$Behavior$MovingWater$getLavaNeighbors, pos, world));
+				},
+				A2($author$project$Data$Behavior$MovingWater$getMomentum, id, world)));
+	});
+var $author$project$Data$Behavior$MovingWater$getNewPos = F2(
+	function (id, world) {
+		return A2(
+			$elm$core$Maybe$andThen,
+			function (_v0) {
+				var pos = _v0.a;
+				var momentum = _v0.b;
+				return A2(
+					$elm$core$Maybe$map,
+					function (to) {
+						return {from: pos, to: to};
+					},
+					A2(
+						$elm$core$Maybe$map,
+						$author$project$Data$Position$plus(pos),
+						momentum.momentum));
+			},
+			A2($author$project$Data$Behavior$MovingWater$getMomentum, id, world));
+	});
+var $author$project$Data$Entity$Water = {$: 'Water'};
+var $author$project$Data$Behavior$MovingWater$moveAndStop = F2(
+	function (args, world) {
+		return A3(
+			$author$project$Data$World$insertEntity,
+			$author$project$Data$Entity$Water,
+			args.to,
+			A2($author$project$Data$World$removeEntity, args.from, world));
+	});
+var $author$project$Data$Behavior$MovingWater$move = F2(
+	function (id, world) {
+		return A2(
+			$elm$core$Maybe$withDefault,
+			world,
+			A2(
+				$elm$core$Maybe$map,
+				function (_v0) {
+					var from = _v0.from;
+					var to = _v0.to;
+					return A2($author$project$Data$World$isFloor, to, world) ? A2(
+						$author$project$Data$Behavior$MovingWater$moveAndStop,
+						{from: from, to: to},
+						world) : A2(
+						$author$project$Data$Behavior$MovingWater$moveAndStop,
+						{from: from, to: from},
+						world);
+				},
+				A2($author$project$Data$Behavior$MovingWater$getNewPos, id, world)));
+	});
+var $author$project$Data$Momentum$revert = function (_v0) {
+	var momentum = _v0.momentum;
+	return {
+		momentum: A2(
+			$elm$core$Maybe$map,
+			A2(
+				$elm$core$Tuple$mapBoth,
+				$elm$core$Basics$mul(-1),
+				$elm$core$Basics$mul(-1)),
+			momentum)
+	};
+};
+var $author$project$Data$Behavior$MovingWater$act = F2(
+	function (_v0, world) {
+		var id = _v0.b;
+		return A2(
+			$elm$random$Random$map,
+			$author$project$Data$Behavior$MovingWater$destroyNearLava(id),
+			A2(
+				$elm$random$Random$map,
+				$elm$core$Maybe$withDefault(world),
+				A2(
+					$elm$random$Random$map,
+					$elm$core$Maybe$map(
+						function (_v2) {
+							var block = _v2.block;
+							var from = _v2.from;
+							var to = _v2.to;
+							if (block.$ === 'EntityBlock') {
+								var entity = block.a;
+								if (entity.$ === 'Actor') {
+									var id0 = entity.a;
+									return A2(
+										$author$project$Data$Behavior$MovingWater$move,
+										id,
+										A2(
+											$elm$core$Maybe$withDefault,
+											world,
+											A3($author$project$Data$World$pushFrom, from, id0, world)));
+								} else {
+									return A2(
+										$author$project$Data$Behavior$MovingWater$move,
+										id,
+										A3(
+											$author$project$Data$World$setActor,
+											id,
+											$author$project$Data$Actor$MovingWater(
+												$author$project$Data$Momentum$revert(
+													$author$project$Data$Momentum$fromPoints(
+														{from: from, to: to}))),
+											world));
+								}
+							} else {
+								return A2($author$project$Data$Behavior$MovingWater$move, id, world);
+							}
+						}),
+					A2(
+						$elm$random$Random$map,
+						$elm$core$Maybe$andThen(
+							function (_v1) {
+								var from = _v1.from;
+								var to = _v1.to;
+								return A2(
+									$elm$core$Maybe$map,
+									function (block) {
+										return {block: block, from: from, to: to};
+									},
+									A2($author$project$Data$World$getBlock, to, world));
+							}),
+						A2(
+							$elm$random$Random$map,
+							$author$project$Data$Behavior$MovingWater$getNewPos(id),
+							$elm$random$Random$constant(world))))));
+	});
 var $author$project$Data$Actor$Path = {$: 'Path'};
 var $author$project$Data$Behavior$Path$act = F2(
 	function (pos, world) {
@@ -9211,7 +9346,6 @@ var $author$project$Data$Behavior$Path$act = F2(
 					$author$project$Data$Position$neighbors(pos))));
 	});
 var $author$project$Data$Item$Gold = {$: 'Gold'};
-var $author$project$Data$Entity$Lava = {$: 'Lava'};
 var $author$project$Data$Actor$Mine = {$: 'Mine'};
 var $author$project$Data$World$Generation$baseProbability = function (_v0) {
 	var x = _v0.a;
@@ -9641,8 +9775,15 @@ var $author$project$Data$Behavior$actorsAct = F2(
 						return $author$project$Data$Effect$genWithNone(
 							A2($author$project$Data$Behavior$Path$act, pos, world));
 				}
-			default:
+			case 'Train':
 				return $author$project$Data$Effect$withNone(world);
+			default:
+				var momentum = actor.a;
+				return $author$project$Data$Effect$genWithNone(
+					A2(
+						$author$project$Data$Behavior$MovingWater$act,
+						_Utils_Tuple3(pos, id, momentum),
+						world));
 		}
 	});
 var $author$project$Data$World$getActors = function (world) {
@@ -10717,7 +10858,7 @@ var $author$project$Data$Info$fromActor = function (actor) {
 					$author$project$Data$Storage$toList(excavator.storage)),
 				$author$project$Data$Info$new(
 					{description: 'Mines and collect automatically', title: 'Excavator'}));
-		default:
+		case 'Train':
 			var train = actor.a;
 			return A2(
 				$author$project$Data$Info$withContent,
@@ -10731,6 +10872,9 @@ var $author$project$Data$Info$fromActor = function (actor) {
 					$author$project$AnyBag$toAssociationList(train.items)),
 				$author$project$Data$Info$new(
 					{description: 'Stores all your items. If it has tracks stored, it will place them and move forward. Needs coal to move. Will regularly fetch new tracks from above ground.', title: 'Train'}));
+		default:
+			return $author$project$Data$Info$new(
+				{description: 'Will stop moving as soon as possible', title: 'Moving Water'});
 	}
 };
 var $author$project$Data$Info$fromEntity = F2(
@@ -10907,7 +11051,7 @@ var $author$project$Data$Tile$fromActor = function (actor) {
 						color: $author$project$View$Color$red,
 						content: _Utils_chr('b')
 					}));
-		default:
+		case 'Train':
 			var train = actor.a;
 			return ((train.moving || (train.tracks > 0)) ? $author$project$Data$Tile$withBold : $elm$core$Basics$identity)(
 				$author$project$Data$Tile$new(
@@ -10915,6 +11059,12 @@ var $author$project$Data$Tile$fromActor = function (actor) {
 						color: $author$project$View$Color$black,
 						content: _Utils_chr('T')
 					}));
+		default:
+			return $author$project$Data$Tile$new(
+				{
+					color: $author$project$View$Color$blue,
+					content: _Utils_chr('~')
+				});
 	}
 };
 var $elm$core$Char$toUpper = _Char_toUpper;
@@ -11302,7 +11452,6 @@ var $author$project$Data$Bomb$new = {explodesIn: $author$project$Config$bombExpl
 var $author$project$Config$excavatorMaxItems = 1;
 var $author$project$Data$Excavator$new = {
 	hasReversed: false,
-	momentum: $elm$core$Maybe$Nothing,
 	storage: $author$project$Data$Storage$empty($author$project$Config$excavatorMaxItems)
 };
 var $elm$html$Html$input = _VirtualDom_node('input');

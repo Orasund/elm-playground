@@ -7,6 +7,7 @@ import Data.Behavior.Bomb
 import Data.Behavior.Excavator
 import Data.Behavior.Falling
 import Data.Behavior.Minecart
+import Data.Behavior.MovingWater
 import Data.Behavior.Path
 import Data.Behavior.Player
 import Data.Behavior.Train
@@ -82,6 +83,11 @@ actorsAct ( id, ( pos, actor ) ) world =
 
         Data.Actor.Train _ ->
             Data.Effect.withNone world
+
+        Data.Actor.MovingWater momentum ->
+            world
+                |> Data.Behavior.MovingWater.act ( pos, id, momentum )
+                |> Data.Effect.genWithNone
 
 
 promt : Game -> List Effect

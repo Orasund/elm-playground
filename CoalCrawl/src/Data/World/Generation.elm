@@ -65,6 +65,7 @@ wallGenerator ( x, y ) =
     let
         content i =
             [ Data.World.insertActor (Data.Actor.Helper (Data.Actor.Cave Data.Actor.CoalCave))
+            , Data.World.insertActor (Data.Actor.Helper (Data.Actor.Cave Data.Actor.WaterCave))
             , Data.World.insertActor (Data.Actor.Helper (Data.Actor.Cave Data.Actor.IronCave))
             , Data.World.insertActor (Data.Actor.Helper (Data.Actor.Cave Data.Actor.WaterCave))
             , Data.World.insertActor (Data.Actor.Helper (Data.Actor.Cave Data.Actor.LavaCave))

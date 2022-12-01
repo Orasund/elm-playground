@@ -8,6 +8,7 @@ import Data.Entity exposing (Entity)
 import Data.Floor exposing (Floor)
 import Data.Item exposing (Item)
 import Data.Minecart
+import Data.Momentum
 import Data.Sound
 import Data.Storage
 import Data.Train
@@ -341,13 +342,22 @@ pushFrom from id world =
     world.actors
         |> Dict.get id
         |> Maybe.andThen
-            (\( _, actor ) ->
+            (\( to, actor ) ->
                 case actor of
                     Data.Actor.Minecart minecart ->
                         world
                             |> setActor id
                                 ({ minecart | movedFrom = Just from }
                                     |> Data.Actor.Minecart
+                                )
+                            |> Just
+
+                    Data.Actor.MovingWater _ ->
+                        world
+                            |> setActor id
+                                ({ from = from, to = to }
+                                    |> Data.Momentum.fromPoints
+                                    |> Data.Actor.MovingWater
                                 )
                             |> Just
 

@@ -8,6 +8,7 @@ import Data.Effect exposing (Effect)
 import Data.Entity
 import Data.Game exposing (Game)
 import Data.Item
+import Data.Momentum
 import Data.Player
 import Data.Position
 import Data.Sound
@@ -76,50 +77,15 @@ interactWith pos game =
 
 walkThroughWater : ( Int, Int ) -> Game -> Game
 walkThroughWater pos game =
-    let
-        forwardPos =
-            game.player.pos
-                |> Data.Position.vecTo pos
-                |> Data.Position.plus pos
-    in
-    (case game.world |> Data.World.get forwardPos of
-        Just ( FloorBlock _, _ ) ->
-            Just forwardPos
-
-        Just ( EntityBlock Data.Entity.Lava, _ ) ->
-            Just forwardPos
-
-        _ ->
+    game.world
+        |> Data.World.removeEntity pos
+        |> Data.World.insertActor
+            ({ from = game.player.pos, to = pos }
+                |> Data.Momentum.fromPoints
+                |> Data.Actor.MovingWater
+            )
             pos
-                |> Data.Position.neighbors
-                |> List.filter
-                    (\p ->
-                        case game.world |> Data.World.get p of
-                            Just ( FloorBlock _, _ ) ->
-                                p /= game.player.pos
-
-                            _ ->
-                                False
-                    )
-                |> (\list ->
-                        case list of
-                            [ p ] ->
-                                p
-
-                            _ ->
-                                pos
-                   )
-                |> Just
-    )
-        |> (\maybe ->
-                game.world
-                    |> Data.World.removeEntity pos
-                    |> (maybe
-                            |> Maybe.map (\p -> Data.World.insertEntityAt p Data.Entity.Water)
-                            |> Maybe.withDefault identity
-                       )
-           )
-        |> (\world -> { game | world = world, player = game.player |> Data.Player.moveTo pos })
+        |> Data.Game.setWorldOf game
 
 
 canMoveTo : Game -> ( Int, Int ) -> Bool
@@ -133,19 +99,10 @@ canMoveTo game p =
                 Just ( _, Data.Actor.Minecart _ ) ->
                     True
 
-                Just ( _, Data.Actor.Excavator _ ) ->
-                    False
+                Just ( _, Data.Actor.MovingWater _ ) ->
+                    True
 
-                Just ( _, Data.Actor.Helper _ ) ->
-                    False
-
-                Just ( _, Data.Actor.Bomb _ ) ->
-                    False
-
-                Just ( _, Data.Actor.Train _ ) ->
-                    False
-
-                Nothing ->
+                _ ->
                     False
 
         Just ( Data.Block.EntityBlock Data.Entity.Water, _ ) ->
@@ -181,10 +138,8 @@ moveTowards targetPos game =
                         |> Data.Effect.withNone
 
                 Just ( Data.Block.EntityBlock Data.Entity.Water, _ ) ->
-                    game
-                        |> walkThroughWater pos
-                        |> (\g -> ( g, [] ))
-                        |> Random.constant
+                    walkThroughWater pos game
+                        |> Data.Effect.withNone
 
                 Just ( Data.Block.EntityBlock (Data.Entity.Vein _), _ ) ->
                     game.world
