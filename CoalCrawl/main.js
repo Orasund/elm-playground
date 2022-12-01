@@ -8851,6 +8851,14 @@ var $author$project$Data$Effect$map = function (fun) {
 		});
 };
 var $author$project$Data$Floor$Track = {$: 'Track'};
+var $author$project$Data$Minecart$moveFrom = F2(
+	function (movedFrom, wagon) {
+		return _Utils_update(
+			wagon,
+			{
+				movedFrom: $elm$core$Maybe$Just(movedFrom)
+			});
+	});
 var $author$project$Data$Behavior$Minecart$swapWith = F3(
 	function (id0, _v0, world) {
 		var pos = _v0.a;
@@ -8859,6 +8867,7 @@ var $author$project$Data$Behavior$Minecart$swapWith = F3(
 			$elm$core$Maybe$map2,
 			F2(
 				function (_v1, _v2) {
+					var p0 = _v1.a;
 					var w0 = _v1.b;
 					var w1 = _v2.b;
 					return A3(
@@ -8870,7 +8879,10 @@ var $author$project$Data$Behavior$Minecart$swapWith = F3(
 							$author$project$Data$World$setActor,
 							id0,
 							$author$project$Data$Actor$Minecart(
-								A2($author$project$Data$Minecart$setStorageOf, w0, w1.storage)),
+								(_Utils_eq(
+									A2($author$project$Data$World$getFloor, p0, world),
+									$elm$core$Maybe$Just($author$project$Data$Floor$Track)) ? $author$project$Data$Minecart$moveFrom(pos) : $elm$core$Basics$identity)(
+									A2($author$project$Data$Minecart$setStorageOf, w0, w1.storage))),
 							world));
 				}),
 			A2($author$project$Data$Behavior$Minecart$getMinecart, id0, world),
@@ -8904,14 +8916,6 @@ var $author$project$Data$Behavior$Minecart$collideWith = F3(
 				}
 			},
 			A2($author$project$Data$World$getActor, target, world));
-	});
-var $author$project$Data$Minecart$moveFrom = F2(
-	function (movedFrom, wagon) {
-		return _Utils_update(
-			wagon,
-			{
-				movedFrom: $elm$core$Maybe$Just(movedFrom)
-			});
 	});
 var $author$project$Data$Minecart$stop = function (wagon) {
 	return _Utils_update(
@@ -9255,10 +9259,10 @@ var $author$project$Data$World$Generation$caveGenerator = F3(
 								_List_fromArray(
 									[
 										_Utils_Tuple2(
-										1 / 4,
+										1 / 2,
 										$author$project$Data$World$Generation$wallGenerator(pos)),
 										_Utils_Tuple2(
-										1 / 8,
+										1 / 4,
 										$elm$random$Random$constant(
 											$author$project$Data$World$insertActor(
 												$author$project$Data$Actor$Helper($author$project$Data$Actor$Path)))),

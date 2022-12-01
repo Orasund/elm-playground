@@ -215,8 +215,8 @@ caveGenerator args ( x, y ) world =
                                     |> Data.World.insertActor
                                     |> Random.constant
                                 )
-                                [ ( 1 / 4, wallGenerator pos )
-                                , ( 1 / 8
+                                [ ( 1 / 2, wallGenerator pos )
+                                , ( 1 / 4
                                   , Data.Actor.Path
                                         |> Data.Actor.Helper
                                         |> Data.World.insertActor

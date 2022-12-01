@@ -146,11 +146,17 @@ collideWith target ( pos, id1 ) world =
 swapWith : Int -> ( ( Int, Int ), Int ) -> World -> Maybe World
 swapWith id0 ( pos, id1 ) world =
     Maybe.map2
-        (\( _, w0 ) ( _, w1 ) ->
+        (\( p0, w0 ) ( _, w1 ) ->
             world
                 |> Data.World.setActor id0
                     (w1.storage
                         |> Data.Minecart.setStorageOf w0
+                        |> (if Data.World.getFloor p0 world == Just Data.Floor.Track then
+                                Data.Minecart.moveFrom pos
+
+                            else
+                                identity
+                           )
                         |> Data.Actor.Minecart
                     )
                 |> Data.World.setActor id1
