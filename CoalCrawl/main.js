@@ -9168,22 +9168,28 @@ var $author$project$Data$Behavior$MovingWater$destroyNearLava = F2(
 				},
 				A2($author$project$Data$Behavior$MovingWater$getMomentum, id, world)));
 	});
+var $author$project$Data$Momentum$applyTo = F2(
+	function (p, _v0) {
+		var momentum = _v0.momentum;
+		return A2(
+			$elm$core$Maybe$withDefault,
+			p,
+			A2(
+				$elm$core$Maybe$map,
+				$author$project$Data$Position$plus(p),
+				momentum));
+	});
 var $author$project$Data$Behavior$MovingWater$getNewPos = F2(
 	function (id, world) {
 		return A2(
-			$elm$core$Maybe$andThen,
+			$elm$core$Maybe$map,
 			function (_v0) {
 				var pos = _v0.a;
 				var momentum = _v0.b;
-				return A2(
-					$elm$core$Maybe$map,
-					function (to) {
-						return {from: pos, to: to};
-					},
-					A2(
-						$elm$core$Maybe$map,
-						$author$project$Data$Position$plus(pos),
-						momentum.momentum));
+				return function (to) {
+					return {from: pos, to: to};
+				}(
+					A2($author$project$Data$Momentum$applyTo, pos, momentum));
 			},
 			A2($author$project$Data$Behavior$MovingWater$getMomentum, id, world));
 	});
@@ -9228,67 +9234,118 @@ var $author$project$Data$Momentum$revert = function (_v0) {
 			momentum)
 	};
 };
+var $author$project$Data$Behavior$MovingWater$getFloorNeighbors = F2(
+	function (pos, world) {
+		return A2(
+			$elm$core$List$filter,
+			function (p) {
+				return A2($author$project$Data$World$isFloor, p, world);
+			},
+			$author$project$Data$Position$neighbors(pos));
+	});
+var $author$project$Data$Behavior$MovingWater$setMomentum = F2(
+	function (id, world) {
+		return A2(
+			$elm$core$Maybe$withDefault,
+			$elm$random$Random$constant(world),
+			A2(
+				$elm$core$Maybe$map,
+				function (_v0) {
+					var from = _v0.a;
+					var momentum = _v0.b;
+					var forwardPos = A2($author$project$Data$Momentum$applyTo, from, momentum);
+					var backwardPos = A2(
+						$author$project$Data$Momentum$applyTo,
+						from,
+						$author$project$Data$Momentum$revert(momentum));
+					return A2(
+						$elm$random$Random$map,
+						function (p) {
+							return A3(
+								$author$project$Data$World$setActor,
+								id,
+								$author$project$Data$Actor$MovingWater(
+									$author$project$Data$Momentum$fromPoints(
+										{from: from, to: p})),
+								world);
+						},
+						function (list) {
+							if (list.b) {
+								var head = list.a;
+								var tail = list.b;
+								return A2($elm$core$List$member, forwardPos, list) ? $elm$random$Random$constant(forwardPos) : A2($elm$random$Random$uniform, head, tail);
+							} else {
+								return $elm$random$Random$constant(forwardPos);
+							}
+						}(
+							A2(
+								$elm$core$List$filter,
+								$elm$core$Basics$neq(backwardPos),
+								A2($author$project$Data$Behavior$MovingWater$getFloorNeighbors, from, world))));
+				},
+				A2($author$project$Data$Behavior$MovingWater$getMomentum, id, world)));
+	});
 var $author$project$Data$Behavior$MovingWater$act = F2(
-	function (_v0, world) {
+	function (_v0, w) {
 		var id = _v0.b;
 		return A2(
 			$elm$random$Random$map,
 			$author$project$Data$Behavior$MovingWater$destroyNearLava(id),
 			A2(
 				$elm$random$Random$map,
-				$elm$core$Maybe$withDefault(world),
+				$elm$core$Maybe$withDefault(w),
 				A2(
 					$elm$random$Random$map,
-					$elm$core$Maybe$map(
-						function (_v2) {
-							var block = _v2.block;
-							var from = _v2.from;
-							var to = _v2.to;
-							if (block.$ === 'EntityBlock') {
-								var entity = block.a;
-								if (entity.$ === 'Actor') {
-									var id0 = entity.a;
-									return A2(
-										$author$project$Data$Behavior$MovingWater$move,
-										id,
-										A2(
-											$elm$core$Maybe$withDefault,
-											world,
-											A3($author$project$Data$World$pushFrom, from, id0, world)));
-								} else {
-									return A2(
-										$author$project$Data$Behavior$MovingWater$move,
-										id,
-										A3(
-											$author$project$Data$World$setActor,
+					function (world) {
+						return A2(
+							$elm$core$Maybe$map,
+							function (_v2) {
+								var block = _v2.block;
+								var from = _v2.from;
+								var to = _v2.to;
+								if (block.$ === 'EntityBlock') {
+									var entity = block.a;
+									if (entity.$ === 'Actor') {
+										var id0 = entity.a;
+										return A2(
+											$author$project$Data$Behavior$MovingWater$move,
 											id,
-											$author$project$Data$Actor$MovingWater(
-												$author$project$Data$Momentum$revert(
-													$author$project$Data$Momentum$fromPoints(
-														{from: from, to: to}))),
-											world));
+											A2(
+												$elm$core$Maybe$withDefault,
+												world,
+												A3($author$project$Data$World$pushFrom, from, id0, world)));
+									} else {
+										return A2(
+											$author$project$Data$Behavior$MovingWater$move,
+											id,
+											A3(
+												$author$project$Data$World$setActor,
+												id,
+												$author$project$Data$Actor$MovingWater(
+													$author$project$Data$Momentum$revert(
+														$author$project$Data$Momentum$fromPoints(
+															{from: from, to: to}))),
+												world));
+									}
+								} else {
+									return A2($author$project$Data$Behavior$MovingWater$move, id, world);
 								}
-							} else {
-								return A2($author$project$Data$Behavior$MovingWater$move, id, world);
-							}
-						}),
-					A2(
-						$elm$random$Random$map,
-						$elm$core$Maybe$andThen(
-							function (_v1) {
-								var from = _v1.from;
-								var to = _v1.to;
-								return A2(
-									$elm$core$Maybe$map,
-									function (block) {
-										return {block: block, from: from, to: to};
-									},
-									A2($author$project$Data$World$getBlock, to, world));
-							}),
-						A2(
-							$elm$random$Random$map,
-							$author$project$Data$Behavior$MovingWater$getNewPos(id),
-							$elm$random$Random$constant(world))))));
+							},
+							A2(
+								$elm$core$Maybe$andThen,
+								function (_v1) {
+									var from = _v1.from;
+									var to = _v1.to;
+									return A2(
+										$elm$core$Maybe$map,
+										function (block) {
+											return {block: block, from: from, to: to};
+										},
+										A2($author$project$Data$World$getBlock, to, world));
+								},
+								A2($author$project$Data$Behavior$MovingWater$getNewPos, id, world)));
+					},
+					A2($author$project$Data$Behavior$MovingWater$setMomentum, id, w))));
 	});
 var $author$project$Data$Actor$Path = {$: 'Path'};
 var $author$project$Data$Behavior$Path$act = F2(
@@ -11060,11 +11117,12 @@ var $author$project$Data$Tile$fromActor = function (actor) {
 						content: _Utils_chr('T')
 					}));
 		default:
-			return $author$project$Data$Tile$new(
-				{
-					color: $author$project$View$Color$blue,
-					content: _Utils_chr('~')
-				});
+			return $author$project$Data$Tile$withBold(
+				$author$project$Data$Tile$new(
+					{
+						color: $author$project$View$Color$blue,
+						content: _Utils_chr('~')
+					}));
 	}
 };
 var $elm$core$Char$toUpper = _Char_toUpper;

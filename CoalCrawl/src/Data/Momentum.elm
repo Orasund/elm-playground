@@ -34,3 +34,10 @@ revert { momentum } =
                     ((*) -1)
                 )
     }
+
+
+applyTo : ( Int, Int ) -> Momentum -> ( Int, Int )
+applyTo p { momentum } =
+    momentum
+        |> Maybe.map (Data.Position.plus p)
+        |> Maybe.withDefault p

@@ -13,83 +13,86 @@ act :
     ( ( Int, Int ), Int, Momentum )
     -> World
     -> Generator World
-act ( _, id, _ ) world =
-    world
-        --|> setMomentum id
-        |> Random.constant
-        |> Random.map (getNewPos id)
+act ( _, id, _ ) w =
+    w
+        |> setMomentum id
         |> Random.map
-            (Maybe.andThen
-                (\{ from, to } ->
-                    world
-                        |> Data.World.getBlock to
-                        |> Maybe.map (\block -> { block = block, from = from, to = to })
-                )
-            )
-        |> Random.map
-            (Maybe.map
-                (\{ block, from, to } ->
-                    case block of
-                        Data.Block.EntityBlock entity ->
-                            case entity of
-                                Data.Entity.Actor id0 ->
-                                    world
-                                        |> Data.World.pushFrom from id0
-                                        |> Maybe.withDefault world
-                                        |> move id
+            (\world ->
+                world
+                    |> getNewPos id
+                    |> Maybe.andThen
+                        (\{ from, to } ->
+                            world
+                                |> Data.World.getBlock to
+                                |> Maybe.map (\block -> { block = block, from = from, to = to })
+                        )
+                    |> Maybe.map
+                        (\{ block, from, to } ->
+                            case block of
+                                Data.Block.EntityBlock entity ->
+                                    case entity of
+                                        Data.Entity.Actor id0 ->
+                                            world
+                                                |> Data.World.pushFrom from id0
+                                                |> Maybe.withDefault world
+                                                |> move id
 
-                                _ ->
-                                    world
-                                        |> Data.World.setActor id
-                                            (Data.Momentum.fromPoints { from = from, to = to }
-                                                |> Data.Momentum.revert
-                                                |> Data.Actor.MovingWater
-                                            )
-                                        |> move id
+                                        _ ->
+                                            world
+                                                |> Data.World.setActor id
+                                                    (Data.Momentum.fromPoints { from = from, to = to }
+                                                        |> Data.Momentum.revert
+                                                        |> Data.Actor.MovingWater
+                                                    )
+                                                |> move id
 
-                        Data.Block.FloorBlock _ ->
-                            move id world
-                )
+                                Data.Block.FloorBlock _ ->
+                                    move id world
+                        )
             )
-        |> Random.map (Maybe.withDefault world)
+        |> Random.map (Maybe.withDefault w)
         |> Random.map (destroyNearLava id)
 
 
 setMomentum : Int -> World -> Generator World
 setMomentum id world =
     world
-        |> getNewPos id
+        |> getMomentum id
         |> Maybe.map
-            (\{ from, to } ->
+            (\( from, momentum ) ->
+                let
+                    backwardPos =
+                        momentum
+                            |> Data.Momentum.revert
+                            |> Data.Momentum.applyTo from
+
+                    forwardPos =
+                        momentum
+                            |> Data.Momentum.applyTo from
+                in
                 world
                     |> getFloorNeighbors from
-                    |> List.filter
-                        ((/=)
-                            (to
-                                |> Data.Position.vecTo from
-                                |> Data.Position.plus from
-                            )
-                        )
+                    |> List.filter ((/=) backwardPos)
                     |> (\list ->
                             case list of
                                 head :: tail ->
-                                    if list |> List.member to then
-                                        Random.constant to
+                                    if list |> List.member forwardPos then
+                                        Random.constant forwardPos
 
                                     else
                                         Random.uniform head tail
 
                                 [] ->
-                                    Random.constant from
+                                    Random.constant forwardPos
                        )
                     |> Random.map
                         (\p ->
-                            world
-                                |> Data.World.setActor id
-                                    ({ from = from, to = p }
-                                        |> Data.Momentum.fromPoints
-                                        |> Data.Actor.MovingWater
-                                    )
+                            Data.World.setActor id
+                                ({ from = from, to = p }
+                                    |> Data.Momentum.fromPoints
+                                    |> Data.Actor.MovingWater
+                                )
+                                world
                         )
             )
         |> Maybe.withDefault (Random.constant world)
@@ -160,12 +163,11 @@ getNewPos : Int -> World -> Maybe { from : ( Int, Int ), to : ( Int, Int ) }
 getNewPos id world =
     world
         |> getMomentum id
-        |> Maybe.andThen
+        |> Maybe.map
             (\( pos, momentum ) ->
-                momentum.momentum
-                    |> Maybe.map (Data.Position.plus pos)
-                    |> Maybe.map
-                        (\to -> { from = pos, to = to })
+                momentum
+                    |> Data.Momentum.applyTo pos
+                    |> (\to -> { from = pos, to = to })
             )
 
 

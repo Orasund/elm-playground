@@ -176,6 +176,7 @@ fromActor actor =
             , content = '~'
             }
                 |> new
+                |> withBold
 
 
 fromBlock : Game -> ( Block, Maybe Item ) -> Tile
