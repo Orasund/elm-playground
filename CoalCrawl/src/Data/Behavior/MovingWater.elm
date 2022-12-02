@@ -29,22 +29,16 @@ act ( _, id, _ ) w =
                     |> Maybe.map
                         (\{ block, from, to } ->
                             case block of
-                                Data.Block.EntityBlock entity ->
-                                    case entity of
-                                        Data.Entity.Actor id0 ->
-                                            world
-                                                |> Data.World.pushFrom from id0
-                                                |> Maybe.withDefault world
-                                                |> move id
-
-                                        _ ->
-                                            world
-                                                |> Data.World.setActor id
-                                                    (Data.Momentum.fromPoints { from = from, to = to }
-                                                        |> Data.Momentum.revert
-                                                        |> Data.Actor.MovingWater
-                                                    )
-                                                |> move id
+                                Data.Block.EntityBlock _ ->
+                                    world
+                                        |> Data.World.push { from = from, pos = to }
+                                        |> Maybe.withDefault world
+                                        |> Data.World.setActor id
+                                            (Data.Momentum.fromPoints { from = from, to = to }
+                                                |> Data.Momentum.revert
+                                                |> Data.Actor.MovingWater
+                                            )
+                                        |> move id
 
                                 Data.Block.FloorBlock _ ->
                                     move id world

@@ -4,7 +4,7 @@ import Data.Actor
 import Data.Entity
 import Data.Position
 import Data.World exposing (World)
-import Data.World.Generation
+import Generation.Wall
 import Random exposing (Generator)
 
 
@@ -46,7 +46,7 @@ act pos world =
                                                     |> Random.constant
 
                                             else
-                                                Data.World.Generation.wallGenerator p
+                                                Generation.Wall.wallGenerator p
                                                     |> Random.map (\fun -> fun p w)
                                         )
                             )

@@ -13,7 +13,7 @@ import Data.Position
 import Data.Sound
 import Data.Train
 import Data.World
-import Data.World.Generation
+import Generation
 import Random exposing (Generator)
 
 
@@ -263,7 +263,7 @@ mine game =
         :: Data.Position.neighbors newPos
         |> List.foldl
             (\pos ->
-                Random.andThen (Data.World.Generation.mine pos)
+                Random.andThen (Generation.mine pos)
             )
             (Random.constant game.world)
         |> Random.map (\world -> { game | world = world })

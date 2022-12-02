@@ -8,13 +8,12 @@ import Data.Effect exposing (Effect)
 import Data.Entity
 import Data.Game exposing (Game)
 import Data.Item
-import Data.Momentum
 import Data.Player
 import Data.Position
 import Data.Sound
 import Data.World
-import Data.World.Generation
 import Dict
+import Generation
 import Random exposing (Generator)
 import Set
 
@@ -62,7 +61,7 @@ interactWith pos game =
 
                             Data.Entity.Vein _ ->
                                 game.world
-                                    |> Data.World.Generation.mine game.selected
+                                    |> Generation.mine game.selected
                                     |> Random.map (\world -> ( { game | world = world }, [] ))
                                     |> Data.Effect.andThen (moveTowards game.selected)
 
@@ -73,19 +72,6 @@ interactWith pos game =
                                 Random.constant ( game, [] )
             )
         |> Maybe.withDefault (Random.constant ( game, [] ))
-
-
-walkThroughWater : ( Int, Int ) -> Game -> Game
-walkThroughWater pos game =
-    game.world
-        |> Data.World.removeEntity pos
-        |> Data.World.insertActor
-            ({ from = game.player.pos, to = pos }
-                |> Data.Momentum.fromPoints
-                |> Data.Actor.MovingWater
-            )
-            pos
-        |> Data.Game.setWorldOf game
 
 
 canMoveTo : Game -> ( Int, Int ) -> Bool
@@ -130,31 +116,24 @@ moveTowards targetPos game =
     of
         Just pos ->
             case Data.World.get pos game.world of
-                Just ( Data.Block.EntityBlock (Data.Entity.Actor id), _ ) ->
-                    game.world
-                        |> Data.World.pushFrom game.player.pos id
-                        |> Maybe.map (Data.Game.setWorldOf game)
-                        |> Maybe.withDefault game
-                        |> Data.Effect.withNone
-
-                Just ( Data.Block.EntityBlock Data.Entity.Water, _ ) ->
-                    walkThroughWater pos game
-                        |> Data.Effect.withNone
-
-                Just ( Data.Block.EntityBlock (Data.Entity.Vein _), _ ) ->
-                    game.world
-                        |> Data.World.Generation.mine pos
-                        |> Random.map (Data.Game.setWorldOf game)
-                        |> Data.Effect.genWithNone
-                        |> Data.Effect.andThen (moveTowards targetPos)
-
                 Just ( Data.Block.FloorBlock _, _ ) ->
                     { game | player = game.player |> Data.Player.moveTo pos }
                         |> (\g -> ( g, [] ))
                         |> Random.constant
 
+                Just ( Data.Block.EntityBlock (Data.Entity.Vein _), _ ) ->
+                    game.world
+                        |> Generation.mine pos
+                        |> Random.map (Data.Game.setWorldOf game)
+                        |> Data.Effect.genWithNone
+                        |> Data.Effect.andThen (moveTowards targetPos)
+
                 _ ->
-                    ( game, [] ) |> Random.constant
+                    game.world
+                        |> Data.World.push { from = game.player.pos, pos = pos }
+                        |> Maybe.map (Data.Game.setWorldOf game)
+                        |> Maybe.withDefault game
+                        |> Data.Effect.withNone
 
         Nothing ->
             Random.constant ( game, [] )

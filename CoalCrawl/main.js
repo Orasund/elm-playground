@@ -6371,6 +6371,26 @@ var $author$project$Data$World$getBlock = F2(
 				A2($author$project$Data$World$getFloor, pos, world));
 		}
 	});
+var $author$project$Config$tracksPerTrip = 8;
+var $author$project$Generation$baseProbability = function (_v0) {
+	var x = _v0.a;
+	var y = _v0.b;
+	return _List_fromArray(
+		[
+			_Utils_Tuple2(
+			(_Utils_cmp(y, $author$project$Config$tracksPerTrip) > 0) ? 0.5 : 0,
+			_Utils_Tuple2(x, y - 1)),
+			_Utils_Tuple2(
+			0.5,
+			_Utils_Tuple2(x, y + 1)),
+			_Utils_Tuple2(
+			0.5,
+			_Utils_Tuple2(x - 1, y)),
+			_Utils_Tuple2(
+			0.5,
+			_Utils_Tuple2(x + 1, y))
+		]);
+};
 var $elm$core$Basics$abs = function (n) {
 	return (n < 0) ? (-n) : n;
 };
@@ -6418,54 +6438,46 @@ var $author$project$Data$World$get = F2(
 			},
 			A2($author$project$Data$World$getBlock, pos, world));
 	});
+var $author$project$Generation$generateAt = F3(
+	function (pos, fun, world) {
+		return A2(
+			$elm$random$Random$map,
+			function (updateAt) {
+				return function (maybe) {
+					return _Utils_eq(maybe, $elm$core$Maybe$Nothing) ? A2(updateAt, pos, world) : world;
+				}(
+					A2($author$project$Data$World$get, pos, world));
+			},
+			fun);
+	});
 var $author$project$Data$World$insertEntity = F2(
 	function (entity, pos) {
 		return A2($author$project$Data$World$insertEntityAt, pos, entity);
 	});
-var $elm$random$Random$map2 = F3(
-	function (func, _v0, _v1) {
-		var genA = _v0.a;
-		var genB = _v1.a;
-		return $elm$random$Random$Generator(
-			function (seed0) {
-				var _v2 = genA(seed0);
-				var a = _v2.a;
-				var seed1 = _v2.b;
-				var _v3 = genB(seed1);
-				var b = _v3.a;
-				var seed2 = _v3.b;
-				return _Utils_Tuple2(
-					A2(func, a, b),
-					seed2);
-			});
-	});
-var $author$project$Data$World$Generation$generateContent = F2(
-	function (args, dict) {
+var $author$project$Generation$generateContent = F3(
+	function (pos, content, dict) {
 		return A3(
 			$elm$core$List$foldl,
 			function (_v0) {
 				var prob = _v0.a;
-				var pos = _v0.b;
+				var p = _v0.b;
 				return $elm$random$Random$andThen(
-					function (d) {
-						return A3(
-							$elm$random$Random$map2,
-							F2(
-								function (_float, updateAt) {
-									return function (maybe) {
-										return _Utils_eq(maybe, $elm$core$Maybe$Nothing) ? A2(
-											(_Utils_cmp(_float, prob) < 0) ? updateAt : $author$project$Data$World$insertEntity($author$project$Data$Entity$Wall),
-											pos,
-											d) : d;
-									}(
-										A2($author$project$Data$World$get, pos, d));
-								}),
-							A2($elm$random$Random$float, 0, 1),
-							args.content);
+					function (w) {
+						return A2(
+							$elm$random$Random$andThen,
+							function (_float) {
+								return A3(
+									$author$project$Generation$generateAt,
+									p,
+									(_Utils_cmp(_float, prob) < 0) ? content : $elm$random$Random$constant(
+										$author$project$Data$World$insertEntity($author$project$Data$Entity$Wall)),
+									w);
+							},
+							A2($elm$random$Random$float, 0, 1));
 					});
 			},
 			$elm$random$Random$constant(dict),
-			args.probability);
+			$author$project$Generation$baseProbability(pos));
 	});
 var $author$project$Data$Actor$Cave = function (a) {
 	return {$: 'Cave', a: a};
@@ -6623,7 +6635,6 @@ var $elm$core$List$take = F2(
 	function (n, list) {
 		return A3($elm$core$List$takeFast, 0, n, list);
 	});
-var $author$project$Config$tracksPerTrip = 8;
 var $elm$random$Random$getByWeight = F3(
 	function (_v0, others, countdown) {
 		getByWeight:
@@ -6667,7 +6678,7 @@ var $elm$random$Random$weighted = F2(
 			A2($elm$random$Random$getByWeight, first, others),
 			A2($elm$random$Random$float, 0, total));
 	});
-var $author$project$Data$World$Generation$wallGenerator = function (_v0) {
+var $author$project$Generation$Wall$wallGenerator = function (_v0) {
 	var x = _v0.a;
 	var y = _v0.b;
 	var content = function (i) {
@@ -6686,19 +6697,16 @@ var $author$project$Data$World$Generation$wallGenerator = function (_v0) {
 								$author$project$Data$Actor$Cave($author$project$Data$Actor$CoalCave))),
 							$author$project$Data$World$insertActor(
 							$author$project$Data$Actor$Helper(
-								$author$project$Data$Actor$Cave($author$project$Data$Actor$WaterCave))),
-							$author$project$Data$World$insertActor(
-							$author$project$Data$Actor$Helper(
 								$author$project$Data$Actor$Cave($author$project$Data$Actor$IronCave))),
 							$author$project$Data$World$insertActor(
 							$author$project$Data$Actor$Helper(
 								$author$project$Data$Actor$Cave($author$project$Data$Actor$WaterCave))),
 							$author$project$Data$World$insertActor(
 							$author$project$Data$Actor$Helper(
-								$author$project$Data$Actor$Cave($author$project$Data$Actor$LavaCave))),
+								$author$project$Data$Actor$Cave($author$project$Data$Actor$CollapsedCave))),
 							$author$project$Data$World$insertActor(
 							$author$project$Data$Actor$Helper(
-								$author$project$Data$Actor$Cave($author$project$Data$Actor$CollapsedCave)))
+								$author$project$Data$Actor$Cave($author$project$Data$Actor$LavaCave)))
 						]))));
 	};
 	return function (list) {
@@ -6727,7 +6735,7 @@ var $author$project$Data$World$Generation$wallGenerator = function (_v0) {
 		}(
 			(((y / $author$project$Config$tracksPerTrip) | 0) - (($elm$core$Basics$abs(x) / (2 * $author$project$Config$tracksPerTrip)) | 0)) + 1));
 };
-var $author$project$Data$World$Generation$mine = F2(
+var $author$project$Generation$mine = F2(
 	function (_v0, world) {
 		var x = _v0.a;
 		var y = _v0.b;
@@ -6744,27 +6752,11 @@ var $author$project$Data$World$Generation$mine = F2(
 				A2(
 					$elm$core$Maybe$map,
 					function (items) {
-						return A2(
-							$author$project$Data$World$Generation$generateContent,
-							{
-								content: $author$project$Data$World$Generation$wallGenerator(
-									_Utils_Tuple2(x, y)),
-								probability: _List_fromArray(
-									[
-										_Utils_Tuple2(
-										(y > 0) ? 0.7 : 0,
-										_Utils_Tuple2(x, y - 1)),
-										_Utils_Tuple2(
-										1,
-										_Utils_Tuple2(x, y + 1)),
-										_Utils_Tuple2(
-										0.7,
-										_Utils_Tuple2(x - 1, y)),
-										_Utils_Tuple2(
-										0.7,
-										_Utils_Tuple2(x + 1, y))
-									])
-							},
+						return A3(
+							$author$project$Generation$generateContent,
+							_Utils_Tuple2(x, y),
+							$author$project$Generation$Wall$wallGenerator(
+								_Utils_Tuple2(x, y)),
 							function () {
 								if (!items.b) {
 									return $elm$core$Basics$identity;
@@ -7265,41 +7257,73 @@ var $author$project$Data$World$setActor = F2(
 				return actor;
 			});
 	});
-var $author$project$Data$World$pushFrom = F3(
-	function (from, id, world) {
+var $author$project$Data$World$push = F2(
+	function (_v0, world) {
+		var from = _v0.from;
+		var pos = _v0.pos;
 		return A2(
 			$elm$core$Maybe$andThen,
-			function (_v0) {
-				var to = _v0.a;
-				var actor = _v0.b;
-				switch (actor.$) {
-					case 'Minecart':
-						var minecart = actor.a;
-						return $elm$core$Maybe$Just(
-							A3(
-								$author$project$Data$World$setActor,
-								id,
-								$author$project$Data$Actor$Minecart(
-									_Utils_update(
-										minecart,
-										{
-											movedFrom: $elm$core$Maybe$Just(from)
-										})),
-								world));
-					case 'MovingWater':
-						return $elm$core$Maybe$Just(
-							A3(
-								$author$project$Data$World$setActor,
-								id,
-								$author$project$Data$Actor$MovingWater(
-									$author$project$Data$Momentum$fromPoints(
-										{from: from, to: to})),
-								world));
-					default:
-						return $elm$core$Maybe$Nothing;
+			function (block) {
+				if (block.$ === 'EntityBlock') {
+					var entity = block.a;
+					switch (entity.$) {
+						case 'Actor':
+							var id = entity.a;
+							var _v3 = A2(
+								$elm$core$Maybe$map,
+								$elm$core$Tuple$second,
+								A2($author$project$Data$World$getActor, id, world));
+							_v3$2:
+							while (true) {
+								if (_v3.$ === 'Just') {
+									switch (_v3.a.$) {
+										case 'Minecart':
+											var minecart = _v3.a.a;
+											return $elm$core$Maybe$Just(
+												A3(
+													$author$project$Data$World$setActor,
+													id,
+													$author$project$Data$Actor$Minecart(
+														_Utils_update(
+															minecart,
+															{
+																movedFrom: $elm$core$Maybe$Just(from)
+															})),
+													world));
+										case 'MovingWater':
+											return $elm$core$Maybe$Just(
+												A3(
+													$author$project$Data$World$setActor,
+													id,
+													$author$project$Data$Actor$MovingWater(
+														$author$project$Data$Momentum$fromPoints(
+															{from: from, to: pos})),
+													world));
+										default:
+											break _v3$2;
+									}
+								} else {
+									break _v3$2;
+								}
+							}
+							return $elm$core$Maybe$Nothing;
+						case 'Water':
+							return $elm$core$Maybe$Just(
+								A3(
+									$author$project$Data$World$insertActor,
+									$author$project$Data$Actor$MovingWater(
+										$author$project$Data$Momentum$fromPoints(
+											{from: from, to: pos})),
+									pos,
+									A2($author$project$Data$World$removeEntity, pos, world)));
+						default:
+							return $elm$core$Maybe$Nothing;
+					}
+				} else {
+					return $elm$core$Maybe$Nothing;
 				}
 			},
-			A2($elm$core$Dict$get, id, world.actors));
+			A2($author$project$Data$World$getBlock, pos, world));
 	});
 var $author$project$Data$Game$setWorld = F2(
 	function (world, game) {
@@ -7320,19 +7344,6 @@ var $krisajenkins$elm_astar$AStar$straightLineCost = F2(
 		var dy = $elm$core$Basics$abs(y1 - y2);
 		var dx = $elm$core$Basics$abs(x1 - x2);
 		return dx + dy;
-	});
-var $author$project$Data$Behavior$Player$walkThroughWater = F2(
-	function (pos, game) {
-		return A2(
-			$author$project$Data$Game$setWorldOf,
-			game,
-			A3(
-				$author$project$Data$World$insertActor,
-				$author$project$Data$Actor$MovingWater(
-					$author$project$Data$Momentum$fromPoints(
-						{from: game.player.pos, to: pos})),
-				pos,
-				A2($author$project$Data$World$removeEntity, pos, game.world)));
 	});
 var $author$project$Data$Effect$withNone = function (a) {
 	return $elm$random$Random$constant(
@@ -7360,42 +7371,11 @@ var $author$project$Data$Behavior$Player$moveTowards = F2(
 		if (_v0.$ === 'Just') {
 			var pos = _v0.a;
 			var _v1 = A2($author$project$Data$World$get, pos, game.world);
-			_v1$4:
+			_v1$2:
 			while (true) {
 				if (_v1.$ === 'Just') {
-					if (_v1.a.a.$ === 'EntityBlock') {
-						switch (_v1.a.a.a.$) {
-							case 'Actor':
-								var _v2 = _v1.a;
-								var id = _v2.a.a.a;
-								return $author$project$Data$Effect$withNone(
-									A2(
-										$elm$core$Maybe$withDefault,
-										game,
-										A2(
-											$elm$core$Maybe$map,
-											$author$project$Data$Game$setWorldOf(game),
-											A3($author$project$Data$World$pushFrom, game.player.pos, id, game.world))));
-							case 'Water':
-								var _v3 = _v1.a;
-								var _v4 = _v3.a.a;
-								return $author$project$Data$Effect$withNone(
-									A2($author$project$Data$Behavior$Player$walkThroughWater, pos, game));
-							case 'Vein':
-								var _v5 = _v1.a;
-								return A2(
-									$author$project$Data$Effect$andThen,
-									$author$project$Data$Behavior$Player$moveTowards(targetPos),
-									$author$project$Data$Effect$genWithNone(
-										A2(
-											$elm$random$Random$map,
-											$author$project$Data$Game$setWorldOf(game),
-											A2($author$project$Data$World$Generation$mine, pos, game.world))));
-							default:
-								break _v1$4;
-						}
-					} else {
-						var _v6 = _v1.a;
+					if (_v1.a.a.$ === 'FloorBlock') {
+						var _v2 = _v1.a;
 						return $elm$random$Random$constant(
 							function (g) {
 								return _Utils_Tuple2(g, _List_Nil);
@@ -7405,13 +7385,36 @@ var $author$project$Data$Behavior$Player$moveTowards = F2(
 									{
 										player: A2($author$project$Data$Player$moveTo, pos, game.player)
 									})));
+					} else {
+						if (_v1.a.a.a.$ === 'Vein') {
+							var _v3 = _v1.a;
+							return A2(
+								$author$project$Data$Effect$andThen,
+								$author$project$Data$Behavior$Player$moveTowards(targetPos),
+								$author$project$Data$Effect$genWithNone(
+									A2(
+										$elm$random$Random$map,
+										$author$project$Data$Game$setWorldOf(game),
+										A2($author$project$Generation$mine, pos, game.world))));
+						} else {
+							break _v1$2;
+						}
 					}
 				} else {
-					break _v1$4;
+					break _v1$2;
 				}
 			}
-			return $elm$random$Random$constant(
-				_Utils_Tuple2(game, _List_Nil));
+			return $author$project$Data$Effect$withNone(
+				A2(
+					$elm$core$Maybe$withDefault,
+					game,
+					A2(
+						$elm$core$Maybe$map,
+						$author$project$Data$Game$setWorldOf(game),
+						A2(
+							$author$project$Data$World$push,
+							{from: game.player.pos, pos: pos},
+							game.world))));
 		} else {
 			return $elm$random$Random$constant(
 				_Utils_Tuple2(game, _List_Nil));
@@ -7795,7 +7798,7 @@ var $author$project$Data$Behavior$Player$interactWith = F2(
 													{world: world}),
 												_List_Nil);
 										},
-										A2($author$project$Data$World$Generation$mine, game.selected, game.world)));
+										A2($author$project$Generation$mine, game.selected, game.world)));
 							case 'Water':
 								return $elm$random$Random$constant(
 									_Utils_Tuple2(game, _List_Nil));
@@ -8161,7 +8164,7 @@ var $author$project$Data$Behavior$Train$mine = function (game) {
 			$elm$core$List$foldl,
 			function (pos) {
 				return $elm$random$Random$andThen(
-					$author$project$Data$World$Generation$mine(pos));
+					$author$project$Generation$mine(pos));
 			},
 			$elm$random$Random$constant(game.world),
 			A2(
@@ -8516,7 +8519,7 @@ var $author$project$Data$Behavior$Excavator$mine = F2(
 					var entity = _v0.a.a;
 					if (entity.$ === 'Vein') {
 						return $elm$random$Random$andThen(
-							$author$project$Data$World$Generation$mine(p));
+							$author$project$Generation$mine(p));
 					} else {
 						return $elm$core$Basics$identity;
 					}
@@ -9304,29 +9307,23 @@ var $author$project$Data$Behavior$MovingWater$act = F2(
 								var from = _v2.from;
 								var to = _v2.to;
 								if (block.$ === 'EntityBlock') {
-									var entity = block.a;
-									if (entity.$ === 'Actor') {
-										var id0 = entity.a;
-										return A2(
-											$author$project$Data$Behavior$MovingWater$move,
+									return A2(
+										$author$project$Data$Behavior$MovingWater$move,
+										id,
+										A3(
+											$author$project$Data$World$setActor,
 											id,
+											$author$project$Data$Actor$MovingWater(
+												$author$project$Data$Momentum$revert(
+													$author$project$Data$Momentum$fromPoints(
+														{from: from, to: to}))),
 											A2(
 												$elm$core$Maybe$withDefault,
 												world,
-												A3($author$project$Data$World$pushFrom, from, id0, world)));
-									} else {
-										return A2(
-											$author$project$Data$Behavior$MovingWater$move,
-											id,
-											A3(
-												$author$project$Data$World$setActor,
-												id,
-												$author$project$Data$Actor$MovingWater(
-													$author$project$Data$Momentum$revert(
-														$author$project$Data$Momentum$fromPoints(
-															{from: from, to: to}))),
-												world));
-									}
+												A2(
+													$author$project$Data$World$push,
+													{from: from, pos: to},
+													world))));
 								} else {
 									return A2($author$project$Data$Behavior$MovingWater$move, id, world);
 								}
@@ -9387,7 +9384,7 @@ var $author$project$Data$Behavior$Path$act = F2(
 										function (fun) {
 											return A2(fun, p, w);
 										},
-										$author$project$Data$World$Generation$wallGenerator(p));
+										$author$project$Generation$Wall$wallGenerator(p));
 								},
 								A2($elm$random$Random$float, 0, 1));
 						});
@@ -9404,67 +9401,45 @@ var $author$project$Data$Behavior$Path$act = F2(
 	});
 var $author$project$Data$Item$Gold = {$: 'Gold'};
 var $author$project$Data$Actor$Mine = {$: 'Mine'};
-var $author$project$Data$World$Generation$baseProbability = function (_v0) {
-	var x = _v0.a;
-	var y = _v0.b;
-	return _List_fromArray(
-		[
-			_Utils_Tuple2(
-			(y < 0) ? 0.45 : 0,
-			_Utils_Tuple2(x, y - 1)),
-			_Utils_Tuple2(
-			0.45,
-			_Utils_Tuple2(x, y + 1)),
-			_Utils_Tuple2(
-			0.45,
-			_Utils_Tuple2(x - 1, y)),
-			_Utils_Tuple2(
-			0.45,
-			_Utils_Tuple2(x + 1, y))
-		]);
-};
-var $author$project$Data$World$Generation$caveGenerator = F3(
-	function (args, _v0, world) {
-		var x = _v0.a;
-		var y = _v0.b;
-		var probability = $author$project$Data$World$Generation$baseProbability(
-			_Utils_Tuple2(x, y));
-		var pos = _Utils_Tuple2(x, y);
+var $author$project$Generation$caveGenerator = F3(
+	function (args, pos, world) {
 		return A2(
 			$elm$random$Random$andThen,
 			function (fun) {
-				return A2(
-					$author$project$Data$World$Generation$generateContent,
-					{
-						content: A2(
-							$elm$random$Random$andThen,
-							$elm$core$Basics$identity,
-							A2(
-								$elm$random$Random$weighted,
-								_Utils_Tuple2(
+				return A3(
+					$author$project$Generation$generateContent,
+					pos,
+					A2(
+						$elm$random$Random$andThen,
+						$elm$core$Basics$identity,
+						A2(
+							$elm$random$Random$weighted,
+							_Utils_Tuple2(
+								0,
+								$elm$random$Random$constant(
+									$author$project$Data$World$insertEntity($author$project$Data$Entity$Wall))),
+							_List_fromArray(
+								[
+									_Utils_Tuple2(
 									1,
 									$elm$random$Random$constant(
 										$author$project$Data$World$insertActor(
 											$author$project$Data$Actor$Helper(
 												$author$project$Data$Actor$Cave(args.cave))))),
-								_List_fromArray(
-									[
-										_Utils_Tuple2(
-										1 / 2,
-										$author$project$Data$World$Generation$wallGenerator(pos)),
-										_Utils_Tuple2(
-										1 / 4,
-										$elm$random$Random$constant(
-											$author$project$Data$World$insertActor(
-												$author$project$Data$Actor$Helper($author$project$Data$Actor$Path)))),
-										_Utils_Tuple2(
-										1 / 16,
-										$elm$random$Random$constant(
-											$author$project$Data$World$insertActor(
-												$author$project$Data$Actor$Helper($author$project$Data$Actor$Mine))))
-									]))),
-						probability: probability
-					},
+									_Utils_Tuple2(
+									1 / 2,
+									$author$project$Generation$Wall$wallGenerator(pos)),
+									_Utils_Tuple2(
+									1 / 4,
+									$elm$random$Random$constant(
+										$author$project$Data$World$insertActor(
+											$author$project$Data$Actor$Helper($author$project$Data$Actor$Path)))),
+									_Utils_Tuple2(
+									1 / 16,
+									$elm$random$Random$constant(
+										$author$project$Data$World$insertActor(
+											$author$project$Data$Actor$Helper($author$project$Data$Actor$Mine))))
+								]))),
 					A2(
 						fun,
 						pos,
@@ -9472,9 +9447,9 @@ var $author$project$Data$World$Generation$caveGenerator = F3(
 			},
 			args.ground);
 	});
-var $author$project$Data$World$Generation$exposedCave = function (caveType) {
+var $author$project$Generation$Cave$exposedCave = function (caveType) {
 	return function (ground) {
-		return $author$project$Data$World$Generation$caveGenerator(
+		return $author$project$Generation$caveGenerator(
 			{cave: caveType, ground: ground});
 	}(
 		function () {
@@ -9557,12 +9532,9 @@ var $author$project$Data$World$Generation$exposedCave = function (caveType) {
 							[
 								_Utils_Tuple2(
 								1 / 2,
-								$author$project$Data$World$insertItem($author$project$Data$Item$Coal)),
-								_Utils_Tuple2(
-								1 / 4,
 								$author$project$Data$World$insertItem($author$project$Data$Item$Iron)),
 								_Utils_Tuple2(
-								1 / 8,
+								1 / 4,
 								$author$project$Data$World$insertItem($author$project$Data$Item$Gold))
 							]));
 			}
@@ -9622,7 +9594,7 @@ var $author$project$Data$World$insertFloor = F2(
 	function (floor, pos) {
 		return A2($author$project$Data$World$insertFloorAt, pos, floor);
 	});
-var $author$project$Data$World$Generation$mineGenerator = F2(
+var $author$project$Generation$Mine$mineGenerator = F2(
 	function (pos, world) {
 		var _v0 = A2(
 			$elm$core$List$filter,
@@ -9699,7 +9671,7 @@ var $author$project$Data$World$Generation$mineGenerator = F2(
 														function (fun) {
 															return A2(fun, p, it);
 														},
-														$author$project$Data$World$Generation$wallGenerator(p));
+														$author$project$Generation$Wall$wallGenerator(p));
 												});
 										},
 										$elm$random$Random$constant(world),
@@ -9773,7 +9745,7 @@ var $author$project$Data$Behavior$Bomb$timePassed = F2(
 							$elm$core$List$foldl,
 							function (p) {
 								return $elm$random$Random$andThen(
-									$author$project$Data$World$Generation$mine(p));
+									$author$project$Generation$mine(p));
 							},
 							$elm$random$Random$constant(
 								A2($author$project$Data$World$removeEntity, pos, world)),
@@ -9814,14 +9786,14 @@ var $author$project$Data$Behavior$actorsAct = F2(
 						var caveType = helper.a;
 						return $author$project$Data$Effect$genWithNone(
 							A3(
-								$author$project$Data$World$Generation$exposedCave,
+								$author$project$Generation$Cave$exposedCave,
 								caveType,
 								pos,
 								A2($author$project$Data$World$removeEntity, pos, world)));
 					case 'Mine':
 						return $author$project$Data$Effect$genWithNone(
 							A2(
-								$author$project$Data$World$Generation$mineGenerator,
+								$author$project$Generation$Mine$mineGenerator,
 								pos,
 								A2($author$project$Data$World$removeEntity, pos, world)));
 					case 'Falling':

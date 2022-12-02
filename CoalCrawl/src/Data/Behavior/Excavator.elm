@@ -8,7 +8,7 @@ import Data.Entity
 import Data.Excavator exposing (Excavator)
 import Data.Position
 import Data.World exposing (World)
-import Data.World.Generation
+import Generation
 import Random exposing (Generator)
 
 
@@ -67,7 +67,7 @@ mine pos world =
                     Just (Data.Block.EntityBlock entity) ->
                         case entity of
                             Data.Entity.Vein _ ->
-                                Random.andThen (Data.World.Generation.mine p)
+                                Random.andThen (Generation.mine p)
 
                             _ ->
                                 identity

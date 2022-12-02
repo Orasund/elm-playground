@@ -337,31 +337,52 @@ transfer args w =
             )
 
 
-pushFrom : ( Int, Int ) -> Int -> World -> Maybe World
-pushFrom from id world =
-    world.actors
-        |> Dict.get id
+push : { from : ( Int, Int ), pos : ( Int, Int ) } -> World -> Maybe World
+push { from, pos } world =
+    world
+        |> getBlock pos
         |> Maybe.andThen
-            (\( to, actor ) ->
-                case actor of
-                    Data.Actor.Minecart minecart ->
-                        world
-                            |> setActor id
-                                ({ minecart | movedFrom = Just from }
-                                    |> Data.Actor.Minecart
-                                )
-                            |> Just
+            (\block ->
+                case block of
+                    Data.Block.EntityBlock entity ->
+                        case entity of
+                            Data.Entity.Actor id ->
+                                case world |> getActor id |> Maybe.map Tuple.second of
+                                    Just (Data.Actor.Minecart minecart) ->
+                                        world
+                                            |> setActor id
+                                                ({ minecart | movedFrom = Just from }
+                                                    |> Data.Actor.Minecart
+                                                )
+                                            |> Just
 
-                    Data.Actor.MovingWater _ ->
-                        world
-                            |> setActor id
-                                ({ from = from, to = to }
-                                    |> Data.Momentum.fromPoints
-                                    |> Data.Actor.MovingWater
-                                )
-                            |> Just
+                                    Just (Data.Actor.MovingWater _) ->
+                                        world
+                                            |> setActor id
+                                                ({ from = from, to = pos }
+                                                    |> Data.Momentum.fromPoints
+                                                    |> Data.Actor.MovingWater
+                                                )
+                                            |> Just
 
-                    _ ->
+                                    _ ->
+                                        Nothing
+
+                            Data.Entity.Water ->
+                                world
+                                    |> removeEntity pos
+                                    |> insertActor
+                                        ({ from = from, to = pos }
+                                            |> Data.Momentum.fromPoints
+                                            |> Data.Actor.MovingWater
+                                        )
+                                        pos
+                                    |> Just
+
+                            _ ->
+                                Nothing
+
+                    Data.Block.FloorBlock _ ->
                         Nothing
             )
 

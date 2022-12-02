@@ -15,7 +15,8 @@ import Data.Effect exposing (Effect)
 import Data.Game exposing (Game)
 import Data.Item
 import Data.World exposing (World)
-import Data.World.Generation
+import Generation.Cave
+import Generation.Mine
 import Random exposing (Generator)
 
 
@@ -62,13 +63,13 @@ actorsAct ( id, ( pos, actor ) ) world =
                 Data.Actor.Cave caveType ->
                     world
                         |> Data.World.removeEntity pos
-                        |> Data.World.Generation.exposedCave caveType pos
+                        |> Generation.Cave.exposedCave caveType pos
                         |> Data.Effect.genWithNone
 
                 Data.Actor.Mine ->
                     world
                         |> Data.World.removeEntity pos
-                        |> Data.World.Generation.mineGenerator pos
+                        |> Generation.Mine.mineGenerator pos
                         |> Data.Effect.genWithNone
 
                 Data.Actor.Falling entity ->

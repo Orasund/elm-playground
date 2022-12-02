@@ -4,7 +4,7 @@ import Data.Actor exposing (Actor(..))
 import Data.Bomb exposing (Bomb)
 import Data.Position
 import Data.World exposing (World)
-import Data.World.Generation
+import Generation
 import Random exposing (Generator)
 
 
@@ -26,7 +26,7 @@ timePassed id world =
                         Data.Position.neighbors pos
                             |> List.foldl
                                 (\p ->
-                                    Random.andThen (Data.World.Generation.mine p)
+                                    Random.andThen (Generation.mine p)
                                 )
                                 (Random.constant (Data.World.removeEntity pos world))
             )
