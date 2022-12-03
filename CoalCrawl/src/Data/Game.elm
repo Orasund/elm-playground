@@ -4,10 +4,12 @@ import AnyBag
 import Config
 import Data.Actor exposing (Actor)
 import Data.Block exposing (Block(..))
+import Data.Effect exposing (Effect)
 import Data.Entity
 import Data.Floor
 import Data.Item exposing (Item)
 import Data.Player exposing (Player)
+import Data.Sound
 import Data.Train exposing (Train)
 import Data.World exposing (World, setActor)
 
@@ -57,7 +59,7 @@ select pos game =
     }
 
 
-buildBlock : ( Int, Int ) -> ( Item, Int ) -> Block -> Game -> Maybe Game
+buildBlock : ( Int, Int ) -> ( Item, Int ) -> Block -> Game -> Maybe ( Game, List Effect )
 buildBlock pos ( item, cost ) block game =
     if
         case block of
@@ -79,13 +81,14 @@ buildBlock pos ( item, cost ) block game =
                         |> setTrain train
                 )
             |> Maybe.withDefault game
+            |> (\g -> ( g, [ Data.Effect.PlaySound Data.Sound.Build ] ))
             |> Just
 
     else
         Nothing
 
 
-buildActor : ( Int, Int ) -> ( Item, Int ) -> Actor -> Game -> Maybe Game
+buildActor : ( Int, Int ) -> ( Item, Int ) -> Actor -> Game -> Maybe ( Game, List Effect )
 buildActor pos ( item, cost ) actor game =
     if Data.World.isFloor pos game.world then
         game
@@ -98,49 +101,56 @@ buildActor pos ( item, cost ) actor game =
                     }
                         |> setTrain train
                 )
+            |> Maybe.map (\g -> ( g, [ Data.Effect.PlaySound Data.Sound.Build ] ))
 
     else
         Nothing
 
 
-destroyBlock : Game -> Game
-destroyBlock game =
-    case Data.World.get game.selected game.world of
-        Just ( Data.Block.EntityBlock entity, _ ) ->
-            case entity of
-                Data.Entity.Actor id ->
-                    case game.world |> Data.World.getActor id of
-                        Just ( _, Data.Actor.Minecart _ ) ->
-                            game
-                                |> getTrain
-                                |> Data.Train.addAll
-                                    (AnyBag.fromAssociationList Data.Item.toString
-                                        [ ( Data.Item.Iron, Config.wagonCost ) ]
-                                    )
-                                |> (\train -> game |> setTrain train)
-                                |> (\g ->
-                                        g.world
-                                            |> Data.World.removeEntity game.selected
-                                            |> setWorldOf g
-                                   )
+destroyBlock : ( Int, Int ) -> Game -> Maybe ( Game, List Effect )
+destroyBlock pos game =
+    game.world
+        |> Data.World.get pos
+        |> Maybe.map Tuple.first
+        |> Maybe.andThen
+            (\block ->
+                case block of
+                    Data.Block.EntityBlock (Data.Entity.Actor id) ->
+                        case game.world |> Data.World.getActor id of
+                            Just ( _, Data.Actor.Minecart _ ) ->
+                                game
+                                    |> getTrain
+                                    |> Data.Train.addAll
+                                        (AnyBag.fromAssociationList Data.Item.toString
+                                            [ ( Data.Item.Iron, Config.wagonCost ) ]
+                                        )
+                                    |> (\train -> game |> setTrain train)
+                                    |> (\g ->
+                                            g.world
+                                                |> Data.World.removeEntity pos
+                                                |> setWorldOf g
+                                       )
+                                    |> Just
 
-                        _ ->
-                            game.world
-                                |> Data.World.removeEntity game.selected
-                                |> (\world -> { game | world = world })
+                            Just ( _, Data.Actor.Excavator _ ) ->
+                                game.world
+                                    |> Data.World.removeEntity pos
+                                    |> (\world -> { game | world = world })
+                                    |> Just
 
-                _ ->
-                    game.world
-                        |> Data.World.removeEntity game.selected
-                        |> (\world -> { game | world = world })
+                            _ ->
+                                Nothing
 
-        Just ( Data.Block.FloorBlock _, _ ) ->
-            game.world
-                |> Data.World.removeFloor game.selected
-                |> (\world -> { game | world = world })
+                    Data.Block.FloorBlock Data.Floor.Track ->
+                        game.world
+                            |> Data.World.removeFloor pos
+                            |> (\world -> { game | world = world })
+                            |> Just
 
-        Nothing ->
-            game
+                    _ ->
+                        Nothing
+            )
+        |> Maybe.map (\g -> ( g, [ Data.Effect.PlaySound Data.Sound.Destruct ] ))
 
 
 new : Game

@@ -7,11 +7,12 @@ type Sound
     | Unload
     | MovingTrain
     | Error
+    | Destruct
 
 
 asList : List Sound
 asList =
-    [ Build, PickUp, Unload, MovingTrain, Error ]
+    [ Build, PickUp, Unload, MovingTrain, Destruct, Error ]
 
 
 toFile : Sound -> String
@@ -28,6 +29,9 @@ toFile sound =
 
         MovingTrain ->
             "movingTrain.mp3"
+
+        Destruct ->
+            "destruct.mp3"
 
         Error ->
             "error.mp3"
@@ -47,6 +51,9 @@ toString sound =
 
         MovingTrain ->
             "MovingTrain"
+
+        Destruct ->
+            "Destruct"
 
         Error ->
             "Error"

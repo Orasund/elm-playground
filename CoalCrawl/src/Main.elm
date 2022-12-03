@@ -38,8 +38,9 @@ port setVolume : Float -> Cmd msg
 
 
 type BuildMode
-    = BuildingBlock Block
-    | BuildingActor Actor
+    = BuildingBlock ( ( Item, Int ), Block )
+    | BuildingActor ( ( Item, Int ), Actor )
+    | RemovingBlock
 
 
 type alias Model =
@@ -53,7 +54,7 @@ type alias Model =
     , sidebarTab : Maybe Tab
     , tickInterval : Float
     , zoomPercent : Int
-    , building : Maybe ( ( Item, Int ), BuildMode )
+    , building : Maybe BuildMode
     , level : Int
     }
 
@@ -109,10 +110,9 @@ type Msg
     | TileClicked ( Int, Int )
     | TimePassed
     | ToggleSlowdown
-    | StartBuilding ( ( Item, Int ), BuildMode )
+    | StartBuilding BuildMode
     | StopBuilding
     | CloseModal
-    | DestroyBlock
     | SetVolume (Maybe Int)
     | SetTab (Maybe Tab)
     | SetZoom (Maybe Int)
@@ -182,18 +182,23 @@ view model =
                         , Attr.style "left" "8px"
                         ]
                       , case model.building of
-                            Just ( _, block ) ->
+                            Just block ->
                                 [ "Stop Building"
                                     |> View.Button.toHtml (Just StopBuilding)
                                 , (case block of
-                                    BuildingBlock b ->
+                                    BuildingBlock ( _, b ) ->
                                         b
                                             |> Data.Info.fromBlock model.game
+                                            |> .title
 
-                                    BuildingActor a ->
-                                        a |> Data.Info.fromActor
+                                    BuildingActor ( _, a ) ->
+                                        a
+                                            |> Data.Info.fromActor
+                                            |> .title
+
+                                    RemovingBlock ->
+                                        "Removing"
                                   )
-                                    |> .title
                                     |> Html.text
                                     |> Layout.el
                                         [ Attr.style "background-color" "white"
@@ -209,13 +214,13 @@ view model =
                                     |> View.Tab.sidebar
                                         { toggleSlowdown = ToggleSlowdown
                                         , restart = Restart model.seed
-                                        , destroyBlock = DestroyBlock
+                                        , destroyBlock = StartBuilding RemovingBlock
                                         , buildActor =
                                             \{ cost, actor } ->
-                                                StartBuilding ( cost, BuildingActor actor )
+                                                StartBuilding (BuildingActor ( cost, actor ))
                                         , buildBlock =
                                             \{ cost, block } ->
-                                                StartBuilding ( cost, BuildingBlock block )
+                                                StartBuilding (BuildingBlock ( cost, block ))
                                         , slowedDown = model.slowedDown
                                         , setVolume = SetVolume
                                         , volume = model.volume
@@ -308,21 +313,22 @@ update msg model =
                 |> updateGame
                     (\game ->
                         case model.building of
-                            Just ( cost, buildingMode ) ->
-                                game
-                                    |> (case buildingMode of
-                                            BuildingBlock block ->
-                                                Data.Game.buildBlock pos cost block
+                            Just buildingMode ->
+                                (case buildingMode of
+                                    BuildingBlock ( cost, block ) ->
+                                        Data.Game.buildBlock pos cost block game
 
-                                            BuildingActor actor ->
-                                                Data.Game.buildActor pos cost actor
-                                       )
-                                    |> Maybe.map
-                                        (\g ->
-                                            ( g, [ Data.Effect.PlaySound Data.Sound.Build ] )
-                                                |> Random.constant
+                                    BuildingActor ( cost, actor ) ->
+                                        Data.Game.buildActor pos cost actor game
+
+                                    RemovingBlock ->
+                                        Data.Game.destroyBlock pos game
+                                )
+                                    |> Maybe.withDefault
+                                        ( model.game
+                                        , [ Data.Effect.PlaySound Data.Sound.Error ]
                                         )
-                                    |> Maybe.withDefault (model.game |> Data.Effect.withNone)
+                                    |> Random.constant
 
                             Nothing ->
                                 game
@@ -352,9 +358,6 @@ update msg model =
 
         StopBuilding ->
             ( { model | building = Nothing }, Cmd.none )
-
-        DestroyBlock ->
-            ( { model | game = model.game |> Data.Game.destroyBlock }, Cmd.none )
 
         CloseModal ->
             ( { model | modal = Nothing }

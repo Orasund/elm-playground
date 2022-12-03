@@ -62,7 +62,7 @@ wagonMaxItems =
 
 
 excavatorMaxItems =
-    1
+    wagonMaxItems
 
 
 trackCost =

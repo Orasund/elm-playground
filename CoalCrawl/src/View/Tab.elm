@@ -60,7 +60,7 @@ buildButton game args =
     , "Build for "
         ++ String.fromInt cost
         ++ " "
-        ++ Data.Item.toString item
+        ++ String.fromChar (Data.Item.toChar item)
         |> View.Button.toHtml
             (if cost <= gotAmount then
                 Just args.onPress
@@ -68,14 +68,8 @@ buildButton game args =
              else
                 Nothing
             )
-    , "You got "
-        ++ String.fromInt gotAmount
-        ++ " "
-        ++ Data.Item.toString item
-        ++ "."
-        |> Html.text
     ]
-        |> Layout.row [ Layout.spacing 8 ]
+        |> Layout.row [ Layout.spaceBetween ]
 
 
 buildActorButton buildActor args =
@@ -212,6 +206,9 @@ sidebar args game =
                                 ]
                                     |> List.map (buildButton game)
                                )
+                            ++ [ "Destroy"
+                                    |> View.Button.toHtml (Just args.destroyBlock)
+                               ]
                         )
                             |> Layout.column
                                 [ Layout.spacing 8

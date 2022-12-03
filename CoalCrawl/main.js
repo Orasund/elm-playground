@@ -10195,10 +10195,11 @@ var $author$project$Main$subscriptions = function (model) {
 			return $author$project$Main$TimePassed;
 		});
 };
-var $author$project$Data$Sound$Build = {$: 'Build'};
 var $author$project$Data$Sound$Error = {$: 'Error'};
+var $author$project$Data$Sound$Build = {$: 'Build'};
+var $author$project$Data$Sound$Destruct = {$: 'Destruct'};
 var $author$project$Data$Sound$asList = _List_fromArray(
-	[$author$project$Data$Sound$Build, $author$project$Data$Sound$PickUp, $author$project$Data$Sound$Unload, $author$project$Data$Sound$MovingTrain, $author$project$Data$Sound$Error]);
+	[$author$project$Data$Sound$Build, $author$project$Data$Sound$PickUp, $author$project$Data$Sound$Unload, $author$project$Data$Sound$MovingTrain, $author$project$Data$Sound$Destruct, $author$project$Data$Sound$Error]);
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $author$project$Data$Game$buildActor = F4(
 	function (pos, _v0, actor, game) {
@@ -10206,21 +10207,31 @@ var $author$project$Data$Game$buildActor = F4(
 		var cost = _v0.b;
 		return A2($author$project$Data$World$isFloor, pos, game.world) ? A2(
 			$elm$core$Maybe$map,
-			function (train) {
-				return A2(
-					$author$project$Data$Game$setTrain,
-					train,
-					_Utils_update(
-						game,
-						{
-							world: A3($author$project$Data$World$insertActorAt, pos, actor, game.world)
-						}));
+			function (g) {
+				return _Utils_Tuple2(
+					g,
+					_List_fromArray(
+						[
+							$author$project$Data$Effect$PlaySound($author$project$Data$Sound$Build)
+						]));
 			},
-			A3(
-				$author$project$Data$Train$removeItem,
-				cost,
-				item,
-				$author$project$Data$Game$getTrain(game))) : $elm$core$Maybe$Nothing;
+			A2(
+				$elm$core$Maybe$map,
+				function (train) {
+					return A2(
+						$author$project$Data$Game$setTrain,
+						train,
+						_Utils_update(
+							game,
+							{
+								world: A3($author$project$Data$World$insertActorAt, pos, actor, game.world)
+							}));
+				},
+				A3(
+					$author$project$Data$Train$removeItem,
+					cost,
+					item,
+					$author$project$Data$Game$getTrain(game)))) : $elm$core$Maybe$Nothing;
 	});
 var $author$project$Data$Game$buildBlock = F4(
 	function (pos, _v0, block, game) {
@@ -10235,26 +10246,34 @@ var $author$project$Data$Game$buildBlock = F4(
 				return A2($author$project$Data$World$isFloor, pos, game.world);
 			}
 		}() ? $elm$core$Maybe$Just(
-			A2(
-				$elm$core$Maybe$withDefault,
-				game,
+			function (g) {
+				return _Utils_Tuple2(
+					g,
+					_List_fromArray(
+						[
+							$author$project$Data$Effect$PlaySound($author$project$Data$Sound$Build)
+						]));
+			}(
 				A2(
-					$elm$core$Maybe$map,
-					function (train) {
-						return A2(
-							$author$project$Data$Game$setTrain,
-							train,
-							_Utils_update(
-								game,
-								{
-									world: A3($author$project$Data$World$insert, pos, block, game.world)
-								}));
-					},
-					A3(
-						$author$project$Data$Train$removeItem,
-						cost,
-						item,
-						$author$project$Data$Game$getTrain(game))))) : $elm$core$Maybe$Nothing;
+					$elm$core$Maybe$withDefault,
+					game,
+					A2(
+						$elm$core$Maybe$map,
+						function (train) {
+							return A2(
+								$author$project$Data$Game$setTrain,
+								train,
+								_Utils_update(
+									game,
+									{
+										world: A3($author$project$Data$World$insert, pos, block, game.world)
+									}));
+						},
+						A3(
+							$author$project$Data$Train$removeItem,
+							cost,
+							item,
+							$author$project$Data$Game$getTrain(game)))))) : $elm$core$Maybe$Nothing;
 	});
 var $author$project$Data$World$removeFloor = F2(
 	function (pos, world) {
@@ -10264,65 +10283,95 @@ var $author$project$Data$World$removeFloor = F2(
 				floor: A3($elm$core$Dict$insert, pos, $author$project$Data$Floor$Ground, world.floor)
 			});
 	});
-var $author$project$Data$Game$destroyBlock = function (game) {
-	var _v0 = A2($author$project$Data$World$get, game.selected, game.world);
-	if (_v0.$ === 'Just') {
-		if (_v0.a.a.$ === 'EntityBlock') {
-			var _v1 = _v0.a;
-			var entity = _v1.a.a;
-			if (entity.$ === 'Actor') {
-				var id = entity.a;
-				var _v3 = A2($author$project$Data$World$getActor, id, game.world);
-				if ((_v3.$ === 'Just') && (_v3.a.b.$ === 'Minecart')) {
-					var _v4 = _v3.a;
-					return function (g) {
-						return A2(
-							$author$project$Data$Game$setWorldOf,
-							g,
-							A2($author$project$Data$World$removeEntity, game.selected, g.world));
-					}(
-						function (train) {
-							return A2($author$project$Data$Game$setTrain, train, game);
-						}(
-							A2(
-								$author$project$Data$Train$addAll,
-								A2(
-									$author$project$AnyBag$fromAssociationList,
-									$author$project$Data$Item$toString,
-									_List_fromArray(
-										[
-											_Utils_Tuple2($author$project$Data$Item$Iron, $author$project$Config$wagonCost)
-										])),
-								$author$project$Data$Game$getTrain(game))));
-				} else {
-					return function (world) {
-						return _Utils_update(
-							game,
-							{world: world});
-					}(
-						A2($author$project$Data$World$removeEntity, game.selected, game.world));
-				}
-			} else {
-				return function (world) {
-					return _Utils_update(
-						game,
-						{world: world});
-				}(
-					A2($author$project$Data$World$removeEntity, game.selected, game.world));
-			}
-		} else {
-			var _v5 = _v0.a;
-			return function (world) {
-				return _Utils_update(
-					game,
-					{world: world});
-			}(
-				A2($author$project$Data$World$removeFloor, game.selected, game.world));
-		}
-	} else {
-		return game;
-	}
-};
+var $author$project$Data$Game$destroyBlock = F2(
+	function (pos, game) {
+		return A2(
+			$elm$core$Maybe$map,
+			function (g) {
+				return _Utils_Tuple2(
+					g,
+					_List_fromArray(
+						[
+							$author$project$Data$Effect$PlaySound($author$project$Data$Sound$Destruct)
+						]));
+			},
+			A2(
+				$elm$core$Maybe$andThen,
+				function (block) {
+					_v0$2:
+					while (true) {
+						if (block.$ === 'EntityBlock') {
+							if (block.a.$ === 'Actor') {
+								var id = block.a.a;
+								var _v1 = A2($author$project$Data$World$getActor, id, game.world);
+								_v1$2:
+								while (true) {
+									if (_v1.$ === 'Just') {
+										switch (_v1.a.b.$) {
+											case 'Minecart':
+												var _v2 = _v1.a;
+												return $elm$core$Maybe$Just(
+													function (g) {
+														return A2(
+															$author$project$Data$Game$setWorldOf,
+															g,
+															A2($author$project$Data$World$removeEntity, pos, g.world));
+													}(
+														function (train) {
+															return A2($author$project$Data$Game$setTrain, train, game);
+														}(
+															A2(
+																$author$project$Data$Train$addAll,
+																A2(
+																	$author$project$AnyBag$fromAssociationList,
+																	$author$project$Data$Item$toString,
+																	_List_fromArray(
+																		[
+																			_Utils_Tuple2($author$project$Data$Item$Iron, $author$project$Config$wagonCost)
+																		])),
+																$author$project$Data$Game$getTrain(game)))));
+											case 'Excavator':
+												var _v3 = _v1.a;
+												return $elm$core$Maybe$Just(
+													function (world) {
+														return _Utils_update(
+															game,
+															{world: world});
+													}(
+														A2($author$project$Data$World$removeEntity, pos, game.world)));
+											default:
+												break _v1$2;
+										}
+									} else {
+										break _v1$2;
+									}
+								}
+								return $elm$core$Maybe$Nothing;
+							} else {
+								break _v0$2;
+							}
+						} else {
+							if (block.a.$ === 'Track') {
+								var _v4 = block.a;
+								return $elm$core$Maybe$Just(
+									function (world) {
+										return _Utils_update(
+											game,
+											{world: world});
+									}(
+										A2($author$project$Data$World$removeFloor, pos, game.world)));
+							} else {
+								break _v0$2;
+							}
+						}
+					}
+					return $elm$core$Maybe$Nothing;
+				},
+				A2(
+					$elm$core$Maybe$map,
+					$elm$core$Tuple$first,
+					A2($author$project$Data$World$get, pos, game.world))));
+	});
 var $elm$json$Json$Encode$list = F2(
 	function (func, entries) {
 		return _Json_wrap(
@@ -10365,6 +10414,8 @@ var $author$project$Data$Sound$toFile = function (sound) {
 			return 'unload.mp3';
 		case 'MovingTrain':
 			return 'movingTrain.mp3';
+		case 'Destruct':
+			return 'destruct.mp3';
 		default:
 			return 'error.mp3';
 	}
@@ -10379,6 +10430,8 @@ var $author$project$Data$Sound$toString = function (sound) {
 			return 'Unload';
 		case 'MovingTrain':
 			return 'MovingTrain';
+		case 'Destruct':
+			return 'Destruct';
 		default:
 			return 'Error';
 	}
@@ -10622,32 +10675,32 @@ var $author$project$Main$update = F2(
 					function (game) {
 						var _v1 = model.building;
 						if (_v1.$ === 'Just') {
-							var _v2 = _v1.a;
-							var cost = _v2.a;
-							var buildingMode = _v2.b;
-							return A2(
-								$elm$core$Maybe$withDefault,
-								$author$project$Data$Effect$withNone(model.game),
+							var buildingMode = _v1.a;
+							return $elm$random$Random$constant(
 								A2(
-									$elm$core$Maybe$map,
-									function (g) {
-										return $elm$random$Random$constant(
-											_Utils_Tuple2(
-												g,
-												_List_fromArray(
-													[
-														$author$project$Data$Effect$PlaySound($author$project$Data$Sound$Build)
-													])));
-									},
+									$elm$core$Maybe$withDefault,
+									_Utils_Tuple2(
+										model.game,
+										_List_fromArray(
+											[
+												$author$project$Data$Effect$PlaySound($author$project$Data$Sound$Error)
+											])),
 									function () {
-										if (buildingMode.$ === 'BuildingBlock') {
-											var block = buildingMode.a;
-											return A3($author$project$Data$Game$buildBlock, pos, cost, block);
-										} else {
-											var actor = buildingMode.a;
-											return A3($author$project$Data$Game$buildActor, pos, cost, actor);
+										switch (buildingMode.$) {
+											case 'BuildingBlock':
+												var _v3 = buildingMode.a;
+												var cost = _v3.a;
+												var block = _v3.b;
+												return A4($author$project$Data$Game$buildBlock, pos, cost, block, game);
+											case 'BuildingActor':
+												var _v4 = buildingMode.a;
+												var cost = _v4.a;
+												var actor = _v4.b;
+												return A4($author$project$Data$Game$buildActor, pos, cost, actor, game);
+											default:
+												return A2($author$project$Data$Game$destroyBlock, pos, game);
 										}
-									}()(game)));
+									}()));
 						} else {
 							return $author$project$Data$Effect$withNone(
 								A2($author$project$Data$Game$select, pos, game));
@@ -10655,9 +10708,9 @@ var $author$project$Main$update = F2(
 					},
 					model);
 			case 'TimePassed':
-				var _v4 = model.modal;
-				if (_v4.$ === 'Just') {
-					var modal = _v4.a;
+				var _v5 = model.modal;
+				if (_v5.$ === 'Just') {
+					var modal = _v5.a;
 					return _Utils_Tuple2(
 						_Utils_update(
 							model,
@@ -10692,14 +10745,6 @@ var $author$project$Main$update = F2(
 					_Utils_update(
 						model,
 						{building: $elm$core$Maybe$Nothing}),
-					$elm$core$Platform$Cmd$none);
-			case 'DestroyBlock':
-				return _Utils_Tuple2(
-					_Utils_update(
-						model,
-						{
-							game: $author$project$Data$Game$destroyBlock(model.game)
-						}),
 					$elm$core$Platform$Cmd$none);
 			case 'CloseModal':
 				return _Utils_Tuple2(
@@ -10762,7 +10807,7 @@ var $author$project$Main$BuildingBlock = function (a) {
 	return {$: 'BuildingBlock', a: a};
 };
 var $author$project$Main$CloseModal = {$: 'CloseModal'};
-var $author$project$Main$DestroyBlock = {$: 'DestroyBlock'};
+var $author$project$Main$RemovingBlock = {$: 'RemovingBlock'};
 var $author$project$Main$SetTab = function (a) {
 	return {$: 'SetTab', a: a};
 };
@@ -11393,12 +11438,7 @@ var $author$project$View$Tab$buildBlockButton = F3(
 			onPress: buildBlock(args)
 		};
 	});
-var $Orasund$elm_layout$Layout$spacing = function (n) {
-	return A2(
-		$elm$html$Html$Attributes$style,
-		'gap',
-		$elm$core$String$fromFloat(n) + 'px');
-};
+var $Orasund$elm_layout$Layout$spaceBetween = A2($elm$html$Html$Attributes$style, 'justify-content', 'space-between');
 var $Orasund$elm_layout$Layout$asEl = A2($elm$html$Html$Attributes$style, 'display', 'flex');
 var $elm$html$Html$button = _VirtualDom_node('button');
 var $Orasund$elm_layout$Layout$buttonEl = F3(
@@ -11452,18 +11492,15 @@ var $author$project$View$Tab$buildButton = F2(
 		return A2(
 			$Orasund$elm_layout$Layout$row,
 			_List_fromArray(
-				[
-					$Orasund$elm_layout$Layout$spacing(8)
-				]),
+				[$Orasund$elm_layout$Layout$spaceBetween]),
 			_List_fromArray(
 				[
 					$elm$html$Html$text(args.build),
 					A2(
 					$author$project$View$Button$toHtml,
 					(_Utils_cmp(cost, gotAmount) < 1) ? $elm$core$Maybe$Just(args.onPress) : $elm$core$Maybe$Nothing,
-					'Build for ' + ($elm$core$String$fromInt(cost) + (' ' + $author$project$Data$Item$toString(item)))),
-					$elm$html$Html$text(
-					'You got ' + ($elm$core$String$fromInt(gotAmount) + (' ' + ($author$project$Data$Item$toString(item) + '.'))))
+					'Build for ' + ($elm$core$String$fromInt(cost) + (' ' + $elm$core$String$fromChar(
+						$author$project$Data$Item$toChar(item)))))
 				]));
 	});
 var $elm$html$Html$h3 = _VirtualDom_node('h3');
@@ -11479,7 +11516,7 @@ var $Orasund$elm_layout$Layout$heading3 = F2(
 				[content]));
 	});
 var $author$project$Data$Bomb$new = {explodesIn: $author$project$Config$bombExplosionTime};
-var $author$project$Config$excavatorMaxItems = 1;
+var $author$project$Config$excavatorMaxItems = $author$project$Config$wagonMaxItems;
 var $author$project$Data$Excavator$new = {
 	hasReversed: false,
 	storage: $author$project$Data$Storage$empty($author$project$Config$excavatorMaxItems)
@@ -11519,6 +11556,12 @@ var $elm$html$Html$Events$onInput = function (tagger) {
 			$elm$json$Json$Decode$map,
 			$elm$html$Html$Events$alwaysStop,
 			A2($elm$json$Json$Decode$map, tagger, $elm$html$Html$Events$targetValue)));
+};
+var $Orasund$elm_layout$Layout$spacing = function (n) {
+	return A2(
+		$elm$html$Html$Attributes$style,
+		'gap',
+		$elm$core$String$fromFloat(n) + 'px');
 };
 var $elm$html$Html$Attributes$type_ = $elm$html$Html$Attributes$stringProperty('type');
 var $elm$html$Html$Attributes$value = $elm$html$Html$Attributes$stringProperty('value');
@@ -11792,19 +11835,27 @@ var $author$project$View$Tab$sidebar = F2(
 																		cost: _Utils_Tuple2($author$project$Data$Item$Gold, $author$project$Config$bombCost)
 																	})
 																])),
-														A2(
-															$elm$core$List$map,
-															$author$project$View$Tab$buildButton(game),
+														_Utils_ap(
+															A2(
+																$elm$core$List$map,
+																$author$project$View$Tab$buildButton(game),
+																_List_fromArray(
+																	[
+																		A3(
+																		$author$project$View$Tab$buildBlockButton,
+																		args.buildBlock,
+																		game,
+																		{
+																			block: $author$project$Data$Block$FloorBlock($author$project$Data$Floor$Track),
+																			cost: _Utils_Tuple2($author$project$Data$Item$Iron, $author$project$Config$trackCost)
+																		})
+																	])),
 															_List_fromArray(
 																[
-																	A3(
-																	$author$project$View$Tab$buildBlockButton,
-																	args.buildBlock,
-																	game,
-																	{
-																		block: $author$project$Data$Block$FloorBlock($author$project$Data$Floor$Track),
-																		cost: _Utils_Tuple2($author$project$Data$Item$Iron, $author$project$Config$trackCost)
-																	})
+																	A2(
+																	$author$project$View$Button$toHtml,
+																	$elm$core$Maybe$Just(args.destroyBlock),
+																	'Destroy')
 																]))));
 										}
 									}()
@@ -12157,8 +12208,7 @@ var $author$project$Main$view = function (model) {
 											function () {
 												var _v0 = model.building;
 												if (_v0.$ === 'Just') {
-													var _v1 = _v0.a;
-													var block = _v1.b;
+													var block = _v0.a;
 													return A2(
 														$Orasund$elm_layout$Layout$column,
 														_List_fromArray(
@@ -12182,36 +12232,39 @@ var $author$project$Main$view = function (model) {
 																	]),
 																$elm$html$Html$text(
 																	function () {
-																		if (block.$ === 'BuildingBlock') {
-																			var b = block.a;
-																			return A2($author$project$Data$Info$fromBlock, model.game, b);
-																		} else {
-																			var a = block.a;
-																			return $author$project$Data$Info$fromActor(a);
+																		switch (block.$) {
+																			case 'BuildingBlock':
+																				var _v2 = block.a;
+																				var b = _v2.b;
+																				return A2($author$project$Data$Info$fromBlock, model.game, b).title;
+																			case 'BuildingActor':
+																				var _v3 = block.a;
+																				var a = _v3.b;
+																				return $author$project$Data$Info$fromActor(a).title;
+																			default:
+																				return 'Removing';
 																		}
-																	}().title))
+																	}()))
 															]));
 												} else {
 													return A2(
 														$author$project$View$Tab$sidebar,
 														{
-															buildActor: function (_v3) {
-																var cost = _v3.cost;
-																var actor = _v3.actor;
-																return $author$project$Main$StartBuilding(
-																	_Utils_Tuple2(
-																		cost,
-																		$author$project$Main$BuildingActor(actor)));
-															},
-															buildBlock: function (_v4) {
+															buildActor: function (_v4) {
 																var cost = _v4.cost;
-																var block = _v4.block;
+																var actor = _v4.actor;
 																return $author$project$Main$StartBuilding(
-																	_Utils_Tuple2(
-																		cost,
-																		$author$project$Main$BuildingBlock(block)));
+																	$author$project$Main$BuildingActor(
+																		_Utils_Tuple2(cost, actor)));
 															},
-															destroyBlock: $author$project$Main$DestroyBlock,
+															buildBlock: function (_v5) {
+																var cost = _v5.cost;
+																var block = _v5.block;
+																return $author$project$Main$StartBuilding(
+																	$author$project$Main$BuildingBlock(
+																		_Utils_Tuple2(cost, block)));
+															},
+															destroyBlock: $author$project$Main$StartBuilding($author$project$Main$RemovingBlock),
 															restart: $author$project$Main$Restart(model.seed),
 															setTab: $author$project$Main$SetTab,
 															setVolume: $author$project$Main$SetVolume,
@@ -12251,9 +12304,9 @@ var $author$project$Main$view = function (model) {
 															}(
 																A2(
 																	$elm$core$List$map,
-																	function (_v5) {
-																		var k = _v5.a;
-																		var n = _v5.b;
+																	function (_v6) {
+																		var k = _v6.a;
+																		var n = _v6.b;
 																		return $elm$core$String$fromInt(n) + ('x ' + k);
 																	},
 																	A2(
@@ -12285,9 +12338,9 @@ var $author$project$Main$view = function (model) {
 										},
 										model.game)),
 									function () {
-									var _v6 = model.modal;
-									if (_v6.$ === 'Just') {
-										var modal = _v6.a;
+									var _v7 = model.modal;
+									if (_v7.$ === 'Just') {
+										var modal = _v7.a;
 										return A4($author$project$View$Modal$toHtml, $author$project$Main$CloseModal, model.game, modal, model.level);
 									} else {
 										return $Orasund$elm_layout$Layout$none;
