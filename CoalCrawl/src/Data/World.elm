@@ -1,6 +1,6 @@
 module Data.World exposing (..)
 
-import AnyBag exposing (AnyBag)
+import AnyBag
 import Data.Actor exposing (Actor)
 import Data.Block exposing (Block)
 import Data.Effect exposing (Effect)
@@ -251,9 +251,9 @@ setActor id actor =
     updateActor id (\_ -> actor)
 
 
-load : ( Int, Int ) -> AnyBag String Item -> World -> Maybe ( World, List Effect )
+load : ( Int, Int ) -> List Item -> World -> Maybe ( World, List Effect )
 load pos bag world =
-    (if AnyBag.isEmpty bag then
+    (if List.isEmpty bag then
         Nothing
 
      else
@@ -278,7 +278,7 @@ load pos bag world =
 
                     Data.Actor.Train train ->
                         train
-                            |> Data.Train.addAll bag
+                            |> Data.Train.addAll (AnyBag.fromList Data.Item.toString bag)
                             |> Data.Actor.Train
                             |> (\a -> setActor id a world)
                             |> Just
@@ -289,7 +289,7 @@ load pos bag world =
         |> Maybe.map (\w -> ( w, [ Data.Effect.PlaySound Data.Sound.Unload ] ))
 
 
-unload : ( Int, Int ) -> World -> Maybe ( World, AnyBag String Item )
+unload : ( Int, Int ) -> World -> Maybe ( World, List Item )
 unload pos world =
     world
         |> getActorAt pos

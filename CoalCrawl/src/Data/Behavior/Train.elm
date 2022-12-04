@@ -116,10 +116,6 @@ tryMovingTo ( newPos, block ) game =
 
 collideWith : ( ( Int, Int ), Entity ) -> Game -> Maybe (Generator ( Game, List Effect ))
 collideWith ( newPos, entity ) game =
-    let
-        returnGame =
-            Random.map (\g -> ( g, [] ))
-    in
     case entity of
         Data.Entity.Actor id ->
             game.world
@@ -132,12 +128,16 @@ collideWith ( newPos, entity ) game =
                                     |> Data.Game.getTrain
                                     |> Data.Train.addAll
                                         (wagon.storage.items
-                                            |> AnyBag.insert Config.wagonCost Data.Item.Iron
+                                            ++ List.repeat Config.wagonCost Data.Item.Iron
+                                            |> AnyBag.fromList Data.Item.toString
                                         )
                                     |> Data.Game.setTrainOf game
-                                    |> (\g -> { g | world = game.world |> Data.World.removeEntity newPos })
-                                    |> Random.constant
-                                    |> returnGame
+                                    |> (\g ->
+                                            { g
+                                                | world = game.world |> Data.World.removeEntity newPos
+                                            }
+                                       )
+                                    |> Data.Effect.withNone
                                     |> Just
 
                             Data.Actor.Excavator _ ->
@@ -153,8 +153,7 @@ collideWith ( newPos, entity ) game =
                                                 | world = game.world |> Data.World.removeEntity newPos
                                             }
                                        )
-                                    |> Random.constant
-                                    |> returnGame
+                                    |> Data.Effect.withNone
                                     |> Just
 
                             Data.Actor.Helper _ ->
@@ -164,8 +163,8 @@ collideWith ( newPos, entity ) game =
                                 Nothing
 
                             Data.Actor.Bomb _ ->
-                                Random.constant game
-                                    |> returnGame
+                                game
+                                    |> Data.Effect.withNone
                                     |> Just
 
                             Data.Actor.MovingWater _ ->
@@ -176,14 +175,14 @@ collideWith ( newPos, entity ) game =
             if (game |> Data.Game.getTrain |> .tracks) > 0 then
                 game
                     |> mine
-                    |> returnGame
+                    |> Data.Effect.genWithNone
                     |> Just
 
             else
                 game
                     |> mine
                     |> Random.map turnToHQ
-                    |> returnGame
+                    |> Data.Effect.genWithNone
                     |> Just
 
 

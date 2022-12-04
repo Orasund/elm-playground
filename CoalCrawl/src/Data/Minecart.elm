@@ -1,6 +1,5 @@
 module Data.Minecart exposing (..)
 
-import AnyBag exposing (AnyBag)
 import Config
 import Data.Item exposing (Item)
 import Data.Sound exposing (Sound)
@@ -59,14 +58,14 @@ isFull wagon =
     Data.Storage.isFull wagon.storage
 
 
-load : AnyBag String Item -> Minecart -> Maybe Minecart
+load : List Item -> Minecart -> Maybe Minecart
 load items minecart =
     minecart.storage
         |> Data.Storage.load items
         |> Maybe.map (setStorageOf minecart)
 
 
-unload : Minecart -> ( Minecart, AnyBag String Item )
+unload : Minecart -> ( Minecart, List Item )
 unload minecart =
     minecart.storage
         |> Data.Storage.unload

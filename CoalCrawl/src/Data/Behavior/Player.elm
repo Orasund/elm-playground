@@ -1,13 +1,11 @@
 module Data.Behavior.Player exposing (..)
 
 import AStar
-import AnyBag
 import Data.Actor
 import Data.Block exposing (Block(..))
 import Data.Effect exposing (Effect)
 import Data.Entity
 import Data.Game exposing (Game)
-import Data.Item
 import Data.Player
 import Data.Position
 import Data.Sound
@@ -88,6 +86,9 @@ canMoveTo game p =
                 Just ( _, Data.Actor.MovingWater _ ) ->
                     True
 
+                Just ( _, Data.Actor.Train _ ) ->
+                    True
+
                 _ ->
                     False
 
@@ -115,13 +116,22 @@ moveTowards targetPos game =
             |> Maybe.andThen List.head
     of
         Just pos ->
-            case Data.World.get pos game.world of
-                Just ( Data.Block.FloorBlock _, _ ) ->
+            case Data.World.getBlock pos game.world of
+                Just (Data.Block.FloorBlock _) ->
                     { game | player = game.player |> Data.Player.moveTo pos }
-                        |> (\g -> ( g, [] ))
-                        |> Random.constant
+                        |> Data.Effect.withNone
 
-                Just ( Data.Block.EntityBlock (Data.Entity.Vein _), _ ) ->
+                Just (Data.Block.EntityBlock (Data.Entity.Actor id)) ->
+                    case game.world |> Data.World.getActor id of
+                        Just ( _, Data.Actor.Train _ ) ->
+                            { game | player = game.player |> Data.Player.moveTo pos }
+                                |> Data.Effect.withNone
+
+                        _ ->
+                            game
+                                |> Data.Effect.withNone
+
+                Just (Data.Block.EntityBlock (Data.Entity.Vein _)) ->
                     game.world
                         |> Generation.mine pos
                         |> Random.map (Data.Game.setWorldOf game)
@@ -168,10 +178,7 @@ putInto pos game =
         |> Maybe.andThen
             (\( player, item ) ->
                 game.world
-                    |> Data.World.load pos
-                        (AnyBag.fromList Data.Item.toString
-                            [ item ]
-                        )
+                    |> Data.World.load pos [ item ]
                     |> Maybe.map
                         (Tuple.mapFirst
                             (\w ->

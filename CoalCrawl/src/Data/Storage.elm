@@ -1,30 +1,30 @@
 module Data.Storage exposing (..)
 
-import AnyBag exposing (AnyBag)
+import AnyBag
 import Data.Item exposing (Item)
 
 
 type alias Storage =
-    { items : AnyBag String Item
+    { items : List Item
     , maxAmount : Int
     }
 
 
 empty : Int -> Storage
 empty maxAmount =
-    { items = AnyBag.empty Data.Item.toString
+    { items = []
     , maxAmount = maxAmount
     }
 
 
 size : Storage -> Int
 size storage =
-    AnyBag.size storage.items
+    List.length storage.items
 
 
 full : Int -> Item -> Storage
 full maxAmount item =
-    { items = [ ( item, maxAmount ) ] |> AnyBag.fromAssociationList Data.Item.toString
+    { items = List.repeat maxAmount item
     , maxAmount = maxAmount
     }
 
@@ -36,35 +36,33 @@ insert item storage =
 
     else
         { storage
-            | items =
-                storage.items
-                    |> AnyBag.insert 1 item
+            | items = item :: storage.items
         }
             |> Just
 
 
 isFull : Storage -> Bool
 isFull storage =
-    AnyBag.size storage.items == storage.maxAmount
+    size storage == storage.maxAmount
 
 
 isEmpty : Storage -> Bool
 isEmpty storage =
-    AnyBag.isEmpty storage.items
+    storage.items == []
 
 
-load : AnyBag String Item -> Storage -> Maybe Storage
+load : List Item -> Storage -> Maybe Storage
 load items storage =
-    if AnyBag.size items + AnyBag.size storage.items <= storage.maxAmount then
-        Just { storage | items = storage.items |> AnyBag.union items }
+    if List.length storage.items + List.length items <= storage.maxAmount then
+        Just { storage | items = storage.items ++ items }
 
     else
         Nothing
 
 
-unload : Storage -> ( Storage, AnyBag String Item )
+unload : Storage -> ( Storage, List Item )
 unload storage =
-    ( { storage | items = AnyBag.empty Data.Item.toString }
+    ( { storage | items = [] }
     , storage.items
     )
 
@@ -72,4 +70,5 @@ unload storage =
 toList : Storage -> List ( String, Int )
 toList storage =
     storage.items
+        |> AnyBag.fromList Data.Item.toString
         |> AnyBag.toAssociationList

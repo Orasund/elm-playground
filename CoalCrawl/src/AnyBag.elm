@@ -14,6 +14,11 @@ empty encode =
     { content = Bag.empty, encode = encode }
 
 
+singleton : (a -> comparable) -> a -> AnyBag comparable a
+singleton encode a =
+    { content = Bag.singleton (encode a), encode = encode }
+
+
 isEmpty : AnyBag comparable a -> Bool
 isEmpty anyBag =
     Bag.isEmpty anyBag.content
