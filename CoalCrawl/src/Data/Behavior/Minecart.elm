@@ -14,7 +14,7 @@ import Random exposing (Generator)
 act :
     Int
     -> World
-    -> Maybe (Generator ( World, List Effect ))
+    -> Generator ( World, List Effect )
 act id world =
     world
         |> getMinecart id
@@ -22,16 +22,14 @@ act id world =
             (\( pos, wagon ) ->
                 world
                     |> move id ( pos, wagon )
-                    |> Maybe.map
-                        (Data.Effect.map (collect pos id))
+                    |> Maybe.map (Data.Effect.map (collect pos id))
             )
-        |> Maybe.map
-            (Data.Effect.map
-                (\g ->
-                    g
-                        |> unload id
-                        |> Maybe.withDefault ( g, [] )
-                )
+        |> Maybe.withDefault (Data.Effect.withNone world)
+        |> Data.Effect.map
+            (\g ->
+                g
+                    |> unload id
+                    |> Maybe.withDefault ( g, [] )
             )
 
 
@@ -48,11 +46,15 @@ move id ( pos, wagon ) world =
                 }
                     |> (\positions ->
                             world
-                                |> (if Data.World.getFloor pos world == Just Data.Floor.Track then
-                                        moveOnTrack
+                                |> (case Data.World.getFloor pos world of
+                                        Just Data.Floor.Track ->
+                                            moveOnTrack
 
-                                    else
-                                        moveOnGround
+                                        Just Data.Floor.RailwayTrack ->
+                                            moveOnTrack
+
+                                        _ ->
+                                            moveOnGround
                                    )
                                     positions
                                     ( pos, id, wagon )
@@ -66,14 +68,15 @@ setMovement ( id, pos ) p w =
         |> getMinecart id
         |> Maybe.map Tuple.second
         |> Maybe.map
-            (if
-                Data.World.getFloor p w
-                    == Just Data.Floor.Track
-             then
-                Data.Minecart.moveFrom pos
+            (case Data.World.getFloor p w of
+                Just Data.Floor.Track ->
+                    Data.Minecart.moveFrom pos
 
-             else
-                Data.Minecart.stop
+                Just Data.Floor.RailwayTrack ->
+                    Data.Minecart.moveFrom pos
+
+                _ ->
+                    Data.Minecart.stop
             )
         |> Maybe.map Data.Actor.Minecart
         |> Maybe.map
@@ -294,8 +297,11 @@ neighborTracks pos world =
         |> Data.Position.neighbors
         |> List.filter
             (\p ->
-                case Data.World.get p world of
-                    Just ( Data.Block.FloorBlock Data.Floor.Track, _ ) ->
+                case Data.World.getBlock p world of
+                    Just (Data.Block.FloorBlock Data.Floor.Track) ->
+                        True
+
+                    Just (Data.Block.FloorBlock Data.Floor.RailwayTrack) ->
                         True
 
                     _ ->

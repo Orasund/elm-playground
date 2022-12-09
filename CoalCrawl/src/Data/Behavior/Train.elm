@@ -9,7 +9,6 @@ import Data.Entity exposing (Entity)
 import Data.Floor
 import Data.Game exposing (Game, getTrain)
 import Data.Item exposing (Item)
-import Data.Position
 import Data.Sound
 import Data.Train
 import Data.World
@@ -127,16 +126,13 @@ collideWith ( newPos, entity ) game =
                                 game
                                     |> Data.Game.getTrain
                                     |> Data.Train.addAll
-                                        (wagon.storage.items
-                                            ++ List.repeat Config.wagonCost Data.Item.Iron
-                                            |> AnyBag.fromList Data.Item.toString
-                                        )
+                                        (List.repeat Config.wagonCost Data.Item.Iron)
                                     |> Data.Game.setTrainOf game
-                                    |> (\g ->
-                                            { g
-                                                | world = game.world |> Data.World.removeEntity newPos
-                                            }
-                                       )
+                                    |> Data.Game.setWorld
+                                        (game.world
+                                            |> Data.World.removeEntity newPos
+                                            |> Data.World.insertAllItems wagon.storage.items newPos
+                                        )
                                     |> Data.Effect.withNone
                                     |> Just
 
@@ -144,9 +140,7 @@ collideWith ( newPos, entity ) game =
                                 game
                                     |> Data.Game.getTrain
                                     |> Data.Train.addAll
-                                        (AnyBag.empty Data.Item.toString
-                                            |> AnyBag.insert Config.excavatorCost Data.Item.Iron
-                                        )
+                                        (List.repeat Config.excavatorCost Data.Item.Iron)
                                     |> Data.Game.setTrainOf game
                                     |> (\g ->
                                             { g
@@ -191,7 +185,7 @@ stockUpAtBase game =
     game
         |> Data.Game.getTrain
         |> Data.Train.addTracks Config.tracksPerTrip
-        |> Data.Train.turnAround
+        |> Data.Train.turnDownwards
         |> Data.Game.setTrainOf game
         |> move
         |> Maybe.map (\g -> ( g, [ Data.Effect.OpenModal, Data.Effect.LevelUp ] ))
@@ -202,7 +196,7 @@ turnToHQ : Game -> Game
 turnToHQ game =
     game
         |> Data.Game.getTrain
-        |> Data.Train.turnAround
+        |> Data.Train.turnUpwards
         |> Data.Game.setTrainOf game
 
 
@@ -259,7 +253,8 @@ mine game =
                 |> Data.Train.forwardPos
     in
     newPos
-        :: Data.Position.neighbors newPos
+        |> List.singleton
+        -- :: Data.Position.neighbors newPos
         |> List.foldl
             (\pos ->
                 Random.andThen (Generation.mine pos)

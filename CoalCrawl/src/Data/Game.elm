@@ -1,6 +1,5 @@
 module Data.Game exposing (..)
 
-import AnyBag
 import Config
 import Data.Actor exposing (Actor)
 import Data.Block exposing (Block(..))
@@ -117,17 +116,15 @@ destroyBlock pos game =
                 case block of
                     Data.Block.EntityBlock (Data.Entity.Actor id) ->
                         case game.world |> Data.World.getActor id of
-                            Just ( _, Data.Actor.Minecart _ ) ->
+                            Just ( _, Data.Actor.Minecart minecart ) ->
                                 game
                                     |> getTrain
-                                    |> Data.Train.addAll
-                                        (AnyBag.fromAssociationList Data.Item.toString
-                                            [ ( Data.Item.Iron, Config.wagonCost ) ]
-                                        )
+                                    |> Data.Train.addAll (List.repeat Config.wagonCost Data.Item.Iron)
                                     |> (\train -> game |> setTrain train)
                                     |> (\g ->
                                             g.world
                                                 |> Data.World.removeEntity pos
+                                                |> Data.World.insertAllItems minecart.storage.items pos
                                                 |> setWorldOf g
                                        )
                                     |> Just
@@ -176,8 +173,10 @@ new =
                 |> List.concatMap
                     (\y ->
                         [ -1, 1 ]
-                            |> List.map (\x -> ( ( x, y ), Data.Block.EntityBlock Data.Entity.Wall ))
+                            |> List.map (\x -> ( x, y ))
                     )
+                |> (::) ( 0, -1 )
+                |> List.map (\p -> ( p, Data.Block.EntityBlock Data.Entity.Wall ))
 
         coals =
             [ ( 0, 4 )

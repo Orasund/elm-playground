@@ -41,6 +41,10 @@ wagonCost =
     8
 
 
+trainLoadSize =
+    wagonMaxItems
+
+
 excavatorCost =
     1
 
@@ -54,7 +58,7 @@ tracksPerTrip =
 
 
 maxLevel =
-    7
+    9
 
 
 wagonMaxItems =

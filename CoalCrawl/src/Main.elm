@@ -112,7 +112,7 @@ type Msg
     | ToggleSlowdown
     | StartBuilding BuildMode
     | StopBuilding
-    | CloseModal
+    | CloseModal (Maybe ( Int, Item ))
     | SetVolume (Maybe Int)
     | SetTab (Maybe Tab)
     | SetZoom (Maybe Int)
@@ -359,8 +359,20 @@ update msg model =
         StopBuilding ->
             ( { model | building = Nothing }, Cmd.none )
 
-        CloseModal ->
-            ( { model | modal = Nothing }
+        CloseModal maybeLoot ->
+            ( { model
+                | modal = Nothing
+                , game =
+                    model.game
+                        |> Data.Game.getTrain
+                        |> (\train ->
+                                maybeLoot
+                                    |> Maybe.map (\( amount, item ) -> List.repeat amount item)
+                                    |> Maybe.withDefault []
+                                    |> (\list -> Data.Train.addAll list train)
+                           )
+                        |> Data.Game.setTrainOf model.game
+              }
             , Data.Sound.asList
                 |> List.map (\sound -> loadSound ( Data.Sound.toFile sound, Data.Sound.toString sound ))
                 |> Cmd.batch

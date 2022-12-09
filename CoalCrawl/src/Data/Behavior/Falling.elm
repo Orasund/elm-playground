@@ -17,7 +17,7 @@ act entity pos world =
                 Random.andThen
                     (\w ->
                         Random.weighted ( 1, Data.World.insertEntity entity )
-                            [ ( 1 / 2, Data.World.insertActor (Data.Actor.Helper (Data.Actor.Falling entity)) ) ]
+                            [ ( 1 / 4, Data.World.insertActor (Data.Actor.Helper (Data.Actor.Falling entity)) ) ]
                             |> Random.map (\fun -> w |> fun p)
                     )
             )

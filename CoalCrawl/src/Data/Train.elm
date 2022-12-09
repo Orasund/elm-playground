@@ -1,7 +1,9 @@
 module Data.Train exposing (..)
 
 import AnyBag exposing (AnyBag)
+import Config
 import Data.Item exposing (Item)
+import Data.Storage exposing (Storage)
 
 
 type alias Train =
@@ -40,13 +42,14 @@ move train =
     { train | pos = forwardPos train }
 
 
-turnAround : Train -> Train
-turnAround train =
-    let
-        ( x, y ) =
-            train.dir
-    in
-    { train | dir = ( x, -y ) }
+turnDownwards : Train -> Train
+turnDownwards train =
+    { train | dir = ( 0, 1 ) }
+
+
+turnUpwards : Train -> Train
+turnUpwards train =
+    { train | dir = ( 0, -1 ) }
 
 
 coalNeeded : Train -> Int
@@ -58,12 +61,26 @@ coalNeeded train =
     y * 2
 
 
-addAll : AnyBag String Item -> Train -> Train
-addAll bag train =
-    { train | items = train.items |> AnyBag.union bag }
+updateStorage : (Storage -> ( Storage, a )) -> Train -> ( Train, a )
+updateStorage fun train =
+    Data.Storage.empty Config.trainLoadSize
+        |> fun
+        |> Tuple.mapFirst
+            (\storage ->
+                addAll storage.items train
+            )
+
+
+addAll : List Item -> Train -> Train
+addAll list train =
+    { train
+        | items =
+            train.items
+                |> AnyBag.union (AnyBag.fromList Data.Item.toString list)
+    }
         |> (\t ->
                 if
-                    AnyBag.member Data.Item.Coal bag
+                    List.member Data.Item.Coal list
                         && (AnyBag.count Data.Item.Coal t.items >= coalNeeded t || (t.tracks > 0))
                 then
                     { t | moving = True }
@@ -75,8 +92,7 @@ addAll bag train =
 
 addItem : Item -> Train -> Train
 addItem item =
-    AnyBag.fromList Data.Item.toString [ item ]
-        |> addAll
+    addAll [ item ]
 
 
 removeItem : Int -> Item -> Train -> Maybe Train

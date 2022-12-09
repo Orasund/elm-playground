@@ -1,16 +1,14 @@
 module Data.World exposing (..)
 
-import AnyBag
 import Data.Actor exposing (Actor)
 import Data.Block exposing (Block)
 import Data.Effect exposing (Effect)
 import Data.Entity exposing (Entity)
 import Data.Floor exposing (Floor)
 import Data.Item exposing (Item)
-import Data.Minecart
 import Data.Momentum
 import Data.Sound
-import Data.Storage
+import Data.Storage exposing (Storage)
 import Data.Train
 import Dict exposing (Dict)
 
@@ -55,7 +53,17 @@ insertItem item pos =
 
 
 insertItemAt : ( Int, Int ) -> Item -> World -> World
-insertItemAt pos item world =
+insertItemAt pos item =
+    insertAllItemsAt pos [ item ]
+
+
+insertAllItems : List Item -> ( Int, Int ) -> World -> World
+insertAllItems items pos =
+    insertAllItemsAt pos items
+
+
+insertAllItemsAt : ( Int, Int ) -> List Item -> World -> World
+insertAllItemsAt pos items world =
     { world
         | items =
             world.items
@@ -63,7 +71,7 @@ insertItemAt pos item world =
                     (\maybe ->
                         maybe
                             |> Maybe.withDefault []
-                            |> (::) item
+                            |> (++) items
                             |> Just
                     )
         , floor =
@@ -252,45 +260,48 @@ setActor id actor =
 
 
 load : ( Int, Int ) -> List Item -> World -> Maybe ( World, List Effect )
-load pos bag world =
-    (if List.isEmpty bag then
-        Nothing
-
-     else
-        world
-            |> getActorAt pos
-    )
-        |> Maybe.andThen
-            (\( id, actor ) ->
-                case actor of
-                    Data.Actor.Minecart minecart ->
-                        minecart.storage
-                            |> Data.Storage.load bag
-                            |> Maybe.map
-                                (\storage ->
-                                    world
-                                        |> setActor id
-                                            (storage
-                                                |> Data.Minecart.setStorageOf minecart
-                                                |> Data.Actor.Minecart
-                                            )
-                                )
-
-                    Data.Actor.Train train ->
-                        train
-                            |> Data.Train.addAll (AnyBag.fromList Data.Item.toString bag)
-                            |> Data.Actor.Train
-                            |> (\a -> setActor id a world)
-                            |> Just
-
-                    _ ->
-                        Nothing
+load pos list world =
+    world
+        |> updateStorage
+            (\storage ->
+                storage
+                    |> Data.Storage.load list
+                    |> Maybe.map (\s -> ( s, Just [ Data.Effect.PlaySound Data.Sound.Unload ] ))
+                    |> Maybe.withDefault ( storage, Nothing )
             )
-        |> Maybe.map (\w -> ( w, [ Data.Effect.PlaySound Data.Sound.Unload ] ))
+            pos
+        |> Maybe.andThen
+            (\( w, maybeEffect ) ->
+                maybeEffect
+                    |> Maybe.map (\l -> ( w, l ))
+            )
+
+
+remainingSpace : ( Int, Int ) -> World -> Maybe Int
+remainingSpace pos world =
+    world
+        |> updateStorage (\s -> ( s, Data.Storage.spaceRemaining s ))
+            pos
+        |> Maybe.map Tuple.second
 
 
 unload : ( Int, Int ) -> World -> Maybe ( World, List Item )
-unload pos world =
+unload =
+    takeOrUnload Nothing
+
+
+take : Int -> ( Int, Int ) -> World -> Maybe ( World, List Item )
+take n =
+    takeOrUnload (Just n)
+
+
+takeOrUnload : Maybe Int -> ( Int, Int ) -> World -> Maybe ( World, List Item )
+takeOrUnload maybeAmount =
+    updateStorage (Data.Storage.takeOrUnload maybeAmount)
+
+
+updateStorage : (Storage -> ( Storage, a )) -> ( Int, Int ) -> World -> Maybe ( World, a )
+updateStorage fun pos world =
     world
         |> getActorAt pos
         |> Maybe.andThen
@@ -298,7 +309,7 @@ unload pos world =
                 case actor of
                     Data.Actor.Excavator excavator ->
                         excavator.storage
-                            |> Data.Storage.unload
+                            |> fun
                             |> Tuple.mapFirst
                                 (\storage ->
                                     world
@@ -311,7 +322,7 @@ unload pos world =
 
                     Data.Actor.Minecart minecart ->
                         minecart.storage
-                            |> Data.Storage.unload
+                            |> fun
                             |> Tuple.mapFirst
                                 (\storage ->
                                     world
@@ -322,6 +333,12 @@ unload pos world =
                                 )
                             |> Just
 
+                    Data.Actor.Train train ->
+                        train
+                            |> Data.Train.updateStorage fun
+                            |> Tuple.mapFirst (\t -> setActor id (Data.Actor.Train t) world)
+                            |> Just
+
                     _ ->
                         Nothing
             )
@@ -330,10 +347,19 @@ unload pos world =
 transfer : { from : ( Int, Int ), to : ( Int, Int ) } -> World -> Maybe ( World, List Effect )
 transfer args w =
     w
-        |> unload args.from
+        |> remainingSpace args.to
         |> Maybe.andThen
-            (\( world, bag ) ->
-                world |> load args.to bag
+            (\amount ->
+                w
+                    |> take amount args.from
+                    |> Maybe.andThen
+                        (\( world, list ) ->
+                            if List.isEmpty list then
+                                Just ( world, [] )
+
+                            else
+                                world |> load args.to list
+                        )
             )
 
 

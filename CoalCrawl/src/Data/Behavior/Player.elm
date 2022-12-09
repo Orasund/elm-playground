@@ -42,7 +42,7 @@ interactWith pos game =
             (\block ->
                 case block of
                     Data.Block.FloorBlock _ ->
-                        moveTowards game.selected game
+                        moveTowards pos game
 
                     Data.Block.EntityBlock entity ->
                         case entity of
@@ -59,9 +59,9 @@ interactWith pos game =
 
                             Data.Entity.Vein _ ->
                                 game.world
-                                    |> Generation.mine game.selected
+                                    |> Generation.mine pos
                                     |> Random.map (\world -> ( { game | world = world }, [] ))
-                                    |> Data.Effect.andThen (moveTowards game.selected)
+                                    |> Data.Effect.map (pickUp pos)
 
                             Data.Entity.Water ->
                                 Random.constant ( game, [] )
@@ -128,7 +128,10 @@ moveTowards targetPos game =
                                 |> Data.Effect.withNone
 
                         _ ->
-                            game
+                            game.world
+                                |> Data.World.push { from = game.player.pos, pos = pos }
+                                |> Maybe.map (Data.Game.setWorldOf game)
+                                |> Maybe.withDefault game
                                 |> Data.Effect.withNone
 
                 Just (Data.Block.EntityBlock (Data.Entity.Vein _)) ->
@@ -136,7 +139,6 @@ moveTowards targetPos game =
                         |> Generation.mine pos
                         |> Random.map (Data.Game.setWorldOf game)
                         |> Data.Effect.genWithNone
-                        |> Data.Effect.andThen (moveTowards targetPos)
 
                 _ ->
                     game.world

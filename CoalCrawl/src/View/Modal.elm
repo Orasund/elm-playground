@@ -3,6 +3,7 @@ module View.Modal exposing (..)
 import AnyBag
 import Config
 import Data.Game exposing (Game)
+import Data.Item exposing (Item)
 import Data.Modal exposing (Modal)
 import Html exposing (Html)
 import Html.Attributes as Attr
@@ -12,7 +13,7 @@ import View.Button
 import View.Title
 
 
-toHtml : msg -> Game -> Modal -> Int -> Html msg
+toHtml : (Maybe ( Int, Item ) -> msg) -> Game -> Modal -> Int -> Html msg
 toHtml closeModal game modal level =
     (if level == 1 then
         [ [ View.Title.coal, View.Title.crawl ]
@@ -31,7 +32,7 @@ toHtml closeModal game modal level =
             |> Html.text
             |> Layout.paragraph []
         , "Continue"
-            |> View.Button.toHtml (Just closeModal)
+            |> View.Button.toHtml (Just (closeModal Nothing))
         ]
 
      else if level < Config.maxLevel then
@@ -51,9 +52,6 @@ toHtml closeModal game modal level =
         , "Hint: Build a minecart"
             |> Html.text
             |> Layout.heading2 []
-        , "Build a minecart by clicking on an empty floor tile and select \"Build Wagon\""
-            |> Html.text
-            |> Layout.paragraph []
         , View.Animation.animate modal.animation modal.animationFrame
             |> Layout.el Layout.centered
         , "Can store up to "
@@ -61,8 +59,25 @@ toHtml closeModal game modal level =
             ++ " items. You can also push it along."
             |> Html.text
             |> Layout.el []
-        , "Continue"
-            |> View.Button.toHtml (Just closeModal)
+        , "Choose between 2 Gold or 20 Iron"
+            |> Html.text
+            |> Layout.el []
+        , [ "Get 2 Gold"
+                |> View.Button.toHtml
+                    (( 2, Data.Item.Gold )
+                        |> Just
+                        |> closeModal
+                        |> Just
+                    )
+          , "Get 20 Iron"
+                |> View.Button.toHtml
+                    (( 20, Data.Item.Iron )
+                        |> Just
+                        |> closeModal
+                        |> Just
+                    )
+          ]
+            |> Layout.row []
         ]
 
      else
@@ -83,7 +98,7 @@ toHtml closeModal game modal level =
             |> Html.text
             |> Layout.heading2 []
         , "Continue"
-            |> View.Button.toHtml (Just closeModal)
+            |> View.Button.toHtml (Just (closeModal Nothing))
         ]
     )
         |> Layout.column

@@ -9,11 +9,8 @@ import Data.World exposing (World)
 import Random exposing (Generator)
 
 
-act :
-    ( ( Int, Int ), Int, Momentum )
-    -> World
-    -> Generator World
-act ( _, id, _ ) w =
+act : Int -> World -> Generator World
+act id w =
     w
         |> setMomentum id
         |> Random.map

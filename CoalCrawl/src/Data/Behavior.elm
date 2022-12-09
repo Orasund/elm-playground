@@ -45,7 +45,6 @@ actorsAct ( id, ( pos, actor ) ) world =
         Data.Actor.Minecart _ ->
             world
                 |> Data.Behavior.Minecart.act id
-                |> Maybe.withDefault (world |> Data.Effect.withNone)
 
         Data.Actor.Excavator excavator ->
             world
@@ -85,9 +84,9 @@ actorsAct ( id, ( pos, actor ) ) world =
         Data.Actor.Train _ ->
             Data.Effect.withNone world
 
-        Data.Actor.MovingWater momentum ->
+        Data.Actor.MovingWater _ ->
             world
-                |> Data.Behavior.MovingWater.act ( pos, id, momentum )
+                |> Data.Behavior.MovingWater.act id
                 |> Data.Effect.genWithNone
 
 

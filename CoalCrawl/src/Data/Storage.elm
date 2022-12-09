@@ -43,12 +43,17 @@ insert item storage =
 
 isFull : Storage -> Bool
 isFull storage =
-    size storage == storage.maxAmount
+    spaceRemaining storage == 0
 
 
 isEmpty : Storage -> Bool
 isEmpty storage =
     storage.items == []
+
+
+spaceRemaining : Storage -> Int
+spaceRemaining storage =
+    storage.maxAmount - size storage
 
 
 load : List Item -> Storage -> Maybe Storage
@@ -65,6 +70,23 @@ unload storage =
     ( { storage | items = [] }
     , storage.items
     )
+
+
+take : Int -> Storage -> ( Storage, List Item )
+take amount storage =
+    ( { storage | items = storage.items |> List.drop amount }
+    , storage.items |> List.take amount
+    )
+
+
+takeOrUnload : Maybe Int -> Storage -> ( Storage, List Item )
+takeOrUnload maybeInt =
+    case maybeInt of
+        Nothing ->
+            unload
+
+        Just n ->
+            take n
 
 
 toList : Storage -> List ( String, Int )
