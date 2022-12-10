@@ -4,7 +4,6 @@ import AnyBag
 import Browser exposing (Document)
 import Config
 import Data.Actor exposing (Actor)
-import Data.Animation
 import Data.Behavior
 import Data.Block exposing (Block(..))
 import Data.Effect exposing (Effect)
@@ -69,16 +68,8 @@ updateGame fun model =
                                 Data.Effect.PlaySound sound ->
                                     Tuple.mapSecond ((::) (sound |> Data.Sound.toString |> playSound))
 
-                                Data.Effect.OpenModal ->
-                                    Tuple.mapFirst
-                                        (\m ->
-                                            { m
-                                                | modal =
-                                                    Data.Animation.animate
-                                                        |> Data.Modal.fromAnimation
-                                                        |> Just
-                                            }
-                                        )
+                                Data.Effect.OpenModal modal ->
+                                    Tuple.mapFirst (\m -> { m | modal = Just modal })
 
                                 Data.Effect.LevelUp ->
                                     Tuple.mapFirst
@@ -121,10 +112,7 @@ restart seed =
                 , slowedDown = False
                 , camera = game.player.pos
                 , seed = seed
-                , modal =
-                    Data.Animation.tutorial
-                        |> Data.Modal.fromAnimation
-                        |> Just
+                , modal = Just Data.Modal.title
                 , volume = 50
                 , sidebarTab = Just DetailTab
                 , tickInterval = 200
@@ -156,115 +144,116 @@ view model =
             , Attr.href "https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
             ]
             []
-        , [ model.game
-                |> View.Screen.fromGame
-                    { onPress = TileClicked
-                    , camera = model.camera
-                    , zoom = Data.Zoom.fromPercent model.zoomPercent
-                    }
-                |> Layout.withStack
-                    ((if model.modal /= Nothing then
-                        [ Attr.style "backdrop-filter" "brightness(0.5)" ]
+        , model.game
+            |> View.Screen.fromGame
+                { onPress = TileClicked
+                , camera = model.camera
+                , zoom = Data.Zoom.fromPercent model.zoomPercent
+                }
+            |> Layout.withStack
+                ((if model.modal /= Nothing then
+                    [ Attr.style "backdrop-filter" "brightness(0.5)" ]
 
-                      else
-                        []
-                     )
-                        ++ [ Attr.style "position" "relative"
-                           ]
-                    )
-                    [ ( [ Attr.style "top" "8px"
-                        , Attr.style "left" "8px"
-                        ]
-                      , case model.building of
-                            Just block ->
-                                [ "Stop Building"
-                                    |> View.Button.toHtml (Just StopBuilding)
-                                , (case block of
-                                    BuildingBlock ( _, b ) ->
-                                        b
-                                            |> Data.Info.fromBlock model.game
-                                            |> .title
-
-                                    BuildingActor ( _, a ) ->
-                                        a
-                                            |> Data.Info.fromActor
-                                            |> .title
-
-                                    RemovingBlock ->
-                                        "Removing"
-                                  )
-                                    |> Html.text
-                                    |> Layout.el
-                                        [ Attr.style "background-color" "white"
-                                        , Attr.style "padding" "8px"
-                                        , Attr.style "border-radius" "8px"
-                                        , Attr.style "border" "solid 1px black"
-                                        ]
-                                ]
-                                    |> Layout.column [ Layout.spacing 8 ]
-
-                            Nothing ->
-                                model.game
-                                    |> View.Tab.sidebar
-                                        { toggleSlowdown = ToggleSlowdown
-                                        , restart = Restart model.seed
-                                        , destroyBlock = StartBuilding RemovingBlock
-                                        , buildActor =
-                                            \{ cost, actor } ->
-                                                StartBuilding (BuildingActor ( cost, actor ))
-                                        , buildBlock =
-                                            \{ cost, block } ->
-                                                StartBuilding (BuildingBlock ( cost, block ))
-                                        , slowedDown = model.slowedDown
-                                        , setVolume = SetVolume
-                                        , volume = model.volume
-                                        , setZoom = SetZoom
-                                        , zoom = model.zoomPercent
-                                        , setTab = SetTab
-                                        , tab = model.sidebarTab
-                                        }
-                      )
-                    , ( [ Attr.style "top" "8px"
-                        , Attr.style "right" "8px"
-                        ]
-                      , [ (( "Tracks", train.tracks )
-                            :: (train.items
-                                    |> AnyBag.toAssociationList
-                               )
-                            |> List.map (\( k, n ) -> String.fromInt n ++ "x " ++ k)
-                          )
-                            |> (\content -> content |> String.join ", ")
-                            |> Html.text
-                            |> Layout.el []
-                        , "Needs "
-                            ++ (Data.Train.coalNeeded train
-                                    - AnyBag.count Data.Item.Coal train.items
-                                    |> String.fromInt
-                               )
-                            ++ " for the next Level"
-                            |> Html.text
-                            |> Layout.el []
-                        ]
-                            |> Layout.column
-                                [ Attr.style "background-color" "white"
-                                , Attr.style "padding" "8px"
-                                , Attr.style "border-radius" "8px"
-                                , Attr.style "border" "solid 1px black"
-                                ]
-                      )
+                  else
+                    []
+                 )
+                    ++ [ Attr.style "position" "relative"
+                       ]
+                )
+                [ ( [ Attr.style "top" "8px"
+                    , Attr.style "left" "8px"
                     ]
-          , case model.modal of
-                Just modal ->
-                    View.Modal.toHtml CloseModal model.game modal model.level
+                  , case model.building of
+                        Just block ->
+                            [ "Stop Building"
+                                |> View.Button.toHtml (Just StopBuilding)
+                            , (case block of
+                                BuildingBlock ( _, b ) ->
+                                    b
+                                        |> Data.Info.fromBlock model.game
+                                        |> .title
 
-                Nothing ->
-                    Layout.none
-          ]
-            |> Html.div
-                [ Attr.style "position" "relative"
+                                BuildingActor ( _, a ) ->
+                                    a
+                                        |> Data.Info.fromActor
+                                        |> .title
+
+                                RemovingBlock ->
+                                    "Removing"
+                              )
+                                |> Html.text
+                                |> Layout.el
+                                    [ Attr.style "background-color" "white"
+                                    , Attr.style "padding" "8px"
+                                    , Attr.style "border-radius" "8px"
+                                    , Attr.style "border" "solid 1px black"
+                                    ]
+                            ]
+                                |> Layout.column [ Layout.spacing 8 ]
+
+                        Nothing ->
+                            model.game
+                                |> View.Tab.sidebar
+                                    { toggleSlowdown = ToggleSlowdown
+                                    , restart = Restart model.seed
+                                    , destroyBlock = StartBuilding RemovingBlock
+                                    , buildActor =
+                                        \{ cost, actor } ->
+                                            StartBuilding (BuildingActor ( cost, actor ))
+                                    , buildBlock =
+                                        \{ cost, block } ->
+                                            StartBuilding (BuildingBlock ( cost, block ))
+                                    , slowedDown = model.slowedDown
+                                    , setVolume = SetVolume
+                                    , volume = model.volume
+                                    , setZoom = SetZoom
+                                    , zoom = model.zoomPercent
+                                    , setTab = SetTab
+                                    , tab = model.sidebarTab
+                                    }
+                  )
+                , ( [ Attr.style "top" "8px"
+                    , Attr.style "right" "8px"
+                    ]
+                  , [ (( "Tracks", train.tracks )
+                        :: (train.items
+                                |> AnyBag.toAssociationList
+                           )
+                        |> List.map (\( k, n ) -> String.fromInt n ++ "x " ++ k)
+                      )
+                        |> (\content -> content |> String.join ", ")
+                        |> Html.text
+                        |> Layout.el []
+                    , "Needs "
+                        ++ (Data.Train.coalNeeded train
+                                - AnyBag.count Data.Item.Coal train.items
+                                |> String.fromInt
+                           )
+                        ++ " for the next Level"
+                        |> Html.text
+                        |> Layout.el []
+                    ]
+                        |> Layout.column
+                            [ Attr.style "background-color" "white"
+                            , Attr.style "padding" "8px"
+                            , Attr.style "border-radius" "8px"
+                            , Attr.style "border" "solid 1px black"
+                            ]
+                  )
                 ]
-            |> List.singleton
-            |> Layout.row [ Layout.fill, Layout.centerContent ]
+            |> Layout.withStack []
+                [ ( [ Attr.style "top" "50%"
+                    , Attr.style "left" "50%"
+                    , Attr.style "transform" "translate(-50%,-50%)"
+                    ]
+                  , case model.modal of
+                        Just modal ->
+                            View.Modal.toHtml CloseModal model.game modal model.level
+
+                        Nothing ->
+                            Layout.none
+                  )
+                ]
             |> Layout.container [ Attr.style "background-color" "white" ]
         ]
     }

@@ -9,11 +9,14 @@ import Data.Entity exposing (Entity)
 import Data.Floor
 import Data.Improvement exposing (Improvement)
 import Data.Item exposing (Item)
+import Data.Modal
 import Data.Sound
 import Data.Train exposing (Train)
 import Data.World exposing (World)
 import Generation
 import Random exposing (Generator)
+import Random.Extra
+import Random.List
 
 
 act : List Improvement -> Int -> World -> Generator ( World, List Effect )
@@ -30,7 +33,6 @@ act improvements id world =
                 if train.pos == Config.hqPos then
                     world
                         |> stockUpAtBase id improvements
-                        |> Random.constant
                         |> Just
 
                 else if train.moving then
@@ -115,6 +117,22 @@ tryMovingTo ( newPos, block ) id world =
                     ( Data.Block.EntityBlock entity, _ ) ->
                         collideWith ( newPos, entity ) id world
             )
+        |> Maybe.map (Random.map (Tuple.mapFirst (collect id)))
+
+
+collect : Int -> World -> World
+collect id world =
+    world
+        |> getTrain id
+        |> Maybe.andThen
+            (\train ->
+                train
+                    |> Data.Train.forwardPos
+                    |> (\pos -> Data.World.getItem pos world)
+                    |> Maybe.map (\item -> train |> Data.Train.addItem item)
+                    |> Maybe.map (setTrainOf world id)
+            )
+        |> Maybe.withDefault world
 
 
 collideWith : ( ( Int, Int ), Entity ) -> Int -> World -> Maybe (Generator ( World, List Effect ))
@@ -177,7 +195,7 @@ collideWith ( newPos, entity ) id world =
             )
 
 
-stockUpAtBase : Int -> List Improvement -> World -> ( World, List Effect )
+stockUpAtBase : Int -> List Improvement -> World -> Generator ( World, List Effect )
 stockUpAtBase id improvements world =
     world
         |> getTrain id
@@ -196,8 +214,28 @@ stockUpAtBase id improvements world =
                     |> (\train -> Data.World.setActor id train world)
                     |> move id
             )
-        |> Maybe.map (\w -> ( w, [ Data.Effect.OpenModal, Data.Effect.LevelUp ] ))
-        |> Maybe.withDefault ( world, [] )
+        |> Maybe.map
+            (\w ->
+                Data.Improvement.asList
+                    |> List.filter
+                        (\e ->
+                            improvements
+                                |> List.member e
+                                |> not
+                        )
+                    |> Random.List.choices 2
+                    |> Random.map Tuple.first
+                    |> Random.map
+                        (\list ->
+                            ( w
+                            , [ Data.Modal.levelUp list
+                                    |> Data.Effect.OpenModal
+                              , Data.Effect.LevelUp
+                              ]
+                            )
+                        )
+            )
+        |> Maybe.withDefault (Data.Effect.withNone world)
 
 
 turnToHQ : Int -> World -> Maybe World

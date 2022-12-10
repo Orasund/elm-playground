@@ -4,12 +4,14 @@ module Data.Improvement exposing (..)
 type Improvement
     = GetOneGoldEachLevel
     | MinecartCanCollect
+    | TrainCanCollect
 
 
 asList : List Improvement
 asList =
     [ GetOneGoldEachLevel
     , MinecartCanCollect
+    , TrainCanCollect
     ]
 
 
@@ -21,3 +23,6 @@ toString improvement =
 
         MinecartCanCollect ->
             "Minecart can collect items"
+
+        TrainCanCollect ->
+            "Train can collect items"

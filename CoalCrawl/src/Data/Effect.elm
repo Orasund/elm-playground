@@ -1,12 +1,13 @@
 module Data.Effect exposing (..)
 
+import Data.Modal exposing (Modal)
 import Data.Sound exposing (Sound)
 import Random exposing (Generator)
 
 
 type Effect
     = PlaySound Sound
-    | OpenModal
+    | OpenModal Modal
     | LevelUp
 
 
