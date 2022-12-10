@@ -61,7 +61,6 @@ interactWith pos game =
                                 game.world
                                     |> Generation.mine pos
                                     |> Random.map (\world -> ( { game | world = world }, [] ))
-                                    |> Data.Effect.map (pickUp pos)
 
                             Data.Entity.Water ->
                                 Random.constant ( game, [] )
@@ -69,6 +68,7 @@ interactWith pos game =
                             Data.Entity.Lava ->
                                 Random.constant ( game, [] )
             )
+        |> Maybe.map (Data.Effect.map (pickUp pos))
         |> Maybe.withDefault (Random.constant ( game, [] ))
 
 

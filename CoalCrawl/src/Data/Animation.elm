@@ -48,6 +48,7 @@ tutorial =
         player =
             ( 2, 1 )
 
+        initGame : Game
         initGame =
             { world =
                 emptyWorld { width = width, height = height }
@@ -58,6 +59,7 @@ tutorial =
             , player = Data.Player.fromPos player
             , trainId = 0
             , selected = player
+            , improvements = []
             }
 
         selections =
@@ -131,6 +133,7 @@ animate =
             , player = Data.Player.fromPos player
             , trainId = 0
             , selected = player
+            , improvements = []
             }
 
         selections =

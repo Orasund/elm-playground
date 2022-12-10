@@ -6168,6 +6168,7 @@ var $author$project$Data$Game$new = function () {
 			_Utils_Tuple2(0 + 1, 3)
 		]);
 	return {
+		improvements: _List_Nil,
 		player: $author$project$Data$Player$fromPos(player),
 		selected: player,
 		trainId: 0,
@@ -7901,37 +7902,38 @@ var $author$project$Data$Behavior$Player$interactWith = F2(
 				_Utils_Tuple2(game, _List_Nil)),
 			A2(
 				$elm$core$Maybe$map,
-				function (block) {
-					if (block.$ === 'FloorBlock') {
-						return A2($author$project$Data$Behavior$Player$moveTowards, pos, game);
-					} else {
-						var entity = block.a;
-						switch (entity.$) {
-							case 'Wall':
-								return A2(
-									$elm$random$Random$map,
-									function (g) {
-										return _Utils_Tuple2(g, _List_Nil);
-									},
-									$elm$random$Random$constant(game));
-							case 'Actor':
-								var id = entity.a;
-								return $elm$random$Random$constant(
-									A2(
-										$elm$core$Maybe$withDefault,
-										_Utils_Tuple2(game, _List_Nil),
+				$author$project$Data$Effect$map(
+					$author$project$Data$Behavior$Player$pickUp(pos)),
+				A2(
+					$elm$core$Maybe$map,
+					function (block) {
+						if (block.$ === 'FloorBlock') {
+							return A2($author$project$Data$Behavior$Player$moveTowards, pos, game);
+						} else {
+							var entity = block.a;
+							switch (entity.$) {
+								case 'Wall':
+									return A2(
+										$elm$random$Random$map,
+										function (g) {
+											return _Utils_Tuple2(g, _List_Nil);
+										},
+										$elm$random$Random$constant(game));
+								case 'Actor':
+									var id = entity.a;
+									return $elm$random$Random$constant(
 										A2(
-											$elm$core$Maybe$andThen,
-											function (_v2) {
-												var p = _v2.a;
-												return A2($author$project$Data$Behavior$Player$putInto, p, game);
-											},
-											A2($elm$core$Dict$get, id, game.world.actors))));
-							case 'Vein':
-								return A2(
-									$author$project$Data$Effect$map,
-									$author$project$Data$Behavior$Player$pickUp(pos),
-									A2(
+											$elm$core$Maybe$withDefault,
+											_Utils_Tuple2(game, _List_Nil),
+											A2(
+												$elm$core$Maybe$andThen,
+												function (_v2) {
+													var p = _v2.a;
+													return A2($author$project$Data$Behavior$Player$putInto, p, game);
+												},
+												A2($elm$core$Dict$get, id, game.world.actors))));
+								case 'Vein':
+									return A2(
 										$elm$random$Random$map,
 										function (world) {
 											return _Utils_Tuple2(
@@ -7940,17 +7942,17 @@ var $author$project$Data$Behavior$Player$interactWith = F2(
 													{world: world}),
 												_List_Nil);
 										},
-										A2($author$project$Generation$mine, pos, game.world)));
-							case 'Water':
-								return $elm$random$Random$constant(
-									_Utils_Tuple2(game, _List_Nil));
-							default:
-								return $elm$random$Random$constant(
-									_Utils_Tuple2(game, _List_Nil));
+										A2($author$project$Generation$mine, pos, game.world));
+								case 'Water':
+									return $elm$random$Random$constant(
+										_Utils_Tuple2(game, _List_Nil));
+								default:
+									return $elm$random$Random$constant(
+										_Utils_Tuple2(game, _List_Nil));
+							}
 						}
-					}
-				},
-				A2($author$project$Data$World$getBlock, pos, game.world)));
+					},
+					A2($author$project$Data$World$getBlock, pos, game.world))));
 	});
 var $author$project$Data$Player$stopMoving = function (player) {
 	return _Utils_update(
@@ -7991,462 +7993,6 @@ var $author$project$Data$Behavior$Player$act = function (game) {
 						A2($author$project$Data$Behavior$Player$interactWith, targetPos, game)) : A2($author$project$Data$Behavior$Player$moveTowards, targetPos, game));
 			},
 			game.player.targetPos));
-};
-var $author$project$Data$Train$forwardPos = function (train) {
-	var _v0 = train.pos;
-	var x = _v0.a;
-	var y = _v0.b;
-	var _v1 = train.dir;
-	var dirX = _v1.a;
-	var dirY = _v1.b;
-	return _Utils_Tuple2(x + dirX, y + dirY);
-};
-var $author$project$Data$Game$getTrain = function (game) {
-	var _v0 = A2($author$project$Data$World$getActor, game.trainId, game.world);
-	if ((_v0.$ === 'Just') && (_v0.a.b.$ === 'Train')) {
-		var _v1 = _v0.a;
-		var train = _v1.b.a;
-		return train;
-	} else {
-		return $author$project$Data$Train$fromPos(
-			_Utils_Tuple2(0, 0));
-	}
-};
-var $author$project$Config$hqPos = _Utils_Tuple2(0, 0);
-var $elm$core$Basics$neq = _Utils_notEqual;
-var $author$project$Data$Effect$LevelUp = {$: 'LevelUp'};
-var $author$project$Data$Effect$OpenModal = {$: 'OpenModal'};
-var $author$project$Data$Train$addTracks = F2(
-	function (tracks, train) {
-		return _Utils_update(
-			train,
-			{tracks: train.tracks + tracks});
-	});
-var $author$project$Data$Train$move = function (train) {
-	return _Utils_update(
-		train,
-		{
-			pos: $author$project$Data$Train$forwardPos(train)
-		});
-};
-var $author$project$Data$World$moveActorTo = F3(
-	function (pos, id, world) {
-		return A2(
-			$elm$core$Maybe$withDefault,
-			world,
-			A2(
-				$elm$core$Maybe$map,
-				function (_v0) {
-					var oldPos = _v0.a;
-					return _Utils_update(
-						world,
-						{
-							actors: A3(
-								$elm$core$Dict$update,
-								id,
-								$elm$core$Maybe$map(
-									$elm$core$Tuple$mapFirst(
-										function (_v1) {
-											return pos;
-										})),
-								world.actors),
-							entities: A3(
-								$elm$core$Dict$insert,
-								pos,
-								$author$project$Data$Entity$Actor(id),
-								A2($elm$core$Dict$remove, oldPos, world.entities))
-						});
-				},
-				A2($elm$core$Dict$get, id, world.actors)));
-	});
-var $JohnBugner$elm_bag$Bag$remove = function (n) {
-	return $JohnBugner$elm_bag$Bag$insert(-n);
-};
-var $author$project$AnyBag$remove = F3(
-	function (n, a, bag) {
-		return _Utils_update(
-			bag,
-			{
-				content: A3(
-					$JohnBugner$elm_bag$Bag$remove,
-					n,
-					bag.encode(a),
-					bag.content)
-			});
-	});
-var $author$project$Data$Train$removeItem = F3(
-	function (n, item, train) {
-		return A2(
-			$elm$core$Maybe$map,
-			function (t) {
-				return (_Utils_eq(item, $author$project$Data$Item$Coal) && (!A2($author$project$AnyBag$count, $author$project$Data$Item$Coal, t.items))) ? _Utils_update(
-					t,
-					{moving: false}) : t;
-			},
-			(_Utils_cmp(
-				A2($author$project$AnyBag$count, item, train.items),
-				n) > -1) ? $elm$core$Maybe$Just(
-				_Utils_update(
-					train,
-					{
-						items: A3($author$project$AnyBag$remove, n, item, train.items)
-					})) : $elm$core$Maybe$Nothing);
-	});
-var $author$project$Data$Game$setTrain = F2(
-	function (train, game) {
-		return _Utils_update(
-			game,
-			{
-				world: A3(
-					$author$project$Data$World$setActor,
-					game.trainId,
-					$author$project$Data$Actor$Train(train),
-					game.world)
-			});
-	});
-var $author$project$Data$Game$setTrainOf = F2(
-	function (game, train) {
-		return A2($author$project$Data$Game$setTrain, train, game);
-	});
-var $author$project$Data$Behavior$Train$move = function (game) {
-	var newPos = $author$project$Data$Train$forwardPos(
-		$author$project$Data$Game$getTrain(game));
-	return A2(
-		$elm$core$Maybe$map,
-		function (g) {
-			return A2(
-				$author$project$Data$Game$setTrainOf,
-				g,
-				$author$project$Data$Train$move(
-					$author$project$Data$Game$getTrain(g)));
-		},
-		A2(
-			$elm$core$Maybe$map,
-			function (g) {
-				return function (world) {
-					return _Utils_update(
-						g,
-						{world: world});
-				}(
-					A3($author$project$Data$World$moveActorTo, newPos, game.trainId, g.world));
-			},
-			A2(
-				$elm$core$Maybe$map,
-				$author$project$Data$Game$setTrainOf(game),
-				A3(
-					$author$project$Data$Train$removeItem,
-					1,
-					$author$project$Data$Item$Coal,
-					$author$project$Data$Game$getTrain(game)))));
-};
-var $author$project$Data$Train$turnDownwards = function (train) {
-	return _Utils_update(
-		train,
-		{
-			dir: _Utils_Tuple2(0, 1)
-		});
-};
-var $author$project$Data$Behavior$Train$stockUpAtBase = function (game) {
-	return A2(
-		$elm$core$Maybe$withDefault,
-		_Utils_Tuple2(game, _List_Nil),
-		A2(
-			$elm$core$Maybe$map,
-			function (g) {
-				return _Utils_Tuple2(
-					g,
-					_List_fromArray(
-						[$author$project$Data$Effect$OpenModal, $author$project$Data$Effect$LevelUp]));
-			},
-			$author$project$Data$Behavior$Train$move(
-				A2(
-					$author$project$Data$Game$setTrainOf,
-					game,
-					$author$project$Data$Train$turnDownwards(
-						A2(
-							$author$project$Data$Train$addTracks,
-							$author$project$Config$tracksPerTrip,
-							$author$project$Data$Game$getTrain(game)))))));
-};
-var $author$project$Data$Sound$MovingTrain = {$: 'MovingTrain'};
-var $author$project$Data$Train$addItem = function (item) {
-	return $author$project$Data$Train$addAll(
-		_List_fromArray(
-			[item]));
-};
-var $author$project$Data$Item$Iron = {$: 'Iron'};
-var $author$project$Config$excavatorCost = 1;
-var $author$project$Data$World$insertAllItems = F2(
-	function (items, pos) {
-		return A2($author$project$Data$World$insertAllItemsAt, pos, items);
-	});
-var $elm$core$List$singleton = function (value) {
-	return _List_fromArray(
-		[value]);
-};
-var $author$project$Data$Behavior$Train$mine = function (game) {
-	var newPos = $author$project$Data$Train$forwardPos(
-		$author$project$Data$Game$getTrain(game));
-	return A2(
-		$elm$random$Random$map,
-		function (world) {
-			return _Utils_update(
-				game,
-				{world: world});
-		},
-		A3(
-			$elm$core$List$foldl,
-			function (pos) {
-				return $elm$random$Random$andThen(
-					$author$project$Generation$mine(pos));
-			},
-			$elm$random$Random$constant(game.world),
-			$elm$core$List$singleton(newPos)));
-};
-var $elm$core$List$repeatHelp = F3(
-	function (result, n, value) {
-		repeatHelp:
-		while (true) {
-			if (n <= 0) {
-				return result;
-			} else {
-				var $temp$result = A2($elm$core$List$cons, value, result),
-					$temp$n = n - 1,
-					$temp$value = value;
-				result = $temp$result;
-				n = $temp$n;
-				value = $temp$value;
-				continue repeatHelp;
-			}
-		}
-	});
-var $elm$core$List$repeat = F2(
-	function (n, value) {
-		return A3($elm$core$List$repeatHelp, _List_Nil, n, value);
-	});
-var $author$project$Data$Train$turnUpwards = function (train) {
-	return _Utils_update(
-		train,
-		{
-			dir: _Utils_Tuple2(0, -1)
-		});
-};
-var $author$project$Data$Behavior$Train$turnToHQ = function (game) {
-	return A2(
-		$author$project$Data$Game$setTrainOf,
-		game,
-		$author$project$Data$Train$turnUpwards(
-			$author$project$Data$Game$getTrain(game)));
-};
-var $author$project$Config$wagonCost = 8;
-var $author$project$Data$Behavior$Train$collideWith = F2(
-	function (_v0, game) {
-		var newPos = _v0.a;
-		var entity = _v0.b;
-		if (entity.$ === 'Actor') {
-			var id = entity.a;
-			return A2(
-				$elm$core$Maybe$andThen,
-				function (_v2) {
-					var actor = _v2.b;
-					switch (actor.$) {
-						case 'Minecart':
-							var wagon = actor.a;
-							return $elm$core$Maybe$Just(
-								$author$project$Data$Effect$withNone(
-									A2(
-										$author$project$Data$Game$setWorld,
-										A3(
-											$author$project$Data$World$insertAllItems,
-											wagon.storage.items,
-											newPos,
-											A2($author$project$Data$World$removeEntity, newPos, game.world)),
-										A2(
-											$author$project$Data$Game$setTrainOf,
-											game,
-											A2(
-												$author$project$Data$Train$addAll,
-												A2($elm$core$List$repeat, $author$project$Config$wagonCost, $author$project$Data$Item$Iron),
-												$author$project$Data$Game$getTrain(game))))));
-						case 'Excavator':
-							return $elm$core$Maybe$Just(
-								$author$project$Data$Effect$withNone(
-									function (g) {
-										return _Utils_update(
-											g,
-											{
-												world: A2($author$project$Data$World$removeEntity, newPos, game.world)
-											});
-									}(
-										A2(
-											$author$project$Data$Game$setTrainOf,
-											game,
-											A2(
-												$author$project$Data$Train$addAll,
-												A2($elm$core$List$repeat, $author$project$Config$excavatorCost, $author$project$Data$Item$Iron),
-												$author$project$Data$Game$getTrain(game))))));
-						case 'Helper':
-							return $elm$core$Maybe$Nothing;
-						case 'Train':
-							return $elm$core$Maybe$Nothing;
-						case 'Bomb':
-							return $elm$core$Maybe$Just(
-								$author$project$Data$Effect$withNone(game));
-						default:
-							return $elm$core$Maybe$Nothing;
-					}
-				},
-				A2($author$project$Data$World$getActor, id, game.world));
-		} else {
-			return ($author$project$Data$Game$getTrain(game).tracks > 0) ? $elm$core$Maybe$Just(
-				$author$project$Data$Effect$genWithNone(
-					$author$project$Data$Behavior$Train$mine(game))) : $elm$core$Maybe$Just(
-				$author$project$Data$Effect$genWithNone(
-					A2(
-						$elm$random$Random$map,
-						$author$project$Data$Behavior$Train$turnToHQ,
-						$author$project$Data$Behavior$Train$mine(game))));
-		}
-	});
-var $author$project$Data$Train$removeTrack = function (train) {
-	return (train.moving && (train.tracks > 0)) ? $elm$core$Maybe$Just(
-		_Utils_update(
-			train,
-			{tracks: train.tracks - 1})) : $elm$core$Maybe$Nothing;
-};
-var $author$project$Data$Behavior$Train$mineAndPlaceTrack = function (game) {
-	var newPos = $author$project$Data$Train$forwardPos(
-		$author$project$Data$Game$getTrain(game));
-	return A2(
-		$elm$core$Maybe$map,
-		$elm$random$Random$map(
-			function (g) {
-				return _Utils_update(
-					g,
-					{
-						world: A3($author$project$Data$World$insertFloorAt, newPos, $author$project$Data$Floor$RailwayTrack, g.world)
-					});
-			}),
-		A2(
-			$elm$core$Maybe$map,
-			$author$project$Data$Behavior$Train$mine,
-			A2(
-				$elm$core$Maybe$map,
-				$author$project$Data$Game$setTrainOf(game),
-				$author$project$Data$Train$removeTrack(
-					$author$project$Data$Game$getTrain(game)))));
-};
-var $author$project$Data$Behavior$Train$tryMovingTo = F2(
-	function (_v0, game) {
-		var newPos = _v0.a;
-		var block = _v0.b;
-		var train = $author$project$Data$Game$getTrain(game);
-		var returnGame = $elm$random$Random$map(
-			function (g) {
-				return _Utils_Tuple2(g, _List_Nil);
-			});
-		if (block.a.$ === 'FloorBlock') {
-			var floor = block.a.a;
-			var maybeItem = block.b;
-			return A2(
-				$elm$core$Maybe$map,
-				$elm$random$Random$map(
-					$elm$core$Tuple$mapFirst(
-						function (g) {
-							return A2(
-								$elm$core$Maybe$withDefault,
-								g,
-								A2(
-									$elm$core$Maybe$map,
-									function (item) {
-										return A2(
-											$author$project$Data$Game$setTrainOf,
-											g,
-											A2(
-												$author$project$Data$Train$addItem,
-												item,
-												$author$project$Data$Game$getTrain(g)));
-									},
-									maybeItem));
-						})),
-				function () {
-					switch (floor.$) {
-						case 'Ground':
-							return (train.tracks > 0) ? A2(
-								$elm$core$Maybe$map,
-								returnGame,
-								$author$project$Data$Behavior$Train$mineAndPlaceTrack(game)) : $elm$core$Maybe$Just(
-								returnGame(
-									$elm$random$Random$constant(
-										$author$project$Data$Behavior$Train$turnToHQ(game))));
-						case 'RailwayTrack':
-							return (train.tracks > 0) ? A2(
-								$elm$core$Maybe$map,
-								$elm$random$Random$constant,
-								A2(
-									$elm$core$Maybe$map,
-									function (g) {
-										return _Utils_Tuple2(
-											g,
-											_List_fromArray(
-												[
-													$author$project$Data$Effect$PlaySound($author$project$Data$Sound$MovingTrain)
-												]));
-									},
-									$author$project$Data$Behavior$Train$move(game))) : ((_Utils_cmp(
-								$author$project$Data$Train$coalNeeded(train),
-								A2($author$project$AnyBag$count, $author$project$Data$Item$Coal, train.items)) < 1) ? A2(
-								$elm$core$Maybe$map,
-								$elm$random$Random$constant,
-								A2(
-									$elm$core$Maybe$map,
-									function (g) {
-										return _Utils_Tuple2(
-											g,
-											_List_fromArray(
-												[
-													$author$project$Data$Effect$PlaySound($author$project$Data$Sound$MovingTrain)
-												]));
-									},
-									$author$project$Data$Behavior$Train$move(game))) : $elm$core$Maybe$Nothing);
-						default:
-							return (train.tracks > 0) ? A2(
-								$elm$core$Maybe$map,
-								returnGame,
-								$author$project$Data$Behavior$Train$mineAndPlaceTrack(game)) : $elm$core$Maybe$Just(
-								returnGame(
-									A2(
-										$elm$random$Random$map,
-										$author$project$Data$Behavior$Train$turnToHQ,
-										$author$project$Data$Behavior$Train$mine(game))));
-					}
-				}());
-		} else {
-			var entity = block.a.a;
-			return A2(
-				$author$project$Data$Behavior$Train$collideWith,
-				_Utils_Tuple2(newPos, entity),
-				game);
-		}
-	});
-var $author$project$Data$Behavior$Train$act = function (game) {
-	var train = $author$project$Data$Game$getTrain(game);
-	var newPos = $author$project$Data$Train$forwardPos(train);
-	return _Utils_eq(train.pos, $author$project$Config$hqPos) ? $elm$random$Random$constant(
-		$author$project$Data$Behavior$Train$stockUpAtBase(game)) : ((train.moving && (!_Utils_eq(game.player.pos, newPos))) ? A2(
-		$elm$core$Maybe$withDefault,
-		$elm$random$Random$constant(
-			_Utils_Tuple2(game, _List_Nil)),
-		A2(
-			$elm$core$Maybe$andThen,
-			function (block) {
-				return A2(
-					$author$project$Data$Behavior$Train$tryMovingTo,
-					_Utils_Tuple2(newPos, block),
-					game);
-			},
-			A2($author$project$Data$World$get, newPos, game.world))) : $elm$random$Random$constant(
-		_Utils_Tuple2(game, _List_Nil)));
 };
 var $author$project$Config$excavatorRadius = 4;
 var $author$project$Data$Behavior$Excavator$getExcavator = F2(
@@ -8639,6 +8185,7 @@ var $author$project$Data$Behavior$Falling$act = F3(
 					},
 					$author$project$Data$Position$neighbors(pos))));
 	});
+var $author$project$Data$Improvement$MinecartCanCollect = {$: 'MinecartCanCollect'};
 var $author$project$Data$Behavior$Minecart$getMinecart = F2(
 	function (id, world) {
 		return A2(
@@ -8696,6 +8243,10 @@ var $elm$core$Tuple$mapBoth = F3(
 			funcA(x),
 			funcB(y));
 	});
+var $elm$core$List$singleton = function (value) {
+	return _List_fromArray(
+		[value]);
+};
 var $author$project$Data$World$remainingSpace = F2(
 	function (pos, world) {
 		return A2(
@@ -8855,9 +8406,9 @@ var $author$project$Data$Behavior$Minecart$pickup = F3(
 			},
 			A2($author$project$Data$World$get, from, world));
 	});
-var $author$project$Data$Behavior$Minecart$collect = F3(
-	function (pos, id, w) {
-		return A3(
+var $author$project$Data$Behavior$Minecart$collect = F4(
+	function (pos, id, improvements, w) {
+		return A2($elm$core$List$member, $author$project$Data$Improvement$MinecartCanCollect, improvements) ? A3(
 			$elm$core$List$foldl,
 			F2(
 				function (p, _v0) {
@@ -8875,7 +8426,7 @@ var $author$project$Data$Behavior$Minecart$collect = F3(
 							A3($author$project$Data$Behavior$Minecart$pickup, p, id, world)));
 				}),
 			_Utils_Tuple2(w, _List_Nil),
-			$author$project$Data$Position$neighbors(pos));
+			$author$project$Data$Position$neighbors(pos)) : _Utils_Tuple2(w, _List_Nil);
 	});
 var $author$project$Data$Floor$Track = {$: 'Track'};
 var $author$project$Data$Minecart$moveFrom = F2(
@@ -8943,6 +8494,36 @@ var $author$project$Data$Behavior$Minecart$collideWith = F3(
 				}
 			},
 			A2($author$project$Data$World$getActor, target, world));
+	});
+var $author$project$Data$World$moveActorTo = F3(
+	function (pos, id, world) {
+		return A2(
+			$elm$core$Maybe$withDefault,
+			world,
+			A2(
+				$elm$core$Maybe$map,
+				function (_v0) {
+					var oldPos = _v0.a;
+					return _Utils_update(
+						world,
+						{
+							actors: A3(
+								$elm$core$Dict$update,
+								id,
+								$elm$core$Maybe$map(
+									$elm$core$Tuple$mapFirst(
+										function (_v1) {
+											return pos;
+										})),
+								world.actors),
+							entities: A3(
+								$elm$core$Dict$insert,
+								pos,
+								$author$project$Data$Entity$Actor(id),
+								A2($elm$core$Dict$remove, oldPos, world.entities))
+						});
+				},
+				A2($elm$core$Dict$get, id, world.actors)));
 	});
 var $author$project$Data$Minecart$stop = function (wagon) {
 	return _Utils_update(
@@ -9082,6 +8663,7 @@ var $author$project$Data$Behavior$Minecart$neighborTracks = F2(
 			},
 			$author$project$Data$Position$neighbors(pos));
 	});
+var $elm$core$Basics$neq = _Utils_notEqual;
 var $elm$random$Random$addOne = function (value) {
 	return _Utils_Tuple2(1, value);
 };
@@ -9201,8 +8783,8 @@ var $author$project$Data$Behavior$Minecart$unload = F2(
 				},
 				A2($author$project$Data$Behavior$Minecart$getMinecart, id, world)));
 	});
-var $author$project$Data$Behavior$Minecart$act = F2(
-	function (id, world) {
+var $author$project$Data$Behavior$Minecart$act = F3(
+	function (id, improvements, world) {
 		return A2(
 			$author$project$Data$Effect$map,
 			function (g) {
@@ -9222,7 +8804,7 @@ var $author$project$Data$Behavior$Minecart$act = F2(
 						return A2(
 							$elm$core$Maybe$map,
 							$author$project$Data$Effect$map(
-								A2($author$project$Data$Behavior$Minecart$collect, pos, id)),
+								A3($author$project$Data$Behavior$Minecart$collect, pos, id, improvements)),
 							A3(
 								$author$project$Data$Behavior$Minecart$move,
 								id,
@@ -9507,7 +9089,436 @@ var $author$project$Data$Behavior$Path$act = F2(
 					},
 					$author$project$Data$Position$neighbors(pos))));
 	});
+var $author$project$Data$Train$forwardPos = function (train) {
+	var _v0 = train.pos;
+	var x = _v0.a;
+	var y = _v0.b;
+	var _v1 = train.dir;
+	var dirX = _v1.a;
+	var dirY = _v1.b;
+	return _Utils_Tuple2(x + dirX, y + dirY);
+};
+var $author$project$Data$Behavior$Train$getTrain = F2(
+	function (id, world) {
+		return A2(
+			$elm$core$Maybe$andThen,
+			function (_v0) {
+				var actor = _v0.b;
+				if (actor.$ === 'Train') {
+					var train = actor.a;
+					return $elm$core$Maybe$Just(train);
+				} else {
+					return $elm$core$Maybe$Nothing;
+				}
+			},
+			A2($author$project$Data$World$getActor, id, world));
+	});
+var $author$project$Config$hqPos = _Utils_Tuple2(0, 0);
+var $author$project$Data$Improvement$GetOneGoldEachLevel = {$: 'GetOneGoldEachLevel'};
 var $author$project$Data$Item$Gold = {$: 'Gold'};
+var $author$project$Data$Effect$LevelUp = {$: 'LevelUp'};
+var $author$project$Data$Effect$OpenModal = {$: 'OpenModal'};
+var $author$project$Data$Train$addItem = function (item) {
+	return $author$project$Data$Train$addAll(
+		_List_fromArray(
+			[item]));
+};
+var $author$project$Data$Train$addTracks = F2(
+	function (tracks, train) {
+		return _Utils_update(
+			train,
+			{tracks: train.tracks + tracks});
+	});
+var $author$project$Data$Train$move = function (train) {
+	return _Utils_update(
+		train,
+		{
+			pos: $author$project$Data$Train$forwardPos(train)
+		});
+};
+var $JohnBugner$elm_bag$Bag$remove = function (n) {
+	return $JohnBugner$elm_bag$Bag$insert(-n);
+};
+var $author$project$AnyBag$remove = F3(
+	function (n, a, bag) {
+		return _Utils_update(
+			bag,
+			{
+				content: A3(
+					$JohnBugner$elm_bag$Bag$remove,
+					n,
+					bag.encode(a),
+					bag.content)
+			});
+	});
+var $author$project$Data$Train$removeItem = F3(
+	function (n, item, train) {
+		return A2(
+			$elm$core$Maybe$map,
+			function (t) {
+				return (_Utils_eq(item, $author$project$Data$Item$Coal) && (!A2($author$project$AnyBag$count, $author$project$Data$Item$Coal, t.items))) ? _Utils_update(
+					t,
+					{moving: false}) : t;
+			},
+			(_Utils_cmp(
+				A2($author$project$AnyBag$count, item, train.items),
+				n) > -1) ? $elm$core$Maybe$Just(
+				_Utils_update(
+					train,
+					{
+						items: A3($author$project$AnyBag$remove, n, item, train.items)
+					})) : $elm$core$Maybe$Nothing);
+	});
+var $author$project$Data$Behavior$Train$setTrainOf = F3(
+	function (world, id, train) {
+		return A3(
+			$author$project$Data$World$setActor,
+			id,
+			$author$project$Data$Actor$Train(train),
+			world);
+	});
+var $author$project$Data$Behavior$Train$move = F2(
+	function (id, world) {
+		return A2(
+			$elm$core$Maybe$andThen,
+			function (_v0) {
+				var newPos = _v0.a;
+				var train = _v0.b;
+				return A2(
+					$elm$core$Maybe$map,
+					A2($author$project$Data$World$moveActorTo, newPos, id),
+					A2(
+						$elm$core$Maybe$map,
+						A2($author$project$Data$Behavior$Train$setTrainOf, world, id),
+						A2(
+							$elm$core$Maybe$map,
+							$author$project$Data$Train$move,
+							A3($author$project$Data$Train$removeItem, 1, $author$project$Data$Item$Coal, train))));
+			},
+			A2(
+				$elm$core$Maybe$map,
+				function (train) {
+					return _Utils_Tuple2(
+						$author$project$Data$Train$forwardPos(train),
+						train);
+				},
+				A2($author$project$Data$Behavior$Train$getTrain, id, world)));
+	});
+var $author$project$Data$Train$turnDownwards = function (train) {
+	return _Utils_update(
+		train,
+		{
+			dir: _Utils_Tuple2(0, 1)
+		});
+};
+var $author$project$Data$Behavior$Train$stockUpAtBase = F3(
+	function (id, improvements, world) {
+		return A2(
+			$elm$core$Maybe$withDefault,
+			_Utils_Tuple2(world, _List_Nil),
+			A2(
+				$elm$core$Maybe$map,
+				function (w) {
+					return _Utils_Tuple2(
+						w,
+						_List_fromArray(
+							[$author$project$Data$Effect$OpenModal, $author$project$Data$Effect$LevelUp]));
+				},
+				A2(
+					$elm$core$Maybe$andThen,
+					function (t) {
+						return A2(
+							$author$project$Data$Behavior$Train$move,
+							id,
+							function (train) {
+								return A3($author$project$Data$World$setActor, id, train, world);
+							}(
+								$author$project$Data$Actor$Train(
+									$author$project$Data$Train$turnDownwards(
+										(A2($elm$core$List$member, $author$project$Data$Improvement$GetOneGoldEachLevel, improvements) ? $author$project$Data$Train$addItem($author$project$Data$Item$Gold) : $elm$core$Basics$identity)(
+											A2($author$project$Data$Train$addTracks, $author$project$Config$tracksPerTrip, t))))));
+					},
+					A2($author$project$Data$Behavior$Train$getTrain, id, world))));
+	});
+var $author$project$Data$Sound$MovingTrain = {$: 'MovingTrain'};
+var $author$project$Data$Item$Iron = {$: 'Iron'};
+var $author$project$Config$excavatorCost = 1;
+var $author$project$Data$World$insertAllItems = F2(
+	function (items, pos) {
+		return A2($author$project$Data$World$insertAllItemsAt, pos, items);
+	});
+var $author$project$Data$Behavior$Train$mine = F2(
+	function (id, world) {
+		return A2(
+			$elm$core$Maybe$map,
+			function (pos) {
+				return A2($author$project$Generation$mine, pos, world);
+			},
+			A2(
+				$elm$core$Maybe$map,
+				$author$project$Data$Train$forwardPos,
+				A2($author$project$Data$Behavior$Train$getTrain, id, world)));
+	});
+var $elm$core$List$repeatHelp = F3(
+	function (result, n, value) {
+		repeatHelp:
+		while (true) {
+			if (n <= 0) {
+				return result;
+			} else {
+				var $temp$result = A2($elm$core$List$cons, value, result),
+					$temp$n = n - 1,
+					$temp$value = value;
+				result = $temp$result;
+				n = $temp$n;
+				value = $temp$value;
+				continue repeatHelp;
+			}
+		}
+	});
+var $elm$core$List$repeat = F2(
+	function (n, value) {
+		return A3($elm$core$List$repeatHelp, _List_Nil, n, value);
+	});
+var $author$project$Data$Train$turnUpwards = function (train) {
+	return _Utils_update(
+		train,
+		{
+			dir: _Utils_Tuple2(0, -1)
+		});
+};
+var $author$project$Data$Behavior$Train$turnToHQ = F2(
+	function (id, world) {
+		return A2(
+			$elm$core$Maybe$map,
+			A2($author$project$Data$Behavior$Train$setTrainOf, world, id),
+			A2(
+				$elm$core$Maybe$map,
+				$author$project$Data$Train$turnUpwards,
+				A2($author$project$Data$Behavior$Train$getTrain, id, world)));
+	});
+var $author$project$Config$wagonCost = 8;
+var $author$project$Data$Behavior$Train$collideWith = F3(
+	function (_v0, id, world) {
+		var newPos = _v0.a;
+		var entity = _v0.b;
+		return A2(
+			$elm$core$Maybe$andThen,
+			function (train) {
+				if (entity.$ === 'Actor') {
+					var targetId = entity.a;
+					return A2(
+						$elm$core$Maybe$andThen,
+						function (_v2) {
+							var actor = _v2.b;
+							switch (actor.$) {
+								case 'Minecart':
+									var wagon = actor.a;
+									return $elm$core$Maybe$Just(
+										$author$project$Data$Effect$withNone(
+											A3(
+												$author$project$Data$World$insertAllItems,
+												wagon.storage.items,
+												newPos,
+												A2(
+													$author$project$Data$World$removeEntity,
+													newPos,
+													A3(
+														$author$project$Data$Behavior$Train$setTrainOf,
+														world,
+														id,
+														A2(
+															$author$project$Data$Train$addAll,
+															A2($elm$core$List$repeat, $author$project$Config$wagonCost, $author$project$Data$Item$Iron),
+															train))))));
+								case 'Excavator':
+									return $elm$core$Maybe$Just(
+										$author$project$Data$Effect$withNone(
+											A2(
+												$author$project$Data$World$removeEntity,
+												newPos,
+												A3(
+													$author$project$Data$Behavior$Train$setTrainOf,
+													world,
+													id,
+													A2(
+														$author$project$Data$Train$addAll,
+														A2($elm$core$List$repeat, $author$project$Config$excavatorCost, $author$project$Data$Item$Iron),
+														train)))));
+								case 'Helper':
+									return $elm$core$Maybe$Nothing;
+								case 'Train':
+									return $elm$core$Maybe$Nothing;
+								case 'Bomb':
+									return $elm$core$Maybe$Just(
+										$author$project$Data$Effect$withNone(world));
+								default:
+									return $elm$core$Maybe$Nothing;
+							}
+						},
+						A2($author$project$Data$World$getActor, targetId, world));
+				} else {
+					return A2(
+						$elm$core$Maybe$map,
+						$author$project$Data$Effect$genWithNone,
+						A2(
+							$elm$core$Maybe$andThen,
+							$author$project$Data$Behavior$Train$mine(id),
+							((train.tracks > 0) ? $elm$core$Maybe$Just : $author$project$Data$Behavior$Train$turnToHQ(id))(world)));
+				}
+			},
+			A2($author$project$Data$Behavior$Train$getTrain, id, world));
+	});
+var $author$project$Data$Train$removeTrack = function (train) {
+	return (train.moving && (train.tracks > 0)) ? $elm$core$Maybe$Just(
+		_Utils_update(
+			train,
+			{tracks: train.tracks - 1})) : $elm$core$Maybe$Nothing;
+};
+var $author$project$Data$Behavior$Train$mineAndPlaceTrack = F2(
+	function (id, world) {
+		return A2(
+			$elm$core$Maybe$andThen,
+			function (train) {
+				var newPos = $author$project$Data$Train$forwardPos(train);
+				return A2(
+					$elm$core$Maybe$map,
+					$elm$random$Random$map(
+						A2($author$project$Data$World$insertFloorAt, newPos, $author$project$Data$Floor$RailwayTrack)),
+					A2(
+						$elm$core$Maybe$andThen,
+						$author$project$Data$Behavior$Train$mine(id),
+						A2(
+							$elm$core$Maybe$map,
+							function (t) {
+								return A3($author$project$Data$World$setActor, id, t, world);
+							},
+							A2(
+								$elm$core$Maybe$map,
+								$author$project$Data$Actor$Train,
+								$author$project$Data$Train$removeTrack(train)))));
+			},
+			A2($author$project$Data$Behavior$Train$getTrain, id, world));
+	});
+var $author$project$Data$Behavior$Train$tryMovingTo = F3(
+	function (_v0, id, world) {
+		var newPos = _v0.a;
+		var block = _v0.b;
+		return A2(
+			$elm$core$Maybe$andThen,
+			function (train) {
+				if (block.a.$ === 'FloorBlock') {
+					var floor = block.a.a;
+					var maybeItem = block.b;
+					return A2(
+						$elm$core$Maybe$map,
+						$elm$random$Random$map(
+							$elm$core$Tuple$mapFirst(
+								function (w) {
+									return A2(
+										$elm$core$Maybe$withDefault,
+										w,
+										A2(
+											$elm$core$Maybe$andThen,
+											function (item) {
+												return A2(
+													$elm$core$Maybe$map,
+													A2($author$project$Data$Behavior$Train$setTrainOf, w, id),
+													A2(
+														$elm$core$Maybe$map,
+														$author$project$Data$Train$addItem(item),
+														A2($author$project$Data$Behavior$Train$getTrain, id, w)));
+											},
+											maybeItem));
+								})),
+						function () {
+							switch (floor.$) {
+								case 'Ground':
+									return (train.tracks > 0) ? A2(
+										$elm$core$Maybe$map,
+										$author$project$Data$Effect$genWithNone,
+										A2($author$project$Data$Behavior$Train$mineAndPlaceTrack, id, world)) : A2(
+										$elm$core$Maybe$map,
+										$author$project$Data$Effect$withNone,
+										A2($author$project$Data$Behavior$Train$turnToHQ, id, world));
+								case 'RailwayTrack':
+									return (train.tracks > 0) ? A2(
+										$elm$core$Maybe$map,
+										$elm$random$Random$constant,
+										A2(
+											$elm$core$Maybe$map,
+											function (g) {
+												return _Utils_Tuple2(
+													g,
+													_List_fromArray(
+														[
+															$author$project$Data$Effect$PlaySound($author$project$Data$Sound$MovingTrain)
+														]));
+											},
+											A2($author$project$Data$Behavior$Train$move, id, world))) : ((_Utils_cmp(
+										$author$project$Data$Train$coalNeeded(train),
+										A2($author$project$AnyBag$count, $author$project$Data$Item$Coal, train.items)) < 1) ? A2(
+										$elm$core$Maybe$map,
+										$elm$random$Random$constant,
+										A2(
+											$elm$core$Maybe$map,
+											function (g) {
+												return _Utils_Tuple2(
+													g,
+													_List_fromArray(
+														[
+															$author$project$Data$Effect$PlaySound($author$project$Data$Sound$MovingTrain)
+														]));
+											},
+											A2($author$project$Data$Behavior$Train$move, id, world))) : $elm$core$Maybe$Nothing);
+								default:
+									return (train.tracks > 0) ? A2(
+										$elm$core$Maybe$map,
+										$author$project$Data$Effect$genWithNone,
+										A2($author$project$Data$Behavior$Train$mineAndPlaceTrack, id, world)) : A2(
+										$elm$core$Maybe$map,
+										$author$project$Data$Effect$genWithNone,
+										A2(
+											$elm$core$Maybe$andThen,
+											$author$project$Data$Behavior$Train$mine(id),
+											A2($author$project$Data$Behavior$Train$turnToHQ, id, world)));
+							}
+						}());
+				} else {
+					var entity = block.a.a;
+					return A3(
+						$author$project$Data$Behavior$Train$collideWith,
+						_Utils_Tuple2(newPos, entity),
+						id,
+						world);
+				}
+			},
+			A2($author$project$Data$Behavior$Train$getTrain, id, world));
+	});
+var $author$project$Data$Behavior$Train$act = F3(
+	function (improvements, id, world) {
+		return A2(
+			$elm$core$Maybe$withDefault,
+			$author$project$Data$Effect$withNone(world),
+			A2(
+				$elm$core$Maybe$andThen,
+				function (train) {
+					var newPos = $author$project$Data$Train$forwardPos(train);
+					return _Utils_eq(train.pos, $author$project$Config$hqPos) ? $elm$core$Maybe$Just(
+						$elm$random$Random$constant(
+							A3($author$project$Data$Behavior$Train$stockUpAtBase, id, improvements, world))) : (train.moving ? A2(
+						$elm$core$Maybe$andThen,
+						function (block) {
+							return A3(
+								$author$project$Data$Behavior$Train$tryMovingTo,
+								_Utils_Tuple2(newPos, block),
+								id,
+								world);
+						},
+						A2($author$project$Data$World$get, newPos, world)) : $elm$core$Maybe$Nothing);
+				},
+				A2($author$project$Data$Behavior$Train$getTrain, id, world)));
+	});
 var $author$project$Data$Actor$Mine = {$: 'Mine'};
 var $author$project$Generation$caveGenerator = F3(
 	function (args, pos, world) {
@@ -9833,15 +9844,15 @@ var $author$project$Data$Behavior$Bomb$timePassed = F2(
 					$elm$core$Tuple$mapSecond($author$project$Data$Bomb$tick),
 					A2($author$project$Data$Behavior$Bomb$getBomb, id, world))));
 	});
-var $author$project$Data$Behavior$actorsAct = F2(
-	function (_v0, world) {
+var $author$project$Data$Behavior$actorsAct = F3(
+	function (_v0, improvements, world) {
 		var id = _v0.a;
 		var _v1 = _v0.b;
 		var pos = _v1.a;
 		var actor = _v1.b;
 		switch (actor.$) {
 			case 'Minecart':
-				return A2($author$project$Data$Behavior$Minecart$act, id, world);
+				return A3($author$project$Data$Behavior$Minecart$act, id, improvements, world);
 			case 'Excavator':
 				var excavator = actor.a;
 				return A3(
@@ -9878,7 +9889,7 @@ var $author$project$Data$Behavior$actorsAct = F2(
 							A2($author$project$Data$Behavior$Path$act, pos, world));
 				}
 			case 'Train':
-				return $author$project$Data$Effect$withNone(world);
+				return A3($author$project$Data$Behavior$Train$act, improvements, id, world);
 			default:
 				return $author$project$Data$Effect$genWithNone(
 					A2($author$project$Data$Behavior$MovingWater$act, id, world));
@@ -9899,74 +9910,25 @@ var $author$project$Data$Effect$andThen = function (fun) {
 var $author$project$Data$World$getActors = function (world) {
 	return $elm$core$Dict$toList(world.actors);
 };
-var $author$project$Data$Effect$ShowPromt = function (a) {
-	return {$: 'ShowPromt', a: a};
-};
-var $elm$core$Dict$member = F2(
-	function (key, dict) {
-		var _v0 = A2($elm$core$Dict$get, key, dict);
-		if (_v0.$ === 'Just') {
-			return true;
-		} else {
-			return false;
-		}
-	});
-var $JohnBugner$elm_bag$Bag$member = F2(
-	function (v, b) {
-		return A2(
-			$elm$core$Dict$member,
-			v,
-			$JohnBugner$elm_bag$Bag$dict(b));
-	});
-var $author$project$AnyBag$member = F2(
-	function (a, bag) {
-		return A2(
-			$JohnBugner$elm_bag$Bag$member,
-			bag.encode(a),
-			bag.content);
-	});
-var $elm$core$Basics$not = _Basics_not;
-var $author$project$Data$Behavior$promt = function (game) {
-	var train = $author$project$Data$Game$getTrain(game);
-	return (_Utils_cmp(
-		A2($author$project$AnyBag$count, $author$project$Data$Item$Iron, train.items),
-		$author$project$Config$wagonCost) > -1) ? $elm$core$List$singleton(
-		$author$project$Data$Effect$ShowPromt('You can build a wagon (W) when standing on an empty ground')) : ((!A2($author$project$AnyBag$member, $author$project$Data$Item$Coal, train.items)) ? $elm$core$List$singleton(
-		$author$project$Data$Effect$ShowPromt('Put coal (C) into the Train (T)')) : _List_Nil);
-};
 var $author$project$Data$Behavior$passTime = function (game) {
 	return A2(
-		$elm$random$Random$map,
-		function (_v0) {
-			var g = _v0.a;
-			var l = _v0.b;
-			return _Utils_Tuple2(
-				g,
-				_Utils_ap(
-					$author$project$Data$Behavior$promt(g),
-					l));
+		$author$project$Data$Effect$andThen,
+		function (g) {
+			return A2(
+				$elm$random$Random$map,
+				$elm$core$Tuple$mapFirst(
+					$author$project$Data$Game$setWorldOf(g)),
+				A3(
+					$elm$core$List$foldl,
+					function (a) {
+						return $author$project$Data$Effect$andThen(
+							A2($author$project$Data$Behavior$actorsAct, a, game.improvements));
+					},
+					$elm$random$Random$constant(
+						_Utils_Tuple2(g.world, _List_Nil)),
+					$author$project$Data$World$getActors(g.world)));
 		},
-		A2(
-			$author$project$Data$Effect$andThen,
-			function (g) {
-				return A2(
-					$elm$random$Random$map,
-					$elm$core$Tuple$mapFirst(
-						$author$project$Data$Game$setWorldOf(g)),
-					A3(
-						$elm$core$List$foldl,
-						function (a) {
-							return $author$project$Data$Effect$andThen(
-								$author$project$Data$Behavior$actorsAct(a));
-						},
-						$elm$random$Random$constant(
-							_Utils_Tuple2(g.world, _List_Nil)),
-						$author$project$Data$World$getActors(g.world)));
-			},
-			A2(
-				$author$project$Data$Effect$andThen,
-				$author$project$Data$Behavior$Train$act,
-				$author$project$Data$Behavior$Player$act(game))));
+		$author$project$Data$Behavior$Player$act(game));
 };
 var $author$project$Data$Player$startMovingTo = F2(
 	function (pos, player) {
@@ -10024,6 +9986,7 @@ var $author$project$Data$Animation$tutorial = function () {
 	var player = _Utils_Tuple2(2, 1);
 	var height = 3;
 	var initGame = {
+		improvements: _List_Nil,
 		player: $author$project$Data$Player$fromPos(player),
 		selected: player,
 		trainId: 0,
@@ -10098,7 +10061,6 @@ var $author$project$Main$restart = function (seed) {
 			level: 1,
 			modal: $elm$core$Maybe$Just(
 				$author$project$Data$Modal$fromAnimation($author$project$Data$Animation$tutorial)),
-			promt: $elm$core$Maybe$Nothing,
 			seed: seed,
 			sidebarTab: $elm$core$Maybe$Just($author$project$View$Tab$DetailTab),
 			slowedDown: false,
@@ -10300,11 +10262,46 @@ var $author$project$Main$subscriptions = function (model) {
 		});
 };
 var $author$project$Data$Sound$Error = {$: 'Error'};
+var $author$project$Data$Game$addImprovement = F2(
+	function (improvement, game) {
+		return _Utils_update(
+			game,
+			{
+				improvements: A2($elm$core$List$cons, improvement, game.improvements)
+			});
+	});
+var $author$project$Data$Game$addImprovementTo = F2(
+	function (game, improvement) {
+		return A2($author$project$Data$Game$addImprovement, improvement, game);
+	});
 var $author$project$Data$Sound$Build = {$: 'Build'};
 var $author$project$Data$Sound$Destruct = {$: 'Destruct'};
 var $author$project$Data$Sound$asList = _List_fromArray(
 	[$author$project$Data$Sound$Build, $author$project$Data$Sound$PickUp, $author$project$Data$Sound$Unload, $author$project$Data$Sound$MovingTrain, $author$project$Data$Sound$Destruct, $author$project$Data$Sound$Error]);
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
+var $author$project$Data$Game$getTrain = function (game) {
+	var _v0 = A2($author$project$Data$World$getActor, game.trainId, game.world);
+	if ((_v0.$ === 'Just') && (_v0.a.b.$ === 'Train')) {
+		var _v1 = _v0.a;
+		var train = _v1.b.a;
+		return train;
+	} else {
+		return $author$project$Data$Train$fromPos(
+			_Utils_Tuple2(0, 0));
+	}
+};
+var $author$project$Data$Game$setTrain = F2(
+	function (train, game) {
+		return _Utils_update(
+			game,
+			{
+				world: A3(
+					$author$project$Data$World$setActor,
+					game.trainId,
+					$author$project$Data$Actor$Train(train),
+					game.world)
+			});
+	});
 var $author$project$Data$Game$buildActor = F4(
 	function (pos, _v0, actor, game) {
 		var item = _v0.a;
@@ -10500,6 +10497,7 @@ var $author$project$Main$loadSound = _Platform_outgoingPort(
 				]));
 	});
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
+var $elm$core$Basics$not = _Basics_not;
 var $elm$json$Json$Encode$float = _Json_wrap;
 var $author$project$Main$setVolume = _Platform_outgoingPort('setVolume', $elm$json$Json$Encode$float);
 var $author$project$Data$Modal$timePassed = function (modal) {
@@ -10632,6 +10630,7 @@ var $author$project$Data$Animation$animate = function () {
 	var player = _Utils_Tuple2(2, 1);
 	var height = 3;
 	var initGame = {
+		improvements: _List_Nil,
 		player: $author$project$Data$Player$fromPos(player),
 		selected: player,
 		trainId: 0,
@@ -10732,29 +10731,19 @@ var $author$project$Main$updateGame = F2(
 													$author$project$Data$Modal$fromAnimation($author$project$Data$Animation$animate))
 											});
 									});
-							case 'LevelUp':
+							default:
 								return $elm$core$Tuple$mapFirst(
 									function (m) {
 										return _Utils_update(
 											m,
 											{level: m.level + 1, tickInterval: m.tickInterval * 0.9});
 									});
-							default:
-								var string = effect.a;
-								return $elm$core$Tuple$mapFirst(
-									function (m) {
-										return _Utils_update(
-											m,
-											{
-												promt: $elm$core$Maybe$Just(string)
-											});
-									});
 						}
 					},
 					_Utils_Tuple2(
 						_Utils_update(
 							model,
-							{game: game, modal: $elm$core$Maybe$Nothing, promt: $elm$core$Maybe$Nothing, seed: seed}),
+							{game: game, modal: $elm$core$Maybe$Nothing, seed: seed}),
 						_List_Nil),
 					list));
 		}(
@@ -10850,31 +10839,18 @@ var $author$project$Main$update = F2(
 						{building: $elm$core$Maybe$Nothing}),
 					$elm$core$Platform$Cmd$none);
 			case 'CloseModal':
-				var maybeLoot = msg.a;
+				var maybeImprovement = msg.a;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{
 							game: A2(
-								$author$project$Data$Game$setTrainOf,
+								$elm$core$Maybe$withDefault,
 								model.game,
-								function (train) {
-									return function (list) {
-										return A2($author$project$Data$Train$addAll, list, train);
-									}(
-										A2(
-											$elm$core$Maybe$withDefault,
-											_List_Nil,
-											A2(
-												$elm$core$Maybe$map,
-												function (_v6) {
-													var amount = _v6.a;
-													var item = _v6.b;
-													return A2($elm$core$List$repeat, amount, item);
-												},
-												maybeLoot)));
-								}(
-									$author$project$Data$Game$getTrain(model.game))),
+								A2(
+									$elm$core$Maybe$map,
+									$author$project$Data$Game$addImprovementTo(model.game),
+									maybeImprovement)),
 							modal: $elm$core$Maybe$Nothing
 						}),
 					$elm$core$Platform$Cmd$batch(
@@ -11515,29 +11491,6 @@ var $author$project$View$Screen$fromGame = F2(
 					0,
 					$author$project$Config$height(args.zoom) - 1)));
 	});
-var $Orasund$elm_layout$Layout$none = $elm$html$Html$text('');
-var $author$project$View$Promt$fromString = function (maybe) {
-	return A2(
-		$elm$core$Maybe$withDefault,
-		$Orasund$elm_layout$Layout$none,
-		A2(
-			$elm$core$Maybe$map,
-			function (s) {
-				return A2(
-					$Orasund$elm_layout$Layout$el,
-					_List_fromArray(
-						[
-							$Orasund$elm_layout$Layout$fill,
-							A2($elm$html$Html$Attributes$style, 'background-color', $author$project$View$Color$yellow),
-							A2($elm$html$Html$Attributes$style, 'height', '32px'),
-							A2($elm$html$Html$Attributes$style, 'padding', '0 8px'),
-							A2($elm$html$Html$Attributes$style, 'border-radius', '8px'),
-							$Orasund$elm_layout$Layout$alignAtCenter
-						]),
-					$elm$html$Html$text(s));
-			},
-			maybe));
-};
 var $elm$html$Html$Attributes$href = function (url) {
 	return A2(
 		$elm$html$Html$Attributes$stringProperty,
@@ -11549,6 +11502,7 @@ var $elm$virtual_dom$VirtualDom$node = function (tag) {
 		_VirtualDom_noScript(tag));
 };
 var $elm$html$Html$node = $elm$virtual_dom$VirtualDom$node;
+var $Orasund$elm_layout$Layout$none = $elm$html$Html$text('');
 var $elm$html$Html$Attributes$rel = _VirtualDom_attribute('rel');
 var $author$project$Config$bombCost = 2;
 var $author$project$View$Tab$buildActorButton = F2(
@@ -12101,6 +12055,8 @@ var $author$project$View$Animation$animate = function (animation) {
 				{height: animation.height, width: animation.width}),
 			animation.frames));
 };
+var $author$project$Data$Improvement$asList = _List_fromArray(
+	[$author$project$Data$Improvement$GetOneGoldEachLevel, $author$project$Data$Improvement$MinecartCanCollect]);
 var $author$project$View$Title$coal = '\n       CCCCCCC  OOOOOOOOOO  AA  LLLL\n      C#####C  O########O  A##A  L##L\n     C##CCCC  O##OOOO##O  A####A  L##L\n    C##C     O##O  O##O  A##AA##A  L##L\n   C##C     O##O  O##O  A##A  A##A  L##L\n  C##CCCC  O##OOOO##O  A##AAAAAA##A  L##LLLL\n C#####C  O########O  A##A      A##A  L#####L\nCCCCCCC  OOOOOOOOOO  AAAA        AAAA  LLLLLLLL\n    ';
 var $author$project$View$Title$crawl = '\n       CCCCCCC  RRRRRRRRRR  AA  WWWW            WWWW  LLLL\n      C.....C  R........R  A..A  W..W          W..W  L..L\n     C..CCCC  R..RRRR..R  A....A  W..W        W..W  L..L\n    C..C     R..R  R..R  A..AA..A  W..W  WW  W..W  L..L\n   C..C     R..RRRR..R  A..A  A..A  W..WW..WW..W  L..L\n  C..CCCC  R......RRR  A..AAAAAA..A  W........W  L..LLLL\n C.....C  R..RRR..R   A..A      A..A  W..WW..W  L......L\nCCCCCCC  RRRR  RRRR  AAAA        AAAA  WW  WW  LLLLLLLLL\n    ';
 var $elm$html$Html$h2 = _VirtualDom_node('h2');
@@ -12117,6 +12073,13 @@ var $Orasund$elm_layout$Layout$heading2 = F2(
 	});
 var $author$project$Config$maxLevel = 9;
 var $elm$html$Html$pre = _VirtualDom_node('pre');
+var $author$project$Data$Improvement$toString = function (improvement) {
+	if (improvement.$ === 'GetOneGoldEachLevel') {
+		return 'Get one gold each level';
+	} else {
+		return 'Minecart can collect items';
+	}
+};
 var $author$project$View$Modal$toHtml = F4(
 	function (closeModal, game, modal, level) {
 		return A2(
@@ -12208,34 +12171,26 @@ var $author$project$View$Modal$toHtml = F4(
 						$Orasund$elm_layout$Layout$centered,
 						A2($author$project$View$Animation$animate, modal.animation, modal.animationFrame)),
 						A2(
-						$Orasund$elm_layout$Layout$el,
+						$Orasund$elm_layout$Layout$heading2,
 						_List_Nil,
-						$elm$html$Html$text(
-							'Can store up to ' + ($elm$core$String$fromInt($author$project$Config$wagonMaxItems) + ' items. You can also push it along.'))),
-						A2(
-						$Orasund$elm_layout$Layout$el,
-						_List_Nil,
-						$elm$html$Html$text('Choose between 2 Gold or 20 Iron')),
+						$elm$html$Html$text('Choose an improvement')),
 						A2(
 						$Orasund$elm_layout$Layout$row,
-						_List_Nil,
 						_List_fromArray(
 							[
-								A2(
-								$author$project$View$Button$toHtml,
-								$elm$core$Maybe$Just(
-									closeModal(
-										$elm$core$Maybe$Just(
-											_Utils_Tuple2(2, $author$project$Data$Item$Gold)))),
-								'Get 2 Gold'),
-								A2(
-								$author$project$View$Button$toHtml,
-								$elm$core$Maybe$Just(
-									closeModal(
-										$elm$core$Maybe$Just(
-											_Utils_Tuple2(20, $author$project$Data$Item$Iron)))),
-								'Get 20 Iron')
-							]))
+								$Orasund$elm_layout$Layout$spacing(8)
+							]),
+						A2(
+							$elm$core$List$map,
+							function (improvement) {
+								return A2(
+									$author$project$View$Button$toHtml,
+									$elm$core$Maybe$Just(
+										closeModal(
+											$elm$core$Maybe$Just(improvement))),
+									$author$project$Data$Improvement$toString(improvement));
+							},
+							$author$project$Data$Improvement$asList))
 					]) : _List_fromArray(
 					[
 						A2(
@@ -12466,15 +12421,7 @@ var $author$project$Main$view = function (model) {
 														$elm$html$Html$text(
 															'Needs ' + ($elm$core$String$fromInt(
 																$author$project$Data$Train$coalNeeded(train) - A2($author$project$AnyBag$count, $author$project$Data$Item$Coal, train.items)) + ' for the next Level')))
-													]))),
-											_Utils_Tuple2(
-											_List_fromArray(
-												[
-													A2($elm$html$Html$Attributes$style, 'left', '20%'),
-													A2($elm$html$Html$Attributes$style, 'bottom', '8px'),
-													A2($elm$html$Html$Attributes$style, 'width', '60%')
-												]),
-											$author$project$View$Promt$fromString(model.promt))
+													])))
 										]),
 									A2(
 										$author$project$View$Screen$fromGame,

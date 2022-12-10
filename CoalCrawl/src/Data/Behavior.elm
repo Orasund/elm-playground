@@ -1,7 +1,5 @@
 module Data.Behavior exposing (..)
 
-import AnyBag
-import Config
 import Data.Actor exposing (Actor)
 import Data.Behavior.Bomb
 import Data.Behavior.Excavator
@@ -13,7 +11,7 @@ import Data.Behavior.Player
 import Data.Behavior.Train
 import Data.Effect exposing (Effect)
 import Data.Game exposing (Game)
-import Data.Item
+import Data.Improvement exposing (Improvement)
 import Data.World exposing (World)
 import Generation.Cave
 import Generation.Mine
@@ -24,27 +22,25 @@ passTime : Game -> Generator ( Game, List Effect )
 passTime game =
     game
         |> Data.Behavior.Player.act
-        |> Data.Effect.andThen Data.Behavior.Train.act
         |> Data.Effect.andThen
             (\g ->
                 g.world
                     |> Data.World.getActors
-                    |> List.foldl (\a -> Data.Effect.andThen (actorsAct a))
+                    |> List.foldl (\a -> Data.Effect.andThen (actorsAct a game.improvements))
                         (Random.constant ( g.world, [] ))
                     |> Random.map
                         (Tuple.mapFirst
                             (Data.Game.setWorldOf g)
                         )
             )
-        |> Random.map (\( g, l ) -> ( g, promt g ++ l ))
 
 
-actorsAct : ( Int, ( ( Int, Int ), Actor ) ) -> World -> Generator ( World, List Effect )
-actorsAct ( id, ( pos, actor ) ) world =
+actorsAct : ( Int, ( ( Int, Int ), Actor ) ) -> List Improvement -> World -> Generator ( World, List Effect )
+actorsAct ( id, ( pos, actor ) ) improvements world =
     case actor of
         Data.Actor.Minecart _ ->
             world
-                |> Data.Behavior.Minecart.act id
+                |> Data.Behavior.Minecart.act id improvements
 
         Data.Actor.Excavator excavator ->
             world
@@ -82,29 +78,10 @@ actorsAct ( id, ( pos, actor ) ) world =
                         |> Data.Effect.genWithNone
 
         Data.Actor.Train _ ->
-            Data.Effect.withNone world
+            world
+                |> Data.Behavior.Train.act improvements id
 
         Data.Actor.MovingWater _ ->
             world
                 |> Data.Behavior.MovingWater.act id
                 |> Data.Effect.genWithNone
-
-
-promt : Game -> List Effect
-promt game =
-    let
-        train =
-            game |> Data.Game.getTrain
-    in
-    if AnyBag.count Data.Item.Iron train.items >= Config.wagonCost then
-        "You can build a wagon (W) when standing on an empty ground"
-            |> Data.Effect.ShowPromt
-            |> List.singleton
-
-    else if not (AnyBag.member Data.Item.Coal train.items) then
-        "Put coal (C) into the Train (T)"
-            |> Data.Effect.ShowPromt
-            |> List.singleton
-
-    else
-        []

@@ -7,7 +7,6 @@ import Random exposing (Generator)
 type Effect
     = PlaySound Sound
     | OpenModal
-    | ShowPromt String
     | LevelUp
 
 

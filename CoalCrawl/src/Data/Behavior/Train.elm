@@ -7,257 +7,273 @@ import Data.Block exposing (Block)
 import Data.Effect exposing (Effect)
 import Data.Entity exposing (Entity)
 import Data.Floor
-import Data.Game exposing (Game, getTrain)
+import Data.Improvement exposing (Improvement)
 import Data.Item exposing (Item)
 import Data.Sound
-import Data.Train
-import Data.World
+import Data.Train exposing (Train)
+import Data.World exposing (World)
 import Generation
 import Random exposing (Generator)
 
 
-act : Game -> Generator ( Game, List Effect )
-act game =
-    let
-        train =
-            game |> Data.Game.getTrain
+act : List Improvement -> Int -> World -> Generator ( World, List Effect )
+act improvements id world =
+    world
+        |> getTrain id
+        |> Maybe.andThen
+            (\train ->
+                let
+                    newPos =
+                        train
+                            |> Data.Train.forwardPos
+                in
+                if train.pos == Config.hqPos then
+                    world
+                        |> stockUpAtBase id improvements
+                        |> Random.constant
+                        |> Just
 
-        newPos =
-            train
-                |> Data.Train.forwardPos
-    in
-    if train.pos == Config.hqPos then
-        stockUpAtBase game |> Random.constant
+                else if train.moving then
+                    world
+                        |> Data.World.get newPos
+                        |> Maybe.andThen (\block -> tryMovingTo ( newPos, block ) id world)
 
-    else if train.moving && (game.player.pos /= newPos) then
-        Data.World.get newPos game.world
-            |> Maybe.andThen (\block -> tryMovingTo ( newPos, block ) game)
-            |> Maybe.withDefault (Random.constant ( game, [] ))
-
-    else
-        Random.constant ( game, [] )
-
-
-tryMovingTo : ( ( Int, Int ), ( Block, Maybe Item ) ) -> Game -> Maybe (Generator ( Game, List Effect ))
-tryMovingTo ( newPos, block ) game =
-    let
-        returnGame =
-            Random.map (\g -> ( g, [] ))
-
-        train =
-            game |> Data.Game.getTrain
-    in
-    case block of
-        ( Data.Block.FloorBlock floor, maybeItem ) ->
-            (case floor of
-                Data.Floor.Ground ->
-                    if train.tracks > 0 then
-                        game
-                            |> mineAndPlaceTrack
-                            |> Maybe.map returnGame
-
-                    else
-                        turnToHQ game
-                            |> Random.constant
-                            |> returnGame
-                            |> Just
-
-                Data.Floor.RailwayTrack ->
-                    if train.tracks > 0 then
-                        move game
-                            |> Maybe.map (\g -> ( g, [ Data.Effect.PlaySound Data.Sound.MovingTrain ] ))
-                            |> Maybe.map Random.constant
-
-                    else if
-                        Data.Train.coalNeeded train
-                            <= AnyBag.count Data.Item.Coal train.items
-                    then
-                        move game
-                            |> Maybe.map (\g -> ( g, [ Data.Effect.PlaySound Data.Sound.MovingTrain ] ))
-                            |> Maybe.map Random.constant
-
-                    else
-                        Nothing
-
-                _ ->
-                    if train.tracks > 0 then
-                        game
-                            |> mineAndPlaceTrack
-                            |> Maybe.map returnGame
-
-                    else
-                        game
-                            |> mine
-                            |> Random.map turnToHQ
-                            |> returnGame
-                            |> Just
+                else
+                    Nothing
             )
-                |> Maybe.map
-                    (Random.map
-                        (Tuple.mapFirst
-                            (\g ->
-                                maybeItem
-                                    |> Maybe.map
-                                        (\item ->
-                                            g
-                                                |> Data.Game.getTrain
-                                                |> Data.Train.addItem item
-                                                |> Data.Game.setTrainOf g
-                                        )
-                                    |> Maybe.withDefault g
-                            )
+        |> Maybe.withDefault (Data.Effect.withNone world)
+
+
+tryMovingTo : ( ( Int, Int ), ( Block, Maybe Item ) ) -> Int -> World -> Maybe (Generator ( World, List Effect ))
+tryMovingTo ( newPos, block ) id world =
+    world
+        |> getTrain id
+        |> Maybe.andThen
+            (\train ->
+                case block of
+                    ( Data.Block.FloorBlock floor, maybeItem ) ->
+                        (case floor of
+                            Data.Floor.Ground ->
+                                if train.tracks > 0 then
+                                    world
+                                        |> mineAndPlaceTrack id
+                                        |> Maybe.map Data.Effect.genWithNone
+
+                                else
+                                    world
+                                        |> turnToHQ id
+                                        |> Maybe.map Data.Effect.withNone
+
+                            Data.Floor.RailwayTrack ->
+                                if train.tracks > 0 then
+                                    world
+                                        |> move id
+                                        |> Maybe.map (\g -> ( g, [ Data.Effect.PlaySound Data.Sound.MovingTrain ] ))
+                                        |> Maybe.map Random.constant
+
+                                else if
+                                    Data.Train.coalNeeded train
+                                        <= AnyBag.count Data.Item.Coal train.items
+                                then
+                                    world
+                                        |> move id
+                                        |> Maybe.map (\g -> ( g, [ Data.Effect.PlaySound Data.Sound.MovingTrain ] ))
+                                        |> Maybe.map Random.constant
+
+                                else
+                                    Nothing
+
+                            _ ->
+                                if train.tracks > 0 then
+                                    world
+                                        |> mineAndPlaceTrack id
+                                        |> Maybe.map Data.Effect.genWithNone
+
+                                else
+                                    world
+                                        |> turnToHQ id
+                                        |> Maybe.andThen (mine id)
+                                        |> Maybe.map Data.Effect.genWithNone
                         )
-                    )
-
-        ( Data.Block.EntityBlock entity, _ ) ->
-            collideWith ( newPos, entity ) game
-
-
-collideWith : ( ( Int, Int ), Entity ) -> Game -> Maybe (Generator ( Game, List Effect ))
-collideWith ( newPos, entity ) game =
-    case entity of
-        Data.Entity.Actor id ->
-            game.world
-                |> Data.World.getActor id
-                |> Maybe.andThen
-                    (\( _, actor ) ->
-                        case actor of
-                            Data.Actor.Minecart wagon ->
-                                game
-                                    |> Data.Game.getTrain
-                                    |> Data.Train.addAll
-                                        (List.repeat Config.wagonCost Data.Item.Iron)
-                                    |> Data.Game.setTrainOf game
-                                    |> Data.Game.setWorld
-                                        (game.world
-                                            |> Data.World.removeEntity newPos
-                                            |> Data.World.insertAllItems wagon.storage.items newPos
+                            |> Maybe.map
+                                (Random.map
+                                    (Tuple.mapFirst
+                                        (\w ->
+                                            maybeItem
+                                                |> Maybe.andThen
+                                                    (\item ->
+                                                        w
+                                                            |> getTrain id
+                                                            |> Maybe.map (Data.Train.addItem item)
+                                                            |> Maybe.map (setTrainOf w id)
+                                                    )
+                                                |> Maybe.withDefault w
                                         )
-                                    |> Data.Effect.withNone
-                                    |> Just
+                                    )
+                                )
 
-                            Data.Actor.Excavator _ ->
-                                game
-                                    |> Data.Game.getTrain
-                                    |> Data.Train.addAll
-                                        (List.repeat Config.excavatorCost Data.Item.Iron)
-                                    |> Data.Game.setTrainOf game
-                                    |> (\g ->
-                                            { g
-                                                | world = game.world |> Data.World.removeEntity newPos
-                                            }
-                                       )
-                                    |> Data.Effect.withNone
-                                    |> Just
-
-                            Data.Actor.Helper _ ->
-                                Nothing
-
-                            Data.Actor.Train _ ->
-                                Nothing
-
-                            Data.Actor.Bomb _ ->
-                                game
-                                    |> Data.Effect.withNone
-                                    |> Just
-
-                            Data.Actor.MovingWater _ ->
-                                Nothing
-                    )
-
-        _ ->
-            if (game |> Data.Game.getTrain |> .tracks) > 0 then
-                game
-                    |> mine
-                    |> Data.Effect.genWithNone
-                    |> Just
-
-            else
-                game
-                    |> mine
-                    |> Random.map turnToHQ
-                    |> Data.Effect.genWithNone
-                    |> Just
+                    ( Data.Block.EntityBlock entity, _ ) ->
+                        collideWith ( newPos, entity ) id world
+            )
 
 
-stockUpAtBase : Game -> ( Game, List Effect )
-stockUpAtBase game =
-    game
-        |> Data.Game.getTrain
-        |> Data.Train.addTracks Config.tracksPerTrip
-        |> Data.Train.turnDownwards
-        |> Data.Game.setTrainOf game
-        |> move
-        |> Maybe.map (\g -> ( g, [ Data.Effect.OpenModal, Data.Effect.LevelUp ] ))
-        |> Maybe.withDefault ( game, [] )
+collideWith : ( ( Int, Int ), Entity ) -> Int -> World -> Maybe (Generator ( World, List Effect ))
+collideWith ( newPos, entity ) id world =
+    world
+        |> getTrain id
+        |> Maybe.andThen
+            (\train ->
+                case entity of
+                    Data.Entity.Actor targetId ->
+                        world
+                            |> Data.World.getActor targetId
+                            |> Maybe.andThen
+                                (\( _, actor ) ->
+                                    case actor of
+                                        Data.Actor.Minecart wagon ->
+                                            train
+                                                |> Data.Train.addAll
+                                                    (List.repeat Config.wagonCost Data.Item.Iron)
+                                                |> setTrainOf world id
+                                                |> Data.World.removeEntity newPos
+                                                |> Data.World.insertAllItems wagon.storage.items newPos
+                                                |> Data.Effect.withNone
+                                                |> Just
+
+                                        Data.Actor.Excavator _ ->
+                                            train
+                                                |> Data.Train.addAll
+                                                    (List.repeat Config.excavatorCost Data.Item.Iron)
+                                                |> setTrainOf world id
+                                                |> Data.World.removeEntity newPos
+                                                |> Data.Effect.withNone
+                                                |> Just
+
+                                        Data.Actor.Helper _ ->
+                                            Nothing
+
+                                        Data.Actor.Train _ ->
+                                            Nothing
+
+                                        Data.Actor.Bomb _ ->
+                                            world
+                                                |> Data.Effect.withNone
+                                                |> Just
+
+                                        Data.Actor.MovingWater _ ->
+                                            Nothing
+                                )
+
+                    _ ->
+                        world
+                            |> (if train.tracks > 0 then
+                                    Just
+
+                                else
+                                    turnToHQ id
+                               )
+                            |> Maybe.andThen (mine id)
+                            |> Maybe.map Data.Effect.genWithNone
+            )
 
 
-turnToHQ : Game -> Game
-turnToHQ game =
-    game
-        |> Data.Game.getTrain
-        |> Data.Train.turnUpwards
-        |> Data.Game.setTrainOf game
+stockUpAtBase : Int -> List Improvement -> World -> ( World, List Effect )
+stockUpAtBase id improvements world =
+    world
+        |> getTrain id
+        |> Maybe.andThen
+            (\t ->
+                t
+                    |> Data.Train.addTracks Config.tracksPerTrip
+                    |> (if List.member Data.Improvement.GetOneGoldEachLevel improvements then
+                            Data.Train.addItem Data.Item.Gold
+
+                        else
+                            identity
+                       )
+                    |> Data.Train.turnDownwards
+                    |> Data.Actor.Train
+                    |> (\train -> Data.World.setActor id train world)
+                    |> move id
+            )
+        |> Maybe.map (\w -> ( w, [ Data.Effect.OpenModal, Data.Effect.LevelUp ] ))
+        |> Maybe.withDefault ( world, [] )
 
 
-mineAndPlaceTrack : Game -> Maybe (Generator Game)
-mineAndPlaceTrack game =
-    let
-        newPos =
-            game
-                |> Data.Game.getTrain
-                |> Data.Train.forwardPos
-    in
-    game
-        |> Data.Game.getTrain
-        |> Data.Train.removeTrack
-        |> Maybe.map (Data.Game.setTrainOf game)
-        |> Maybe.map mine
+turnToHQ : Int -> World -> Maybe World
+turnToHQ id world =
+    world
+        |> getTrain id
+        |> Maybe.map Data.Train.turnUpwards
+        |> Maybe.map (setTrainOf world id)
+
+
+mineAndPlaceTrack : Int -> World -> Maybe (Generator World)
+mineAndPlaceTrack id world =
+    world
+        |> getTrain id
+        |> Maybe.andThen
+            (\train ->
+                let
+                    newPos =
+                        train
+                            |> Data.Train.forwardPos
+                in
+                train
+                    |> Data.Train.removeTrack
+                    |> Maybe.map Data.Actor.Train
+                    |> Maybe.map (\t -> Data.World.setActor id t world)
+                    |> Maybe.andThen (mine id)
+                    |> Maybe.map
+                        (Random.map
+                            (Data.World.insertFloorAt newPos Data.Floor.RailwayTrack)
+                        )
+            )
+
+
+move : Int -> World -> Maybe World
+move id world =
+    world
+        |> getTrain id
         |> Maybe.map
-            (Random.map
-                (\g ->
-                    { g
-                        | world =
-                            g.world
-                                |> Data.World.insertFloorAt newPos Data.Floor.RailwayTrack
-                    }
+            (\train ->
+                ( train |> Data.Train.forwardPos
+                , train
                 )
             )
-
-
-move : Game -> Maybe Game
-move game =
-    let
-        newPos =
-            Data.Train.forwardPos (game |> getTrain)
-    in
-    game
-        |> getTrain
-        |> Data.Train.removeItem 1 Data.Item.Coal
-        |> Maybe.map (Data.Game.setTrainOf game)
-        |> Maybe.map
-            (\g ->
-                g.world
-                    |> Data.World.moveActorTo newPos game.trainId
-                    |> (\world -> { g | world = world })
+        |> Maybe.andThen
+            (\( newPos, train ) ->
+                train
+                    |> Data.Train.removeItem 1 Data.Item.Coal
+                    |> Maybe.map Data.Train.move
+                    |> Maybe.map (setTrainOf world id)
+                    |> Maybe.map (Data.World.moveActorTo newPos id)
             )
-        |> Maybe.map (\g -> g |> Data.Game.getTrain |> Data.Train.move |> Data.Game.setTrainOf g)
 
 
-mine : Game -> Generator Game
-mine game =
-    let
-        newPos =
-            game
-                |> Data.Game.getTrain
-                |> Data.Train.forwardPos
-    in
-    newPos
-        |> List.singleton
-        -- :: Data.Position.neighbors newPos
-        |> List.foldl
-            (\pos ->
-                Random.andThen (Generation.mine pos)
+mine : Int -> World -> Maybe (Generator World)
+mine id world =
+    world
+        |> getTrain id
+        |> Maybe.map Data.Train.forwardPos
+        |> Maybe.map (\pos -> Generation.mine pos world)
+
+
+getTrain : Int -> World -> Maybe Train
+getTrain id world =
+    world
+        |> Data.World.getActor id
+        |> Maybe.andThen
+            (\( _, actor ) ->
+                case actor of
+                    Data.Actor.Train train ->
+                        Just train
+
+                    _ ->
+                        Nothing
             )
-            (Random.constant game.world)
-        |> Random.map (\world -> { game | world = world })
+
+
+setTrainOf : World -> Int -> Train -> World
+setTrainOf world id train =
+    world |> Data.World.setActor id (Data.Actor.Train train)

@@ -5,6 +5,7 @@ import Data.Block
 import Data.Effect exposing (Effect)
 import Data.Entity
 import Data.Floor
+import Data.Improvement exposing (Improvement)
 import Data.Minecart exposing (Minecart)
 import Data.Position
 import Data.World exposing (World, transfer)
@@ -13,16 +14,17 @@ import Random exposing (Generator)
 
 act :
     Int
+    -> List Improvement
     -> World
     -> Generator ( World, List Effect )
-act id world =
+act id improvements world =
     world
         |> getMinecart id
         |> Maybe.andThen
             (\( pos, wagon ) ->
                 world
                     |> move id ( pos, wagon )
-                    |> Maybe.map (Data.Effect.map (collect pos id))
+                    |> Maybe.map (Data.Effect.map (collect pos id improvements))
             )
         |> Maybe.withDefault (Data.Effect.withNone world)
         |> Data.Effect.map
@@ -197,18 +199,22 @@ moveOnTrack args ( pos, id, wagon ) world =
                 |> moveOnGround args ( pos, id, wagon )
 
 
-collect : ( Int, Int ) -> Int -> World -> ( World, List Effect )
-collect pos id w =
-    pos
-        |> Data.Position.neighbors
-        |> List.foldl
-            (\p ( world, l ) ->
-                world
-                    |> pickup p id
-                    |> Maybe.map (Tuple.mapSecond (\e -> e ++ l))
-                    |> Maybe.withDefault ( world, l )
-            )
-            ( w, [] )
+collect : ( Int, Int ) -> Int -> List Improvement -> World -> ( World, List Effect )
+collect pos id improvements w =
+    if improvements |> List.member Data.Improvement.MinecartCanCollect then
+        pos
+            |> Data.Position.neighbors
+            |> List.foldl
+                (\p ( world, l ) ->
+                    world
+                        |> pickup p id
+                        |> Maybe.map (Tuple.mapSecond (\e -> e ++ l))
+                        |> Maybe.withDefault ( world, l )
+                )
+                ( w, [] )
+
+    else
+        ( w, [] )
 
 
 pickup : ( Int, Int ) -> Int -> World -> Maybe ( World, List Effect )

@@ -10,6 +10,7 @@ import Data.Block exposing (Block(..))
 import Data.Effect exposing (Effect)
 import Data.Entity exposing (Entity(..))
 import Data.Game exposing (Game)
+import Data.Improvement exposing (Improvement)
 import Data.Info
 import Data.Item exposing (Item)
 import Data.Modal exposing (Modal)
@@ -23,7 +24,6 @@ import Random exposing (Generator, Seed)
 import Time
 import View.Button
 import View.Modal
-import View.Promt
 import View.Screen
 import View.Tab exposing (Tab(..))
 
@@ -47,7 +47,6 @@ type alias Model =
     { game : Game
     , camera : ( Int, Int )
     , slowedDown : Bool
-    , promt : Maybe String
     , modal : Maybe Modal
     , seed : Seed
     , volume : Int
@@ -89,15 +88,11 @@ updateGame fun model =
                                                 , level = m.level + 1
                                             }
                                         )
-
-                                Data.Effect.ShowPromt string ->
-                                    Tuple.mapFirst (\m -> { m | promt = Just string })
                         )
                         ( { model
                             | game = game
                             , seed = seed
                             , modal = Nothing
-                            , promt = Nothing
                           }
                         , []
                         )
@@ -112,7 +107,7 @@ type Msg
     | ToggleSlowdown
     | StartBuilding BuildMode
     | StopBuilding
-    | CloseModal (Maybe ( Int, Item ))
+    | CloseModal (Maybe Improvement)
     | SetVolume (Maybe Int)
     | SetTab (Maybe Tab)
     | SetZoom (Maybe Int)
@@ -125,7 +120,6 @@ restart seed =
                 { game = game
                 , slowedDown = False
                 , camera = game.player.pos
-                , promt = Nothing
                 , seed = seed
                 , modal =
                     Data.Animation.tutorial
@@ -258,13 +252,6 @@ view model =
                                 , Attr.style "border" "solid 1px black"
                                 ]
                       )
-                    , ( [ Attr.style "left" "20%"
-                        , Attr.style "bottom" "8px"
-                        , Attr.style "width" "60%"
-                        ]
-                      , model.promt
-                            |> View.Promt.fromString
-                      )
                     ]
           , case model.modal of
                 Just modal ->
@@ -359,19 +346,13 @@ update msg model =
         StopBuilding ->
             ( { model | building = Nothing }, Cmd.none )
 
-        CloseModal maybeLoot ->
+        CloseModal maybeImprovement ->
             ( { model
                 | modal = Nothing
                 , game =
-                    model.game
-                        |> Data.Game.getTrain
-                        |> (\train ->
-                                maybeLoot
-                                    |> Maybe.map (\( amount, item ) -> List.repeat amount item)
-                                    |> Maybe.withDefault []
-                                    |> (\list -> Data.Train.addAll list train)
-                           )
-                        |> Data.Game.setTrainOf model.game
+                    maybeImprovement
+                        |> Maybe.map (Data.Game.addImprovementTo model.game)
+                        |> Maybe.withDefault model.game
               }
             , Data.Sound.asList
                 |> List.map (\sound -> loadSound ( Data.Sound.toFile sound, Data.Sound.toString sound ))

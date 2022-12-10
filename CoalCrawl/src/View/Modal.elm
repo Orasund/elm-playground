@@ -3,7 +3,7 @@ module View.Modal exposing (..)
 import AnyBag
 import Config
 import Data.Game exposing (Game)
-import Data.Item exposing (Item)
+import Data.Improvement exposing (Improvement)
 import Data.Modal exposing (Modal)
 import Html exposing (Html)
 import Html.Attributes as Attr
@@ -13,7 +13,7 @@ import View.Button
 import View.Title
 
 
-toHtml : (Maybe ( Int, Item ) -> msg) -> Game -> Modal -> Int -> Html msg
+toHtml : (Maybe Improvement -> msg) -> Game -> Modal -> Int -> Html msg
 toHtml closeModal game modal level =
     (if level == 1 then
         [ [ View.Title.coal, View.Title.crawl ]
@@ -54,30 +54,22 @@ toHtml closeModal game modal level =
             |> Layout.heading2 []
         , View.Animation.animate modal.animation modal.animationFrame
             |> Layout.el Layout.centered
-        , "Can store up to "
-            ++ String.fromInt Config.wagonMaxItems
-            ++ " items. You can also push it along."
+        , "Choose an improvement"
             |> Html.text
-            |> Layout.el []
-        , "Choose between 2 Gold or 20 Iron"
-            |> Html.text
-            |> Layout.el []
-        , [ "Get 2 Gold"
-                |> View.Button.toHtml
-                    (( 2, Data.Item.Gold )
-                        |> Just
-                        |> closeModal
-                        |> Just
-                    )
-          , "Get 20 Iron"
-                |> View.Button.toHtml
-                    (( 20, Data.Item.Iron )
-                        |> Just
-                        |> closeModal
-                        |> Just
-                    )
-          ]
-            |> Layout.row []
+            |> Layout.heading2 []
+        , Data.Improvement.asList
+            |> List.map
+                (\improvement ->
+                    improvement
+                        |> Data.Improvement.toString
+                        |> View.Button.toHtml
+                            (improvement
+                                |> Just
+                                |> closeModal
+                                |> Just
+                            )
+                )
+            |> Layout.row [ Layout.spacing 8 ]
         ]
 
      else

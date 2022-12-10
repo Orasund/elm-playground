@@ -6,6 +6,7 @@ import Data.Block exposing (Block(..))
 import Data.Effect exposing (Effect)
 import Data.Entity
 import Data.Floor
+import Data.Improvement exposing (Improvement)
 import Data.Item exposing (Item)
 import Data.Player exposing (Player)
 import Data.Sound
@@ -17,6 +18,7 @@ type alias Game =
     { world : World
     , player : Player
     , trainId : Int
+    , improvements : List Improvement
     , selected : ( Int, Int )
     }
 
@@ -43,6 +45,21 @@ setTrain train game =
 setTrainOf : Game -> Train -> Game
 setTrainOf game train =
     setTrain train game
+
+
+addImprovementTo : Game -> Improvement -> Game
+addImprovementTo game improvement =
+    addImprovement improvement game
+
+
+addImprovement : Improvement -> Game -> Game
+addImprovement improvement game =
+    { game | improvements = improvement :: game.improvements }
+
+
+getImprovements : Game -> List Improvement
+getImprovements game =
+    game.improvements
 
 
 setWorldOf : Game -> World -> Game
@@ -200,6 +217,7 @@ new =
                 train
     , player = player |> Data.Player.fromPos
     , trainId = 0
+    , improvements = []
     , selected = player
     }
 
