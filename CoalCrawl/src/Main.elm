@@ -45,7 +45,6 @@ type BuildMode
 type alias Model =
     { game : Game
     , camera : ( Int, Int )
-    , slowedDown : Bool
     , modal : Maybe Modal
     , seed : Seed
     , volume : Int
@@ -95,7 +94,6 @@ type Msg
     = Restart Seed
     | TileClicked ( Int, Int )
     | TimePassed
-    | ToggleSlowdown
     | StartBuilding BuildMode
     | StopBuilding
     | CloseModal (Maybe Improvement)
@@ -109,14 +107,13 @@ restart seed =
     Data.Game.new
         |> (\game ->
                 { game = game
-                , slowedDown = False
                 , camera = game.player.pos
                 , seed = seed
                 , modal = Just Data.Modal.title
-                , volume = 50
+                , volume = 25
                 , sidebarTab = Just DetailTab
                 , tickInterval = 200
-                , zoomPercent = 50
+                , zoomPercent = 25
                 , building = Nothing
                 , level = 1
                 }
@@ -194,8 +191,7 @@ view model =
                         Nothing ->
                             model.game
                                 |> View.Tab.sidebar
-                                    { toggleSlowdown = ToggleSlowdown
-                                    , restart = Restart model.seed
+                                    { restart = Restart model.seed
                                     , destroyBlock = StartBuilding RemovingBlock
                                     , buildActor =
                                         \{ cost, actor } ->
@@ -203,7 +199,6 @@ view model =
                                     , buildBlock =
                                         \{ cost, block } ->
                                             StartBuilding (BuildingBlock ( cost, block ))
-                                    , slowedDown = model.slowedDown
                                     , setVolume = SetVolume
                                     , volume = model.volume
                                     , setZoom = SetZoom
@@ -326,9 +321,6 @@ update msg model =
                     else
                         ( model, Cmd.none )
 
-        ToggleSlowdown ->
-            ( { model | slowedDown = not model.slowedDown }, Cmd.none )
-
         StartBuilding a ->
             ( { model | building = Just a }, Cmd.none )
 
@@ -364,12 +356,7 @@ update msg model =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    if model.slowedDown then
-        Time.every (model.tickInterval * 2)
-            (\_ -> TimePassed)
-
-    else
-        Time.every model.tickInterval (\_ -> TimePassed)
+    Time.every model.tickInterval (\_ -> TimePassed)
 
 
 main : Program () Model Msg

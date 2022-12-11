@@ -78,7 +78,7 @@ fromFloor : Floor -> Char
 fromFloor floor =
     case floor of
         Data.Floor.Ground ->
-            '.'
+            ' '
 
         Data.Floor.Track ->
             '+'
@@ -179,22 +179,28 @@ fromActor actor =
                 |> withBold
 
 
-fromBlock : Game -> ( Block, Maybe Item ) -> Tile
+fromItem : Item -> List Tile
+fromItem item =
+    item
+        |> Data.Item.toChar
+        |> emoji
+        |> withSmall
+        |> List.singleton
+
+
+fromBlock : Game -> ( Block, Maybe Item ) -> List Tile
 fromBlock game ( block, items ) =
     case block of
         Data.Block.FloorBlock floor ->
-            case items of
-                Just item ->
-                    item
-                        |> Data.Item.toChar
-                        |> emoji
-                        |> withSmall
-
-                Nothing ->
-                    { color = View.Color.gray
-                    , content = fromFloor floor
-                    }
-                        |> new
+            [ { color = View.Color.gray
+              , content = fromFloor floor
+              }
+                |> new
+            ]
+                ++ (items
+                        |> Maybe.map fromItem
+                        |> Maybe.withDefault []
+                   )
 
         Data.Block.EntityBlock entity ->
-            fromEntity game entity
+            [ fromEntity game entity ]

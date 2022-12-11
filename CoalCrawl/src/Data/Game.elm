@@ -196,8 +196,7 @@ new =
                 |> List.map (\p -> ( p, Data.Block.EntityBlock Data.Entity.Wall ))
 
         coals =
-            [ ( 0, 4 )
-            , ( 0 - 1, 3 )
+            [ ( 0 - 1, 3 )
             , ( 0 + 1, 3 )
             ]
     in
@@ -215,6 +214,7 @@ new =
                     |> Data.Actor.Train
                 )
                 train
+            |> Data.World.insertActor (Data.Actor.Helper Data.Actor.Path) ( 0, 4 )
     , player = player |> Data.Player.fromPos
     , trainId = 0
     , improvements = []

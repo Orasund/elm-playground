@@ -11,38 +11,42 @@ import Random exposing (Generator)
 
 act : Int -> World -> Generator World
 act id w =
-    w
-        |> setMomentum id
-        |> Random.map
-            (\world ->
-                world
-                    |> getNewPos id
-                    |> Maybe.andThen
-                        (\{ from, to } ->
-                            world
-                                |> Data.World.getBlock to
-                                |> Maybe.map (\block -> { block = block, from = from, to = to })
-                        )
-                    |> Maybe.map
-                        (\{ block, from, to } ->
-                            case block of
-                                Data.Block.EntityBlock _ ->
-                                    world
-                                        |> Data.World.push { from = from, pos = to }
-                                        |> Maybe.withDefault world
-                                        |> Data.World.setActor id
-                                            (Data.Momentum.fromPoints { from = from, to = to }
-                                                |> Data.Momentum.revert
-                                                |> Data.Actor.MovingWater
-                                            )
-                                        |> move id
+    case destroyNearLava id w of
+        Just world ->
+            Random.constant world
 
-                                Data.Block.FloorBlock _ ->
-                                    move id world
-                        )
-            )
-        |> Random.map (Maybe.withDefault w)
-        |> Random.map (destroyNearLava id)
+        Nothing ->
+            w
+                |> setMomentum id
+                |> Random.map
+                    (\world ->
+                        world
+                            |> getNewPos id
+                            |> Maybe.andThen
+                                (\{ from, to } ->
+                                    world
+                                        |> Data.World.getBlock to
+                                        |> Maybe.map (\block -> { block = block, from = from, to = to })
+                                )
+                            |> Maybe.map
+                                (\{ block, from, to } ->
+                                    case block of
+                                        Data.Block.EntityBlock _ ->
+                                            world
+                                                |> Data.World.push { from = from, pos = to }
+                                                |> Maybe.withDefault world
+                                                |> Data.World.setActor id
+                                                    (Data.Momentum.fromPoints { from = from, to = to }
+                                                        |> Data.Momentum.revert
+                                                        |> Data.Actor.MovingWater
+                                                    )
+                                                |> move id
+
+                                        Data.Block.FloorBlock _ ->
+                                            move id world
+                                )
+                    )
+                |> Random.map (Maybe.withDefault w)
 
 
 setMomentum : Int -> World -> Generator World
@@ -111,25 +115,25 @@ moveAndStop args world =
         |> Data.World.insertEntity Data.Entity.Water args.to
 
 
-destroyNearLava : Int -> World -> World
+destroyNearLava : Int -> World -> Maybe World
 destroyNearLava id world =
     world
-        |> getMomentum id
-        |> Maybe.map
+        |> Data.World.getActor id
+        |> Maybe.andThen
             (\( pos, _ ) ->
                 world
                     |> getLavaNeighbors pos
                     |> (\list ->
                             if List.isEmpty list then
-                                world
+                                Nothing
 
                             else
                                 list
                                     |> List.foldl Data.World.removeEntity world
                                     |> Data.World.removeEntity pos
+                                    |> Just
                        )
             )
-        |> Maybe.withDefault world
 
 
 getLavaNeighbors : ( Int, Int ) -> World -> List ( Int, Int )

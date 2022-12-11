@@ -24,8 +24,6 @@ percentRange args =
 
 settings :
     { restart : msg
-    , slowedDown : Bool
-    , toggleSlowdown : msg
     , setVolume : Maybe Int -> msg
     , volume : Int
     , setZoom : Maybe Int -> msg
@@ -33,16 +31,7 @@ settings :
     }
     -> Html msg
 settings args =
-    [ [ (if args.slowedDown then
-            "Stop Slow Motion"
-
-         else
-            "Start Slow Motion"
-        )
-            |> View.Button.toHtml (Just args.toggleSlowdown)
-      , View.Button.toHtml (Just args.restart) "Restarts"
-      ]
-        |> Layout.row [ Layout.spacing 8 ]
+    [ View.Button.toHtml (Just args.restart) "Restarts"
     , percentRange
         { name = "Volume"
         , value = args.volume

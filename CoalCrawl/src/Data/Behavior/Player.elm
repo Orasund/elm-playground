@@ -21,7 +21,10 @@ act game =
     game.player.targetPos
         |> Maybe.map
             (\targetPos ->
-                (if Data.Position.neighbors game.player.pos |> List.member targetPos then
+                (if
+                    (Data.Position.neighbors game.player.pos |> List.member targetPos)
+                        || (targetPos == game.player.pos)
+                 then
                     game
                         |> interactWith targetPos
                         |> Random.map (Tuple.mapFirst (\g -> { g | player = g.player |> Data.Player.stopMoving }))

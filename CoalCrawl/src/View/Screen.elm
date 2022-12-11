@@ -55,22 +55,28 @@ tile : { onPress : Maybe msg, zoom : Zoom } -> ( Int, Int ) -> Game -> Html msg
 tile args pos game =
     (if pos == game.player.pos then
         Data.Tile.fromPlayer game.player
-            |> Just
+            |> List.singleton
 
      else
         game.world
             |> Data.World.get pos
             |> Maybe.map (Data.Tile.fromBlock game)
+            |> Maybe.withDefault []
     )
-        |> (\maybe ->
-                maybe
-                    |> Maybe.withDefault Data.Tile.wall
-                    |> View.Tile.toHtml args.zoom
-                    |> Layout.el
+        |> (\list ->
+                (if List.isEmpty list then
+                    [ Data.Tile.wall ]
+
+                 else
+                    list
+                )
+                    |> List.map (View.Tile.toHtml args.zoom)
+                    |> List.map (\html -> ( [], html ))
+                    |> Layout.stack
                         ((if game.selected == pos then
                             [ Attr.style "background-color" View.Color.yellow ]
 
-                          else if maybe == Nothing then
+                          else if list == [] then
                             [ Attr.style "background-color" View.Color.black ]
 
                           else
@@ -86,5 +92,8 @@ tile args pos game =
                                         )
                                     |> Maybe.withDefault []
                                )
+                            ++ [ Attr.style "width" (Config.tileSize args.zoom)
+                               , Attr.style "height" (Config.tileSize args.zoom)
+                               ]
                         )
            )

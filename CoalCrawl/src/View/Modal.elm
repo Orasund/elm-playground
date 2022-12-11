@@ -52,23 +52,31 @@ toHtml closeModal game m level =
                        )
                     |> Html.text
                     |> Layout.el []
-                , "Choose an improvement"
-                    |> Html.text
-                    |> Layout.heading2 []
-                , improvements
-                    |> List.map
-                        (\improvement ->
-                            improvement
-                                |> Data.Improvement.toString
-                                |> View.Button.toHtml
-                                    (improvement
-                                        |> Just
-                                        |> closeModal
-                                        |> Just
-                                    )
-                        )
-                    |> Layout.row [ Layout.spacing 8 ]
                 ]
+                    ++ (if List.isEmpty improvements then
+                            "Continue"
+                                |> View.Button.toHtml (Just (closeModal Nothing))
+                                |> List.singleton
+
+                        else
+                            [ "Choose an improvement"
+                                |> Html.text
+                                |> Layout.heading2 []
+                            , improvements
+                                |> List.map
+                                    (\improvement ->
+                                        improvement
+                                            |> Data.Improvement.toString
+                                            |> View.Button.toHtml
+                                                (improvement
+                                                    |> Just
+                                                    |> closeModal
+                                                    |> Just
+                                                )
+                                    )
+                                |> Layout.row [ Layout.spacing 8 ]
+                            ]
+                       )
 
             else
                 [ "GAME WON!"

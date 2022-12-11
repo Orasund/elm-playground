@@ -22,14 +22,22 @@ exposedCave caveType =
                 ]
 
         IronCave ->
-            Random.weighted ( 1, Data.World.insertItem Data.Item.Iron )
+            Random.weighted
+                ( 1
+                , Data.World.insertItem Data.Item.Iron
+                )
                 [ ( 1 / 2
+                  , Data.World.insertActor
+                        (Data.Actor.Falling (Data.Entity.Vein Data.Item.Coal)
+                            |> Data.Actor.Helper
+                        )
+                  )
+                , ( 1 / 4
                   , Data.World.insertActor
                         (Data.Actor.Falling (Data.Entity.Vein Data.Item.Iron)
                             |> Data.Actor.Helper
                         )
                   )
-                , ( 1 / 4, Data.World.insertItem Data.Item.Coal )
                 , ( 1 / 8, Data.World.insertEntity Data.Entity.Wall )
                 ]
 
@@ -51,9 +59,28 @@ exposedCave caveType =
                 ]
 
         CollapsedCave ->
-            Random.weighted ( 1, Data.World.insertEntity Data.Entity.Wall )
-                [ ( 1 / 2, Data.World.insertItem Data.Item.Iron )
-                , ( 1 / 4, Data.World.insertItem Data.Item.Gold )
+            Random.weighted
+                ( 1
+                , Data.World.insertActor (Data.Actor.Helper Data.Actor.Path)
+                )
+                [ ( 1 / 2
+                  , Data.World.insertActor
+                        (Data.Actor.Falling Data.Entity.Wall
+                            |> Data.Actor.Helper
+                        )
+                  )
+                , ( 1 / 4
+                  , Data.World.insertActor
+                        (Data.Actor.Falling (Data.Entity.Vein Data.Item.Coal)
+                            |> Data.Actor.Helper
+                        )
+                  )
+                , ( 1 / 8
+                  , Data.World.insertActor
+                        (Data.Actor.Falling (Data.Entity.Vein Data.Item.Gold)
+                            |> Data.Actor.Helper
+                        )
+                  )
                 ]
     )
         |> (\ground ->

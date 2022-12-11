@@ -15,7 +15,6 @@ import Data.Train exposing (Train)
 import Data.World exposing (World)
 import Generation
 import Random exposing (Generator)
-import Random.Extra
 import Random.List
 
 
@@ -38,7 +37,7 @@ act improvements id world =
                 else if train.moving then
                     world
                         |> Data.World.get newPos
-                        |> Maybe.andThen (\block -> tryMovingTo ( newPos, block ) id world)
+                        |> Maybe.andThen (\block -> tryMovingTo ( newPos, block ) id improvements world)
 
                 else
                     Nothing
@@ -46,8 +45,8 @@ act improvements id world =
         |> Maybe.withDefault (Data.Effect.withNone world)
 
 
-tryMovingTo : ( ( Int, Int ), ( Block, Maybe Item ) ) -> Int -> World -> Maybe (Generator ( World, List Effect ))
-tryMovingTo ( newPos, block ) id world =
+tryMovingTo : ( ( Int, Int ), ( Block, Maybe Item ) ) -> Int -> List Improvement -> World -> Maybe (Generator ( World, List Effect ))
+tryMovingTo ( newPos, block ) id improvements world =
     world
         |> getTrain id
         |> Maybe.andThen
@@ -117,22 +116,26 @@ tryMovingTo ( newPos, block ) id world =
                     ( Data.Block.EntityBlock entity, _ ) ->
                         collideWith ( newPos, entity ) id world
             )
-        |> Maybe.map (Random.map (Tuple.mapFirst (collect id)))
+        |> Maybe.map (Random.map (Tuple.mapFirst (collect id improvements)))
 
 
-collect : Int -> World -> World
-collect id world =
-    world
-        |> getTrain id
-        |> Maybe.andThen
-            (\train ->
-                train
-                    |> Data.Train.forwardPos
-                    |> (\pos -> Data.World.getItem pos world)
-                    |> Maybe.map (\item -> train |> Data.Train.addItem item)
-                    |> Maybe.map (setTrainOf world id)
-            )
-        |> Maybe.withDefault world
+collect : Int -> List Improvement -> World -> World
+collect id improvements world =
+    if List.member Data.Improvement.TrainCanCollect improvements then
+        world
+            |> getTrain id
+            |> Maybe.andThen
+                (\train ->
+                    train
+                        |> Data.Train.forwardPos
+                        |> (\pos -> Data.World.getItem pos world)
+                        |> Maybe.map (\item -> train |> Data.Train.addItem item)
+                        |> Maybe.map (setTrainOf world id)
+                )
+            |> Maybe.withDefault world
+
+    else
+        world
 
 
 collideWith : ( ( Int, Int ), Entity ) -> Int -> World -> Maybe (Generator ( World, List Effect ))

@@ -87,9 +87,7 @@ buildBlockButton buildBlock game args =
 
 
 sidebar :
-    { toggleSlowdown : msg
-    , slowedDown : Bool
-    , restart : msg
+    { restart : msg
     , setVolume : Maybe Int -> msg
     , volume : Int
     , setZoom : Maybe Int -> msg
@@ -136,9 +134,7 @@ sidebar args game =
                     SettingTab ->
                         View.Tab.Settings.settings
                             { restart = args.restart
-                            , slowedDown = args.slowedDown
                             , setVolume = args.setVolume
-                            , toggleSlowdown = args.toggleSlowdown
                             , volume = args.volume
                             , setZoom = args.setZoom
                             , zoom = args.zoom
