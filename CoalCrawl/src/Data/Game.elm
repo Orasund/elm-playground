@@ -186,7 +186,7 @@ new =
                     )
 
         walls =
-            List.range 0 1
+            List.range 0 2
                 |> List.concatMap
                     (\y ->
                         [ -1, 1 ]

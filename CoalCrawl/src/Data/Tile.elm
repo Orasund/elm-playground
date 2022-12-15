@@ -13,13 +13,24 @@ import Dict
 import View.Color
 
 
-type alias Tile =
+type alias CharTileContent =
     { color : String
     , content : Char
     , bold : Bool
     , animation : Bool
     , size : Float
     }
+
+
+type alias ImageTileContent =
+    { source : String
+    , animation : Bool
+    }
+
+
+type Tile
+    = CharTile CharTileContent
+    | ImageTile ImageTileContent
 
 
 new : { color : String, content : Char } -> Tile
@@ -30,6 +41,7 @@ new args =
     , animation = False
     , size = 1
     }
+        |> CharTile
 
 
 emoji : Char -> Tile
@@ -40,21 +52,45 @@ emoji char =
     , animation = False
     , size = 0.7
     }
+        |> CharTile
+
+
+image : String -> Tile
+image source =
+    { source = source
+    , animation = False
+    }
+        |> ImageTile
 
 
 withSmall : Tile -> Tile
 withSmall tile =
-    { tile | size = 0.2 }
+    case tile of
+        CharTile content ->
+            { content | size = 0.2 } |> CharTile
+
+        ImageTile _ ->
+            tile
 
 
 withBold : Tile -> Tile
 withBold tile =
-    { tile | bold = True }
+    case tile of
+        CharTile content ->
+            { content | bold = True } |> CharTile
+
+        ImageTile _ ->
+            tile
 
 
 withAnimation : Tile -> Tile
 withAnimation tile =
-    { tile | animation = True }
+    case tile of
+        CharTile content ->
+            { content | animation = True } |> CharTile
+
+        ImageTile content ->
+            { content | animation = True } |> ImageTile
 
 
 wall : Tile
@@ -117,15 +153,8 @@ fromActor : Actor -> Tile
 fromActor actor =
     case actor of
         Data.Actor.Minecart wagon ->
-            { color =
-                if Data.Storage.isFull wagon.storage then
-                    View.Color.black
-
-                else
-                    View.Color.gray
-            , content = 'M'
-            }
-                |> new
+            "https://www.pngfind.com/pngs/m/634-6344846_image-free-carts-clipart-minecart-minecart-clipart-hd.png"
+                |> image
                 |> (\it ->
                         if Data.Storage.isEmpty wagon.storage then
                             it
@@ -162,8 +191,8 @@ fromActor actor =
                    )
 
         Data.Actor.Train train ->
-            { color = View.Color.black, content = 'T' }
-                |> new
+            "https://cdn-icons-png.flaticon.com/512/936/936685.png"
+                |> image
                 |> (if train.moving || train.tracks > 0 then
                         withBold
 
@@ -192,12 +221,12 @@ fromBlock : Game -> ( Block, Maybe Item ) -> List Tile
 fromBlock game ( block, items ) =
     case block of
         Data.Block.FloorBlock floor ->
-            [ { color = View.Color.gray
-              , content = fromFloor floor
-              }
+            ({ color = View.Color.gray
+             , content = fromFloor floor
+             }
                 |> new
-            ]
-                ++ (items
+            )
+                :: (items
                         |> Maybe.map fromItem
                         |> Maybe.withDefault []
                    )

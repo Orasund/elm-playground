@@ -6151,7 +6151,7 @@ var $author$project$Data$Game$new = function () {
 						_List_fromArray(
 							[-1, 1]));
 				},
-				A2($elm$core$List$range, 0, 1))));
+				A2($elm$core$List$range, 0, 2))));
 	var train = _Utils_Tuple2(0, 2);
 	var tracks = A2(
 		$elm$core$List$map,
@@ -11025,28 +11025,55 @@ var $Orasund$elm_layout$Layout$asButton = function (args) {
 };
 var $author$project$View$Color$black = 'Black';
 var $author$project$View$Color$blue = 'Blue';
+var $author$project$Data$Tile$CharTile = function (a) {
+	return {$: 'CharTile', a: a};
+};
 var $author$project$Data$Tile$emoji = function (_char) {
-	return {animation: false, bold: false, color: $author$project$View$Color$black, content: _char, size: 0.7};
+	return $author$project$Data$Tile$CharTile(
+		{animation: false, bold: false, color: $author$project$View$Color$black, content: _char, size: 0.7});
 };
 var $author$project$Config$bombExplosionTime = 10;
-var $author$project$View$Color$gray = 'Gray';
+var $author$project$Data$Tile$ImageTile = function (a) {
+	return {$: 'ImageTile', a: a};
+};
+var $author$project$Data$Tile$image = function (source) {
+	return $author$project$Data$Tile$ImageTile(
+		{animation: false, source: source});
+};
 var $author$project$Data$Storage$isEmpty = function (storage) {
 	return _Utils_eq(storage.items, _List_Nil);
 };
 var $elm$core$Basics$modBy = _Basics_modBy;
 var $author$project$Data$Tile$new = function (args) {
-	return {animation: false, bold: false, color: args.color, content: args.content, size: 1};
+	return $author$project$Data$Tile$CharTile(
+		{animation: false, bold: false, color: args.color, content: args.content, size: 1});
 };
 var $author$project$View$Color$red = 'Red';
 var $author$project$Data$Tile$withAnimation = function (tile) {
-	return _Utils_update(
-		tile,
-		{animation: true});
+	if (tile.$ === 'CharTile') {
+		var content = tile.a;
+		return $author$project$Data$Tile$CharTile(
+			_Utils_update(
+				content,
+				{animation: true}));
+	} else {
+		var content = tile.a;
+		return $author$project$Data$Tile$ImageTile(
+			_Utils_update(
+				content,
+				{animation: true}));
+	}
 };
 var $author$project$Data$Tile$withBold = function (tile) {
-	return _Utils_update(
-		tile,
-		{bold: true});
+	if (tile.$ === 'CharTile') {
+		var content = tile.a;
+		return $author$project$Data$Tile$CharTile(
+			_Utils_update(
+				content,
+				{bold: true}));
+	} else {
+		return tile;
+	}
 };
 var $author$project$Data$Tile$fromActor = function (actor) {
 	switch (actor.$) {
@@ -11056,11 +11083,7 @@ var $author$project$Data$Tile$fromActor = function (actor) {
 				return $author$project$Data$Storage$isEmpty(wagon.storage) ? it : ($author$project$Data$Storage$isFull(wagon.storage) ? $author$project$Data$Tile$withBold(
 					$author$project$Data$Tile$withAnimation(it)) : $author$project$Data$Tile$withBold(it));
 			}(
-				$author$project$Data$Tile$new(
-					{
-						color: $author$project$Data$Storage$isFull(wagon.storage) ? $author$project$View$Color$black : $author$project$View$Color$gray,
-						content: _Utils_chr('M')
-					}));
+				$author$project$Data$Tile$image('https://www.pngfind.com/pngs/m/634-6344846_image-free-carts-clipart-minecart-minecart-clipart-hd.png'));
 		case 'Excavator':
 			return $author$project$Data$Tile$new(
 				{
@@ -11085,11 +11108,7 @@ var $author$project$Data$Tile$fromActor = function (actor) {
 		case 'Train':
 			var train = actor.a;
 			return ((train.moving || (train.tracks > 0)) ? $author$project$Data$Tile$withBold : $elm$core$Basics$identity)(
-				$author$project$Data$Tile$new(
-					{
-						color: $author$project$View$Color$black,
-						content: _Utils_chr('T')
-					}));
+				$author$project$Data$Tile$image('https://cdn-icons-png.flaticon.com/512/936/936685.png'));
 		default:
 			return $author$project$Data$Tile$withBold(
 				$author$project$Data$Tile$new(
@@ -11155,9 +11174,15 @@ var $author$project$Data$Tile$fromFloor = function (floor) {
 	}
 };
 var $author$project$Data$Tile$withSmall = function (tile) {
-	return _Utils_update(
-		tile,
-		{size: 0.2});
+	if (tile.$ === 'CharTile') {
+		var content = tile.a;
+		return $author$project$Data$Tile$CharTile(
+			_Utils_update(
+				content,
+				{size: 0.2}));
+	} else {
+		return tile;
+	}
 };
 var $author$project$Data$Tile$fromItem = function (item) {
 	return $elm$core$List$singleton(
@@ -11165,21 +11190,20 @@ var $author$project$Data$Tile$fromItem = function (item) {
 			$author$project$Data$Tile$emoji(
 				$author$project$Data$Item$toChar(item))));
 };
+var $author$project$View$Color$gray = 'Gray';
 var $author$project$Data$Tile$fromBlock = F2(
 	function (game, _v0) {
 		var block = _v0.a;
 		var items = _v0.b;
 		if (block.$ === 'FloorBlock') {
 			var floor = block.a;
-			return _Utils_ap(
-				_List_fromArray(
-					[
-						$author$project$Data$Tile$new(
-						{
-							color: $author$project$View$Color$gray,
-							content: $author$project$Data$Tile$fromFloor(floor)
-						})
-					]),
+			return A2(
+				$elm$core$List$cons,
+				$author$project$Data$Tile$new(
+					{
+						color: $author$project$View$Color$gray,
+						content: $author$project$Data$Tile$fromFloor(floor)
+					}),
 				A2(
 					$elm$core$Maybe$withDefault,
 					_List_Nil,
@@ -11255,16 +11279,23 @@ var $author$project$Config$fontSize = F2(
 			$author$project$Config$width(zoom)) + ', '))) + (($elm$core$String$fromFloat(100 * size) + ('vh/' + $elm$core$String$fromInt(
 			$author$project$Config$height(zoom)))) + ')'));
 	});
+var $elm$html$Html$img = _VirtualDom_node('img');
+var $elm$html$Html$Attributes$src = function (url) {
+	return A2(
+		$elm$html$Html$Attributes$stringProperty,
+		'src',
+		_VirtualDom_noJavaScriptOrHtmlUri(url));
+};
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $author$project$View$Tile$toHtml = F2(
 	function (zoom, tile) {
-		return function (_v0) {
-			var content = _v0.content;
-			var color = _v0.color;
-			var size = _v0.size;
-			var bold = _v0.bold;
-			var animation = _v0.animation;
+		if (tile.$ === 'CharTile') {
+			var content = tile.a.content;
+			var color = tile.a.color;
+			var size = tile.a.size;
+			var bold = tile.a.bold;
+			var animation = tile.a.animation;
 			return A2(
 				$Orasund$elm_layout$Layout$el,
 				_Utils_ap(
@@ -11297,7 +11328,30 @@ var $author$project$View$Tile$toHtml = F2(
 							$Orasund$elm_layout$Layout$centered))),
 				$elm$html$Html$text(
 					$elm$core$String$fromChar(content)));
-		}(tile);
+		} else {
+			var source = tile.a.source;
+			var animation = tile.a.animation;
+			return A2(
+				$elm$html$Html$img,
+				_Utils_ap(
+					_List_fromArray(
+						[
+							$elm$html$Html$Attributes$src(source),
+							A2(
+							$elm$html$Html$Attributes$style,
+							'width',
+							$author$project$Config$tileSize(zoom)),
+							A2(
+							$elm$html$Html$Attributes$style,
+							'height',
+							$author$project$Config$tileSize(zoom))
+						]),
+					animation ? _List_fromArray(
+						[
+							$elm$html$Html$Attributes$class('animate__animated animate__pulse animate__infinite animate__faster')
+						]) : _List_Nil),
+				_List_Nil);
+		}
 	});
 var $author$project$Data$Tile$wall = $author$project$Data$Tile$new(
 	{
