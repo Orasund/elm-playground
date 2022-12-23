@@ -1,9 +1,16 @@
 module Data.Position exposing (..)
 
+{-| -}
 
+
+{-| returns the following positions:
+
+    [ Down, Left, Up, Right ]
+
+-}
 neighbors : ( Int, Int ) -> List ( Int, Int )
 neighbors ( x, y ) =
-    [ ( x, y + 1 ), ( x - 1, y ), ( x + 1, y ), ( x, y - 1 ) ]
+    [ ( x, y + 1 ), ( x - 1, y ), ( x, y - 1 ), ( x + 1, y ) ]
 
 
 neighborsWithDistance : Int -> ( Int, Int ) -> List ( Int, Int )

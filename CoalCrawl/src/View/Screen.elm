@@ -3,7 +3,6 @@ module View.Screen exposing (..)
 import Config
 import Data.Game exposing (Game)
 import Data.Tile
-import Data.World
 import Data.Zoom exposing (Zoom)
 import Html exposing (Html)
 import Html.Attributes as Attr
@@ -58,10 +57,7 @@ tile args pos game =
             |> List.singleton
 
      else
-        game.world
-            |> Data.World.get pos
-            |> Maybe.map (Data.Tile.fromBlock game)
-            |> Maybe.withDefault []
+        Data.Tile.fromPos pos game
     )
         |> (\list ->
                 (if List.isEmpty list then

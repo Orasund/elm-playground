@@ -2,14 +2,15 @@ module Data.Tile exposing (..)
 
 import Config
 import Data.Actor exposing (Actor(..))
-import Data.Block exposing (Block)
+import Data.Block
 import Data.Entity exposing (Entity)
 import Data.Floor exposing (Floor)
 import Data.Game exposing (Game)
 import Data.Item exposing (Item)
 import Data.Player exposing (Player)
+import Data.Position
 import Data.Storage
-import Dict
+import Data.World
 import View.Color
 
 
@@ -25,6 +26,7 @@ type alias CharTileContent =
 type alias ImageTileContent =
     { source : String
     , animation : Bool
+    , color : String
     }
 
 
@@ -55,10 +57,11 @@ emoji char =
         |> CharTile
 
 
-image : String -> Tile
-image source =
-    { source = source
+image : { color : String, source : String } -> Tile
+image args =
+    { source = args.source
     , animation = False
+    , color = args.color
     }
         |> ImageTile
 
@@ -110,20 +113,55 @@ fromPlayer player =
         |> withBold
 
 
-fromFloor : Floor -> Char
-fromFloor floor =
+fromFloor : ( Int, Int ) -> Game -> Floor -> Tile
+fromFloor pos game floor =
     case floor of
         Data.Floor.Ground ->
-            ' '
+            { color = View.Color.gray
+            , content = ' '
+            }
+                |> new
 
         Data.Floor.Track ->
-            '+'
+            pos
+                |> Data.Position.neighbors
+                |> List.map
+                    (\p ->
+                        game.world
+                            |> Data.World.getFloor p
+                            |> Maybe.map
+                                (\track ->
+                                    if track == Data.Floor.Track then
+                                        "1"
+
+                                    else
+                                        "0"
+                                )
+                            |> Maybe.withDefault "0"
+                    )
+                |> (\list ->
+                        case list of
+                            [ down, left, up, right ] ->
+                                { color = View.Color.gray
+                                , source = "/assets/svg/track_" ++ down ++ left ++ up ++ right ++ ".svg"
+                                }
+                                    |> image
+
+                            _ ->
+                                { color = View.Color.gray
+                                , source = "/assets/svg/track_1111.svg"
+                                }
+                                    |> image
+                   )
 
         Data.Floor.RailwayTrack ->
-            '='
+            { color = View.Color.gray
+            , source = "/assets/svg/railwayTrack.svg"
+            }
+                |> image
 
 
-fromEntity : Game -> Entity -> Tile
+fromEntity : Game -> Entity -> List Tile
 fromEntity game entity =
     case entity of
         Data.Entity.Vein item ->
@@ -131,35 +169,51 @@ fromEntity game entity =
                 |> Data.Item.toChar
                 |> Char.toUpper
                 |> emoji
+                |> List.singleton
 
         Data.Entity.Wall ->
-            { color = View.Color.black, content = '#' } |> new
+            image { source = "/assets/svg/wall.svg", color = View.Color.black }
+                |> List.singleton
 
         Data.Entity.Water ->
-            { color = View.Color.blue, content = '~' } |> new
+            { color = View.Color.blue, content = '~' }
+                |> new
+                |> List.singleton
 
         Data.Entity.Lava ->
-            { color = View.Color.red, content = '~' } |> new
+            { color = View.Color.red, content = '~' }
+                |> new
+                |> List.singleton
 
         Data.Entity.Actor id ->
-            game.world.actors
-                |> Dict.get id
-                |> Maybe.map (\( _, actor ) -> fromActor actor)
+            game.world
+                |> Data.World.getActor id
+                |> Maybe.map
+                    (\( pos, actor ) ->
+                        [ game.world
+                            |> Data.World.getFloor pos
+                            |> Maybe.withDefault Data.Floor.Ground
+                            |> fromFloor pos game
+                        , fromActor actor
+                        ]
+                    )
                 |> Maybe.withDefault
-                    (new { color = View.Color.red, content = '?' })
+                    ({ color = View.Color.red, content = '?' } |> new |> List.singleton)
 
 
 fromActor : Actor -> Tile
 fromActor actor =
     case actor of
         Data.Actor.Minecart wagon ->
-            "https://www.pngfind.com/pngs/m/634-6344846_image-free-carts-clipart-minecart-minecart-clipart-hd.png"
-                |> image
-                |> (\it ->
-                        if Data.Storage.isEmpty wagon.storage then
-                            it
+            (if Data.Storage.isEmpty wagon.storage then
+                "/assets/svg/minecart.svg"
 
-                        else if Data.Storage.isFull wagon.storage then
+             else
+                "/assets/svg/minecart_full.svg"
+            )
+                |> (\source -> image { source = source, color = View.Color.black })
+                |> (\it ->
+                        if Data.Storage.isFull wagon.storage then
                             it |> withAnimation |> withBold
 
                         else
@@ -191,8 +245,8 @@ fromActor actor =
                    )
 
         Data.Actor.Train train ->
-            "https://cdn-icons-png.flaticon.com/512/936/936685.png"
-                |> image
+            "/assets/svg/train.svg"
+                |> (\source -> image { source = source, color = View.Color.black })
                 |> (if train.moving || train.tracks > 0 then
                         withBold
 
@@ -217,19 +271,21 @@ fromItem item =
         |> List.singleton
 
 
-fromBlock : Game -> ( Block, Maybe Item ) -> List Tile
-fromBlock game ( block, items ) =
-    case block of
-        Data.Block.FloorBlock floor ->
-            ({ color = View.Color.gray
-             , content = fromFloor floor
-             }
-                |> new
-            )
-                :: (items
-                        |> Maybe.map fromItem
-                        |> Maybe.withDefault []
-                   )
+fromPos : ( Int, Int ) -> Game -> List Tile
+fromPos pos game =
+    game.world
+        |> Data.World.get pos
+        |> Maybe.map
+            (\( block, items ) ->
+                case block of
+                    Data.Block.FloorBlock floor ->
+                        fromFloor pos game floor
+                            :: (items
+                                    |> Maybe.map fromItem
+                                    |> Maybe.withDefault []
+                               )
 
-        Data.Block.EntityBlock entity ->
-            [ fromEntity game entity ]
+                    Data.Block.EntityBlock entity ->
+                        fromEntity game entity
+            )
+        |> Maybe.withDefault []

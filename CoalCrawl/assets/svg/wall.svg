@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <defs>
+        <path id="rock" d="M30,90 70,90 80,60 50,20 30,30  20,70 Z" fill="black" />
+    </defs>
+    <use href="#rock" />
+</svg>

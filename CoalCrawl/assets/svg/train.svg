@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <defs>
+        <circle r="10" id="wheel" />
+        <circle r="15" id="wheel-cutout" />
+        <g id="wheels">
+            <use x="30" y="80" href="#wheel" />
+            <use x="70" y="80" href="#wheel" />
+        </g>
+        <g id="wheels-cutout">
+            <use x="30" y="80" href="#wheel-cutout" />
+            <use x="70" y="80" href="#wheel-cutout" />
+        </g>
+        <mask id="wheels-clip-path">
+            <rect width="100%" height="100%" fill="white" />
+            <use href="#wheels-cutout" fill="black" />
+
+        </mask>
+        <rect id="cart" width="80" height="40" x="10" y="40" mask="url(#wheels-clip-path)" />
+        <g id="chimney">
+            <rect width="20" height="30" y="-40" x="-10" />
+            <circle r="20" />
+        </g>
+        <g id="engine" mask="url(#wheels-clip-path)">
+            <rect width="80" height="30" x="10" y="50" />
+            <use href="#chimney" x="70" y="50" />
+            <rect width="30" height="20" x="15" y="40" />
+        </g>
+    </defs>
+    <use href="#wheels" />
+    <use href="#engine" />
+</svg>

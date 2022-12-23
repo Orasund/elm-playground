@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <defs>
+        <g id="rails">
+            <rect width="10" height="100" x="70" y="0" />
+            <rect width="10" height="100" x="30" y="0" />
+        </g>
+        <mask id="rails-outline">
+            <rect width="100" height="100" fill="white" />
+            <rect width="20" height="100" x="65" y="0" fill="black" />
+            <rect width="20" height="100" x="25" y="0" fill="black" />
+
+        </mask>
+        <g id="bars" mask="url(#rails-outline)">
+            <rect width="80" height="10" x="15" y="15" />
+            <rect width="80" height="10" x="15" y="45" />
+            <rect width="80" height="10" x="15" y="75" />
+        </g>
+    </defs>
+    <use href="#rails" fill="gray" />
+    <use href="#bars" fill="gray" />
+</svg>

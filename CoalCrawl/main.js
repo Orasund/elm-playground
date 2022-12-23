@@ -7880,8 +7880,8 @@ var $author$project$Data$Position$neighbors = function (_v0) {
 		[
 			_Utils_Tuple2(x, y + 1),
 			_Utils_Tuple2(x - 1, y),
-			_Utils_Tuple2(x + 1, y),
-			_Utils_Tuple2(x, y - 1)
+			_Utils_Tuple2(x, y - 1),
+			_Utils_Tuple2(x + 1, y)
 		]);
 };
 var $author$project$Data$Actor$Minecart = function (a) {
@@ -11024,10 +11024,37 @@ var $Orasund$elm_layout$Layout$asButton = function (args) {
 				args.onPress)));
 };
 var $author$project$View$Color$black = 'Black';
-var $author$project$View$Color$blue = 'Blue';
+var $author$project$View$Color$green = 'Green';
 var $author$project$Data$Tile$CharTile = function (a) {
 	return {$: 'CharTile', a: a};
 };
+var $author$project$Data$Tile$new = function (args) {
+	return $author$project$Data$Tile$CharTile(
+		{animation: false, bold: false, color: args.color, content: args.content, size: 1});
+};
+var $author$project$Data$Tile$withBold = function (tile) {
+	if (tile.$ === 'CharTile') {
+		var content = tile.a;
+		return $author$project$Data$Tile$CharTile(
+			_Utils_update(
+				content,
+				{bold: true}));
+	} else {
+		return tile;
+	}
+};
+var $author$project$Data$Tile$fromPlayer = function (player) {
+	return $author$project$Data$Tile$withBold(
+		$author$project$Data$Tile$new(
+			{
+				color: $author$project$View$Color$green,
+				content: A2(
+					$elm$core$Maybe$withDefault,
+					_Utils_chr('@'),
+					A2($elm$core$Maybe$map, $author$project$Data$Item$toChar, player.item))
+			}));
+};
+var $author$project$View$Color$blue = 'Blue';
 var $author$project$Data$Tile$emoji = function (_char) {
 	return $author$project$Data$Tile$CharTile(
 		{animation: false, bold: false, color: $author$project$View$Color$black, content: _char, size: 0.7});
@@ -11036,18 +11063,14 @@ var $author$project$Config$bombExplosionTime = 10;
 var $author$project$Data$Tile$ImageTile = function (a) {
 	return {$: 'ImageTile', a: a};
 };
-var $author$project$Data$Tile$image = function (source) {
+var $author$project$Data$Tile$image = function (args) {
 	return $author$project$Data$Tile$ImageTile(
-		{animation: false, source: source});
+		{animation: false, color: args.color, source: args.source});
 };
 var $author$project$Data$Storage$isEmpty = function (storage) {
 	return _Utils_eq(storage.items, _List_Nil);
 };
 var $elm$core$Basics$modBy = _Basics_modBy;
-var $author$project$Data$Tile$new = function (args) {
-	return $author$project$Data$Tile$CharTile(
-		{animation: false, bold: false, color: args.color, content: args.content, size: 1});
-};
 var $author$project$View$Color$red = 'Red';
 var $author$project$Data$Tile$withAnimation = function (tile) {
 	if (tile.$ === 'CharTile') {
@@ -11064,26 +11087,19 @@ var $author$project$Data$Tile$withAnimation = function (tile) {
 				{animation: true}));
 	}
 };
-var $author$project$Data$Tile$withBold = function (tile) {
-	if (tile.$ === 'CharTile') {
-		var content = tile.a;
-		return $author$project$Data$Tile$CharTile(
-			_Utils_update(
-				content,
-				{bold: true}));
-	} else {
-		return tile;
-	}
-};
 var $author$project$Data$Tile$fromActor = function (actor) {
 	switch (actor.$) {
 		case 'Minecart':
 			var wagon = actor.a;
 			return function (it) {
-				return $author$project$Data$Storage$isEmpty(wagon.storage) ? it : ($author$project$Data$Storage$isFull(wagon.storage) ? $author$project$Data$Tile$withBold(
-					$author$project$Data$Tile$withAnimation(it)) : $author$project$Data$Tile$withBold(it));
+				return $author$project$Data$Storage$isFull(wagon.storage) ? $author$project$Data$Tile$withBold(
+					$author$project$Data$Tile$withAnimation(it)) : $author$project$Data$Tile$withBold(it);
 			}(
-				$author$project$Data$Tile$image('https://www.pngfind.com/pngs/m/634-6344846_image-free-carts-clipart-minecart-minecart-clipart-hd.png'));
+				function (source) {
+					return $author$project$Data$Tile$image(
+						{color: $author$project$View$Color$black, source: source});
+				}(
+					$author$project$Data$Storage$isEmpty(wagon.storage) ? '/assets/svg/minecart.svg' : '/assets/svg/minecart_full.svg'));
 		case 'Excavator':
 			return $author$project$Data$Tile$new(
 				{
@@ -11108,7 +11124,10 @@ var $author$project$Data$Tile$fromActor = function (actor) {
 		case 'Train':
 			var train = actor.a;
 			return ((train.moving || (train.tracks > 0)) ? $author$project$Data$Tile$withBold : $elm$core$Basics$identity)(
-				$author$project$Data$Tile$image('https://cdn-icons-png.flaticon.com/512/936/936685.png'));
+				function (source) {
+					return $author$project$Data$Tile$image(
+						{color: $author$project$View$Color$black, source: source});
+				}('/assets/svg/train.svg'));
 		default:
 			return $author$project$Data$Tile$withBold(
 				$author$project$Data$Tile$new(
@@ -11118,61 +11137,111 @@ var $author$project$Data$Tile$fromActor = function (actor) {
 					}));
 	}
 };
+var $author$project$View$Color$gray = 'Gray';
+var $author$project$Data$Tile$fromFloor = F3(
+	function (pos, game, floor) {
+		switch (floor.$) {
+			case 'Ground':
+				return $author$project$Data$Tile$new(
+					{
+						color: $author$project$View$Color$gray,
+						content: _Utils_chr(' ')
+					});
+			case 'Track':
+				return function (list) {
+					if ((((list.b && list.b.b) && list.b.b.b) && list.b.b.b.b) && (!list.b.b.b.b.b)) {
+						var down = list.a;
+						var _v2 = list.b;
+						var left = _v2.a;
+						var _v3 = _v2.b;
+						var up = _v3.a;
+						var _v4 = _v3.b;
+						var right = _v4.a;
+						return $author$project$Data$Tile$image(
+							{color: $author$project$View$Color$gray, source: '/assets/svg/track_' + (down + (left + (up + (right + '.svg'))))});
+					} else {
+						return $author$project$Data$Tile$image(
+							{color: $author$project$View$Color$gray, source: '/assets/svg/track_1111.svg'});
+					}
+				}(
+					A2(
+						$elm$core$List$map,
+						function (p) {
+							return A2(
+								$elm$core$Maybe$withDefault,
+								'0',
+								A2(
+									$elm$core$Maybe$map,
+									function (track) {
+										return _Utils_eq(track, $author$project$Data$Floor$Track) ? '1' : '0';
+									},
+									A2($author$project$Data$World$getFloor, p, game.world)));
+						},
+						$author$project$Data$Position$neighbors(pos)));
+			default:
+				return $author$project$Data$Tile$image(
+					{color: $author$project$View$Color$gray, source: '/assets/svg/railwayTrack.svg'});
+		}
+	});
 var $elm$core$Char$toUpper = _Char_toUpper;
 var $author$project$Data$Tile$fromEntity = F2(
 	function (game, entity) {
 		switch (entity.$) {
 			case 'Vein':
 				var item = entity.a;
-				return $author$project$Data$Tile$emoji(
-					$elm$core$Char$toUpper(
-						$author$project$Data$Item$toChar(item)));
+				return $elm$core$List$singleton(
+					$author$project$Data$Tile$emoji(
+						$elm$core$Char$toUpper(
+							$author$project$Data$Item$toChar(item))));
 			case 'Wall':
-				return $author$project$Data$Tile$new(
-					{
-						color: $author$project$View$Color$black,
-						content: _Utils_chr('#')
-					});
+				return $elm$core$List$singleton(
+					$author$project$Data$Tile$image(
+						{color: $author$project$View$Color$black, source: '/assets/svg/wall.svg'}));
 			case 'Water':
-				return $author$project$Data$Tile$new(
-					{
-						color: $author$project$View$Color$blue,
-						content: _Utils_chr('~')
-					});
+				return $elm$core$List$singleton(
+					$author$project$Data$Tile$new(
+						{
+							color: $author$project$View$Color$blue,
+							content: _Utils_chr('~')
+						}));
 			case 'Lava':
-				return $author$project$Data$Tile$new(
-					{
-						color: $author$project$View$Color$red,
-						content: _Utils_chr('~')
-					});
+				return $elm$core$List$singleton(
+					$author$project$Data$Tile$new(
+						{
+							color: $author$project$View$Color$red,
+							content: _Utils_chr('~')
+						}));
 			default:
 				var id = entity.a;
 				return A2(
 					$elm$core$Maybe$withDefault,
-					$author$project$Data$Tile$new(
-						{
-							color: $author$project$View$Color$red,
-							content: _Utils_chr('?')
-						}),
+					$elm$core$List$singleton(
+						$author$project$Data$Tile$new(
+							{
+								color: $author$project$View$Color$red,
+								content: _Utils_chr('?')
+							})),
 					A2(
 						$elm$core$Maybe$map,
 						function (_v1) {
+							var pos = _v1.a;
 							var actor = _v1.b;
-							return $author$project$Data$Tile$fromActor(actor);
+							return _List_fromArray(
+								[
+									A3(
+									$author$project$Data$Tile$fromFloor,
+									pos,
+									game,
+									A2(
+										$elm$core$Maybe$withDefault,
+										$author$project$Data$Floor$Ground,
+										A2($author$project$Data$World$getFloor, pos, game.world))),
+									$author$project$Data$Tile$fromActor(actor)
+								]);
 						},
-						A2($elm$core$Dict$get, id, game.world.actors)));
+						A2($author$project$Data$World$getActor, id, game.world)));
 		}
 	});
-var $author$project$Data$Tile$fromFloor = function (floor) {
-	switch (floor.$) {
-		case 'Ground':
-			return _Utils_chr(' ');
-		case 'Track':
-			return _Utils_chr('+');
-		default:
-			return _Utils_chr('=');
-	}
-};
 var $author$project$Data$Tile$withSmall = function (tile) {
 	if (tile.$ === 'CharTile') {
 		var content = tile.a;
@@ -11190,44 +11259,32 @@ var $author$project$Data$Tile$fromItem = function (item) {
 			$author$project$Data$Tile$emoji(
 				$author$project$Data$Item$toChar(item))));
 };
-var $author$project$View$Color$gray = 'Gray';
-var $author$project$Data$Tile$fromBlock = F2(
-	function (game, _v0) {
-		var block = _v0.a;
-		var items = _v0.b;
-		if (block.$ === 'FloorBlock') {
-			var floor = block.a;
-			return A2(
-				$elm$core$List$cons,
-				$author$project$Data$Tile$new(
-					{
-						color: $author$project$View$Color$gray,
-						content: $author$project$Data$Tile$fromFloor(floor)
-					}),
-				A2(
-					$elm$core$Maybe$withDefault,
-					_List_Nil,
-					A2($elm$core$Maybe$map, $author$project$Data$Tile$fromItem, items)));
-		} else {
-			var entity = block.a;
-			return _List_fromArray(
-				[
-					A2($author$project$Data$Tile$fromEntity, game, entity)
-				]);
-		}
+var $author$project$Data$Tile$fromPos = F2(
+	function (pos, game) {
+		return A2(
+			$elm$core$Maybe$withDefault,
+			_List_Nil,
+			A2(
+				$elm$core$Maybe$map,
+				function (_v0) {
+					var block = _v0.a;
+					var items = _v0.b;
+					if (block.$ === 'FloorBlock') {
+						var floor = block.a;
+						return A2(
+							$elm$core$List$cons,
+							A3($author$project$Data$Tile$fromFloor, pos, game, floor),
+							A2(
+								$elm$core$Maybe$withDefault,
+								_List_Nil,
+								A2($elm$core$Maybe$map, $author$project$Data$Tile$fromItem, items)));
+					} else {
+						var entity = block.a;
+						return A2($author$project$Data$Tile$fromEntity, game, entity);
+					}
+				},
+				A2($author$project$Data$World$get, pos, game.world)));
 	});
-var $author$project$View$Color$green = 'Green';
-var $author$project$Data$Tile$fromPlayer = function (player) {
-	return $author$project$Data$Tile$withBold(
-		$author$project$Data$Tile$new(
-			{
-				color: $author$project$View$Color$green,
-				content: A2(
-					$elm$core$Maybe$withDefault,
-					_Utils_chr('@'),
-					A2($elm$core$Maybe$map, $author$project$Data$Item$toChar, player.item))
-			}));
-};
 var $Orasund$elm_layout$Layout$stack = F2(
 	function (attrs, list) {
 		return A2(
@@ -11406,13 +11463,7 @@ var $author$project$View$Screen$tile = F3(
 							[$author$project$Data$Tile$wall]) : list)));
 		}(
 			_Utils_eq(pos, game.player.pos) ? $elm$core$List$singleton(
-				$author$project$Data$Tile$fromPlayer(game.player)) : A2(
-				$elm$core$Maybe$withDefault,
-				_List_Nil,
-				A2(
-					$elm$core$Maybe$map,
-					$author$project$Data$Tile$fromBlock(game),
-					A2($author$project$Data$World$get, pos, game.world))));
+				$author$project$Data$Tile$fromPlayer(game.player)) : A2($author$project$Data$Tile$fromPos, pos, game));
 	});
 var $author$project$View$Screen$fromGame = F2(
 	function (args, game) {

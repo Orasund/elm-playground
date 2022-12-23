@@ -26,8 +26,7 @@ mineGenerator pos world =
                 |> Random.andThen
                     (\stop ->
                         if stop then
-                            Random.weighted ( 1, Data.Item.Coal )
-                                []
+                            Random.weighted ( 1, Data.Item.Coal ) []
                                 |> Random.map Data.Minecart.fullWagon
                                 |> Random.map Data.Actor.Minecart
                                 |> Random.map

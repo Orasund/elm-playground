@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+    <defs>
+        <mask id="rails-outline">
+            <rect width="100" height="100" fill="white" />
+            <use href="track_lib.svg#rail-outline-left" fill="black" />
+        </mask>
+    </defs>
+    <g id="bars" mask="url(#rails-outline)" fill="gray">
+        <use href="track_lib.svg#bar-left" />
+    </g>
+    <g id="rails" fill="gray">
+        <use href="track_lib.svg#rail-left" />
+    </g>
+</svg>
