@@ -131,11 +131,15 @@ fromFloor pos game floor =
                             |> Data.World.getFloor p
                             |> Maybe.map
                                 (\track ->
-                                    if track == Data.Floor.Track then
-                                        "1"
+                                    case track of
+                                        Data.Floor.Track ->
+                                            "1"
 
-                                    else
-                                        "0"
+                                        Data.Floor.RailwayTrack ->
+                                            "1"
+
+                                        _ ->
+                                            "0"
                                 )
                             |> Maybe.withDefault "0"
                     )
@@ -143,20 +147,20 @@ fromFloor pos game floor =
                         case list of
                             [ down, left, up, right ] ->
                                 { color = View.Color.gray
-                                , source = "/assets/svg/track_" ++ down ++ left ++ up ++ right ++ ".svg"
+                                , source = "assets/svg/track/track_" ++ down ++ left ++ up ++ right ++ ".svg"
                                 }
                                     |> image
 
                             _ ->
                                 { color = View.Color.gray
-                                , source = "/assets/svg/track_1111.svg"
+                                , source = "assets/svg/track/track_1111.svg"
                                 }
                                     |> image
                    )
 
         Data.Floor.RailwayTrack ->
             { color = View.Color.gray
-            , source = "/assets/svg/railwayTrack.svg"
+            , source = "assets/svg/railwayTrack.svg"
             }
                 |> image
 
@@ -172,17 +176,24 @@ fromEntity game entity =
                 |> List.singleton
 
         Data.Entity.Wall ->
-            image { source = "/assets/svg/wall.svg", color = View.Color.black }
+            { source = "assets/svg/wall.svg"
+            , color = View.Color.black
+            }
+                |> image
                 |> List.singleton
 
         Data.Entity.Water ->
-            { color = View.Color.blue, content = '~' }
-                |> new
+            { color = View.Color.blue
+            , source = "assets/svg/water.svg"
+            }
+                |> image
                 |> List.singleton
 
         Data.Entity.Lava ->
-            { color = View.Color.red, content = '~' }
-                |> new
+            { color = View.Color.red
+            , source = "assets/svg/lava.svg"
+            }
+                |> image
                 |> List.singleton
 
         Data.Entity.Actor id ->
@@ -206,10 +217,10 @@ fromActor actor =
     case actor of
         Data.Actor.Minecart wagon ->
             (if Data.Storage.isEmpty wagon.storage then
-                "/assets/svg/minecart.svg"
+                "assets/svg/minecart.svg"
 
              else
-                "/assets/svg/minecart_full.svg"
+                "assets/svg/minecart_full.svg"
             )
                 |> (\source -> image { source = source, color = View.Color.black })
                 |> (\it ->
@@ -232,20 +243,19 @@ fromActor actor =
                 |> withBold
 
         Data.Actor.Bomb bomb ->
-            { color = View.Color.red, content = 'b' }
-                |> new
-                |> (if
-                        (bomb.explodesIn > Config.bombExplosionTime // 2)
-                            || (bomb.explodesIn < Config.bombExplosionTime && modBy 2 bomb.explodesIn == 0)
-                    then
-                        withBold
+            (if
+                (bomb.explodesIn > Config.bombExplosionTime // 2)
+                    || (bomb.explodesIn < Config.bombExplosionTime && modBy 2 bomb.explodesIn == 0)
+             then
+                "assets/svg/bomb_active.svg"
 
-                    else
-                        identity
-                   )
+             else
+                "assets/svg/bomb.svg"
+            )
+                |> (\source -> image { source = source, color = View.Color.red })
 
         Data.Actor.Train train ->
-            "/assets/svg/train.svg"
+            "assets/svg/train.svg"
                 |> (\source -> image { source = source, color = View.Color.black })
                 |> (if train.moving || train.tracks > 0 then
                         withBold
@@ -256,10 +266,10 @@ fromActor actor =
 
         Data.Actor.MovingWater _ ->
             { color = View.Color.blue
-            , content = '~'
+            , source = "assets/svg/water.svg"
             }
-                |> new
-                |> withBold
+                |> image
+                |> withAnimation
 
 
 fromItem : Item -> List Tile

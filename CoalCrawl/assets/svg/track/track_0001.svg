@@ -1,14 +1,26 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
     <defs>
+        <rect id="rail-outline-left" width="55" height="20" x="0" y="40" />
+        <rect id="rail-outline-right" width="55" height="20" x="45" y="40" />
+        <rect id="rail-outline-top" width="20" height="55" x="40" y="0" />
+        <rect id="rail-outline-bottom" width="20" height="55" x="40" y="45" />
+        <rect id="rail-left" width="55" height="10" x="0" y="45" />
+        <rect id="rail-right" width="55" height="10" x="45" y="45" />
+        <rect id="rail-top" width="10" height="55" x="45" y="0" />
+        <rect id="rail-bottom" width="10" height="55" x="45" y="45" />
+        <rect id="bar-left" width="10" height="40" x="10" y="30" />
+        <rect id="bar-bottom" width="40" height="10" x="30" y="80" />
+        <rect id="bar-top" width="40" height="10" x="30" y="10" />
+        <rect id="bar-right" width="10" height="40" x="80" y="30" />
         <mask id="rails-outline">
             <rect width="100" height="100" fill="white" />
-            <use href="track_lib.svg#rail-outline-right" fill="black" />
+            <use href="#rail-outline-right" fill="black" />
         </mask>
     </defs>
     <g id="bars" mask="url(#rails-outline)" fill="gray">
-        <use href="track_lib.svg#bar-right" />
+        <use href="#bar-right" />
     </g>
     <g id="rails" fill="gray">
-        <use href="track_lib.svg#rail-right" />
+        <use href="#rail-right" />
     </g>
 </svg>

@@ -11099,7 +11099,7 @@ var $author$project$Data$Tile$fromActor = function (actor) {
 					return $author$project$Data$Tile$image(
 						{color: $author$project$View$Color$black, source: source});
 				}(
-					$author$project$Data$Storage$isEmpty(wagon.storage) ? '/assets/svg/minecart.svg' : '/assets/svg/minecart_full.svg'));
+					$author$project$Data$Storage$isEmpty(wagon.storage) ? 'assets/svg/minecart.svg' : 'assets/svg/minecart_full.svg'));
 		case 'Excavator':
 			return $author$project$Data$Tile$new(
 				{
@@ -11115,26 +11115,22 @@ var $author$project$Data$Tile$fromActor = function (actor) {
 					}));
 		case 'Bomb':
 			var bomb = actor.a;
-			return (((_Utils_cmp(bomb.explodesIn, ($author$project$Config$bombExplosionTime / 2) | 0) > 0) || ((_Utils_cmp(bomb.explodesIn, $author$project$Config$bombExplosionTime) < 0) && (!A2($elm$core$Basics$modBy, 2, bomb.explodesIn)))) ? $author$project$Data$Tile$withBold : $elm$core$Basics$identity)(
-				$author$project$Data$Tile$new(
-					{
-						color: $author$project$View$Color$red,
-						content: _Utils_chr('b')
-					}));
+			return function (source) {
+				return $author$project$Data$Tile$image(
+					{color: $author$project$View$Color$red, source: source});
+			}(
+				((_Utils_cmp(bomb.explodesIn, ($author$project$Config$bombExplosionTime / 2) | 0) > 0) || ((_Utils_cmp(bomb.explodesIn, $author$project$Config$bombExplosionTime) < 0) && (!A2($elm$core$Basics$modBy, 2, bomb.explodesIn)))) ? 'assets/svg/bomb_active.svg' : 'assets/svg/bomb.svg');
 		case 'Train':
 			var train = actor.a;
 			return ((train.moving || (train.tracks > 0)) ? $author$project$Data$Tile$withBold : $elm$core$Basics$identity)(
 				function (source) {
 					return $author$project$Data$Tile$image(
 						{color: $author$project$View$Color$black, source: source});
-				}('/assets/svg/train.svg'));
+				}('assets/svg/train.svg'));
 		default:
-			return $author$project$Data$Tile$withBold(
-				$author$project$Data$Tile$new(
-					{
-						color: $author$project$View$Color$blue,
-						content: _Utils_chr('~')
-					}));
+			return $author$project$Data$Tile$withAnimation(
+				$author$project$Data$Tile$image(
+					{color: $author$project$View$Color$blue, source: 'assets/svg/water.svg'}));
 	}
 };
 var $author$project$View$Color$gray = 'Gray';
@@ -11151,17 +11147,17 @@ var $author$project$Data$Tile$fromFloor = F3(
 				return function (list) {
 					if ((((list.b && list.b.b) && list.b.b.b) && list.b.b.b.b) && (!list.b.b.b.b.b)) {
 						var down = list.a;
-						var _v2 = list.b;
-						var left = _v2.a;
-						var _v3 = _v2.b;
-						var up = _v3.a;
+						var _v3 = list.b;
+						var left = _v3.a;
 						var _v4 = _v3.b;
-						var right = _v4.a;
+						var up = _v4.a;
+						var _v5 = _v4.b;
+						var right = _v5.a;
 						return $author$project$Data$Tile$image(
-							{color: $author$project$View$Color$gray, source: '/assets/svg/track_' + (down + (left + (up + (right + '.svg'))))});
+							{color: $author$project$View$Color$gray, source: 'assets/svg/track/track_' + (down + (left + (up + (right + '.svg'))))});
 					} else {
 						return $author$project$Data$Tile$image(
-							{color: $author$project$View$Color$gray, source: '/assets/svg/track_1111.svg'});
+							{color: $author$project$View$Color$gray, source: 'assets/svg/track/track_1111.svg'});
 					}
 				}(
 					A2(
@@ -11173,14 +11169,21 @@ var $author$project$Data$Tile$fromFloor = F3(
 								A2(
 									$elm$core$Maybe$map,
 									function (track) {
-										return _Utils_eq(track, $author$project$Data$Floor$Track) ? '1' : '0';
+										switch (track.$) {
+											case 'Track':
+												return '1';
+											case 'RailwayTrack':
+												return '1';
+											default:
+												return '0';
+										}
 									},
 									A2($author$project$Data$World$getFloor, p, game.world)));
 						},
 						$author$project$Data$Position$neighbors(pos)));
 			default:
 				return $author$project$Data$Tile$image(
-					{color: $author$project$View$Color$gray, source: '/assets/svg/railwayTrack.svg'});
+					{color: $author$project$View$Color$gray, source: 'assets/svg/railwayTrack.svg'});
 		}
 	});
 var $elm$core$Char$toUpper = _Char_toUpper;
@@ -11196,21 +11199,15 @@ var $author$project$Data$Tile$fromEntity = F2(
 			case 'Wall':
 				return $elm$core$List$singleton(
 					$author$project$Data$Tile$image(
-						{color: $author$project$View$Color$black, source: '/assets/svg/wall.svg'}));
+						{color: $author$project$View$Color$black, source: 'assets/svg/wall.svg'}));
 			case 'Water':
 				return $elm$core$List$singleton(
-					$author$project$Data$Tile$new(
-						{
-							color: $author$project$View$Color$blue,
-							content: _Utils_chr('~')
-						}));
+					$author$project$Data$Tile$image(
+						{color: $author$project$View$Color$blue, source: 'assets/svg/water.svg'}));
 			case 'Lava':
 				return $elm$core$List$singleton(
-					$author$project$Data$Tile$new(
-						{
-							color: $author$project$View$Color$red,
-							content: _Utils_chr('~')
-						}));
+					$author$project$Data$Tile$image(
+						{color: $author$project$View$Color$red, source: 'assets/svg/lava.svg'}));
 			default:
 				var id = entity.a;
 				return A2(
