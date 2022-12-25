@@ -101,16 +101,24 @@ wall =
     { color = View.Color.black, content = ' ' } |> new
 
 
-fromPlayer : Player -> Tile
-fromPlayer player =
-    { color = View.Color.green
-    , content =
-        player.item
-            |> Maybe.map Data.Item.toChar
-            |> Maybe.withDefault '@'
-    }
-        |> new
-        |> withBold
+fromPlayer : Game -> Player -> List Tile
+fromPlayer game player =
+    [ game.world
+        |> Data.World.getFloor player.pos
+        |> Maybe.withDefault Data.Floor.Ground
+        |> fromFloor player.pos game
+    , player.item
+        |> Maybe.map Data.Item.toString
+        |> Maybe.map (\item -> "assets/svg/player_" ++ String.toLower item ++ ".svg")
+        |> Maybe.withDefault "assets/svg/player.svg"
+        |> (\source ->
+                { color = View.Color.green
+                , source = source
+                }
+                    |> image
+                    |> withAnimation
+           )
+    ]
 
 
 fromFloor : ( Int, Int ) -> Game -> Floor -> Tile
@@ -169,10 +177,13 @@ fromEntity : Game -> Entity -> List Tile
 fromEntity game entity =
     case entity of
         Data.Entity.Vein item ->
-            item
-                |> Data.Item.toChar
-                |> Char.toUpper
-                |> emoji
+            { source =
+                "assets/svg/vein_"
+                    ++ (item |> Data.Item.toString |> String.toLower)
+                    ++ ".svg"
+            , color = View.Color.black
+            }
+                |> image
                 |> List.singleton
 
         Data.Entity.Wall ->
@@ -268,10 +279,15 @@ fromActor actor =
 
 fromItem : Item -> List Tile
 fromItem item =
-    item
-        |> Data.Item.toChar
-        |> emoji
-        |> withSmall
+    "assets/svg/item_"
+        ++ (item |> Data.Item.toString |> String.toLower)
+        ++ ".svg"
+        |> (\source ->
+                { color = View.Color.gray
+                , source = source
+                }
+                    |> image
+           )
         |> List.singleton
 
 

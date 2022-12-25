@@ -6063,34 +6063,15 @@ var $JohnBugner$elm_bag$Bag$empty = $JohnBugner$elm_bag$Bag$Bag($elm$core$Dict$e
 var $author$project$AnyBag$empty = function (encode) {
 	return {content: $JohnBugner$elm_bag$Bag$empty, encode: encode};
 };
-var $elm$core$String$cons = _String_cons;
-var $elm$core$String$fromChar = function (_char) {
-	return A2($elm$core$String$cons, _char, '');
-};
-var $author$project$Data$Item$toChar = function (item) {
+var $author$project$Data$Item$toString = function (item) {
 	switch (item.$) {
 		case 'Coal':
-			return _Utils_chr('⚫');
+			return 'Coal';
 		case 'Iron':
-			return _Utils_chr('🔘');
+			return 'Iron';
 		default:
-			return _Utils_chr('🟡');
+			return 'Gold';
 	}
-};
-var $author$project$Data$Item$toString = function (item) {
-	return _Utils_ap(
-		$elm$core$String$fromChar(
-			$author$project$Data$Item$toChar(item)),
-		function () {
-			switch (item.$) {
-				case 'Coal':
-					return 'Coal';
-				case 'Iron':
-					return 'Iron';
-				default:
-					return 'Gold';
-			}
-		}());
 };
 var $author$project$Data$Train$fromPos = function (pos) {
 	return {
@@ -10807,42 +10788,7 @@ var $Orasund$elm_layout$Layout$asButton = function (args) {
 				args.onPress)));
 };
 var $author$project$View$Color$black = 'Black';
-var $author$project$View$Color$green = 'Green';
-var $author$project$Data$Tile$CharTile = function (a) {
-	return {$: 'CharTile', a: a};
-};
-var $author$project$Data$Tile$new = function (args) {
-	return $author$project$Data$Tile$CharTile(
-		{animation: false, bold: false, color: args.color, content: args.content, size: 1});
-};
-var $author$project$Data$Tile$withBold = function (tile) {
-	if (tile.$ === 'CharTile') {
-		var content = tile.a;
-		return $author$project$Data$Tile$CharTile(
-			_Utils_update(
-				content,
-				{bold: true}));
-	} else {
-		return tile;
-	}
-};
-var $author$project$Data$Tile$fromPlayer = function (player) {
-	return $author$project$Data$Tile$withBold(
-		$author$project$Data$Tile$new(
-			{
-				color: $author$project$View$Color$green,
-				content: A2(
-					$elm$core$Maybe$withDefault,
-					_Utils_chr('@'),
-					A2($elm$core$Maybe$map, $author$project$Data$Item$toChar, player.item))
-			}));
-};
-var $author$project$View$Color$blue = 'Blue';
-var $author$project$Data$Tile$emoji = function (_char) {
-	return $author$project$Data$Tile$CharTile(
-		{animation: false, bold: false, color: $author$project$View$Color$black, content: _char, size: 0.7});
-};
-var $author$project$Config$bombExplosionTime = 10;
+var $author$project$View$Color$gray = 'Gray';
 var $author$project$Data$Tile$ImageTile = function (a) {
 	return {$: 'ImageTile', a: a};
 };
@@ -10850,67 +10796,13 @@ var $author$project$Data$Tile$image = function (args) {
 	return $author$project$Data$Tile$ImageTile(
 		{animation: false, color: args.color, source: args.source});
 };
-var $author$project$Data$Storage$isEmpty = function (storage) {
-	return _Utils_eq(storage.items, _List_Nil);
+var $author$project$Data$Tile$CharTile = function (a) {
+	return {$: 'CharTile', a: a};
 };
-var $elm$core$Basics$modBy = _Basics_modBy;
-var $author$project$View$Color$red = 'Red';
-var $author$project$Data$Tile$withAnimation = function (tile) {
-	if (tile.$ === 'CharTile') {
-		var content = tile.a;
-		return $author$project$Data$Tile$CharTile(
-			_Utils_update(
-				content,
-				{animation: true}));
-	} else {
-		var content = tile.a;
-		return $author$project$Data$Tile$ImageTile(
-			_Utils_update(
-				content,
-				{animation: true}));
-	}
+var $author$project$Data$Tile$new = function (args) {
+	return $author$project$Data$Tile$CharTile(
+		{animation: false, bold: false, color: args.color, content: args.content, size: 1});
 };
-var $author$project$Data$Tile$fromActor = function (actor) {
-	switch (actor.$) {
-		case 'Minecart':
-			var wagon = actor.a;
-			return function (it) {
-				return $author$project$Data$Storage$isFull(wagon.storage) ? $author$project$Data$Tile$withBold(
-					$author$project$Data$Tile$withAnimation(it)) : $author$project$Data$Tile$withBold(it);
-			}(
-				function (source) {
-					return $author$project$Data$Tile$image(
-						{color: $author$project$View$Color$black, source: source});
-				}(
-					$author$project$Data$Storage$isEmpty(wagon.storage) ? 'assets/svg/minecart.svg' : 'assets/svg/minecart_full.svg'));
-		case 'Helper':
-			return $author$project$Data$Tile$withBold(
-				$author$project$Data$Tile$new(
-					{
-						color: $author$project$View$Color$red,
-						content: _Utils_chr('?')
-					}));
-		case 'Bomb':
-			var bomb = actor.a;
-			return function (source) {
-				return $author$project$Data$Tile$image(
-					{color: $author$project$View$Color$red, source: source});
-			}(
-				((_Utils_cmp(bomb.explodesIn, ($author$project$Config$bombExplosionTime / 2) | 0) > 0) || ((_Utils_cmp(bomb.explodesIn, $author$project$Config$bombExplosionTime) < 0) && (!A2($elm$core$Basics$modBy, 2, bomb.explodesIn)))) ? 'assets/svg/bomb_active.svg' : 'assets/svg/bomb.svg');
-		case 'Train':
-			var train = actor.a;
-			return ((train.moving || (train.tracks > 0)) ? $author$project$Data$Tile$withBold : $elm$core$Basics$identity)(
-				function (source) {
-					return $author$project$Data$Tile$image(
-						{color: $author$project$View$Color$black, source: source});
-				}('assets/svg/train.svg'));
-		default:
-			return $author$project$Data$Tile$withAnimation(
-				$author$project$Data$Tile$image(
-					{color: $author$project$View$Color$blue, source: 'assets/svg/water.svg'}));
-	}
-};
-var $author$project$View$Color$gray = 'Gray';
 var $author$project$Data$Tile$fromFloor = F3(
 	function (pos, game, floor) {
 		switch (floor.$) {
@@ -10963,16 +10855,121 @@ var $author$project$Data$Tile$fromFloor = F3(
 					{color: $author$project$View$Color$gray, source: 'assets/svg/railwayTrack.svg'});
 		}
 	});
-var $elm$core$Char$toUpper = _Char_toUpper;
+var $author$project$View$Color$green = 'Green';
+var $elm$core$String$toLower = _String_toLower;
+var $author$project$Data$Tile$withAnimation = function (tile) {
+	if (tile.$ === 'CharTile') {
+		var content = tile.a;
+		return $author$project$Data$Tile$CharTile(
+			_Utils_update(
+				content,
+				{animation: true}));
+	} else {
+		var content = tile.a;
+		return $author$project$Data$Tile$ImageTile(
+			_Utils_update(
+				content,
+				{animation: true}));
+	}
+};
+var $author$project$Data$Tile$fromPlayer = F2(
+	function (game, player) {
+		return _List_fromArray(
+			[
+				A3(
+				$author$project$Data$Tile$fromFloor,
+				player.pos,
+				game,
+				A2(
+					$elm$core$Maybe$withDefault,
+					$author$project$Data$Floor$Ground,
+					A2($author$project$Data$World$getFloor, player.pos, game.world))),
+				function (source) {
+				return $author$project$Data$Tile$withAnimation(
+					$author$project$Data$Tile$image(
+						{color: $author$project$View$Color$green, source: source}));
+			}(
+				A2(
+					$elm$core$Maybe$withDefault,
+					'assets/svg/player.svg',
+					A2(
+						$elm$core$Maybe$map,
+						function (item) {
+							return 'assets/svg/player_' + ($elm$core$String$toLower(item) + '.svg');
+						},
+						A2($elm$core$Maybe$map, $author$project$Data$Item$toString, player.item))))
+			]);
+	});
+var $author$project$View$Color$blue = 'Blue';
+var $author$project$Config$bombExplosionTime = 10;
+var $author$project$Data$Storage$isEmpty = function (storage) {
+	return _Utils_eq(storage.items, _List_Nil);
+};
+var $elm$core$Basics$modBy = _Basics_modBy;
+var $author$project$View$Color$red = 'Red';
+var $author$project$Data$Tile$withBold = function (tile) {
+	if (tile.$ === 'CharTile') {
+		var content = tile.a;
+		return $author$project$Data$Tile$CharTile(
+			_Utils_update(
+				content,
+				{bold: true}));
+	} else {
+		return tile;
+	}
+};
+var $author$project$Data$Tile$fromActor = function (actor) {
+	switch (actor.$) {
+		case 'Minecart':
+			var wagon = actor.a;
+			return function (it) {
+				return $author$project$Data$Storage$isFull(wagon.storage) ? $author$project$Data$Tile$withBold(
+					$author$project$Data$Tile$withAnimation(it)) : $author$project$Data$Tile$withBold(it);
+			}(
+				function (source) {
+					return $author$project$Data$Tile$image(
+						{color: $author$project$View$Color$black, source: source});
+				}(
+					$author$project$Data$Storage$isEmpty(wagon.storage) ? 'assets/svg/minecart.svg' : 'assets/svg/minecart_full.svg'));
+		case 'Helper':
+			return $author$project$Data$Tile$withBold(
+				$author$project$Data$Tile$new(
+					{
+						color: $author$project$View$Color$red,
+						content: _Utils_chr('?')
+					}));
+		case 'Bomb':
+			var bomb = actor.a;
+			return function (source) {
+				return $author$project$Data$Tile$image(
+					{color: $author$project$View$Color$red, source: source});
+			}(
+				((_Utils_cmp(bomb.explodesIn, ($author$project$Config$bombExplosionTime / 2) | 0) > 0) || ((_Utils_cmp(bomb.explodesIn, $author$project$Config$bombExplosionTime) < 0) && (!A2($elm$core$Basics$modBy, 2, bomb.explodesIn)))) ? 'assets/svg/bomb_active.svg' : 'assets/svg/bomb.svg');
+		case 'Train':
+			var train = actor.a;
+			return ((train.moving || (train.tracks > 0)) ? $author$project$Data$Tile$withBold : $elm$core$Basics$identity)(
+				function (source) {
+					return $author$project$Data$Tile$image(
+						{color: $author$project$View$Color$black, source: source});
+				}('assets/svg/train.svg'));
+		default:
+			return $author$project$Data$Tile$withAnimation(
+				$author$project$Data$Tile$image(
+					{color: $author$project$View$Color$blue, source: 'assets/svg/water.svg'}));
+	}
+};
 var $author$project$Data$Tile$fromEntity = F2(
 	function (game, entity) {
 		switch (entity.$) {
 			case 'Vein':
 				var item = entity.a;
 				return $elm$core$List$singleton(
-					$author$project$Data$Tile$emoji(
-						$elm$core$Char$toUpper(
-							$author$project$Data$Item$toChar(item))));
+					$author$project$Data$Tile$image(
+						{
+							color: $author$project$View$Color$black,
+							source: 'assets/svg/vein_' + ($elm$core$String$toLower(
+								$author$project$Data$Item$toString(item)) + '.svg')
+						}));
 			case 'Wall':
 				return $elm$core$List$singleton(
 					$author$project$Data$Tile$image(
@@ -11016,22 +11013,14 @@ var $author$project$Data$Tile$fromEntity = F2(
 						A2($author$project$Data$World$getActor, id, game.world)));
 		}
 	});
-var $author$project$Data$Tile$withSmall = function (tile) {
-	if (tile.$ === 'CharTile') {
-		var content = tile.a;
-		return $author$project$Data$Tile$CharTile(
-			_Utils_update(
-				content,
-				{size: 0.2}));
-	} else {
-		return tile;
-	}
-};
 var $author$project$Data$Tile$fromItem = function (item) {
 	return $elm$core$List$singleton(
-		$author$project$Data$Tile$withSmall(
-			$author$project$Data$Tile$emoji(
-				$author$project$Data$Item$toChar(item))));
+		function (source) {
+			return $author$project$Data$Tile$image(
+				{color: $author$project$View$Color$gray, source: source});
+		}(
+			'assets/svg/item_' + ($elm$core$String$toLower(
+				$author$project$Data$Item$toString(item)) + '.svg')));
 };
 var $author$project$Data$Tile$fromPos = F2(
 	function (pos, game) {
@@ -11110,6 +11099,10 @@ var $author$project$Config$fontSize = F2(
 			$author$project$Config$width(zoom)) + ', '))) + (($elm$core$String$fromFloat(100 * size) + ('vh/' + $elm$core$String$fromInt(
 			$author$project$Config$height(zoom)))) + ')'));
 	});
+var $elm$core$String$cons = _String_cons;
+var $elm$core$String$fromChar = function (_char) {
+	return A2($elm$core$String$cons, _char, '');
+};
 var $elm$html$Html$img = _VirtualDom_node('img');
 var $elm$html$Html$Attributes$src = function (url) {
 	return A2(
@@ -11236,8 +11229,7 @@ var $author$project$View$Screen$tile = F3(
 						$elm$core$List$isEmpty(list) ? _List_fromArray(
 							[$author$project$Data$Tile$wall]) : list)));
 		}(
-			_Utils_eq(pos, game.player.pos) ? $elm$core$List$singleton(
-				$author$project$Data$Tile$fromPlayer(game.player)) : A2($author$project$Data$Tile$fromPos, pos, game));
+			_Utils_eq(pos, game.player.pos) ? A2($author$project$Data$Tile$fromPlayer, game, game.player) : A2($author$project$Data$Tile$fromPos, pos, game));
 	});
 var $author$project$View$Screen$fromGame = F2(
 	function (args, game) {
@@ -11311,6 +11303,16 @@ var $author$project$View$Tab$buildBlockButton = F3(
 		};
 	});
 var $Orasund$elm_layout$Layout$spaceBetween = A2($elm$html$Html$Attributes$style, 'justify-content', 'space-between');
+var $author$project$Data$Item$toChar = function (item) {
+	switch (item.$) {
+		case 'Coal':
+			return _Utils_chr('⚫');
+		case 'Iron':
+			return _Utils_chr('🔘');
+		default:
+			return _Utils_chr('🟡');
+	}
+};
 var $Orasund$elm_layout$Layout$asEl = A2($elm$html$Html$Attributes$style, 'display', 'flex');
 var $elm$html$Html$button = _VirtualDom_node('button');
 var $Orasund$elm_layout$Layout$buttonEl = F3(

@@ -53,8 +53,7 @@ fromGame args game =
 tile : { onPress : Maybe msg, zoom : Zoom } -> ( Int, Int ) -> Game -> Html msg
 tile args pos game =
     (if pos == game.player.pos then
-        Data.Tile.fromPlayer game.player
-            |> List.singleton
+        Data.Tile.fromPlayer game game.player
 
      else
         Data.Tile.fromPos pos game
