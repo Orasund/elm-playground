@@ -146,12 +146,6 @@ destroyBlock pos game =
                                        )
                                     |> Just
 
-                            Just ( _, Data.Actor.Excavator _ ) ->
-                                game.world
-                                    |> Data.World.removeEntity pos
-                                    |> (\world -> { game | world = world })
-                                    |> Just
-
                             _ ->
                                 Nothing
 

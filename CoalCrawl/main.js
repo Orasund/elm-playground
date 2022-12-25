@@ -6982,54 +6982,36 @@ var $author$project$Data$Game$destroyBlock = F2(
 							if (block.a.$ === 'Actor') {
 								var id = block.a.a;
 								var _v1 = A2($author$project$Data$World$getActor, id, game.world);
-								_v1$2:
-								while (true) {
-									if (_v1.$ === 'Just') {
-										switch (_v1.a.b.$) {
-											case 'Minecart':
-												var _v2 = _v1.a;
-												var minecart = _v2.b.a;
-												return $elm$core$Maybe$Just(
-													function (g) {
-														return A2(
-															$author$project$Data$Game$setWorldOf,
-															g,
-															A3(
-																$author$project$Data$World$insertAllItems,
-																minecart.storage.items,
-																pos,
-																A2($author$project$Data$World$removeEntity, pos, g.world)));
-													}(
-														function (train) {
-															return A2($author$project$Data$Game$setTrain, train, game);
-														}(
-															A2(
-																$author$project$Data$Train$addAll,
-																A2($elm$core$List$repeat, $author$project$Config$wagonCost, $author$project$Data$Item$Iron),
-																$author$project$Data$Game$getTrain(game)))));
-											case 'Excavator':
-												var _v3 = _v1.a;
-												return $elm$core$Maybe$Just(
-													function (world) {
-														return _Utils_update(
-															game,
-															{world: world});
-													}(
-														A2($author$project$Data$World$removeEntity, pos, game.world)));
-											default:
-												break _v1$2;
-										}
-									} else {
-										break _v1$2;
-									}
+								if ((_v1.$ === 'Just') && (_v1.a.b.$ === 'Minecart')) {
+									var _v2 = _v1.a;
+									var minecart = _v2.b.a;
+									return $elm$core$Maybe$Just(
+										function (g) {
+											return A2(
+												$author$project$Data$Game$setWorldOf,
+												g,
+												A3(
+													$author$project$Data$World$insertAllItems,
+													minecart.storage.items,
+													pos,
+													A2($author$project$Data$World$removeEntity, pos, g.world)));
+										}(
+											function (train) {
+												return A2($author$project$Data$Game$setTrain, train, game);
+											}(
+												A2(
+													$author$project$Data$Train$addAll,
+													A2($elm$core$List$repeat, $author$project$Config$wagonCost, $author$project$Data$Item$Iron),
+													$author$project$Data$Game$getTrain(game)))));
+								} else {
+									return $elm$core$Maybe$Nothing;
 								}
-								return $elm$core$Maybe$Nothing;
 							} else {
 								break _v0$2;
 							}
 						} else {
 							if (block.a.$ === 'Track') {
-								var _v4 = block.a;
+								var _v3 = block.a;
 								return $elm$core$Maybe$Just(
 									function (world) {
 										return _Utils_update(
@@ -8176,9 +8158,6 @@ var $author$project$Data$Storage$load = F2(
 					items: _Utils_ap(storage.items, items)
 				})) : $elm$core$Maybe$Nothing;
 	});
-var $author$project$Data$Actor$Excavator = function (a) {
-	return {$: 'Excavator', a: a};
-};
 var $author$project$Data$World$getActorAt = F2(
 	function (pos, world) {
 		return A2(
@@ -8230,22 +8209,6 @@ var $author$project$Data$World$updateStorage = F3(
 				var id = _v0.a;
 				var actor = _v0.b;
 				switch (actor.$) {
-					case 'Excavator':
-						var excavator = actor.a;
-						return $elm$core$Maybe$Just(
-							A2(
-								$elm$core$Tuple$mapFirst,
-								function (storage) {
-									return A3(
-										$author$project$Data$World$setActor,
-										id,
-										$author$project$Data$Actor$Excavator(
-											_Utils_update(
-												excavator,
-												{storage: storage})),
-										world);
-								},
-								fun(excavator.storage)));
 					case 'Minecart':
 						var minecart = actor.a;
 						return $elm$core$Maybe$Just(
@@ -8441,147 +8404,6 @@ var $author$project$Data$Behavior$Player$act = function (game) {
 			},
 			game.player.targetPos));
 };
-var $author$project$Config$excavatorRadius = 4;
-var $author$project$Data$Behavior$Excavator$getExcavator = F2(
-	function (id, world) {
-		return A2(
-			$elm$core$Maybe$andThen,
-			function (_v0) {
-				var actor = _v0.b;
-				if (actor.$ === 'Excavator') {
-					var excavator = actor.a;
-					return $elm$core$Maybe$Just(excavator);
-				} else {
-					return $elm$core$Maybe$Nothing;
-				}
-			},
-			A2($author$project$Data$World$getActor, id, world));
-	});
-var $author$project$Data$Storage$size = function (storage) {
-	return $elm$core$List$length(storage.items);
-};
-var $author$project$Data$Storage$spaceRemaining = function (storage) {
-	return storage.maxAmount - $author$project$Data$Storage$size(storage);
-};
-var $author$project$Data$Storage$isFull = function (storage) {
-	return !$author$project$Data$Storage$spaceRemaining(storage);
-};
-var $author$project$Data$Storage$insert = F2(
-	function (item, storage) {
-		return $author$project$Data$Storage$isFull(storage) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(
-			_Utils_update(
-				storage,
-				{
-					items: A2($elm$core$List$cons, item, storage.items)
-				}));
-	});
-var $author$project$Data$Excavator$insertItem = F2(
-	function (item, excavator) {
-		return A2(
-			$elm$core$Maybe$map,
-			function (storage) {
-				return _Utils_update(
-					excavator,
-					{storage: storage});
-			},
-			A2($author$project$Data$Storage$insert, item, excavator.storage));
-	});
-var $elm$core$List$isEmpty = function (xs) {
-	if (!xs.b) {
-		return true;
-	} else {
-		return false;
-	}
-};
-var $author$project$Data$Position$neighborsWithDistance = F2(
-	function (r, _v0) {
-		var x = _v0.a;
-		var y = _v0.b;
-		return A2(
-			$elm$core$List$concatMap,
-			function (x0) {
-				return A2(
-					$elm$core$List$map,
-					function (y0) {
-						return _Utils_Tuple2(x0, y0);
-					},
-					A2($elm$core$List$range, y - r, y + r));
-			},
-			A2($elm$core$List$range, x - r, x + r));
-	});
-var $author$project$Data$Behavior$Excavator$collectOrRemove = F3(
-	function (pos, id, w) {
-		var list = A2(
-			$elm$core$List$filterMap,
-			function (p) {
-				return A2(
-					$elm$core$Maybe$map,
-					function (i) {
-						return _Utils_Tuple2(p, i);
-					},
-					A2($author$project$Data$World$getItem, p, w));
-			},
-			A2($author$project$Data$Position$neighborsWithDistance, $author$project$Config$excavatorRadius, pos));
-		return $elm$core$List$isEmpty(list) ? A2($author$project$Data$World$removeEntity, pos, w) : A3(
-			$elm$core$List$foldl,
-			F2(
-				function (_v0, world) {
-					var p = _v0.a;
-					var item = _v0.b;
-					return A2(
-						$elm$core$Maybe$withDefault,
-						world,
-						A2(
-							$elm$core$Maybe$map,
-							$author$project$Data$World$removeItem(p),
-							A2(
-								$elm$core$Maybe$map,
-								function (excavator) {
-									return A3(
-										$author$project$Data$World$setActor,
-										id,
-										$author$project$Data$Actor$Excavator(excavator),
-										world);
-								},
-								A2(
-									$elm$core$Maybe$andThen,
-									$author$project$Data$Excavator$insertItem(item),
-									A2($author$project$Data$Behavior$Excavator$getExcavator, id, world)))));
-				}),
-			w,
-			list);
-	});
-var $author$project$Data$Behavior$Excavator$mine = F2(
-	function (pos, world) {
-		return A3(
-			$elm$core$List$foldl,
-			function (p) {
-				var _v0 = A2($author$project$Data$World$getBlock, p, world);
-				if ((_v0.$ === 'Just') && (_v0.a.$ === 'EntityBlock')) {
-					var entity = _v0.a.a;
-					if (entity.$ === 'Vein') {
-						return $elm$random$Random$andThen(
-							$author$project$Generation$mine(p));
-					} else {
-						return $elm$core$Basics$identity;
-					}
-				} else {
-					return $elm$core$Basics$identity;
-				}
-			},
-			$elm$random$Random$constant(world),
-			A2($author$project$Data$Position$neighborsWithDistance, $author$project$Config$excavatorRadius, pos));
-	});
-var $author$project$Data$Behavior$Excavator$act = F3(
-	function (_v0, id, world) {
-		var pos = _v0.a;
-		var excavator = _v0.b;
-		return $author$project$Data$Effect$genWithNone(
-			A2(
-				$elm$random$Random$map,
-				A2($author$project$Data$Behavior$Excavator$collectOrRemove, pos, id),
-				A2($author$project$Data$Behavior$Excavator$mine, pos, world)));
-	});
 var $author$project$Data$Actor$Falling = function (a) {
 	return {$: 'Falling', a: a};
 };
@@ -8641,6 +8463,24 @@ var $author$project$Data$Behavior$Minecart$getMinecart = F2(
 			},
 			A2($author$project$Data$World$getActor, id, world));
 	});
+var $author$project$Data$Storage$size = function (storage) {
+	return $elm$core$List$length(storage.items);
+};
+var $author$project$Data$Storage$spaceRemaining = function (storage) {
+	return storage.maxAmount - $author$project$Data$Storage$size(storage);
+};
+var $author$project$Data$Storage$isFull = function (storage) {
+	return !$author$project$Data$Storage$spaceRemaining(storage);
+};
+var $author$project$Data$Storage$insert = F2(
+	function (item, storage) {
+		return $author$project$Data$Storage$isFull(storage) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(
+			_Utils_update(
+				storage,
+				{
+					items: A2($elm$core$List$cons, item, storage.items)
+				}));
+	});
 var $author$project$Data$Minecart$setStorageOf = F2(
 	function (minecart, storage) {
 		return _Utils_update(
@@ -8684,6 +8524,118 @@ var $elm$core$Tuple$mapBoth = F3(
 var $elm$core$List$singleton = function (value) {
 	return _List_fromArray(
 		[value]);
+};
+var $author$project$Data$Behavior$Minecart$pickup = F3(
+	function (from, id, world) {
+		return A2(
+			$elm$core$Maybe$andThen,
+			function (_v0) {
+				var block = _v0.a;
+				var maybeItem = _v0.b;
+				if (block.$ === 'FloorBlock') {
+					return A2(
+						$elm$core$Maybe$map,
+						A2(
+							$elm$core$Tuple$mapBoth,
+							function (m) {
+								return A2(
+									$author$project$Data$World$removeItem,
+									from,
+									A3(
+										$author$project$Data$World$updateActor,
+										id,
+										function (_v2) {
+											return $author$project$Data$Actor$Minecart(m);
+										},
+										world));
+							},
+							function (s) {
+								return $elm$core$List$singleton(
+									$author$project$Data$Effect$PlaySound(s));
+							}),
+						A2(
+							$elm$core$Maybe$andThen,
+							$elm$core$Basics$identity,
+							A3(
+								$elm$core$Maybe$map2,
+								$author$project$Data$Minecart$insert,
+								maybeItem,
+								A2(
+									$elm$core$Maybe$map,
+									$elm$core$Tuple$second,
+									A2($author$project$Data$Behavior$Minecart$getMinecart, id, world)))));
+				} else {
+					return $elm$core$Maybe$Nothing;
+				}
+			},
+			A2($author$project$Data$World$get, from, world));
+	});
+var $author$project$Data$Behavior$Minecart$collect = F4(
+	function (pos, id, improvements, w) {
+		return A2($elm$core$List$member, $author$project$Data$Improvement$MinecartCanCollect, improvements) ? A3(
+			$elm$core$List$foldl,
+			F2(
+				function (p, _v0) {
+					var world = _v0.a;
+					var l = _v0.b;
+					return A2(
+						$elm$core$Maybe$withDefault,
+						_Utils_Tuple2(world, l),
+						A2(
+							$elm$core$Maybe$map,
+							$elm$core$Tuple$mapSecond(
+								function (e) {
+									return _Utils_ap(e, l);
+								}),
+							A3($author$project$Data$Behavior$Minecart$pickup, p, id, world)));
+				}),
+			_Utils_Tuple2(w, _List_Nil),
+			$author$project$Data$Position$neighbors(pos)) : _Utils_Tuple2(w, _List_Nil);
+	});
+var $author$project$Data$Floor$Track = {$: 'Track'};
+var $author$project$Data$Minecart$moveFrom = F2(
+	function (movedFrom, wagon) {
+		return _Utils_update(
+			wagon,
+			{
+				movedFrom: $elm$core$Maybe$Just(movedFrom)
+			});
+	});
+var $author$project$Data$Behavior$Minecart$swapWith = F3(
+	function (id0, _v0, world) {
+		var pos = _v0.a;
+		var id1 = _v0.b;
+		return A3(
+			$elm$core$Maybe$map2,
+			F2(
+				function (_v1, _v2) {
+					var p0 = _v1.a;
+					var w0 = _v1.b;
+					var w1 = _v2.b;
+					return A3(
+						$author$project$Data$World$setActor,
+						id1,
+						$author$project$Data$Actor$Minecart(
+							A2($author$project$Data$Minecart$setStorageOf, w1, w0.storage)),
+						A3(
+							$author$project$Data$World$setActor,
+							id0,
+							$author$project$Data$Actor$Minecart(
+								(_Utils_eq(
+									A2($author$project$Data$World$getFloor, p0, world),
+									$elm$core$Maybe$Just($author$project$Data$Floor$Track)) ? $author$project$Data$Minecart$moveFrom(pos) : $elm$core$Basics$identity)(
+									A2($author$project$Data$Minecart$setStorageOf, w0, w1.storage))),
+							world));
+				}),
+			A2($author$project$Data$Behavior$Minecart$getMinecart, id0, world),
+			A2($author$project$Data$Behavior$Minecart$getMinecart, id1, world));
+	});
+var $elm$core$List$isEmpty = function (xs) {
+	if (!xs.b) {
+		return true;
+	} else {
+		return false;
+	}
 };
 var $author$project$Data$World$remainingSpace = F2(
 	function (pos, world) {
@@ -8770,139 +8722,6 @@ var $author$project$Data$World$transfer = F2(
 					A3($author$project$Data$World$take, amount, args.from, w));
 			},
 			A2($author$project$Data$World$remainingSpace, args.to, w));
-	});
-var $author$project$Data$Behavior$Minecart$pickup = F3(
-	function (from, id, world) {
-		return A2(
-			$elm$core$Maybe$andThen,
-			function (_v0) {
-				var block = _v0.a;
-				var maybeItem = _v0.b;
-				if (block.$ === 'FloorBlock') {
-					return A2(
-						$elm$core$Maybe$map,
-						A2(
-							$elm$core$Tuple$mapBoth,
-							function (m) {
-								return A2(
-									$author$project$Data$World$removeItem,
-									from,
-									A3(
-										$author$project$Data$World$updateActor,
-										id,
-										function (_v2) {
-											return $author$project$Data$Actor$Minecart(m);
-										},
-										world));
-							},
-							function (s) {
-								return $elm$core$List$singleton(
-									$author$project$Data$Effect$PlaySound(s));
-							}),
-						A2(
-							$elm$core$Maybe$andThen,
-							$elm$core$Basics$identity,
-							A3(
-								$elm$core$Maybe$map2,
-								$author$project$Data$Minecart$insert,
-								maybeItem,
-								A2(
-									$elm$core$Maybe$map,
-									$elm$core$Tuple$second,
-									A2($author$project$Data$Behavior$Minecart$getMinecart, id, world)))));
-				} else {
-					if (block.a.$ === 'Actor') {
-						var targetId = block.a.a;
-						return A2(
-							$elm$core$Maybe$andThen,
-							$elm$core$Basics$identity,
-							A3(
-								$elm$core$Maybe$map2,
-								F2(
-									function (actor, to) {
-										if (actor.$ === 'Excavator') {
-											return A2(
-												$author$project$Data$World$transfer,
-												{from: from, to: to},
-												world);
-										} else {
-											return $elm$core$Maybe$Nothing;
-										}
-									}),
-								A2(
-									$elm$core$Maybe$map,
-									$elm$core$Tuple$second,
-									A2($author$project$Data$World$getActor, targetId, world)),
-								A2(
-									$elm$core$Maybe$map,
-									$elm$core$Tuple$first,
-									A2($author$project$Data$Behavior$Minecart$getMinecart, id, world))));
-					} else {
-						return $elm$core$Maybe$Nothing;
-					}
-				}
-			},
-			A2($author$project$Data$World$get, from, world));
-	});
-var $author$project$Data$Behavior$Minecart$collect = F4(
-	function (pos, id, improvements, w) {
-		return A2($elm$core$List$member, $author$project$Data$Improvement$MinecartCanCollect, improvements) ? A3(
-			$elm$core$List$foldl,
-			F2(
-				function (p, _v0) {
-					var world = _v0.a;
-					var l = _v0.b;
-					return A2(
-						$elm$core$Maybe$withDefault,
-						_Utils_Tuple2(world, l),
-						A2(
-							$elm$core$Maybe$map,
-							$elm$core$Tuple$mapSecond(
-								function (e) {
-									return _Utils_ap(e, l);
-								}),
-							A3($author$project$Data$Behavior$Minecart$pickup, p, id, world)));
-				}),
-			_Utils_Tuple2(w, _List_Nil),
-			$author$project$Data$Position$neighbors(pos)) : _Utils_Tuple2(w, _List_Nil);
-	});
-var $author$project$Data$Floor$Track = {$: 'Track'};
-var $author$project$Data$Minecart$moveFrom = F2(
-	function (movedFrom, wagon) {
-		return _Utils_update(
-			wagon,
-			{
-				movedFrom: $elm$core$Maybe$Just(movedFrom)
-			});
-	});
-var $author$project$Data$Behavior$Minecart$swapWith = F3(
-	function (id0, _v0, world) {
-		var pos = _v0.a;
-		var id1 = _v0.b;
-		return A3(
-			$elm$core$Maybe$map2,
-			F2(
-				function (_v1, _v2) {
-					var p0 = _v1.a;
-					var w0 = _v1.b;
-					var w1 = _v2.b;
-					return A3(
-						$author$project$Data$World$setActor,
-						id1,
-						$author$project$Data$Actor$Minecart(
-							A2($author$project$Data$Minecart$setStorageOf, w1, w0.storage)),
-						A3(
-							$author$project$Data$World$setActor,
-							id0,
-							$author$project$Data$Actor$Minecart(
-								(_Utils_eq(
-									A2($author$project$Data$World$getFloor, p0, world),
-									$elm$core$Maybe$Just($author$project$Data$Floor$Track)) ? $author$project$Data$Minecart$moveFrom(pos) : $elm$core$Basics$identity)(
-									A2($author$project$Data$Minecart$setStorageOf, w0, w1.storage))),
-							world));
-				}),
-			A2($author$project$Data$Behavior$Minecart$getMinecart, id0, world),
-			A2($author$project$Data$Behavior$Minecart$getMinecart, id1, world));
 	});
 var $author$project$Data$Behavior$Minecart$collideWith = F3(
 	function (target, _v0, world) {
@@ -9770,7 +9589,6 @@ var $author$project$Data$Behavior$Train$collect = F3(
 				},
 				A2($author$project$Data$Behavior$Train$getTrain, id, world))) : world;
 	});
-var $author$project$Config$excavatorCost = 1;
 var $author$project$Data$Behavior$Train$mine = F2(
 	function (id, world) {
 		return A2(
@@ -9833,20 +9651,6 @@ var $author$project$Data$Behavior$Train$collideWith = F3(
 															$author$project$Data$Train$addAll,
 															A2($elm$core$List$repeat, $author$project$Config$wagonCost, $author$project$Data$Item$Iron),
 															train))))));
-								case 'Excavator':
-									return $elm$core$Maybe$Just(
-										$author$project$Data$Effect$withNone(
-											A2(
-												$author$project$Data$World$removeEntity,
-												newPos,
-												A3(
-													$author$project$Data$Behavior$Train$setTrainOf,
-													world,
-													id,
-													A2(
-														$author$project$Data$Train$addAll,
-														A2($elm$core$List$repeat, $author$project$Config$excavatorCost, $author$project$Data$Item$Iron),
-														train)))));
 								case 'Helper':
 									return $elm$core$Maybe$Nothing;
 								case 'Train':
@@ -10376,13 +10180,6 @@ var $author$project$Data$Behavior$actorsAct = F3(
 		switch (actor.$) {
 			case 'Minecart':
 				return A3($author$project$Data$Behavior$Minecart$act, id, improvements, world);
-			case 'Excavator':
-				var excavator = actor.a;
-				return A3(
-					$author$project$Data$Behavior$Excavator$act,
-					_Utils_Tuple2(pos, excavator),
-					id,
-					world);
 			case 'Bomb':
 				return $author$project$Data$Effect$genWithNone(
 					A2($author$project$Data$Behavior$Bomb$timePassed, id, world));
@@ -10875,8 +10672,8 @@ var $author$project$Data$Info$fromActor = function (actor) {
 					description: 'Explodes in ' + ($elm$core$String$fromInt(explodesIn) + ' turns.'),
 					title: 'Bomb'
 				});
-		case 'Excavator':
-			var excavator = actor.a;
+		case 'Train':
+			var train = actor.a;
 			return A2(
 				$author$project$Data$Info$withContent,
 				A2(
@@ -10884,20 +10681,6 @@ var $author$project$Data$Info$fromActor = function (actor) {
 					function (_v2) {
 						var k = _v2.a;
 						var n = _v2.b;
-						return $elm$core$String$fromInt(n) + ('x ' + k);
-					},
-					$author$project$Data$Storage$toList(excavator.storage)),
-				$author$project$Data$Info$new(
-					{description: 'Mines and collect automatically', title: 'Excavator'}));
-		case 'Train':
-			var train = actor.a;
-			return A2(
-				$author$project$Data$Info$withContent,
-				A2(
-					$elm$core$List$map,
-					function (_v3) {
-						var k = _v3.a;
-						var n = _v3.b;
 						return $elm$core$String$fromInt(n) + ('x ' + k);
 					},
 					$author$project$AnyBag$toAssociationList(train.items)),
@@ -11100,12 +10883,6 @@ var $author$project$Data$Tile$fromActor = function (actor) {
 						{color: $author$project$View$Color$black, source: source});
 				}(
 					$author$project$Data$Storage$isEmpty(wagon.storage) ? 'assets/svg/minecart.svg' : 'assets/svg/minecart_full.svg'));
-		case 'Excavator':
-			return $author$project$Data$Tile$new(
-				{
-					color: $author$project$View$Color$black,
-					content: _Utils_chr('E')
-				});
 		case 'Helper':
 			return $author$project$Data$Tile$withBold(
 				$author$project$Data$Tile$new(
@@ -11611,11 +11388,6 @@ var $Orasund$elm_layout$Layout$heading3 = F2(
 				[content]));
 	});
 var $author$project$Data$Bomb$new = {explodesIn: $author$project$Config$bombExplosionTime};
-var $author$project$Config$excavatorMaxItems = $author$project$Config$wagonMaxItems;
-var $author$project$Data$Excavator$new = {
-	hasReversed: false,
-	storage: $author$project$Data$Storage$empty($author$project$Config$excavatorMaxItems)
-};
 var $elm$html$Html$input = _VirtualDom_node('input');
 var $elm$html$Html$Attributes$max = $elm$html$Html$Attributes$stringProperty('max');
 var $elm$html$Html$Attributes$min = $elm$html$Html$Attributes$stringProperty('min');
@@ -11844,30 +11616,18 @@ var $author$project$View$Tab$sidebar = F2(
 																				if (block.a.$ === 'Actor') {
 																					var id = block.a.a;
 																					var _v3 = A2($author$project$Data$World$getActor, id, game.world);
-																					_v3$2:
-																					while (true) {
-																						if (_v3.$ === 'Just') {
-																							switch (_v3.a.b.$) {
-																								case 'Minecart':
-																									var _v4 = _v3.a;
-																									return true;
-																								case 'Excavator':
-																									var _v5 = _v3.a;
-																									return true;
-																								default:
-																									break _v3$2;
-																							}
-																						} else {
-																							break _v3$2;
-																						}
+																					if ((_v3.$ === 'Just') && (_v3.a.b.$ === 'Minecart')) {
+																						var _v4 = _v3.a;
+																						return true;
+																					} else {
+																						return false;
 																					}
-																					return false;
 																				} else {
 																					break _v2$2;
 																				}
 																			} else {
 																				if (block.a.$ === 'Track') {
-																					var _v6 = block.a;
+																					var _v5 = block.a;
 																					return true;
 																				} else {
 																					break _v2$2;
@@ -11901,13 +11661,6 @@ var $author$project$View$Tab$sidebar = F2(
 																	{
 																		actor: $author$project$Data$Actor$Minecart($author$project$Data$Minecart$emptyWagon),
 																		cost: _Utils_Tuple2($author$project$Data$Item$Iron, $author$project$Config$wagonCost)
-																	}),
-																	A2(
-																	$author$project$View$Tab$buildActorButton,
-																	args.buildActor,
-																	{
-																		actor: $author$project$Data$Actor$Excavator($author$project$Data$Excavator$new),
-																		cost: _Utils_Tuple2($author$project$Data$Item$Gold, $author$project$Config$excavatorCost)
 																	}),
 																	A2(
 																	$author$project$View$Tab$buildActorButton,

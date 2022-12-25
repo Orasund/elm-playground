@@ -161,15 +161,6 @@ collideWith ( newPos, entity ) id world =
                                                 |> Data.Effect.withNone
                                                 |> Just
 
-                                        Data.Actor.Excavator _ ->
-                                            train
-                                                |> Data.Train.addAll
-                                                    (List.repeat Config.excavatorCost Data.Item.Iron)
-                                                |> setTrainOf world id
-                                                |> Data.World.removeEntity newPos
-                                                |> Data.Effect.withNone
-                                                |> Just
-
                                         Data.Actor.Helper _ ->
                                             Nothing
 

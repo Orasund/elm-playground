@@ -248,27 +248,6 @@ pickup from id world =
                                     )
                                 )
 
-                    Data.Block.EntityBlock (Data.Entity.Actor targetId) ->
-                        Maybe.map2
-                            (\actor to ->
-                                case actor of
-                                    Data.Actor.Excavator _ ->
-                                        world
-                                            |> Data.World.transfer { from = from, to = to }
-
-                                    _ ->
-                                        Nothing
-                            )
-                            (world
-                                |> Data.World.getActor targetId
-                                |> Maybe.map Tuple.second
-                            )
-                            (world
-                                |> getMinecart id
-                                |> Maybe.map Tuple.first
-                            )
-                            |> Maybe.andThen identity
-
                     _ ->
                         Nothing
             )

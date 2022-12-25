@@ -152,17 +152,6 @@ fromActor actor =
             }
                 |> new
 
-        Data.Actor.Excavator excavator ->
-            { title = "Excavator"
-            , description = "Mines and collect automatically"
-            }
-                |> new
-                |> withContent
-                    (excavator.storage
-                        |> Data.Storage.toList
-                        |> List.map (\( k, n ) -> String.fromInt n ++ "x " ++ k)
-                    )
-
         Data.Actor.Train train ->
             { title = "Train"
             , description = "Stores all your items. If it has tracks stored, it will place them and move forward. Needs coal to move. Will regularly fetch new tracks from above ground."
