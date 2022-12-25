@@ -307,19 +307,6 @@ updateStorage fun pos world =
         |> Maybe.andThen
             (\( id, actor ) ->
                 case actor of
-                    Data.Actor.Excavator excavator ->
-                        excavator.storage
-                            |> fun
-                            |> Tuple.mapFirst
-                                (\storage ->
-                                    world
-                                        |> setActor id
-                                            ({ excavator | storage = storage }
-                                                |> Data.Actor.Excavator
-                                            )
-                                )
-                            |> Just
-
                     Data.Actor.Minecart minecart ->
                         minecart.storage
                             |> fun

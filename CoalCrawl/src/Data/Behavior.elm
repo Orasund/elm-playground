@@ -2,7 +2,6 @@ module Data.Behavior exposing (..)
 
 import Data.Actor exposing (Actor)
 import Data.Behavior.Bomb
-import Data.Behavior.Excavator
 import Data.Behavior.Falling
 import Data.Behavior.Minecart
 import Data.Behavior.MovingWater
@@ -41,12 +40,6 @@ actorsAct ( id, ( pos, actor ) ) improvements world =
         Data.Actor.Minecart _ ->
             world
                 |> Data.Behavior.Minecart.act id improvements
-
-        Data.Actor.Excavator excavator ->
-            world
-                |> Data.Behavior.Excavator.act
-                    ( pos, excavator )
-                    id
 
         Data.Actor.Bomb _ ->
             world

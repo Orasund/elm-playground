@@ -6,7 +6,6 @@ import Data.Actor exposing (Actor)
 import Data.Block exposing (Block)
 import Data.Bomb
 import Data.Entity
-import Data.Excavator
 import Data.Floor
 import Data.Game exposing (Game)
 import Data.Info
@@ -155,9 +154,6 @@ sidebar args game =
                                                             Just ( _, Data.Actor.Minecart _ ) ->
                                                                 True
 
-                                                            Just ( _, Data.Actor.Excavator _ ) ->
-                                                                True
-
                                                             _ ->
                                                                 False
 
@@ -182,10 +178,6 @@ sidebar args game =
                     BuildTab ->
                         (([ { actor = Data.Actor.Minecart Data.Minecart.emptyWagon
                             , cost = ( Data.Item.Iron, Config.wagonCost )
-                            }
-                                |> buildActorButton args.buildActor
-                          , { actor = Data.Actor.Excavator Data.Excavator.new
-                            , cost = ( Data.Item.Gold, Config.excavatorCost )
                             }
                                 |> buildActorButton args.buildActor
                           , { actor = Data.Actor.Bomb Data.Bomb.new

@@ -45,14 +45,6 @@ trainLoadSize =
     wagonMaxItems
 
 
-excavatorCost =
-    1
-
-
-excavatorRadius =
-    4
-
-
 tracksPerTrip =
     8
 
@@ -63,10 +55,6 @@ maxLevel =
 
 wagonMaxItems =
     10
-
-
-excavatorMaxItems =
-    wagonMaxItems
 
 
 trackCost =

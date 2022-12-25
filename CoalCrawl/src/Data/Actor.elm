@@ -2,7 +2,6 @@ module Data.Actor exposing (..)
 
 import Data.Bomb exposing (Bomb)
 import Data.Entity exposing (Entity)
-import Data.Excavator exposing (Excavator)
 import Data.Minecart exposing (Minecart)
 import Data.Momentum exposing (Momentum)
 import Data.Train exposing (Train)
@@ -26,7 +25,6 @@ type Helper
 type Actor
     = Minecart Minecart
     | Bomb Bomb
-    | Excavator Excavator
     | Helper Helper
     | Train Train
     | MovingWater Momentum
