@@ -1,6 +1,5 @@
 module Data.Info exposing (..)
 
-import AnyBag
 import Config
 import Data.Actor exposing (Actor)
 import Data.Block exposing (Block)
@@ -75,8 +74,13 @@ fromTrain game =
         |> withContent
             ((String.fromInt train.tracks ++ "x Tracks")
                 :: (train.items
-                        |> AnyBag.toAssociationList
-                        |> List.map (\( k, n ) -> String.fromInt n ++ "x " ++ k)
+                        |> List.map
+                            (\( k, n ) ->
+                                String.fromInt n
+                                    ++ "x "
+                                    ++ String.fromChar (Data.Item.toChar k)
+                                    ++ Data.Item.toString k
+                            )
                    )
             )
         |> withAdditionalInfo
@@ -159,8 +163,13 @@ fromActor actor =
                 |> new
                 |> withContent
                     (train.items
-                        |> AnyBag.toAssociationList
-                        |> List.map (\( k, n ) -> String.fromInt n ++ "x " ++ k)
+                        |> List.map
+                            (\( k, n ) ->
+                                String.fromInt n
+                                    ++ "x "
+                                    ++ String.fromChar (Data.Item.toChar k)
+                                    ++ Data.Item.toString k
+                            )
                     )
 
         Data.Actor.MovingWater _ ->

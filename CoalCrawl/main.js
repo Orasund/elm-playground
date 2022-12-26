@@ -6061,27 +6061,10 @@ var $author$project$Data$World$fromList = A2(
 var $author$project$Data$Player$fromPos = function (pos) {
 	return {item: $elm$core$Maybe$Nothing, pos: pos, riding: $elm$core$Maybe$Nothing, targetPos: $elm$core$Maybe$Nothing};
 };
-var $JohnBugner$elm_bag$Bag$Bag = function (a) {
-	return {$: 'Bag', a: a};
-};
-var $JohnBugner$elm_bag$Bag$empty = $JohnBugner$elm_bag$Bag$Bag($elm$core$Dict$empty);
-var $author$project$AnyBag$empty = function (encode) {
-	return {content: $JohnBugner$elm_bag$Bag$empty, encode: encode};
-};
-var $author$project$Data$Item$toString = function (item) {
-	switch (item.$) {
-		case 'Coal':
-			return 'Coal';
-		case 'Iron':
-			return 'Iron';
-		default:
-			return 'Gold';
-	}
-};
 var $author$project$Data$Train$fromPos = function (pos) {
 	return {
 		dir: _Utils_Tuple2(0, -1),
-		items: $author$project$AnyBag$empty($author$project$Data$Item$toString),
+		items: _List_Nil,
 		moving: false,
 		pos: pos,
 		tracks: 0
@@ -6198,26 +6181,29 @@ var $author$project$Data$Modal$TitleModal = function (a) {
 };
 var $author$project$Data$Modal$title = $author$project$Data$Modal$TitleModal(
 	{animationFrame: 0});
-var $author$project$Main$restart = function (seed) {
-	return function (game) {
-		return {
-			building: $elm$core$Maybe$Nothing,
-			camera: game.player.pos,
-			game: game,
-			level: 1,
-			modal: $elm$core$Maybe$Just($author$project$Data$Modal$title),
-			seed: seed,
-			sidebarTab: $elm$core$Maybe$Just($author$project$View$Tab$DetailTab),
-			tickInterval: 200,
-			volume: 25,
-			widthOverHeight: 1.4,
-			zoomPercent: 25
-		};
-	}($author$project$Data$Game$new);
-};
+var $author$project$Main$restart = F2(
+	function (widthOverHeight, seed) {
+		return function (game) {
+			return {
+				building: $elm$core$Maybe$Nothing,
+				camera: game.player.pos,
+				game: game,
+				level: 1,
+				modal: $elm$core$Maybe$Just($author$project$Data$Modal$title),
+				seed: seed,
+				sidebarTab: $elm$core$Maybe$Just($author$project$View$Tab$DetailTab),
+				tickInterval: 200,
+				volume: 25,
+				widthOverHeight: widthOverHeight,
+				zoomPercent: 25
+			};
+		}($author$project$Data$Game$new);
+	});
 var $author$project$Main$init = function (_v0) {
 	return _Utils_Tuple2(
-		$author$project$Main$restart(
+		A2(
+			$author$project$Main$restart,
+			1.4,
 			$elm$random$Random$initialSeed(42)),
 		$elm$core$Platform$Cmd$batch(
 			_List_fromArray(
@@ -6803,72 +6789,80 @@ var $author$project$Data$World$isFloor = F2(
 			return false;
 		}
 	});
-var $JohnBugner$elm_bag$Bag$dict = function (_v0) {
-	var d = _v0.a;
-	return d;
-};
-var $JohnBugner$elm_bag$Bag$count = F2(
-	function (v, b) {
-		return A2(
-			$elm$core$Maybe$withDefault,
-			0,
-			A2(
-				$elm$core$Dict$get,
-				v,
-				$JohnBugner$elm_bag$Bag$dict(b)));
-	});
-var $author$project$AnyBag$count = F2(
-	function (a, bag) {
-		return A2(
-			$JohnBugner$elm_bag$Bag$count,
-			bag.encode(a),
-			bag.content);
+var $author$project$ListBag$count = F2(
+	function (a, list) {
+		var rec = function (input) {
+			rec:
+			while (true) {
+				if (input.b) {
+					var _v1 = input.a;
+					var a1 = _v1.a;
+					var n1 = _v1.b;
+					var tail = input.b;
+					if (_Utils_eq(a1, a)) {
+						return n1;
+					} else {
+						var $temp$input = tail;
+						input = $temp$input;
+						continue rec;
+					}
+				} else {
+					return 0;
+				}
+			}
+		};
+		return rec(list);
 	});
 var $elm$core$Basics$ge = _Utils_ge;
-var $JohnBugner$elm_bag$Bag$insert = F3(
-	function (n_, v, b) {
-		var f = function (ma) {
-			var n__ = n_ + A2($elm$core$Maybe$withDefault, 0, ma);
-			return (n__ > 0) ? $elm$core$Maybe$Just(n__) : $elm$core$Maybe$Nothing;
-		};
-		return $JohnBugner$elm_bag$Bag$Bag(
-			A3(
-				$elm$core$Dict$update,
-				v,
-				f,
-				$JohnBugner$elm_bag$Bag$dict(b)));
-	});
-var $JohnBugner$elm_bag$Bag$remove = function (n) {
-	return $JohnBugner$elm_bag$Bag$insert(-n);
-};
-var $author$project$AnyBag$remove = F3(
-	function (n, a, bag) {
-		return _Utils_update(
-			bag,
-			{
-				content: A3(
-					$JohnBugner$elm_bag$Bag$remove,
-					n,
-					bag.encode(a),
-					bag.content)
+var $author$project$ListBag$remove = F3(
+	function (n, a, list) {
+		var rec = F2(
+			function (input, output) {
+				rec:
+				while (true) {
+					if (input.b) {
+						var _v1 = input.a;
+						var a1 = _v1.a;
+						var n1 = _v1.b;
+						var tail = input.b;
+						if (_Utils_eq(a, a1)) {
+							return (_Utils_cmp(n1, n) > 0) ? A2(
+								$elm$core$List$cons,
+								_Utils_Tuple2(a1, n1 - n),
+								_Utils_ap(tail, output)) : _Utils_ap(tail, output);
+						} else {
+							var $temp$input = tail,
+								$temp$output = A2(
+								$elm$core$List$cons,
+								_Utils_Tuple2(a1, n1),
+								output);
+							input = $temp$input;
+							output = $temp$output;
+							continue rec;
+						}
+					} else {
+						return output;
+					}
+				}
 			});
+		return A2(rec, list, _List_Nil);
 	});
 var $author$project$Data$Train$removeItem = F3(
 	function (n, item, train) {
 		return A2(
 			$elm$core$Maybe$map,
 			function (t) {
-				return (_Utils_eq(item, $author$project$Data$Item$Coal) && (!A2($author$project$AnyBag$count, $author$project$Data$Item$Coal, t.items))) ? _Utils_update(
+				return (_Utils_eq(item, $author$project$Data$Item$Coal) && (!A2($author$project$ListBag$count, $author$project$Data$Item$Coal, t.items))) ? _Utils_update(
 					t,
 					{moving: false}) : t;
 			},
 			(_Utils_cmp(
-				A2($author$project$AnyBag$count, item, train.items),
+				A2($author$project$ListBag$count, item, train.items),
 				n) > -1) ? $elm$core$Maybe$Just(
 				_Utils_update(
 					train,
 					{
-						items: A3($author$project$AnyBag$remove, n, item, train.items)
+						items: A3($author$project$ListBag$remove, n, item, train.items)
 					})) : $elm$core$Maybe$Nothing);
 	});
 var $elm$core$Tuple$mapSecond = F2(
@@ -7000,18 +6994,48 @@ var $author$project$Data$Train$coalNeeded = function (train) {
 	var y = _v0.b;
 	return y * 2;
 };
-var $JohnBugner$elm_bag$Bag$fromList = A2(
-	$elm$core$List$foldl,
-	$JohnBugner$elm_bag$Bag$insert(1),
-	$JohnBugner$elm_bag$Bag$empty);
-var $author$project$AnyBag$fromList = F2(
-	function (encode, list) {
-		return {
-			content: $JohnBugner$elm_bag$Bag$fromList(
-				A2($elm$core$List$map, encode, list)),
-			encode: encode
-		};
+var $author$project$ListBag$insert = F3(
+	function (n, a, list) {
+		var rec = F2(
+			function (input, output) {
+				rec:
+				while (true) {
+					if (input.b) {
+						var _v1 = input.a;
+						var a1 = _v1.a;
+						var n1 = _v1.b;
+						var tail = input.b;
+						if (_Utils_eq(a1, a)) {
+							return A2(
+								$elm$core$List$cons,
+								_Utils_Tuple2(a1, n1 + n),
+								_Utils_ap(tail, output));
+						} else {
+							var $temp$input = tail,
+								$temp$output = A2(
+								$elm$core$List$cons,
+								_Utils_Tuple2(a1, n1),
+								output);
+							input = $temp$input;
+							output = $temp$output;
+							continue rec;
+						}
+					} else {
+						return A2(
+							$elm$core$List$cons,
+							_Utils_Tuple2(a, n),
+							output);
+					}
+				}
+			});
+		return A2(rec, list, _List_Nil);
 	});
+var $author$project$ListBag$fromList = A2(
+	$elm$core$List$foldl,
+	function (a) {
+		return A2($author$project$ListBag$insert, 1, a);
+	},
+	_List_Nil);
 var $elm$core$List$any = F2(
 	function (isOkay, list) {
 		any:
@@ -7042,34 +7066,21 @@ var $elm$core$List$member = F2(
 			},
 			xs);
 	});
-var $JohnBugner$elm_bag$Bag$union = F2(
-	function (b1, b2) {
-		var f = F4(
-			function (v, n1, n2, d) {
-				return A3($elm$core$Dict$insert, v, n1 + n2, d);
-			});
-		return $JohnBugner$elm_bag$Bag$Bag(
-			A6(
-				$elm$core$Dict$merge,
-				$elm$core$Dict$insert,
-				f,
-				$elm$core$Dict$insert,
-				$JohnBugner$elm_bag$Bag$dict(b1),
-				$JohnBugner$elm_bag$Bag$dict(b2),
-				$elm$core$Dict$empty));
-	});
-var $author$project$AnyBag$union = F2(
-	function (b1, b2) {
-		return {
-			content: A2($JohnBugner$elm_bag$Bag$union, b1.content, b2.content),
-			encode: b2.encode
-		};
-	});
+var $author$project$ListBag$union = function (l1) {
+	return A2(
+		$elm$core$List$foldl,
+		function (_v0) {
+			var a = _v0.a;
+			var n = _v0.b;
+			return A2($author$project$ListBag$insert, n, a);
+		},
+		l1);
+};
 var $author$project$Data$Train$addAll = F2(
 	function (list, train) {
 		return function (t) {
 			return (A2($elm$core$List$member, $author$project$Data$Item$Coal, list) && ((_Utils_cmp(
-				A2($author$project$AnyBag$count, $author$project$Data$Item$Coal, t.items),
+				A2($author$project$ListBag$count, $author$project$Data$Item$Coal, t.items),
 				$author$project$Data$Train$coalNeeded(t)) > -1) || (t.tracks > 0))) ? _Utils_update(
 				t,
 				{moving: true}) : t;
@@ -7078,8 +7089,8 @@ var $author$project$Data$Train$addAll = F2(
 				train,
 				{
 					items: A2(
-						$author$project$AnyBag$union,
-						A2($author$project$AnyBag$fromList, $author$project$Data$Item$toString, list),
+						$author$project$ListBag$union,
+						$author$project$ListBag$fromList(list),
 						train.items)
 				}));
 	});
@@ -9576,6 +9587,13 @@ var $author$project$Data$Behavior$Train$getTrain = F2(
 			A2($author$project$Data$World$getActor, id, world));
 	});
 var $author$project$Config$hqPos = _Utils_Tuple2(0, 0);
+var $author$project$ListBag$member = function (a) {
+	return $elm$core$List$any(
+		function (_v0) {
+			var a1 = _v0.a;
+			return _Utils_eq(a, a1);
+		});
+};
 var $author$project$Data$Improvement$GetOneGoldEachLevel = {$: 'GetOneGoldEachLevel'};
 var $author$project$Data$Item$Gold = {$: 'Gold'};
 var $author$project$Data$Effect$LevelUp = {$: 'LevelUp'};
@@ -9973,7 +9991,7 @@ var $author$project$Data$Behavior$Train$tryMovingTo = F4(
 												},
 												A2($author$project$Data$Behavior$Train$move, id, world))) : ((_Utils_cmp(
 											$author$project$Data$Train$coalNeeded(train),
-											A2($author$project$AnyBag$count, $author$project$Data$Item$Coal, train.items)) < 1) ? A2(
+											A2($author$project$ListBag$count, $author$project$Data$Item$Coal, train.items)) < 1) ? A2(
 											$elm$core$Maybe$map,
 											$elm$random$Random$constant,
 											A2(
@@ -10021,7 +10039,7 @@ var $author$project$Data$Behavior$Train$act = F3(
 				function (train) {
 					var newPos = $author$project$Data$Train$forwardPos(train);
 					return _Utils_eq(train.pos, $author$project$Config$hqPos) ? $elm$core$Maybe$Just(
-						A3($author$project$Data$Behavior$Train$stockUpAtBase, id, improvements, world)) : (train.moving ? A2(
+						A3($author$project$Data$Behavior$Train$stockUpAtBase, id, improvements, world)) : ((train.moving && A2($author$project$ListBag$member, $author$project$Data$Item$Coal, train.items)) ? A2(
 						$elm$core$Maybe$andThen,
 						function (block) {
 							return A4(
@@ -10628,7 +10646,7 @@ var $author$project$Main$update = F2(
 			case 'Restart':
 				var seed = msg.a;
 				return _Utils_Tuple2(
-					$author$project$Main$restart(seed),
+					A2($author$project$Main$restart, model.widthOverHeight, seed),
 					$elm$core$Platform$Cmd$none);
 			case 'TileClicked':
 				var pos = msg.a;
@@ -10836,15 +10854,72 @@ var $Orasund$elm_layout$Layout$container = function (attrs) {
 				]),
 			attrs));
 };
+var $elm$core$String$cons = _String_cons;
+var $elm$core$String$fromChar = function (_char) {
+	return A2($elm$core$String$cons, _char, '');
+};
 var $author$project$Data$Info$new = function (args) {
 	return {additionalInfo: _List_Nil, content: _List_Nil, description: args.description, title: args.title};
 };
+var $author$project$Data$Item$toChar = function (item) {
+	switch (item.$) {
+		case 'Coal':
+			return _Utils_chr('⚫');
+		case 'Iron':
+			return _Utils_chr('🔘');
+		default:
+			return _Utils_chr('🟡');
+	}
+};
+var $JohnBugner$elm_bag$Bag$Bag = function (a) {
+	return {$: 'Bag', a: a};
+};
+var $JohnBugner$elm_bag$Bag$empty = $JohnBugner$elm_bag$Bag$Bag($elm$core$Dict$empty);
+var $JohnBugner$elm_bag$Bag$dict = function (_v0) {
+	var d = _v0.a;
+	return d;
+};
+var $JohnBugner$elm_bag$Bag$insert = F3(
+	function (n_, v, b) {
+		var f = function (ma) {
+			var n__ = n_ + A2($elm$core$Maybe$withDefault, 0, ma);
+			return (n__ > 0) ? $elm$core$Maybe$Just(n__) : $elm$core$Maybe$Nothing;
+		};
+		return $JohnBugner$elm_bag$Bag$Bag(
+			A3(
+				$elm$core$Dict$update,
+				v,
+				f,
+				$JohnBugner$elm_bag$Bag$dict(b)));
+	});
+var $JohnBugner$elm_bag$Bag$fromList = A2(
+	$elm$core$List$foldl,
+	$JohnBugner$elm_bag$Bag$insert(1),
+	$JohnBugner$elm_bag$Bag$empty);
+var $author$project$AnyBag$fromList = F2(
+	function (encode, list) {
+		return {
+			content: $JohnBugner$elm_bag$Bag$fromList(
+				A2($elm$core$List$map, encode, list)),
+			encode: encode
+		};
+	});
 var $JohnBugner$elm_bag$Bag$toAssociationList = function (b) {
 	return $elm$core$Dict$toList(
 		$JohnBugner$elm_bag$Bag$dict(b));
 };
 var $author$project$AnyBag$toAssociationList = function (bag) {
 	return $JohnBugner$elm_bag$Bag$toAssociationList(bag.content);
+};
+var $author$project$Data$Item$toString = function (item) {
+	switch (item.$) {
+		case 'Coal':
+			return 'Coal';
+		case 'Iron':
+			return 'Iron';
+		default:
+			return 'Gold';
+	}
 };
 var $author$project$Data$Storage$toList = function (storage) {
 	return $author$project$AnyBag$toAssociationList(
@@ -10894,9 +10969,10 @@ var $author$project$Data$Info$fromActor = function (actor) {
 					function (_v2) {
 						var k = _v2.a;
 						var n = _v2.b;
-						return $elm$core$String$fromInt(n) + ('x ' + k);
+						return $elm$core$String$fromInt(n) + ('x ' + ($elm$core$String$fromChar(
+							$author$project$Data$Item$toChar(k)) + $author$project$Data$Item$toString(k)));
 					},
-					$author$project$AnyBag$toAssociationList(train.items)),
+					train.items),
 				$author$project$Data$Info$new(
 					{description: 'Stores all your items. If it has tracks stored, it will place them and move forward. Needs coal to move. Will regularly fetch new tracks from above ground.', title: 'Train'}));
 		default:
@@ -11332,10 +11408,6 @@ var $author$project$Config$fontSize = F3(
 			A2($author$project$Config$width, widthOverHeight, zoom)) + ', '))) + (($elm$core$String$fromFloat(100 * size) + ('vh/' + $elm$core$String$fromInt(
 			$author$project$Config$height(zoom)))) + ')'));
 	});
-var $elm$core$String$cons = _String_cons;
-var $elm$core$String$fromChar = function (_char) {
-	return A2($elm$core$String$cons, _char, '');
-};
 var $elm$html$Html$img = _VirtualDom_node('img');
 var $elm$html$Html$Attributes$src = function (url) {
 	return A2(
@@ -11540,16 +11612,6 @@ var $author$project$View$Tab$buildBlockButton = F3(
 		};
 	});
 var $Orasund$elm_layout$Layout$spaceBetween = A2($elm$html$Html$Attributes$style, 'justify-content', 'space-between');
-var $author$project$Data$Item$toChar = function (item) {
-	switch (item.$) {
-		case 'Coal':
-			return _Utils_chr('⚫');
-		case 'Iron':
-			return _Utils_chr('🔘');
-		default:
-			return _Utils_chr('🟡');
-	}
-};
 var $Orasund$elm_layout$Layout$asEl = A2($elm$html$Html$Attributes$style, 'display', 'flex');
 var $elm$html$Html$button = _VirtualDom_node('button');
 var $Orasund$elm_layout$Layout$buttonEl = F3(
@@ -11597,7 +11659,7 @@ var $author$project$View$Tab$buildButton = F2(
 		var item = _v0.a;
 		var cost = _v0.b;
 		var gotAmount = A2(
-			$author$project$AnyBag$count,
+			$author$project$ListBag$count,
 			item,
 			$author$project$Data$Game$getTrain(game).items);
 		return A2(
@@ -12303,10 +12365,10 @@ var $author$project$View$Modal$toHtml = F5(
 											function (_v1) {
 												var k = _v1.a;
 												var n = _v1.b;
-												return $elm$core$String$fromInt(n) + ('x ' + k);
+												return $elm$core$String$fromInt(n) + ('x ' + ($elm$core$String$fromChar(
+													$author$project$Data$Item$toChar(k)) + $author$project$Data$Item$toString(k)));
 											},
-											$author$project$AnyBag$toAssociationList(
-												$author$project$Data$Game$getTrain(game).items)))))
+											$author$project$Data$Game$getTrain(game).items))))
 							]),
 						$elm$core$List$isEmpty(improvements) ? $elm$core$List$singleton(
 							A2(
@@ -12355,10 +12417,10 @@ var $author$project$View$Modal$toHtml = F5(
 										function (_v2) {
 											var k = _v2.a;
 											var n = _v2.b;
-											return $elm$core$String$fromInt(n) + ('x ' + k);
+											return $elm$core$String$fromInt(n) + ('x ' + ($elm$core$String$fromChar(
+												$author$project$Data$Item$toChar(k)) + $author$project$Data$Item$toString(k)));
 										},
-										$author$project$AnyBag$toAssociationList(
-											$author$project$Data$Game$getTrain(game).items))))),
+										$author$project$Data$Game$getTrain(game).items)))),
 							A2(
 							$Orasund$elm_layout$Layout$heading2,
 							_List_Nil,
@@ -12568,13 +12630,22 @@ var $author$project$Main$view = function (model) {
 														A2(
 															$elm$core$List$cons,
 															_Utils_Tuple2('Tracks', train.tracks),
-															$author$project$AnyBag$toAssociationList(train.items)))))),
+															A2(
+																$elm$core$List$map,
+																$elm$core$Tuple$mapFirst(
+																	function (k) {
+																		return _Utils_ap(
+																			$elm$core$String$fromChar(
+																				$author$project$Data$Item$toChar(k)),
+																			$author$project$Data$Item$toString(k));
+																	}),
+																train.items)))))),
 											A2(
 											$Orasund$elm_layout$Layout$el,
 											_List_Nil,
 											$elm$html$Html$text(
 												'Needs ' + ($elm$core$String$fromInt(
-													$author$project$Data$Train$coalNeeded(train) - A2($author$project$AnyBag$count, $author$project$Data$Item$Coal, train.items)) + ' for the next Level')))
+													$author$project$Data$Train$coalNeeded(train) - A2($author$project$ListBag$count, $author$project$Data$Item$Coal, train.items)) + ' for the next Level')))
 										])))
 							]),
 						A2(

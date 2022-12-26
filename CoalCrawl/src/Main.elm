@@ -1,6 +1,5 @@
 port module Main exposing (..)
 
-import AnyBag
 import Browser exposing (Document)
 import Browser.Dom
 import Browser.Events
@@ -21,6 +20,7 @@ import Data.Zoom
 import Html
 import Html.Attributes as Attr
 import Layout
+import ListBag
 import Random exposing (Generator, Seed)
 import Task
 import Time
@@ -107,8 +107,8 @@ type Msg
     | SetWidthOverHeight Float
 
 
-restart : Seed -> Model
-restart seed =
+restart : Float -> Seed -> Model
+restart widthOverHeight seed =
     Data.Game.new
         |> (\game ->
                 { game = game
@@ -121,7 +121,7 @@ restart seed =
                 , zoomPercent = 25
                 , building = Nothing
                 , level = 1
-                , widthOverHeight = 1.4
+                , widthOverHeight = widthOverHeight
                 }
            )
 
@@ -129,7 +129,7 @@ restart seed =
 init : () -> ( Model, Cmd Msg )
 init () =
     ( Random.initialSeed 42
-        |> restart
+        |> restart 1.4
     , Cmd.batch
         [ Random.generate Restart Random.independentSeed
         , Browser.Dom.getViewport
@@ -224,7 +224,13 @@ view model =
                     ]
                   , [ (( "Tracks", train.tracks )
                         :: (train.items
-                                |> AnyBag.toAssociationList
+                                |> List.map
+                                    (Tuple.mapFirst
+                                        (\k ->
+                                            String.fromChar (Data.Item.toChar k)
+                                                ++ Data.Item.toString k
+                                        )
+                                    )
                            )
                         |> List.map (\( k, n ) -> String.fromInt n ++ "x " ++ k)
                       )
@@ -233,7 +239,7 @@ view model =
                         |> Layout.el []
                     , "Needs "
                         ++ (Data.Train.coalNeeded train
-                                - AnyBag.count Data.Item.Coal train.items
+                                - ListBag.count Data.Item.Coal train.items
                                 |> String.fromInt
                            )
                         ++ " for the next Level"
@@ -291,7 +297,7 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Restart seed ->
-            ( restart seed, Cmd.none )
+            ( restart model.widthOverHeight seed, Cmd.none )
 
         TileClicked pos ->
             model

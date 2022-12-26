@@ -1,6 +1,5 @@
 module View.Tab exposing (..)
 
-import AnyBag
 import Config
 import Data.Actor exposing (Actor)
 import Data.Block exposing (Block)
@@ -15,6 +14,7 @@ import Data.World
 import Html exposing (Html)
 import Html.Attributes as Attr
 import Layout
+import ListBag
 import View.Button
 import View.Info
 import View.Tab.Settings
@@ -53,7 +53,7 @@ buildButton game args =
             game
                 |> Data.Game.getTrain
                 |> .items
-                |> AnyBag.count item
+                |> ListBag.count item
     in
     [ Html.text args.build
     , "Build for "

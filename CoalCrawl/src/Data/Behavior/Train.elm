@@ -1,6 +1,5 @@
 module Data.Behavior.Train exposing (..)
 
-import AnyBag
 import Config
 import Data.Actor
 import Data.Block exposing (Block)
@@ -14,6 +13,7 @@ import Data.Sound
 import Data.Train exposing (Train)
 import Data.World exposing (World)
 import Generation
+import ListBag
 import Random exposing (Generator)
 import Random.List
 
@@ -34,7 +34,7 @@ act improvements id world =
                         |> stockUpAtBase id improvements
                         |> Just
 
-                else if train.moving then
+                else if train.moving && ListBag.member Data.Item.Coal train.items then
                     world
                         |> Data.World.get newPos
                         |> Maybe.andThen (\block -> tryMovingTo ( newPos, block ) id improvements world)
@@ -74,7 +74,7 @@ tryMovingTo ( newPos, block ) id improvements world =
 
                                 else if
                                     Data.Train.coalNeeded train
-                                        <= AnyBag.count Data.Item.Coal train.items
+                                        <= ListBag.count Data.Item.Coal train.items
                                 then
                                     world
                                         |> move id

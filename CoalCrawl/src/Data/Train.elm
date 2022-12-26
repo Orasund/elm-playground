@@ -1,9 +1,9 @@
 module Data.Train exposing (..)
 
-import AnyBag exposing (AnyBag)
 import Config
 import Data.Item exposing (Item)
 import Data.Storage exposing (Storage)
+import ListBag
 
 
 type alias Train =
@@ -11,7 +11,7 @@ type alias Train =
     , dir : ( Int, Int )
     , moving : Bool
     , tracks : Int
-    , items : AnyBag String Item
+    , items : List ( Item, Int )
     }
 
 
@@ -21,7 +21,7 @@ fromPos pos =
     , dir = ( 0, -1 )
     , moving = False
     , tracks = 0
-    , items = AnyBag.empty Data.Item.toString
+    , items = []
     }
 
 
@@ -76,12 +76,12 @@ addAll list train =
     { train
         | items =
             train.items
-                |> AnyBag.union (AnyBag.fromList Data.Item.toString list)
+                |> ListBag.union (ListBag.fromList list)
     }
         |> (\t ->
                 if
                     List.member Data.Item.Coal list
-                        && (AnyBag.count Data.Item.Coal t.items >= coalNeeded t || (t.tracks > 0))
+                        && (ListBag.count Data.Item.Coal t.items >= coalNeeded t || (t.tracks > 0))
                 then
                     { t | moving = True }
 
@@ -97,11 +97,11 @@ addItem item =
 
 removeItem : Int -> Item -> Train -> Maybe Train
 removeItem n item train =
-    (if AnyBag.count item train.items >= n then
+    (if ListBag.count item train.items >= n then
         { train
             | items =
                 train.items
-                    |> AnyBag.remove n item
+                    |> ListBag.remove n item
         }
             |> Just
 
@@ -110,7 +110,7 @@ removeItem n item train =
     )
         |> Maybe.map
             (\t ->
-                if item == Data.Item.Coal && AnyBag.count Data.Item.Coal t.items == 0 then
+                if item == Data.Item.Coal && ListBag.count Data.Item.Coal t.items == 0 then
                     { t | moving = False }
 
                 else

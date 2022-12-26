@@ -1,10 +1,10 @@
 module View.Modal exposing (..)
 
-import AnyBag
 import Config
 import Data.Animation
 import Data.Game exposing (Game)
 import Data.Improvement exposing (Improvement)
+import Data.Item
 import Data.Modal exposing (Modal(..))
 import Html exposing (Html)
 import Html.Attributes as Attr
@@ -46,8 +46,13 @@ toHtml widthOverHeight closeModal game m level =
                     ++ (game
                             |> Data.Game.getTrain
                             |> .items
-                            |> AnyBag.toAssociationList
-                            |> List.map (\( k, n ) -> String.fromInt n ++ "x " ++ k)
+                            |> List.map
+                                (\( k, n ) ->
+                                    String.fromInt n
+                                        ++ "x "
+                                        ++ String.fromChar (Data.Item.toChar k)
+                                        ++ Data.Item.toString k
+                                )
                             |> String.join ", "
                        )
                     |> Html.text
@@ -86,8 +91,13 @@ toHtml widthOverHeight closeModal game m level =
                     ++ (game
                             |> Data.Game.getTrain
                             |> .items
-                            |> AnyBag.toAssociationList
-                            |> List.map (\( k, n ) -> String.fromInt n ++ "x " ++ k)
+                            |> List.map
+                                (\( k, n ) ->
+                                    String.fromInt n
+                                        ++ "x "
+                                        ++ String.fromChar (Data.Item.toChar k)
+                                        ++ Data.Item.toString k
+                                )
                             |> String.join ", "
                        )
                     |> Html.text
