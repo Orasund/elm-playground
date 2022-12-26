@@ -4,6 +4,7 @@ import Array exposing (Array)
 import Data.Actor
 import Data.Behavior
 import Data.Block
+import Data.Entity
 import Data.Floor
 import Data.Game exposing (Game)
 import Data.Item
@@ -52,9 +53,9 @@ tutorial =
         initGame =
             { world =
                 emptyWorld { width = width, height = height }
-                    |> Data.World.insertItem Data.Item.Coal ( 1, 0 )
-                    |> Data.World.insertItem Data.Item.Coal ( 0, 1 )
-                    |> Data.World.insertItem Data.Item.Coal ( 1, 2 )
+                    |> Data.World.insertEntity (Data.Entity.Vein Data.Item.Coal) ( 1, 0 )
+                    |> Data.World.insertEntity (Data.Entity.Vein Data.Item.Coal) ( 0, 1 )
+                    |> Data.World.insertEntity (Data.Entity.Vein Data.Item.Coal) ( 1, 2 )
                     |> Data.World.insertActor (Data.Actor.Train (Data.Train.fromPos train)) train
             , player = Data.Player.fromPos player
             , trainId = 0

@@ -20,10 +20,16 @@ emptyWorld args =
         |> Data.World.fromList
 
 
-animate : Animation -> Int -> Html msg
-animate animation =
+animate : Float -> Animation -> Int -> Html msg
+animate widthOverHeight animation =
     animation.frames
-        |> Array.map (View.Screen.animation { width = animation.width, height = animation.height })
+        |> Array.map
+            (View.Screen.animation
+                { width = animation.width
+                , height = animation.height
+                , widthOverHeight = widthOverHeight
+                }
+            )
         |> fromArray
 
 

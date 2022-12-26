@@ -2,6 +2,8 @@ port module Main exposing (..)
 
 import AnyBag
 import Browser exposing (Document)
+import Browser.Dom
+import Browser.Events
 import Config
 import Data.Actor exposing (Actor)
 import Data.Behavior
@@ -20,6 +22,7 @@ import Html
 import Html.Attributes as Attr
 import Layout
 import Random exposing (Generator, Seed)
+import Task
 import Time
 import View.Button
 import View.Modal
@@ -53,6 +56,7 @@ type alias Model =
     , zoomPercent : Int
     , building : Maybe BuildMode
     , level : Int
+    , widthOverHeight : Float
     }
 
 
@@ -100,6 +104,7 @@ type Msg
     | SetVolume (Maybe Int)
     | SetTab (Maybe Tab)
     | SetZoom (Maybe Int)
+    | SetWidthOverHeight Float
 
 
 restart : Seed -> Model
@@ -116,6 +121,7 @@ restart seed =
                 , zoomPercent = 25
                 , building = Nothing
                 , level = 1
+                , widthOverHeight = 1.4
                 }
            )
 
@@ -124,7 +130,12 @@ init : () -> ( Model, Cmd Msg )
 init () =
     ( Random.initialSeed 42
         |> restart
-    , Random.generate Restart Random.independentSeed
+    , Cmd.batch
+        [ Random.generate Restart Random.independentSeed
+        , Browser.Dom.getViewport
+            |> Task.map (\{ viewport } -> viewport.width / viewport.height)
+            |> Task.perform SetWidthOverHeight
+        ]
     )
 
 
@@ -146,6 +157,7 @@ view model =
                 { onPress = TileClicked
                 , camera = model.camera
                 , zoom = Data.Zoom.fromPercent model.zoomPercent
+                , widthOverHeight = model.widthOverHeight
                 }
             |> Layout.withStack
                 ((if model.modal /= Nothing then
@@ -243,13 +255,13 @@ view model =
                     ]
                   , case model.modal of
                         Just modal ->
-                            View.Modal.toHtml CloseModal model.game modal model.level
+                            View.Modal.toHtml model.widthOverHeight CloseModal model.game modal model.level
 
                         Nothing ->
                             Layout.none
                   )
                 ]
-            |> Layout.container [ Attr.style "background-color" "white" ]
+            |> Layout.container [ Attr.style "background-color" "black" ]
         ]
     }
 
@@ -265,7 +277,9 @@ updateCamera model =
     in
     if
         (abs (pX - x) + abs (pY - y))
-            > Config.maxCameraDistance (Data.Zoom.fromPercent model.zoomPercent) Config.width Config.height
+            > Config.maxCameraDistance (Data.Zoom.fromPercent model.zoomPercent)
+                (Config.width model.widthOverHeight)
+                Config.height
     then
         { model | camera = ( pX, pY ) }
 
@@ -353,10 +367,16 @@ update msg model =
                 |> Maybe.map (\float -> ( { model | zoomPercent = float }, Cmd.none ))
                 |> Maybe.withDefault ( model, Cmd.none )
 
+        SetWidthOverHeight float ->
+            ( { model | widthOverHeight = float }, Cmd.none )
+
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Time.every model.tickInterval (\_ -> TimePassed)
+    Sub.batch
+        [ Time.every model.tickInterval (\_ -> TimePassed)
+        , Browser.Events.onResize (\w h -> toFloat w / toFloat h |> SetWidthOverHeight)
+        ]
 
 
 main : Program () Model Msg

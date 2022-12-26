@@ -14,8 +14,8 @@ import View.Button
 import View.Title
 
 
-toHtml : (Maybe Improvement -> msg) -> Game -> Modal -> Int -> Html msg
-toHtml closeModal game m level =
+toHtml : Float -> (Maybe Improvement -> msg) -> Game -> Modal -> Int -> Html msg
+toHtml widthOverHeight closeModal game m level =
     (case m of
         TitleModal modal ->
             [ [ View.Title.coal, View.Title.crawl ]
@@ -28,7 +28,7 @@ toHtml closeModal game m level =
                             [ Html.text string ]
                     )
                 |> Layout.row [ Layout.centerContent ]
-            , View.Animation.animate Data.Animation.tutorial modal.animationFrame
+            , View.Animation.animate widthOverHeight Data.Animation.tutorial modal.animationFrame
                 |> Layout.el Layout.centered
             , "Reach the bottom of the cave. Collect coal to progress."
                 |> Html.text

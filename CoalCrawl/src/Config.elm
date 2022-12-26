@@ -3,9 +3,9 @@ module Config exposing (..)
 import Data.Zoom exposing (Zoom)
 
 
-width : Zoom -> Int
-width zoom =
-    21 * Data.Zoom.get zoom |> round
+width : Float -> Zoom -> Int
+width widthOverHeight zoom =
+    15 * Data.Zoom.get zoom * widthOverHeight |> round
 
 
 height : Zoom -> Int
@@ -13,16 +13,16 @@ height zoom =
     15 * Data.Zoom.get zoom |> round
 
 
-tileSize zoom =
+tileSize widthOverHeight zoom =
     "min("
-        ++ ("100vw/" ++ String.fromInt (width zoom) ++ ", ")
+        ++ ("100vw/" ++ String.fromInt (width widthOverHeight zoom) ++ ", ")
         ++ ("100vh/" ++ String.fromInt (height zoom))
         ++ ")"
 
 
-fontSize size zoom =
+fontSize widthOverHeight size zoom =
     "min("
-        ++ ((100 * size |> String.fromFloat) ++ "vw/" ++ String.fromInt (width zoom) ++ ", ")
+        ++ ((100 * size |> String.fromFloat) ++ "vw/" ++ String.fromInt (width widthOverHeight zoom) ++ ", ")
         ++ ((100 * size |> String.fromFloat) ++ "vh/" ++ String.fromInt (height zoom))
         ++ ")"
 

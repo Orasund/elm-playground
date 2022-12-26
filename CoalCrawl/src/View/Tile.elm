@@ -8,17 +8,17 @@ import Html.Attributes as Attr
 import Layout
 
 
-toHtml : Zoom -> Tile -> Html msg
-toHtml zoom tile =
+toHtml : Float -> Zoom -> Tile -> Html msg
+toHtml widthOverHeight zoom tile =
     case tile of
         CharTile { content, color, size, bold, animation } ->
             content
                 |> String.fromChar
                 |> Html.text
                 |> Layout.el
-                    ([ Attr.style "width" (Config.tileSize zoom)
-                     , Attr.style "height" (Config.tileSize zoom)
-                     , Attr.style "font-size" (Config.fontSize size zoom)
+                    ([ Attr.style "width" (Config.tileSize widthOverHeight zoom)
+                     , Attr.style "height" (Config.tileSize widthOverHeight zoom)
+                     , Attr.style "font-size" (Config.fontSize widthOverHeight size zoom)
                      , Attr.style "color" color
                      ]
                         ++ (if bold then
@@ -39,8 +39,8 @@ toHtml zoom tile =
         ImageTile { source, animation } ->
             Html.img
                 ([ Attr.src source
-                 , Attr.style "width" (Config.tileSize zoom)
-                 , Attr.style "height" (Config.tileSize zoom)
+                 , Attr.style "width" (Config.tileSize widthOverHeight zoom)
+                 , Attr.style "height" (Config.tileSize widthOverHeight zoom)
                  ]
                     ++ (if animation then
                             [ Attr.class "animate__animated animate__pulse animate__infinite animate__faster" ]

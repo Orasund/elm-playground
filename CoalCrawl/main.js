@@ -5245,6 +5245,10 @@ var $elm$browser$Browser$document = _Browser_document;
 var $author$project$Main$Restart = function (a) {
 	return {$: 'Restart', a: a};
 };
+var $author$project$Main$SetWidthOverHeight = function (a) {
+	return {$: 'SetWidthOverHeight', a: a};
+};
+var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$random$Random$Generate = function (a) {
 	return {$: 'Generate', a: a};
 };
@@ -5352,6 +5356,7 @@ var $elm$random$Random$generate = F2(
 			$elm$random$Random$Generate(
 				A2($elm$random$Random$map, tagger, generator)));
 	});
+var $elm$browser$Browser$Dom$getViewport = _Browser_withWindow(_Browser_getViewport);
 var $elm$core$Bitwise$and = _Bitwise_and;
 var $elm$core$Basics$negate = function (n) {
 	return -n;
@@ -6205,6 +6210,7 @@ var $author$project$Main$restart = function (seed) {
 			sidebarTab: $elm$core$Maybe$Just($author$project$View$Tab$DetailTab),
 			tickInterval: 200,
 			volume: 25,
+			widthOverHeight: 1.4,
 			zoomPercent: 25
 		};
 	}($author$project$Data$Game$new);
@@ -6213,9 +6219,24 @@ var $author$project$Main$init = function (_v0) {
 	return _Utils_Tuple2(
 		$author$project$Main$restart(
 			$elm$random$Random$initialSeed(42)),
-		A2($elm$random$Random$generate, $author$project$Main$Restart, $elm$random$Random$independentSeed));
+		$elm$core$Platform$Cmd$batch(
+			_List_fromArray(
+				[
+					A2($elm$random$Random$generate, $author$project$Main$Restart, $elm$random$Random$independentSeed),
+					A2(
+					$elm$core$Task$perform,
+					$author$project$Main$SetWidthOverHeight,
+					A2(
+						$elm$core$Task$map,
+						function (_v1) {
+							var viewport = _v1.viewport;
+							return viewport.width / viewport.height;
+						},
+						$elm$browser$Browser$Dom$getViewport))
+				])));
 };
 var $author$project$Main$TimePassed = {$: 'TimePassed'};
+var $elm$core$Platform$Sub$batch = _Platform_batch;
 var $elm$time$Time$Every = F2(
 	function (a, b) {
 		return {$: 'Every', a: a, b: b};
@@ -6473,13 +6494,239 @@ var $elm$time$Time$every = F2(
 		return $elm$time$Time$subscription(
 			A2($elm$time$Time$Every, interval, tagger));
 	});
+var $elm$browser$Browser$Events$Window = {$: 'Window'};
+var $elm$json$Json$Decode$field = _Json_decodeField;
+var $elm$json$Json$Decode$int = _Json_decodeInt;
+var $elm$browser$Browser$Events$MySub = F3(
+	function (a, b, c) {
+		return {$: 'MySub', a: a, b: b, c: c};
+	});
+var $elm$browser$Browser$Events$State = F2(
+	function (subs, pids) {
+		return {pids: pids, subs: subs};
+	});
+var $elm$browser$Browser$Events$init = $elm$core$Task$succeed(
+	A2($elm$browser$Browser$Events$State, _List_Nil, $elm$core$Dict$empty));
+var $elm$browser$Browser$Events$nodeToKey = function (node) {
+	if (node.$ === 'Document') {
+		return 'd_';
+	} else {
+		return 'w_';
+	}
+};
+var $elm$browser$Browser$Events$addKey = function (sub) {
+	var node = sub.a;
+	var name = sub.b;
+	return _Utils_Tuple2(
+		_Utils_ap(
+			$elm$browser$Browser$Events$nodeToKey(node),
+			name),
+		sub);
+};
+var $elm$core$Dict$fromList = function (assocs) {
+	return A3(
+		$elm$core$List$foldl,
+		F2(
+			function (_v0, dict) {
+				var key = _v0.a;
+				var value = _v0.b;
+				return A3($elm$core$Dict$insert, key, value, dict);
+			}),
+		$elm$core$Dict$empty,
+		assocs);
+};
+var $elm$browser$Browser$Events$Event = F2(
+	function (key, event) {
+		return {event: event, key: key};
+	});
+var $elm$browser$Browser$Events$spawn = F3(
+	function (router, key, _v0) {
+		var node = _v0.a;
+		var name = _v0.b;
+		var actualNode = function () {
+			if (node.$ === 'Document') {
+				return _Browser_doc;
+			} else {
+				return _Browser_window;
+			}
+		}();
+		return A2(
+			$elm$core$Task$map,
+			function (value) {
+				return _Utils_Tuple2(key, value);
+			},
+			A3(
+				_Browser_on,
+				actualNode,
+				name,
+				function (event) {
+					return A2(
+						$elm$core$Platform$sendToSelf,
+						router,
+						A2($elm$browser$Browser$Events$Event, key, event));
+				}));
+	});
+var $elm$core$Dict$union = F2(
+	function (t1, t2) {
+		return A3($elm$core$Dict$foldl, $elm$core$Dict$insert, t2, t1);
+	});
+var $elm$browser$Browser$Events$onEffects = F3(
+	function (router, subs, state) {
+		var stepRight = F3(
+			function (key, sub, _v6) {
+				var deads = _v6.a;
+				var lives = _v6.b;
+				var news = _v6.c;
+				return _Utils_Tuple3(
+					deads,
+					lives,
+					A2(
+						$elm$core$List$cons,
+						A3($elm$browser$Browser$Events$spawn, router, key, sub),
+						news));
+			});
+		var stepLeft = F3(
+			function (_v4, pid, _v5) {
+				var deads = _v5.a;
+				var lives = _v5.b;
+				var news = _v5.c;
+				return _Utils_Tuple3(
+					A2($elm$core$List$cons, pid, deads),
+					lives,
+					news);
+			});
+		var stepBoth = F4(
+			function (key, pid, _v2, _v3) {
+				var deads = _v3.a;
+				var lives = _v3.b;
+				var news = _v3.c;
+				return _Utils_Tuple3(
+					deads,
+					A3($elm$core$Dict$insert, key, pid, lives),
+					news);
+			});
+		var newSubs = A2($elm$core$List$map, $elm$browser$Browser$Events$addKey, subs);
+		var _v0 = A6(
+			$elm$core$Dict$merge,
+			stepLeft,
+			stepBoth,
+			stepRight,
+			state.pids,
+			$elm$core$Dict$fromList(newSubs),
+			_Utils_Tuple3(_List_Nil, $elm$core$Dict$empty, _List_Nil));
+		var deadPids = _v0.a;
+		var livePids = _v0.b;
+		var makeNewPids = _v0.c;
+		return A2(
+			$elm$core$Task$andThen,
+			function (pids) {
+				return $elm$core$Task$succeed(
+					A2(
+						$elm$browser$Browser$Events$State,
+						newSubs,
+						A2(
+							$elm$core$Dict$union,
+							livePids,
+							$elm$core$Dict$fromList(pids))));
+			},
+			A2(
+				$elm$core$Task$andThen,
+				function (_v1) {
+					return $elm$core$Task$sequence(makeNewPids);
+				},
+				$elm$core$Task$sequence(
+					A2($elm$core$List$map, $elm$core$Process$kill, deadPids))));
+	});
+var $elm$core$List$maybeCons = F3(
+	function (f, mx, xs) {
+		var _v0 = f(mx);
+		if (_v0.$ === 'Just') {
+			var x = _v0.a;
+			return A2($elm$core$List$cons, x, xs);
+		} else {
+			return xs;
+		}
+	});
+var $elm$core$List$filterMap = F2(
+	function (f, xs) {
+		return A3(
+			$elm$core$List$foldr,
+			$elm$core$List$maybeCons(f),
+			_List_Nil,
+			xs);
+	});
+var $elm$browser$Browser$Events$onSelfMsg = F3(
+	function (router, _v0, state) {
+		var key = _v0.key;
+		var event = _v0.event;
+		var toMessage = function (_v2) {
+			var subKey = _v2.a;
+			var _v3 = _v2.b;
+			var node = _v3.a;
+			var name = _v3.b;
+			var decoder = _v3.c;
+			return _Utils_eq(subKey, key) ? A2(_Browser_decodeEvent, decoder, event) : $elm$core$Maybe$Nothing;
+		};
+		var messages = A2($elm$core$List$filterMap, toMessage, state.subs);
+		return A2(
+			$elm$core$Task$andThen,
+			function (_v1) {
+				return $elm$core$Task$succeed(state);
+			},
+			$elm$core$Task$sequence(
+				A2(
+					$elm$core$List$map,
+					$elm$core$Platform$sendToApp(router),
+					messages)));
+	});
+var $elm$browser$Browser$Events$subMap = F2(
+	function (func, _v0) {
+		var node = _v0.a;
+		var name = _v0.b;
+		var decoder = _v0.c;
+		return A3(
+			$elm$browser$Browser$Events$MySub,
+			node,
+			name,
+			A2($elm$json$Json$Decode$map, func, decoder));
+	});
+_Platform_effectManagers['Browser.Events'] = _Platform_createManager($elm$browser$Browser$Events$init, $elm$browser$Browser$Events$onEffects, $elm$browser$Browser$Events$onSelfMsg, 0, $elm$browser$Browser$Events$subMap);
+var $elm$browser$Browser$Events$subscription = _Platform_leaf('Browser.Events');
+var $elm$browser$Browser$Events$on = F3(
+	function (node, name, decoder) {
+		return $elm$browser$Browser$Events$subscription(
+			A3($elm$browser$Browser$Events$MySub, node, name, decoder));
+	});
+var $elm$browser$Browser$Events$onResize = function (func) {
+	return A3(
+		$elm$browser$Browser$Events$on,
+		$elm$browser$Browser$Events$Window,
+		'resize',
+		A2(
+			$elm$json$Json$Decode$field,
+			'target',
+			A3(
+				$elm$json$Json$Decode$map2,
+				func,
+				A2($elm$json$Json$Decode$field, 'innerWidth', $elm$json$Json$Decode$int),
+				A2($elm$json$Json$Decode$field, 'innerHeight', $elm$json$Json$Decode$int))));
+};
 var $author$project$Main$subscriptions = function (model) {
-	return A2(
-		$elm$time$Time$every,
-		model.tickInterval,
-		function (_v0) {
-			return $author$project$Main$TimePassed;
-		});
+	return $elm$core$Platform$Sub$batch(
+		_List_fromArray(
+			[
+				A2(
+				$elm$time$Time$every,
+				model.tickInterval,
+				function (_v0) {
+					return $author$project$Main$TimePassed;
+				}),
+				$elm$browser$Browser$Events$onResize(
+				F2(
+					function (w, h) {
+						return $author$project$Main$SetWidthOverHeight(w / h);
+					}))
+			]));
 };
 var $author$project$Data$Sound$Error = {$: 'Error'};
 var $author$project$Data$Effect$PlaySound = function (a) {
@@ -6504,7 +6751,6 @@ var $author$project$Data$Sound$PickUp = {$: 'PickUp'};
 var $author$project$Data$Sound$Unload = {$: 'Unload'};
 var $author$project$Data$Sound$asList = _List_fromArray(
 	[$author$project$Data$Sound$Build, $author$project$Data$Sound$PickUp, $author$project$Data$Sound$Unload, $author$project$Data$Sound$MovingTrain, $author$project$Data$Sound$Destruct, $author$project$Data$Sound$Error]);
-var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $author$project$Data$World$getActor = F2(
 	function (id, world) {
 		return A2($elm$core$Dict$get, id, world.actors);
@@ -7526,24 +7772,6 @@ var $elm$core$List$filter = F2(
 			_List_Nil,
 			list);
 	});
-var $elm$core$List$maybeCons = F3(
-	function (f, mx, xs) {
-		var _v0 = f(mx);
-		if (_v0.$ === 'Just') {
-			var x = _v0.a;
-			return A2($elm$core$List$cons, x, xs);
-		} else {
-			return xs;
-		}
-	});
-var $elm$core$List$filterMap = F2(
-	function (f, xs) {
-		return A3(
-			$elm$core$List$foldr,
-			$elm$core$List$maybeCons(f),
-			_List_Nil,
-			xs);
-	});
 var $elm$core$Tuple$second = function (_v0) {
 	var y = _v0.b;
 	return y;
@@ -7713,10 +7941,6 @@ var $elm$core$Set$remove = F2(
 		var dict = _v0.a;
 		return $elm$core$Set$Set_elm_builtin(
 			A2($elm$core$Dict$remove, key, dict));
-	});
-var $elm$core$Dict$union = F2(
-	function (t1, t2) {
-		return A3($elm$core$Dict$foldl, $elm$core$Dict$insert, t2, t1);
 	});
 var $elm$core$Set$union = F2(
 	function (_v0, _v1) {
@@ -10322,10 +10546,11 @@ var $author$project$Config$maxCameraDistance = F3(
 				w(z),
 				h(z)) / 4);
 	});
-var $author$project$Config$width = function (zoom) {
-	return $elm$core$Basics$round(
-		21 * $author$project$Data$Zoom$get(zoom));
-};
+var $author$project$Config$width = F2(
+	function (widthOverHeight, zoom) {
+		return $elm$core$Basics$round(
+			(15 * $author$project$Data$Zoom$get(zoom)) * widthOverHeight);
+	});
 var $author$project$Main$updateCamera = function (model) {
 	var _v0 = model.camera;
 	var x = _v0.a;
@@ -10338,7 +10563,7 @@ var $author$project$Main$updateCamera = function (model) {
 		A3(
 			$author$project$Config$maxCameraDistance,
 			$author$project$Data$Zoom$fromPercent(model.zoomPercent),
-			$author$project$Config$width,
+			$author$project$Config$width(model.widthOverHeight),
 			$author$project$Config$height)) > 0) ? _Utils_update(
 		model,
 		{
@@ -10524,7 +10749,7 @@ var $author$project$Main$update = F2(
 						model,
 						{sidebarTab: tab}),
 					$elm$core$Platform$Cmd$none);
-			default:
+			case 'SetZoom':
 				var amount = msg.a;
 				return A2(
 					$elm$core$Maybe$withDefault,
@@ -10539,6 +10764,13 @@ var $author$project$Main$update = F2(
 								$elm$core$Platform$Cmd$none);
 						},
 						amount));
+			default:
+				var _float = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{widthOverHeight: _float}),
+					$elm$core$Platform$Cmd$none);
 		}
 	});
 var $author$project$Main$BuildingActor = function (a) {
@@ -11075,11 +11307,12 @@ var $Orasund$elm_layout$Layout$stack = F2(
 				},
 				list));
 	});
-var $author$project$Config$tileSize = function (zoom) {
-	return 'min(' + (('100vw/' + ($elm$core$String$fromInt(
-		$author$project$Config$width(zoom)) + ', ')) + (('100vh/' + $elm$core$String$fromInt(
-		$author$project$Config$height(zoom))) + ')'));
-};
+var $author$project$Config$tileSize = F2(
+	function (widthOverHeight, zoom) {
+		return 'min(' + (('100vw/' + ($elm$core$String$fromInt(
+			A2($author$project$Config$width, widthOverHeight, zoom)) + ', ')) + (('100vh/' + $elm$core$String$fromInt(
+			$author$project$Config$height(zoom))) + ')'));
+	});
 var $Orasund$elm_layout$Layout$alignAtCenter = A2($elm$html$Html$Attributes$style, 'align-items', 'center');
 var $Orasund$elm_layout$Layout$contentCentered = A2($elm$html$Html$Attributes$style, 'justify-content', 'center');
 var $Orasund$elm_layout$Layout$centered = _List_fromArray(
@@ -11093,10 +11326,10 @@ var $elm$html$Html$Attributes$stringProperty = F2(
 	});
 var $elm$html$Html$Attributes$class = $elm$html$Html$Attributes$stringProperty('className');
 var $elm$core$String$fromFloat = _String_fromNumber;
-var $author$project$Config$fontSize = F2(
-	function (size, zoom) {
+var $author$project$Config$fontSize = F3(
+	function (widthOverHeight, size, zoom) {
 		return 'min(' + (($elm$core$String$fromFloat(100 * size) + ('vw/' + ($elm$core$String$fromInt(
-			$author$project$Config$width(zoom)) + ', '))) + (($elm$core$String$fromFloat(100 * size) + ('vh/' + $elm$core$String$fromInt(
+			A2($author$project$Config$width, widthOverHeight, zoom)) + ', '))) + (($elm$core$String$fromFloat(100 * size) + ('vh/' + $elm$core$String$fromInt(
 			$author$project$Config$height(zoom)))) + ')'));
 	});
 var $elm$core$String$cons = _String_cons;
@@ -11112,8 +11345,8 @@ var $elm$html$Html$Attributes$src = function (url) {
 };
 var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
 var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
-var $author$project$View$Tile$toHtml = F2(
-	function (zoom, tile) {
+var $author$project$View$Tile$toHtml = F3(
+	function (widthOverHeight, zoom, tile) {
 		if (tile.$ === 'CharTile') {
 			var content = tile.a.content;
 			var color = tile.a.color;
@@ -11128,15 +11361,15 @@ var $author$project$View$Tile$toHtml = F2(
 							A2(
 							$elm$html$Html$Attributes$style,
 							'width',
-							$author$project$Config$tileSize(zoom)),
+							A2($author$project$Config$tileSize, widthOverHeight, zoom)),
 							A2(
 							$elm$html$Html$Attributes$style,
 							'height',
-							$author$project$Config$tileSize(zoom)),
+							A2($author$project$Config$tileSize, widthOverHeight, zoom)),
 							A2(
 							$elm$html$Html$Attributes$style,
 							'font-size',
-							A2($author$project$Config$fontSize, size, zoom)),
+							A3($author$project$Config$fontSize, widthOverHeight, size, zoom)),
 							A2($elm$html$Html$Attributes$style, 'color', color)
 						]),
 					_Utils_ap(
@@ -11164,11 +11397,11 @@ var $author$project$View$Tile$toHtml = F2(
 							A2(
 							$elm$html$Html$Attributes$style,
 							'width',
-							$author$project$Config$tileSize(zoom)),
+							A2($author$project$Config$tileSize, widthOverHeight, zoom)),
 							A2(
 							$elm$html$Html$Attributes$style,
 							'height',
-							$author$project$Config$tileSize(zoom))
+							A2($author$project$Config$tileSize, widthOverHeight, zoom))
 						]),
 					animation ? _List_fromArray(
 						[
@@ -11195,7 +11428,10 @@ var $author$project$View$Screen$tile = F3(
 						]) : (_Utils_eq(list, _List_Nil) ? _List_fromArray(
 						[
 							A2($elm$html$Html$Attributes$style, 'background-color', $author$project$View$Color$black)
-						]) : _List_Nil),
+						]) : _List_fromArray(
+						[
+							A2($elm$html$Html$Attributes$style, 'background-color', 'white')
+						])),
 					_Utils_ap(
 						A2(
 							$elm$core$Maybe$withDefault,
@@ -11212,11 +11448,11 @@ var $author$project$View$Screen$tile = F3(
 								A2(
 								$elm$html$Html$Attributes$style,
 								'width',
-								$author$project$Config$tileSize(args.zoom)),
+								A2($author$project$Config$tileSize, args.widthOverHeight, args.zoom)),
 								A2(
 								$elm$html$Html$Attributes$style,
 								'height',
-								$author$project$Config$tileSize(args.zoom))
+								A2($author$project$Config$tileSize, args.widthOverHeight, args.zoom))
 							]))),
 				A2(
 					$elm$core$List$map,
@@ -11225,7 +11461,7 @@ var $author$project$View$Screen$tile = F3(
 					},
 					A2(
 						$elm$core$List$map,
-						$author$project$View$Tile$toHtml(args.zoom),
+						A2($author$project$View$Tile$toHtml, args.widthOverHeight, args.zoom),
 						$elm$core$List$isEmpty(list) ? _List_fromArray(
 							[$author$project$Data$Tile$wall]) : list)));
 		}(
@@ -11250,13 +11486,14 @@ var $author$project$View$Screen$fromGame = F2(
 								var playerX = _v0.a;
 								var playerY = _v0.b;
 								var pos = _Utils_Tuple2(
-									(playerX + x) - (($author$project$Config$width(args.zoom) / 2) | 0),
+									(playerX + x) - ((A2($author$project$Config$width, args.widthOverHeight, args.zoom) / 2) | 0),
 									(playerY + y) - (($author$project$Config$height(args.zoom) / 2) | 0));
 								return A3(
 									$author$project$View$Screen$tile,
 									{
 										onPress: $elm$core$Maybe$Just(
 											args.onPress(pos)),
+										widthOverHeight: args.widthOverHeight,
 										zoom: args.zoom
 									},
 									pos,
@@ -11265,7 +11502,7 @@ var $author$project$View$Screen$fromGame = F2(
 							A2(
 								$elm$core$List$range,
 								0,
-								$author$project$Config$width(args.zoom) - 1)));
+								A2($author$project$Config$width, args.widthOverHeight, args.zoom) - 1)));
 				},
 				A2(
 					$elm$core$List$range,
@@ -11406,7 +11643,6 @@ var $elm$html$Html$Events$stopPropagationOn = F2(
 			event,
 			$elm$virtual_dom$VirtualDom$MayStopPropagation(decoder));
 	});
-var $elm$json$Json$Decode$field = _Json_decodeField;
 var $elm$json$Json$Decode$at = F2(
 	function (fields, decoder) {
 		return A3($elm$core$List$foldr, $elm$json$Json$Decode$field, decoder, fields);
@@ -11719,7 +11955,7 @@ var $author$project$View$Screen$animation = F2(
 							function (x) {
 								return A3(
 									$author$project$View$Screen$tile,
-									{onPress: $elm$core$Maybe$Nothing, zoom: $author$project$Data$Zoom$none},
+									{onPress: $elm$core$Maybe$Nothing, widthOverHeight: args.widthOverHeight, zoom: $author$project$Data$Zoom$none},
 									_Utils_Tuple2(x, y),
 									game);
 							},
@@ -11801,14 +12037,15 @@ var $elm$core$Array$map = F2(
 			A2($elm$core$Elm$JsArray$map, helper, tree),
 			A2($elm$core$Elm$JsArray$map, func, tail));
 	});
-var $author$project$View$Animation$animate = function (animation) {
-	return $author$project$View$Animation$fromArray(
-		A2(
-			$elm$core$Array$map,
-			$author$project$View$Screen$animation(
-				{height: animation.height, width: animation.width}),
-			animation.frames));
-};
+var $author$project$View$Animation$animate = F2(
+	function (widthOverHeight, animation) {
+		return $author$project$View$Animation$fromArray(
+			A2(
+				$elm$core$Array$map,
+				$author$project$View$Screen$animation(
+					{height: animation.height, width: animation.width, widthOverHeight: widthOverHeight}),
+				animation.frames));
+	});
 var $Orasund$elm_layout$Layout$centerContent = A2($elm$html$Html$Attributes$style, 'justify-content', 'center');
 var $author$project$View$Title$coal = '\n       CCCCCCC  OOOOOOOOOO  AA  LLLL\n      C#####C  O########O  A##A  L##L\n     C##CCCC  O##OOOO##O  A####A  L##L\n    C##C     O##O  O##O  A##AA##A  L##L\n   C##C     O##O  O##O  A##A  A##A  L##L\n  C##CCCC  O##OOOO##O  A##AAAAAA##A  L##LLLL\n C#####C  O########O  A##A      A##A  L#####L\nCCCCCCC  OOOOOOOOOO  AAAA        AAAA  LLLLLLLL\n    ';
 var $author$project$View$Title$crawl = '\n       CCCCCCC  RRRRRRRRRR  AA  WWWW            WWWW  LLLL\n      C.....C  R........R  A..A  W..W          W..W  L..L\n     C..CCCC  R..RRRR..R  A....A  W..W        W..W  L..L\n    C..C     R..R  R..R  A..AA..A  W..W  WW  W..W  L..L\n   C..C     R..RRRR..R  A..A  A..A  W..WW..WW..W  L..L\n  C..CCCC  R......RRR  A..AAAAAA..A  W........W  L..LLLL\n C.....C  R..RRR..R   A..A      A..A  W..WW..W  L......L\nCCCCCCC  RRRR  RRRR  AAAA        AAAA  WW  WW  LLLLLLLLL\n    ';
@@ -11887,18 +12124,6 @@ var $elm$core$Array$fromList = function (list) {
 		return A3($elm$core$Array$fromListHelp, list, _List_Nil, 0);
 	}
 };
-var $elm$core$Dict$fromList = function (assocs) {
-	return A3(
-		$elm$core$List$foldl,
-		F2(
-			function (_v0, dict) {
-				var key = _v0.a;
-				var value = _v0.b;
-				return A3($elm$core$Dict$insert, key, value, dict);
-			}),
-		$elm$core$Dict$empty,
-		assocs);
-};
 var $author$project$Data$Animation$tutorial = function () {
 	var width = 4;
 	var train = _Utils_Tuple2(3, 1);
@@ -11948,16 +12173,16 @@ var $author$project$Data$Animation$tutorial = function () {
 				$author$project$Data$Train$fromPos(train)),
 			train,
 			A3(
-				$author$project$Data$World$insertItem,
-				$author$project$Data$Item$Coal,
+				$author$project$Data$World$insertEntity,
+				$author$project$Data$Entity$Vein($author$project$Data$Item$Coal),
 				_Utils_Tuple2(1, 2),
 				A3(
-					$author$project$Data$World$insertItem,
-					$author$project$Data$Item$Coal,
+					$author$project$Data$World$insertEntity,
+					$author$project$Data$Entity$Vein($author$project$Data$Item$Coal),
 					_Utils_Tuple2(0, 1),
 					A3(
-						$author$project$Data$World$insertItem,
-						$author$project$Data$Item$Coal,
+						$author$project$Data$World$insertEntity,
+						$author$project$Data$Entity$Vein($author$project$Data$Item$Coal),
 						_Utils_Tuple2(1, 0),
 						$author$project$Data$Animation$emptyWorld(
 							{height: height, width: width})))))
@@ -12004,8 +12229,8 @@ var $author$project$Data$Animation$tutorial = function () {
 		width: width
 	};
 }();
-var $author$project$View$Modal$toHtml = F4(
-	function (closeModal, game, m, level) {
+var $author$project$View$Modal$toHtml = F5(
+	function (widthOverHeight, closeModal, game, m, level) {
 		return A2(
 			$Orasund$elm_layout$Layout$column,
 			_List_fromArray(
@@ -12045,7 +12270,7 @@ var $author$project$View$Modal$toHtml = F4(
 							A2(
 							$Orasund$elm_layout$Layout$el,
 							$Orasund$elm_layout$Layout$centered,
-							A2($author$project$View$Animation$animate, $author$project$Data$Animation$tutorial, modal.animationFrame)),
+							A3($author$project$View$Animation$animate, widthOverHeight, $author$project$Data$Animation$tutorial, modal.animationFrame)),
 							A2(
 							$Orasund$elm_layout$Layout$paragraph,
 							_List_Nil,
@@ -12195,7 +12420,7 @@ var $author$project$Main$view = function (model) {
 				$Orasund$elm_layout$Layout$container,
 				_List_fromArray(
 					[
-						A2($elm$html$Html$Attributes$style, 'background-color', 'white')
+						A2($elm$html$Html$Attributes$style, 'background-color', 'black')
 					]),
 				A3(
 					$Orasund$elm_layout$Layout$withStack,
@@ -12213,7 +12438,7 @@ var $author$project$Main$view = function (model) {
 								var _v7 = model.modal;
 								if (_v7.$ === 'Just') {
 									var modal = _v7.a;
-									return A4($author$project$View$Modal$toHtml, $author$project$Main$CloseModal, model.game, modal, model.level);
+									return A5($author$project$View$Modal$toHtml, model.widthOverHeight, $author$project$Main$CloseModal, model.game, modal, model.level);
 								} else {
 									return $Orasund$elm_layout$Layout$none;
 								}
@@ -12357,6 +12582,7 @@ var $author$project$Main$view = function (model) {
 							{
 								camera: model.camera,
 								onPress: $author$project$Main$TileClicked,
+								widthOverHeight: model.widthOverHeight,
 								zoom: $author$project$Data$Zoom$fromPercent(model.zoomPercent)
 							},
 							model.game))))

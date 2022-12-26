@@ -11,7 +11,7 @@ import View.Color
 import View.Tile
 
 
-animation : { width : Int, height : Int } -> Game -> Html msg
+animation : { width : Int, height : Int, widthOverHeight : Float } -> Game -> Html msg
 animation args game =
     List.range 0 (args.height - 1)
         |> List.map
@@ -19,19 +19,32 @@ animation args game =
                 List.range 0 (args.width - 1)
                     |> List.map
                         (\x ->
-                            tile { onPress = Nothing, zoom = Data.Zoom.none } ( x, y ) game
+                            tile
+                                { onPress = Nothing
+                                , zoom = Data.Zoom.none
+                                , widthOverHeight = args.widthOverHeight
+                                }
+                                ( x, y )
+                                game
                         )
                     |> Layout.row [ Layout.noWrap ]
             )
         |> Layout.column []
 
 
-fromGame : { onPress : ( Int, Int ) -> msg, camera : ( Int, Int ), zoom : Zoom } -> Game -> Html msg
+fromGame :
+    { onPress : ( Int, Int ) -> msg
+    , camera : ( Int, Int )
+    , zoom : Zoom
+    , widthOverHeight : Float
+    }
+    -> Game
+    -> Html msg
 fromGame args game =
     List.range 0 (Config.height args.zoom - 1)
         |> List.map
             (\y ->
-                List.range 0 (Config.width args.zoom - 1)
+                List.range 0 (Config.width args.widthOverHeight args.zoom - 1)
                     |> List.map
                         (\x ->
                             let
@@ -39,18 +52,24 @@ fromGame args game =
                                     args.camera
 
                                 pos =
-                                    ( playerX + x - Config.width args.zoom // 2
+                                    ( playerX + x - Config.width args.widthOverHeight args.zoom // 2
                                     , playerY + y - Config.height args.zoom // 2
                                     )
                             in
-                            tile { onPress = args.onPress pos |> Just, zoom = args.zoom } pos game
+                            tile
+                                { onPress = args.onPress pos |> Just
+                                , zoom = args.zoom
+                                , widthOverHeight = args.widthOverHeight
+                                }
+                                pos
+                                game
                         )
                     |> Layout.row [ Layout.noWrap ]
             )
         |> Layout.column []
 
 
-tile : { onPress : Maybe msg, zoom : Zoom } -> ( Int, Int ) -> Game -> Html msg
+tile : { onPress : Maybe msg, zoom : Zoom, widthOverHeight : Float } -> ( Int, Int ) -> Game -> Html msg
 tile args pos game =
     (if pos == game.player.pos then
         Data.Tile.fromPlayer game game.player
@@ -65,7 +84,7 @@ tile args pos game =
                  else
                     list
                 )
-                    |> List.map (View.Tile.toHtml args.zoom)
+                    |> List.map (View.Tile.toHtml args.widthOverHeight args.zoom)
                     |> List.map (\html -> ( [], html ))
                     |> Layout.stack
                         ((if game.selected == pos then
@@ -75,7 +94,7 @@ tile args pos game =
                             [ Attr.style "background-color" View.Color.black ]
 
                           else
-                            []
+                            [ Attr.style "background-color" "white" ]
                          )
                             ++ (args.onPress
                                     |> Maybe.map
@@ -87,8 +106,8 @@ tile args pos game =
                                         )
                                     |> Maybe.withDefault []
                                )
-                            ++ [ Attr.style "width" (Config.tileSize args.zoom)
-                               , Attr.style "height" (Config.tileSize args.zoom)
+                            ++ [ Attr.style "width" (Config.tileSize args.widthOverHeight args.zoom)
+                               , Attr.style "height" (Config.tileSize args.widthOverHeight args.zoom)
                                ]
                         )
            )

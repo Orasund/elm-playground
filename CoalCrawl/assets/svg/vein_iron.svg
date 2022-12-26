@@ -15,6 +15,6 @@
             <rect width="15" height="15" fill="gray" x="-7.5" y="-7.5" />
         </g>
     </defs>
-    <use href="#rock" fill="gray" />
-    <use href="#iron" x="50" y="70" />
+    <use href="#rock" fill="none" y="-20" stroke-width="10" stroke="black" />
+    <use href="#iron" x="50" y="50" />
 </svg>
