@@ -1,7 +1,9 @@
 module Data.Behavior.Bomb exposing (..)
 
 import Data.Actor exposing (Actor(..))
+import Data.Block
 import Data.Bomb exposing (Bomb)
+import Data.Entity
 import Data.Position
 import Data.World exposing (World)
 import Generation
@@ -24,6 +26,12 @@ timePassed id world =
 
                     Nothing ->
                         Data.Position.neighbors pos
+                            |> List.filter
+                                (\p ->
+                                    world
+                                        |> Data.World.getBlock p
+                                        |> (/=) (Just (Data.Block.EntityBlock Data.Entity.Wall))
+                                )
                             |> List.foldl
                                 (\p ->
                                     Random.andThen (Generation.mine p)

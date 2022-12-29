@@ -5434,7 +5434,7 @@ var $elm$random$Random$independentSeed = $elm$random$Random$Generator(
 			A4($elm$random$Random$map3, makeIndependentSeed, gen, gen, gen),
 			seed0);
 	});
-var $author$project$View$Tab$DetailTab = {$: 'DetailTab'};
+var $author$project$View$Tab$BuildTab = {$: 'BuildTab'};
 var $author$project$Data$Item$Coal = {$: 'Coal'};
 var $author$project$Data$Block$EntityBlock = function (a) {
 	return {$: 'EntityBlock', a: a};
@@ -6062,13 +6062,7 @@ var $author$project$Data$Player$fromPos = function (pos) {
 	return {item: $elm$core$Maybe$Nothing, pos: pos, riding: $elm$core$Maybe$Nothing, targetPos: $elm$core$Maybe$Nothing};
 };
 var $author$project$Data$Train$fromPos = function (pos) {
-	return {
-		dir: _Utils_Tuple2(0, -1),
-		items: _List_Nil,
-		moving: false,
-		pos: pos,
-		tracks: 0
-	};
+	return {items: _List_Nil, lookingUp: true, moving: false, pos: pos, tracks: 0};
 };
 var $author$project$Data$Entity$Actor = function (a) {
 	return {$: 'Actor', a: a};
@@ -6191,7 +6185,7 @@ var $author$project$Main$restart = F2(
 				level: 1,
 				modal: $elm$core$Maybe$Just($author$project$Data$Modal$title),
 				seed: seed,
-				sidebarTab: $elm$core$Maybe$Just($author$project$View$Tab$DetailTab),
+				sidebarTab: $elm$core$Maybe$Just($author$project$View$Tab$BuildTab),
 				tickInterval: 200,
 				volume: 25,
 				widthOverHeight: widthOverHeight,
@@ -6221,6 +6215,7 @@ var $author$project$Main$init = function (_v0) {
 						$elm$browser$Browser$Dom$getViewport))
 				])));
 };
+var $author$project$Data$Improvement$GameRunsFaster = {$: 'GameRunsFaster'};
 var $author$project$Main$TimePassed = {$: 'TimePassed'};
 var $elm$core$Platform$Sub$batch = _Platform_batch;
 var $elm$time$Time$Every = F2(
@@ -6480,6 +6475,36 @@ var $elm$time$Time$every = F2(
 		return $elm$time$Time$subscription(
 			A2($elm$time$Time$Every, interval, tagger));
 	});
+var $elm$core$List$any = F2(
+	function (isOkay, list) {
+		any:
+		while (true) {
+			if (!list.b) {
+				return false;
+			} else {
+				var x = list.a;
+				var xs = list.b;
+				if (isOkay(x)) {
+					return true;
+				} else {
+					var $temp$isOkay = isOkay,
+						$temp$list = xs;
+					isOkay = $temp$isOkay;
+					list = $temp$list;
+					continue any;
+				}
+			}
+		}
+	});
+var $elm$core$List$member = F2(
+	function (x, xs) {
+		return A2(
+			$elm$core$List$any,
+			function (a) {
+				return _Utils_eq(a, x);
+			},
+			xs);
+	});
 var $elm$browser$Browser$Events$Window = {$: 'Window'};
 var $elm$json$Json$Decode$field = _Json_decodeField;
 var $elm$json$Json$Decode$int = _Json_decodeInt;
@@ -6703,7 +6728,7 @@ var $author$project$Main$subscriptions = function (model) {
 			[
 				A2(
 				$elm$time$Time$every,
-				model.tickInterval,
+				A2($elm$core$List$member, $author$project$Data$Improvement$GameRunsFaster, model.game.improvements) ? (model.tickInterval * 0.8) : model.tickInterval,
 				function (_v0) {
 					return $author$project$Main$TimePassed;
 				}),
@@ -7036,36 +7061,6 @@ var $author$project$ListBag$fromList = A2(
 		return A2($author$project$ListBag$insert, 1, a);
 	},
 	_List_Nil);
-var $elm$core$List$any = F2(
-	function (isOkay, list) {
-		any:
-		while (true) {
-			if (!list.b) {
-				return false;
-			} else {
-				var x = list.a;
-				var xs = list.b;
-				if (isOkay(x)) {
-					return true;
-				} else {
-					var $temp$isOkay = isOkay,
-						$temp$list = xs;
-					isOkay = $temp$isOkay;
-					list = $temp$list;
-					continue any;
-				}
-			}
-		}
-	});
-var $elm$core$List$member = F2(
-	function (x, xs) {
-		return A2(
-			$elm$core$List$any,
-			function (a) {
-				return _Utils_eq(a, x);
-			},
-			xs);
-	});
 var $author$project$ListBag$union = function (l1) {
 	return A2(
 		$elm$core$List$foldl,
@@ -7412,6 +7407,7 @@ var $author$project$Data$Actor$Cave = function (a) {
 };
 var $author$project$Data$Actor$CoalCave = {$: 'CoalCave'};
 var $author$project$Data$Actor$CollapsedCave = {$: 'CollapsedCave'};
+var $author$project$Data$Entity$CrackedWall = {$: 'CrackedWall'};
 var $author$project$Data$Actor$IronCave = {$: 'IronCave'};
 var $author$project$Data$Actor$LavaCave = {$: 'LavaCave'};
 var $author$project$Data$Actor$WaterCave = {$: 'WaterCave'};
@@ -7609,35 +7605,38 @@ var $author$project$Generation$Wall$wallGenerator = function (_v0) {
 	var content = function (i) {
 		return $elm$core$List$reverse(
 			A2(
-				$elm$core$List$take,
-				i + 1,
-				_Utils_ap(
-					_List_fromArray(
-						[
-							$author$project$Data$World$insertActor(
-							$author$project$Data$Actor$Helper(
-								$author$project$Data$Actor$Cave($author$project$Data$Actor$CoalCave))),
-							$author$project$Data$World$insertEntity(
-							$author$project$Data$Entity$Vein($author$project$Data$Item$Coal))
-						]),
-					A2(
-						$elm$core$List$intersperse,
-						$author$project$Data$World$insertEntity($author$project$Data$Entity$Wall),
+				$elm$core$List$cons,
+				$author$project$Data$World$insertEntity($author$project$Data$Entity$CrackedWall),
+				A2(
+					$elm$core$List$take,
+					i + 1,
+					_Utils_ap(
 						_List_fromArray(
 							[
 								$author$project$Data$World$insertActor(
 								$author$project$Data$Actor$Helper(
-									$author$project$Data$Actor$Cave($author$project$Data$Actor$IronCave))),
-								$author$project$Data$World$insertActor(
-								$author$project$Data$Actor$Helper(
-									$author$project$Data$Actor$Cave($author$project$Data$Actor$WaterCave))),
-								$author$project$Data$World$insertActor(
-								$author$project$Data$Actor$Helper(
-									$author$project$Data$Actor$Cave($author$project$Data$Actor$CollapsedCave))),
-								$author$project$Data$World$insertActor(
-								$author$project$Data$Actor$Helper(
-									$author$project$Data$Actor$Cave($author$project$Data$Actor$LavaCave)))
-							])))));
+									$author$project$Data$Actor$Cave($author$project$Data$Actor$CoalCave))),
+								$author$project$Data$World$insertEntity(
+								$author$project$Data$Entity$Vein($author$project$Data$Item$Coal))
+							]),
+						A2(
+							$elm$core$List$intersperse,
+							$author$project$Data$World$insertEntity($author$project$Data$Entity$CrackedWall),
+							_List_fromArray(
+								[
+									$author$project$Data$World$insertActor(
+									$author$project$Data$Actor$Helper(
+										$author$project$Data$Actor$Cave($author$project$Data$Actor$IronCave))),
+									$author$project$Data$World$insertActor(
+									$author$project$Data$Actor$Helper(
+										$author$project$Data$Actor$Cave($author$project$Data$Actor$WaterCave))),
+									$author$project$Data$World$insertActor(
+									$author$project$Data$Actor$Helper(
+										$author$project$Data$Actor$Cave($author$project$Data$Actor$CollapsedCave))),
+									$author$project$Data$World$insertActor(
+									$author$project$Data$Actor$Helper(
+										$author$project$Data$Actor$Cave($author$project$Data$Actor$LavaCave)))
+								]))))));
 	};
 	return function (list) {
 		if (!list.b) {
@@ -8539,6 +8538,13 @@ var $author$project$Data$Behavior$Player$interactWith = F2(
 							var entity = block.a;
 							switch (entity.$) {
 								case 'Wall':
+									return A2(
+										$elm$random$Random$map,
+										function (g) {
+											return _Utils_Tuple2(g, _List_Nil);
+										},
+										$elm$random$Random$constant(game));
+								case 'CrackedWall':
 									return A2(
 										$elm$random$Random$map,
 										function (g) {
@@ -9566,7 +9572,7 @@ var $author$project$Data$Train$forwardPos = function (train) {
 	var _v0 = train.pos;
 	var x = _v0.a;
 	var y = _v0.b;
-	var _v1 = train.dir;
+	var _v1 = train.lookingUp ? _Utils_Tuple2(0, -1) : _Utils_Tuple2(0, 1);
 	var dirX = _v1.a;
 	var dirY = _v1.b;
 	return _Utils_Tuple2(x + dirX, y + dirY);
@@ -9613,7 +9619,7 @@ var $author$project$Data$Train$addTracks = F2(
 	});
 var $author$project$Data$Improvement$TrainCanCollect = {$: 'TrainCanCollect'};
 var $author$project$Data$Improvement$asList = _List_fromArray(
-	[$author$project$Data$Improvement$GetOneGoldEachLevel, $author$project$Data$Improvement$MinecartCanCollect, $author$project$Data$Improvement$TrainCanCollect]);
+	[$author$project$Data$Improvement$GetOneGoldEachLevel, $author$project$Data$Improvement$MinecartCanCollect, $author$project$Data$Improvement$TrainCanCollect, $author$project$Data$Improvement$GameRunsFaster]);
 var $elm_community$random_extra$Random$List$get = F2(
 	function (index, list) {
 		return $elm$core$List$head(
@@ -9736,9 +9742,7 @@ var $elm$core$Basics$not = _Basics_not;
 var $author$project$Data$Train$turnDownwards = function (train) {
 	return _Utils_update(
 		train,
-		{
-			dir: _Utils_Tuple2(0, 1)
-		});
+		{lookingUp: false});
 };
 var $author$project$Data$Behavior$Train$stockUpAtBase = F3(
 	function (id, improvements, world) {
@@ -9827,9 +9831,7 @@ var $author$project$Data$Behavior$Train$mine = F2(
 var $author$project$Data$Train$turnUpwards = function (train) {
 	return _Utils_update(
 		train,
-		{
-			dir: _Utils_Tuple2(0, -1)
-		});
+		{lookingUp: true});
 };
 var $author$project$Data$Behavior$Train$turnToHQ = F2(
 	function (id, world) {
@@ -10020,11 +10022,13 @@ var $author$project$Data$Behavior$Train$tryMovingTo = F4(
 							}());
 					} else {
 						var entity = block.a.a;
-						return A3(
+						return ((train.lookingUp && (_Utils_cmp(
+							$author$project$Data$Train$coalNeeded(train),
+							A2($author$project$ListBag$count, $author$project$Data$Item$Coal, train.items)) < 1)) || ((!train.lookingUp) && A2($author$project$ListBag$member, $author$project$Data$Item$Coal, train.items))) ? A3(
 							$author$project$Data$Behavior$Train$collideWith,
 							_Utils_Tuple2(newPos, entity),
 							id,
-							world);
+							world) : $elm$core$Maybe$Nothing;
 					}
 				},
 				A2($author$project$Data$Behavior$Train$getTrain, id, world)));
@@ -10195,7 +10199,7 @@ var $author$project$Generation$Cave$exposedCave = function (caveType) {
 								1 / 2,
 								$author$project$Data$World$insertActor(
 									$author$project$Data$Actor$Helper(
-										$author$project$Data$Actor$Falling($author$project$Data$Entity$Wall)))),
+										$author$project$Data$Actor$Falling($author$project$Data$Entity$CrackedWall)))),
 								_Utils_Tuple2(
 								1 / 4,
 								$author$project$Data$World$insertActor(
@@ -10386,7 +10390,15 @@ var $author$project$Data$Behavior$Bomb$timePassed = F2(
 							},
 							$elm$random$Random$constant(
 								A2($author$project$Data$World$removeEntity, pos, world)),
-							$author$project$Data$Position$neighbors(pos));
+							A2(
+								$elm$core$List$filter,
+								function (p) {
+									return !_Utils_eq(
+										$elm$core$Maybe$Just(
+											$author$project$Data$Block$EntityBlock($author$project$Data$Entity$Wall)),
+										A2($author$project$Data$World$getBlock, p, world));
+								},
+								$author$project$Data$Position$neighbors(pos)));
 					}
 				},
 				A2(
@@ -10992,7 +11004,10 @@ var $author$project$Data$Info$fromEntity = F2(
 					});
 			case 'Wall':
 				return $author$project$Data$Info$new(
-					{description: 'Can be mind by bombs, but will not drop anything.', title: 'Wall'});
+					{description: 'Indestructible.', title: 'Wall'});
+			case 'CrackedWall':
+				return $author$project$Data$Info$new(
+					{description: 'Can be mind by bombs, but will not drop anything.', title: 'Cracked Wall'});
 			case 'Water':
 				return $author$project$Data$Info$new(
 					{description: 'Will be pushed aside when you walk through it. Wagons can\'t pass through it.', title: 'Water'});
@@ -11282,6 +11297,10 @@ var $author$project$Data$Tile$fromEntity = F2(
 				return $elm$core$List$singleton(
 					$author$project$Data$Tile$image(
 						{color: $author$project$View$Color$black, source: 'assets/svg/wall.svg'}));
+			case 'CrackedWall':
+				return $elm$core$List$singleton(
+					$author$project$Data$Tile$image(
+						{color: $author$project$View$Color$black, source: 'assets/svg/cracked_wall.svg'}));
 			case 'Water':
 				return $elm$core$List$singleton(
 					$author$project$Data$Tile$image(
@@ -11594,7 +11613,7 @@ var $elm$virtual_dom$VirtualDom$node = function (tag) {
 var $elm$html$Html$node = $elm$virtual_dom$VirtualDom$node;
 var $Orasund$elm_layout$Layout$none = $elm$html$Html$text('');
 var $elm$html$Html$Attributes$rel = _VirtualDom_attribute('rel');
-var $author$project$Config$bombCost = 2;
+var $author$project$Config$bombCost = 1;
 var $author$project$View$Tab$buildActorButton = F2(
 	function (buildActor, args) {
 		return {
@@ -11779,7 +11798,7 @@ var $author$project$View$Tab$Settings$settings = function (args) {
 				{name: 'Zoom', onInput: args.setZoom, value: args.zoom})
 			]));
 };
-var $author$project$View$Tab$BuildTab = {$: 'BuildTab'};
+var $author$project$View$Tab$DetailTab = {$: 'DetailTab'};
 var $author$project$View$Tab$SettingTab = {$: 'SettingTab'};
 var $author$project$View$Tab$tabList = _List_fromArray(
 	[$author$project$View$Tab$SettingTab, $author$project$View$Tab$DetailTab, $author$project$View$Tab$BuildTab]);
@@ -12131,8 +12150,10 @@ var $author$project$Data$Improvement$toString = function (improvement) {
 			return 'Get one gold each level';
 		case 'MinecartCanCollect':
 			return 'Minecart can collect items';
-		default:
+		case 'TrainCanCollect':
 			return 'Train can collect items';
+		default:
+			return 'Game runs faster';
 	}
 };
 var $author$project$Data$Animation$emptyWorld = function (args) {

@@ -62,7 +62,7 @@ trackCost =
 
 
 bombCost =
-    2
+    1
 
 
 bombExplosionTime =

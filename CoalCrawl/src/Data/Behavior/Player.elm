@@ -53,6 +53,10 @@ interactWith pos game =
                                 Random.constant game
                                     |> Random.map (\g -> ( g, [] ))
 
+                            Data.Entity.CrackedWall ->
+                                Random.constant game
+                                    |> Random.map (\g -> ( g, [] ))
+
                             Data.Entity.Actor id ->
                                 game.world.actors
                                     |> Dict.get id

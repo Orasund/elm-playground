@@ -193,6 +193,13 @@ fromEntity game entity =
                 |> image
                 |> List.singleton
 
+        Data.Entity.CrackedWall ->
+            { source = "assets/svg/cracked_wall.svg"
+            , color = View.Color.black
+            }
+                |> image
+                |> List.singleton
+
         Data.Entity.Water ->
             { color = View.Color.blue
             , source = "assets/svg/water.svg"

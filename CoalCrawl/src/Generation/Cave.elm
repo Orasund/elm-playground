@@ -65,7 +65,7 @@ exposedCave caveType =
                 )
                 [ ( 1 / 2
                   , Data.World.insertActor
-                        (Data.Actor.Falling Data.Entity.Wall
+                        (Data.Actor.Falling Data.Entity.CrackedWall
                             |> Data.Actor.Helper
                         )
                   )

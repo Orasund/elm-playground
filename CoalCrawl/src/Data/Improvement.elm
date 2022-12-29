@@ -5,6 +5,7 @@ type Improvement
     = GetOneGoldEachLevel
     | MinecartCanCollect
     | TrainCanCollect
+    | GameRunsFaster
 
 
 asList : List Improvement
@@ -12,6 +13,7 @@ asList =
     [ GetOneGoldEachLevel
     , MinecartCanCollect
     , TrainCanCollect
+    , GameRunsFaster
     ]
 
 
@@ -26,3 +28,6 @@ toString improvement =
 
         TrainCanCollect ->
             "Train can collect items"
+
+        GameRunsFaster ->
+            "Game runs faster"

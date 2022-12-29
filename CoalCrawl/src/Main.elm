@@ -116,7 +116,7 @@ restart widthOverHeight seed =
                 , seed = seed
                 , modal = Just Data.Modal.title
                 , volume = 25
-                , sidebarTab = Just DetailTab
+                , sidebarTab = Just BuildTab
                 , tickInterval = 200
                 , zoomPercent = 25
                 , building = Nothing
@@ -380,7 +380,14 @@ update msg model =
 subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch
-        [ Time.every model.tickInterval (\_ -> TimePassed)
+        [ Time.every
+            (if model.game.improvements |> List.member Data.Improvement.GameRunsFaster then
+                model.tickInterval * 0.8
+
+             else
+                model.tickInterval
+            )
+            (\_ -> TimePassed)
         , Browser.Events.onResize (\w h -> toFloat w / toFloat h |> SetWidthOverHeight)
         ]
 

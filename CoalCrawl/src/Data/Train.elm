@@ -8,7 +8,7 @@ import ListBag
 
 type alias Train =
     { pos : ( Int, Int )
-    , dir : ( Int, Int )
+    , lookingUp : Bool
     , moving : Bool
     , tracks : Int
     , items : List ( Item, Int )
@@ -18,7 +18,7 @@ type alias Train =
 fromPos : ( Int, Int ) -> Train
 fromPos pos =
     { pos = pos
-    , dir = ( 0, -1 )
+    , lookingUp = True
     , moving = False
     , tracks = 0
     , items = []
@@ -29,7 +29,11 @@ forwardPos : Train -> ( Int, Int )
 forwardPos train =
     let
         ( dirX, dirY ) =
-            train.dir
+            if train.lookingUp then
+                ( 0, -1 )
+
+            else
+                ( 0, 1 )
 
         ( x, y ) =
             train.pos
@@ -44,12 +48,12 @@ move train =
 
 turnDownwards : Train -> Train
 turnDownwards train =
-    { train | dir = ( 0, 1 ) }
+    { train | lookingUp = False }
 
 
 turnUpwards : Train -> Train
 turnUpwards train =
-    { train | dir = ( 0, -1 ) }
+    { train | lookingUp = True }
 
 
 coalNeeded : Train -> Int

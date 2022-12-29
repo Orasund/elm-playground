@@ -17,12 +17,13 @@ wallGenerator ( x, y ) =
             , Data.World.insertActor (Data.Actor.Helper (Data.Actor.Cave Data.Actor.CollapsedCave))
             , Data.World.insertActor (Data.Actor.Helper (Data.Actor.Cave Data.Actor.LavaCave))
             ]
-                |> List.intersperse (Data.World.insertEntity Data.Entity.Wall)
+                |> List.intersperse (Data.World.insertEntity Data.Entity.CrackedWall)
                 |> (++)
                     [ Data.World.insertActor (Data.Actor.Helper (Data.Actor.Cave Data.Actor.CoalCave))
                     , Data.World.insertEntity (Data.Entity.Vein Data.Item.Coal)
                     ]
                 |> List.take (i + 1)
+                |> (::) (Data.World.insertEntity Data.Entity.CrackedWall)
                 |> List.reverse
     in
     ((y // Config.tracksPerTrip) + 1)

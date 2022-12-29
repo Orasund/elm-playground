@@ -114,7 +114,19 @@ tryMovingTo ( newPos, block ) id improvements world =
                                 )
 
                     ( Data.Block.EntityBlock entity, _ ) ->
-                        collideWith ( newPos, entity ) id world
+                        if
+                            (train.lookingUp
+                                && Data.Train.coalNeeded train
+                                <= ListBag.count Data.Item.Coal train.items
+                            )
+                                || (not train.lookingUp
+                                        && ListBag.member Data.Item.Coal train.items
+                                   )
+                        then
+                            collideWith ( newPos, entity ) id world
+
+                        else
+                            Nothing
             )
         |> Maybe.map (Random.map (Tuple.mapFirst (collect id improvements)))
 

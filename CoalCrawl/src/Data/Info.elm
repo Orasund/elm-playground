@@ -100,6 +100,12 @@ fromEntity game entity =
         Data.Entity.Wall ->
             new
                 { title = "Wall"
+                , description = "Indestructible."
+                }
+
+        Data.Entity.CrackedWall ->
+            new
+                { title = "Cracked Wall"
                 , description = "Can be mind by bombs, but will not drop anything."
                 }
 
