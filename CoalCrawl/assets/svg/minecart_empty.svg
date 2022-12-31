@@ -20,9 +20,8 @@
             <rect width="20" height="30" y="-40" x="-10" />
             <circle r="20" />
         </g>
-        <path id="content" d="M0,0 20,-20 50,0 Z" />
+        <path id="content" d="M0,0 20,-20 40,-10 60,-20 80,0 Z" />
     </defs>
     <use href="#wheels" />
     <use href="#cart" />
-    <use href="#content" x="10" y="35" />
 </svg>

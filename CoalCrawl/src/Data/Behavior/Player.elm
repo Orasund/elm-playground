@@ -10,7 +10,6 @@ import Data.Player
 import Data.Position
 import Data.Sound
 import Data.World
-import Dict
 import Generation
 import Random exposing (Generator)
 import Set
@@ -47,6 +46,12 @@ interactWith pos game =
                     Data.Block.FloorBlock _ ->
                         moveTowards pos game
 
+                    Data.Block.ActorBlock ( _, _ ) ->
+                        game
+                            |> putInto pos
+                            |> Maybe.withDefault ( game, [] )
+                            |> Random.constant
+
                     Data.Block.EntityBlock entity ->
                         case entity of
                             Data.Entity.Wall ->
@@ -57,10 +62,9 @@ interactWith pos game =
                                 Random.constant game
                                     |> Random.map (\g -> ( g, [] ))
 
-                            Data.Entity.Actor id ->
-                                game.world.actors
-                                    |> Dict.get id
-                                    |> Maybe.andThen (\( p, _ ) -> putInto p game)
+                            Data.Entity.Container _ ->
+                                game
+                                    |> putInto pos
                                     |> Maybe.withDefault ( game, [] )
                                     |> Random.constant
 
@@ -81,28 +85,31 @@ interactWith pos game =
 
 canMoveTo : Game -> ( Int, Int ) -> Bool
 canMoveTo game p =
-    case Data.World.get p game.world of
-        Just ( Data.Block.FloorBlock _, _ ) ->
+    case Data.World.get p game.world |> Maybe.map Tuple.first of
+        Just (Data.Block.FloorBlock _) ->
             True
 
-        Just ( Data.Block.EntityBlock (Data.Entity.Actor id), _ ) ->
-            case game.world |> Data.World.getActor id of
-                Just ( _, Data.Actor.Minecart _ ) ->
+        Just (Data.Block.ActorBlock ( _, actor )) ->
+            case actor of
+                Data.Actor.Minecart _ ->
                     True
 
-                Just ( _, Data.Actor.MovingWater _ ) ->
+                Data.Actor.MovingWater _ ->
                     True
 
-                Just ( _, Data.Actor.Train _ ) ->
+                Data.Actor.Train _ ->
                     True
 
                 _ ->
                     False
 
-        Just ( Data.Block.EntityBlock Data.Entity.Water, _ ) ->
+        Just (Data.Block.EntityBlock Data.Entity.Water) ->
             True
 
-        Just ( Data.Block.EntityBlock (Data.Entity.Vein _), _ ) ->
+        Just (Data.Block.EntityBlock (Data.Entity.Container _)) ->
+            True
+
+        Just (Data.Block.EntityBlock (Data.Entity.Vein _)) ->
             True
 
         _ ->
@@ -128,9 +135,9 @@ moveTowards targetPos game =
                     { game | player = game.player |> Data.Player.moveTo pos }
                         |> Data.Effect.withNone
 
-                Just (Data.Block.EntityBlock (Data.Entity.Actor id)) ->
-                    case game.world |> Data.World.getActor id of
-                        Just ( _, Data.Actor.Train _ ) ->
+                Just (Data.Block.ActorBlock ( _, actor )) ->
+                    case actor of
+                        Data.Actor.Train _ ->
                             { game | player = game.player |> Data.Player.moveTo pos }
                                 |> Data.Effect.withNone
 
@@ -140,6 +147,10 @@ moveTowards targetPos game =
                                 |> Maybe.map (Data.Game.setWorldOf game)
                                 |> Maybe.withDefault game
                                 |> Data.Effect.withNone
+
+                Just (Data.Block.EntityBlock (Data.Entity.Container _)) ->
+                    { game | player = game.player |> Data.Player.moveTo pos }
+                        |> Data.Effect.withNone
 
                 Just (Data.Block.EntityBlock (Data.Entity.Vein _)) ->
                     game.world

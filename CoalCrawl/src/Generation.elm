@@ -18,9 +18,6 @@ mine ( x, y ) world =
                     [ item ]
                         |> Just
 
-                Data.Entity.Actor _ ->
-                    Nothing
-
                 _ ->
                     Just []
             )

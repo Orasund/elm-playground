@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 30">
+    <defs>
+        <g id="coal">
+            <path d="M0,-15 15,0 0,15 -15,0 Z" fill="white" />
+            <path d="M0,-10 10,0 0,10 -10,0 Z" fill="black" />
+
+        </g>
+        <g id="gold">
+            <circle r="15" fill="white" />
+            <circle r="10" fill="yellow" />
+        </g>
+        <g id="iron">
+            <rect width="25" height="25" fill="white" x="-12.5" y="-12.5" />
+            <rect width="15" height="15" fill="gray" x="-7.5" y="-7.5" />
+        </g>
+    </defs>
+    <use href="#gold" x="15" y="15" />
+</svg>

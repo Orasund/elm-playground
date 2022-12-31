@@ -38,7 +38,7 @@ maxCameraDistance z w h =
 
 
 wagonCost =
-    8
+    16
 
 
 trainLoadSize =
@@ -55,6 +55,14 @@ maxLevel =
 
 wagonMaxItems =
     10
+
+
+containerMaxItems =
+    10
+
+
+containerCost =
+    8
 
 
 trackCost =

@@ -9,6 +9,7 @@ import Data.Behavior
 import Data.Block exposing (Block(..))
 import Data.Effect exposing (Effect)
 import Data.Entity exposing (Entity(..))
+import Data.Floor exposing (Floor)
 import Data.Game exposing (Game)
 import Data.Improvement exposing (Improvement)
 import Data.Info
@@ -25,6 +26,7 @@ import Random exposing (Generator, Seed)
 import Task
 import Time
 import View.Button
+import View.Item
 import View.Modal
 import View.Screen
 import View.Tab exposing (Tab(..))
@@ -40,7 +42,8 @@ port setVolume : Float -> Cmd msg
 
 
 type BuildMode
-    = BuildingBlock ( ( Item, Int ), Block )
+    = BuildingFloor ( ( Item, Int ), Floor )
+    | BuildingEntity ( ( Item, Int ), Entity )
     | BuildingActor ( ( Item, Int ), Actor )
     | RemovingBlock
 
@@ -177,9 +180,14 @@ view model =
                             [ "Stop Building"
                                 |> View.Button.toHtml (Just StopBuilding)
                             , (case block of
-                                BuildingBlock ( _, b ) ->
-                                    b
-                                        |> Data.Info.fromBlock model.game
+                                BuildingFloor ( _, f ) ->
+                                    f
+                                        |> Data.Info.fromFloor
+                                        |> .title
+
+                                BuildingEntity ( _, e ) ->
+                                    e
+                                        |> Data.Info.fromEntity
                                         |> .title
 
                                 BuildingActor ( _, a ) ->
@@ -208,9 +216,12 @@ view model =
                                     , buildActor =
                                         \{ cost, actor } ->
                                             StartBuilding (BuildingActor ( cost, actor ))
-                                    , buildBlock =
-                                        \{ cost, block } ->
-                                            StartBuilding (BuildingBlock ( cost, block ))
+                                    , buildFloor =
+                                        \{ cost, floor } ->
+                                            StartBuilding (BuildingFloor ( cost, floor ))
+                                    , buildEntity =
+                                        \{ cost, entity } ->
+                                            StartBuilding (BuildingEntity ( cost, entity ))
                                     , setVolume = SetVolume
                                     , volume = model.volume
                                     , setZoom = SetZoom
@@ -222,21 +233,23 @@ view model =
                 , ( [ Attr.style "top" "8px"
                     , Attr.style "right" "8px"
                     ]
-                  , [ (( "Tracks", train.tracks )
+                  , [ (( [ Html.text "Tracks" ], train.tracks )
                         :: (train.items
                                 |> List.map
                                     (Tuple.mapFirst
                                         (\k ->
-                                            String.fromChar (Data.Item.toChar k)
-                                                ++ Data.Item.toString k
+                                            [ View.Item.toHtml k
+                                            , Html.text (Data.Item.toString k)
+                                            ]
                                         )
                                     )
                            )
-                        |> List.map (\( k, n ) -> String.fromInt n ++ "x " ++ k)
+                        |> List.map
+                            (\( k, n ) ->
+                                Html.text (String.fromInt n ++ "x") :: k |> Layout.row []
+                            )
                       )
-                        |> (\content -> content |> String.join ", ")
-                        |> Html.text
-                        |> Layout.el []
+                        |> Layout.column []
                     , "Needs "
                         ++ (Data.Train.coalNeeded train
                                 - ListBag.count Data.Item.Coal train.items
@@ -306,8 +319,11 @@ update msg model =
                         case model.building of
                             Just buildingMode ->
                                 (case buildingMode of
-                                    BuildingBlock ( cost, block ) ->
-                                        Data.Game.buildBlock pos cost block game
+                                    BuildingFloor ( cost, block ) ->
+                                        Data.Game.buildFloor pos cost block game
+
+                                    BuildingEntity ( cost, block ) ->
+                                        Data.Game.buildEntity pos cost block game
 
                                     BuildingActor ( cost, actor ) ->
                                         Data.Game.buildActor pos cost actor game

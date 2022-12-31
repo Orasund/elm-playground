@@ -2,7 +2,6 @@ module Data.Tile exposing (..)
 
 import Config
 import Data.Actor exposing (Actor(..))
-import Data.Block
 import Data.Entity exposing (Entity)
 import Data.Floor exposing (Floor)
 import Data.Game exposing (Game)
@@ -46,17 +45,6 @@ new args =
         |> CharTile
 
 
-emoji : Char -> Tile
-emoji char =
-    { color = View.Color.black
-    , content = char
-    , bold = False
-    , animation = False
-    , size = 0.7
-    }
-        |> CharTile
-
-
 image : { color : String, source : String } -> Tile
 image args =
     { source = args.source
@@ -64,26 +52,6 @@ image args =
     , color = args.color
     }
         |> ImageTile
-
-
-withSmall : Tile -> Tile
-withSmall tile =
-    case tile of
-        CharTile content ->
-            { content | size = 0.2 } |> CharTile
-
-        ImageTile _ ->
-            tile
-
-
-withBold : Tile -> Tile
-withBold tile =
-    case tile of
-        CharTile content ->
-            { content | bold = True } |> CharTile
-
-        ImageTile _ ->
-            tile
 
 
 withAnimation : Tile -> Tile
@@ -173,8 +141,8 @@ fromFloor pos game floor =
                 |> image
 
 
-fromEntity : Game -> Entity -> List Tile
-fromEntity game entity =
+fromEntity : Entity -> Tile
+fromEntity entity =
     case entity of
         Data.Entity.Vein item ->
             { source =
@@ -184,50 +152,50 @@ fromEntity game entity =
             , color = View.Color.black
             }
                 |> image
-                |> List.singleton
 
         Data.Entity.Wall ->
             { source = "assets/svg/wall.svg"
             , color = View.Color.black
             }
                 |> image
-                |> List.singleton
 
         Data.Entity.CrackedWall ->
             { source = "assets/svg/cracked_wall.svg"
             , color = View.Color.black
             }
                 |> image
-                |> List.singleton
 
         Data.Entity.Water ->
             { color = View.Color.blue
             , source = "assets/svg/water.svg"
             }
                 |> image
-                |> List.singleton
 
         Data.Entity.Lava ->
             { color = View.Color.red
             , source = "assets/svg/lava.svg"
             }
                 |> image
-                |> List.singleton
 
-        Data.Entity.Actor id ->
-            game.world
-                |> Data.World.getActor id
-                |> Maybe.map
-                    (\( pos, actor ) ->
-                        [ game.world
-                            |> Data.World.getFloor pos
-                            |> Maybe.withDefault Data.Floor.Ground
-                            |> fromFloor pos game
-                        , fromActor actor
-                        ]
-                    )
-                |> Maybe.withDefault
-                    ({ color = View.Color.red, content = '?' } |> new |> List.singleton)
+        Data.Entity.Container storage ->
+            { color = View.Color.black
+            , source =
+                if Data.Storage.isEmpty storage then
+                    "assets/svg/container_empty.svg"
+
+                else if Data.Storage.isFull storage then
+                    "assets/svg/container_full.svg"
+
+                else
+                    "assets/svg/container.svg"
+            }
+                |> image
+                |> (if Data.Storage.isFull storage then
+                        withAnimation
+
+                    else
+                        identity
+                   )
 
 
 fromActor : Actor -> Tile
@@ -235,24 +203,26 @@ fromActor actor =
     case actor of
         Data.Actor.Minecart wagon ->
             (if Data.Storage.isEmpty wagon.storage then
-                "assets/svg/minecart.svg"
+                "assets/svg/minecart_empty.svg"
+
+             else if Data.Storage.isFull wagon.storage then
+                "assets/svg/minecart_full.svg"
 
              else
-                "assets/svg/minecart_full.svg"
+                "assets/svg/minecart.svg"
             )
                 |> (\source -> image { source = source, color = View.Color.black })
                 |> (\it ->
                         if Data.Storage.isFull wagon.storage then
-                            it |> withAnimation |> withBold
+                            it |> withAnimation
 
                         else
-                            it |> withBold
+                            it
                    )
 
         Data.Actor.Helper _ ->
             { color = View.Color.red, content = '?' }
                 |> new
-                |> withBold
 
         Data.Actor.Bomb bomb ->
             (if
@@ -270,7 +240,7 @@ fromActor actor =
             "assets/svg/train.svg"
                 |> (\source -> image { source = source, color = View.Color.black })
                 |> (if train.moving || train.tracks > 0 then
-                        withBold
+                        withAnimation
 
                     else
                         identity
@@ -284,7 +254,7 @@ fromActor actor =
                 |> withAnimation
 
 
-fromItem : Item -> List Tile
+fromItem : Item -> Tile
 fromItem item =
     "assets/svg/item_"
         ++ (item |> Data.Item.toString |> String.toLower)
@@ -295,24 +265,22 @@ fromItem item =
                 }
                     |> image
            )
-        |> List.singleton
 
 
 fromPos : ( Int, Int ) -> Game -> List Tile
 fromPos pos game =
-    game.world
-        |> Data.World.get pos
-        |> Maybe.map
-            (\( block, items ) ->
-                case block of
-                    Data.Block.FloorBlock floor ->
-                        fromFloor pos game floor
-                            :: (items
-                                    |> Maybe.map fromItem
-                                    |> Maybe.withDefault []
-                               )
-
-                    Data.Block.EntityBlock entity ->
-                        fromEntity game entity
-            )
-        |> Maybe.withDefault []
+    [ game.world
+        |> Data.World.getFloor pos
+        |> Maybe.map (fromFloor pos game)
+    , game.world
+        |> Data.World.getItem pos
+        |> Maybe.map fromItem
+    , game.world
+        |> Data.World.getEntity pos
+        |> Maybe.map fromEntity
+    , game.world
+        |> Data.World.getActorAt pos
+        |> Maybe.map Tuple.second
+        |> Maybe.map fromActor
+    ]
+        |> List.filterMap identity

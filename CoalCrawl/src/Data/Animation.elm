@@ -3,7 +3,6 @@ module Data.Animation exposing (..)
 import Array exposing (Array)
 import Data.Actor
 import Data.Behavior
-import Data.Block
 import Data.Entity
 import Data.Floor
 import Data.Game exposing (Game)
@@ -29,9 +28,10 @@ emptyWorld args =
         |> List.concatMap
             (\y ->
                 List.range 0 (args.width - 1)
-                    |> List.map (\x -> ( ( x, y ), Data.Block.FloorBlock Data.Floor.Ground ))
+                    |> List.map (\x -> ( x, y ))
             )
-        |> Data.World.fromList
+        |> List.foldl (Data.World.insertFloor Data.Floor.Ground)
+            Data.World.empty
 
 
 tutorial : Animation

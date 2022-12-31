@@ -3,7 +3,6 @@ module Data.Behavior.Minecart exposing (..)
 import Data.Actor exposing (Actor(..))
 import Data.Block
 import Data.Effect exposing (Effect)
-import Data.Entity
 import Data.Floor
 import Data.Improvement exposing (Improvement)
 import Data.Minecart exposing (Minecart)
@@ -24,7 +23,7 @@ act id improvements world =
             (\( pos, wagon ) ->
                 world
                     |> move id ( pos, wagon )
-                    |> Maybe.map (Data.Effect.map (collect pos id improvements))
+                    |> Maybe.map (Data.Effect.map (collect id improvements))
             )
         |> Maybe.withDefault (Data.Effect.withNone world)
         |> Data.Effect.map
@@ -94,23 +93,18 @@ moveOnGround : { backPos : ( Int, Int ), forwardPos : ( Int, Int ) } -> ( ( Int,
 moveOnGround args ( pos, id, wagon ) world =
     world
         |> Data.World.get args.forwardPos
+        |> Maybe.map Tuple.first
         |> Maybe.map
             (\block ->
                 case block of
-                    ( Data.Block.FloorBlock _, _ ) ->
+                    Data.Block.FloorBlock _ ->
                         world
                             |> setMovement ( id, pos ) args.forwardPos
                             |> Data.Effect.withNone
 
-                    ( Data.Block.EntityBlock entity, _ ) ->
-                        (case entity of
-                            Data.Entity.Actor id0 ->
-                                world
-                                    |> collideWith id0 ( pos, id )
-
-                            _ ->
-                                Nothing
-                        )
+                    _ ->
+                        world
+                            |> transfer { from = pos, to = args.forwardPos }
                             |> Maybe.withDefault ( world, [] )
                             |> (\( w, l ) ->
                                     ( w
@@ -128,50 +122,6 @@ moveOnGround args ( pos, id, wagon ) world =
                                )
             )
         |> Maybe.withDefault (world |> Data.Effect.withNone)
-
-
-collideWith : Int -> ( ( Int, Int ), Int ) -> World -> Maybe ( World, List Effect )
-collideWith target ( pos, id1 ) world =
-    world
-        |> Data.World.getActor target
-        |> Maybe.andThen
-            (\( from, actor ) ->
-                case actor of
-                    Data.Actor.Minecart _ ->
-                        world
-                            |> swapWith target ( pos, id1 )
-                            |> Maybe.map (\w -> ( w, [] ))
-
-                    _ ->
-                        world
-                            |> transfer { from = from, to = pos }
-            )
-
-
-swapWith : Int -> ( ( Int, Int ), Int ) -> World -> Maybe World
-swapWith id0 ( pos, id1 ) world =
-    Maybe.map2
-        (\( p0, w0 ) ( _, w1 ) ->
-            world
-                |> Data.World.setActor id0
-                    (w1.storage
-                        |> Data.Minecart.setStorageOf w0
-                        |> (if Data.World.getFloor p0 world == Just Data.Floor.Track then
-                                Data.Minecart.moveFrom pos
-
-                            else
-                                identity
-                           )
-                        |> Data.Actor.Minecart
-                    )
-                |> Data.World.setActor id1
-                    (w0.storage
-                        |> Data.Minecart.setStorageOf w1
-                        |> Data.Actor.Minecart
-                    )
-        )
-        (getMinecart id0 world)
-        (getMinecart id1 world)
 
 
 moveOnTrack :
@@ -199,57 +149,64 @@ moveOnTrack args ( pos, id, wagon ) world =
                 |> moveOnGround args ( pos, id, wagon )
 
 
-collect : ( Int, Int ) -> Int -> List Improvement -> World -> ( World, List Effect )
-collect pos id improvements w =
-    if improvements |> List.member Data.Improvement.MinecartCanCollect then
-        pos
-            |> Data.Position.neighbors
-            |> List.foldl
-                (\p ( world, l ) ->
-                    world
-                        |> pickup p id
-                        |> Maybe.map (Tuple.mapSecond (\e -> e ++ l))
-                        |> Maybe.withDefault ( world, l )
-                )
-                ( w, [] )
+collect : Int -> List Improvement -> World -> ( World, List Effect )
+collect id improvements w =
+    w
+        |> getMinecart id
+        |> Maybe.map
+            (\( pos, _ ) ->
+                pos
+                    |> Data.Position.neighbors
+                    |> List.foldl
+                        (\p ( world, l ) ->
+                            world
+                                |> pickup { from = p, to = pos, improvements = improvements } id
+                                |> Maybe.map (Tuple.mapSecond (\e -> e ++ l))
+                                |> Maybe.withDefault ( world, l )
+                        )
+                        ( w, [] )
+            )
+        |> Maybe.withDefault ( w, [] )
 
-    else
-        ( w, [] )
 
-
-pickup : ( Int, Int ) -> Int -> World -> Maybe ( World, List Effect )
-pickup from id world =
+pickup : { from : ( Int, Int ), to : ( Int, Int ), improvements : List Improvement } -> Int -> World -> Maybe ( World, List Effect )
+pickup args id world =
     world
-        |> Data.World.get from
+        |> Data.World.get args.from
         |> Maybe.andThen
             (\( block, maybeItem ) ->
                 case block of
                     Data.Block.FloorBlock _ ->
-                        Maybe.map2
-                            Data.Minecart.insert
-                            maybeItem
-                            (world
-                                |> getMinecart id
-                                |> Maybe.map Tuple.second
-                            )
-                            |> Maybe.andThen identity
-                            |> Maybe.map
-                                (Tuple.mapBoth
-                                    (\m ->
-                                        world
-                                            |> Data.World.updateActor id
-                                                (\_ -> Data.Actor.Minecart m)
-                                            |> Data.World.removeItem from
-                                    )
-                                    (\s ->
-                                        s
-                                            |> Data.Effect.PlaySound
-                                            |> List.singleton
-                                    )
+                        if args.improvements |> List.member Data.Improvement.MinecartCanCollect then
+                            Maybe.map2
+                                Data.Minecart.insert
+                                maybeItem
+                                (world
+                                    |> getMinecart id
+                                    |> Maybe.map Tuple.second
                                 )
+                                |> Maybe.andThen identity
+                                |> Maybe.map
+                                    (Tuple.mapBoth
+                                        (\m ->
+                                            world
+                                                |> Data.World.updateActor id
+                                                    (\_ -> Data.Actor.Minecart m)
+                                                |> Data.World.removeItem args.from
+                                        )
+                                        (\s ->
+                                            s
+                                                |> Data.Effect.PlaySound
+                                                |> List.singleton
+                                        )
+                                    )
+
+                        else
+                            Nothing
 
                     _ ->
-                        Nothing
+                        world
+                            |> Data.World.transfer { from = args.from, to = args.to }
             )
 
 

@@ -2,22 +2,26 @@ module View.Tab exposing (..)
 
 import Config
 import Data.Actor exposing (Actor)
-import Data.Block exposing (Block)
+import Data.Block
 import Data.Bomb
-import Data.Entity
-import Data.Floor
+import Data.Entity exposing (Entity)
+import Data.Floor exposing (Floor)
 import Data.Game exposing (Game)
 import Data.Info
 import Data.Item exposing (Item)
 import Data.Minecart
+import Data.Tile
 import Data.World
+import Data.Zoom
 import Html exposing (Html)
 import Html.Attributes as Attr
 import Layout
 import ListBag
 import View.Button
 import View.Info
+import View.Item
 import View.Tab.Settings
+import View.Tile
 
 
 type Tab
@@ -55,18 +59,26 @@ buildButton game args =
                 |> .items
                 |> ListBag.count item
     in
-    [ Html.text args.build
-    , "Build for "
-        ++ String.fromInt cost
-        ++ " "
-        ++ String.fromChar (Data.Item.toChar item)
-        |> View.Button.toHtml
+    [ [ args.tile
+            |> View.Tile.toHtml 1 (Data.Zoom.fromPercent 70)
+      , Html.text args.build
+      ]
+        |> Layout.row []
+    , [ String.fromInt cost
+            ++ "/"
+            ++ String.fromInt gotAmount
+            |> Html.text
+      , item |> View.Item.toHtml
+      , View.Button.toHtml
             (if cost <= gotAmount then
                 Just args.onPress
 
              else
                 Nothing
             )
+            "Build"
+      ]
+        |> Layout.row []
     ]
         |> Layout.row [ Layout.spaceBetween ]
 
@@ -75,13 +87,23 @@ buildActorButton buildActor args =
     { build = (Data.Info.fromActor args.actor).title
     , cost = args.cost
     , onPress = buildActor args
+    , tile = Data.Tile.fromActor args.actor
     }
 
 
-buildBlockButton buildBlock game args =
-    { build = (Data.Info.fromBlock game args.block).title
+buildFloorButton buildBlock game args =
+    { build = (Data.Info.fromFloor args.floor).title
     , cost = args.cost
     , onPress = buildBlock args
+    , tile = Data.Tile.fromFloor ( -1, -1 ) game args.floor
+    }
+
+
+buildEntityButton buildBlock args =
+    { build = (Data.Info.fromEntity args.entity).title
+    , cost = args.cost
+    , onPress = buildBlock args
+    , tile = Data.Tile.fromEntity args.entity
     }
 
 
@@ -93,7 +115,8 @@ sidebar :
     , zoom : Int
     , destroyBlock : msg
     , buildActor : { cost : ( Item, Int ), actor : Actor } -> msg
-    , buildBlock : { cost : ( Item, Int ), block : Block } -> msg
+    , buildEntity : { cost : ( Item, Int ), entity : Entity } -> msg
+    , buildFloor : { cost : ( Item, Int ), floor : Floor } -> msg
     , setTab : Maybe Tab -> msg
     , tab : Maybe Tab
     }
@@ -144,18 +167,13 @@ sidebar args game =
                             |> Maybe.map
                                 (\( block, _ ) ->
                                     (block
-                                        |> Data.Info.fromBlock game
+                                        |> Data.Info.fromBlock
                                         |> View.Info.toHtml
                                     )
                                         :: (if
                                                 case block of
-                                                    Data.Block.EntityBlock (Data.Entity.Actor id) ->
-                                                        case game.world |> Data.World.getActor id of
-                                                            Just ( _, Data.Actor.Minecart _ ) ->
-                                                                True
-
-                                                            _ ->
-                                                                False
+                                                    Data.Block.ActorBlock ( _, Data.Actor.Minecart _ ) ->
+                                                        True
 
                                                     Data.Block.FloorBlock Data.Floor.Track ->
                                                         True
@@ -176,28 +194,29 @@ sidebar args game =
                                 (Html.text "Nothing selected")
 
                     BuildTab ->
-                        (([ { actor = Data.Actor.Minecart Data.Minecart.emptyWagon
-                            , cost = ( Data.Item.Iron, Config.wagonCost )
-                            }
-                                |> buildActorButton args.buildActor
-                          , { actor = Data.Actor.Bomb Data.Bomb.new
-                            , cost = ( Data.Item.Gold, Config.bombCost )
-                            }
-                                |> buildActorButton args.buildActor
-                          ]
-                            |> List.map (buildButton game)
-                         )
-                            ++ ([ { block = Data.Floor.Track |> Data.Block.FloorBlock
-                                  , cost = ( Data.Item.Iron, Config.trackCost )
-                                  }
-                                    |> buildBlockButton args.buildBlock game
-                                ]
-                                    |> List.map (buildButton game)
-                               )
-                            ++ [ "Destroy"
-                                    |> View.Button.toHtml (Just args.destroyBlock)
-                               ]
-                        )
+                        [ { floor = Data.Floor.Track
+                          , cost = ( Data.Item.Iron, Config.trackCost )
+                          }
+                            |> buildFloorButton args.buildFloor game
+                            |> buildButton game
+                        , { entity = Data.Entity.container
+                          , cost = ( Data.Item.Iron, Config.containerCost )
+                          }
+                            |> buildEntityButton args.buildEntity
+                            |> buildButton game
+                        , { actor = Data.Actor.Minecart Data.Minecart.emptyWagon
+                          , cost = ( Data.Item.Iron, Config.wagonCost )
+                          }
+                            |> buildActorButton args.buildActor
+                            |> buildButton game
+                        , { actor = Data.Actor.Bomb Data.Bomb.new
+                          , cost = ( Data.Item.Gold, Config.bombCost )
+                          }
+                            |> buildActorButton args.buildActor
+                            |> buildButton game
+                        , "Destroy"
+                            |> View.Button.toHtml (Just args.destroyBlock)
+                        ]
                             |> Layout.column
                                 [ Layout.spacing 8
                                 ]

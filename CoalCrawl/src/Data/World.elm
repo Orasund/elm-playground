@@ -13,10 +13,15 @@ import Data.Train
 import Dict exposing (Dict)
 
 
+type EntityOrActor
+    = Entity Entity
+    | Actor Int
+
+
 type alias World =
     { floor : Dict ( Int, Int ) Floor
     , items : Dict ( Int, Int ) (List Item)
-    , entities : Dict ( Int, Int ) Entity
+    , entities : Dict ( Int, Int ) EntityOrActor
     , actors : Dict Int ( ( Int, Int ), Actor )
     , nextId : Int
     }
@@ -30,21 +35,6 @@ empty =
     , actors = Dict.empty
     , nextId = 0
     }
-
-
-fromList : List ( ( Int, Int ), Block ) -> World
-fromList =
-    List.foldl (\( p, b ) -> insert p b) empty
-
-
-insert : ( Int, Int ) -> Block -> World -> World
-insert pos block world =
-    case block of
-        Data.Block.FloorBlock floor ->
-            insertFloorAt pos floor world
-
-        Data.Block.EntityBlock entity ->
-            insertEntityAt pos entity world
 
 
 insertItem : Item -> ( Int, Int ) -> World -> World
@@ -106,7 +96,7 @@ insertEntityAt pos entity world =
         |> removeEntity pos
         |> (\w ->
                 { w
-                    | entities = world.entities |> Dict.insert pos entity
+                    | entities = world.entities |> Dict.insert pos (Entity entity)
                 }
            )
 
@@ -124,7 +114,7 @@ insertActorAt pos actor world =
                 { w
                     | entities =
                         world.entities
-                            |> Dict.insert pos (Data.Entity.Actor world.nextId)
+                            |> Dict.insert pos (Actor world.nextId)
                     , actors =
                         world.actors
                             |> Dict.insert world.nextId ( pos, actor )
@@ -176,7 +166,7 @@ removeEntity pos world =
                     )
         , actors =
             case world.entities |> Dict.get pos of
-                Just (Data.Entity.Actor id) ->
+                Just (Actor id) ->
                     world.actors |> Dict.remove id
 
                 _ ->
@@ -184,9 +174,22 @@ removeEntity pos world =
     }
 
 
-updateEntity : ( Int, Int ) -> (Maybe Entity -> Maybe Entity) -> World -> World
+updateEntity : ( Int, Int ) -> (Entity -> Maybe Entity) -> World -> World
 updateEntity pos fun world =
-    { world | entities = world.entities |> Dict.update pos fun }
+    { world
+        | entities =
+            world.entities
+                |> Dict.update pos
+                    (\maybe ->
+                        case maybe of
+                            Just (Entity entity) ->
+                                fun entity
+                                    |> Maybe.map Entity
+
+                            _ ->
+                                maybe
+                    )
+    }
 
 
 {-| gets entites first, floor second
@@ -213,8 +216,12 @@ getItem pos world =
 getBlock : ( Int, Int ) -> World -> Maybe Block
 getBlock pos world =
     case world.entities |> Dict.get pos of
-        Just a ->
+        Just (Entity a) ->
             Just (Data.Block.EntityBlock a)
+
+        Just (Actor _) ->
+            getActorAt pos world
+                |> Maybe.map Data.Block.ActorBlock
 
         Nothing ->
             getFloor pos world
@@ -238,7 +245,7 @@ getActorAt pos world =
         |> Maybe.andThen
             (\entity ->
                 case entity of
-                    Data.Entity.Actor id ->
+                    Actor id ->
                         world.actors
                             |> Dict.get id
                             |> Maybe.map (\( _, actor ) -> ( id, actor ))
@@ -303,28 +310,44 @@ takeOrUnload maybeAmount =
 updateStorage : (Storage -> ( Storage, a )) -> ( Int, Int ) -> World -> Maybe ( World, a )
 updateStorage fun pos world =
     world
-        |> getActorAt pos
+        |> getBlock pos
         |> Maybe.andThen
-            (\( id, actor ) ->
-                case actor of
-                    Data.Actor.Minecart minecart ->
-                        minecart.storage
+            (\block ->
+                case block of
+                    Data.Block.EntityBlock (Data.Entity.Container storage) ->
+                        storage
                             |> fun
+                            |> Tuple.mapFirst Data.Entity.Container
                             |> Tuple.mapFirst
-                                (\storage ->
+                                (\entity ->
                                     world
-                                        |> setActor id
-                                            ({ minecart | storage = storage }
-                                                |> Data.Actor.Minecart
-                                            )
+                                        |> insertEntity entity pos
                                 )
                             |> Just
 
-                    Data.Actor.Train train ->
-                        train
-                            |> Data.Train.updateStorage fun
-                            |> Tuple.mapFirst (\t -> setActor id (Data.Actor.Train t) world)
-                            |> Just
+                    Data.Block.ActorBlock ( id, actor ) ->
+                        case actor of
+                            Data.Actor.Minecart minecart ->
+                                minecart.storage
+                                    |> fun
+                                    |> Tuple.mapFirst
+                                        (\storage ->
+                                            world
+                                                |> setActor id
+                                                    ({ minecart | storage = storage }
+                                                        |> Data.Actor.Minecart
+                                                    )
+                                        )
+                                    |> Just
+
+                            Data.Actor.Train train ->
+                                train
+                                    |> Data.Train.updateStorage fun
+                                    |> Tuple.mapFirst (\t -> setActor id (Data.Actor.Train t) world)
+                                    |> Just
+
+                            _ ->
+                                Nothing
 
                     _ ->
                         Nothing
@@ -359,28 +382,6 @@ push { from, pos } world =
                 case block of
                     Data.Block.EntityBlock entity ->
                         case entity of
-                            Data.Entity.Actor id ->
-                                case world |> getActor id |> Maybe.map Tuple.second of
-                                    Just (Data.Actor.Minecart minecart) ->
-                                        world
-                                            |> setActor id
-                                                ({ minecart | movedFrom = Just from }
-                                                    |> Data.Actor.Minecart
-                                                )
-                                            |> Just
-
-                                    Just (Data.Actor.MovingWater _) ->
-                                        world
-                                            |> setActor id
-                                                ({ from = from, to = pos }
-                                                    |> Data.Momentum.fromPoints
-                                                    |> Data.Actor.MovingWater
-                                                )
-                                            |> Just
-
-                                    _ ->
-                                        Nothing
-
                             Data.Entity.Water ->
                                 world
                                     |> removeEntity pos
@@ -390,6 +391,28 @@ push { from, pos } world =
                                             |> Data.Actor.MovingWater
                                         )
                                         pos
+                                    |> Just
+
+                            _ ->
+                                Nothing
+
+                    Data.Block.ActorBlock ( id, actor ) ->
+                        case actor of
+                            Data.Actor.Minecart minecart ->
+                                world
+                                    |> setActor id
+                                        ({ minecart | movedFrom = Just from }
+                                            |> Data.Actor.Minecart
+                                        )
+                                    |> Just
+
+                            Data.Actor.MovingWater _ ->
+                                world
+                                    |> setActor id
+                                        ({ from = from, to = pos }
+                                            |> Data.Momentum.fromPoints
+                                            |> Data.Actor.MovingWater
+                                        )
                                     |> Just
 
                             _ ->
@@ -417,7 +440,7 @@ moveActorTo pos id world =
                     | entities =
                         world.entities
                             |> Dict.remove oldPos
-                            |> Dict.insert pos (Data.Entity.Actor id)
+                            |> Dict.insert pos (Actor id)
                     , actors =
                         world.actors
                             |> Dict.update id
@@ -433,9 +456,19 @@ getFloor pos world =
         |> Dict.get pos
 
 
-getEntities : World -> List ( ( Int, Int ), Entity )
-getEntities world =
-    world.entities |> Dict.toList
+getEntity : ( Int, Int ) -> World -> Maybe Entity
+getEntity pos world =
+    world.entities
+        |> Dict.get pos
+        |> Maybe.andThen
+            (\either ->
+                case either of
+                    Entity entity ->
+                        Just entity
+
+                    Actor _ ->
+                        Nothing
+            )
 
 
 getActors : World -> List ( Int, ( ( Int, Int ), Actor ) )

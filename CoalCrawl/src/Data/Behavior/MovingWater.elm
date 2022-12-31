@@ -31,7 +31,10 @@ act id w =
                             |> Maybe.map
                                 (\{ block, from, to } ->
                                     case block of
-                                        Data.Block.EntityBlock _ ->
+                                        Data.Block.FloorBlock _ ->
+                                            move id world
+
+                                        _ ->
                                             world
                                                 |> Data.World.push { from = from, pos = to }
                                                 |> Maybe.withDefault world
@@ -41,9 +44,6 @@ act id w =
                                                         |> Data.Actor.MovingWater
                                                     )
                                                 |> move id
-
-                                        Data.Block.FloorBlock _ ->
-                                            move id world
                                 )
                     )
                 |> Random.map (Maybe.withDefault w)

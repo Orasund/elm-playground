@@ -4,7 +4,6 @@ import Config
 import Data.Actor
 import Data.Block exposing (Block)
 import Data.Effect exposing (Effect)
-import Data.Entity exposing (Entity)
 import Data.Floor
 import Data.Improvement exposing (Improvement)
 import Data.Item exposing (Item)
@@ -46,13 +45,13 @@ act improvements id world =
 
 
 tryMovingTo : ( ( Int, Int ), ( Block, Maybe Item ) ) -> Int -> List Improvement -> World -> Maybe (Generator ( World, List Effect ))
-tryMovingTo ( newPos, block ) id improvements world =
+tryMovingTo ( newPos, ( block, maybeItem ) ) id improvements world =
     world
         |> getTrain id
         |> Maybe.andThen
             (\train ->
                 case block of
-                    ( Data.Block.FloorBlock floor, maybeItem ) ->
+                    Data.Block.FloorBlock floor ->
                         (case floor of
                             Data.Floor.Ground ->
                                 if train.tracks > 0 then
@@ -113,7 +112,7 @@ tryMovingTo ( newPos, block ) id improvements world =
                                     )
                                 )
 
-                    ( Data.Block.EntityBlock entity, _ ) ->
+                    _ ->
                         if
                             (train.lookingUp
                                 && Data.Train.coalNeeded train
@@ -123,7 +122,7 @@ tryMovingTo ( newPos, block ) id improvements world =
                                         && ListBag.member Data.Item.Coal train.items
                                    )
                         then
-                            collideWith ( newPos, entity ) id world
+                            collideWith ( newPos, block ) id world
 
                         else
                             Nothing
@@ -150,43 +149,37 @@ collect id improvements world =
         world
 
 
-collideWith : ( ( Int, Int ), Entity ) -> Int -> World -> Maybe (Generator ( World, List Effect ))
-collideWith ( newPos, entity ) id world =
-    world
-        |> getTrain id
+collideWith : ( ( Int, Int ), Block ) -> Int -> World -> Maybe (Generator ( World, List Effect ))
+collideWith ( newPos, block ) id world =
+    getTrain id world
         |> Maybe.andThen
             (\train ->
-                case entity of
-                    Data.Entity.Actor targetId ->
-                        world
-                            |> Data.World.getActor targetId
-                            |> Maybe.andThen
-                                (\( _, actor ) ->
-                                    case actor of
-                                        Data.Actor.Minecart wagon ->
-                                            train
-                                                |> Data.Train.addAll
-                                                    (List.repeat Config.wagonCost Data.Item.Iron)
-                                                |> setTrainOf world id
-                                                |> Data.World.removeEntity newPos
-                                                |> Data.World.insertAllItems wagon.storage.items newPos
-                                                |> Data.Effect.withNone
-                                                |> Just
+                case block of
+                    Data.Block.ActorBlock ( _, actor ) ->
+                        case actor of
+                            Data.Actor.Minecart wagon ->
+                                train
+                                    |> Data.Train.addAll
+                                        (List.repeat Config.wagonCost Data.Item.Iron)
+                                    |> setTrainOf world id
+                                    |> Data.World.removeEntity newPos
+                                    |> Data.World.insertAllItems wagon.storage.items newPos
+                                    |> Data.Effect.withNone
+                                    |> Just
 
-                                        Data.Actor.Helper _ ->
-                                            Nothing
+                            Data.Actor.Helper _ ->
+                                Nothing
 
-                                        Data.Actor.Train _ ->
-                                            Nothing
+                            Data.Actor.Train _ ->
+                                Nothing
 
-                                        Data.Actor.Bomb _ ->
-                                            world
-                                                |> Data.Effect.withNone
-                                                |> Just
+                            Data.Actor.Bomb _ ->
+                                world
+                                    |> Data.Effect.withNone
+                                    |> Just
 
-                                        Data.Actor.MovingWater _ ->
-                                            Nothing
-                                )
+                            Data.Actor.MovingWater _ ->
+                                Nothing
 
                     _ ->
                         world

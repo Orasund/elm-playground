@@ -2,7 +2,6 @@ module View.Animation exposing (..)
 
 import Array exposing (Array)
 import Data.Animation exposing (Animation)
-import Data.Block
 import Data.Floor
 import Data.World exposing (World)
 import Html exposing (Html)
@@ -15,9 +14,10 @@ emptyWorld args =
         |> List.concatMap
             (\y ->
                 List.range 0 (args.width - 1)
-                    |> List.map (\x -> ( ( x, y ), Data.Block.FloorBlock Data.Floor.Ground ))
+                    |> List.map (\x -> ( x, y ))
             )
-        |> Data.World.fromList
+        |> List.foldl (Data.World.insertFloor Data.Floor.Ground)
+            Data.World.empty
 
 
 animate : Float -> Animation -> Int -> Html msg

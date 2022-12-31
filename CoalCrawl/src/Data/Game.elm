@@ -1,17 +1,16 @@
 module Data.Game exposing (..)
 
-import Config
 import Data.Actor exposing (Actor)
 import Data.Block exposing (Block(..))
 import Data.Effect exposing (Effect)
-import Data.Entity
-import Data.Floor
+import Data.Entity exposing (Entity)
+import Data.Floor exposing (Floor)
 import Data.Improvement exposing (Improvement)
 import Data.Item exposing (Item)
 import Data.Player exposing (Player)
 import Data.Sound
 import Data.Train exposing (Train)
-import Data.World exposing (World, setActor)
+import Data.World exposing (World)
 
 
 type alias Game =
@@ -38,7 +37,7 @@ setTrain train game =
     { game
         | world =
             game.world
-                |> setActor game.trainId (Data.Actor.Train train)
+                |> Data.World.setActor game.trainId (Data.Actor.Train train)
     }
 
 
@@ -75,16 +74,11 @@ select pos game =
     }
 
 
-buildBlock : ( Int, Int ) -> ( Item, Int ) -> Block -> Game -> Maybe ( Game, List Effect )
-buildBlock pos ( item, cost ) block game =
+buildFloor : ( Int, Int ) -> ( Item, Int ) -> Floor -> Game -> Maybe ( Game, List Effect )
+buildFloor pos ( item, cost ) floor game =
     if
-        case block of
-            FloorBlock _ ->
-                Data.World.getFloor pos game.world
-                    == Just Data.Floor.Ground
-
-            EntityBlock _ ->
-                Data.World.isFloor pos game.world
+        Data.World.getFloor pos game.world
+            == Just Data.Floor.Ground
     then
         game
             |> getTrain
@@ -92,7 +86,28 @@ buildBlock pos ( item, cost ) block game =
             |> Maybe.map
                 (\train ->
                     { game
-                        | world = game.world |> Data.World.insert pos block
+                        | world = game.world |> Data.World.insertFloorAt pos floor
+                    }
+                        |> setTrain train
+                )
+            |> Maybe.withDefault game
+            |> (\g -> ( g, [ Data.Effect.PlaySound Data.Sound.Build ] ))
+            |> Just
+
+    else
+        Nothing
+
+
+buildEntity : ( Int, Int ) -> ( Item, Int ) -> Entity -> Game -> Maybe ( Game, List Effect )
+buildEntity pos ( item, cost ) entity game =
+    if Data.World.isFloor pos game.world then
+        game
+            |> getTrain
+            |> Data.Train.removeItem cost item
+            |> Maybe.map
+                (\train ->
+                    { game
+                        | world = game.world |> Data.World.insertEntityAt pos entity
                     }
                         |> setTrain train
                 )
@@ -131,23 +146,19 @@ destroyBlock pos game =
         |> Maybe.andThen
             (\block ->
                 case block of
-                    Data.Block.EntityBlock (Data.Entity.Actor id) ->
-                        case game.world |> Data.World.getActor id of
-                            Just ( _, Data.Actor.Minecart minecart ) ->
-                                game
-                                    |> getTrain
-                                    |> Data.Train.addAll (List.repeat Config.wagonCost Data.Item.Iron)
-                                    |> (\train -> game |> setTrain train)
-                                    |> (\g ->
-                                            g.world
-                                                |> Data.World.removeEntity pos
-                                                |> Data.World.insertAllItems minecart.storage.items pos
-                                                |> setWorldOf g
-                                       )
-                                    |> Just
+                    Data.Block.ActorBlock ( _, Data.Actor.Minecart minecart ) ->
+                        game.world
+                            |> Data.World.removeEntity pos
+                            |> Data.World.insertAllItems minecart.storage.items pos
+                            |> setWorldOf game
+                            |> Just
 
-                            _ ->
-                                Nothing
+                    Data.Block.EntityBlock (Data.Entity.Container storage) ->
+                        game.world
+                            |> Data.World.removeEntity pos
+                            |> Data.World.insertAllItems storage.items pos
+                            |> setWorldOf game
+                            |> Just
 
                     Data.Block.FloorBlock Data.Floor.Track ->
                         game.world
@@ -170,16 +181,15 @@ new =
         player =
             ( 0, 3 )
 
-        tracks =
+        addTracks w =
             List.range 0 1
-                |> List.map
+                |> List.foldl
                     (\i ->
-                        ( ( 0, i )
-                        , Data.Block.FloorBlock Data.Floor.RailwayTrack
-                        )
+                        Data.World.insertFloorAt ( 0, i ) Data.Floor.RailwayTrack
                     )
+                    w
 
-        walls =
+        addWalls w =
             List.range 0 2
                 |> List.concatMap
                     (\y ->
@@ -187,21 +197,21 @@ new =
                             |> List.map (\x -> ( x, y ))
                     )
                 |> (::) ( 0, -1 )
-                |> List.map (\p -> ( p, Data.Block.EntityBlock Data.Entity.Wall ))
+                |> List.foldl (Data.World.insertEntity Data.Entity.Wall) w
 
-        coals =
+        addCoals w =
             [ ( 0 - 1, 3 )
             , ( 0 + 1, 3 )
             ]
+                |> List.foldl (Data.World.insertEntity (Data.Entity.Vein Data.Item.Coal)) w
     in
     { world =
-        [ ( train, Data.Block.FloorBlock Data.Floor.RailwayTrack )
-        , ( player, Data.Block.FloorBlock Data.Floor.Ground )
-        ]
-            ++ tracks
-            ++ walls
-            ++ (coals |> List.map (\pos -> ( pos, Data.Entity.Vein Data.Item.Coal |> Data.Block.EntityBlock )))
-            |> Data.World.fromList
+        Data.World.empty
+            |> Data.World.insertFloorAt train Data.Floor.RailwayTrack
+            |> Data.World.insertFloorAt player Data.Floor.Ground
+            |> addTracks
+            |> addWalls
+            |> addCoals
             |> Data.World.insertActor
                 (train
                     |> Data.Train.fromPos

@@ -1,6 +1,8 @@
 module Data.Entity exposing (..)
 
+import Config
 import Data.Item exposing (Item)
+import Data.Storage exposing (Storage)
 
 
 type Entity
@@ -9,4 +11,10 @@ type Entity
     | CrackedWall
     | Water
     | Lava
-    | Actor Int
+    | Container Storage
+
+
+container : Entity
+container =
+    Data.Storage.empty Config.containerMaxItems
+        |> Container

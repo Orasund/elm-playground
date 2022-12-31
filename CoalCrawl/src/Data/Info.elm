@@ -9,7 +9,6 @@ import Data.Game exposing (Game)
 import Data.Item
 import Data.Storage
 import Data.Train
-import Dict
 
 
 type alias Info =
@@ -27,11 +26,6 @@ new args =
     , content = []
     , additionalInfo = []
     }
-
-
-withContent : List String -> Info -> Info
-withContent content info =
-    { info | content = content }
 
 
 withAdditionalInfo : List String -> Info -> Info
@@ -71,25 +65,13 @@ fromTrain game =
         { title = "Train"
         , description = ""
         }
-        |> withContent
-            ((String.fromInt train.tracks ++ "x Tracks")
-                :: (train.items
-                        |> List.map
-                            (\( k, n ) ->
-                                String.fromInt n
-                                    ++ "x "
-                                    ++ String.fromChar (Data.Item.toChar k)
-                                    ++ Data.Item.toString k
-                            )
-                   )
-            )
         |> withAdditionalInfo
             [ "Needs " ++ String.fromInt (Data.Train.coalNeeded train) ++ " Coal to go back to HQ."
             ]
 
 
-fromEntity : Game -> Entity -> Info
-fromEntity game entity =
+fromEntity : Entity -> Info
+fromEntity entity =
     case entity of
         Data.Entity.Vein item ->
             new
@@ -121,22 +103,20 @@ fromEntity game entity =
                 , description = "Gets removed if water gets moved into it."
                 }
 
-        Data.Entity.Actor id ->
-            game.world.actors
-                |> Dict.get id
-                |> Maybe.map (\( _, actor ) -> fromActor actor)
-                |> Maybe.withDefault
-                    (new
-                        { title = "Unkown Actor"
-                        , description = "This is a bug. Please report how to managed to create this entity"
-                        }
-                    )
+        Data.Entity.Container storage ->
+            new
+                { title = "Container"
+                , description = "Can hold up to " ++ String.fromInt Config.containerMaxItems ++ " items"
+                }
+                |> withAdditionalInfo
+                    [ "Contains " ++ (storage |> Data.Storage.size |> String.fromInt) ++ " items."
+                    ]
 
 
 fromActor : Actor -> Info
 fromActor actor =
     case actor of
-        Data.Actor.Minecart wagon ->
+        Data.Actor.Minecart _ ->
             new
                 { title = "Minecart"
                 , description =
@@ -144,11 +124,6 @@ fromActor actor =
                         ++ String.fromInt Config.wagonMaxItems
                         ++ " items. You can also push it along."
                 }
-                |> withContent
-                    (wagon.storage
-                        |> Data.Storage.toList
-                        |> List.map (\( k, n ) -> String.fromInt n ++ "x " ++ k)
-                    )
 
         Data.Actor.Helper _ ->
             { title = "Helper"
@@ -162,21 +137,11 @@ fromActor actor =
             }
                 |> new
 
-        Data.Actor.Train train ->
+        Data.Actor.Train _ ->
             { title = "Train"
             , description = "Stores all your items. If it has tracks stored, it will place them and move forward. Needs coal to move. Will regularly fetch new tracks from above ground."
             }
                 |> new
-                |> withContent
-                    (train.items
-                        |> List.map
-                            (\( k, n ) ->
-                                String.fromInt n
-                                    ++ "x "
-                                    ++ String.fromChar (Data.Item.toChar k)
-                                    ++ Data.Item.toString k
-                            )
-                    )
 
         Data.Actor.MovingWater _ ->
             { title = "Moving Water"
@@ -185,11 +150,14 @@ fromActor actor =
                 |> new
 
 
-fromBlock : Game -> Block -> Info
-fromBlock game block =
+fromBlock : Block -> Info
+fromBlock block =
     case block of
         Data.Block.FloorBlock floor ->
             fromFloor floor
 
         Data.Block.EntityBlock entity ->
-            fromEntity game entity
+            fromEntity entity
+
+        Data.Block.ActorBlock ( _, actor ) ->
+            fromActor actor
