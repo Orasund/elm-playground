@@ -1,15 +1,12 @@
 module View.Tab exposing (..)
 
-import Config
 import Data.Actor exposing (Actor)
 import Data.Block
-import Data.Bomb
 import Data.Entity exposing (Entity)
 import Data.Floor exposing (Floor)
 import Data.Game exposing (Game)
 import Data.Info
 import Data.Item exposing (Item)
-import Data.Minecart
 import Data.Tile
 import Data.World
 import Data.Zoom
@@ -194,29 +191,41 @@ sidebar args game =
                                 (Html.text "Nothing selected")
 
                     BuildTab ->
-                        [ { floor = Data.Floor.Track
-                          , cost = ( Data.Item.Iron, Config.trackCost )
-                          }
-                            |> buildFloorButton args.buildFloor game
-                            |> buildButton game
-                        , { entity = Data.Entity.container
-                          , cost = ( Data.Item.Iron, Config.containerCost )
-                          }
-                            |> buildEntityButton args.buildEntity
-                            |> buildButton game
-                        , { actor = Data.Actor.Minecart Data.Minecart.emptyWagon
-                          , cost = ( Data.Item.Iron, Config.wagonCost )
-                          }
-                            |> buildActorButton args.buildActor
-                            |> buildButton game
-                        , { actor = Data.Actor.Bomb Data.Bomb.new
-                          , cost = ( Data.Item.Gold, Config.bombCost )
-                          }
-                            |> buildActorButton args.buildActor
-                            |> buildButton game
+                        [ Data.Block.buildable
+                            |> List.filterMap
+                                (\block ->
+                                    Data.Block.cost block
+                                        |> Maybe.map (\cost -> ( block, cost ))
+                                )
+                            |> List.map
+                                (\( block, cost ) ->
+                                    case block of
+                                        Data.Block.FloorBlock floor ->
+                                            { floor = floor
+                                            , cost = cost
+                                            }
+                                                |> buildFloorButton args.buildFloor game
+                                                |> buildButton game
+
+                                        Data.Block.EntityBlock entity ->
+                                            { entity = entity
+                                            , cost = cost
+                                            }
+                                                |> buildEntityButton args.buildEntity
+                                                |> buildButton game
+
+                                        Data.Block.ActorBlock ( _, actor ) ->
+                                            { actor = actor
+                                            , cost = cost
+                                            }
+                                                |> buildActorButton args.buildActor
+                                                |> buildButton game
+                                )
                         , "Destroy"
                             |> View.Button.toHtml (Just args.destroyBlock)
+                            |> List.singleton
                         ]
+                            |> List.concat
                             |> Layout.column
                                 [ Layout.spacing 8
                                 ]

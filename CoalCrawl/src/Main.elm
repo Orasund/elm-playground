@@ -235,6 +235,7 @@ view model =
                     ]
                   , [ (( [ Html.text "Tracks" ], train.tracks )
                         :: (train.items
+                                |> List.sortBy (\( k, _ ) -> Data.Item.toString k)
                                 |> List.map
                                     (Tuple.mapFirst
                                         (\k ->
@@ -255,7 +256,7 @@ view model =
                                 - ListBag.count Data.Item.Coal train.items
                                 |> String.fromInt
                            )
-                        ++ " for the next Level"
+                        ++ " coal for the next Level"
                         |> Html.text
                         |> Layout.el []
                     ]

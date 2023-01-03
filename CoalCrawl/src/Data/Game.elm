@@ -145,29 +145,40 @@ destroyBlock pos game =
         |> Maybe.map Tuple.first
         |> Maybe.andThen
             (\block ->
-                case block of
+                (case block of
                     Data.Block.ActorBlock ( _, Data.Actor.Minecart minecart ) ->
                         game.world
                             |> Data.World.removeEntity pos
                             |> Data.World.insertAllItems minecart.storage.items pos
-                            |> setWorldOf game
                             |> Just
 
                     Data.Block.EntityBlock (Data.Entity.Container storage) ->
                         game.world
                             |> Data.World.removeEntity pos
                             |> Data.World.insertAllItems storage.items pos
-                            |> setWorldOf game
                             |> Just
 
                     Data.Block.FloorBlock Data.Floor.Track ->
                         game.world
                             |> Data.World.removeFloor pos
-                            |> (\world -> { game | world = world })
                             |> Just
 
                     _ ->
                         Nothing
+                )
+                    |> Maybe.map (\world -> ( block, setWorldOf game world ))
+            )
+        |> Maybe.andThen
+            (\( block, g ) ->
+                Data.Block.cost block
+                    |> Maybe.map (\( item, amount ) -> List.repeat (amount // 2) item)
+                    |> Maybe.map
+                        (\list ->
+                            g
+                                |> getTrain
+                                |> Data.Train.addAll list
+                                |> setTrainOf g
+                        )
             )
         |> Maybe.map (\g -> ( g, [ Data.Effect.PlaySound Data.Sound.Destruct ] ))
 
