@@ -123,7 +123,8 @@ poleOfLine ( i1, i2 ) =
         v2 =
             normalVector ( p2, ( 0, 0 ) )
     in
-    Internal.lineIntersection ( p1, Internal.plus p1 v1 ) ( p2, Internal.plus p2 v2 )
+    Internal.lineToGeneralForm ( p2, Internal.plus p2 v2 )
+        |> Internal.lineIntersection (Internal.lineToGeneralForm ( p1, Internal.plus p1 v1 ))
         |> Maybe.map HyperIdealPoint
 
 
@@ -136,7 +137,7 @@ perpendicularLineThrough (BeltramiCoords p) line =
             lineFromPoints (BeltramiCoords pole) (BeltramiCoords p)
 
         Nothing ->
-            --line through zero
+            --line through origin
             let
                 ( BeltramiCoords p1, BeltramiCoords p2 ) =
                     line
@@ -150,6 +151,19 @@ perpendicularLineThrough (BeltramiCoords p) line =
                 (BeltramiCoords p)
 
 
+midpointOfLine : Line -> BeltramiCoords
+midpointOfLine ( i1, i2 ) =
+    let
+        (BeltramiCoords ( x1, y1 )) =
+            fromIdealPoint i1
+
+        (BeltramiCoords ( x2, y2 )) =
+            fromIdealPoint i2
+    in
+    ( (x1 - x2) / 2 + x2, (y1 - y2) / 2 + y2 )
+        |> BeltramiCoords
+
+
 {-| Two lines may intersect at exactly one point
 -}
 intersectLines : Line -> Line -> Maybe BeltramiCoords
@@ -161,7 +175,7 @@ intersectLines l1 l2 =
         ( BeltramiCoords p3, BeltramiCoords p4 ) =
             l2 |> Tuple.mapBoth fromIdealPoint fromIdealPoint
     in
-    Internal.lineIntersection ( p1, p2 ) ( p3, p4 )
+    Internal.lineIntersection (Internal.lineToGeneralForm ( p1, p2 )) (Internal.lineToGeneralForm ( p3, p4 ))
         |> Maybe.map BeltramiCoords
 
 
@@ -178,6 +192,11 @@ pointsAlongLineSegment n ( BeltramiCoords ( x1, y1 ), BeltramiCoords ( x2, y2 ) 
         |> List.map (\i -> toFloat i / toFloat n)
         |> List.map (\amount -> ( x1 + amount * vecX, y1 + amount * vecY ))
         |> List.map BeltramiCoords
+
+
+pointsAlongLine : Int -> Line -> List BeltramiCoords
+pointsAlongLine n ( i1, i2 ) =
+    pointsAlongLineSegment n ( fromIdealPoint i1, fromIdealPoint i2 )
 
 
 
@@ -247,3 +266,13 @@ toPoincareCoordinates (BeltramiCoords p) =
                 , y / length
                 )
            )
+
+
+unsafeHyperIdealPointToRecord : HyperIdealPoint -> { x : Float, y : Float }
+unsafeHyperIdealPointToRecord (HyperIdealPoint ( x, y )) =
+    { x = x, y = y }
+
+
+unsafeFromRecord : { x : Float, y : Float } -> BeltramiCoords
+unsafeFromRecord { x, y } =
+    BeltramiCoords ( x, y )

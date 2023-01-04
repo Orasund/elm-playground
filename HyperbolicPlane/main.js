@@ -5205,28 +5205,16 @@ var $elm$core$Task$perform = F2(
 				A2($elm$core$Task$map, toMessage, task)));
 	});
 var $elm$browser$Browser$document = _Browser_document;
-var $author$project$Hyperbolic$BeltramiCoords = function (a) {
-	return {$: 'BeltramiCoords', a: a};
-};
-var $elm$core$Basics$cos = _Basics_cos;
-var $elm$core$Basics$sin = _Basics_sin;
-var $elm$core$Basics$fromPolar = function (_v0) {
-	var radius = _v0.a;
-	var theta = _v0.b;
-	return _Utils_Tuple2(
-		radius * $elm$core$Basics$cos(theta),
-		radius * $elm$core$Basics$sin(theta));
-};
-var $author$project$Hyperbolic$fromIdealPoint = function (_v0) {
-	var angle1 = _v0.a;
-	return $author$project$Hyperbolic$BeltramiCoords(
-		$elm$core$Basics$fromPolar(
-			_Utils_Tuple2(1, angle1)));
-};
+var $elm$core$Tuple$mapBoth = F3(
+	function (funcA, funcB, _v0) {
+		var x = _v0.a;
+		var y = _v0.b;
+		return _Utils_Tuple2(
+			funcA(x),
+			funcB(y));
+	});
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
-var $author$project$Hyperbolic$origin = $author$project$Hyperbolic$BeltramiCoords(
-	_Utils_Tuple2(0, 0));
 var $elm$core$Basics$pi = _Basics_pi;
 var $author$project$Hyperbolic$IdealPoint = function (a) {
 	return {$: 'IdealPoint', a: a};
@@ -5235,29 +5223,24 @@ var $author$project$Hyperbolic$pointAtInfinity = function (angle) {
 	return $author$project$Hyperbolic$IdealPoint(angle);
 };
 var $author$project$Main$init = function (_v0) {
+	var maxIter = 1000;
+	var i3 = (4 * $elm$core$Basics$pi) / 3;
+	var i2 = (2 * $elm$core$Basics$pi) / 3;
+	var i1 = 0;
 	return _Utils_Tuple2(
 		{
 			iter: 1,
-			lines: function () {
-				var i3 = $author$project$Hyperbolic$fromIdealPoint(
-					$author$project$Hyperbolic$pointAtInfinity(((2 * 2) * $elm$core$Basics$pi) / 3));
-				var i2 = $author$project$Hyperbolic$fromIdealPoint(
-					$author$project$Hyperbolic$pointAtInfinity($elm$core$Basics$pi));
-				var i1 = $author$project$Hyperbolic$fromIdealPoint(
-					$author$project$Hyperbolic$pointAtInfinity(0));
-				var c = $author$project$Hyperbolic$origin;
-				return A2(
-					$elm$core$List$map,
-					function (line) {
-						return {center: $author$project$Hyperbolic$origin, line: line, pointsPerLine: 400};
-					},
-					_List_fromArray(
-						[
-							_Utils_Tuple2(i1, c),
-							_Utils_Tuple2(i2, c)
-						]));
-			}(),
-			maxIter: 1000
+			lines: A2(
+				$elm$core$List$map,
+				A2($elm$core$Tuple$mapBoth, $author$project$Hyperbolic$pointAtInfinity, $author$project$Hyperbolic$pointAtInfinity),
+				_List_fromArray(
+					[
+						_Utils_Tuple2(i1, i2),
+						_Utils_Tuple2(i2, i3),
+						_Utils_Tuple2(i3, i1)
+					])),
+			maxIter: maxIter,
+			pointsPerLine: 400
 		},
 		$elm$core$Platform$Cmd$none);
 };
@@ -5685,6 +5668,16 @@ var $author$project$Main$subscriptions = function (_v0) {
 			return $author$project$Main$TimePassed;
 		});
 };
+var $elm$core$Maybe$map = F2(
+	function (f, maybe) {
+		if (maybe.$ === 'Just') {
+			var value = maybe.a;
+			return $elm$core$Maybe$Just(
+				f(value));
+		} else {
+			return $elm$core$Maybe$Nothing;
+		}
+	});
 var $elm$core$Basics$negate = function (n) {
 	return -n;
 };
@@ -5697,41 +5690,81 @@ var $author$project$Internal$isZero = function (f1) {
 		$elm$core$Basics$abs(f1),
 		$author$project$Internal$eps) < 0;
 };
+var $elm$core$Basics$sqrt = _Basics_sqrt;
+var $author$project$Internal$safeSqrt = function (f) {
+	return $author$project$Internal$isZero(f) ? 0 : $elm$core$Basics$sqrt(f);
+};
+var $author$project$Internal$length = function (_v0) {
+	var x = _v0.a;
+	var y = _v0.b;
+	return $author$project$Internal$safeSqrt((x * x) + (y * y));
+};
+var $author$project$Internal$distance = F2(
+	function (_v0, _v1) {
+		var x1 = _v0.a;
+		var y1 = _v0.b;
+		var x2 = _v1.a;
+		var y2 = _v1.b;
+		return $author$project$Internal$length(
+			_Utils_Tuple2(x1 - x2, y1 - y2));
+	});
+var $author$project$Hyperbolic$toBeltramiCoordinates = function (_v0) {
+	var p = _v0.a;
+	return p;
+};
+var $author$project$Main$euclideanDistance = F2(
+	function (p1, p2) {
+		return A2(
+			$author$project$Internal$distance,
+			$author$project$Hyperbolic$toBeltramiCoordinates(p1),
+			$author$project$Hyperbolic$toBeltramiCoordinates(p2));
+	});
+var $author$project$Hyperbolic$BeltramiCoords = function (a) {
+	return {$: 'BeltramiCoords', a: a};
+};
+var $elm$core$Basics$cos = _Basics_cos;
+var $elm$core$Basics$sin = _Basics_sin;
+var $elm$core$Basics$fromPolar = function (_v0) {
+	var radius = _v0.a;
+	var theta = _v0.b;
+	return _Utils_Tuple2(
+		radius * $elm$core$Basics$cos(theta),
+		radius * $elm$core$Basics$sin(theta));
+};
+var $author$project$Hyperbolic$fromIdealPoint = function (_v0) {
+	var angle1 = _v0.a;
+	return $author$project$Hyperbolic$BeltramiCoords(
+		$elm$core$Basics$fromPolar(
+			_Utils_Tuple2(1, angle1)));
+};
 var $author$project$Internal$lineIntersection = F2(
-	function (_v0, _v3) {
-		var _v1 = _v0.a;
-		var x1 = _v1.a;
-		var y1 = _v1.b;
-		var _v2 = _v0.b;
-		var x2 = _v2.a;
-		var y2 = _v2.b;
-		var _v4 = _v3.a;
-		var x3 = _v4.a;
-		var y3 = _v4.b;
-		var _v5 = _v3.b;
-		var x4 = _v5.a;
-		var y4 = _v5.b;
-		return $author$project$Internal$isZero(((x1 - x2) * (y3 - y4)) - ((y1 - y2) * (x3 - x4))) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(
-			_Utils_Tuple2(((((x1 * y2) - (y1 * x2)) * (x3 - x4)) - ((x1 - x2) * ((x3 * y4) - (y3 * x4)))) / (((x1 - x2) * (y3 - y4)) - ((y1 - y2) * (x3 - x4))), ((((x1 * y2) - (y1 * x2)) * (y3 - y4)) - ((y1 - y2) * ((x3 * y4) - (y3 * x4)))) / (((x1 - x2) * (y3 - y4)) - (y1 - (y2 * (x3 - x4))))));
+	function (equ1, equ2) {
+		var det = (equ1.x * equ2.y) - (equ1.y * equ2.x);
+		return $author$project$Internal$isZero(det) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(
+			_Utils_Tuple2((((-equ2.y) * equ1.c) + (equ1.y * equ2.c)) / det, (((-equ1.x) * equ2.c) + (equ2.x * equ1.c)) / det));
 	});
-var $elm$core$Maybe$map = F2(
-	function (f, maybe) {
-		if (maybe.$ === 'Just') {
-			var value = maybe.a;
-			return $elm$core$Maybe$Just(
-				f(value));
-		} else {
-			return $elm$core$Maybe$Nothing;
-		}
-	});
-var $elm$core$Tuple$mapBoth = F3(
-	function (funcA, funcB, _v0) {
-		var x = _v0.a;
-		var y = _v0.b;
-		return _Utils_Tuple2(
-			funcA(x),
-			funcB(y));
-	});
+var $author$project$Internal$normalVector = function (_v0) {
+	var _v1 = _v0.a;
+	var x1 = _v1.a;
+	var y1 = _v1.b;
+	var _v2 = _v0.b;
+	var x2 = _v2.a;
+	var y2 = _v2.b;
+	return _Utils_Tuple2(y2 - y1, x1 - x2);
+};
+var $author$project$Internal$lineToGeneralForm = function (_v0) {
+	var _v1 = _v0.a;
+	var x0 = _v1.a;
+	var y0 = _v1.b;
+	var p2 = _v0.b;
+	var _v2 = $author$project$Internal$normalVector(
+		_Utils_Tuple2(
+			_Utils_Tuple2(x0, y0),
+			p2));
+	var x = _v2.a;
+	var y = _v2.b;
+	return {c: ((-x) * x0) - (y * y0), x: x, y: y};
+};
 var $author$project$Hyperbolic$intersectLines = F2(
 	function (l1, l2) {
 		var _v0 = A3($elm$core$Tuple$mapBoth, $author$project$Hyperbolic$fromIdealPoint, $author$project$Hyperbolic$fromIdealPoint, l2);
@@ -5745,32 +5778,34 @@ var $author$project$Hyperbolic$intersectLines = F2(
 			$author$project$Hyperbolic$BeltramiCoords,
 			A2(
 				$author$project$Internal$lineIntersection,
-				_Utils_Tuple2(p1, p2),
-				_Utils_Tuple2(p3, p4)));
+				$author$project$Internal$lineToGeneralForm(
+					_Utils_Tuple2(p1, p2)),
+				$author$project$Internal$lineToGeneralForm(
+					_Utils_Tuple2(p3, p4))));
 	});
-var $elm$core$Debug$log = _Debug_log;
-var $elm$core$Basics$sqrt = _Basics_sqrt;
+var $author$project$Hyperbolic$origin = $author$project$Hyperbolic$BeltramiCoords(
+	_Utils_Tuple2(0, 0));
 var $author$project$Internal$intersectLineWithUnitCircle = function (equation) {
 	if ($author$project$Internal$isZero(equation.y)) {
-		var c = A2($elm$core$Debug$log, 'y=0', equation.c);
+		var c = equation.c;
 		var b = equation.x;
 		var x = (-c) / b;
-		var _v0 = A2($elm$core$Debug$log, 'equation', equation);
 		return _Utils_Tuple2(
 			_Utils_Tuple2(
 				x,
-				-$elm$core$Basics$sqrt(1 - (((c * c) / b) * b))),
+				-$author$project$Internal$safeSqrt(1 - (((c * c) / b) * b))),
 			_Utils_Tuple2(
 				x,
-				$elm$core$Basics$sqrt(1 - (((c * c) / b) * b))));
+				$author$project$Internal$safeSqrt(1 - (((c * c) / b) * b))));
 	} else {
 		var c = equation.c;
 		var b = equation.x;
 		var a = equation.y;
 		var p = ((2 * b) * c) / ((a * a) + (b * b));
 		var q = ((c * c) - (a * a)) / ((a * a) + (b * b));
-		var x1 = ((-p) / 2) + $elm$core$Basics$sqrt(((p / 2) * (p / 2)) - q);
-		var x2 = ((-p) / 2) - $elm$core$Basics$sqrt(((p / 2) * (p / 2)) - q);
+		var sq = ((p * p) / 4) - q;
+		var x1 = ((-p) / 2) + $author$project$Internal$safeSqrt(sq);
+		var x2 = ((-p) / 2) - $author$project$Internal$safeSqrt(sq);
 		var y = function (x) {
 			return (-((b * x) + c)) / a;
 		};
@@ -5788,21 +5823,6 @@ var $elm$core$Tuple$pair = F2(
 		return _Utils_Tuple2(a, b);
 	});
 var $author$project$Hyperbolic$lineFromIdealPoints = $elm$core$Tuple$pair;
-var $author$project$Internal$equal = F2(
-	function (f1, f2) {
-		return _Utils_cmp(
-			$elm$core$Basics$abs(f1 - f2),
-			$author$project$Internal$eps) < 0;
-	});
-var $author$project$Internal$lineToGeneralForm = function (_v0) {
-	var _v1 = _v0.a;
-	var x0 = _v1.a;
-	var y0 = _v1.b;
-	var _v2 = _v0.b;
-	var x1 = _v2.a;
-	var y1 = _v2.b;
-	return A2($author$project$Internal$equal, x1, x0) ? {c: x1, x: 1, y: 0} : {c: ((x1 * y0) - (x0 * y1)) / (x1 - x0), x: (y1 - y0) / (x1 - x0), y: -1};
-};
 var $elm$core$Basics$atan2 = _Basics_atan2;
 var $elm$core$Basics$toPolar = function (_v0) {
 	var x = _v0.a;
@@ -5831,15 +5851,6 @@ var $author$project$Hyperbolic$lineFromPoints = F2(
 			$author$project$Hyperbolic$IdealPoint(i1),
 			$author$project$Hyperbolic$IdealPoint(i2));
 	});
-var $author$project$Internal$normalVector = function (_v0) {
-	var _v1 = _v0.a;
-	var x1 = _v1.a;
-	var y1 = _v1.b;
-	var _v2 = _v0.b;
-	var x2 = _v2.a;
-	var y2 = _v2.b;
-	return _Utils_Tuple2(y2 - y1, x1 - x2);
-};
 var $author$project$Internal$plus = F2(
 	function (_v0, _v1) {
 		var x1 = _v0.a;
@@ -5871,12 +5882,14 @@ var $author$project$Hyperbolic$poleOfLine = function (_v0) {
 		$author$project$Hyperbolic$HyperIdealPoint,
 		A2(
 			$author$project$Internal$lineIntersection,
-			_Utils_Tuple2(
-				p1,
-				A2($author$project$Internal$plus, p1, v1)),
-			_Utils_Tuple2(
-				p2,
-				A2($author$project$Internal$plus, p2, v2))));
+			$author$project$Internal$lineToGeneralForm(
+				_Utils_Tuple2(
+					p1,
+					A2($author$project$Internal$plus, p1, v1))),
+			$author$project$Internal$lineToGeneralForm(
+				_Utils_Tuple2(
+					p2,
+					A2($author$project$Internal$plus, p2, v2)))));
 };
 var $author$project$Hyperbolic$perpendicularLineThrough = F2(
 	function (_v0, line) {
@@ -5903,6 +5916,34 @@ var $author$project$Hyperbolic$perpendicularLineThrough = F2(
 				$author$project$Hyperbolic$BeltramiCoords(p));
 		}
 	});
+var $author$project$Main$newPoint = function (line) {
+	return function (_v0) {
+		var i1 = _v0.a;
+		var i2 = _v0.b;
+		return A2(
+			$elm$core$Maybe$map,
+			function (c) {
+				return (_Utils_cmp(
+					A2(
+						$author$project$Main$euclideanDistance,
+						$author$project$Hyperbolic$fromIdealPoint(i1),
+						c),
+					A2(
+						$author$project$Main$euclideanDistance,
+						$author$project$Hyperbolic$fromIdealPoint(i2),
+						c)) < 0) ? _Utils_Tuple2(c, i1) : _Utils_Tuple2(c, i2);
+			},
+			A2(
+				$author$project$Hyperbolic$intersectLines,
+				line,
+				_Utils_Tuple2(i1, i2)));
+	}(
+		A2($author$project$Hyperbolic$perpendicularLineThrough, $author$project$Hyperbolic$origin, line));
+};
+var $elm$core$Tuple$second = function (_v0) {
+	var y = _v0.b;
+	return y;
+};
 var $elm$core$Maybe$withDefault = F2(
 	function (_default, maybe) {
 		if (maybe.$ === 'Just') {
@@ -5914,86 +5955,54 @@ var $elm$core$Maybe$withDefault = F2(
 	});
 var $author$project$Main$update = F2(
 	function (msg, model) {
-		return (_Utils_cmp(model.iter, model.maxIter) < 0) ? _Utils_Tuple2(
-			_Utils_update(
-				model,
-				{
-					iter: model.iter + 1,
-					lines: function () {
-						var _v1 = model.lines;
-						if (_v1.b) {
-							var line = _v1.a.line;
-							var center = _v1.a.center;
-							var pointsPerLine = _v1.a.pointsPerLine;
-							var tail = _v1.b;
-							return _Utils_ap(
+		if (_Utils_cmp(model.iter, model.maxIter) < 0) {
+			var _v1 = model.lines;
+			if (_v1.b) {
+				var _v2 = _v1.a;
+				var i1 = _v2.a;
+				var i2 = _v2.b;
+				var tail = _v1.b;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							iter: model.iter + 1,
+							lines: _Utils_ap(
 								tail,
 								A2(
-									$elm$core$List$map,
-									function (_v5) {
-										var t = _v5.a;
-										var c = _v5.b;
-										return {center: c, line: t, pointsPerLine: (pointsPerLine / 2) | 0};
-									},
-									function (_v2) {
-										var _v3 = _v2.a;
-										var a1 = _v3.a;
-										var a2 = _v3.b;
-										var a3 = _v2.b;
-										return function (l) {
-											return A2(
-												$elm$core$Maybe$withDefault,
-												_List_Nil,
-												function (_v4) {
-													var i1 = _v4.a;
-													var i2 = _v4.b;
-													return A2(
-														$elm$core$Maybe$map,
-														function (z) {
-															var p2 = $author$project$Hyperbolic$fromIdealPoint(i2);
-															var p1 = $author$project$Hyperbolic$fromIdealPoint(i1);
-															return _List_fromArray(
-																[
-																	_Utils_Tuple2(
-																	_Utils_Tuple2(p1, a1),
-																	a3),
-																	_Utils_Tuple2(
-																	_Utils_Tuple2(p1, a2),
-																	a3),
-																	_Utils_Tuple2(
-																	_Utils_Tuple2(p2, a1),
-																	a3),
-																	_Utils_Tuple2(
-																	_Utils_Tuple2(p2, a2),
-																	a3)
-																]);
-														},
-														A2(
-															$author$project$Hyperbolic$intersectLines,
-															l,
-															_Utils_Tuple2(i1, i2)));
-												}(
-													A2($author$project$Hyperbolic$perpendicularLineThrough, a3, l)));
-										}(
-											A2($author$project$Hyperbolic$lineFromPoints, a1, a2));
-									}(
-										_Utils_Tuple2(line, center))));
-						} else {
-							return _List_Nil;
-						}
-					}()
-				}),
-			$elm$core$Platform$Cmd$none) : _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+									$elm$core$Maybe$withDefault,
+									_List_Nil,
+									A2(
+										$elm$core$Maybe$map,
+										function (i3) {
+											return _List_fromArray(
+												[
+													_Utils_Tuple2(i1, i3),
+													_Utils_Tuple2(i3, i2)
+												]);
+										},
+										A2(
+											$elm$core$Maybe$map,
+											$elm$core$Tuple$second,
+											$author$project$Main$newPoint(
+												_Utils_Tuple2(i1, i2))))))
+						}),
+					$elm$core$Platform$Cmd$none);
+			} else {
+				return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+			}
+		} else {
+			return _Utils_Tuple2(model, $elm$core$Platform$Cmd$none);
+		}
 	});
-var $elm$core$List$head = function (list) {
-	if (list.b) {
-		var x = list.a;
-		var xs = list.b;
-		return $elm$core$Maybe$Just(x);
-	} else {
-		return $elm$core$Maybe$Nothing;
-	}
-};
+var $elm$core$Tuple$mapSecond = F2(
+	function (func, _v0) {
+		var x = _v0.a;
+		var y = _v0.b;
+		return _Utils_Tuple2(
+			x,
+			func(y));
+	});
 var $author$project$Hyperbolic$pointsAlongLineSegment = F2(
 	function (n, _v0) {
 		var _v1 = _v0.a.a;
@@ -6019,10 +6028,17 @@ var $author$project$Hyperbolic$pointsAlongLineSegment = F2(
 					},
 					A2($elm$core$List$range, 0, n))));
 	});
-var $author$project$Hyperbolic$toBeltramiCoordinates = function (_v0) {
-	var p = _v0.a;
-	return p;
-};
+var $author$project$Hyperbolic$pointsAlongLine = F2(
+	function (n, _v0) {
+		var i1 = _v0.a;
+		var i2 = _v0.b;
+		return A2(
+			$author$project$Hyperbolic$pointsAlongLineSegment,
+			n,
+			_Utils_Tuple2(
+				$author$project$Hyperbolic$fromIdealPoint(i1),
+				$author$project$Hyperbolic$fromIdealPoint(i2)));
+	});
 var $author$project$Hyperbolic$toPoincareCoordinates = function (_v0) {
 	var p = _v0.a;
 	return function (_v1) {
@@ -6184,6 +6200,10 @@ var $joakin$elm_canvas$Canvas$shapes = F2(
 var $elm$core$List$singleton = function (value) {
 	return _List_fromArray(
 		[value]);
+};
+var $joakin$elm_canvas$Canvas$Settings$stroke = function (color) {
+	return $joakin$elm_canvas$Canvas$Internal$Canvas$SettingDrawOp(
+		$joakin$elm_canvas$Canvas$Internal$Canvas$Stroke(color));
 };
 var $elm$html$Html$canvas = _VirtualDom_node('canvas');
 var $joakin$elm_canvas$Canvas$cnvs = A2($elm$html$Html$canvas, _List_Nil, _List_Nil);
@@ -7040,14 +7060,14 @@ var $joakin$elm_canvas$Canvas$toHtml = F3(
 	});
 var $author$project$Main$viewAsCanvas = function (list) {
 	var zoom = 300;
-	var width = 600;
-	var height = 600;
+	var size = 600;
 	return A3(
 		$joakin$elm_canvas$Canvas$toHtml,
-		_Utils_Tuple2(width, height),
+		_Utils_Tuple2(size, size),
 		_List_Nil,
-		$elm$core$List$singleton(
-			A2(
+		_List_fromArray(
+			[
+				A2(
 				$joakin$elm_canvas$Canvas$shapes,
 				_List_fromArray(
 					[
@@ -7060,10 +7080,22 @@ var $author$project$Main$viewAsCanvas = function (list) {
 						var y = _v0.b;
 						return A2(
 							$joakin$elm_canvas$Canvas$circle,
-							_Utils_Tuple2((x * zoom) + (width / 2), (y * zoom) + (height / 2)),
+							_Utils_Tuple2((x * zoom) + (size / 2), (y * zoom) + (size / 2)),
 							1);
 					},
-					list))));
+					list)),
+				A2(
+				$joakin$elm_canvas$Canvas$shapes,
+				_List_fromArray(
+					[
+						$joakin$elm_canvas$Canvas$Settings$stroke($avh4$elm_color$Color$black)
+					]),
+				$elm$core$List$singleton(
+					A2(
+						$joakin$elm_canvas$Canvas$circle,
+						_Utils_Tuple2(size / 2, size / 2),
+						zoom)))
+			]));
 };
 var $author$project$Main$view = function (model) {
 	return {
@@ -7076,17 +7108,26 @@ var $author$project$Main$view = function (model) {
 					A2($elm$core$List$map, $author$project$Hyperbolic$toPoincareCoordinates, l))
 				]);
 		}(
-			A2(
-				$elm$core$Maybe$withDefault,
-				_List_Nil,
-				A2(
-					$elm$core$Maybe$map,
-					function (_v0) {
-						var line = _v0.line;
-						var pointsPerLine = _v0.pointsPerLine;
-						return A2($author$project$Hyperbolic$pointsAlongLineSegment, pointsPerLine, line);
-					},
-					$elm$core$List$head(model.lines)))),
+			function () {
+				var _v0 = model.lines;
+				if (_v0.b) {
+					var line = _v0.a;
+					return _Utils_ap(
+						A2($author$project$Hyperbolic$pointsAlongLine, model.pointsPerLine, line),
+						A2(
+							$elm$core$Maybe$withDefault,
+							_List_Nil,
+							A2(
+								$elm$core$Maybe$map,
+								$author$project$Hyperbolic$pointsAlongLineSegment(model.pointsPerLine),
+								A2(
+									$elm$core$Maybe$map,
+									$elm$core$Tuple$mapSecond($author$project$Hyperbolic$fromIdealPoint),
+									$author$project$Main$newPoint(line)))));
+				} else {
+					return _List_Nil;
+				}
+			}()),
 		title: 'Test'
 	};
 };

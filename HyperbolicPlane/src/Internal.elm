@@ -14,6 +14,15 @@ isZero f1 =
     abs f1 < eps
 
 
+safeSqrt : Float -> Float
+safeSqrt f =
+    if isZero f then
+        0
+
+    else
+        sqrt f
+
+
 equal : Float -> Float -> Bool
 equal f1 f2 =
     abs (f1 - f2) < eps
@@ -31,7 +40,7 @@ distance ( x1, y1 ) ( x2, y2 ) =
 
 length : ( Float, Float ) -> Float
 length ( x, y ) =
-    sqrt (x * x + y * y)
+    safeSqrt (x * x + y * y)
 
 
 {-| natural logarithm
@@ -48,7 +57,7 @@ sinh x =
 
 arsinh : Float -> Float
 arsinh x =
-    ln (x + sqrt (x * x + 1))
+    ln (x + safeSqrt (x * x + 1))
 
 
 cosh : Float -> Float
@@ -77,13 +86,16 @@ tanh x =
 {-| converts a line AB to a general form ax + by + c = 0 such that A and B solve the equation.
 -}
 lineToGeneralForm : ( ( Float, Float ), ( Float, Float ) ) -> { x : Float, y : Float, c : Float }
-lineToGeneralForm ( ( x0, y0 ), ( x1, y1 ) ) =
-    --https://en.wikipedia.org/wiki/Line_(geometry)
-    if equal x1 x0 then
-        { x = 1, y = 0, c = x1 }
-
-    else
-        { x = (y1 - y0) / (x1 - x0), y = -1, c = (x1 * y0 - x0 * y1) / (x1 - x0) }
+lineToGeneralForm ( ( x0, y0 ), p2 ) =
+    --https://www.topcoder.com/thrive/articles/Geometry%20Concepts%20part%202:%20%20Line%20Intersection%20and%20its%20Applications
+    let
+        ( x, y ) =
+            normalVector ( ( x0, y0 ), p2 )
+    in
+    { x = x
+    , y = y
+    , c = -x * x0 - y * y0
+    }
 
 
 normalVector : ( ( Float, Float ), ( Float, Float ) ) -> ( Float, Float )
@@ -91,19 +103,37 @@ normalVector ( ( x1, y1 ), ( x2, y2 ) ) =
     ( y2 - y1, x1 - x2 )
 
 
+normalize : ( Float, Float ) -> ( Float, Float )
+normalize ( x, y ) =
+    ( x / length ( x, y ), y / length ( x, y ) )
+
+
+vecTo : ( Float, Float ) -> ( Float, Float ) -> ( Float, Float )
+vecTo ( x1, y1 ) ( x2, y2 ) =
+    ( x1 - x2, y1 - y2 )
+
+
 {-| can't intersect parallel lines
 -}
-lineIntersection : ( ( Float, Float ), ( Float, Float ) ) -> ( ( Float, Float ), ( Float, Float ) ) -> Maybe ( Float, Float )
-lineIntersection ( ( x1, y1 ), ( x2, y2 ) ) ( ( x3, y3 ), ( x4, y4 ) ) =
-    --https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
-    if (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4) |> isZero then
+lineIntersection : { x : Float, y : Float, c : Float } -> { x : Float, y : Float, c : Float } -> Maybe ( Float, Float )
+lineIntersection equ1 equ2 =
+    --https://www.topcoder.com/thrive/articles/Geometry%20Concepts%20part%202:%20%20Line%20Intersection%20and%20its%20Applications
+    -- source uses representation ax+by=c, but we are using ax+by+c=0
+    -- therefore we need to negate c
+    -- using line equations because algorithm for 4 points is numerical unstable.
+    let
+        det =
+            equ1.x
+                * equ2.y
+                - equ1.y
+                * equ2.x
+    in
+    if isZero det then
         Nothing
 
     else
-        ( ((x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4))
-            / ((x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4))
-        , ((x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4))
-            / ((x1 - x2) * (y3 - y4) - (y1 - y2 * (x3 - x4)))
+        ( (-equ2.y * equ1.c + equ1.y * equ2.c) / det
+        , (-equ1.x * equ2.c + equ2.x * equ1.c) / det
         )
             |> Just
 
@@ -120,11 +150,8 @@ intersectLineWithUnitCircle equation =
         -->y² = 1 - c²/b²
         -->y = (-+)sqrt (1 - c²/b²)
         let
-            _ =
-                equation |> Debug.log "equation"
-
             c =
-                equation.c |> Debug.log "y=0"
+                equation.c
 
             b =
                 equation.x
@@ -132,8 +159,8 @@ intersectLineWithUnitCircle equation =
             x =
                 -c / b
         in
-        ( ( x, -(sqrt (1 - c * c / b * b)) )
-        , ( x, sqrt (1 - c * c / b * b) )
+        ( ( x, -(safeSqrt (1 - c * c / b * b)) )
+        , ( x, safeSqrt (1 - c * c / b * b) )
         )
 
     else
@@ -163,11 +190,14 @@ intersectLineWithUnitCircle equation =
             q =
                 (c * c - a * a) / (a * a + b * b)
 
+            sq =
+                (p * p / 4) - q
+
             x1 =
-                -p / 2 + sqrt ((p / 2) * (p / 2) - q)
+                -p / 2 + safeSqrt sq
 
             x2 =
-                -p / 2 - sqrt ((p / 2) * (p / 2) - q)
+                -p / 2 - safeSqrt sq
 
             y x =
                 -(b * x + c) / a

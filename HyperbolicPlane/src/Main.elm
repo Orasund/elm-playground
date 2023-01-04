@@ -5,21 +5,17 @@ import Canvas
 import Canvas.Settings
 import Color
 import Html exposing (Html)
-import Hyperbolic exposing (BeltramiCoords)
+import Html.Attributes exposing (size)
+import Hyperbolic exposing (BeltramiCoords, IdealPoint, Line)
 import Internal
 import Svg
 import Svg.Attributes
-import Task
 import Time
 
 
 type alias Model =
-    { lines :
-        List
-            { line : ( BeltramiCoords, BeltramiCoords )
-            , center : BeltramiCoords
-            , pointsPerLine : Int
-            }
+    { lines : List ( IdealPoint, IdealPoint )
+    , pointsPerLine : Int
     , iter : Int
     , maxIter : Int
     }
@@ -59,48 +55,64 @@ trianglesBetween ( angle1, angle2 ) =
 
 init : () -> ( Model, Cmd Msg )
 init () =
+    let
+        maxIter =
+            1000
+
+        i1 =
+            0
+
+        i2 =
+            2 * pi / 3
+
+        i3 =
+            4 * pi / 3
+    in
     ( { lines =
-            let
-                i1 =
-                    0 |> Hyperbolic.pointAtInfinity |> Hyperbolic.fromIdealPoint
-
-                i2 =
-                    pi |> Hyperbolic.pointAtInfinity |> Hyperbolic.fromIdealPoint
-
-                i3 =
-                    2 * 2 * pi / 3 |> Hyperbolic.pointAtInfinity |> Hyperbolic.fromIdealPoint
-
-                c =
-                    Hyperbolic.origin
-            in
-            [ ( i1, c )
-            , ( i2, c )
-            ]
-                |> List.map
-                    (\line ->
-                        { line = line
-                        , center = Hyperbolic.origin
-                        , pointsPerLine = 400
-                        }
-                    )
+            [ ( i1, i2 ), ( i2, i3 ), ( i3, i1 ) ]
+                |> List.map (Tuple.mapBoth Hyperbolic.pointAtInfinity Hyperbolic.pointAtInfinity)
+      , pointsPerLine = 400
       , iter = 1
-      , maxIter = 1000
+      , maxIter = maxIter
       }
     , Cmd.none
     )
+
+
+newPoint : Line -> Maybe ( BeltramiCoords, IdealPoint )
+newPoint line =
+    line
+        |> Hyperbolic.perpendicularLineThrough Hyperbolic.origin
+        |> (\( i1, i2 ) ->
+                Hyperbolic.intersectLines line ( i1, i2 )
+                    |> Maybe.map
+                        (\c ->
+                            if euclideanDistance (Hyperbolic.fromIdealPoint i1) c < euclideanDistance (Hyperbolic.fromIdealPoint i2) c then
+                                ( c, i1 )
+
+                            else
+                                ( c, i2 )
+                        )
+           )
 
 
 view : Model -> Document Msg
 view model =
     { title = "Test"
     , body =
-        model.lines
-            |> List.head
-            |> Maybe.map
-                (\{ line, pointsPerLine } ->
-                    Hyperbolic.pointsAlongLineSegment pointsPerLine line
-                )
-            |> Maybe.withDefault []
+        (case model.lines of
+            line :: _ ->
+                (line |> Hyperbolic.pointsAlongLine model.pointsPerLine)
+                    ++ (line
+                            |> newPoint
+                            |> Maybe.map (Tuple.mapSecond Hyperbolic.fromIdealPoint)
+                            |> Maybe.map (Hyperbolic.pointsAlongLineSegment model.pointsPerLine)
+                            |> Maybe.withDefault []
+                       )
+
+            [] ->
+                []
+        )
             |> (\l ->
                     [ l
                         |> List.map Hyperbolic.toBeltramiCoordinates
@@ -135,23 +147,23 @@ viewAsSvg list =
 viewAsCanvas : List ( Float, Float ) -> Html msg
 viewAsCanvas list =
     let
-        width =
-            600
-
-        height =
+        size =
             600
 
         zoom =
             300
     in
-    list
+    [ list
         |> List.map
             (\( x, y ) ->
-                Canvas.circle ( x * zoom + width / 2, y * zoom + height / 2 ) 1
+                Canvas.circle ( x * zoom + size / 2, y * zoom + size / 2 ) 1
             )
         |> Canvas.shapes [ Canvas.Settings.fill Color.black ]
+    , Canvas.circle ( size / 2, size / 2 ) zoom
         |> List.singleton
-        |> Canvas.toHtml ( width, height ) []
+        |> Canvas.shapes [ Canvas.Settings.stroke Color.black ]
+    ]
+        |> Canvas.toHtml ( size, size ) []
 
 
 euclideanDistance : BeltramiCoords -> BeltramiCoords -> Float
@@ -166,53 +178,23 @@ update msg model =
     case msg of
         TimePassed ->
             if model.iter < model.maxIter then
-                ( { model
-                    | iter = model.iter + 1
-                    , lines =
-                        case model.lines of
-                            { line, center, pointsPerLine } :: tail ->
+                case model.lines of
+                    ( i1, i2 ) :: tail ->
+                        ( { model
+                            | iter = model.iter + 1
+                            , lines =
                                 tail
-                                    ++ (( line, center )
-                                            |> (\( ( a1, a2 ), a3 ) ->
-                                                    Hyperbolic.lineFromPoints a1 a2
-                                                        |> (\l ->
-                                                                l
-                                                                    |> Hyperbolic.perpendicularLineThrough a3
-                                                                    |> (\( i1, i2 ) ->
-                                                                            Hyperbolic.intersectLines l ( i1, i2 )
-                                                                                |> Maybe.map
-                                                                                    (\z ->
-                                                                                        let
-                                                                                            p1 =
-                                                                                                Hyperbolic.fromIdealPoint i1
-
-                                                                                            p2 =
-                                                                                                Hyperbolic.fromIdealPoint i2
-                                                                                        in
-                                                                                        [ ( ( p1, a1 ), a3 )
-                                                                                        , ( ( p1, a2 ), a3 )
-                                                                                        , ( ( p2, a1 ), a3 )
-                                                                                        , ( ( p2, a2 ), a3 )
-                                                                                        ]
-                                                                                    )
-                                                                       )
-                                                                    |> Maybe.withDefault []
-                                                           )
-                                               )
-                                            |> List.map
-                                                (\( t, c ) ->
-                                                    { line = t
-                                                    , center = c
-                                                    , pointsPerLine = pointsPerLine // 2
-                                                    }
-                                                )
+                                    ++ (newPoint ( i1, i2 )
+                                            |> Maybe.map Tuple.second
+                                            |> Maybe.map (\i3 -> [ ( i1, i3 ), ( i3, i2 ) ])
+                                            |> Maybe.withDefault []
                                        )
+                          }
+                        , Cmd.none
+                        )
 
-                            [] ->
-                                []
-                  }
-                , Cmd.none
-                )
+                    [] ->
+                        ( model, Cmd.none )
 
             else
                 ( model, Cmd.none )
