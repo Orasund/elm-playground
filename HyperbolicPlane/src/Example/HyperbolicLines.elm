@@ -78,16 +78,16 @@ view model =
             |> Maybe.map
                 (\( line, pointsPerLine ) ->
                     line
-                        |> Tuple.mapBoth Hyperbolic.fromIdealPoint Hyperbolic.fromIdealPoint
+                        |> Tuple.mapBoth Hyperbolic.unsafeFromIdealPoint Hyperbolic.unsafeFromIdealPoint
                         |> Hyperbolic.pointsAlongLineSegment pointsPerLine
                 )
             |> Maybe.withDefault []
             |> (\l ->
                     [ l
-                        |> List.map Hyperbolic.toBeltramiCoordinates
+                        |> List.map Hyperbolic.projectOntoBeltramiKleinDisc
                         |> viewAsCanvas
                     , l
-                        |> List.map Hyperbolic.toPoincareCoordinates
+                        |> List.map Hyperbolic.projectOntoPoincareDisc
                         |> viewAsCanvas
                     ]
                )

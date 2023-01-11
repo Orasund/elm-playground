@@ -29,8 +29,23 @@ equal f1 f2 =
 
 
 plus : ( Float, Float ) -> ( Float, Float ) -> ( Float, Float )
-plus ( x1, y1 ) ( x2, y2 ) =
-    ( x1 + x2, y1 + y2 )
+plus ( x, y ) =
+    Tuple.mapBoth ((+) x) ((+) y)
+
+
+minus : ( Float, Float ) -> ( Float, Float ) -> ( Float, Float )
+minus ( x, y ) =
+    plus ( -x, -y )
+
+
+scaleBy : Float -> ( Float, Float ) -> ( Float, Float )
+scaleBy c =
+    Tuple.mapBoth ((*) c) ((*) c)
+
+
+negate : ( Float, Float ) -> ( Float, Float )
+negate ( x, y ) =
+    ( -x, -y )
 
 
 distance : ( Float, Float ) -> ( Float, Float ) -> Float
@@ -127,6 +142,7 @@ lineIntersection equ1 equ2 =
                 * equ2.y
                 - equ1.y
                 * equ2.x
+                |> Debug.log "det"
     in
     if isZero det then
         Nothing
@@ -138,7 +154,7 @@ lineIntersection equ1 equ2 =
             |> Just
 
 
-intersectLineWithUnitCircle : { x : Float, y : Float, c : Float } -> ( ( Float, Float ), ( Float, Float ) )
+intersectLineWithUnitCircle : { x : Float, y : Float, c : Float } -> Maybe ( ( Float, Float ), ( Float, Float ) )
 intersectLineWithUnitCircle equation =
     if isZero equation.y then
         --we can assume that b is not zero
@@ -158,10 +174,18 @@ intersectLineWithUnitCircle equation =
 
             x =
                 -c / b
+
+            sq =
+                1 - c * c / b * b
         in
-        ( ( x, -(safeSqrt (1 - c * c / b * b)) )
-        , ( x, safeSqrt (1 - c * c / b * b) )
-        )
+        if isZero sq || sq > 0 then
+            ( ( x, -(safeSqrt sq) )
+            , ( x, safeSqrt sq )
+            )
+                |> Just
+
+        else
+            Nothing
 
     else
         -- ay + bx + c = 0 (1)
@@ -202,6 +226,16 @@ intersectLineWithUnitCircle equation =
             y x =
                 -(b * x + c) / a
         in
-        ( ( x1, y x1 )
-        , ( x2, y x2 )
-        )
+        if isZero sq || sq > 0 then
+            ( ( x1, y x1 )
+            , ( x2, y x2 )
+            )
+                |> Just
+
+        else
+            Nothing
+
+
+innerProduct : ( Float, Float ) -> ( Float, Float ) -> Float
+innerProduct ( x1, y1 ) ( x2, y2 ) =
+    x1 * x2 + y1 * y2

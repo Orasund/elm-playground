@@ -87,7 +87,7 @@ view model =
             |> (\l ->
                     [ l
                         |> List.map Hyperbolic.projectFromEuclideanSpace
-                        |> List.map Hyperbolic.toBeltramiCoordinates
+                        |> List.map Hyperbolic.projectOntoBeltramiKleinDisc
                         |> viewAsCanvas
                     , l
                         |> viewAsCanvas

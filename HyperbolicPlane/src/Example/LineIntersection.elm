@@ -1,4 +1,4 @@
-module Main exposing (..)
+module Example.LineIntersection exposing (..)
 
 import Browser exposing (Document)
 import Canvas
@@ -6,19 +6,15 @@ import Canvas.Settings
 import Color
 import Html exposing (Html)
 import Html.Attributes exposing (size)
-import Hyperbolic exposing (BeltramiCoord, IdealPoint, Line, LineSegment, PoincareVector, Vector)
+import Hyperbolic exposing (BeltramiCoord, IdealPoint, Line)
 import Internal
 import Svg
 import Svg.Attributes
 import Time
 
 
-sizeOfGrid =
-    1
-
-
 type alias Model =
-    { points : List ( BeltramiCoord, BeltramiCoord )
+    { lines : List ( IdealPoint, IdealPoint )
     , pointsPerLine : Int
     , iter : Int
     , maxIter : Int
@@ -61,19 +57,20 @@ init : () -> ( Model, Cmd Msg )
 init () =
     let
         maxIter =
-            11
+            1000
+
+        i1 =
+            pi
+
+        i2 =
+            pi + 2 * pi / 3
+
+        i3 =
+            pi + 4 * pi / 3
     in
-    ( { points =
-            [ ( Hyperbolic.fromPolarCoords { radius = sizeOfGrid, angle = 0 }
-              , Hyperbolic.fromPolarCoords { radius = sizeOfGrid, angle = 3 * pi / 2 }
-              )
-            , ( Hyperbolic.fromPolarCoords { radius = sizeOfGrid, angle = pi / 2 }
-              , Hyperbolic.fromPolarCoords { radius = sizeOfGrid, angle = 0 }
-              )
-            , ( Hyperbolic.fromPolarCoords { radius = sizeOfGrid, angle = pi }
-              , Hyperbolic.fromPolarCoords { radius = sizeOfGrid, angle = pi / 2 }
-              )
-            ]
+    ( { lines =
+            [ ( i1, i2 ), ( i3, i1 ) ]
+                |> List.map (Tuple.mapBoth Hyperbolic.pointAtInfinity Hyperbolic.pointAtInfinity)
       , pointsPerLine = 400
       , iter = 1
       , maxIter = maxIter
@@ -82,72 +79,41 @@ init () =
     )
 
 
-pointsAroundOrigin : List ( BeltramiCoord, BeltramiCoord )
-pointsAroundOrigin =
-    let
-        c =
-            sizeOfGrid / 2
+newPoint : Line -> Maybe ( BeltramiCoord, IdealPoint )
+newPoint line =
+    line
+        |> Hyperbolic.perpendicularLineThrough (Hyperbolic.unsafeFromIdealPoint (Hyperbolic.pointAtInfinity 0))
+        |> Maybe.andThen
+            (\( i1, i2 ) ->
+                Hyperbolic.intersectLines line ( i1, i2 )
+                    |> Maybe.map
+                        (\c ->
+                            if euclideanDistance (Hyperbolic.unsafeFromIdealPoint i1) c < euclideanDistance (Hyperbolic.unsafeFromIdealPoint i2) c then
+                                ( c, i1 )
 
-        edges =
-            5
-    in
-    List.range 0 (edges - 1)
-        |> List.map toFloat
-        |> List.map (\i -> i * 2 * pi / edges)
-        |> List.map (\angle -> Hyperbolic.fromPolarCoords { radius = c, angle = angle })
-        |> List.map
-            (\p ->
-                ( p
-                , Hyperbolic.origin
-                )
-            )
-
-
-newPoints : ( BeltramiCoord, BeltramiCoord ) -> List ( BeltramiCoord, BeltramiCoord )
-newPoints ( p, fromP ) =
-    let
-        edges =
-            10
-    in
-    List.range 1 edges
-        |> List.map toFloat
-        |> List.map (\i -> i * 2 * pi / edges)
-        |> List.map
-            (\angle ->
-                p
-                    |> Hyperbolic.einsteinVelocityAddition
-                        (fromP
-                            |> Hyperbolic.differenceTo p
-                            |> Hyperbolic.setRotation angle
-                         --|> Hyperbolic.rotatePointClockwise -angle
+                            else
+                                ( c, i2 )
                         )
-            )
-        |> List.map
-            (\newP ->
-                ( newP
-                , p
-                )
             )
 
 
 view : Model -> Document Msg
 view model =
-    { title = "Test"
+    { title = "Line Intersection"
     , body =
-        (case model.points of
-            ( head, offset ) :: _ ->
-                ( head, offset )
-                    |> Hyperbolic.pointsAlongLineSegment model.pointsPerLine
+        (case model.lines of
+            line :: _ ->
+                (line |> Hyperbolic.pointsAlongLine model.pointsPerLine)
+                    ++ (line
+                            |> newPoint
+                            |> Maybe.map (Tuple.mapSecond Hyperbolic.unsafeFromIdealPoint)
+                            |> Maybe.map (Hyperbolic.pointsAlongLineSegment model.pointsPerLine)
+                            |> Maybe.withDefault []
+                       )
 
             [] ->
                 []
         )
-            |> (++)
-                ([ Hyperbolic.lineFromIdealPoints (Hyperbolic.pointAtInfinity 0) (Hyperbolic.pointAtInfinity pi)
-                 , Hyperbolic.lineFromIdealPoints (Hyperbolic.pointAtInfinity (pi / 2)) (Hyperbolic.pointAtInfinity (3 * pi / 2))
-                 ]
-                    |> List.concatMap (Hyperbolic.pointsAlongLine model.pointsPerLine)
-                )
             |> (\l ->
                     [ l
                         |> List.map Hyperbolic.projectOntoBeltramiKleinDisc
@@ -213,11 +179,17 @@ update msg model =
     case msg of
         TimePassed ->
             if model.iter < model.maxIter then
-                case model.points of
-                    head :: tail ->
+                case model.lines of
+                    ( i1, i2 ) :: tail ->
                         ( { model
                             | iter = model.iter + 1
-                            , points = tail ++ newPoints head
+                            , lines =
+                                tail
+                                    ++ (newPoint ( i1, i2 )
+                                            |> Maybe.map Tuple.second
+                                            |> Maybe.map (\i3 -> [ ( i1, i3 ), ( i3, i2 ) ])
+                                            |> Maybe.withDefault []
+                                       )
                           }
                         , Cmd.none
                         )
