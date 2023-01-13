@@ -281,23 +281,31 @@ pointsAlongLine n ( i1, i2 ) =
 -}
 vectorTo : PoincareVector -> PoincareVector -> PoincareVector
 vectorTo p2 p1 =
-    (p2 |> negate)
-        |> add p1
+    p2 |> negate |> add p1
 
 
-differenceTo : BeltramiCoord -> BeltramiCoord -> BeltramiCoord
-differenceTo (BeltramiCoord p2) p1 =
-    p2
-        |> Internal.negate
-        |> BeltramiCoord
-        |> einsteinVelocityAddition p1
+scaleBy : Float -> PoincareVector -> PoincareVector
+scaleBy a (PoincareVector x) =
+    --https://andbloch.github.io/K-Stereographic-Model/
+    --kappa = -1
+    Internal.artanh (Internal.length x)
+        |> Maybe.map ((*) a)
+        |> Maybe.map Internal.tanh
+        |> Maybe.map (\v -> v / Internal.length x)
+        |> Maybe.map (\v -> Internal.scaleBy v x)
+        |> Maybe.withDefault x
+        |> PoincareVector
 
 
 rotateClockwise : Float -> PoincareVector -> PoincareVector
-rotateClockwise amount (PoincareVector v) =
-    toPolar v
+rotateClockwise amount (PoincareVector ( x, y )) =
+    {--toPolar v
         |> Tuple.mapSecond ((+) amount)
         |> fromPolar
+        |> PoincareVector--}
+    ( x * cos amount - y * sin amount
+    , x * sin amount + y * cos amount
+    )
         |> PoincareVector
 
 
@@ -312,7 +320,10 @@ rotatePointClockwise amount (BeltramiCoord (( x, y ) as v)) =
 
 setRotation : Float -> BeltramiCoord -> BeltramiCoord
 setRotation amount (BeltramiCoord v) =
-    toPolar v |> Tuple.mapSecond (\_ -> amount) |> fromPolar |> BeltramiCoord
+    toPolar v
+        |> Tuple.mapSecond (\_ -> amount)
+        |> fromPolar
+        |> BeltramiCoord
 
 
 rotateClockwiseAround : PoincareVector -> Float -> PoincareVector -> PoincareVector
@@ -344,8 +355,28 @@ einsteinVelocityAddition (BeltramiCoord b) (BeltramiCoord a) =
 
         product =
             Internal.innerProduct a b
+
+        v =
+            b
+
+        u =
+            a
+
+        cSquared =
+            1
+
+        gamma =
+            1 / sqrt (1 - Internal.innerProduct u u / cSquared)
     in
-    Internal.plus a b
+    u
+        |> Internal.plus (v |> Internal.scaleBy (1 / gamma))
+        |> Internal.plus (u |> Internal.scaleBy (gamma * Internal.innerProduct u v / (cSquared * (1 + gamma))))
+        |> Internal.scaleBy (1 / (1 + Internal.innerProduct u v / cSquared))
+        |> BeltramiCoord
+
+
+
+{--Internal.plus a b
         |> Internal.scaleBy (1 / (1 + product))
         |> Internal.plus
             ((a
@@ -358,6 +389,7 @@ einsteinVelocityAddition (BeltramiCoord b) (BeltramiCoord a) =
                 |> Internal.scaleBy (1 / ((1 + norm) * (1 + product)))
             )
         |> BeltramiCoord
+        --}
 
 
 {-| Using the Möbius Addition to add two vectors in the poincare disc
@@ -366,18 +398,22 @@ add : PoincareVector -> PoincareVector -> PoincareVector
 add (PoincareVector v) (PoincareVector u) =
     --https://en.wikipedia.org/wiki/Gyrovector_space#Beltrami%E2%80%93Klein_disc/ball_model_and_Einstein_addition
     --s = 1
+    let
+        normSquared x =
+            Internal.innerProduct x x
+    in
     u
         |> Internal.scaleBy
             (1
                 + (2 * Internal.innerProduct u v)
                 + Internal.innerProduct v v
             )
-        |> Internal.plus (v |> Internal.scaleBy (1 - Internal.innerProduct u u))
+        |> Internal.plus (v |> Internal.scaleBy (1 - normSquared u))
         |> Internal.scaleBy
             (1
                 / (1
                     + (2 * Internal.innerProduct u v)
-                    + (Internal.innerProduct u u * Internal.innerProduct v v)
+                    + (normSquared v * normSquared u)
                   )
             )
         |> PoincareVector
@@ -389,6 +425,15 @@ translateBy v p =
         |> toPoincareVector
         |> add v
         |> fromPoincareVector
+
+
+length : PoincareVector -> Float
+length (PoincareVector v) =
+    v
+        |> Internal.length
+        |> Internal.artanh
+        |> Maybe.withDefault 0
+        |> (*) 2
 
 
 
@@ -445,11 +490,11 @@ toPoincareVector : BeltramiCoord -> PoincareVector
 toPoincareVector (BeltramiCoord s) =
     --https://en.wikipedia.org/wiki/Beltrami%E2%80%93Klein_model
     let
-        length =
+        l =
             1 + sqrt (1 - Internal.innerProduct s s)
     in
     s
-        |> Internal.scaleBy (1 / length)
+        |> Internal.scaleBy (1 / l)
         |> PoincareVector
 
 
@@ -483,6 +528,16 @@ unsafeFromRecord { x, y } =
     BeltramiCoord ( x, y )
 
 
+unsafePoincareVectorFromRecord : { x : Float, y : Float } -> PoincareVector
+unsafePoincareVectorFromRecord { x, y } =
+    PoincareVector ( x, y )
+
+
 unsafeToRecord : BeltramiCoord -> { x : Float, y : Float }
 unsafeToRecord (BeltramiCoord ( x, y )) =
+    { x = x, y = y }
+
+
+unsafePoincareVectorToRecord : PoincareVector -> { x : Float, y : Float }
+unsafePoincareVectorToRecord (PoincareVector ( x, y )) =
     { x = x, y = y }

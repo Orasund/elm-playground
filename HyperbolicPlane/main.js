@@ -5215,18 +5215,9 @@ var $elm$core$Tuple$pair = F2(
 	});
 var $elm$core$Basics$sin = _Basics_sin;
 var $elm$core$Basics$e = _Basics_e;
-var $elm$core$Basics$negate = function (n) {
-	return -n;
-};
 var $elm$core$Basics$pow = _Basics_pow;
-var $author$project$Internal$cosh = function (x) {
-	return (A2($elm$core$Basics$pow, $elm$core$Basics$e, x) + A2($elm$core$Basics$pow, $elm$core$Basics$e, -x)) / 2;
-};
-var $author$project$Internal$sinh = function (x) {
-	return (A2($elm$core$Basics$pow, $elm$core$Basics$e, x) - A2($elm$core$Basics$pow, $elm$core$Basics$e, -x)) / 2;
-};
 var $author$project$Internal$tanh = function (x) {
-	return $author$project$Internal$sinh(x) / $author$project$Internal$cosh(x);
+	return (A2($elm$core$Basics$pow, $elm$core$Basics$e, 2 * x) - 1) / (A2($elm$core$Basics$pow, $elm$core$Basics$e, 2 * x) + 1);
 };
 var $author$project$Hyperbolic$fromPolarCoords = function (args) {
 	return $author$project$Hyperbolic$BeltramiCoord(
@@ -5238,9 +5229,42 @@ var $author$project$Hyperbolic$fromPolarCoords = function (args) {
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $elm$core$Basics$pi = _Basics_pi;
-var $author$project$Main$sizeOfGrid = 1;
+var $author$project$Main$sizeOfGrid = 0.842;
+var $author$project$Hyperbolic$PoincareVector = function (a) {
+	return {$: 'PoincareVector', a: a};
+};
+var $author$project$Internal$innerProduct = F2(
+	function (_v0, _v1) {
+		var x1 = _v0.a;
+		var y1 = _v0.b;
+		var x2 = _v1.a;
+		var y2 = _v1.b;
+		return (x1 * x2) + (y1 * y2);
+	});
+var $elm$core$Tuple$mapBoth = F3(
+	function (funcA, funcB, _v0) {
+		var x = _v0.a;
+		var y = _v0.b;
+		return _Utils_Tuple2(
+			funcA(x),
+			funcB(y));
+	});
+var $author$project$Internal$scaleBy = function (c) {
+	return A2(
+		$elm$core$Tuple$mapBoth,
+		$elm$core$Basics$mul(c),
+		$elm$core$Basics$mul(c));
+};
+var $elm$core$Basics$sqrt = _Basics_sqrt;
+var $author$project$Hyperbolic$toPoincareVector = function (_v0) {
+	var s = _v0.a;
+	var l = 1 + $elm$core$Basics$sqrt(
+		1 - A2($author$project$Internal$innerProduct, s, s));
+	return $author$project$Hyperbolic$PoincareVector(
+		A2($author$project$Internal$scaleBy, 1 / l, s));
+};
 var $author$project$Main$init = function (_v0) {
-	var maxIter = 11;
+	var maxIter = 1000;
 	return _Utils_Tuple2(
 		{
 			iter: 1,
@@ -5248,20 +5272,12 @@ var $author$project$Main$init = function (_v0) {
 			points: _List_fromArray(
 				[
 					_Utils_Tuple2(
-					$author$project$Hyperbolic$fromPolarCoords(
-						{angle: 0, radius: $author$project$Main$sizeOfGrid}),
-					$author$project$Hyperbolic$fromPolarCoords(
-						{angle: (3 * $elm$core$Basics$pi) / 2, radius: $author$project$Main$sizeOfGrid})),
-					_Utils_Tuple2(
-					$author$project$Hyperbolic$fromPolarCoords(
-						{angle: $elm$core$Basics$pi / 2, radius: $author$project$Main$sizeOfGrid}),
-					$author$project$Hyperbolic$fromPolarCoords(
-						{angle: 0, radius: $author$project$Main$sizeOfGrid})),
-					_Utils_Tuple2(
-					$author$project$Hyperbolic$fromPolarCoords(
-						{angle: $elm$core$Basics$pi, radius: $author$project$Main$sizeOfGrid}),
-					$author$project$Hyperbolic$fromPolarCoords(
-						{angle: $elm$core$Basics$pi / 2, radius: $author$project$Main$sizeOfGrid}))
+					$author$project$Hyperbolic$toPoincareVector(
+						$author$project$Hyperbolic$fromPolarCoords(
+							{angle: 0, radius: $author$project$Main$sizeOfGrid})),
+					$author$project$Hyperbolic$toPoincareVector(
+						$author$project$Hyperbolic$fromPolarCoords(
+							{angle: (3 * $elm$core$Basics$pi) / 2, radius: $author$project$Main$sizeOfGrid})))
 				]),
 			pointsPerLine: 400
 		},
@@ -5691,22 +5707,6 @@ var $author$project$Main$subscriptions = function (_v0) {
 			return $author$project$Main$TimePassed;
 		});
 };
-var $author$project$Internal$innerProduct = F2(
-	function (_v0, _v1) {
-		var x1 = _v0.a;
-		var y1 = _v0.b;
-		var x2 = _v1.a;
-		var y2 = _v1.b;
-		return (x1 * x2) + (y1 * y2);
-	});
-var $elm$core$Tuple$mapBoth = F3(
-	function (funcA, funcB, _v0) {
-		var x = _v0.a;
-		var y = _v0.b;
-		return _Utils_Tuple2(
-			funcA(x),
-			funcB(y));
-	});
 var $author$project$Internal$plus = function (_v0) {
 	var x = _v0.a;
 	var y = _v0.b;
@@ -5715,94 +5715,55 @@ var $author$project$Internal$plus = function (_v0) {
 		$elm$core$Basics$add(x),
 		$elm$core$Basics$add(y));
 };
-var $author$project$Internal$minus = function (_v0) {
-	var x = _v0.a;
-	var y = _v0.b;
-	return $author$project$Internal$plus(
-		_Utils_Tuple2(-x, -y));
-};
-var $author$project$Internal$scaleBy = function (c) {
-	return A2(
-		$elm$core$Tuple$mapBoth,
-		$elm$core$Basics$mul(c),
-		$elm$core$Basics$mul(c));
-};
-var $elm$core$Basics$sqrt = _Basics_sqrt;
-var $author$project$Hyperbolic$einsteinVelocityAddition = F2(
+var $author$project$Hyperbolic$add = F2(
 	function (_v0, _v1) {
-		var b = _v0.a;
-		var a = _v1.a;
-		var product = A2($author$project$Internal$innerProduct, a, b);
-		var lengthSquared = A2($author$project$Internal$innerProduct, a, a);
-		var norm = $elm$core$Basics$sqrt(1 - lengthSquared);
-		return $author$project$Hyperbolic$BeltramiCoord(
+		var v = _v0.a;
+		var u = _v1.a;
+		var normSquared = function (x) {
+			return A2($author$project$Internal$innerProduct, x, x);
+		};
+		return $author$project$Hyperbolic$PoincareVector(
 			A2(
-				$author$project$Internal$plus,
+				$author$project$Internal$scaleBy,
+				1 / ((1 + (2 * A2($author$project$Internal$innerProduct, u, v))) + (normSquared(v) * normSquared(u))),
 				A2(
-					$author$project$Internal$scaleBy,
-					1 / ((1 + norm) * (1 + product)),
+					$author$project$Internal$plus,
 					A2(
-						$author$project$Internal$minus,
-						A2($author$project$Internal$scaleBy, lengthSquared, b),
-						A2($author$project$Internal$scaleBy, product, a))),
-				A2(
-					$author$project$Internal$scaleBy,
-					1 / (1 + product),
-					A2($author$project$Internal$plus, a, b))));
+						$author$project$Internal$scaleBy,
+						1 - normSquared(u),
+						v),
+					A2(
+						$author$project$Internal$scaleBy,
+						(1 + (2 * A2($author$project$Internal$innerProduct, u, v))) + A2($author$project$Internal$innerProduct, v, v),
+						u))));
 	});
+var $elm$core$Basics$negate = function (n) {
+	return -n;
+};
 var $author$project$Internal$negate = function (_v0) {
 	var x = _v0.a;
 	var y = _v0.b;
 	return _Utils_Tuple2(-x, -y);
 };
-var $author$project$Hyperbolic$differenceTo = F2(
-	function (_v0, p1) {
-		var p2 = _v0.a;
-		return A2(
-			$author$project$Hyperbolic$einsteinVelocityAddition,
-			p1,
-			$author$project$Hyperbolic$BeltramiCoord(
-				$author$project$Internal$negate(p2)));
-	});
-var $elm$core$Basics$fromPolar = function (_v0) {
-	var radius = _v0.a;
-	var theta = _v0.b;
-	return _Utils_Tuple2(
-		radius * $elm$core$Basics$cos(theta),
-		radius * $elm$core$Basics$sin(theta));
+var $author$project$Hyperbolic$negate = function (_v0) {
+	var v = _v0.a;
+	return $author$project$Hyperbolic$PoincareVector(
+		$author$project$Internal$negate(v));
 };
-var $elm$core$Tuple$mapSecond = F2(
-	function (func, _v0) {
-		var x = _v0.a;
-		var y = _v0.b;
-		return _Utils_Tuple2(
-			x,
-			func(y));
-	});
-var $elm$core$Basics$atan2 = _Basics_atan2;
-var $elm$core$Basics$toPolar = function (_v0) {
-	var x = _v0.a;
-	var y = _v0.b;
-	return _Utils_Tuple2(
-		$elm$core$Basics$sqrt((x * x) + (y * y)),
-		A2($elm$core$Basics$atan2, y, x));
-};
-var $author$project$Hyperbolic$setRotation = F2(
+var $author$project$Hyperbolic$rotateClockwise = F2(
 	function (amount, _v0) {
-		var v = _v0.a;
-		return $author$project$Hyperbolic$BeltramiCoord(
-			$elm$core$Basics$fromPolar(
-				A2(
-					$elm$core$Tuple$mapSecond,
-					function (_v1) {
-						return amount;
-					},
-					$elm$core$Basics$toPolar(v))));
+		var _v1 = _v0.a;
+		var x = _v1.a;
+		var y = _v1.b;
+		return $author$project$Hyperbolic$PoincareVector(
+			_Utils_Tuple2(
+				(x * $elm$core$Basics$cos(amount)) - (y * $elm$core$Basics$sin(amount)),
+				(x * $elm$core$Basics$sin(amount)) + (y * $elm$core$Basics$cos(amount))));
 	});
 var $author$project$Main$newPoints = function (_v0) {
 	var p = _v0.a;
 	var fromP = _v0.b;
-	var edges = 10;
+	var edges = 5;
 	return A2(
 		$elm$core$List$map,
 		function (newP) {
@@ -5812,11 +5773,14 @@ var $author$project$Main$newPoints = function (_v0) {
 			$elm$core$List$map,
 			function (angle) {
 				return A2(
-					$author$project$Hyperbolic$einsteinVelocityAddition,
+					$author$project$Hyperbolic$add,
 					A2(
-						$author$project$Hyperbolic$setRotation,
-						angle,
-						A2($author$project$Hyperbolic$differenceTo, p, fromP)),
+						$author$project$Hyperbolic$rotateClockwise,
+						-angle,
+						A2(
+							$author$project$Hyperbolic$add,
+							fromP,
+							$author$project$Hyperbolic$negate(p))),
 					p);
 			},
 			A2(
@@ -5827,7 +5791,7 @@ var $author$project$Main$newPoints = function (_v0) {
 				A2(
 					$elm$core$List$map,
 					$elm$core$Basics$toFloat,
-					A2($elm$core$List$range, 1, edges)))));
+					A2($elm$core$List$range, 1, edges - 1)))));
 };
 var $author$project$Main$update = F2(
 	function (msg, model) {
@@ -5869,12 +5833,13 @@ var $elm$core$List$concatMap = F2(
 		return $elm$core$List$concat(
 			A2($elm$core$List$map, f, list));
 	});
-var $author$project$Hyperbolic$lineFromIdealPoints = $elm$core$Tuple$pair;
-var $author$project$Hyperbolic$IdealPoint = function (a) {
-	return {$: 'IdealPoint', a: a};
-};
-var $author$project$Hyperbolic$pointAtInfinity = function (angle) {
-	return $author$project$Hyperbolic$IdealPoint(angle);
+var $author$project$Hyperbolic$fromPoincareVector = function (_v0) {
+	var u = _v0.a;
+	return $author$project$Hyperbolic$BeltramiCoord(
+		A2(
+			$author$project$Internal$scaleBy,
+			2 / (1 + A2($author$project$Internal$innerProduct, u, u)),
+			u));
 };
 var $author$project$Hyperbolic$pointsAlongLineSegment = F2(
 	function (n, _v0) {
@@ -5901,36 +5866,9 @@ var $author$project$Hyperbolic$pointsAlongLineSegment = F2(
 					},
 					A2($elm$core$List$range, 0, n))));
 	});
-var $author$project$Hyperbolic$unsafeFromIdealPoint = function (_v0) {
-	var angle1 = _v0.a;
-	return $author$project$Hyperbolic$BeltramiCoord(
-		$elm$core$Basics$fromPolar(
-			_Utils_Tuple2(1, angle1)));
-};
-var $author$project$Hyperbolic$pointsAlongLine = F2(
-	function (n, _v0) {
-		var i1 = _v0.a;
-		var i2 = _v0.b;
-		return A2(
-			$author$project$Hyperbolic$pointsAlongLineSegment,
-			n,
-			_Utils_Tuple2(
-				$author$project$Hyperbolic$unsafeFromIdealPoint(i1),
-				$author$project$Hyperbolic$unsafeFromIdealPoint(i2)));
-	});
 var $author$project$Hyperbolic$projectOntoBeltramiKleinDisc = function (_v0) {
 	var p = _v0.a;
 	return p;
-};
-var $author$project$Hyperbolic$PoincareVector = function (a) {
-	return {$: 'PoincareVector', a: a};
-};
-var $author$project$Hyperbolic$toPoincareVector = function (_v0) {
-	var s = _v0.a;
-	var length = 1 + $elm$core$Basics$sqrt(
-		1 - A2($author$project$Internal$innerProduct, s, s));
-	return $author$project$Hyperbolic$PoincareVector(
-		A2($author$project$Internal$scaleBy, 1 / length, s));
 };
 var $author$project$Hyperbolic$projectOntoPoincareDisc = function (p) {
 	return function (_v0) {
@@ -6999,35 +6937,36 @@ var $author$project$Main$view = function (model) {
 					A2($elm$core$List$map, $author$project$Hyperbolic$projectOntoPoincareDisc, l))
 				]);
 		}(
-			_Utils_ap(
-				A2(
-					$elm$core$List$concatMap,
-					$author$project$Hyperbolic$pointsAlongLine(model.pointsPerLine),
-					_List_fromArray(
-						[
-							A2(
-							$author$project$Hyperbolic$lineFromIdealPoints,
-							$author$project$Hyperbolic$pointAtInfinity(0),
-							$author$project$Hyperbolic$pointAtInfinity($elm$core$Basics$pi)),
-							A2(
-							$author$project$Hyperbolic$lineFromIdealPoints,
-							$author$project$Hyperbolic$pointAtInfinity($elm$core$Basics$pi / 2),
-							$author$project$Hyperbolic$pointAtInfinity((3 * $elm$core$Basics$pi) / 2))
-						])),
-				function () {
-					var _v0 = model.points;
-					if (_v0.b) {
-						var _v1 = _v0.a;
-						var head = _v1.a;
-						var offset = _v1.b;
-						return A2(
-							$author$project$Hyperbolic$pointsAlongLineSegment,
-							model.pointsPerLine,
-							_Utils_Tuple2(head, offset));
-					} else {
-						return _List_Nil;
-					}
-				}())),
+			function () {
+				var _v0 = model.points;
+				if (_v0.b) {
+					var _v1 = _v0.a;
+					var head = _v1.a;
+					var offset = _v1.b;
+					return A2(
+						$elm$core$List$concatMap,
+						$author$project$Hyperbolic$pointsAlongLineSegment(model.pointsPerLine),
+						A2(
+							$elm$core$List$map,
+							A2($elm$core$Tuple$mapBoth, $author$project$Hyperbolic$fromPoincareVector, $author$project$Hyperbolic$fromPoincareVector),
+							function (t) {
+								return A2(
+									$elm$core$List$map,
+									function (amount) {
+										return A3(
+											$elm$core$Tuple$mapBoth,
+											$author$project$Hyperbolic$rotateClockwise(amount),
+											$author$project$Hyperbolic$rotateClockwise(amount),
+											t);
+									},
+									_List_fromArray(
+										[0, $elm$core$Basics$pi / 2, $elm$core$Basics$pi, (3 * $elm$core$Basics$pi) / 2]));
+							}(
+								_Utils_Tuple2(head, offset))));
+				} else {
+					return _List_Nil;
+				}
+			}()),
 		title: 'Test'
 	};
 };

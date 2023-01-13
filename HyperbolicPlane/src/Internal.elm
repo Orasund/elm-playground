@@ -65,26 +65,11 @@ ln =
     logBase e
 
 
-sinh : Float -> Float
-sinh x =
-    (e ^ x - e ^ -x) / 2
-
-
-arsinh : Float -> Float
-arsinh x =
-    ln (x + safeSqrt (x * x + 1))
-
-
-cosh : Float -> Float
-cosh x =
-    (e ^ x + e ^ -x) / 2
-
-
 {-| input must be < 1.
 -}
 artanh : Float -> Maybe Float
 artanh x =
-    if x < 1 then
+    if abs x < 1 then
         ln ((1 + x) / (1 - x))
             / 2
             |> Just
@@ -95,7 +80,9 @@ artanh x =
 
 tanh : Float -> Float
 tanh x =
-    sinh x / cosh x
+    --https://www.redcrab-software.com/en/calculator/Tanh
+    (e ^ (2 * x) - 1)
+        / (e ^ (2 * x) + 1)
 
 
 {-| converts a line AB to a general form ax + by + c = 0 such that A and B solve the equation.

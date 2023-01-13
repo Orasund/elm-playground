@@ -1,12 +1,11 @@
-module Main exposing (..)
+module Example.HyperbolicTessellation exposing (..)
 
 import Browser exposing (Document)
 import Canvas
 import Canvas.Settings
 import Color
 import Html exposing (Html)
-import Html.Attributes exposing (size)
-import Hyperbolic exposing (BeltramiCoord, IdealPoint, Line, LineSegment, PoincareVector, Vector)
+import Hyperbolic exposing (BeltramiCoord, PoincareVector)
 import Internal
 import Svg
 import Svg.Attributes
