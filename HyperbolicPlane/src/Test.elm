@@ -1,4 +1,4 @@
-module Main exposing (..)
+module Test exposing (..)
 
 import Browser exposing (Document)
 import Canvas
@@ -13,8 +13,12 @@ import Svg.Attributes
 import Time
 
 
-sizeOfGrid =
-    0.842
+tilesAroundPoint =
+    5
+
+
+
+--0.842
 
 
 type alias Model =
@@ -61,11 +65,22 @@ init : () -> ( Model, Cmd Msg )
 init () =
     let
         maxIter =
-            1000
+            2000
+
+        n =
+            4
+
+        s =
+            Hyperbolic.discFillingPolygon
+                { vertices = n
+                , polygonsAroundAPoint = tilesAroundPoint
+                }
     in
     ( { points =
-            [ ( Hyperbolic.fromPolarCoords { radius = sizeOfGrid, angle = 0 } |> Hyperbolic.toPoincareVector
-              , Hyperbolic.fromPolarCoords { radius = sizeOfGrid, angle = 3 * pi / 2 } |> Hyperbolic.toPoincareVector
+            [ ( Hyperbolic.origin
+                    |> Hyperbolic.toPoincareVector
+              , Hyperbolic.fromPolarCoords { radius = s, angle = 0 }
+                    |> Hyperbolic.toPoincareVector
               )
             ]
       , pointsPerLine = 400
@@ -80,7 +95,7 @@ newPoints : ( PoincareVector, PoincareVector ) -> List ( PoincareVector, Poincar
 newPoints ( p, fromP ) =
     let
         edges =
-            5
+            tilesAroundPoint
     in
     List.range 1 (edges - 1)
         |> List.map toFloat
@@ -113,7 +128,8 @@ view model =
             ( head, offset ) :: _ ->
                 ( head, offset )
                     |> (\t ->
-                            [ 0, pi / 2, pi, 3 * pi / 2 ]
+                            [ 0 ]
+                                --, pi / 2, pi, 3 * pi / 2 ]
                                 |> List.map
                                     (\amount ->
                                         t

@@ -3,6 +3,14 @@ module Internal exposing (..)
 {-| -}
 
 
+type HyperboloidPoint
+    = HyperboloidPoint ( Float, Float, Float )
+
+
+type PoincarePoint
+    = PoincarePoint ( Float, Float )
+
+
 eps : Float
 eps =
     --Just a magic number (= 2^-43)
@@ -63,6 +71,16 @@ length ( x, y ) =
 ln : Float -> Float
 ln =
     logBase e
+
+
+arsinh : Float -> Float
+arsinh x =
+    ln (x + sqrt (x * x + 1))
+
+
+arcosh : Float -> Float
+arcosh x =
+    ln (x + sqrt (x * x - 1))
 
 
 {-| input must be < 1.

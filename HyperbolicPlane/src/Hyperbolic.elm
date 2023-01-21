@@ -99,12 +99,36 @@ distanceToOrigin =
     distanceTo origin
 
 
+{-| If you want to construct a tiling in the hyperbolic space, then the length of the polygon specifies how many polygons fit around a point.
+
+If you look up tilings, you will usually find a Schläfli symbol {p,q}. In that case p = vertices, q = polygonsAroundAPoint.
+
+The resulting length is for BeltramiCoords
+
+-}
+discFillingPolygon : { vertices : Int, polygonsAroundAPoint : Int } -> Float
+discFillingPolygon args =
+    --https://math.stackexchange.com/questions/1331199/edge-length-of-hyperbolic-tesselations
+    (cos (pi / toFloat args.vertices)
+        / sin (pi / toFloat args.polygonsAroundAPoint)
+    )
+        |> Internal.arcosh
+        |> (*) 2
+
+
 
 ------------------------------------------------------------------------------------------
 -- Line And Line Section
 ------------------------------------------------------------------------------------------
 
 
+{-| Constructs a line from two ideal points
+
+    lineFromIdealPoints : IdealPoint -> IdealPoint -> Line
+    lineFromIdealPoints =
+        Tuple.pair
+
+-}
 lineFromIdealPoints : IdealPoint -> IdealPoint -> Line
 lineFromIdealPoints =
     Tuple.pair
@@ -124,6 +148,11 @@ lineFromPoints (BeltramiCoord b1) (BeltramiCoord b2) =
             (\( ( _, i1 ), ( _, i2 ) ) ->
                 lineFromIdealPoints (IdealPoint i1) (IdealPoint i2)
             )
+
+
+lineFromLineSegment : LineSegment -> Maybe Line
+lineFromLineSegment ( p1, p2 ) =
+    lineFromPoints p1 p2
 
 
 lineFromHyperIdealPointThrough : BeltramiCoord -> HyperIdealPoint -> Maybe Line
@@ -153,11 +182,26 @@ poleOfLine ( i1, i2 ) =
         |> Maybe.map HyperIdealPoint
 
 
+{-| reflect a point by a line
+-}
+reflectBy : Line -> BeltramiCoord -> BeltramiCoord
+reflectBy line p0 =
+    perpendicularLineThrough p0 line
+        |> Maybe.andThen (intersectLines line)
+        |> Maybe.map
+            (\p1 ->
+                toPoincareVector p1
+                    |> add (vectorTo (toPoincareVector p0) (toPoincareVector p1))
+                    |> fromPoincareVector
+            )
+        |> Maybe.withDefault p0
+
+
 {-| Point as to lie on the line
 -}
 perpendicularLineThrough : BeltramiCoord -> Line -> Maybe Line
 perpendicularLineThrough (BeltramiCoord p) line =
-    case poleOfLine line |> Debug.log "pole of line" of
+    case poleOfLine line of
         Just (HyperIdealPoint pole) ->
             lineFromPoints (BeltramiCoord pole) (BeltramiCoord p)
 
@@ -310,7 +354,7 @@ rotateClockwise amount (PoincareVector ( x, y )) =
 
 
 rotatePointClockwise : Float -> BeltramiCoord -> BeltramiCoord
-rotatePointClockwise amount (BeltramiCoord (( x, y ) as v)) =
+rotatePointClockwise amount (BeltramiCoord ( x, y )) =
     --https://en.wikipedia.org/wiki/Rotation_matrix#:~:text=To%20perform%20the%20rotation%20on,the%20trigonometric%20summation%20angle%20formulae.
     ( x * cos amount - y * sin amount
     , x * sin amount + y * cos amount
@@ -347,15 +391,6 @@ einsteinVelocityAddition : BeltramiCoord -> BeltramiCoord -> BeltramiCoord
 einsteinVelocityAddition (BeltramiCoord b) (BeltramiCoord a) =
     --https://en.wikipedia.org/wiki/Gyrovector_space
     let
-        norm =
-            sqrt (1 - lengthSquared)
-
-        lengthSquared =
-            Internal.innerProduct a a
-
-        product =
-            Internal.innerProduct a b
-
         v =
             b
 
@@ -466,19 +501,18 @@ projectFromEuclideanSpace ( x, y ) =
 
 {-| Converts Beltrami Coordinates into [Axial coordinates](https://en.wikipedia.org/wiki/Coordinate_systems_for_the_hyperbolic_plane#Axial_coordinates).
 -}
-fromAxialCoord : AxialCoord -> BeltramiCoord
-fromAxialCoord (AxialCoord ( x, y )) =
+unsafeFromAxialCoord : ( Float, Float ) -> BeltramiCoord
+unsafeFromAxialCoord ( x, y ) =
     BeltramiCoord ( tanh x, tanh y )
 
 
 {-| Converts [Axial coordinates](https://en.wikipedia.org/wiki/Coordinate_systems_for_the_hyperbolic_plane#Axial_coordinates) into Beltrami Coordinates.
 -}
-toAxialCoord : BeltramiCoord -> Maybe AxialCoord
-toAxialCoord (BeltramiCoord ( x, y )) =
+unsafeToAxialCoord : BeltramiCoord -> Maybe ( Float, Float )
+unsafeToAxialCoord (BeltramiCoord ( x, y )) =
     Maybe.map2 Tuple.pair
         (artanh x)
         (artanh y)
-        |> Maybe.map AxialCoord
 
 
 projectOntoBeltramiKleinDisc : BeltramiCoord -> ( Float, Float )

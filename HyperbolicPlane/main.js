@@ -5205,16 +5205,27 @@ var $elm$core$Task$perform = F2(
 				A2($elm$core$Task$map, toMessage, task)));
 	});
 var $elm$browser$Browser$document = _Browser_document;
+var $elm$core$Basics$e = _Basics_e;
+var $author$project$Internal$ln = $elm$core$Basics$logBase($elm$core$Basics$e);
+var $elm$core$Basics$sqrt = _Basics_sqrt;
+var $author$project$Internal$arcosh = function (x) {
+	return $author$project$Internal$ln(
+		x + $elm$core$Basics$sqrt((x * x) - 1));
+};
+var $elm$core$Basics$cos = _Basics_cos;
+var $elm$core$Basics$pi = _Basics_pi;
+var $elm$core$Basics$sin = _Basics_sin;
+var $author$project$Hyperbolic$discFillingPolygon = function (args) {
+	return 2 * $author$project$Internal$arcosh(
+		$elm$core$Basics$cos($elm$core$Basics$pi / args.vertices) / $elm$core$Basics$sin($elm$core$Basics$pi / args.polygonsAroundAPoint));
+};
 var $author$project$Hyperbolic$BeltramiCoord = function (a) {
 	return {$: 'BeltramiCoord', a: a};
 };
-var $elm$core$Basics$cos = _Basics_cos;
 var $elm$core$Tuple$pair = F2(
 	function (a, b) {
 		return _Utils_Tuple2(a, b);
 	});
-var $elm$core$Basics$sin = _Basics_sin;
-var $elm$core$Basics$e = _Basics_e;
 var $elm$core$Basics$pow = _Basics_pow;
 var $author$project$Internal$tanh = function (x) {
 	return (A2($elm$core$Basics$pow, $elm$core$Basics$e, 2 * x) - 1) / (A2($elm$core$Basics$pow, $elm$core$Basics$e, 2 * x) + 1);
@@ -5228,8 +5239,9 @@ var $author$project$Hyperbolic$fromPolarCoords = function (args) {
 };
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
-var $elm$core$Basics$pi = _Basics_pi;
-var $author$project$Main$sizeOfGrid = 0.842;
+var $author$project$Hyperbolic$origin = $author$project$Hyperbolic$BeltramiCoord(
+	_Utils_Tuple2(0, 0));
+var $author$project$Main$tilesAroundPoint = 5;
 var $author$project$Hyperbolic$PoincareVector = function (a) {
 	return {$: 'PoincareVector', a: a};
 };
@@ -5255,7 +5267,6 @@ var $author$project$Internal$scaleBy = function (c) {
 		$elm$core$Basics$mul(c),
 		$elm$core$Basics$mul(c));
 };
-var $elm$core$Basics$sqrt = _Basics_sqrt;
 var $author$project$Hyperbolic$toPoincareVector = function (_v0) {
 	var s = _v0.a;
 	var l = 1 + $elm$core$Basics$sqrt(
@@ -5264,7 +5275,10 @@ var $author$project$Hyperbolic$toPoincareVector = function (_v0) {
 		A2($author$project$Internal$scaleBy, 1 / l, s));
 };
 var $author$project$Main$init = function (_v0) {
-	var maxIter = 1000;
+	var n = 4;
+	var s = $author$project$Hyperbolic$discFillingPolygon(
+		{polygonsAroundAPoint: $author$project$Main$tilesAroundPoint, vertices: n});
+	var maxIter = 2000;
 	return _Utils_Tuple2(
 		{
 			iter: 1,
@@ -5272,12 +5286,10 @@ var $author$project$Main$init = function (_v0) {
 			points: _List_fromArray(
 				[
 					_Utils_Tuple2(
+					$author$project$Hyperbolic$toPoincareVector($author$project$Hyperbolic$origin),
 					$author$project$Hyperbolic$toPoincareVector(
 						$author$project$Hyperbolic$fromPolarCoords(
-							{angle: 0, radius: $author$project$Main$sizeOfGrid})),
-					$author$project$Hyperbolic$toPoincareVector(
-						$author$project$Hyperbolic$fromPolarCoords(
-							{angle: (3 * $elm$core$Basics$pi) / 2, radius: $author$project$Main$sizeOfGrid})))
+							{angle: 0, radius: s})))
 				]),
 			pointsPerLine: 400
 		},
@@ -5763,7 +5775,7 @@ var $author$project$Hyperbolic$rotateClockwise = F2(
 var $author$project$Main$newPoints = function (_v0) {
 	var p = _v0.a;
 	var fromP = _v0.b;
-	var edges = 5;
+	var edges = $author$project$Main$tilesAroundPoint;
 	return A2(
 		$elm$core$List$map,
 		function (newP) {
@@ -6960,7 +6972,7 @@ var $author$project$Main$view = function (model) {
 											t);
 									},
 									_List_fromArray(
-										[0, $elm$core$Basics$pi / 2, $elm$core$Basics$pi, (3 * $elm$core$Basics$pi) / 2]));
+										[0]));
 							}(
 								_Utils_Tuple2(head, offset))));
 				} else {
