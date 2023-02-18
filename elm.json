@@ -22,6 +22,7 @@
             "arowM/elm-form-decoder": "1.4.0",
             "avh4/elm-color": "1.0.0",
             "dillonkearns/elm-markdown": "6.0.1",
+            "dtwrks/elm-book": "1.2.1",
             "elm/browser": "1.0.2",
             "elm/core": "1.0.5",
             "elm/file": "1.0.5",
@@ -79,6 +80,7 @@
             "justinmimbs/date": "4.0.1",
             "justinmimbs/time-extra": "1.1.1",
             "justinmimbs/timezone-data": "2.1.4",
+            "pablohirafuji/elm-syntax-highlight": "3.4.1",
             "rtfeldman/elm-hex": "1.0.0",
             "uncover-co/elm-theme-provider": "1.0.0",
             "uncover-co/elm-theme-spec": "6.0.0"
