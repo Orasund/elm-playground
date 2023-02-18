@@ -13,6 +13,7 @@ chapter =
               , View.Component.list
                     [ ( "empty", View.Card.empty )
                     , ( "default", View.Card.default )
+                    , ( "back", View.Card.back )
                     ]
               )
             , ( "Ratios"

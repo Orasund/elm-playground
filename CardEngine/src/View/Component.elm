@@ -10,6 +10,11 @@ image =
     "https://upload.wikimedia.org/wikipedia/commons/f/f3/Elm_logo.svg"
 
 
+empty : List (Attribute msg) -> Html msg
+empty attrs =
+    Game.Card.empty attrs "No Card"
+
+
 defaultCard : List (Attribute msg) -> Html msg
 defaultCard attrs =
     [ [ Html.div [] [ Html.text "Elm" ]
@@ -19,6 +24,13 @@ defaultCard attrs =
     , image |> Game.Card.fillingImage []
     , Html.text "Removes runtime exceptions"
         |> Game.Card.description []
+    ]
+        |> Game.Card.card attrs
+
+
+defaultBack : List (Attribute msg) -> Html msg
+defaultBack attrs =
+    [ image |> Game.Card.fillingImage [ Html.Attributes.style "filter" "grayscale(1)" ]
     ]
         |> Game.Card.card attrs
 

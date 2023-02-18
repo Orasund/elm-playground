@@ -26,7 +26,9 @@ card attrs content =
 
          -- Defaults
          , Html.Attributes.style "background-color" "white"
-         , Html.Attributes.style "border" "1px solid rgba(0, 0, 0, 0.2)"
+         , Html.Attributes.style "border-width" "1px"
+         , Html.Attributes.style "border-style" "solid"
+         , Html.Attributes.style "border-color" "rgba(0, 0, 0, 0.2)"
          , Html.Attributes.style "font-size" "0.8em"
          , Html.Attributes.style "z-index" "1"
          ]
@@ -48,6 +50,17 @@ empty attrs string =
             ++ attrs
         )
         [ Html.div [ Html.Attributes.style "display" "flex" ] [ Html.text string ] ]
+
+
+back : List (Attribute msg) -> Html msg -> Html msg
+back attrs content =
+    card
+        ([ Html.Attributes.style "justify-content" "center"
+         , Html.Attributes.style "align-items" "center"
+         ]
+            ++ attrs
+        )
+        [ content ]
 
 
 title : List (Attribute msg) -> Html msg -> Html msg

@@ -15,7 +15,7 @@ singleCard =
     ]
         |> Game.Stack.toHtml []
             { view = \() -> View.Component.defaultCard
-            , empty = Game.Card.empty [] "Empty Stack"
+            , empty = View.Component.empty []
             }
 
 
@@ -31,7 +31,7 @@ below =
             }
         |> Game.Stack.toHtml []
             { view = \() -> View.Component.defaultCard
-            , empty = Game.Card.empty [] "Empty Stack"
+            , empty = View.Component.empty []
             }
 
 
@@ -42,7 +42,7 @@ rotated =
         |> Game.Stack.withRotation { min = -pi / 16, max = 0 }
         |> Game.Stack.toHtml []
             { view = \() -> View.Component.defaultCard
-            , empty = Game.Card.empty [] "Empty Stack"
+            , empty = View.Component.empty []
             }
 
 
@@ -64,7 +64,7 @@ random =
         |> Tuple.first
         |> Game.Stack.toHtml []
             { view = \() -> View.Component.defaultCard
-            , empty = Game.Card.empty [] "Empty Stack"
+            , empty = View.Component.empty []
             }
 
 

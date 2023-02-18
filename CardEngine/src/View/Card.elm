@@ -7,7 +7,12 @@ import View.Component
 
 empty : Html msg
 empty =
-    Game.Card.empty [] "No Card"
+    View.Component.empty []
+
+
+back : Html msg
+back =
+    Html.text "Title" |> Game.Card.back []
 
 
 default : Html msg
