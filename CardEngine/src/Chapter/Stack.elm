@@ -7,7 +7,7 @@ import View.Stack
 
 chapter : Chapter msg
 chapter =
-    ElmBook.Chapter.chapter "Stack"
+    ElmBook.Chapter.chapter "Game.Stack"
         |> ElmBook.Chapter.withComponentList
             [ ( "Stack"
               , View.Component.list

@@ -1,4 +1,4 @@
-module CardGame.Card exposing (..)
+module Game.Card exposing (..)
 
 {-| ratio of width to height
 -}
@@ -28,20 +28,25 @@ card attrs content =
          , Html.Attributes.style "background-color" "white"
          , Html.Attributes.style "border" "1px solid rgba(0, 0, 0, 0.2)"
          , Html.Attributes.style "font-size" "0.8em"
+         , Html.Attributes.style "z-index" "1"
          ]
             ++ attrs
         )
         content
 
 
-empty : String -> Html msg
-empty string =
+empty : List (Attribute msg) -> String -> Html msg
+empty attrs string =
     card
-        [ Html.Attributes.style "border-style" "dashed"
-        , Html.Attributes.style "color" "rgba(0, 0, 0, 0.5)"
-        , Html.Attributes.style "justify-content" "center"
-        , Html.Attributes.style "align-items" "center"
-        ]
+        ([ Html.Attributes.style "border-style" "dashed"
+         , Html.Attributes.style "color" "rgba(0, 0, 0, 0.5)"
+         , Html.Attributes.style "justify-content" "center"
+         , Html.Attributes.style "align-items" "center"
+         , Html.Attributes.style "background-color" "none"
+         , Html.Attributes.style "z-index" "0"
+         ]
+            ++ attrs
+        )
         [ Html.div [ Html.Attributes.style "display" "flex" ] [ Html.text string ] ]
 
 

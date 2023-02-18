@@ -1,6 +1,6 @@
 module View.Component exposing (..)
 
-import CardGame.Card
+import Game.Card
 import Html exposing (Attribute, Html)
 import Html.Attributes
 
@@ -15,12 +15,12 @@ defaultCard attrs =
     [ [ Html.div [] [ Html.text "Elm" ]
       , Html.div [] [ Html.text "🌳" ]
       ]
-        |> CardGame.Card.header []
-    , image |> CardGame.Card.fillingImage []
-    , Html.text "removes runtime exceptions"
-        |> CardGame.Card.description []
+        |> Game.Card.header []
+    , image |> Game.Card.fillingImage []
+    , Html.text "Removes runtime exceptions"
+        |> Game.Card.description []
     ]
-        |> CardGame.Card.card attrs
+        |> Game.Card.card attrs
 
 
 list : List ( String, Html msg ) -> Html msg

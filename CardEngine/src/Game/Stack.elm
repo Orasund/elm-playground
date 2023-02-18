@@ -1,6 +1,6 @@
-module CardGame.Stack exposing (..)
+module Game.Stack exposing (..)
 
-import CardGame.Card
+import Game.Card
 import Html exposing (Attribute, Html)
 import Html.Attributes
 import Random exposing (Generator)
@@ -110,23 +110,25 @@ withMovement args list =
 
 toHtml :
     List (Attribute msg)
-    -> (a -> List (Attribute msg) -> Html msg)
-    -> Html msg
+    ->
+        { view : a -> List (Attribute msg) -> Html msg
+        , empty : Html msg
+        }
     -> List (StackItem a)
     -> Html msg
-toHtml attrs fun base cards =
-    cards
+toHtml attrs { view, empty } stack =
+    stack
         |> List.map
             (\it ->
-                fun it.card
+                view it.card
                     [ Html.Attributes.style "position" "absolute"
-                    , CardGame.Card.transform
-                        [ CardGame.Card.move it.movement
-                        , CardGame.Card.rotate it.rotation
+                    , Game.Card.transform
+                        [ Game.Card.move it.movement
+                        , Game.Card.rotate it.rotation
                         ]
                     ]
             )
-        |> (::) base
+        |> (::) empty
         |> Html.div
             ([ Html.Attributes.style "display" "flex"
              , Html.Attributes.style "position" "relative"

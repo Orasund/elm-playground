@@ -1,15 +1,13 @@
 module Chapter.Card exposing (..)
 
 import ElmBook.Chapter exposing (Chapter)
-import Html exposing (Html)
-import Html.Attributes
 import View.Card
 import View.Component
 
 
 chapter : Chapter state
 chapter =
-    ElmBook.Chapter.chapter "Card"
+    ElmBook.Chapter.chapter "Game.Card"
         |> ElmBook.Chapter.withComponentList
             [ ( "Styles"
               , View.Component.list
