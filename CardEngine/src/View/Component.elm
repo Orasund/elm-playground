@@ -25,14 +25,14 @@ defaultCard attrs =
     , Html.text "Removes runtime exceptions"
         |> Game.Card.description []
     ]
-        |> Game.Card.card attrs
+        |> Game.Card.default attrs
 
 
 defaultBack : List (Attribute msg) -> Html msg
 defaultBack attrs =
     [ image |> Game.Card.fillingImage [ Html.Attributes.style "filter" "grayscale(1)" ]
     ]
-        |> Game.Card.card attrs
+        |> Game.Card.default attrs
 
 
 list : List ( String, Html msg ) -> Html msg

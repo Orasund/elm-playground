@@ -1,7 +1,7 @@
 module View.Area exposing (..)
 
 import Game.Area exposing (Entity)
-import Game.Stack
+import Game.Pile
 import Html exposing (Html)
 import Html.Attributes
 import View.Component
@@ -53,7 +53,7 @@ draggable args =
                 in
                 (if args.cardAt == i then
                     ()
-                        |> Game.Stack.item
+                        |> Game.Pile.item
                         |> (\stackItem ->
                                 if args.isSelected then
                                     { stackItem | rotation = pi / 16 }
@@ -103,7 +103,7 @@ pile index args list =
     in
     list
         |> List.reverse
-        |> List.map Game.Stack.item
+        |> List.map Game.Pile.item
         |> List.indexedMap
             (\i stackItem ->
                 { stackItem

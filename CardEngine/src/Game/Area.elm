@@ -1,7 +1,7 @@
 module Game.Area exposing (..)
 
 import Game.Card
-import Game.Stack exposing (StackItem)
+import Game.Pile exposing (PileItem)
 import Html exposing (Attribute, Html)
 import Html.Attributes
 import Html.Events
@@ -48,7 +48,7 @@ fromStack :
         { view : Int -> a -> ( String, List (Attribute msg) -> Html msg )
         , empty : ( String, List (Attribute msg) -> Html msg )
         }
-    -> List (StackItem a)
+    -> List (PileItem a)
     -> List (Entity msg)
 fromStack ( x, y ) args list =
     list

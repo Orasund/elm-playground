@@ -1,4 +1,4 @@
-module Game.Stack exposing (..)
+module Game.Pile exposing (..)
 
 import Game.Card
 import Html exposing (Attribute, Html)
@@ -6,7 +6,7 @@ import Html.Attributes
 import Random exposing (Generator)
 
 
-type alias StackItem a =
+type alias PileItem a =
     { movement : ( Float, Float )
     , rotation : Float
     , zIndex : Int
@@ -40,7 +40,7 @@ randomMovement args =
 generate :
     Generator (Int -> a -> { movement : ( Float, Float ), rotation : Float })
     -> List a
-    -> Generator (List (StackItem a))
+    -> Generator (List (PileItem a))
 generate fun list =
     Random.list (List.length list)
         fun
@@ -66,12 +66,12 @@ generate fun list =
             )
 
 
-item : a -> StackItem a
+item : a -> PileItem a
 item a =
     { movement = ( 0, 0 ), rotation = 0, card = a, zIndex = 1 }
 
 
-map : (a -> b) -> StackItem a -> StackItem b
+map : (a -> b) -> PileItem a -> PileItem b
 map fun i =
     { movement = i.movement
     , rotation = i.rotation
@@ -80,17 +80,32 @@ map fun i =
     }
 
 
-withDependentRotation : (Int -> a -> Float) -> List (StackItem a) -> List (StackItem a)
+mapMovement : (( Float, Float ) -> ( Float, Float )) -> PileItem a -> PileItem a
+mapMovement fun stackItem =
+    { stackItem | movement = fun stackItem.movement }
+
+
+mapRotation : (Float -> Float) -> PileItem a -> PileItem a
+mapRotation fun stackItem =
+    { stackItem | rotation = fun stackItem.rotation }
+
+
+mapZIndex : (Int -> Int) -> PileItem a -> PileItem a
+mapZIndex fun stackItem =
+    { stackItem | zIndex = fun stackItem.zIndex }
+
+
+withDependentRotation : (Int -> a -> Float) -> List (PileItem a) -> List (PileItem a)
 withDependentRotation fun =
     List.indexedMap (\i stackItem -> { stackItem | rotation = fun i stackItem.card })
 
 
-withDependentMovement : (Int -> a -> ( Float, Float )) -> List (StackItem a) -> List (StackItem a)
+withDependentMovement : (Int -> a -> ( Float, Float )) -> List (PileItem a) -> List (PileItem a)
 withDependentMovement fun =
     List.indexedMap (\i stackItem -> { stackItem | movement = fun i stackItem.card })
 
 
-withRotation : { min : Float, max : Float } -> List (StackItem a) -> List (StackItem a)
+withRotation : { min : Float, max : Float } -> List (PileItem a) -> List (PileItem a)
 withRotation args list =
     withDependentRotation
         (\i _ ->
@@ -99,7 +114,7 @@ withRotation args list =
         list
 
 
-withMovement : { minAngle : Float, maxAngle : Float, minDistance : Float, maxDistance : Float } -> List (StackItem a) -> List (StackItem a)
+withMovement : { minAngle : Float, maxAngle : Float, minDistance : Float, maxDistance : Float } -> List (PileItem a) -> List (PileItem a)
 withMovement args list =
     withDependentMovement
         (\i _ ->
@@ -117,7 +132,7 @@ toHtml :
         { view : Int -> a -> List (Attribute msg) -> Html msg
         , empty : Html msg
         }
-    -> List (StackItem a)
+    -> List (PileItem a)
     -> Html msg
 toHtml attrs { view, empty } stack =
     stack

@@ -3,7 +3,7 @@ module Main exposing (..)
 import Chapter.Area
 import Chapter.Card
 import Chapter.Customization
-import Chapter.Stack
+import Chapter.Pile
 import ElmBook exposing (Book)
 import ElmBook.Chapter
 import ElmBook.StatefulOptions
@@ -13,12 +13,15 @@ import Html
 
 type alias Model =
     { area : Chapter.Area.State
+    , card : Chapter.Card.Model
     }
 
 
 init : Model
 init =
-    { area = Chapter.Area.init }
+    { area = Chapter.Area.init
+    , card = Chapter.Card.init
+    }
 
 
 main : Book Model
@@ -38,8 +41,8 @@ main =
             [ ElmBook.StatefulOptions.initialState init ]
         |> ElmBook.withChapterGroups
             [ ( "Documentation"
-              , [ Chapter.Card.chapter
-                , Chapter.Stack.chapter
+              , [ Chapter.Card.chapter { get = .card, setTo = \model state -> { model | card = state } }
+                , Chapter.Pile.chapter
                 , Chapter.Area.chapter { get = .area, setTo = \model state -> { model | area = state } }
                 ]
               )

@@ -1,6 +1,23 @@
 module Game.Card exposing (..)
 
-{-| ratio of width to height
+{-| This module contains functions to display cards.
+
+
+# Styles
+
+@docs default, empty, back
+
+
+# Parts
+
+@docs title, header, fillingImage, description
+
+
+# Attributes
+
+@docs ratio, backgroundImage
+@docs Transformation, transform, move, rotate, zoom
+
 -}
 
 import Html exposing (Attribute, Html)
@@ -9,8 +26,8 @@ import Html.Attributes
 
 {-| Displays an default view of a card.
 -}
-card : List (Attribute msg) -> List (Html msg) -> Html msg
-card attrs content =
+default : List (Attribute msg) -> List (Html msg) -> Html msg
+default attrs content =
     Html.div
         ([ --Flexbox
            Html.Attributes.style "display" "flex"
@@ -31,15 +48,20 @@ card attrs content =
          , Html.Attributes.style "border-color" "rgba(0, 0, 0, 0.2)"
          , Html.Attributes.style "font-size" "0.8em"
          , Html.Attributes.style "z-index" "1"
+
+         -- 3d Effect when flipping
+         , Html.Attributes.style "backface-visibility" "hidden"
          ]
             ++ attrs
         )
         content
 
 
+{-| Display an empty card-sized space with some text
+-}
 empty : List (Attribute msg) -> String -> Html msg
 empty attrs string =
-    card
+    default
         ([ Html.Attributes.style "border-style" "dashed"
          , Html.Attributes.style "color" "rgba(0, 0, 0, 0.5)"
          , Html.Attributes.style "justify-content" "center"
@@ -52,9 +74,11 @@ empty attrs string =
         [ Html.div [ Html.Attributes.style "display" "flex" ] [ Html.text string ] ]
 
 
+{-| Displays a card with the content centered. Use this to design your card backs.
+-}
 back : List (Attribute msg) -> Html msg -> Html msg
 back attrs content =
-    card
+    default
         ([ Html.Attributes.style "justify-content" "center"
          , Html.Attributes.style "align-items" "center"
          ]
@@ -63,6 +87,8 @@ back attrs content =
         [ content ]
 
 
+{-| Display a text with some padding
+-}
 title : List (Attribute msg) -> Html msg -> Html msg
 title attrs content =
     Html.div
@@ -74,6 +100,8 @@ title attrs content =
         [ content ]
 
 
+{-| Sets the background to an image
+-}
 backgroundImage : String -> List (Attribute msg)
 backgroundImage src =
     [ Html.Attributes.style "background-image" ("url(" ++ src ++ ")")
@@ -82,6 +110,8 @@ backgroundImage src =
     ]
 
 
+{-| Displays a image that will take up as much space as possible
+-}
 fillingImage : List (Attribute msg) -> String -> Html msg
 fillingImage attrs src =
     Html.div
@@ -94,6 +124,8 @@ fillingImage attrs src =
         []
 
 
+{-| Displays a content with a padding
+-}
 description : List (Attribute msg) -> Html msg -> Html msg
 description attrs content =
     Html.div
@@ -103,17 +135,6 @@ description attrs content =
             ++ attrs
         )
         [ content ]
-
-
-
-{--Html.div
-        ([ Html.Attributes.style "flex" "1"
-         , Html.Attributes.style "display" "flex"
-         ]
-            ++ backgroundImage src
-            ++ attrs
-        )
-        []--}
 
 
 {-| A row on top of the card. It uses flexbox.
@@ -131,16 +152,7 @@ header attrs content =
         content
 
 
-{-| Defines a aspect-ratio of an element.
-
-    card =
-        Html.div
-            [ ratio (2 / 3)
-            , Html.Attributes.style "height" "200px"
-            , Html.Attributes.style "border-radius" "16px"
-            , Html.Attributes.style "background-color" "white"
-            ]
-
+{-| Defines a aspect-ratio of an element. The ratio is `width/height`.
 -}
 ratio : Float -> Attribute msg
 ratio float =
@@ -149,10 +161,14 @@ ratio float =
         |> Html.Attributes.style "aspect-ratio"
 
 
+{-| A transformation string
+-}
 type alias Transformation =
     String
 
 
+{-| Add transformations to a card
+-}
 transform : List Transformation -> Attribute msg
 transform list =
     (if list == [] then
@@ -165,8 +181,10 @@ transform list =
         |> Html.Attributes.style "transform"
 
 
-zoom : Float -> Transformation
-zoom float =
+{-| Scale the card
+-}
+scale : Float -> Transformation
+scale float =
     "scale("
         ++ String.fromFloat float
         ++ ","
@@ -174,6 +192,8 @@ zoom float =
         ++ ")"
 
 
+{-| Rotate the card by a radial.
+-}
 rotate : Float -> Transformation
 rotate float =
     "rotate("
@@ -181,6 +201,8 @@ rotate float =
         ++ "rad)"
 
 
+{-| Move the card
+-}
 move : ( Float, Float ) -> Transformation
 move ( x, y ) =
     "translate("
@@ -188,3 +210,46 @@ move ( x, y ) =
         ++ "px,"
         ++ String.fromFloat y
         ++ "px)"
+
+
+{-| Only works if the outer div has a `perspective` Attribute
+-}
+flip : Float -> Transformation
+flip float =
+    "rotateY("
+        ++ String.fromFloat float
+        ++ "rad)"
+
+
+perspective : Attribute msg
+perspective =
+    Html.Attributes.style "perspective" "1000px"
+
+
+flippable :
+    List (Attribute msg)
+    ->
+        { front : Transformation -> List (Attribute msg) -> Html msg
+        , back : Transformation -> List (Attribute msg) -> Html msg
+        , faceUp : Bool
+        }
+    -> Html msg
+flippable attrs args =
+    [ args.front (flip 0) [ Html.Attributes.style "position" "absolute" ]
+    , args.back (flip pi) [ Html.Attributes.style "position" "absolute" ]
+    ]
+        |> Html.div
+            ([ Html.Attributes.style "position" "relative"
+             , Html.Attributes.style "transition" "transform 0.5s"
+             , Html.Attributes.style "transform-style" "preserve-3d"
+             , Html.Attributes.style "height" "200px"
+             , Html.Attributes.style "width" (String.fromFloat (200 * 2 / 3) ++ "px")
+             ]
+                ++ (if args.faceUp then
+                        [ transform [ flip pi ] ]
+
+                    else
+                        []
+                   )
+                ++ attrs
+            )

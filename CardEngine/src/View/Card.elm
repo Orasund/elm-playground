@@ -20,7 +20,7 @@ default =
     Html.text "Title"
         |> Game.Card.title []
         |> List.singleton
-        |> Game.Card.card []
+        |> Game.Card.default []
 
 
 square : Html msg
@@ -28,7 +28,7 @@ square =
     Html.text "Title"
         |> Game.Card.title []
         |> List.singleton
-        |> Game.Card.card [ Game.Card.ratio 1 ]
+        |> Game.Card.default [ Game.Card.ratio 1 ]
 
 
 horizontal : Html msg
@@ -36,7 +36,7 @@ horizontal =
     Html.text "Title"
         |> Game.Card.title []
         |> List.singleton
-        |> Game.Card.card [ Game.Card.ratio 1.5 ]
+        |> Game.Card.default [ Game.Card.ratio 1.5 ]
 
 
 titleRow : Html msg
@@ -46,7 +46,7 @@ titleRow =
     ]
         |> Game.Card.header []
         |> List.singleton
-        |> Game.Card.card []
+        |> Game.Card.default []
 
 
 fullImage : Html msg
@@ -54,7 +54,7 @@ fullImage =
     [ Html.text "Card with an Image" |> Game.Card.title []
     , View.Component.image |> Game.Card.fillingImage []
     ]
-        |> Game.Card.card []
+        |> Game.Card.default []
 
 
 imageAndDesc : Html msg
@@ -64,7 +64,7 @@ imageAndDesc =
     , Html.text "Card with image and description"
         |> Game.Card.description []
     ]
-        |> Game.Card.card []
+        |> Game.Card.default []
 
 
 rotated : Html msg
@@ -79,7 +79,7 @@ small : Html msg
 small =
     View.Component.defaultCard
         [ Game.Card.transform
-            [ Game.Card.zoom (1 / 2) ]
+            [ Game.Card.scale (1 / 2) ]
         ]
 
 
@@ -90,3 +90,10 @@ drawn =
             [ Game.Card.move ( 0, -50 )
             ]
         ]
+
+
+flipped : Html msg
+flipped =
+    View.Component.defaultCard [ Game.Card.transform [ Game.Card.flip (pi / 4) ] ]
+        |> List.singleton
+        |> Html.div [ Game.Card.perspective ]
