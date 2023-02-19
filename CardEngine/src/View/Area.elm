@@ -1,6 +1,6 @@
 module View.Area exposing (..)
 
-import Game.Area exposing (Entity)
+import Game.Area exposing (AreaEntity)
 import Game.Pile
 import Html exposing (Html)
 import Html.Attributes
@@ -94,7 +94,7 @@ pile :
         , onLeaving : Maybe msg
         }
     -> List { cardId : CardId, card : card, asPhantom : Bool }
-    -> List (Entity msg)
+    -> List (AreaEntity msg)
 pile index args list =
     let
         attrs =

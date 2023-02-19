@@ -1,6 +1,6 @@
 module Game.Area exposing (..)
 
-import Game.Card
+import Game.Entity exposing (Entity)
 import Game.Pile exposing (PileItem)
 import Html exposing (Attribute, Html)
 import Html.Attributes
@@ -8,38 +8,19 @@ import Html.Events
 import Html.Keyed
 
 
-type alias Entity msg =
-    { id : String
-    , content : List (Attribute msg) -> Html msg
-    , rotation : Float
-    , movement : ( Float, Float )
-    , zIndex : Int
-    }
+type alias AreaEntity msg =
+    ( String, Entity (List (Attribute msg) -> Html msg) )
 
 
-fromHtml : ( Float, Float ) -> String -> (List (Attribute msg) -> Html msg) -> Entity msg
-fromHtml offset id content =
-    { id = id
-    , content = content
-    , movement = offset
-    , rotation = 0
-    , zIndex = 0
-    }
-
-
-mapRotation : (Float -> Float) -> Entity msg -> Entity msg
-mapRotation fun entity =
-    { entity | rotation = fun entity.rotation }
-
-
-mapMovement : (( Float, Float ) -> ( Float, Float )) -> Entity msg -> Entity msg
-mapMovement fun entity =
-    { entity | movement = fun entity.movement }
-
-
-mapZIndex : (Int -> Int) -> Entity msg -> Entity msg
-mapZIndex fun entity =
-    { entity | zIndex = fun entity.zIndex }
+new : ( Float, Float ) -> List ( String, List (Attribute msg) -> Html msg ) -> List (AreaEntity msg)
+new offset =
+    List.map
+        (\( id, content ) ->
+            ( id
+            , Game.Entity.new content
+                |> Game.Entity.withPosition offset
+            )
+        )
 
 
 fromStack :
@@ -49,40 +30,40 @@ fromStack :
         , empty : ( String, List (Attribute msg) -> Html msg )
         }
     -> List (PileItem a)
-    -> List (Entity msg)
+    -> List (AreaEntity msg)
 fromStack ( x, y ) args list =
-    list
-        |> List.indexedMap
-            (\i stackItem ->
-                args.view i stackItem.card
-                    |> (\( id, content ) ->
-                            { id = id
-                            , content = content
-                            , movement = stackItem.movement |> Tuple.mapBoth ((+) x) ((+) y)
-                            , rotation = stackItem.rotation
-                            , zIndex = stackItem.zIndex + i + 1
-                            }
-                       )
-            )
-        |> (::) (args.empty |> (\( id, content ) -> fromHtml ( x, y ) id content))
+    (args.empty |> List.singleton |> new ( x, y ))
+        ++ (list
+                |> List.indexedMap
+                    (\i stackItem ->
+                        args.view i stackItem.card
+                            |> (\( id, content ) ->
+                                    ( id
+                                    , { content = content
+                                      , position = stackItem.movement |> Tuple.mapBoth ((+) x) ((+) y)
+                                      , rotation = stackItem.rotation
+                                      , zIndex = stackItem.zIndex + i + 1
+                                      , customTransformations = []
+                                      }
+                                    )
+                               )
+                    )
+           )
 
 
-toHtml : List (Attribute msg) -> List (Entity msg) -> Html msg
+toHtml : List (Attribute msg) -> List (AreaEntity msg) -> Html msg
 toHtml attr list =
     list
-        |> List.sortBy .id
+        |> List.sortBy Tuple.first
         |> List.map
-            (\entity ->
-                ( entity.id
-                , entity.content
-                    [ Html.Attributes.style "position" "absolute"
-                    , Html.Attributes.style "transition" "transform 0.5s"
-                    , Game.Card.transform
-                        [ Game.Card.move entity.movement
-                        , Game.Card.rotate entity.rotation
-                        ]
-                    , Html.Attributes.style "z-index" (String.fromInt entity.zIndex)
-                    ]
+            (Tuple.mapSecond
+                (\entity ->
+                    entity.content
+                        ([ Html.Attributes.style "position" "absolute"
+                         , Html.Attributes.style "transition" "transform 0.5s"
+                         ]
+                            ++ Game.Entity.attributes entity
+                        )
                 )
             )
         |> Html.Keyed.node "div"
