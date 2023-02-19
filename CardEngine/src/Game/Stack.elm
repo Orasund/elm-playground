@@ -111,16 +111,17 @@ withMovement args list =
 toHtml :
     List (Attribute msg)
     ->
-        { view : a -> List (Attribute msg) -> Html msg
+        { view : Int -> a -> List (Attribute msg) -> Html msg
         , empty : Html msg
         }
     -> List (StackItem a)
     -> Html msg
 toHtml attrs { view, empty } stack =
     stack
-        |> List.map
-            (\it ->
-                view it.card
+        |> List.indexedMap
+            (\i it ->
+                view i
+                    it.card
                     [ Html.Attributes.style "position" "absolute"
                     , Game.Card.transform
                         [ Game.Card.move it.movement

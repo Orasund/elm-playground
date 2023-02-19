@@ -1,6 +1,5 @@
 module View.Stack exposing (..)
 
-import Game.Card
 import Game.Stack
 import Html exposing (Html)
 import Html.Attributes
@@ -14,7 +13,7 @@ singleCard =
         |> (\it -> { it | rotation = -pi / 16, movement = ( -50, 0 ) })
     ]
         |> Game.Stack.toHtml []
-            { view = \() -> View.Component.defaultCard
+            { view = \_ () -> View.Component.defaultCard
             , empty = View.Component.empty []
             }
 
@@ -30,7 +29,7 @@ below =
             , maxAngle = pi / 2
             }
         |> Game.Stack.toHtml []
-            { view = \() -> View.Component.defaultCard
+            { view = \_ () -> View.Component.defaultCard
             , empty = View.Component.empty []
             }
 
@@ -41,7 +40,7 @@ rotated =
         |> List.repeat 3
         |> Game.Stack.withRotation { min = -pi / 16, max = 0 }
         |> Game.Stack.toHtml []
-            { view = \() -> View.Component.defaultCard
+            { view = \_ () -> View.Component.defaultCard
             , empty = View.Component.empty []
             }
 
@@ -63,7 +62,7 @@ random =
         |> (\generator -> Random.step generator (Random.initialSeed 40))
         |> Tuple.first
         |> Game.Stack.toHtml []
-            { view = \() -> View.Component.defaultCard
+            { view = \_ () -> View.Component.defaultCard
             , empty = View.Component.empty []
             }
 
@@ -100,6 +99,6 @@ hand =
             , Html.Attributes.style "align-items" "end"
             , Html.Attributes.style "justify-content" "center"
             ]
-            { view = \() -> View.Component.defaultCard
+            { view = \_ () -> View.Component.defaultCard
             , empty = Html.text ""
             }

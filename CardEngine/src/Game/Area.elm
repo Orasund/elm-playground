@@ -17,24 +17,34 @@ type alias Entity msg =
 
 fromHtml : ( Float, Float ) -> String -> (List (Attribute msg) -> Html msg) -> ( String, Entity msg )
 fromHtml offset id content =
-    Game.Stack.item content
-        |> fromStackItem offset
-            (\fun ->
-                ( id, \attrs -> fun attrs )
+    ( id
+    , { content = content, movement = offset, rotation = 0 }
+    )
+
+
+fromStack :
+    ( Float, Float )
+    ->
+        { view : Int -> a -> ( String, List (Attribute msg) -> Html msg )
+        , empty : ( String, List (Attribute msg) -> Html msg )
+        }
+    -> List (StackItem a)
+    -> List ( String, Entity msg )
+fromStack ( x, y ) args list =
+    list
+        |> List.indexedMap
+            (\i stackItem ->
+                args.view i stackItem.card
+                    |> (\( id, content ) ->
+                            ( id
+                            , { content = content
+                              , movement = stackItem.movement |> Tuple.mapBoth ((+) x) ((+) y)
+                              , rotation = stackItem.rotation
+                              }
+                            )
+                       )
             )
-
-
-fromStackItem : ( Float, Float ) -> (a -> ( String, List (Attribute msg) -> Html msg )) -> StackItem a -> ( String, Entity msg )
-fromStackItem ( x, y ) fun stackItem =
-    fun stackItem.card
-        |> (\( id, content ) ->
-                ( id
-                , { content = content
-                  , movement = stackItem.movement |> Tuple.mapBoth ((+) x) ((+) y)
-                  , rotation = stackItem.rotation
-                  }
-                )
-           )
+        |> (::) (args.empty |> (\( id, content ) -> fromHtml ( x, y ) id content))
 
 
 toHtml : List (Attribute msg) -> List ( String, Entity msg ) -> Html msg

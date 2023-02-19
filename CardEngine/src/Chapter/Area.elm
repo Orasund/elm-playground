@@ -3,6 +3,7 @@ module Chapter.Area exposing (..)
 import Dict exposing (Dict)
 import ElmBook.Actions
 import ElmBook.Chapter exposing (Chapter)
+import Game.Area
 import Html exposing (Html)
 import Html.Attributes
 import View.Area
@@ -37,7 +38,7 @@ type alias State =
         Maybe
             { cardId : CardId
             , fromArea : AreaId
-            , aboveArea : Maybe AreaId
+            , aboveArea : AreaId
             }
     , hoverState : HoverState
     , draggableState : DraggableState
@@ -82,7 +83,7 @@ update msg state =
                             (\cardId ->
                                 { fromArea = areaId
                                 , cardId = cardId
-                                , aboveArea = Nothing
+                                , aboveArea = areaId
                                 }
                             )
             }
@@ -118,14 +119,14 @@ update msg state =
             { state
                 | dragging =
                     state.dragging
-                        |> Maybe.map (\dragging -> { dragging | aboveArea = Just areaId })
+                        |> Maybe.map (\dragging -> { dragging | aboveArea = areaId })
             }
 
         DragOut ->
             { state
                 | dragging =
                     state.dragging
-                        |> Maybe.map (\dragging -> { dragging | aboveArea = Nothing })
+                        |> Maybe.map (\dragging -> { dragging | aboveArea = dragging.fromArea })
             }
 
         HoverStateSet maybe ->
@@ -149,29 +150,30 @@ pile state =
                 list
                     |> List.filterMap
                         (\cardId ->
-                            state.cards
-                                |> Dict.get cardId.cardId
-                                |> Maybe.map
-                                    (\card ->
-                                        { cardId = cardId
-                                        , card = card
-                                        , beingDragged =
-                                            state.dragging
-                                                |> Maybe.map .cardId
-                                                |> Maybe.map ((==) cardId)
-                                                |> Maybe.withDefault False
-                                        , asPhantom =
-                                            state.dragging
-                                                |> Maybe.map .cardId
-                                                |> Maybe.map ((==) cardId)
-                                                |> Maybe.withDefault False
-                                        }
-                                    )
+                            if
+                                state.dragging
+                                    |> Maybe.map .cardId
+                                    |> Maybe.map ((==) cardId)
+                                    |> Maybe.withDefault False
+                            then
+                                Nothing
+
+                            else
+                                state.cards
+                                    |> Dict.get cardId.cardId
+                                    |> Maybe.map
+                                        (\card ->
+                                            { cardId = cardId
+                                            , card = card
+                                            , beingDragged = False
+                                            , asPhantom = False
+                                            }
+                                        )
                         )
                     |> (state.dragging
                             |> Maybe.map
                                 (\dragging ->
-                                    if dragging.aboveArea == Just (AreaId i) then
+                                    if dragging.aboveArea == AreaId i then
                                         state.cards
                                             |> Dict.get dragging.cardId.cardId
                                             |> Maybe.map
@@ -179,7 +181,7 @@ pile state =
                                                     (::)
                                                         { cardId = dragging.cardId
                                                         , card = card
-                                                        , beingDragged = False
+                                                        , beingDragged = True
                                                         , asPhantom = True
                                                         }
                                                 )
@@ -190,8 +192,9 @@ pile state =
                                 )
                             |> Maybe.withDefault identity
                        )
-                    |> View.Area.pile
-                        { onStartDragging =
+                    |> View.Area.pile i
+                        { position = ( toFloat i * 150, 0 )
+                        , onStartDragging =
                             if draggedFromArea /= Nothing then
                                 Nothing
 
@@ -207,27 +210,19 @@ pile state =
                             draggedFromArea
                                 |> Maybe.andThen
                                     (\area ->
-                                        if area == AreaId i then
-                                            Nothing
-
-                                        else
-                                            Just (DragIn (AreaId i))
+                                        Just (DragIn (AreaId i))
                                     )
                         , onLeaving =
                             draggedFromArea
                                 |> Maybe.andThen
                                     (\area ->
-                                        if area == AreaId i then
-                                            Nothing
-
-                                        else
-                                            Just DragOut
+                                        Just DragOut
                                     )
                         }
             )
-        |> Html.div
-            [ Html.Attributes.style "display" "flex"
-            , Html.Attributes.style "gap" "8px"
+        |> List.concat
+        |> Game.Area.toHtml
+            [ Html.Attributes.style "height" "200px"
             ]
 
 
