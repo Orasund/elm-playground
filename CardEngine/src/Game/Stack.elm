@@ -9,6 +9,7 @@ import Random exposing (Generator)
 type alias StackItem a =
     { movement : ( Float, Float )
     , rotation : Float
+    , zIndex : Int
     , card : a
     }
 
@@ -54,11 +55,12 @@ generate fun list =
                         )
             )
         |> Random.map
-            (List.map
-                (\( a, args ) ->
+            (List.indexedMap
+                (\i ( a, args ) ->
                     { movement = args.movement
                     , rotation = args.rotation
                     , card = a
+                    , zIndex = i + 1
                     }
                 )
             )
@@ -66,7 +68,7 @@ generate fun list =
 
 item : a -> StackItem a
 item a =
-    { movement = ( 0, 0 ), rotation = 0, card = a }
+    { movement = ( 0, 0 ), rotation = 0, card = a, zIndex = 1 }
 
 
 map : (a -> b) -> StackItem a -> StackItem b
@@ -74,6 +76,7 @@ map fun i =
     { movement = i.movement
     , rotation = i.rotation
     , card = fun i.card
+    , zIndex = i.zIndex
     }
 
 
@@ -123,6 +126,7 @@ toHtml attrs { view, empty } stack =
                 view i
                     it.card
                     [ Html.Attributes.style "position" "absolute"
+                    , Html.Attributes.style "z-index" (String.fromInt it.zIndex)
                     , Game.Card.transform
                         [ Game.Card.move it.movement
                         , Game.Card.rotate it.rotation

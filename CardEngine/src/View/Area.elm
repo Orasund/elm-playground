@@ -93,8 +93,8 @@ pile :
         , onEntering : Maybe msg
         , onLeaving : Maybe msg
         }
-    -> List { cardId : CardId, card : card, beingDragged : Bool, asPhantom : Bool }
-    -> List ( String, Entity msg )
+    -> List { cardId : CardId, card : card, asPhantom : Bool }
+    -> List (Entity msg)
 pile index args list =
     let
         attrs =
@@ -113,36 +113,34 @@ pile index args list =
                                 ((+) 0)
                                 ((+) (-4 * toFloat i))
                     , rotation =
-                        if stackItem.card.beingDragged then
+                        if stackItem.card.asPhantom then
                             pi / 16
 
                         else
                             stackItem.rotation
                 }
             )
+        |> List.map
+            (\stackItem ->
+                if stackItem.card.asPhantom then
+                    { stackItem | zIndex = 100 }
+
+                else
+                    stackItem
+            )
         |> Game.Area.fromStack args.position
             { view =
-                \i card ->
-                    ( if card.asPhantom && not card.beingDragged then
-                        "pile__phantom"
-
-                      else
-                        "pile__" ++ String.fromInt card.cardId.cardId
+                \_ card ->
+                    ( "pile__" ++ String.fromInt card.cardId.cardId
                     , \a ->
                         View.Component.defaultCard
-                            ((if card.beingDragged then
-                                [ Html.Attributes.style "z-index" "100" ]
+                            ((if card.asPhantom then
+                                [ Html.Attributes.style "filter" "brightness(0.9)"
+                                ]
 
                               else
-                                [ Html.Attributes.style "z-index" (String.fromInt (i + 1)) ]
+                                []
                              )
-                                ++ (if card.asPhantom then
-                                        [ Html.Attributes.style "filter" "brightness(0.9)"
-                                        ]
-
-                                    else
-                                        []
-                                   )
                                 ++ attrs
                                 ++ a
                             )

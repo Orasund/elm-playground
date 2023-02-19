@@ -9,17 +9,37 @@ import Html.Keyed
 
 
 type alias Entity msg =
-    { content : List (Attribute msg) -> Html msg
+    { id : String
+    , content : List (Attribute msg) -> Html msg
     , rotation : Float
     , movement : ( Float, Float )
+    , zIndex : Int
     }
 
 
-fromHtml : ( Float, Float ) -> String -> (List (Attribute msg) -> Html msg) -> ( String, Entity msg )
+fromHtml : ( Float, Float ) -> String -> (List (Attribute msg) -> Html msg) -> Entity msg
 fromHtml offset id content =
-    ( id
-    , { content = content, movement = offset, rotation = 0 }
-    )
+    { id = id
+    , content = content
+    , movement = offset
+    , rotation = 0
+    , zIndex = 0
+    }
+
+
+mapRotation : (Float -> Float) -> Entity msg -> Entity msg
+mapRotation fun entity =
+    { entity | rotation = fun entity.rotation }
+
+
+mapMovement : (( Float, Float ) -> ( Float, Float )) -> Entity msg -> Entity msg
+mapMovement fun entity =
+    { entity | movement = fun entity.movement }
+
+
+mapZIndex : (Int -> Int) -> Entity msg -> Entity msg
+mapZIndex fun entity =
+    { entity | zIndex = fun entity.zIndex }
 
 
 fromStack :
@@ -29,39 +49,40 @@ fromStack :
         , empty : ( String, List (Attribute msg) -> Html msg )
         }
     -> List (StackItem a)
-    -> List ( String, Entity msg )
+    -> List (Entity msg)
 fromStack ( x, y ) args list =
     list
         |> List.indexedMap
             (\i stackItem ->
                 args.view i stackItem.card
                     |> (\( id, content ) ->
-                            ( id
-                            , { content = content
-                              , movement = stackItem.movement |> Tuple.mapBoth ((+) x) ((+) y)
-                              , rotation = stackItem.rotation
-                              }
-                            )
+                            { id = id
+                            , content = content
+                            , movement = stackItem.movement |> Tuple.mapBoth ((+) x) ((+) y)
+                            , rotation = stackItem.rotation
+                            , zIndex = stackItem.zIndex + i + 1
+                            }
                        )
             )
         |> (::) (args.empty |> (\( id, content ) -> fromHtml ( x, y ) id content))
 
 
-toHtml : List (Attribute msg) -> List ( String, Entity msg ) -> Html msg
+toHtml : List (Attribute msg) -> List (Entity msg) -> Html msg
 toHtml attr list =
     list
-        |> List.sortBy Tuple.first
+        |> List.sortBy .id
         |> List.map
-            (Tuple.mapSecond
-                (\entity ->
-                    entity.content
-                        [ Html.Attributes.style "position" "absolute"
-                        , Html.Attributes.style "transition" "transform 0.5s"
-                        , Game.Card.transform
-                            [ Game.Card.move entity.movement
-                            , Game.Card.rotate entity.rotation
-                            ]
+            (\entity ->
+                ( entity.id
+                , entity.content
+                    [ Html.Attributes.style "position" "absolute"
+                    , Html.Attributes.style "transition" "transform 0.5s"
+                    , Game.Card.transform
+                        [ Game.Card.move entity.movement
+                        , Game.Card.rotate entity.rotation
                         ]
+                    , Html.Attributes.style "z-index" (String.fromInt entity.zIndex)
+                    ]
                 )
             )
         |> Html.Keyed.node "div"

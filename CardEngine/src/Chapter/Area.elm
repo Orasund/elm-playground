@@ -165,7 +165,6 @@ pile state =
                                         (\card ->
                                             { cardId = cardId
                                             , card = card
-                                            , beingDragged = False
                                             , asPhantom = False
                                             }
                                         )
@@ -181,7 +180,6 @@ pile state =
                                                     (::)
                                                         { cardId = dragging.cardId
                                                         , card = card
-                                                        , beingDragged = True
                                                         , asPhantom = True
                                                         }
                                                 )
@@ -209,13 +207,13 @@ pile state =
                         , onEntering =
                             draggedFromArea
                                 |> Maybe.andThen
-                                    (\area ->
+                                    (\_ ->
                                         Just (DragIn (AreaId i))
                                     )
                         , onLeaving =
                             draggedFromArea
                                 |> Maybe.andThen
-                                    (\area ->
+                                    (\_ ->
                                         Just DragOut
                                     )
                         }
@@ -273,7 +271,7 @@ chapter args =
                         , isSelected = state.draggableState.selected
                         }
                )
-             , ( "hoverable and draggable"
+             , ( "fromStack"
                , pile
                )
              ]
