@@ -10,7 +10,7 @@ import View.Component
 singleCard : Html msg
 singleCard =
     [ Game.Pile.item ()
-        |> (\it -> { it | rotation = -pi / 16, movement = ( -50, 0 ) })
+        |> (\it -> { it | rotation = -pi / 16, position = ( -50, 0 ) })
     ]
         |> Game.Pile.toHtml []
             { view = \_ () -> View.Component.defaultCard
@@ -83,8 +83,8 @@ hand =
                 if i == 3 then
                     { stackItem
                         | rotation = 0
-                        , movement =
-                            stackItem.movement
+                        , position =
+                            stackItem.position
                                 |> Tuple.mapBoth
                                     ((+) 0)
                                     ((+) -50)

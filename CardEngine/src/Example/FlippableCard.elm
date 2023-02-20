@@ -29,7 +29,7 @@ update msg model =
 view : Model -> Html Msg
 view model =
     Game.Card.flippable [ Html.Events.onClick Flip ]
-        { front = \transform attrs -> View.Component.defaultCard ([ Game.Card.transform [ transform ] ] ++ attrs)
-        , back = \transform attrs -> View.Component.defaultBack ([ Game.Card.transform [ transform ] ] ++ attrs)
+        { front = \transform attrs -> View.Component.defaultCard (Game.Card.transform [ transform ] :: attrs)
+        , back = \transform attrs -> View.Component.defaultBack (Game.Card.transform [ transform ] :: attrs)
         , faceUp = model.isFlipped
         }

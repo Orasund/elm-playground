@@ -1,6 +1,7 @@
 module View.Area exposing (..)
 
 import Game.Area exposing (AreaEntity)
+import Game.Entity
 import Game.Pile
 import Html exposing (Html)
 import Html.Attributes
@@ -106,23 +107,23 @@ pile index args list =
         |> List.map Game.Pile.item
         |> List.indexedMap
             (\i stackItem ->
-                { stackItem
-                    | movement =
-                        stackItem.movement
-                            |> Tuple.mapBoth
-                                ((+) 0)
-                                ((+) (-4 * toFloat i))
-                    , rotation =
-                        if stackItem.card.asPhantom then
+                stackItem
+                    |> Game.Entity.mapPosition
+                        (Tuple.mapBoth
+                            ((+) 0)
+                            ((+) (-4 * toFloat i))
+                        )
+                    |> Game.Entity.withRotation
+                        (if stackItem.content.asPhantom then
                             pi / 16
 
-                        else
+                         else
                             stackItem.rotation
-                }
+                        )
             )
         |> List.map
             (\stackItem ->
-                if stackItem.card.asPhantom then
+                if stackItem.content.asPhantom then
                     { stackItem | zIndex = 100 }
 
                 else

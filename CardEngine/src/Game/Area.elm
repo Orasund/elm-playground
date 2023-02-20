@@ -36,11 +36,11 @@ fromStack ( x, y ) args list =
         ++ (list
                 |> List.indexedMap
                     (\i stackItem ->
-                        args.view i stackItem.card
+                        args.view i stackItem.content
                             |> (\( id, content ) ->
                                     ( id
                                     , { content = content
-                                      , position = stackItem.movement |> Tuple.mapBoth ((+) x) ((+) y)
+                                      , position = stackItem.position |> Tuple.mapBoth ((+) x) ((+) y)
                                       , rotation = stackItem.rotation
                                       , zIndex = stackItem.zIndex + i + 1
                                       , customTransformations = []
