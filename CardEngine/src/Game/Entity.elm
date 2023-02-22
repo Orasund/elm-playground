@@ -5,6 +5,10 @@ import Html exposing (Attribute, Html, a)
 import Html.Attributes
 
 
+type alias Transformation =
+    String
+
+
 type alias Entity a =
     { position : ( Float, Float )
     , rotation : Float
@@ -45,9 +49,9 @@ attributes entity =
     ]
 
 
-toHtml : (a -> List (Attribute msg) -> Html msg) -> Entity a -> Html msg
-toHtml fun entity =
-    fun entity.content (attributes entity)
+toHtml : List (Attribute msg) -> (a -> List (Attribute msg) -> Html msg) -> Entity a -> Html msg
+toHtml attrs fun entity =
+    fun entity.content (attributes entity ++ attrs)
 
 
 withRotation : Float -> Entity a -> Entity a
@@ -88,3 +92,40 @@ mapZIndex fun entity =
 mapCustomTransformations : (List Transformation -> List Transformation) -> Entity a -> Entity a
 mapCustomTransformations fun entity =
     withCustomTransformations (fun entity.customTransformations) entity
+
+
+flippable :
+    List (Attribute msg)
+    ->
+        { front : Entity (List (Attribute msg) -> Html msg)
+        , back : Entity (List (Attribute msg) -> Html msg)
+        , faceUp : Bool
+        }
+    -> Entity (List (Attribute msg) -> Html msg)
+flippable attrs args =
+    (\a ->
+        [ args.front
+            |> mapCustomTransformations ((::) (Game.Card.flip 0))
+            |> toHtml [ Html.Attributes.style "position" "absolute" ] identity
+        , args.back
+            |> mapCustomTransformations ((::) (Game.Card.flip pi))
+            |> toHtml [ Html.Attributes.style "position" "absolute" ] identity
+        ]
+            |> Html.div
+                ([ Html.Attributes.style "position" "relative"
+                 , Html.Attributes.style "transition" "transform 0.5s"
+                 , Html.Attributes.style "transform-style" "preserve-3d"
+                 , Html.Attributes.style "height" "200px"
+                 , Html.Attributes.style "width" (String.fromFloat (200 * 2 / 3) ++ "px")
+                 ]
+                    ++ a
+                    ++ attrs
+                )
+    )
+        |> new
+        |> (if not args.faceUp then
+                withCustomTransformations [ Game.Card.flip pi ]
+
+            else
+                identity
+           )

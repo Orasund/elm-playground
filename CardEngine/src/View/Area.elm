@@ -1,6 +1,7 @@
 module View.Area exposing (..)
 
 import Game.Area exposing (AreaEntity)
+import Game.Card
 import Game.Entity
 import Game.Pile
 import Html exposing (Html)
@@ -21,16 +22,19 @@ hoverable args =
     List.repeat 3 ()
         |> List.indexedMap
             (\i () ->
-                let
-                    attrs =
-                        Game.Area.hoverable
+                [ Game.Entity.flippable []
+                    { front = Game.Entity.new View.Component.defaultCard
+                    , back = Game.Entity.new View.Component.defaultBack
+                    , faceUp = args.hoverOver == Just i
+                    }
+                ]
+                    |> Game.Pile.toHtml
+                        (Game.Area.hoverable
                             { onEnter = Just (args.onEnter i), onLeave = Just args.onLeave }
-                in
-                if args.hoverOver == Just i then
-                    View.Component.defaultCard attrs
-
-                else
-                    View.Component.defaultBack attrs
+                        )
+                        { view = \_ fun -> fun
+                        , empty = View.Component.empty []
+                        }
             )
         |> Html.div
             [ Html.Attributes.style "display" "flex"
@@ -54,7 +58,7 @@ draggable args =
                 in
                 (if args.cardAt == i then
                     ()
-                        |> Game.Pile.item
+                        |> Game.Entity.new
                         |> (\stackItem ->
                                 if args.isSelected then
                                     { stackItem | rotation = pi / 16 }
@@ -80,9 +84,9 @@ draggable args =
                         }
             )
         |> List.concat
-        |> Game.Area.toHtml
-            [ Html.Attributes.style "height" "200px"
-            ]
+        |> Game.Area.toHtml [ Html.Attributes.style "height" "200px" ]
+        |> List.singleton
+        |> Html.div [ Game.Card.perspective ]
 
 
 pile :
@@ -104,7 +108,7 @@ pile index args list =
     in
     list
         |> List.reverse
-        |> List.map Game.Pile.item
+        |> List.map Game.Entity.new
         |> List.indexedMap
             (\i stackItem ->
                 stackItem

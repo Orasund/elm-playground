@@ -224,32 +224,3 @@ flip float =
 perspective : Attribute msg
 perspective =
     Html.Attributes.style "perspective" "1000px"
-
-
-flippable :
-    List (Attribute msg)
-    ->
-        { front : Transformation -> List (Attribute msg) -> Html msg
-        , back : Transformation -> List (Attribute msg) -> Html msg
-        , faceUp : Bool
-        }
-    -> Html msg
-flippable attrs args =
-    [ args.front (flip 0) [ Html.Attributes.style "position" "absolute" ]
-    , args.back (flip pi) [ Html.Attributes.style "position" "absolute" ]
-    ]
-        |> Html.div
-            ([ Html.Attributes.style "position" "relative"
-             , Html.Attributes.style "transition" "transform 0.5s"
-             , Html.Attributes.style "transform-style" "preserve-3d"
-             , Html.Attributes.style "height" "200px"
-             , Html.Attributes.style "width" (String.fromFloat (200 * 2 / 3) ++ "px")
-             ]
-                ++ (if args.faceUp then
-                        [ transform [ flip pi ] ]
-
-                    else
-                        []
-                   )
-                ++ attrs
-            )

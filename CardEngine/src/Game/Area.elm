@@ -1,7 +1,6 @@
 module Game.Area exposing (..)
 
 import Game.Entity exposing (Entity)
-import Game.Pile exposing (PileItem)
 import Html exposing (Attribute, Html)
 import Html.Attributes
 import Html.Events
@@ -29,7 +28,7 @@ fromStack :
         { view : Int -> a -> ( String, List (Attribute msg) -> Html msg )
         , empty : ( String, List (Attribute msg) -> Html msg )
         }
-    -> List (PileItem a)
+    -> List (Entity a)
     -> List (AreaEntity msg)
 fromStack ( x, y ) args list =
     (args.empty |> List.singleton |> new ( x, y ))

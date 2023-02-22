@@ -1,14 +1,9 @@
 module Game.Pile exposing (..)
 
-import Game.Card
 import Game.Entity exposing (Entity)
 import Html exposing (Attribute, Html)
 import Html.Attributes
 import Random exposing (Generator)
-
-
-type alias PileItem a =
-    Entity a
 
 
 randomRotation :
@@ -37,7 +32,7 @@ randomMovement args =
 generate :
     Generator (Int -> a -> { movement : ( Float, Float ), rotation : Float })
     -> List a
-    -> Generator (List (PileItem a))
+    -> Generator (List (Entity a))
 generate fun list =
     Random.list (List.length list)
         fun
@@ -62,42 +57,37 @@ generate fun list =
             )
 
 
-item : a -> PileItem a
-item =
-    Game.Entity.new
+map : (Int -> a -> b) -> List (Entity a) -> List (Entity b)
+map fun =
+    List.indexedMap (\i -> Game.Entity.map (fun i))
 
 
-map : (a -> b) -> PileItem a -> PileItem b
-map =
-    Game.Entity.map
+mapPosition : (Int -> ( Float, Float ) -> ( Float, Float )) -> List (Entity a) -> List (Entity a)
+mapPosition fun =
+    List.indexedMap (\i -> Game.Entity.mapPosition (fun i))
 
 
-mapMovement : (( Float, Float ) -> ( Float, Float )) -> PileItem a -> PileItem a
-mapMovement =
-    Game.Entity.mapPosition
+mapRotation : (Int -> Float -> Float) -> List (Entity a) -> List (Entity a)
+mapRotation fun =
+    List.indexedMap (\i -> Game.Entity.mapRotation (fun i))
 
 
-mapRotation : (Float -> Float) -> PileItem a -> PileItem a
-mapRotation =
-    Game.Entity.mapRotation
+mapZIndex : (Int -> Int -> Int) -> List (Entity a) -> List (Entity a)
+mapZIndex fun =
+    List.indexedMap (\i -> Game.Entity.mapZIndex (fun i))
 
 
-mapZIndex : (Int -> Int) -> PileItem a -> PileItem a
-mapZIndex =
-    Game.Entity.mapZIndex
-
-
-withDependentRotation : (Int -> a -> Float) -> List (PileItem a) -> List (PileItem a)
+withDependentRotation : (Int -> a -> Float) -> List (Entity a) -> List (Entity a)
 withDependentRotation fun =
     List.indexedMap (\i entity -> entity |> Game.Entity.withRotation (fun i entity.content))
 
 
-withDependentMovement : (Int -> a -> ( Float, Float )) -> List (PileItem a) -> List (PileItem a)
+withDependentMovement : (Int -> a -> ( Float, Float )) -> List (Entity a) -> List (Entity a)
 withDependentMovement fun =
     List.indexedMap (\i entity -> entity |> Game.Entity.withPosition (fun i entity.content))
 
 
-withRotation : { min : Float, max : Float } -> List (PileItem a) -> List (PileItem a)
+withRotation : { min : Float, max : Float } -> List (Entity a) -> List (Entity a)
 withRotation args list =
     withDependentRotation
         (\i _ ->
@@ -106,7 +96,7 @@ withRotation args list =
         list
 
 
-withMovement : { minAngle : Float, maxAngle : Float, minDistance : Float, maxDistance : Float } -> List (PileItem a) -> List (PileItem a)
+withMovement : { minAngle : Float, maxAngle : Float, minDistance : Float, maxDistance : Float } -> List (Entity a) -> List (Entity a)
 withMovement args list =
     withDependentMovement
         (\i _ ->
@@ -124,21 +114,16 @@ toHtml :
         { view : Int -> a -> List (Attribute msg) -> Html msg
         , empty : Html msg
         }
-    -> List (PileItem a)
+    -> List (Entity a)
     -> Html msg
 toHtml attrs { view, empty } stack =
     stack
         |> List.indexedMap
-            (\i it ->
-                view i
-                    it.content
+            (\i ->
+                Game.Entity.toHtml
                     [ Html.Attributes.style "position" "absolute"
-                    , Html.Attributes.style "z-index" (String.fromInt it.zIndex)
-                    , Game.Card.transform
-                        [ Game.Card.move it.position
-                        , Game.Card.rotate it.rotation
-                        ]
                     ]
+                    (view i)
             )
         |> (::) empty
         |> Html.div

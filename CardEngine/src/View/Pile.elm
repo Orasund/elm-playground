@@ -1,5 +1,6 @@
 module View.Pile exposing (..)
 
+import Game.Entity
 import Game.Pile
 import Html exposing (Html)
 import Html.Attributes
@@ -9,7 +10,7 @@ import View.Component
 
 singleCard : Html msg
 singleCard =
-    [ Game.Pile.item ()
+    [ Game.Entity.new ()
         |> (\it -> { it | rotation = -pi / 16, position = ( -50, 0 ) })
     ]
         |> Game.Pile.toHtml []
@@ -20,7 +21,7 @@ singleCard =
 
 below : Html msg
 below =
-    Game.Pile.item ()
+    Game.Entity.new ()
         |> List.repeat 3
         |> Game.Pile.withMovement
             { minDistance = -50
@@ -36,7 +37,7 @@ below =
 
 rotated : Html msg
 rotated =
-    Game.Pile.item ()
+    Game.Entity.new ()
         |> List.repeat 3
         |> Game.Pile.withRotation { min = -pi / 16, max = 0 }
         |> Game.Pile.toHtml []
@@ -69,7 +70,7 @@ random =
 
 hand : Html msg
 hand =
-    Game.Pile.item ()
+    Game.Entity.new ()
         |> List.repeat 5
         |> Game.Pile.withMovement
             { minDistance = -100
