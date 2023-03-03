@@ -11,6 +11,8 @@ type Action
     | DiscardAllCards
     | Shuffle
     | AddCardToDiscardPile Card
+    | InternalClearGraveyard
+    | InternalMoveFromGraveyardToDiscardPile
 
 
 fromCard : Card -> List Action

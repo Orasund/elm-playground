@@ -3,6 +3,7 @@ module Main exposing (..)
 import Action exposing (Action)
 import Browser exposing (Document)
 import Card exposing (CardId)
+import Config
 import Dict
 import Game exposing (Game)
 import Game.Area
@@ -73,7 +74,7 @@ view model =
                         ( cardId, card )
                             |> View.card [ Html.Events.onClick (SelectedCard (Just cardId)) ]
                                 True
-                            |> Game.Entity.move ( toFloat i * (cardWidth + spacing) / 6, 0 )
+                            |> Game.Entity.move ( toFloat i * (cardWidth * 2 + spacing * 2) / (Config.cardsInHand - 1 |> toFloat), 0 )
                             |> Game.Entity.mapZIndex
                                 (if
                                     selectedCard
@@ -104,11 +105,17 @@ view model =
                         View.card [] True tuple
                             |> Game.Entity.move ( 0, toFloat i * -4 )
                     )
-                |> Game.Area.pileAbove ( cardWidth + spacing + padding, padding )
-                    ( "Discard Pile", \attrs -> Game.Card.empty attrs "Discard Pile" )
-          , []
                 |> Game.Area.pileAbove ( cardWidth * 2 + spacing * 2 + padding, padding )
-                    ( "Graveyard", \attrs -> Game.Card.empty attrs "Graveyard" )
+                    ( "Discard Pile", \attrs -> Game.Card.empty attrs "Discard Pile" )
+          , model.game.graveyard
+                |> List.filterMap (Game.getCardFrom model.game)
+                |> List.indexedMap
+                    (\i tuple ->
+                        View.card [] True tuple
+                            |> Game.Entity.move ( 0, toFloat i * -4 )
+                    )
+                |> Game.Area.pileAbove ( cardWidth + spacing + padding, cardHeight + spacing + padding )
+                    ( "Graveyard", \attrs -> Layout.none |> Layout.el attrs )
           , ( "overlay"
             , \attrs ->
                 Layout.none
