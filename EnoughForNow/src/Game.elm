@@ -93,16 +93,24 @@ discardAllCards game =
     }
 
 
-moveFromHandToGraveyard : Set CardId -> Game -> Game
-moveFromHandToGraveyard set game =
+moveToArea : Set CardId -> Game -> Game
+moveToArea set game =
     { game
         | hand = game.hand |> Dict.map (\_ -> List.filter (\card -> Set.member card set |> not))
         , graveyard = Set.toList set ++ game.graveyard
     }
 
 
-addCardToGrave : Card -> Game -> Game
-addCardToGrave card game =
+moveToDiscard : Set CardId -> Game -> Game
+moveToDiscard set game =
+    { game
+        | hand = game.hand |> Dict.map (\_ -> List.filter (\card -> Set.member card set |> not))
+        , discardPile = Set.toList set ++ game.discardPile
+    }
+
+
+addCardToArea : Card -> Game -> Game
+addCardToArea card game =
     { game
         | cards =
             game.cards
@@ -116,27 +124,30 @@ addCardToGrave card game =
     }
 
 
-clearGraveyard : Game -> Game
-clearGraveyard game =
+clearArea : Game -> Game
+clearArea game =
     { game | graveyard = [] }
 
 
-moveFromGraveToDiscardPile : Game -> Game
-moveFromGraveToDiscardPile game =
+moveFromAreaToDiscardPile : Game -> Game
+moveFromAreaToDiscardPile game =
     { game | graveyard = [], discardPile = game.graveyard ++ game.discardPile }
 
 
 applyAction : Action -> Game -> Generator ( Game, List Action )
 applyAction action game =
     case action of
-        AddCardToDiscardPile card ->
-            ( addCardToGrave card game, [ Action.InternalMoveFromGraveyardToDiscardPile ] ) |> Random.constant
+        AddCardToArea card ->
+            ( addCardToArea card game, [] ) |> Random.constant
 
         DiscardAllCards ->
             ( discardAllCards game, [] ) |> Random.constant
 
-        RemoveCards cards ->
-            ( moveFromHandToGraveyard (Set.fromList cards) game, [ InternalClearGraveyard ] ) |> Random.constant
+        MoveToArea cards ->
+            ( moveToArea (Set.fromList cards) game, [] ) |> Random.constant
+
+        DiscardCards cards ->
+            ( moveToDiscard (Set.fromList cards) game, [] ) |> Random.constant
 
         DrawCards n ->
             if List.length game.drawPile >= n then
@@ -159,8 +170,36 @@ applyAction action game =
         Shuffle ->
             shuffle game |> Random.map (\it -> ( it, [] ))
 
-        InternalClearGraveyard ->
-            ( clearGraveyard game, [] ) |> Random.constant
+        FilterHandAndThen filter andThen ->
+            game.hand
+                |> Dict.values
+                |> List.concat
+                |> List.filterMap
+                    (\cardId ->
+                        cardId
+                            |> getCardFrom game
+                            |> Maybe.andThen
+                                (\( _, card ) ->
+                                    if filter card then
+                                        Just cardId
 
-        InternalMoveFromGraveyardToDiscardPile ->
-            ( moveFromGraveToDiscardPile game, [] ) |> Random.constant
+                                    else
+                                        Nothing
+                                )
+                    )
+                |> andThen
+                |> (\list ->
+                        case list of
+                            head :: tail ->
+                                applyAction head game
+                                    |> Random.map (Tuple.mapSecond (\l -> l ++ tail))
+
+                            [] ->
+                                ( game, [] ) |> Random.constant
+                   )
+
+        ClearArea ->
+            ( clearArea game, [] ) |> Random.constant
+
+        InternalMoveFromAreaToDiscardPile ->
+            ( moveFromAreaToDiscardPile game, [] ) |> Random.constant

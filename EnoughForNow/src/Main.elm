@@ -209,8 +209,10 @@ update msg model =
                 Just ( cardId2, ( cardId1, card ) ) ->
                     ( { model
                         | actions =
-                            Action.RemoveCards [ cardId1, cardId2 ]
-                                :: Action.fromCard card
+                            [ Action.MoveToArea [ cardId1, cardId2 ]
+                            , Action.ClearArea
+                            ]
+                                ++ Action.fromCard card
                                 ++ model.actions
                         , selected = Nothing
                       }

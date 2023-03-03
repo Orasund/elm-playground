@@ -2,17 +2,18 @@ module Action exposing (..)
 
 import Card exposing (Card(..), CardId)
 import Config
-import Set exposing (Set)
 
 
 type Action
     = DrawCards Int
-    | RemoveCards (List CardId)
+    | MoveToArea (List CardId)
+    | DiscardCards (List CardId)
     | DiscardAllCards
     | Shuffle
-    | AddCardToDiscardPile Card
-    | InternalClearGraveyard
-    | InternalMoveFromGraveyardToDiscardPile
+    | AddCardToArea Card
+    | FilterHandAndThen (Card -> Bool) (List CardId -> List Action)
+    | ClearArea
+    | InternalMoveFromAreaToDiscardPile
 
 
 fromCard : Card -> List Action
@@ -22,11 +23,19 @@ fromCard card =
             []
 
         Stone ->
-            []
+            [ FilterHandAndThen ((==) Wood)
+                (\list ->
+                    DiscardCards list
+                        :: List.map (\_ -> AddCardToArea Food) list
+                        ++ [ InternalMoveFromAreaToDiscardPile ]
+                )
+            ]
 
         Food ->
-            [ AddCardToDiscardPile Wood
-            , AddCardToDiscardPile Stone
+            [ AddCardToArea Wood
+            , InternalMoveFromAreaToDiscardPile
+            , AddCardToArea Stone
+            , InternalMoveFromAreaToDiscardPile
             , DiscardAllCards
             , Shuffle
             , DrawCards Config.cardsInHand
