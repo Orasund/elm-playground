@@ -3,6 +3,7 @@ module Main exposing (..)
 import Chapter.Area
 import Chapter.Card
 import Chapter.Customization
+import Chapter.Entity
 import Chapter.Pile
 import ElmBook exposing (Book)
 import ElmBook.Chapter
@@ -42,6 +43,7 @@ main =
         |> ElmBook.withChapterGroups
             [ ( "Documentation"
               , [ Chapter.Card.chapter { get = .card, setTo = \model state -> { model | card = state } }
+                , Chapter.Entity.chapter { get = .card, setTo = \model state -> { model | card = state } }
                 , Chapter.Pile.chapter
                 , Chapter.Area.chapter { get = .area, setTo = \model state -> { model | area = state } }
                 ]

@@ -41,6 +41,7 @@ hoverable args =
             , Html.Attributes.style "flex-direction" "row"
             , Html.Attributes.style "flex-wrap" "wrap"
             , Html.Attributes.style "gap" "8px"
+            , Game.Card.perspective
             ]
 
 

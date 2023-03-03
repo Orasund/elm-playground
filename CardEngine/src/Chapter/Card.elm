@@ -1,9 +1,7 @@
 module Chapter.Card exposing (..)
 
-import ElmBook.Actions
 import ElmBook.Chapter exposing (Chapter)
 import Example.FlippableCard
-import Html
 import View.Card
 import View.Component
 
@@ -57,32 +55,6 @@ chapter args =
                         , ( "translate (0,-50)", View.Card.drawn )
                         , ( "flip (pi/4)", View.Card.flipped )
                         ]
-              )
-            , ( "Flippable Cards"
-              , \model ->
-                    model
-                        |> args.get
-                        |> (\state ->
-                                View.Component.list
-                                    [ ( "Click to flip the card"
-                                      , Example.FlippableCard.view state.flippableCard
-                                            |> Html.map
-                                                (\msg ->
-                                                    ElmBook.Actions.updateState
-                                                        (\m ->
-                                                            m
-                                                                |> args.get
-                                                                |> (\s ->
-                                                                        s.flippableCard
-                                                                            |> Example.FlippableCard.update msg
-                                                                            |> (\a -> { s | flippableCard = a })
-                                                                   )
-                                                                |> args.setTo m
-                                                        )
-                                                )
-                                      )
-                                    ]
-                           )
               )
             ]
         |> ElmBook.Chapter.renderWithComponentList
