@@ -14,7 +14,7 @@ type Action
     | FilterHandAndThen (Card -> Bool) (List CardId -> List Action)
     | ClearArea
     | MoveFromAreaToDiscardPile
-    | AddScore
+    | AddScoreAndThen Action
     | Wait
 
 
@@ -36,11 +36,8 @@ fromCard card =
             ]
 
         Food ->
-            [ AddScore
-            , AddCardToArea Wood
-            , MoveFromAreaToDiscardPile
+            [ AddScoreAndThen (AddCardToArea Wood)
             , AddCardToArea Fire
-            , MoveFromAreaToDiscardPile
             , AddCardToArea Fear
             , MoveFromAreaToDiscardPile
             , DiscardAllCards

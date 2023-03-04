@@ -6952,9 +6952,7 @@ var $author$project$Action$fromCard = function (card) {
 				[
 					$author$project$Action$AddScore,
 					$author$project$Action$AddCardToArea(0),
-					$author$project$Action$MoveFromAreaToDiscardPile,
 					$author$project$Action$AddCardToArea(1),
-					$author$project$Action$MoveFromAreaToDiscardPile,
 					$author$project$Action$AddCardToArea(3),
 					$author$project$Action$MoveFromAreaToDiscardPile,
 					$author$project$Action$DiscardAllCards,
@@ -7907,10 +7905,11 @@ var $author$project$Main$view = function (model) {
 													_Utils_Tuple2(0, i * (-4)),
 													A3($author$project$View$card, _List_Nil, true, tuple));
 											}),
-										A2(
-											$elm$core$List$filterMap,
-											$author$project$Game$getCardFrom(model.a),
-											model.a.u))),
+										$elm$core$List$reverse(
+											A2(
+												$elm$core$List$filterMap,
+												$author$project$Game$getCardFrom(model.a),
+												model.a.u)))),
 									_List_fromArray(
 									[
 										A2(
@@ -8124,7 +8123,7 @@ var $author$project$Main$view = function (model) {
 							A2($elm$html$Html$Attributes$style, 'height', '100%'),
 							A2($elm$html$Html$Attributes$style, 'width', '100%'),
 							$elm$html$Html$Events$onClick(
-							$author$project$Main$SelectedCardType($elm$core$Maybe$Nothing)),
+							isGameOver ? $author$project$Main$Restart : $author$project$Main$SelectedCardType($elm$core$Maybe$Nothing)),
 							A2($elm$html$Html$Attributes$style, 'position', 'absolute'),
 							A2($elm$html$Html$Attributes$style, 'top', '0'),
 							A2(

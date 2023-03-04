@@ -122,7 +122,7 @@ addCardToArea card game =
                             , nextId = c.nextId + 1
                         }
                    )
-        , graveyard = game.cards.nextId :: game.graveyard
+        , graveyard = game.graveyard ++ [ game.cards.nextId ]
     }
 
 
@@ -206,8 +206,9 @@ applyAction action game =
         MoveFromAreaToDiscardPile ->
             ( moveFromAreaToDiscardPile game, [] ) |> Random.constant
 
-        AddScore ->
-            ( { game | score = game.score + 1 }, [] ) |> Random.constant
+        AddScoreAndThen a ->
+            { game | score = game.score + 1 }
+                |> applyAction a
 
         Wait ->
             ( game, [] ) |> Random.constant
