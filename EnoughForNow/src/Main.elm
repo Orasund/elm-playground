@@ -66,10 +66,31 @@ view model =
             32
 
         padding =
-            32
+            0
 
         width =
             cardWidth * 3 + spacing * 2 + padding * 2
+
+        isGameOver =
+            (model.actions == [])
+                && (model.game.hand
+                        |> Dict.get (Card.cardType Card.Food)
+                        |> Maybe.withDefault []
+                        |> List.length
+                        |> (\int -> int < 2)
+                   )
+                && (model.game.hand
+                        |> Dict.get (Card.cardType Card.Wood)
+                        |> Maybe.withDefault []
+                        |> List.length
+                        |> (\int -> int < 2)
+                   )
+                && (model.game.hand
+                        |> Dict.get (Card.cardType Card.Fear)
+                        |> Maybe.withDefault []
+                        |> List.length
+                        |> (\int -> int < 2)
+                   )
     in
     { title = "Enough For Now"
     , body =
@@ -232,7 +253,19 @@ view model =
                             |> (::)
                                 (( "Play both to activate"
                                  , \attrs ->
-                                    Html.text "Play both to activate"
+                                    (if
+                                        model.game.hand
+                                            |> Dict.get (Card.cardType cardType)
+                                            |> Maybe.withDefault []
+                                            |> List.length
+                                            |> (\int -> int < 2)
+                                     then
+                                        "You need 2 same cards"
+
+                                     else
+                                        "Play both to activate"
+                                    )
+                                        |> Html.text
                                         |> Layout.el []
                                         |> Layout.el
                                             (attrs
@@ -257,8 +290,38 @@ view model =
                     , Html.Attributes.style "width" (String.fromFloat width ++ "px")
                     ]
           ]
-            |> Layout.column (Html.Attributes.style "height" "100%" :: Layout.centered)
-        , (if model.showIntro then
+            |> Layout.column
+                ([ Html.Attributes.style "height" "100%"
+                 , Html.Attributes.style "padding" "16px"
+                 , Layout.spacing (spacing * 2)
+                 ]
+                    ++ Layout.centered
+                )
+        , (if isGameOver then
+            [ Html.text "Game Over"
+                |> Layout.el [ Html.Attributes.style "font-size" "2em" ]
+            , Html.text "No more food left"
+            , "Score: "
+                ++ String.fromInt model.game.score
+                |> Html.text
+                |> Layout.el [ Html.Attributes.style "font-size" "1.8em" ]
+            ]
+                |> Layout.column
+                    [ Html.Attributes.style "background-color" "white"
+                    , Html.Attributes.style "padding" "32px"
+                    , Html.Attributes.style "border-radius" "32px"
+                    , Layout.spacing 32
+                    ]
+                |> Layout.el
+                    (Layout.centered
+                        ++ [ Html.Attributes.style "z-index" "101"
+                           , Html.Attributes.style "position" "relative"
+                           , Html.Attributes.style "top" "0"
+                           , Layout.fill
+                           ]
+                    )
+
+           else if model.showIntro then
             [ Html.text "How to Play"
                 |> Layout.el [ Html.Attributes.style "font-size" "2em" ]
             , [ "Survive as many turns as possible."
@@ -292,7 +355,7 @@ view model =
             Layout.none
           )
             |> Layout.el
-                ((if model.selected /= Nothing || model.showIntro then
+                ((if model.selected /= Nothing || model.showIntro || isGameOver then
                     [ Html.Attributes.style "backdrop-filter" "blur(4px)"
                     ]
 
@@ -302,12 +365,19 @@ view model =
                  )
                     ++ [ Html.Attributes.style "height" "100%"
                        , Html.Attributes.style "width" "100%"
-                       , Html.Attributes.style "transition" "backdrop-filter 2s"
-                       , Html.Events.onClick (SelectedCardType Nothing)
+
+                       --, Html.Attributes.style "transition" "backdrop-filter 2s"
+                       , Html.Events.onClick
+                            (if isGameOver then
+                                Restart
+
+                             else
+                                SelectedCardType Nothing
+                            )
                        , Html.Attributes.style "position" "absolute"
                        , Html.Attributes.style "top" "0"
                        , Html.Attributes.style "z-index"
-                            (if model.selected /= Nothing || model.showIntro then
+                            (if model.selected /= Nothing || model.showIntro || isGameOver then
                                 "100"
 
                              else
