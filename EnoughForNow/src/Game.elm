@@ -22,7 +22,7 @@ init =
     { cards =
         { dict =
             [ List.range 0 3 |> List.map (\id -> ( id, Card.Food ))
-            , List.range 4 6 |> List.map (\id -> ( id, Card.Stone ))
+            , List.range 4 6 |> List.map (\id -> ( id, Card.Fire ))
             , List.range 7 9 |> List.map (\id -> ( id, Card.Wood ))
             ]
                 |> List.concat

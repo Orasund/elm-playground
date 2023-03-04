@@ -25,7 +25,7 @@ fromCard card =
             [ DrawCards 4
             ]
 
-        Stone ->
+        Fire ->
             [ FilterHandAndThen ((==) Wood)
                 (\list ->
                     DiscardCards list
@@ -39,7 +39,7 @@ fromCard card =
             [ AddScore
             , AddCardToArea Wood
             , MoveFromAreaToDiscardPile
-            , AddCardToArea Stone
+            , AddCardToArea Fire
             , MoveFromAreaToDiscardPile
             , AddCardToArea Fear
             , MoveFromAreaToDiscardPile
@@ -67,11 +67,11 @@ description card =
         Wood ->
             "Draw 4 cards."
 
-        Stone ->
+        Fire ->
             "Discard all your wood. Add 1 Food to your deck for each wood you discarded this way."
 
         Food ->
-            "Add 1 Wood, 1 Stone and 1 Fear to your deck. Shuffle your hand into the deck and redraw 7 cards."
+            "Add 1 Wood, 1 Fire and 1 Fear to your deck. Shuffle your hand into the deck and redraw 7 cards."
 
         Fear ->
             "Discard all your food. Add 1 Food. Draw 2 cards."

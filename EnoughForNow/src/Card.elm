@@ -7,14 +7,14 @@ type alias CardId =
 
 type Card
     = Wood
-    | Stone
+    | Fire
     | Food
     | Fear
 
 
 values : List Card
 values =
-    [ Food, Stone, Wood, Fear ]
+    [ Fear, Wood, Food, Fire ]
 
 
 type alias CardType =
@@ -27,7 +27,7 @@ cardType card =
         Food ->
             0
 
-        Stone ->
+        Fire ->
             1
 
         Wood ->
@@ -43,8 +43,8 @@ name card =
         Wood ->
             "Wood"
 
-        Stone ->
-            "Stone"
+        Fire ->
+            "Fire"
 
         Food ->
             "Food"
@@ -59,8 +59,8 @@ emoji card =
         Wood ->
             "\u{1FAB5}"
 
-        Stone ->
-            "\u{1FAA8}"
+        Fire ->
+            "🔥"
 
         Food ->
             "\u{1FAD0}"

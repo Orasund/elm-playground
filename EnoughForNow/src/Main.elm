@@ -263,7 +263,7 @@ view model =
                 |> Layout.el [ Html.Attributes.style "font-size" "2em" ]
             , [ "Survive as many turns as possible."
               , "Eat Food" ++ Card.emoji Card.Food ++ " to end your turn and draw 7 new cards."
-              , "Get more Food " ++ Card.emoji Card.Food ++ " by making a fire with Stones " ++ Card.emoji Card.Stone ++ "."
+              , "Get more Food " ++ Card.emoji Card.Food ++ " by making a Fire " ++ Card.emoji Card.Fire ++ "."
               , "If you don't have the right cards, use Wood " ++ Card.emoji Card.Wood ++ " to draw more."
               , "Each turn more Fear" ++ Card.emoji Card.Fear ++ " will creep into your deck."
               , "You will have to embrace the fears to survive."

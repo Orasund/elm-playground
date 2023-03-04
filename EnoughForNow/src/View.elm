@@ -40,13 +40,13 @@ card attrs faceUp ( cardId, c ) =
         color =
             case c of
                 Food ->
-                    red
+                    blue
 
                 Wood ->
                     green
 
-                Stone ->
-                    blue
+                Fire ->
+                    red
 
                 Fear ->
                     gray
@@ -62,8 +62,9 @@ card attrs faceUp ( cardId, c ) =
                 , Card.emoji c
                     |> Html.text
                     |> Layout.el
-                        [ Html.Attributes.style "background-color" "white"
-                        , Html.Attributes.style "aspect-ratio" "1"
+                        [ --Html.Attributes.style "background-color" "white"
+                          --,
+                          Html.Attributes.style "aspect-ratio" "1"
                         , Html.Attributes.style "padding" "8px"
                         , Html.Attributes.style "border-radius" "100%"
                         ]
