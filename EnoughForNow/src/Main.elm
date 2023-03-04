@@ -2,8 +2,7 @@ module Main exposing (..)
 
 import Action exposing (Action)
 import Browser exposing (Document)
-import Card exposing (CardId)
-import Config
+import Card exposing (Card)
 import Dict
 import Game exposing (Game)
 import Game.Area
@@ -14,6 +13,7 @@ import Html.Attributes
 import Html.Events
 import Layout
 import Random exposing (Generator, Seed)
+import Set
 import Time
 import View
 
@@ -21,25 +21,35 @@ import View
 type alias Model =
     { actions : List Action
     , game : Game
-    , selected : Maybe CardId
+    , selected : Maybe Card
     , seed : Seed
+    , showIntro : Bool
     }
 
 
 type Msg
     = NextAction
-    | SelectedCard (Maybe CardId)
+    | SelectedCardType (Maybe Card)
+    | Submit
     | GotSeed Seed
+    | HideIntro
+    | Restart
+
+
+initialModel : Seed -> Model
+initialModel seed =
+    { actions = [ Action.Shuffle, Action.DrawCards 7 ]
+    , game = Game.init
+    , selected = Nothing
+    , seed = seed
+    , showIntro = True
+    }
 
 
 init : () -> ( Model, Cmd Msg )
 init () =
-    ( { actions = [ Action.Shuffle, Action.DrawCards 7 ]
-      , game = Game.init
-      , selected = Nothing
-      , seed = Random.initialSeed 42
-      }
-    , Cmd.none
+    ( Random.initialSeed 42 |> initialModel
+    , Random.independentSeed |> Random.generate GotSeed
     )
 
 
@@ -58,38 +68,60 @@ view model =
         padding =
             32
 
-        selectedCard =
-            model.selected
-                |> Maybe.andThen (Game.getCardFrom model.game)
+        width =
+            cardWidth * 3 + spacing * 2 + padding * 2
     in
     { title = "Enough For Now"
     , body =
-        [ [ model.game.hand
+        [ [ [ "Score: "
+                ++ String.fromInt model.game.score
+                |> Html.text
+                |> Layout.el
+                    [ Html.Attributes.style "padding" "16px 32px"
+                    , Html.Attributes.style "background-color" "white"
+                    , Html.Attributes.style "border-radius" "16px"
+                    , Html.Attributes.style "border" "solid 1px rgba(0,0,0,0.2)"
+                    ]
+            , Html.text "Restart"
+                |> Layout.buttonEl { onPress = Just Restart, label = "Restart" }
+                    []
+            ]
+                |> Layout.row
+                    [ Html.Attributes.style "width" (String.fromFloat (width - padding * 2) ++ "px")
+                    , Html.Attributes.style "z-index" "1"
+                    , Layout.spaceBetween
+                    ]
+          , [ model.game.hand
                 |> Dict.values
                 |> List.concat
-                |> List.filter (\cardId -> Just cardId /= model.selected)
                 |> List.filterMap (Game.getCardFrom model.game)
+                |> List.filter
+                    (\( _, card ) ->
+                        model.selected /= Just card
+                    )
                 |> List.indexedMap
                     (\i ( cardId, card ) ->
                         ( cardId, card )
-                            |> View.card [ Html.Events.onClick (SelectedCard (Just cardId)) ]
+                            |> View.card [ Html.Events.onClick (SelectedCardType (Just card)) ]
                                 True
-                            |> Game.Entity.move ( toFloat i * (cardWidth * 2 + spacing * 2) / (Config.cardsInHand - 1 |> toFloat), 0 )
-                            |> Game.Entity.mapZIndex
-                                (if
-                                    selectedCard
-                                        |> Maybe.map (\( _, c ) -> Card.cardType c == Card.cardType card)
-                                        |> Maybe.withDefault False
-                                 then
-                                    (+) 150
-
-                                 else
-                                    (+) 50
+                            |> Game.Entity.move
+                                ( toFloat i
+                                    * (cardWidth * 2 + spacing * 2)
+                                    / ((model.game.hand
+                                            |> Dict.values
+                                            |> List.concat
+                                            |> List.length
+                                       )
+                                        - 1
+                                        |> toFloat
+                                      )
+                                , 0
                                 )
+                            |> Game.Entity.mapZIndex ((+) 50)
                     )
-                |> Game.Area.pileAbove ( padding, cardHeight * 2 + spacing * 2 + padding )
+                |> Game.Area.pileAbove ( padding, cardHeight + spacing * 2 + padding )
                     ( "hand", \attrs -> [ Html.text "" ] |> Html.div attrs )
-          , model.game.drawPile
+            , model.game.drawPile
                 |> List.filterMap (Game.getCardFrom model.game)
                 |> List.indexedMap
                     (\i ( cardId, card ) ->
@@ -98,7 +130,7 @@ view model =
                     )
                 |> Game.Area.pileAbove ( padding, padding )
                     ( "Draw Pile", \attrs -> Game.Card.empty attrs "Draw Pile" )
-          , model.game.discardPile
+            , model.game.discardPile
                 |> List.filterMap (Game.getCardFrom model.game)
                 |> List.indexedMap
                     (\i tuple ->
@@ -107,67 +139,214 @@ view model =
                     )
                 |> Game.Area.pileAbove ( cardWidth * 2 + spacing * 2 + padding, padding )
                     ( "Discard Pile", \attrs -> Game.Card.empty attrs "Discard Pile" )
-          , model.game.graveyard
+            , model.game.graveyard
                 |> List.filterMap (Game.getCardFrom model.game)
                 |> List.indexedMap
                     (\i tuple ->
                         View.card [] True tuple
                             |> Game.Entity.move ( 0, toFloat i * -4 )
                     )
-                |> Game.Area.pileAbove ( cardWidth + spacing + padding, cardHeight + spacing + padding )
+                |> Game.Area.pileAbove ( cardWidth + spacing + padding, padding )
                     ( "Graveyard", \attrs -> Layout.none |> Layout.el attrs )
-          , ( "overlay"
-            , \attrs ->
-                Layout.none
-                    |> Layout.el
-                        ((if model.selected /= Nothing then
-                            [ Html.Attributes.style "backdrop-filter" "blur(4px)"
-                            ]
+            , [ ( "DrawPileInfo"
+                , \attrs ->
+                    if [] == model.game.drawPile then
+                        Layout.none
 
-                          else
-                            [ Html.Attributes.style "backdrop-filter" "blur(0px)"
-                            ]
-                         )
-                            ++ [ Html.Attributes.style "height" "100%"
-                               , Html.Attributes.style "width" "100%"
-                               , Html.Attributes.style "transition" "backdrop-filter 2s"
-                               , Html.Events.onClick (SelectedCard Nothing)
-                               ]
-                        )
-                    |> Layout.el
-                        ([ Html.Attributes.style "height" "100%"
-                         , Html.Attributes.style "width" "100%"
-                         ]
-                            ++ attrs
-                        )
-            )
-                |> Game.Entity.new
-                |> Game.Entity.mapZIndex
-                    (if model.selected /= Nothing then
-                        (+) 100
-
-                     else
-                        \_ -> 0
-                    )
-                |> List.singleton
-          , selectedCard
+                    else
+                        model.game.drawPile
+                            |> List.filterMap (Game.getCardFrom model.game)
+                            |> List.foldl
+                                (\( _, card ) ->
+                                    Dict.update (Card.cardType card)
+                                        (\maybe ->
+                                            maybe
+                                                |> Maybe.map ((+) 1)
+                                                |> Maybe.withDefault 1
+                                                |> Just
+                                        )
+                                )
+                                Dict.empty
+                            |> (\count ->
+                                    Card.values
+                                        |> List.filterMap
+                                            (\card ->
+                                                Dict.get (Card.cardType card) count
+                                                    |> Maybe.map
+                                                        (\amount ->
+                                                            Card.emoji card
+                                                                ++ " "
+                                                                ++ String.fromInt amount
+                                                                |> Html.text
+                                                                |> Layout.el []
+                                                        )
+                                            )
+                               )
+                            |> Layout.row
+                                (Layout.centered
+                                    ++ [ Layout.spacing 4
+                                       , Html.Attributes.style "background-color" "white"
+                                       , Html.Attributes.style "padding" "16px 8px 8px 8px"
+                                       , Html.Attributes.style "border-radius" "8px"
+                                       , Html.Attributes.style "border" "solid 1px rgba(0,0,0,0.2)"
+                                       ]
+                                    ++ attrs
+                                )
+                            |> Layout.el [ Html.Attributes.style "width" (String.fromFloat cardWidth ++ "px"), Layout.contentCentered ]
+                )
+                    |> Game.Entity.new
+                    |> Game.Entity.move ( padding, cardHeight - 8 + padding )
+              ]
+            , model.selected
                 |> Maybe.map
-                    (\tuple ->
-                        View.card [] True tuple
-                            |> Game.Entity.move ( cardWidth + spacing + padding, cardHeight / 2 + padding )
-                            |> Game.Entity.mapZIndex ((+) 101)
-                            |> Game.Entity.mapCustomTransformations ((++) [ Game.Entity.scale 2 ])
+                    (\cardType ->
+                        model.game.hand
+                            |> Dict.get (Card.cardType cardType)
+                            |> Maybe.withDefault []
+                            |> List.filterMap (Game.getCardFrom model.game)
+                            |> (\list ->
+                                    list
+                                        |> List.indexedMap
+                                            (\i ( cardId, card ) ->
+                                                ( cardId, card )
+                                                    |> View.card [ Html.Events.onClick Submit ] True
+                                                    |> (\entity ->
+                                                            if i < (List.length list - 2) then
+                                                                entity
+                                                                    |> Game.Entity.move ( toFloat i * 8 - 50, 50 )
+                                                                    |> Game.Entity.rotate (-pi / 4 + pi * toFloat i / 16)
+                                                                    |> Game.Entity.mapZIndex ((+) (90 + i))
+
+                                                            else
+                                                                entity
+                                                                    |> Game.Entity.move ( toFloat (i - (List.length list - 2)) * 32 - 16, 0 )
+                                                                    |> Game.Entity.mapZIndex ((+) (100 + i))
+                                                       )
+                                                    |> Game.Entity.mapCustomTransformations ((++) [ Game.Entity.scale 1.5 ])
+                                            )
+                               )
+                            |> Game.Area.pileAbove ( cardWidth + spacing + padding, padding + cardHeight / 2 )
+                                ( "selectedCard"
+                                , \_ -> Layout.none
+                                )
+                            |> (::)
+                                (( "Play both to activate"
+                                 , \attrs ->
+                                    Html.text "Play both to activate"
+                                        |> Layout.el []
+                                        |> Layout.el
+                                            (attrs
+                                                ++ Layout.centered
+                                                ++ [ Html.Attributes.style "font-size" "2em"
+                                                   , Html.Attributes.style "font-weight" "bold"
+                                                   , Html.Attributes.style "width" ((String.fromFloat <| cardWidth * 3 + spacing * 2 + padding * 2) ++ "px")
+                                                   , Html.Events.onClick (SelectedCardType Nothing)
+                                                   ]
+                                            )
+                                 )
+                                    |> Game.Entity.new
+                                    |> Game.Entity.move ( 0, padding + cardHeight * 2 )
+                                    |> Game.Entity.mapZIndex ((+) 102)
+                                )
                     )
-                |> Maybe.map List.singleton
                 |> Maybe.withDefault []
+            ]
+                |> List.concat
+                |> Game.Area.toHtml
+                    [ Html.Attributes.style "height" (String.fromInt (cardHeight * 2 + spacing * 2 + padding * 2) ++ "px")
+                    , Html.Attributes.style "width" (String.fromFloat width ++ "px")
+                    ]
           ]
-            |> List.concat
-            |> Game.Area.toHtml
-                [ Html.Attributes.style "height" (String.fromInt (cardHeight * 3 + spacing * 2 + padding * 2) ++ "px")
-                , Html.Attributes.style "width" (String.fromFloat (cardWidth * 3 + spacing * 2 + padding * 2) ++ "px")
-                ]
-            |> Layout.el (Html.Attributes.style "height" "100%" :: Layout.centered)
-        , Html.node "style" [] [ Html.text ":root,body {height:100%;background-color:#f4f3ee}" ]
+            |> Layout.column (Html.Attributes.style "height" "100%" :: Layout.centered)
+        , (if model.showIntro then
+            [ Html.text "How to Play"
+                |> Layout.el [ Html.Attributes.style "font-size" "2em" ]
+            , [ "Survive as many turns as possible."
+              , "Eat Food" ++ Card.emoji Card.Food ++ " to end your turn and draw 7 new cards."
+              , "Get more Food " ++ Card.emoji Card.Food ++ " by making a fire with Stones " ++ Card.emoji Card.Stone ++ "."
+              , "If you don't have the right cards, use Wood " ++ Card.emoji Card.Wood ++ " to draw more."
+              , "Each turn more Fear" ++ Card.emoji Card.Fear ++ " will creep into your deck."
+              , "You will have to embrace the fears to survive."
+              ]
+                |> List.map Html.text
+                |> List.map (Layout.el [])
+                |> Layout.column []
+            , Html.text "Hint: Try to play just enough cards to survive the next round." |> Layout.el []
+            ]
+                |> Layout.column
+                    [ Html.Attributes.style "background-color" "white"
+                    , Html.Attributes.style "padding" "32px"
+                    , Html.Attributes.style "border-radius" "32px"
+                    , Layout.spacing 32
+                    ]
+                |> Layout.el
+                    (Layout.centered
+                        ++ [ Html.Attributes.style "z-index" "101"
+                           , Html.Attributes.style "position" "relative"
+                           , Html.Attributes.style "top" "0"
+                           , Layout.fill
+                           ]
+                    )
+
+           else
+            Layout.none
+          )
+            |> Layout.el
+                ((if model.selected /= Nothing || model.showIntro then
+                    [ Html.Attributes.style "backdrop-filter" "blur(4px)"
+                    ]
+
+                  else
+                    [ Html.Attributes.style "backdrop-filter" "blur(0px)"
+                    ]
+                 )
+                    ++ [ Html.Attributes.style "height" "100%"
+                       , Html.Attributes.style "width" "100%"
+                       , Html.Attributes.style "transition" "backdrop-filter 2s"
+                       , Html.Events.onClick (SelectedCardType Nothing)
+                       , Html.Attributes.style "position" "absolute"
+                       , Html.Attributes.style "top" "0"
+                       , Html.Attributes.style "z-index"
+                            (if model.selected /= Nothing || model.showIntro then
+                                "100"
+
+                             else
+                                "0"
+                            )
+                       ]
+                )
+        , Html.node "style" [] [ """
+:root,body {
+    
+    height:100%;background-color:#f4f3ee
+}
+
+:root {
+    --button-color:  """ ++ View.green ++ """
+}
+
+
+
+button {
+  background-color: var(--button-color);
+  border-width: 0px;
+  border-radius: 16px;
+  padding: 16px 32px;
+  font-weight: bold;
+}
+
+button:hover {
+  filter: brightness(0.95)
+}
+
+button:focus {
+  filter: brightness(0.90)
+}
+
+button:active {
+  filter: brightness(0.80)
+}
+        """ |> Html.text ]
         ]
     }
 
@@ -200,30 +379,50 @@ update msg model =
                 [] ->
                     ( model, Cmd.none )
 
-        SelectedCard maybeCardId ->
-            case
-                model.selected
-                    |> Maybe.andThen (Game.getCardFrom model.game)
-                    |> Maybe.map2 Tuple.pair maybeCardId
-            of
-                Just ( cardId2, ( cardId1, card ) ) ->
-                    ( { model
-                        | actions =
-                            [ Action.MoveToArea [ cardId1, cardId2 ]
-                            , Action.ClearArea
-                            ]
-                                ++ Action.fromCard card
-                                ++ model.actions
-                        , selected = Nothing
-                      }
-                    , Cmd.none
-                    )
+        Submit ->
+            model.selected
+                |> Maybe.map
+                    (\cardType ->
+                        case
+                            model.game.hand
+                                |> Dict.get (Card.cardType cardType)
+                                |> Maybe.withDefault []
+                                |> List.reverse
+                        of
+                            cardId1 :: cardId2 :: _ ->
+                                ( { model
+                                    | game = model.game |> Game.moveToArea (Set.fromList [ cardId1, cardId2 ])
+                                    , actions =
+                                        [ Action.Wait
+                                        , Action.ClearArea
+                                        ]
+                                            ++ Action.fromCard cardType
+                                            ++ model.actions
+                                    , selected = Nothing
+                                  }
+                                , Cmd.none
+                                )
 
-                Nothing ->
-                    ( { model | selected = maybeCardId }, Cmd.none )
+                            _ ->
+                                ( model, Cmd.none )
+                    )
+                |> Maybe.withDefault ( model, Cmd.none )
+
+        SelectedCardType cardType ->
+            if model.actions == [] then
+                ( { model | selected = cardType, showIntro = False }, Cmd.none )
+
+            else
+                ( model, Cmd.none )
 
         GotSeed seed ->
             ( { model | seed = seed }, Cmd.none )
+
+        HideIntro ->
+            ( { model | showIntro = False }, Cmd.none )
+
+        Restart ->
+            ( initialModel model.seed, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg

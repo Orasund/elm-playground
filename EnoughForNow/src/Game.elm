@@ -13,6 +13,7 @@ type alias Game =
     , discardPile : List CardId
     , hand : Dict CardType (List CardId)
     , graveyard : List CardId
+    , score : Int
     }
 
 
@@ -32,6 +33,7 @@ init =
     , discardPile = []
     , hand = Dict.empty
     , graveyard = []
+    , score = 0
     }
 
 
@@ -201,5 +203,11 @@ applyAction action game =
         ClearArea ->
             ( clearArea game, [] ) |> Random.constant
 
-        InternalMoveFromAreaToDiscardPile ->
+        MoveFromAreaToDiscardPile ->
             ( moveFromAreaToDiscardPile game, [] ) |> Random.constant
+
+        AddScore ->
+            ( { game | score = game.score + 1 }, [] ) |> Random.constant
+
+        Wait ->
+            ( game, [] ) |> Random.constant

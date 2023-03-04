@@ -9,6 +9,12 @@ type Card
     = Wood
     | Stone
     | Food
+    | Fear
+
+
+values : List Card
+values =
+    [ Food, Stone, Wood, Fear ]
 
 
 type alias CardType =
@@ -27,6 +33,9 @@ cardType card =
         Wood ->
             2
 
+        Fear ->
+            3
+
 
 name : Card -> String
 name card =
@@ -40,6 +49,9 @@ name card =
         Food ->
             "Food"
 
+        Fear ->
+            "Fear"
+
 
 emoji : Card -> String
 emoji card =
@@ -52,3 +64,6 @@ emoji card =
 
         Food ->
             "\u{1FAD0}"
+
+        Fear ->
+            "💀"

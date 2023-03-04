@@ -1,5 +1,6 @@
 module View exposing (..)
 
+import Action
 import Card exposing (Card(..))
 import Game.Card
 import Game.Entity exposing (Entity)
@@ -28,6 +29,11 @@ blue =
     "#77A6B6"
 
 
+gray : String
+gray =
+    "#C0B8AF"
+
+
 card : List (Attribute msg) -> Bool -> ( Int, Card ) -> Entity ( String, List (Attribute msg) -> Html msg )
 card attrs faceUp ( cardId, c ) =
     let
@@ -41,6 +47,9 @@ card attrs faceUp ( cardId, c ) =
 
                 Stone ->
                     blue
+
+                Fear ->
+                    gray
     in
     Game.Entity.flippable []
         { front =
@@ -50,16 +59,25 @@ card attrs faceUp ( cardId, c ) =
                     ++ Card.name c
                     |> Html.text
                     |> Game.Card.element []
-                , [ Card.emoji c
-                        |> Html.text
-                  ]
-                    |> Html.div [ Html.Attributes.style "font-size" "64px" ]
+                , Card.emoji c
+                    |> Html.text
+                    |> Layout.el
+                        [ Html.Attributes.style "background-color" "white"
+                        , Html.Attributes.style "aspect-ratio" "1"
+                        , Html.Attributes.style "padding" "8px"
+                        , Html.Attributes.style "border-radius" "100%"
+                        ]
                     |> Game.Card.element
-                        ([ Layout.fill
-                         , Html.Attributes.style "background-color" "white"
+                        ([ Html.Attributes.style "font-size" "36px"
                          ]
                             ++ Layout.centered
                         )
+                , Action.description c
+                    |> Html.text
+                    |> Game.Card.element
+                        [ Layout.fill
+                        , Html.Attributes.style "font-size" "0.9em"
+                        ]
                 ]
                     |> Game.Card.default
                         (Html.Attributes.style "background-color" color :: attrs ++ attr)
