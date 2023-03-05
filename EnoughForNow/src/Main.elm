@@ -3,6 +3,7 @@ module Main exposing (..)
 import Action exposing (Action)
 import Browser exposing (Document)
 import Card exposing (Card)
+import Config
 import Dict
 import Game exposing (Game)
 import Game.Area
@@ -10,7 +11,6 @@ import Game.Card
 import Game.Entity
 import Html
 import Html.Attributes
-import Html.Events
 import Layout
 import Random exposing (Generator, Seed)
 import Set
@@ -57,7 +57,7 @@ view : Model -> Document Msg
 view model =
     let
         cardHeight =
-            200
+            Config.cardHeight
 
         cardWidth =
             cardHeight * 2 / 3
@@ -123,7 +123,12 @@ view model =
                 |> List.indexedMap
                     (\i ( cardId, card ) ->
                         ( cardId, card )
-                            |> View.card [ Html.Events.onClick (SelectedCardType (Just card)) ]
+                            |> View.card
+                                (Layout.asButton
+                                    { onPress = SelectedCardType (Just card) |> Just
+                                    , label = "Select " ++ Card.name card
+                                    }
+                                )
                                 True
                             |> Game.Entity.move
                                 ( toFloat i
@@ -150,7 +155,11 @@ view model =
                             |> Game.Entity.move ( 0, toFloat i * -4 )
                     )
                 |> Game.Area.pileAbove ( padding, padding )
-                    ( "Draw Pile", \attrs -> Game.Card.empty attrs "Draw Pile" )
+                    ( "Draw Pile"
+                    , \attrs ->
+                        Game.Card.empty (Html.Attributes.style "height" (String.fromFloat Config.cardHeight ++ "px") :: attrs)
+                            "Draw Pile"
+                    )
             , model.game.discardPile
                 |> List.filterMap (Game.getCardFrom model.game)
                 |> List.indexedMap
@@ -159,7 +168,11 @@ view model =
                             |> Game.Entity.move ( 0, toFloat i * -4 )
                     )
                 |> Game.Area.pileAbove ( cardWidth * 2 + spacing * 2 + padding, padding )
-                    ( "Discard Pile", \attrs -> Game.Card.empty attrs "Discard Pile" )
+                    ( "Discard Pile"
+                    , \attrs ->
+                        Game.Card.empty (Html.Attributes.style "height" (String.fromFloat Config.cardHeight ++ "px") :: attrs)
+                            "Discard Pile"
+                    )
             , model.game.graveyard
                 |> List.filterMap (Game.getCardFrom model.game)
                 |> List.indexedMap
@@ -230,7 +243,13 @@ view model =
                                         |> List.indexedMap
                                             (\i ( cardId, card ) ->
                                                 ( cardId, card )
-                                                    |> View.card [ Html.Events.onClick Submit ] True
+                                                    |> View.card
+                                                        (Layout.asButton
+                                                            { onPress = Just Submit
+                                                            , label = "Submit"
+                                                            }
+                                                        )
+                                                        True
                                                     |> (\entity ->
                                                             if i < (List.length list - 2) then
                                                                 entity
@@ -243,7 +262,7 @@ view model =
                                                                     |> Game.Entity.move ( toFloat (i - (List.length list - 2)) * 32 - 16, 0 )
                                                                     |> Game.Entity.mapZIndex ((+) (100 + i))
                                                        )
-                                                    |> Game.Entity.mapCustomTransformations ((++) [ Game.Entity.scale 1.5 ])
+                                                    |> Game.Entity.mapCustomTransformations ((++) [ Game.Entity.scale 2 ])
                                             )
                                )
                             |> Game.Area.pileAbove ( cardWidth + spacing + padding, padding + cardHeight / 2 )
@@ -270,10 +289,13 @@ view model =
                                         |> Layout.el
                                             (attrs
                                                 ++ Layout.centered
+                                                ++ Layout.asButton
+                                                    { onPress = SelectedCardType Nothing |> Just
+                                                    , label = "Cancel"
+                                                    }
                                                 ++ [ Html.Attributes.style "font-size" "2em"
                                                    , Html.Attributes.style "font-weight" "bold"
                                                    , Html.Attributes.style "width" ((String.fromFloat <| cardWidth * 3 + spacing * 2 + padding * 2) ++ "px")
-                                                   , Html.Events.onClick (SelectedCardType Nothing)
                                                    ]
                                             )
                                  )
@@ -286,14 +308,18 @@ view model =
             ]
                 |> List.concat
                 |> Game.Area.toHtml
-                    [ Html.Attributes.style "height" (String.fromInt (cardHeight * 2 + spacing * 2 + padding * 2) ++ "px")
+                    [ Html.Attributes.style "height" (String.fromFloat (cardHeight * 2 + spacing * 2 + padding * 2) ++ "px")
                     , Html.Attributes.style "width" (String.fromFloat width ++ "px")
                     ]
           ]
             |> Layout.column
-                ([ Html.Attributes.style "height" "100%"
-                 , Html.Attributes.style "padding" "16px"
+                ([ Html.Attributes.style "padding" "16px"
                  , Layout.spacing (spacing * 2)
+                 ]
+                    ++ Layout.centered
+                )
+            |> Layout.el
+                ([ Html.Attributes.style "height" "100%"
                  ]
                     ++ Layout.centered
                 )
@@ -363,17 +389,23 @@ view model =
                     [ Html.Attributes.style "backdrop-filter" "blur(0px)"
                     ]
                  )
+                    ++ (if isGameOver then
+                            Layout.asButton
+                                { onPress = Just Restart
+                                , label = "Restart"
+                                }
+
+                        else if model.selected /= Nothing || model.showIntro || isGameOver then
+                            Layout.asButton
+                                { onPress = SelectedCardType Nothing |> Just
+                                , label = "Cancel"
+                                }
+
+                        else
+                            []
+                       )
                     ++ [ Html.Attributes.style "height" "100%"
                        , Html.Attributes.style "width" "100%"
-
-                       --, Html.Attributes.style "transition" "backdrop-filter 2s"
-                       , Html.Events.onClick
-                            (if isGameOver then
-                                Restart
-
-                             else
-                                SelectedCardType Nothing
-                            )
                        , Html.Attributes.style "position" "absolute"
                        , Html.Attributes.style "top" "0"
                        , Html.Attributes.style "z-index"
@@ -417,6 +449,11 @@ button:active {
   filter: brightness(0.80)
 }
         """ |> Html.text ]
+        , Html.node "meta"
+            [ Html.Attributes.name "viewport"
+            , Html.Attributes.attribute "content" "width=device-width, initial-scale=1"
+            ]
+            []
         ]
     }
 

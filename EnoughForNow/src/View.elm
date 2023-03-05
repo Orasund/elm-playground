@@ -2,6 +2,7 @@ module View exposing (..)
 
 import Action
 import Card exposing (Card(..))
+import Config
 import Game.Card
 import Game.Entity exposing (Entity)
 import Html exposing (Attribute, Html)
@@ -50,8 +51,14 @@ card attrs faceUp ( cardId, c ) =
 
                 Fear ->
                     gray
+
+        height =
+            Config.cardHeight
+
+        ratio =
+            2 / 3
     in
-    Game.Entity.flippable []
+    Game.Entity.flippable [ Html.Attributes.style "width" (String.fromFloat (height * ratio) ++ "px") ]
         { front =
             (\attr ->
                 [ Card.emoji c
@@ -69,19 +76,21 @@ card attrs faceUp ( cardId, c ) =
                         , Html.Attributes.style "border-radius" "100%"
                         ]
                     |> Game.Card.element
-                        ([ Html.Attributes.style "font-size" "36px"
-                         ]
-                            ++ Layout.centered
-                        )
+                        (Html.Attributes.style "font-size" "36px" :: Layout.centered)
                 , Action.description c
                     |> Html.text
                     |> Game.Card.element
                         [ Layout.fill
-                        , Html.Attributes.style "font-size" "0.9em"
+                        , Html.Attributes.style "font-size" "0.5em"
                         ]
                 ]
                     |> Game.Card.default
-                        (Html.Attributes.style "background-color" color :: attrs ++ attr)
+                        ([ Html.Attributes.style "height" (String.fromFloat Config.cardHeight ++ "px")
+                         , Html.Attributes.style "background-color" color
+                         ]
+                            ++ attrs
+                            ++ attr
+                        )
             )
                 |> Game.Entity.new
         , back = cardBack
@@ -97,6 +106,7 @@ cardBack =
             |> Game.Card.back
                 ([ Html.Attributes.style "background" "linear-gradient(45deg, #dca 12%, transparent 0, transparent 88%, #dca 0),\n    linear-gradient(135deg, transparent 37%, #a85 0, #a85 63%, transparent 0),\n    linear-gradient(45deg, transparent 37%, #dca 0, #dca 63%, transparent 0) #753"
                  , Html.Attributes.style "background-size" "50px 50px"
+                 , Html.Attributes.style "height" (String.fromFloat Config.cardHeight ++ "px")
 
                  -- Html.Attributes.style "background-color" "#3F784C"
                  , Html.Attributes.style "font-size" "38px"

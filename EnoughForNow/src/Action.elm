@@ -36,11 +36,11 @@ fromCard card =
             ]
 
         Food ->
-            [ AddScoreAndThen (AddCardToArea Wood)
+            [ AddScoreAndThen DiscardAllCards
+            , AddCardToArea Wood
             , AddCardToArea Fire
             , AddCardToArea Fear
             , MoveFromAreaToDiscardPile
-            , DiscardAllCards
             , Shuffle
             , DrawCards Config.cardsInHand
             ]
