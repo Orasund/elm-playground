@@ -418,9 +418,19 @@ view model =
                        ]
                 )
         , Html.node "style" [] [ """
+@font-face {
+    font-family: "NotoEmoji";
+    src: url("NotoEmoji.ttf");
+  }
+
+@font-face {
+    font-family: "NotoEmojiColor";
+    src: url("NotoEmojiColor.ttf");
+  }
+
 :root,body {
-    
-    height:100%;background-color:#f4f3ee
+    height:100%;background-color:#f4f3ee;
+    font-family: serif,"NotoEmojiColor";
 }
 
 :root {
