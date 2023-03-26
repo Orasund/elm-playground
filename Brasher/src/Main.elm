@@ -16,6 +16,13 @@ import Tile exposing (Tile)
 import Time
 import View
 
+port loadSound : ( String, String ) -> Cmd msg
+
+
+port playSound : String -> Cmd msg
+
+
+port setVolume : Float -> Cmd msg
 
 type Overlay
     = GameOver { killedBy : Tile }
@@ -241,7 +248,7 @@ view model =
                     , [ """
 @font-face {
     font-family: "NotoEmojiColor";
-    src: url("NotoEmojiColor.ttf");
+    src: url("assets/NotoEmojiColor.ttf");
   }
 
 :root,body {
