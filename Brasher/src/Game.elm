@@ -4,6 +4,7 @@ import Action exposing (Action)
 import Config
 import Dict exposing (Dict)
 import Random exposing (Generator)
+import Sound
 import Tile exposing (Tile, TileId)
 import World
 
@@ -297,6 +298,7 @@ move args game =
                     | playerPos = pos
                   }
                 , [ [ Action.Kill pos
+                    , Action.PlaySound Sound.Punch
                     , Action.Move { from = game.playerPos, to = pos }
                     ]
                         |> Action.Chain
@@ -309,8 +311,11 @@ move args game =
                             []
 
                         Tile.Door ->
-                            [ Action.LevelCleared
+                            [ Action.PlaySound Sound.Smash
+                            , Action.LevelCleared
                             ]
+                                |> Action.Chain
+                                |> List.singleton
 
                         Tile.Chair ->
                             (if args.left then
@@ -320,8 +325,7 @@ move args game =
                                 pos + 1
                             )
                                 |> (\it ->
-                                        [ Action.Kill it
-                                        ]
+                                        [ Action.Kill it ]
                                    )
 
                         Tile.AxeThrower ->

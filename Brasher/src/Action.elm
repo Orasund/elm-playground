@@ -1,5 +1,6 @@
 module Action exposing (..)
 
+import Sound exposing (Sound)
 import Tile exposing (Tile)
 
 
@@ -12,3 +13,4 @@ type Action
     | Tick
     | AddPoint
     | Chain (List Action)
+    | PlaySound Sound

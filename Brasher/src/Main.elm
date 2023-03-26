@@ -1,4 +1,4 @@
-module Main exposing (..)
+port module Main exposing (..)
 
 import Action exposing (Action)
 import Browser exposing (Document)
@@ -12,9 +12,11 @@ import Html.Keyed
 import Json.Decode
 import Layout
 import Random exposing (Generator, Seed)
+import Sound
 import Tile exposing (Tile)
 import Time
 import View
+
 
 port loadSound : ( String, String ) -> Cmd msg
 
@@ -23,6 +25,7 @@ port playSound : String -> Cmd msg
 
 
 port setVolume : Float -> Cmd msg
+
 
 type Overlay
     = GameOver { killedBy : Tile }
@@ -264,74 +267,100 @@ view model =
     }
 
 
-applyAction : Action -> Model -> Generator Model
+applyAction : Action -> Model -> Generator ( Model, Cmd Msg )
 applyAction action model =
     case action of
         Action.Move args ->
             Game.moveTile args model.game
-                |> Maybe.map (\game -> { model | game = game })
-                |> Maybe.withDefault model
+                |> Maybe.map (\game -> ( { model | game = game }, Cmd.none ))
+                |> Maybe.withDefault ( model, Cmd.none )
                 |> Random.constant
 
         Action.LevelCleared ->
             Game.newLevel (model.level + 1)
                 |> Random.map
                     (\game ->
-                        { model
+                        ( { model
                             | game = game
                             , level = model.level + 1
                             , actions = []
                             , overlay = Just StageCleared
-                        }
+                          }
+                        , Sound.sources
+                            |> List.map loadSound
+                            |> Cmd.batch
+                        )
                     )
 
         Action.LooseLife args ->
-            { model
+            ( { model
                 | game = Game.init
                 , score = 0
                 , level = 0
                 , actions = []
                 , overlay = Just (GameOver args)
-            }
+              }
+            , Cmd.none
+            )
                 |> Random.constant
 
         Action.Tick ->
-            { model
+            ( { model
                 | actions =
                     (Game.tick model.game
                         |> Action.Chain
                     )
                         :: model.actions
-            }
+              }
+            , Cmd.none
+            )
                 |> Random.constant
 
         Action.Kill pos ->
             model.game
                 |> Game.killTile pos
                 |> (\( game, actions ) ->
-                        { model | game = game, actions = actions ++ model.actions }
+                        ( { model | game = game, actions = actions ++ model.actions }
+                        , Cmd.none
+                        )
                    )
                 |> Random.constant
 
         Action.Spawn pos tile ->
-            { model | game = model.game |> Game.spawnTile pos tile }
+            ( { model | game = model.game |> Game.spawnTile pos tile }
+            , Cmd.none
+            )
                 |> Random.constant
 
         Action.AddPoint ->
             model.score
                 + 1
                 |> (\score ->
-                        { model
+                        ( { model
                             | score = score
                             , maxScore = max model.maxScore score
-                        }
+                          }
+                        , Cmd.none
+                        )
                    )
                 |> Random.constant
 
         Action.Chain list ->
             list
-                |> List.foldl (\a -> Random.andThen (applyAction a))
-                    (Random.constant model)
+                |> List.foldl
+                    (\a ->
+                        Random.andThen
+                            (\( m, l ) ->
+                                m
+                                    |> applyAction a
+                                    |> Random.map (Tuple.mapSecond (\it -> it :: l))
+                            )
+                    )
+                    (Random.constant ( model, [] ))
+                |> Random.map (Tuple.mapSecond Cmd.batch)
+
+        Action.PlaySound sound ->
+            ( model, playSound (Sound.toString sound) ) |> Random.constant
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -354,21 +383,21 @@ update msg model =
                 ( { model | overlay = Nothing }, Cmd.none )
 
         NextAction ->
-            ( case model.actions of
+            case model.actions of
                 head :: tail ->
                     { model | actions = tail }
                         |> applyAction head
                         |> (\gen -> Random.step gen model.seed)
-                        |> (\( m, seed ) ->
-                                { m
+                        |> (\( ( m, cmd ), seed ) ->
+                                ( { m
                                     | seed = seed
-                                }
+                                  }
+                                , cmd
+                                )
                            )
 
                 [] ->
-                    model
-            , Cmd.none
-            )
+                    ( model, Cmd.none )
 
         GotSeed seed ->
             ( { model | seed = seed }, Cmd.none )
