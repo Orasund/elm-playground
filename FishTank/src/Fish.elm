@@ -47,7 +47,7 @@ sprite =
         |> Dict.fromList
 
 
-generatePattern : List (Rule Bool) -> Generator (List ( Int, Int ))
+generatePattern : List (Rule Int) -> Generator (List ( Int, Int ))
 generatePattern rules =
     sprite
         |> Dict.filter
@@ -57,18 +57,30 @@ generatePattern rules =
         |> Dict.keys
         |> WaveFunCollapse.generator rules
         |> Random.map
-            (\dict ->
-                dict
-                    |> Dict.filter (\_ -> identity)
-                    |> Dict.keys
+            (\maybe ->
+                maybe
+                    |> Maybe.map
+                        (\dict ->
+                            dict
+                                |> Dict.filter (\_ int -> int /= 0)
+                                |> Dict.keys
+                        )
+                    |> Maybe.withDefault []
             )
 
 
-withPattern : List ( Int, Int ) -> List (List BitColor)
-withPattern pattern =
+withPattern : { animate : Bool } -> List ( Int, Int ) -> List (List BitColor)
+withPattern args pattern =
     let
         set =
             Set.fromList pattern
+
+        permutate x y =
+            if x < 5 && args.animate then
+                ( x, y + x // 2 - 3 |> modBy Config.spriteSize )
+
+            else
+                ( x, y )
     in
     List.repeat Config.spriteSize ()
         |> List.indexedMap
@@ -76,7 +88,7 @@ withPattern pattern =
                 List.repeat Config.spriteSize ()
                     |> List.indexedMap
                         (\x () ->
-                            case sprite |> Dict.get ( x, y ) of
+                            case sprite |> Dict.get (permutate x y) of
                                 Just 1 ->
                                     Black
 
@@ -84,7 +96,7 @@ withPattern pattern =
                                     None
 
                                 Just _ ->
-                                    if Set.member ( x, y ) set then
+                                    if Set.member (permutate x y) set then
                                         Primary
 
                                     else

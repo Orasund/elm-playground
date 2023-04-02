@@ -2,15 +2,25 @@ module View exposing (..)
 
 import Color
 import Fish exposing (BitColor(..))
+import FishPattern
 import Html exposing (Html)
 import Html.Attributes
 import Image
 import Image.Color
+import Random exposing (Seed)
 
 
-fish : List ( Int, Int ) -> Html msg
-fish pattern =
-    Fish.withPattern pattern
+tank : { animationFrame : Bool } -> List (List ( Int, Int )) -> Html msg
+tank args patterns =
+    patterns
+        |> List.reverse
+        |> List.map (fish { animationFrame = args.animationFrame })
+        |> Html.div []
+
+
+fish : { animationFrame : Bool } -> List ( Int, Int ) -> Html msg
+fish args pattern =
+    Fish.withPattern { animate = args.animationFrame } pattern
         |> List.map
             (List.map
                 (\bitColor ->
