@@ -1,15 +1,15 @@
 module Main exposing (..)
 
 import Browser
-import Fish
+import Fish exposing (Fish)
 import Random exposing (Seed)
-import Rule
+import Rule exposing (Pattern(..))
 import View
 
 
 type alias Model =
     { seed : Seed
-    , fish : List (List ( Int, Int ))
+    , fish : List Fish
     , animationFrame : Bool
     }
 
@@ -21,27 +21,37 @@ type Msg
 init : () -> ( Model, Cmd Msg )
 init () =
     let
-        generators =
-            [ []
-            , [ Rule.hor True, Rule.hor False ]
-            , [ Rule.ver True, Rule.ver False ]
-            , [ Rule.dia1 True, Rule.dia1 False ]
-            , [ Rule.dia2 True, Rule.dia2 False ]
-            , [ Rule.hor True, Rule.ver False]
-            , [ Rule.hor True, Rule.dia1 False]
-            , [ Rule.hor True, Rule.dia2 False]
-            , [ Rule.ver True, Rule.dia1 False]
-            , [ Rule.ver True, Rule.dia2 False]
-            , [ Rule.dia1 True, Rule.dia2 False]
-            , [ Rule.hor True
-            , Rule.ver True
-            , Rule.dia1 True
-            , Rule.dia2 True
-            , Rule.hor False
-            , Rule.ver False
-            , Rule.dia1 False
-            , Rule.dia2 False ]
+        times l1 l2 =
+            l1
+                |> List.concatMap
+                    (\a ->
+                        l2 |> List.map (\b -> [ a, b ])
+                    )
+
+        r a =
+            [ [ Horizontal ]
+            , [ Vertical ]
+            , [ TopDown ]
+            , [ BottomUp ]
+            , [ Horizontal, Vertical ]
+            , [ Horizontal, TopDown ]
+            , [ Horizontal, BottomUp ]
+            , [ Vertical, TopDown ]
+            , [ Vertical, BottomUp ]
+            , [ TopDown, BottomUp ]
+            , [ Horizontal, Vertical, TopDown ]
+            , [ Horizontal, Vertical, BottomUp ]
+            , [ Horizontal, TopDown, BottomUp ]
+            , [ Vertical, TopDown, BottomUp ]
+            , [ Horizontal, Vertical, TopDown, BottomUp ]
             ]
+                |> List.map (List.map (Tuple.pair a))
+
+        generators =
+            times
+                (r True)
+                (r False)
+                |> List.map List.concat
 
         --}
         ( patterns, seed ) =
@@ -50,7 +60,8 @@ init () =
                     (\rules ->
                         Random.andThen
                             (\l ->
-                                Fish.generatePattern rules
+                                rules
+                                    |> Fish.generate
                                     |> Random.map (\p -> p :: l)
                             )
                     )

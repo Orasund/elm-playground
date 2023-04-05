@@ -1,11 +1,21 @@
 module Fish exposing (..)
 
+import Color exposing (Color)
 import Config
-import Dict
+import Dict exposing (Dict)
+import Html exposing (i)
 import Random exposing (Generator)
-import Rule
-import Set
-import WaveFunCollapse exposing (Rule)
+import Rule exposing (Pattern(..))
+import Set exposing (Set)
+import WaveFunCollapse
+
+
+type alias Fish =
+    { pattern : Set ( Int, Int )
+    , rules : List ( Bool, Pattern )
+    , primary : Color
+    , secondary : Color
+    }
 
 
 type BitColor
@@ -15,6 +25,7 @@ type BitColor
     | Secondary
 
 
+sprite : Dict ( Int, Int ) Bool
 sprite =
     [ [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
     , [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
@@ -45,15 +56,26 @@ sprite =
             )
         |> List.concat
         |> Dict.fromList
+        |> Dict.map
+            (\_ int ->
+                case int of
+                    1 ->
+                        False
 
-
-generatePattern : List (Rule Int) -> Generator (List ( Int, Int ))
-generatePattern rules =
-    sprite
-        |> Dict.filter
-            (\_ value ->
-                value /= 1
+                    _ ->
+                        True
             )
+
+
+generate : List ( Bool, Pattern ) -> Generator Fish
+generate list =
+    let
+        rules =
+            list
+                |> List.map (\( b, p ) -> Rule.fromPattern p b)
+    in
+    sprite
+        |> Dict.filter (\_ -> identity)
         |> Dict.keys
         |> WaveFunCollapse.generator rules
         |> Random.map
@@ -67,14 +89,140 @@ generatePattern rules =
                         )
                     |> Maybe.withDefault []
             )
+        |> Random.map
+            (\p ->
+                let
+                    computedRules =
+                        computeRules (Set.fromList p)
+
+                    ( secondaryRuleAmount, primaryRuleAmount ) =
+                        computedRules
+                            |> List.partition Tuple.first
+                            |> Tuple.mapBoth List.length List.length
+                in
+                { pattern = p |> Set.fromList
+                , rules = computedRules
+                , primary =
+                    case primaryRuleAmount of
+                        1 ->
+                            Color.lightGray
+
+                        2 ->
+                            Color.lightBlue
+
+                        3 ->
+                            Color.blue
+
+                        _ ->
+                            Color.darkBlue
+                , secondary =
+                    case secondaryRuleAmount of
+                        1 ->
+                            Color.darkGray
+
+                        2 ->
+                            Color.lightRed
+
+                        3 ->
+                            Color.red
+
+                        _ ->
+                            Color.darkRed
+                }
+            )
 
 
-withPattern : { animate : Bool } -> List ( Int, Int ) -> List (List BitColor)
-withPattern args pattern =
+computeRules : Set ( Int, Int ) -> List ( Bool, Pattern )
+computeRules set =
     let
-        set =
-            Set.fromList pattern
+        dict =
+            sprite
+                |> Dict.filter (\_ -> identity)
+                |> Dict.map (\p _ -> Set.member p set |> not)
 
+        findMostUsed list =
+            list
+                |> List.foldl
+                    (\string ->
+                        Dict.update string
+                            (\maybe ->
+                                maybe
+                                    |> Maybe.map ((+) 1)
+                                    |> Maybe.withDefault 0
+                                    |> Just
+                            )
+                    )
+                    Dict.empty
+                |> Dict.toList
+                |> List.sortBy Tuple.second
+                |> List.reverse
+                |> List.head
+                |> Maybe.map Tuple.first
+
+        toBool : Int -> Bool
+        toBool int =
+            int /= 0
+
+        fromBool : Bool -> Int
+        fromBool bool =
+            if bool then
+                1
+
+            else
+                0
+
+        lookupDict =
+            dict
+                |> Dict.map (\_ -> fromBool)
+
+        rec d output =
+            d
+                |> Dict.toList
+                |> List.concatMap
+                    (\( pos, b ) ->
+                        [ Horizontal, Vertical, BottomUp, TopDown ]
+                            |> List.filter
+                                (\p ->
+                                    WaveFunCollapse.isValidRule pos
+                                        lookupDict
+                                        (Rule.fromPattern p b)
+                                )
+                            |> List.map Rule.toString
+                            |> List.map (Tuple.pair (fromBool b))
+                    )
+                |> findMostUsed
+                |> Maybe.andThen (\( b, r ) -> r |> Rule.fromString |> Maybe.map (Tuple.pair b))
+                |> (\maybeRule ->
+                        case maybeRule of
+                            Just ( b, pattern ) ->
+                                let
+                                    rule =
+                                        Rule.fromPattern pattern (toBool b)
+                                in
+                                rec
+                                    (d
+                                        |> Dict.filter
+                                            (\pos b0 ->
+                                                (b0 /= toBool b)
+                                                    || (WaveFunCollapse.isValidRule pos
+                                                            lookupDict
+                                                            rule
+                                                            |> not
+                                                       )
+                                            )
+                                    )
+                                    (( toBool b, pattern ) :: output)
+
+                            Nothing ->
+                                output
+                   )
+    in
+    rec dict []
+
+
+toBitmap : { animate : Bool } -> Set ( Int, Int ) -> List (List BitColor)
+toBitmap args set =
+    let
         permutate x y =
             if x < 5 && args.animate then
                 ( x, y + x // 2 - 3 |> modBy Config.spriteSize )
@@ -89,13 +237,13 @@ withPattern args pattern =
                     |> List.indexedMap
                         (\x () ->
                             case sprite |> Dict.get (permutate x y) of
-                                Just 1 ->
+                                Just False ->
                                     Black
 
                                 Nothing ->
                                     None
 
-                                Just _ ->
+                                Just True ->
                                     if Set.member (permutate x y) set then
                                         Primary
 
