@@ -2,8 +2,8 @@ module Fish exposing (..)
 
 import Config
 import Dict
-import FishPattern
 import Random exposing (Generator)
+import Rule
 import Set
 import WaveFunCollapse exposing (Rule)
 
@@ -21,7 +21,7 @@ sprite =
     , [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 ]
     , [ 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0 ]
     , [ 1, 2, 2, 2, 1, 0, 1, 1, 2, 2, 2, 2, 2, 1, 0, 0 ]
-    , [ 1, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 0 ]
+    , [ 1, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 1, 2, 1, 0 ]
     , [ 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1 ]
     , [ 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1 ]
     , [ 1, 2, 2, 2, 2, 1, 2, 2, 2, 2, 2, 2, 2, 2, 1, 0 ]

@@ -1,4 +1,4 @@
-module FishPattern exposing (..)
+module Rule exposing (..)
 
 import Array
 import WaveFunCollapse exposing (Rule)
@@ -53,96 +53,70 @@ rule list =
     }
 
 
-horizontal : List (Rule Int)
-horizontal =
-    [ [ [ 9, 0, 9 ]
-      , [ 1, 1, 1 ]
-      , [ 9, 0, 9 ]
-      ]
-        |> rule
-    , [ [ 9, 1, 9 ]
-      , [ 0, 0, 0 ]
-      , [ 9, 1, 9 ]
-      ]
-        |> rule
+hor : Bool -> Rule Int
+hor b =
+    let
+        t =
+            if b then
+                1
+
+            else
+                0
+    in
+    [ [ 9, 9, 9 ]
+    , [ t, t, 9 ]
+    , [ 9, 9, 9 ]
     ]
+        |> rule
 
 
-vertical : List (Rule Int)
-vertical =
-    [ [ [ 9, 1, 9 ]
-      , [ 0, 1, 0 ]
-      , [ 9, 1, 9 ]
-      ]
-        |> rule
-    , [ [ 9, 0, 9 ]
-      , [ 1, 0, 1 ]
-      , [ 9, 0, 9 ]
-      ]
-        |> rule
+ver : Bool -> Rule Int
+ver b =
+    let
+        t =
+            if b then
+                1
+
+            else
+                0
+    in
+    [ [ 9, t, 9 ]
+    , [ 9, t, 9 ]
+    , [ 9, 9, 9 ]
     ]
+        |> rule
 
 
-diagonal1 : List (Rule Int)
-diagonal1 =
-    [ [ [ 9, 0, 9 ]
-      , [ 1, 0, 0 ]
-      , [ 9, 1, 9 ]
+dia1 : Bool ->  (Rule Int)
+dia1 b =
+    let
+        t =
+            if b then
+                1
+
+            else
+                0
+    in
+     [ [ t, 9, 9 ]
+      , [ 9, t, 9 ]
+      , [ 9, 9, 9 ]
       ]
         |> rule
-    , [ [ 9, 0, 9 ]
-      , [ 1, 1, 0 ]
-      , [ 9, 1, 9 ]
-      ]
-        |> rule
-    , [ [ 9, 1, 9 ]
-      , [ 0, 0, 1 ]
-      , [ 9, 0, 9 ]
-      ]
-        |> rule
-    , [ [ 9, 1, 9 ]
-      , [ 0, 1, 1 ]
-      , [ 9, 0, 9 ]
-      ]
-        |> rule
+    
+
+
+dia2 : Bool -> Rule Int
+dia2 b =
+    let
+        t =
+            if b then
+                1
+
+            else
+                0
+    in
+    [ [ 9, 9, t ]
+    , [ 9, t, 9 ]
+    , [ 9, 9, 9 ]
     ]
-
-
-diagonal2 : List (Rule Int)
-diagonal2 =
-    [ [ [ 9, 1, 9 ]
-      , [ 1, 1, 0 ]
-      , [ 9, 0, 9 ]
-      ]
         |> rule
-    , [ [ 9, 0, 9 ]
-      , [ 0, 0, 1 ]
-      , [ 9, 1, 9 ]
-      ]
-        |> rule
-    , [ [ 9, 0, 9 ]
-      , [ 0, 1, 1 ]
-      , [ 9, 1, 9 ]
-      ]
-        |> rule
-    , [ [ 9, 1, 9 ]
-      , [ 1, 0, 0 ]
-      , [ 9, 0, 9 ]
-      ]
-        |> rule
-    ]
-
-
-dots : List (Rule Int)
-dots =
-    [ [ [ 9, 0, 9 ]
-      , [ 0, 1, 0 ]
-      , [ 9, 0, 9 ]
-      ]
-        |> rule
-    , [ [ 9, 1, 9 ]
-      , [ 1, 0, 1 ]
-      , [ 9, 1, 9 ]
-      ]
-        |> rule
-    ]

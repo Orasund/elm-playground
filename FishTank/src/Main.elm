@@ -2,10 +2,8 @@ module Main exposing (..)
 
 import Browser
 import Fish
-import FishPattern
-import Html exposing (Html)
 import Random exposing (Seed)
-import Time
+import Rule
 import View
 
 
@@ -25,23 +23,27 @@ init () =
     let
         generators =
             [ []
-            , FishPattern.horizontal
-            , FishPattern.vertical
-            , FishPattern.diagonal1
-            , FishPattern.diagonal2
-            , FishPattern.horizontal ++ FishPattern.vertical
-            , FishPattern.horizontal ++ FishPattern.diagonal1
-            , FishPattern.horizontal ++ FishPattern.diagonal2
-            , FishPattern.vertical ++ FishPattern.diagonal1
-            , FishPattern.vertical ++ FishPattern.diagonal2
-            , FishPattern.diagonal1 ++ FishPattern.diagonal2
-            , FishPattern.horizontal ++ FishPattern.vertical ++ FishPattern.diagonal1
-            , FishPattern.horizontal ++ FishPattern.vertical ++ FishPattern.diagonal2
-            , FishPattern.horizontal ++ FishPattern.diagonal1 ++ FishPattern.diagonal2
-            , FishPattern.vertical ++ FishPattern.diagonal1 ++ FishPattern.diagonal2
-            , FishPattern.horizontal ++ FishPattern.vertical ++ FishPattern.diagonal1 ++ FishPattern.diagonal2
+            , [ Rule.hor True, Rule.hor False ]
+            , [ Rule.ver True, Rule.ver False ]
+            , [ Rule.dia1 True, Rule.dia1 False ]
+            , [ Rule.dia2 True, Rule.dia2 False ]
+            , [ Rule.hor True, Rule.ver False]
+            , [ Rule.hor True, Rule.dia1 False]
+            , [ Rule.hor True, Rule.dia2 False]
+            , [ Rule.ver True, Rule.dia1 False]
+            , [ Rule.ver True, Rule.dia2 False]
+            , [ Rule.dia1 True, Rule.dia2 False]
+            , [ Rule.hor True
+            , Rule.ver True
+            , Rule.dia1 True
+            , Rule.dia2 True
+            , Rule.hor False
+            , Rule.ver False
+            , Rule.dia1 False
+            , Rule.dia2 False ]
             ]
 
+        --}
         ( patterns, seed ) =
             generators
                 |> List.foldl
@@ -85,7 +87,7 @@ update msg model =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Sub.none
 
 

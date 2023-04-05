@@ -13,8 +13,11 @@ type alias Rule a =
 
 
 type alias Snapshot comparable =
-    { output : Dict ( Int, Int ) comparable
+    { pos : ( Int, Int )
+    , rule : Rule comparable
+    , output : Dict ( Int, Int ) comparable
     , remaining : Dict ( Int, Int ) (Set comparable)
+    , rulesRemaining : List (Rule comparable)
     }
 
 
@@ -23,13 +26,13 @@ type alias Builder comparable =
     , remaining : Dict ( Int, Int ) (Set comparable)
     , rules : Dict comparable (List (Rule comparable))
     , nextPossibleSteps : Set ( Int, Int )
-    , path : List ( ( Int, Int ), comparable, Snapshot comparable )
+    , path : List (Snapshot comparable)
     }
 
 
 generator : List (Rule comparable) -> List ( Int, Int ) -> Random.Generator (Maybe (Dict ( Int, Int ) comparable))
 generator rules list =
-    new rules list |> build
+    new rules list |> build |> Debug.log "generated"
 
 
 new : List (Rule comparable) -> List ( Int, Int ) -> Builder comparable
@@ -67,7 +70,7 @@ new ruleList list =
 
 build : Builder comparable -> Random.Generator (Maybe (Dict ( Int, Int ) comparable))
 build builder =
-    if Set.isEmpty builder.nextPossibleSteps then
+    if Set.isEmpty builder.nextPossibleSteps && Dict.isEmpty builder.remaining then
         builder.output
             |> Just
             |> Random.constant
@@ -90,18 +93,17 @@ step builder =
     case builder.nextPossibleSteps |> Set.toList of
         head :: tail ->
             Random.uniform head tail
-                |> Random.andThen
-                    (\pos ->
-                        stepAt pos builder
-                            |> Maybe.map (Random.map Just)
-                            |> Maybe.withDefault (Random.constant Nothing)
-                    )
+                |> Random.andThen (\pos -> stepAt pos builder)
 
         [] ->
-            Random.constant Nothing
+            if builder.remaining == Dict.empty then
+                Random.constant Nothing
+
+            else
+                builder |> backtrack |> Random.constant
 
 
-stepAt : ( Int, Int ) -> Builder comparable -> Maybe (Random.Generator (Builder comparable))
+stepAt : ( Int, Int ) -> Builder comparable -> Random.Generator (Maybe (Builder comparable))
 stepAt pos builder =
     let
         values =
@@ -110,25 +112,56 @@ stepAt pos builder =
                 |> Maybe.withDefault Set.empty
                 |> Set.toList
 
-        snapshot =
-            { output = builder.output
+        snapshot rule rulesRemaining =
+            { pos = pos
+            , rule = rule
+            , output = builder.output
             , remaining = builder.remaining
+            , rulesRemaining = rulesRemaining
             }
     in
-    case values of
+    (case values of
         head :: tail ->
             Random.uniform head tail
-                |> Random.map
-                    (\value ->
-                        collapse pos
-                            value
-                            { builder | path = ( pos, value, snapshot ) :: builder.path }
-                    )
-                |> Random.map checkRemaining
-                |> Just
+                |> Random.map Just
 
         [] ->
-            builder |> backtrack |> Maybe.map Random.constant
+            Random.constant Nothing
+    )
+        |> Random.andThen
+            (\maybe ->
+                case
+                    maybe |> Maybe.andThen (\value -> builder.rules |> Dict.get value)
+                of
+                    Just (head :: tail) ->
+                        Random.uniform head tail
+                            |> Random.map Just
+
+                    _ ->
+                        Random.constant Nothing
+            )
+        |> Random.map
+            (\maybe ->
+                case maybe of
+                    Just rule ->
+                        collapse pos
+                            rule
+                            { builder
+                                | path =
+                                    snapshot rule
+                                        (builder.rules
+                                            |> Dict.get rule.center
+                                            |> Maybe.withDefault []
+                                            |> List.filter ((/=) rule)
+                                        )
+                                        :: builder.path
+                            }
+                            |> checkRemaining
+                            |> Just
+
+                    Nothing ->
+                        builder |> backtrack
+            )
 
 
 checkRemaining : Builder comparable -> Builder comparable
@@ -186,6 +219,7 @@ checkRemaining builder =
                     | remaining = remaining
                     , nextPossibleSteps =
                         nextPossibleSteps
+                            |> Debug.log "steps"
                             |> Set.fromList
                 }
            )
@@ -207,15 +241,26 @@ isValidRule ( x, y ) dict rule =
 backtrack : Builder comparable -> Maybe (Builder comparable)
 backtrack builder =
     case builder.path of
-        ( pos, value, snapshot ) :: tail ->
-            { builder
-                | output = snapshot.output
-                , remaining =
-                    snapshot.remaining
-                        |> Dict.update pos
-                            (\maybe -> maybe |> Maybe.map (Set.remove value))
-                , path = tail
-            }
+        snapshot :: tail ->
+            (case snapshot.rulesRemaining |> Debug.log "remaining" of
+                [] ->
+                    { builder
+                        | output = snapshot.output
+                        , remaining =
+                            snapshot.remaining
+                                |> Dict.update snapshot.pos
+                                    (\maybe -> maybe |> Maybe.map (Set.remove snapshot.rule.center))
+                        , path = tail
+                    }
+
+                head :: rulesRemaining ->
+                    { builder
+                        | output = snapshot.output
+                        , remaining = snapshot.remaining
+                        , path = { snapshot | rulesRemaining = rulesRemaining } :: tail
+                    }
+                        |> collapse snapshot.pos head
+            )
                 |> checkRemaining
                 |> Just
 
@@ -223,10 +268,19 @@ backtrack builder =
             Nothing
 
 
-collapse : ( Int, Int ) -> a -> Builder a -> Builder a
-collapse pos value builder =
+collapse : ( Int, Int ) -> Rule comparable -> Builder comparable -> Builder comparable
+collapse pos rule builder =
     { builder
-        | output = Dict.insert pos value builder.output
+        | output =
+            builder.output
+                |> Dict.insert pos rule.center
         , remaining =
-            Dict.remove pos builder.remaining
+            rule.neighbors
+                |> List.foldl
+                    (\( ( x, y ), value ) ->
+                        Dict.update (pos |> Tuple.mapBoth ((+) x) ((+) y))
+                            (Maybe.map (\_ -> Set.singleton value))
+                    )
+                    builder.remaining
+                |> Dict.remove pos
     }

@@ -2,12 +2,12 @@ module View exposing (..)
 
 import Color
 import Fish exposing (BitColor(..))
-import FishPattern
 import Html exposing (Html)
 import Html.Attributes
 import Image
 import Image.Color
 import Random exposing (Seed)
+import Rule
 
 
 tank : { animationFrame : Bool } -> List (List ( Int, Int )) -> Html msg
@@ -29,7 +29,7 @@ fish args pattern =
                             Color.black
 
                         Primary ->
-                            Color.red
+                            Color.blue
 
                         Secondary ->
                             Color.white
