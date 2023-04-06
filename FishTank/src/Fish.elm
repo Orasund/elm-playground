@@ -10,6 +10,10 @@ import Set exposing (Set)
 import WaveFunCollapse
 
 
+type alias Random a =
+    Generator a
+
+
 type alias Fish =
     { pattern : Set ( Int, Int )
     , rules : List ( Bool, Pattern )
@@ -67,7 +71,49 @@ sprite =
             )
 
 
-generate : List ( Bool, Pattern ) -> Generator Fish
+fromPattern : List ( Int, Int ) -> Fish
+fromPattern p =
+    let
+        computedRules =
+            computeRules (Set.fromList p)
+
+        ( secondaryRuleAmount, primaryRuleAmount ) =
+            computedRules
+                |> List.partition Tuple.first
+                |> Tuple.mapBoth List.length List.length
+    in
+    { pattern = p |> Set.fromList
+    , rules = computedRules
+    , primary =
+        case primaryRuleAmount of
+            1 ->
+                Color.lightGray
+
+            2 ->
+                Color.lightBlue
+
+            3 ->
+                Color.blue
+
+            _ ->
+                Color.darkBlue
+    , secondary =
+        case secondaryRuleAmount of
+            1 ->
+                Color.darkGray
+
+            2 ->
+                Color.lightRed
+
+            3 ->
+                Color.red
+
+            _ ->
+                Color.darkRed
+    }
+
+
+generate : List ( Bool, Pattern ) -> Random Fish
 generate list =
     let
         rules =
@@ -89,47 +135,7 @@ generate list =
                         )
                     |> Maybe.withDefault []
             )
-        |> Random.map
-            (\p ->
-                let
-                    computedRules =
-                        computeRules (Set.fromList p)
-
-                    ( secondaryRuleAmount, primaryRuleAmount ) =
-                        computedRules
-                            |> List.partition Tuple.first
-                            |> Tuple.mapBoth List.length List.length
-                in
-                { pattern = p |> Set.fromList
-                , rules = computedRules
-                , primary =
-                    case primaryRuleAmount of
-                        1 ->
-                            Color.lightGray
-
-                        2 ->
-                            Color.lightBlue
-
-                        3 ->
-                            Color.blue
-
-                        _ ->
-                            Color.darkBlue
-                , secondary =
-                    case secondaryRuleAmount of
-                        1 ->
-                            Color.darkGray
-
-                        2 ->
-                            Color.lightRed
-
-                        3 ->
-                            Color.red
-
-                        _ ->
-                            Color.darkRed
-                }
-            )
+        |> Random.map fromPattern
 
 
 computeRules : Set ( Int, Int ) -> List ( Bool, Pattern )
@@ -251,3 +257,49 @@ toBitmap args set =
                                         Secondary
                         )
             )
+
+
+fromParents : Fish -> Fish -> Random Fish
+fromParents fish1 fish2 =
+    let
+        rules =
+            (fish1.rules ++ fish2.rules)
+                |> List.map (\( b, p ) -> Rule.fromPattern p b)
+
+        positions =
+            sprite
+                |> Dict.filter (\_ -> identity)
+                |> Dict.keys
+
+        commonPositions =
+            positions
+                |> List.filterMap
+                    (\pos ->
+                        if Set.member pos fish1.pattern && Set.member pos fish2.pattern then
+                            Just ( pos, 1 )
+
+                        else if not (Set.member pos fish1.pattern) && not (Set.member pos fish2.pattern) then
+                            Just ( pos, 0 )
+
+                        else
+                            Nothing
+                    )
+                |> Debug.log "commons"
+    in
+    positions
+        |> WaveFunCollapse.new rules
+        |> WaveFunCollapse.withOutput (Dict.fromList commonPositions)
+        |> WaveFunCollapse.checkRemaining
+        |> WaveFunCollapse.build
+        |> Random.map
+            (\maybe ->
+                maybe
+                    |> Maybe.map
+                        (\dict ->
+                            dict
+                                |> Dict.filter (\_ int -> int /= 0)
+                                |> Dict.keys
+                        )
+                    |> Maybe.withDefault []
+            )
+        |> Random.map fromPattern

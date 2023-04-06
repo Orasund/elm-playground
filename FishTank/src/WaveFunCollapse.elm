@@ -32,7 +32,7 @@ type alias Builder comparable =
 
 generator : List (Rule comparable) -> List ( Int, Int ) -> Random.Generator (Maybe (Dict ( Int, Int ) comparable))
 generator rules list =
-    new rules list |> build |> Debug.log "generated"
+    new rules list |> build
 
 
 new : List (Rule comparable) -> List ( Int, Int ) -> Builder comparable
@@ -219,7 +219,6 @@ checkRemaining builder =
                     | remaining = remaining
                     , nextPossibleSteps =
                         nextPossibleSteps
-                            |> Debug.log "steps"
                             |> Set.fromList
                 }
            )
@@ -242,7 +241,7 @@ backtrack : Builder comparable -> Maybe (Builder comparable)
 backtrack builder =
     case builder.path of
         snapshot :: tail ->
-            (case snapshot.rulesRemaining |> Debug.log "remaining" of
+            (case snapshot.rulesRemaining of
                 [] ->
                     { builder
                         | output = snapshot.output
@@ -266,6 +265,14 @@ backtrack builder =
 
         [] ->
             Nothing
+
+
+withOutput : Dict ( Int, Int ) comparable -> Builder comparable -> Builder comparable
+withOutput output builder =
+    { builder
+        | output = output
+        , remaining = output |> Dict.foldl (\k _ -> Dict.remove k) builder.remaining
+    }
 
 
 collapse : ( Int, Int ) -> Rule comparable -> Builder comparable -> Builder comparable
