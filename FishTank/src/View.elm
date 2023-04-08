@@ -58,8 +58,13 @@ tank : { animationFrame : Bool, storeFish : FishId -> msg, tankId : TankId } -> 
 tank args g =
     g.tanks
         |> Dict.get args.tankId
-        |> Maybe.withDefault Set.empty
-        |> Set.toList
+        |> Maybe.map
+            (\dict ->
+                dict
+                    |> Dict.values
+                    |> List.concatMap Set.toList
+            )
+        |> Maybe.withDefault []
         |> List.filterMap
             (\fishId ->
                 g.locations

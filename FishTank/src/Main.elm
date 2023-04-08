@@ -1,6 +1,5 @@
 module Main exposing (..)
 
-import Array
 import Browser
 import Dict
 import Fish exposing (FishId)
@@ -32,7 +31,8 @@ type alias Model =
 type Msg
     = NextAnimationRequested
     | NextMovementRequested
-    | AddFish
+    | MatingTriggered
+    | FeedFish
     | StoreFish FishId
     | LoadFish FishId
     | SellFish FishId
@@ -94,11 +94,11 @@ view model =
                 )
             |> Layout.row []
         , [ Layout.textButton []
-                { label = "Add Fish"
-                , onPress = Just AddFish
+                { label = "Feed Fish"
+                , onPress = Just FeedFish
                 }
           , Layout.textButton []
-                { label = "Sell all Fish"
+                { label = "Sell all stored Fish"
                 , onPress = Just SellAllFishInStorage
                 }
           ]
@@ -117,30 +117,6 @@ view model =
     }
 
 
-pickTwo : List a -> Random (Maybe ( a, a ))
-pickTwo list =
-    let
-        arr =
-            Array.fromList list
-    in
-    Random.map2
-        (\i1 i2 ->
-            Maybe.map2 Tuple.pair
-                (Array.get
-                    (if i1 > i2 then
-                        i2
-
-                     else
-                        i2 + 1
-                    )
-                    arr
-                )
-                (Array.get i1 arr)
-        )
-        (Random.int 0 (List.length list - 1))
-        (Random.int 0 (List.length list - 2))
-
-
 apply : Seed -> Random Model -> Model
 apply s gen =
     Random.step gen s
@@ -155,41 +131,30 @@ update msg model =
             , Cmd.none
             )
 
-        AddFish ->
+        FeedFish ->
             case model.tab of
                 Tank tankId ->
-                    model.game.tanks
-                        |> Dict.get tankId
-                        |> Maybe.withDefault Set.empty
-                        |> Set.toList
-                        |> pickTwo
-                        |> Random.andThen
-                            (\maybe ->
-                                maybe
-                                    |> Maybe.map
-                                        (\( fish1, fish2 ) ->
-                                            Game.randomLocation
-                                                |> Random.andThen
-                                                    (\location ->
-                                                        model.game
-                                                            |> Game.breed location
-                                                                tankId
-                                                                ( fish1, fish2 )
-                                                    )
-                                        )
-                                    |> Maybe.withDefault (Random.constant model.game)
-                            )
-                        |> Random.map (\game -> { model | game = game })
-                        |> apply model.seed
-                        |> (\m -> ( m, Cmd.none ))
+                    ( { model
+                        | game =
+                            model.game
+                                |> Game.feedTank tankId
+                      }
+                    , Cmd.none
+                    )
 
         NextMovementRequested ->
-            model.game.cells
-                |> Dict.values
-                |> List.concatMap Set.toList
+            model.game.tanks
+                |> Dict.toList
+                |> List.concatMap
+                    (\( tankId, dict ) ->
+                        dict
+                            |> Dict.values
+                            |> List.concatMap Set.toList
+                            |> List.map (Tuple.pair tankId)
+                    )
                 |> List.foldl
-                    (\fishId ->
-                        Random.andThen (Game.act fishId)
+                    (\( tankId, fishId ) ->
+                        Random.andThen (Game.act tankId fishId)
                     )
                     (Random.constant model.game)
                 |> Random.map (\game -> { model | game = game })
@@ -238,12 +203,31 @@ update msg model =
         SwitchTab tab ->
             ( { model | tab = tab }, Cmd.none )
 
+        MatingTriggered ->
+            model.game.tanks
+                |> Dict.foldl
+                    (\tankId dict rand ->
+                        dict
+                            |> Dict.values
+                            |> List.concatMap Set.toList
+                            |> List.foldl
+                                (\fishId ->
+                                    Random.andThen (Game.tryMating tankId fishId)
+                                )
+                                rand
+                    )
+                    (Random.constant model.game)
+                |> Random.map (\game -> { model | game = game })
+                |> apply model.seed
+                |> (\m -> ( m, Cmd.none ))
+
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.batch
         [ Time.every 500 (\_ -> NextAnimationRequested)
         , Time.every 1000 (\_ -> NextMovementRequested)
+        , Time.every 1000 (\_ -> MatingTriggered)
         ]
 
 
