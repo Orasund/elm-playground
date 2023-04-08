@@ -12,13 +12,24 @@ type alias Random a =
     Generator a
 
 
+type alias TankId =
+    Int
+
+
+type Goal
+    = Idle
+    | MoveTo ( Int, Int )
+    | Breed
+
+
 type alias Game =
     { fish : Dict FishId Fish
     , nextFishId : FishId
     , locations : Dict FishId ( Float, Float )
     , directions : Dict FishId Float
     , goals : Dict FishId (Maybe ( Float, Float ))
-    , tank : Dict ( Int, Int ) (Set FishId)
+    , cells : Dict ( Int, Int ) (Set FishId)
+    , tanks : Dict TankId (Set FishId)
     , storage : Set FishId
     }
 
@@ -30,7 +41,12 @@ new =
     , locations = Dict.empty
     , directions = Dict.empty
     , goals = Dict.empty
-    , tank = Dict.empty
+    , cells = Dict.empty
+    , tanks =
+        [ ( 0, Set.empty )
+        , ( 1, Set.empty )
+        ]
+            |> Dict.fromList
     , storage = Set.empty
     }
 
@@ -59,13 +75,13 @@ locationToPosition ( x, y ) =
     ( floor x, floor y )
 
 
-addFish : ( Float, Float ) -> Fish -> Game -> Game
-addFish pos fish game =
+addFish : ( Float, Float ) -> TankId -> Fish -> Game -> Game
+addFish pos tankId fish game =
     { game
         | fish = game.fish |> Dict.insert game.nextFishId fish
         , nextFishId = game.nextFishId + 1
     }
-        |> insertIntoTank pos game.nextFishId
+        |> insertIntoTank pos tankId game.nextFishId
 
 
 act : FishId -> Game -> Random Game
@@ -125,7 +141,7 @@ moveTo location fishId game =
         |> Dict.get fishId
         |> Maybe.map
             (\oldLocation ->
-                game.tank
+                game.cells
                     |> Dict.update (locationToPosition oldLocation)
                         (Maybe.map (Set.remove fishId))
                     |> Dict.update (locationToPosition location)
@@ -135,7 +151,7 @@ moveTo location fishId game =
                                 |> Set.insert fishId
                                 |> Just
                         )
-                    |> (\tank ->
+                    |> (\cells ->
                             { game
                                 | locations = game.locations |> Dict.insert fishId location
                                 , directions =
@@ -145,51 +161,39 @@ moveTo location fishId game =
                                                 |> Vector.to location
                                                 |> Vector.angle
                                             )
-                                , tank = tank
+                                , cells = cells
                             }
                        )
             )
         |> Maybe.withDefault game
 
 
-breed : ( Float, Float ) -> ( FishId, FishId ) -> Game -> Random Game
-breed pos ( fishId1, fishId2 ) game =
+breed : ( Float, Float ) -> TankId -> ( FishId, FishId ) -> Game -> Random Game
+breed pos tankId ( fishId1, fishId2 ) game =
     Maybe.map2
         (\fish1 fish2 ->
             Fish.fromParents fish1 fish2
-                |> Random.map (\fish -> addFish pos fish game)
+                |> Random.map (\fish -> addFish pos tankId fish game)
         )
         (game.fish |> Dict.get fishId1)
         (game.fish |> Dict.get fishId2)
         |> Maybe.withDefault (Random.constant game)
 
 
-removeFromTank : FishId -> Game -> Maybe Game
-removeFromTank fishId game =
-    game.locations
-        |> Dict.get fishId
-        |> Maybe.map
-            (\location ->
-                game.tank
-                    |> Dict.update (locationToPosition location)
-                        (Maybe.map (Set.remove fishId))
-            )
-        |> Maybe.map
-            (\tank ->
-                { game
-                    | tank = tank
-                    , directions = game.directions |> Dict.remove fishId
-                    , locations = game.locations |> Dict.remove fishId
-                    , goals = game.goals |> Dict.remove fishId
-                }
-            )
+removeFromTank : TankId -> FishId -> Game -> Game
+removeFromTank tankId fishId game =
+    { game
+        | tanks =
+            game.tanks
+                |> Dict.update tankId
+                    (Maybe.map (Set.remove fishId))
+    }
 
 
-sellFish : FishId -> Game -> Game
-sellFish fishId game =
+sellFish : TankId -> FishId -> Game -> Game
+sellFish tankId fishId game =
     game
-        |> removeFromTank fishId
-        |> Maybe.withDefault game
+        |> removeFromTank tankId fishId
         |> (\g ->
                 { g
                     | storage = game.storage |> Set.remove fishId
@@ -198,14 +202,14 @@ sellFish fishId game =
            )
 
 
-insertIntoTank : ( Float, Float ) -> FishId -> Game -> Game
-insertIntoTank pos fishId game =
+insertIntoTank : ( Float, Float ) -> TankId -> FishId -> Game -> Game
+insertIntoTank pos tankId fishId game =
     { game
         | locations = game.locations |> Dict.insert fishId pos
         , directions = game.directions |> Dict.insert fishId 0
         , goals = game.goals |> Dict.insert fishId Nothing
-        , tank =
-            game.tank
+        , cells =
+            game.cells
                 |> Dict.update (locationToPosition pos)
                     (\maybe ->
                         maybe
@@ -213,21 +217,24 @@ insertIntoTank pos fishId game =
                             |> Set.insert fishId
                             |> Just
                     )
+        , tanks =
+            game.tanks
+                |> Dict.update tankId
+                    (Maybe.map (Set.insert fishId))
     }
 
 
-load : FishId -> Game -> Generator Game
-load fishId game =
+load : TankId -> FishId -> Game -> Generator Game
+load tankId fishId game =
     randomLocation
         |> Random.map
             (\location ->
                 { game | storage = game.storage |> Set.remove fishId }
-                    |> insertIntoTank location fishId
+                    |> insertIntoTank location tankId fishId
             )
 
 
-store : FishId -> Game -> Game
-store fishId game =
-    removeFromTank fishId game
-        |> Maybe.map (\g -> { g | storage = game.storage |> Set.insert fishId })
-        |> Maybe.withDefault game
+store : TankId -> FishId -> Game -> Game
+store tankId fishId game =
+    removeFromTank tankId fishId game
+        |> (\g -> { g | storage = game.storage |> Set.insert fishId })

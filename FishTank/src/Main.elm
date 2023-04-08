@@ -17,9 +17,14 @@ type alias Random a =
     Generator a
 
 
+type Tab
+    = Tank Int
+
+
 type alias Model =
     { seed : Seed
     , game : Game
+    , tab : Tab
     , animationFrame : Bool
     }
 
@@ -32,6 +37,7 @@ type Msg
     | LoadFish FishId
     | SellFish FishId
     | SellAllFishInStorage
+    | SwitchTab Tab
 
 
 init : () -> ( Model, Cmd Msg )
@@ -57,12 +63,16 @@ init () =
                     )
                     (Random.constant [])
                 |> (\gen -> Random.step gen (Random.initialSeed 42))
+
+        tankId =
+            0
     in
     ( { seed = seed
       , game =
             fish
-                |> List.foldl (\( f, p ) -> Game.addFish p f)
+                |> List.foldl (\( f, p ) -> Game.addFish p tankId f)
                     Game.new
+      , tab = Tank tankId
       , animationFrame = False
       }
     , Cmd.none
@@ -73,7 +83,17 @@ view : Model -> Browser.Document Msg
 view model =
     { title = "Fish Tank"
     , body =
-        [ [ Layout.textButton []
+        [ model.game.tanks
+            |> Dict.keys
+            |> List.map
+                (\tankId ->
+                    Layout.textButton []
+                        { label = "Tank " ++ String.fromInt tankId
+                        , onPress = Just (SwitchTab (Tank tankId))
+                        }
+                )
+            |> Layout.row []
+        , [ Layout.textButton []
                 { label = "Add Fish"
                 , onPress = Just AddFish
                 }
@@ -83,13 +103,16 @@ view model =
                 }
           ]
             |> Layout.row []
-        , model.game
-            |> View.game
-                { animationFrame = model.animationFrame
-                , storeFish = StoreFish
-                , loadFish = LoadFish
-                , sellFish = SellFish
-                }
+        , case model.tab of
+            Tank tankId ->
+                model.game
+                    |> View.game
+                        { animationFrame = model.animationFrame
+                        , storeFish = StoreFish
+                        , loadFish = LoadFish
+                        , sellFish = SellFish
+                        , tankId = tankId
+                        }
         ]
     }
 
@@ -133,30 +156,35 @@ update msg model =
             )
 
         AddFish ->
-            model.game.tank
-                |> Dict.values
-                |> List.concatMap Set.toList
-                |> pickTwo
-                |> Random.andThen
-                    (\maybe ->
-                        maybe
-                            |> Maybe.map
-                                (\( fish1, fish2 ) ->
-                                    Game.randomLocation
-                                        |> Random.andThen
-                                            (\location ->
-                                                model.game
-                                                    |> Game.breed location ( fish1, fish2 )
-                                            )
-                                )
-                            |> Maybe.withDefault (Random.constant model.game)
-                    )
-                |> Random.map (\game -> { model | game = game })
-                |> apply model.seed
-                |> (\m -> ( m, Cmd.none ))
+            case model.tab of
+                Tank tankId ->
+                    model.game.tanks
+                        |> Dict.get tankId
+                        |> Maybe.withDefault Set.empty
+                        |> Set.toList
+                        |> pickTwo
+                        |> Random.andThen
+                            (\maybe ->
+                                maybe
+                                    |> Maybe.map
+                                        (\( fish1, fish2 ) ->
+                                            Game.randomLocation
+                                                |> Random.andThen
+                                                    (\location ->
+                                                        model.game
+                                                            |> Game.breed location
+                                                                tankId
+                                                                ( fish1, fish2 )
+                                                    )
+                                        )
+                                    |> Maybe.withDefault (Random.constant model.game)
+                            )
+                        |> Random.map (\game -> { model | game = game })
+                        |> apply model.seed
+                        |> (\m -> ( m, Cmd.none ))
 
         NextMovementRequested ->
-            model.game.tank
+            model.game.cells
                 |> Dict.values
                 |> List.concatMap Set.toList
                 |> List.foldl
@@ -169,32 +197,46 @@ update msg model =
                 |> (\m -> ( m, Cmd.none ))
 
         StoreFish fishId ->
-            ( { model | game = model.game |> Game.store fishId }, Cmd.none )
+            case model.tab of
+                Tank tankId ->
+                    ( { model | game = model.game |> Game.store tankId fishId }
+                    , Cmd.none
+                    )
 
         LoadFish fishId ->
-            model.game
-                |> Game.load fishId
-                |> Random.map (\game -> { model | game = game })
-                |> apply model.seed
-                |> (\m -> ( m, Cmd.none ))
+            case model.tab of
+                Tank tankId ->
+                    model.game
+                        |> Game.load tankId fishId
+                        |> Random.map (\game -> { model | game = game })
+                        |> apply model.seed
+                        |> (\m -> ( m, Cmd.none ))
 
         SellFish fishId ->
-            ( { model
-                | game =
-                    model.game
-                        |> Game.sellFish fishId
-              }
-            , Cmd.none
-            )
+            case model.tab of
+                Tank tankId ->
+                    ( { model
+                        | game =
+                            model.game
+                                |> Game.sellFish tankId fishId
+                      }
+                    , Cmd.none
+                    )
 
         SellAllFishInStorage ->
-            ( { model
-                | game =
-                    model.game.storage
-                        |> Set.foldl Game.sellFish model.game
-              }
-            , Cmd.none
-            )
+            case model.tab of
+                Tank tankId ->
+                    ( { model
+                        | game =
+                            model.game.storage
+                                |> Set.foldl (Game.sellFish tankId)
+                                    model.game
+                      }
+                    , Cmd.none
+                    )
+
+        SwitchTab tab ->
+            ( { model | tab = tab }, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg

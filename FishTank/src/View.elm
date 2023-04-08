@@ -4,10 +4,10 @@ import Color exposing (Color)
 import Config
 import Dict
 import Fish exposing (BitColor(..), Fish, FishId)
-import Game exposing (Game)
+import Game exposing (Game, TankId)
 import Html exposing (Attribute, Html)
 import Html.Attributes
-import Html.Events
+import Html.Keyed
 import Image
 import Image.Color
 import Layout
@@ -22,6 +22,7 @@ game :
     , storeFish : FishId -> msg
     , loadFish : FishId -> msg
     , sellFish : FishId -> msg
+    , tankId : TankId
     }
     -> Game
     -> Html msg
@@ -29,6 +30,7 @@ game args g =
     [ tank
         { animationFrame = args.animationFrame
         , storeFish = args.storeFish
+        , tankId = args.tankId
         }
         g
     , g.storage
@@ -52,10 +54,18 @@ game args g =
         |> Layout.column []
 
 
-tank : { animationFrame : Bool, storeFish : FishId -> msg } -> Game -> Html msg
+tank : { animationFrame : Bool, storeFish : FishId -> msg, tankId : TankId } -> Game -> Html msg
 tank args g =
-    g.locations
-        |> Dict.toList
+    g.tanks
+        |> Dict.get args.tankId
+        |> Maybe.withDefault Set.empty
+        |> Set.toList
+        |> List.filterMap
+            (\fishId ->
+                g.locations
+                    |> Dict.get fishId
+                    |> Maybe.map (Tuple.pair fishId)
+            )
         |> List.filterMap
             (\( fishId, ( x, y ) ) ->
                 Maybe.map2
@@ -85,13 +95,16 @@ tank args g =
                                         }
                                 )
                                 { animationFrame = args.animationFrame }
+                            |> Tuple.pair (String.fromInt fishId)
                     )
                     (Dict.get fishId g.fish)
                     (Dict.get fishId g.directions)
             )
-        |> Html.div
+        |> Html.Keyed.node "div"
             [ Html.Attributes.style "position" "relative"
             , Html.Attributes.style "height" (String.fromFloat (Config.gridSize * Config.tankHeight) ++ "px")
+            , Html.Attributes.style "width" (String.fromFloat (Config.gridSize * Config.tankWidth) ++ "px")
+            , Html.Attributes.style "background-image" "linear-gradient(0deg,#A9C397 0%,#CEE5F2 100%)"
             ]
 
 
