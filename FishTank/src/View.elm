@@ -1,27 +1,102 @@
 module View exposing (..)
 
 import Color exposing (Color)
-import Fish exposing (BitColor(..), Fish)
-import Html exposing (Html)
+import Config
+import Dict
+import Fish exposing (BitColor(..), Fish, FishId)
+import Game exposing (Game)
+import Html exposing (Attribute, Html)
 import Html.Attributes
+import Html.Events
 import Image
 import Image.Color
 import Layout
 import Rule exposing (Pattern(..))
+import Set
 import Svg.Path
 import Svg.Writer
 
 
-tank : { animationFrame : Bool } -> List Fish -> Html msg
-tank args patterns =
-    patterns
-        |> List.reverse
-        |> List.map (fish { animationFrame = args.animationFrame })
+game :
+    { animationFrame : Bool
+    , storeFish : FishId -> msg
+    , loadFish : FishId -> msg
+    , sellFish : FishId -> msg
+    }
+    -> Game
+    -> Html msg
+game args g =
+    [ tank
+        { animationFrame = args.animationFrame
+        , storeFish = args.storeFish
+        }
+        g
+    , g.storage
+        |> Set.toList
+        |> List.filterMap
+            (\fishId ->
+                g.fish
+                    |> Dict.get fishId
+                    |> Maybe.map (Tuple.pair fishId)
+            )
+        |> List.map
+            (\( fishId, fish ) ->
+                fish
+                    |> fishWithInfos []
+                        { load = args.loadFish fishId
+                        , sell = args.sellFish fishId
+                        }
+            )
         |> Layout.row [ Layout.gap 16 ]
+    ]
+        |> Layout.column []
 
 
-fish : { animationFrame : Bool } -> Fish -> Html msg
-fish args f =
+tank : { animationFrame : Bool, storeFish : FishId -> msg } -> Game -> Html msg
+tank args g =
+    g.locations
+        |> Dict.toList
+        |> List.filterMap
+            (\( fishId, ( x, y ) ) ->
+                Maybe.map2
+                    (\fish direction ->
+                        fish
+                            |> fishSprite
+                                ([ Html.Attributes.style "position" "absolute"
+                                 , Html.Attributes.style "left"
+                                    (String.fromFloat (Config.gridSize * x) ++ "px")
+                                 , Html.Attributes.style "top"
+                                    (String.fromFloat (Config.gridSize * y) ++ "px")
+                                 , Html.Attributes.style "transition" "left 1s linear, top 1s linear"
+                                 , (if direction < -pi / 2 then
+                                        "scale( -1,1)"
+
+                                    else if direction < pi / 2 then
+                                        "scale(1,1)"
+
+                                    else
+                                        "scale(-1,1)"
+                                   )
+                                    |> Html.Attributes.style "transform"
+                                 ]
+                                    ++ Layout.asButton
+                                        { onPress = args.storeFish fishId |> Just
+                                        , label = "Store Fish"
+                                        }
+                                )
+                                { animationFrame = args.animationFrame }
+                    )
+                    (Dict.get fishId g.fish)
+                    (Dict.get fishId g.directions)
+            )
+        |> Html.div
+            [ Html.Attributes.style "position" "relative"
+            , Html.Attributes.style "height" (String.fromFloat (Config.gridSize * Config.tankHeight) ++ "px")
+            ]
+
+
+fishSprite : List (Attribute msg) -> { animationFrame : Bool } -> Fish -> Html msg
+fishSprite attrs args f =
     Fish.toBitmap { animate = args.animationFrame } f.pattern
         |> List.map
             (List.map
@@ -48,61 +123,88 @@ fish args f =
         |> Image.Color.fromList2d
         |> Image.toPngUrl
         |> (\url ->
-                Layout.column []
-                    [ Html.img
-                        [ Html.Attributes.src url
-                        , Html.Attributes.style "width" "64px"
-                        , Html.Attributes.style "image-rendering" "pixelated"
-                        ]
-                        []
-                    , f.rules
-                        |> List.map
-                            (\( b, p ) ->
-                                patternCircle
-                                    (if b then
-                                        f.secondary
-
-                                     else
-                                        f.primary
-                                    )
-                                    p
-                            )
-                        |> Layout.row []
-                    ]
+                Html.img
+                    ([ Html.Attributes.src url
+                     , Html.Attributes.style "width" "64px"
+                     , Html.Attributes.style "image-rendering" "pixelated"
+                     ]
+                        ++ attrs
+                    )
+                    []
            )
+
+
+fishWithInfos : List (Attribute msg) -> { load : msg, sell : msg } -> Fish -> Html msg
+fishWithInfos attrs args f =
+    let
+        ( rules1, rules2 ) =
+            f.rules
+                |> List.map
+                    (\( b, p ) ->
+                        ( b
+                        , patternCircle
+                            (if b then
+                                f.secondary
+
+                             else
+                                f.primary
+                            )
+                            p
+                        )
+                    )
+                |> List.partition Tuple.first
+    in
+    Layout.column attrs
+        [ f
+            |> fishSprite
+                (Layout.asButton
+                    { label = "Return to Tank"
+                    , onPress = Just args.load
+                    }
+                )
+                { animationFrame = False }
+        , rules1
+            |> List.map Tuple.second
+            |> Layout.row []
+        , rules2
+            |> List.map Tuple.second
+            |> Layout.row []
+        , Layout.textButton []
+            { label = "Sell"
+            , onPress = Just args.sell
+            }
+        ]
 
 
 patternCircle : Color -> Pattern -> Html msg
 patternCircle color p =
     (case p of
         Horizontal ->
-            Svg.Path.startAt ( 0, 10 )
-                |> Svg.Path.drawLineTo ( 20, 10 )
+            Svg.Path.startAt ( 0, 5 )
+                |> Svg.Path.drawLineTo ( 10, 5 )
                 |> Svg.Path.end
 
         Vertical ->
-            Svg.Path.startAt ( 10, 0 )
-                |> Svg.Path.drawLineTo ( 10, 20 )
+            Svg.Path.startAt ( 5, 0 )
+                |> Svg.Path.drawLineTo ( 5, 10 )
                 |> Svg.Path.end
 
         BottomUp ->
-            Svg.Path.startAt ( 0, 20 )
-                |> Svg.Path.drawLineTo ( 20, 0 )
+            Svg.Path.startAt ( 0, 10 )
+                |> Svg.Path.drawLineTo ( 10, 0 )
                 |> Svg.Path.end
 
         TopDown ->
             Svg.Path.startAt ( 0, 0 )
-                |> Svg.Path.drawLineTo ( 20, 20 )
+                |> Svg.Path.drawLineTo ( 10, 10 )
                 |> Svg.Path.end
     )
         |> Svg.Writer.path
-        |> Svg.Writer.withStrokeWidth 5
+        |> Svg.Writer.withStrokeWidth 3
         |> Svg.Writer.withStrokeColor (Color.toCssString color)
         |> List.singleton
         |> Svg.Writer.toHtml
-            [ Html.Attributes.style "width" "20px"
-            , Html.Attributes.style "height" "20px"
-            , Html.Attributes.style "border-radius" "100%"
-            , Html.Attributes.style "border" ("5px solid " ++ Color.toCssString color)
+            [ Html.Attributes.style "border-radius" "100%"
+            , Html.Attributes.style "border" ("3px solid " ++ Color.toCssString color)
             ]
-            { width = 20, height = 20 }
+            { width = 10, height = 10 }

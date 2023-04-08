@@ -3,7 +3,7 @@ module Fish exposing (..)
 import Color exposing (Color)
 import Config
 import Dict exposing (Dict)
-import Html exposing (i)
+import Html exposing (p)
 import Random exposing (Generator)
 import Rule exposing (Pattern(..))
 import Set exposing (Set)
@@ -12,6 +12,10 @@ import WaveFunCollapse
 
 type alias Random a =
     Generator a
+
+
+type alias FishId =
+    Int
 
 
 type alias Fish =
@@ -284,13 +288,35 @@ fromParents fish1 fish2 =
                         else
                             Nothing
                     )
-                |> Debug.log "commons"
+
+        randOutput =
+            Random.float 0 1
+                |> Random.list (List.length commonPositions)
+                |> Random.map
+                    (\randList ->
+                        List.map2 Tuple.pair
+                            commonPositions
+                            randList
+                            |> List.filterMap
+                                (\( p, r ) ->
+                                    if r < 0.95 then
+                                        Just p
+
+                                    else
+                                        Nothing
+                                )
+                    )
+                |> Random.map Dict.fromList
     in
-    positions
-        |> WaveFunCollapse.new rules
-        |> WaveFunCollapse.withOutput (Dict.fromList commonPositions)
-        |> WaveFunCollapse.checkRemaining
-        |> WaveFunCollapse.build
+    randOutput
+        |> Random.map
+            (\output ->
+                positions
+                    |> WaveFunCollapse.new rules
+                    |> WaveFunCollapse.withOutput output
+            )
+        |> Random.map WaveFunCollapse.checkRemaining
+        |> Random.andThen WaveFunCollapse.build
         |> Random.map
             (\maybe ->
                 maybe

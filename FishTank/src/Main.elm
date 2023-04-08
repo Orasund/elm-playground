@@ -2,10 +2,14 @@ module Main exposing (..)
 
 import Array
 import Browser
-import Fish exposing (Fish)
+import Dict
+import Fish exposing (FishId)
+import Game exposing (Game)
 import Layout
 import Random exposing (Generator, Seed)
 import Rule exposing (Pattern(..))
+import Set
+import Time
 import View
 
 
@@ -15,14 +19,19 @@ type alias Random a =
 
 type alias Model =
     { seed : Seed
-    , fish : List Fish
+    , game : Game
     , animationFrame : Bool
     }
 
 
 type Msg
     = NextAnimationRequested
+    | NextMovementRequested
     | AddFish
+    | StoreFish FishId
+    | LoadFish FishId
+    | SellFish FishId
+    | SellAllFishInStorage
 
 
 init : () -> ( Model, Cmd Msg )
@@ -32,7 +41,7 @@ init () =
             [ Horizontal, Vertical, TopDown, BottomUp ]
                 |> List.map (Tuple.pair a)
 
-        ( patterns, seed ) =
+        ( fish, seed ) =
             [ r True ++ r False
             , r True ++ r False
             ]
@@ -40,8 +49,9 @@ init () =
                     (\rules ->
                         Random.andThen
                             (\l ->
-                                rules
-                                    |> Fish.generate
+                                Random.pair
+                                    (Fish.generate rules)
+                                    Game.randomLocation
                                     |> Random.map (\p -> p :: l)
                             )
                     )
@@ -49,7 +59,10 @@ init () =
                 |> (\gen -> Random.step gen (Random.initialSeed 42))
     in
     ( { seed = seed
-      , fish = patterns
+      , game =
+            fish
+                |> List.foldl (\( f, p ) -> Game.addFish p f)
+                    Game.new
       , animationFrame = False
       }
     , Cmd.none
@@ -60,14 +73,23 @@ view : Model -> Browser.Document Msg
 view model =
     { title = "Fish Tank"
     , body =
-        [ View.tank
-            { animationFrame = model.animationFrame
-            }
-            model.fish
-        , Layout.textButton []
-            { label = "Add Fish"
-            , onPress = Just AddFish
-            }
+        [ [ Layout.textButton []
+                { label = "Add Fish"
+                , onPress = Just AddFish
+                }
+          , Layout.textButton []
+                { label = "Sell all Fish"
+                , onPress = Just SellAllFishInStorage
+                }
+          ]
+            |> Layout.row []
+        , model.game
+            |> View.game
+                { animationFrame = model.animationFrame
+                , storeFish = StoreFish
+                , loadFish = LoadFish
+                , sellFish = SellFish
+                }
         ]
     }
 
@@ -111,41 +133,76 @@ update msg model =
             )
 
         AddFish ->
-            model.fish
+            model.game.tank
+                |> Dict.values
+                |> List.concatMap Set.toList
                 |> pickTwo
                 |> Random.andThen
                     (\maybe ->
                         maybe
                             |> Maybe.map
                                 (\( fish1, fish2 ) ->
-                                    Fish.fromParents fish1 fish2
-                                        |> Random.map Just
+                                    Game.randomLocation
+                                        |> Random.andThen
+                                            (\location ->
+                                                model.game
+                                                    |> Game.breed location ( fish1, fish2 )
+                                            )
                                 )
-                            |> Maybe.withDefault (Random.constant Nothing)
+                            |> Maybe.withDefault (Random.constant model.game)
                     )
-                |> Random.map
-                    (\maybe ->
-                        { model
-                            | fish =
-                                maybe
-                                    |> Maybe.map
-                                        (\fish ->
-                                            fish :: model.fish
-                                        )
-                                    |> Maybe.withDefault model.fish
-                        }
-                    )
+                |> Random.map (\game -> { model | game = game })
                 |> apply model.seed
                 |> (\m -> ( m, Cmd.none ))
+
+        NextMovementRequested ->
+            model.game.tank
+                |> Dict.values
+                |> List.concatMap Set.toList
+                |> List.foldl
+                    (\fishId ->
+                        Random.andThen (Game.act fishId)
+                    )
+                    (Random.constant model.game)
+                |> Random.map (\game -> { model | game = game })
+                |> apply model.seed
+                |> (\m -> ( m, Cmd.none ))
+
+        StoreFish fishId ->
+            ( { model | game = model.game |> Game.store fishId }, Cmd.none )
+
+        LoadFish fishId ->
+            model.game
+                |> Game.load fishId
+                |> Random.map (\game -> { model | game = game })
+                |> apply model.seed
+                |> (\m -> ( m, Cmd.none ))
+
+        SellFish fishId ->
+            ( { model
+                | game =
+                    model.game
+                        |> Game.sellFish fishId
+              }
+            , Cmd.none
+            )
+
+        SellAllFishInStorage ->
+            ( { model
+                | game =
+                    model.game.storage
+                        |> Set.foldl Game.sellFish model.game
+              }
+            , Cmd.none
+            )
 
 
 subscriptions : Model -> Sub Msg
 subscriptions _ =
-    Sub.none
-
-
-
---Time.every 500 (\_ -> NextAnimationRequested)
+    Sub.batch
+        [ Time.every 500 (\_ -> NextAnimationRequested)
+        , Time.every 1000 (\_ -> NextMovementRequested)
+        ]
 
 
 main : Program () Model Msg
