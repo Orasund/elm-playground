@@ -15,6 +15,7 @@ import Rule exposing (Pattern(..))
 import Set
 import Svg.Path
 import Svg.Writer
+import Tank
 
 
 game :
@@ -58,17 +59,13 @@ tank : { animationFrame : Bool, storeFish : FishId -> msg, tankId : TankId } -> 
 tank args g =
     g.tanks
         |> Dict.get args.tankId
-        |> Maybe.map
-            (\dict ->
-                dict
-                    |> Dict.values
-                    |> List.concatMap Set.toList
-            )
+        |> Maybe.map Tank.fishIds
         |> Maybe.withDefault []
         |> List.filterMap
             (\fishId ->
-                g.locations
-                    |> Dict.get fishId
+                g.tanks
+                    |> Dict.get args.tankId
+                    |> Maybe.andThen (Tank.getFishLocation fishId)
                     |> Maybe.map (Tuple.pair fishId)
             )
         |> List.filterMap

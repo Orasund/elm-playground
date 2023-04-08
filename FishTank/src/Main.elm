@@ -8,6 +8,7 @@ import Layout
 import Random exposing (Generator, Seed)
 import Rule exposing (Pattern(..))
 import Set
+import Tank
 import Time
 import View
 
@@ -146,10 +147,9 @@ update msg model =
             model.game.tanks
                 |> Dict.toList
                 |> List.concatMap
-                    (\( tankId, dict ) ->
-                        dict
-                            |> Dict.values
-                            |> List.concatMap Set.toList
+                    (\( tankId, tank ) ->
+                        tank
+                            |> Tank.fishIds
                             |> List.map (Tuple.pair tankId)
                     )
                 |> List.foldl
@@ -206,10 +206,9 @@ update msg model =
         MatingTriggered ->
             model.game.tanks
                 |> Dict.foldl
-                    (\tankId dict rand ->
-                        dict
-                            |> Dict.values
-                            |> List.concatMap Set.toList
+                    (\tankId tank rand ->
+                        tank
+                            |> Tank.fishIds
                             |> List.foldl
                                 (\fishId ->
                                     Random.andThen (Game.tryMating tankId fishId)
