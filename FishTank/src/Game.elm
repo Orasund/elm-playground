@@ -4,6 +4,7 @@ import Array
 import Config
 import Dict exposing (Dict)
 import Fish exposing (Fish, FishId)
+import Internal
 import Random exposing (Generator)
 import Set exposing (Set)
 import Tank exposing (Tank)
@@ -35,7 +36,7 @@ type alias Game =
     , tanks : Dict TankId Tank
     , storage : Set FishId
     , fed : Set FishId
-    , food : Dict FoodId ( Float, Float )
+    , nextFoodId : FoodId
     }
 
 
@@ -52,7 +53,7 @@ new =
             |> Dict.fromList
     , storage = Set.empty
     , fed = Set.empty
-    , food = Dict.empty
+    , nextFoodId = 0
     }
 
 
@@ -113,9 +114,9 @@ tryMating tankId fishId game =
     if Set.member fishId game.fed then
         game.tanks
             |> Dict.get tankId
-            |> Maybe.map Tank.fishIds
-            |> Maybe.withDefault []
-            |> Set.fromList
+            |> Maybe.map (Tank.getFishCell fishId)
+            |> Maybe.map .fish
+            |> Maybe.withDefault Set.empty
             |> Set.intersect game.fed
             |> Set.remove fishId
             |> Set.toList
@@ -134,7 +135,7 @@ tryMating tankId fishId game =
                         |> Maybe.map
                             (\fish ->
                                 game
-                                    |> breed tankId ( fishId, fish )
+                                    |> mate tankId ( fishId, fish )
                             )
                         |> Maybe.withDefault (Random.constant game)
                 )
@@ -143,24 +144,115 @@ tryMating tankId fishId game =
         Random.constant game
 
 
+tryEating : TankId -> FishId -> Game -> Maybe Game
+tryEating tankId fishId game =
+    game.tanks
+        |> Dict.get tankId
+        |> Maybe.andThen
+            (\tank ->
+                tank
+                    |> Tank.getFishLocation fishId
+                    |> Maybe.map (Tuple.pair tank)
+            )
+        |> Maybe.map
+            (\( tank, location ) ->
+                tank
+                    |> Tank.getCell location
+            )
+        |> Maybe.andThen
+            (\cell ->
+                cell.food
+                    |> Set.toList
+                    |> List.head
+            )
+        |> Maybe.map
+            (\foodId ->
+                game |> eat { tankId = tankId, foodId = foodId, fishId = fishId }
+            )
+
+
+eat :
+    { tankId : TankId
+    , foodId : FoodId
+    , fishId : FishId
+    }
+    -> Game
+    -> Game
+eat args game =
+    { game
+        | tanks =
+            game.tanks
+                |> Dict.update args.tankId
+                    (Maybe.map (Tank.removeFood args.foodId))
+        , fed = game.fed |> Set.insert args.fishId
+        , fish =
+            game.fish
+                |> Dict.update args.fishId
+                    (Maybe.map (\fish -> { fish | size = fish.size + 1 }))
+    }
+
+
+startMoving : TankId -> FishId -> Game -> Random Game
+startMoving tankId fishId game =
+    game.tanks
+        |> Dict.get tankId
+        |> Maybe.andThen
+            (\tank ->
+                tank
+                    |> Tank.getFishLocation fishId
+                    |> Maybe.map
+                        (\currentLocation ->
+                            (if game.fed |> Set.member fishId then
+                                Nothing
+
+                             else
+                                tank
+                                    |> Tank.getFoods
+                                    |> Dict.toList
+                                    |> Internal.minBy
+                                        (\( _, location ) ->
+                                            currentLocation
+                                                |> Vector.to location
+                                                |> Vector.length
+                                        )
+                                    |> Maybe.map Tuple.second
+                                    |> Maybe.map Random.constant
+                            )
+                                |> Maybe.withDefault randomLocation
+                                |> Random.map
+                                    (\location ->
+                                        { game
+                                            | goals = game.goals |> Dict.insert fishId (MoveTo location)
+                                            , directions =
+                                                game.directions
+                                                    |> Dict.insert fishId
+                                                        (currentLocation |> Vector.to location |> Vector.angle)
+                                        }
+                                    )
+                        )
+            )
+        |> Maybe.withDefault (Random.constant game)
+
+
 act : TankId -> FishId -> Game -> Random Game
 act tankId fishId game =
     Maybe.map2
         (\currentLocation goal ->
             case goal of
                 Idle ->
-                    randomLocation
-                        |> Random.map
-                            (\location ->
-                                { game
-                                    | goals = game.goals |> Dict.insert fishId (MoveTo location)
-                                    , directions =
-                                        game.directions
-                                            |> Dict.insert fishId
-                                                (currentLocation |> Vector.to location |> Vector.angle)
-                                }
-                            )
-                        |> Random.andThen (act tankId fishId)
+                    case
+                        if game.fed |> Set.member fishId |> not then
+                            tryEating tankId fishId game
+
+                        else
+                            Nothing
+                    of
+                        Just a ->
+                            Random.constant a
+
+                        Nothing ->
+                            startMoving tankId fishId game
+                                |> Random.andThen (act tankId fishId)
 
                 MoveTo location ->
                     currentLocation
@@ -219,20 +311,20 @@ moveTo tankId location fishId game =
         |> Maybe.withDefault game
 
 
-breed : TankId -> ( FishId, FishId ) -> Game -> Random Game
-breed tankId ( fishId1, fishId2 ) game =
+mate : TankId -> ( FishId, FishId ) -> Game -> Random Game
+mate tankId ( fishId1, fishId2 ) game =
     Maybe.map3
         (\location fish1 fish2 ->
             Fish.fromParents fish1 fish2
                 |> Random.map
-                    (\fish ->
+                    (\newFish ->
                         { game
                             | fed =
                                 game.fed
                                     |> Set.remove fishId1
                                     |> Set.remove fishId2
                         }
-                            |> addFish location tankId fish
+                            |> addFish location tankId newFish
                     )
         )
         (game.tanks |> Dict.get tankId |> Maybe.andThen (Tank.getFishLocation fishId1))
@@ -293,24 +385,19 @@ store tankId fishId game =
         |> (\g -> { g | storage = game.storage |> Set.insert fishId })
 
 
-feedTank : TankId -> Game -> Game
-feedTank tankId game =
-    { game
-        | fed =
-            game.tanks
-                |> Dict.get tankId
-                |> Maybe.map Tank.fishIds
-                |> Maybe.withDefault []
-                |> Set.fromList
-                |> Set.union game.fed
-    }
-
-
-
-{--addFood : TankId -> Game -> Random Game
+addFood : TankId -> Game -> Random Game
 addFood tankId game =
     randomLocation
         |> Random.map
             (\location ->
-                game.food |> Dict
-            )--}
+                game.tanks
+                    |> Dict.update tankId
+                        (Maybe.map (Tank.insertFood location game.nextFoodId))
+            )
+        |> Random.map
+            (\tanks ->
+                { game
+                    | tanks = tanks
+                    , nextFoodId = game.nextFoodId + 1
+                }
+            )

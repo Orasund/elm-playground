@@ -5,8 +5,12 @@ spriteSize =
     16
 
 
+fishMinSize =
+    32
+
+
 tankWidth =
-    10
+    5
 
 
 tankHeight =
@@ -14,4 +18,4 @@ tankHeight =
 
 
 gridSize =
-    50
+    64

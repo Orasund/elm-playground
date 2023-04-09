@@ -135,13 +135,11 @@ update msg model =
         FeedFish ->
             case model.tab of
                 Tank tankId ->
-                    ( { model
-                        | game =
-                            model.game
-                                |> Game.feedTank tankId
-                      }
-                    , Cmd.none
-                    )
+                    model.game
+                        |> Game.addFood tankId
+                        |> Random.map (\game -> { model | game = game })
+                        |> apply model.seed
+                        |> (\m -> ( m, Cmd.none ))
 
         NextMovementRequested ->
             model.game.tanks

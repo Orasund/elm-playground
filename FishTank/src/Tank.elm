@@ -10,7 +10,9 @@ type alias FoodId =
 
 
 type alias Cell =
-    { fish : Set FishId }
+    { fish : Set FishId
+    , food : Set FoodId
+    }
 
 
 type alias Tank =
@@ -30,7 +32,7 @@ empty =
 
 emptyCell : Cell
 emptyCell =
-    { fish = Set.empty }
+    { fish = Set.empty, food = Set.empty }
 
 
 toPosition : ( Float, Float ) -> ( Int, Int )
@@ -54,6 +56,22 @@ insertFish location fishId tank =
     }
 
 
+insertFood : ( Float, Float ) -> FoodId -> Tank -> Tank
+insertFood location foodId tank =
+    { tank
+        | foodLocations = tank.foodLocations |> Dict.insert foodId location
+        , cells =
+            tank.cells
+                |> Dict.update (toPosition location)
+                    (\maybe ->
+                        maybe
+                            |> Maybe.withDefault emptyCell
+                            |> (\cell -> { cell | food = cell.food |> Set.insert foodId })
+                            |> Just
+                    )
+    }
+
+
 removeFish : FishId -> Tank -> Tank
 removeFish fishId tank =
     tank.fishLocations
@@ -66,6 +84,23 @@ removeFish fishId tank =
                         tank.cells
                             |> Dict.update (toPosition location)
                                 (Maybe.map (\cell -> { cell | fish = cell.fish |> Set.remove fishId }))
+                }
+            )
+        |> Maybe.withDefault tank
+
+
+removeFood : FoodId -> Tank -> Tank
+removeFood foodId tank =
+    tank.foodLocations
+        |> Dict.get foodId
+        |> Maybe.map
+            (\location ->
+                { tank
+                    | foodLocations = tank.foodLocations |> Dict.remove foodId
+                    , cells =
+                        tank.cells
+                            |> Dict.update (toPosition location)
+                                (Maybe.map (\cell -> { cell | food = cell.food |> Set.remove foodId }))
                 }
             )
         |> Maybe.withDefault tank
@@ -100,6 +135,30 @@ fishIds tank =
     tank.fishLocations |> Dict.keys
 
 
+getFoods : Tank -> Dict FoodId ( Float, Float )
+getFoods tank =
+    tank.foodLocations
+
+
+getFish : Tank -> Dict FishId ( Float, Float )
+getFish tank =
+    tank.fishLocations
+
+
 getFishLocation : FishId -> Tank -> Maybe ( Float, Float )
 getFishLocation fishId tank =
     tank.fishLocations |> Dict.get fishId
+
+
+getCell : ( Float, Float ) -> Tank -> Cell
+getCell location tank =
+    tank.cells
+        |> Dict.get (toPosition location)
+        |> Maybe.withDefault emptyCell
+
+
+getFishCell : FishId -> Tank -> Cell
+getFishCell fishId tank =
+    getFishLocation fishId tank
+        |> Maybe.map (\location -> getCell location tank)
+        |> Maybe.withDefault emptyCell

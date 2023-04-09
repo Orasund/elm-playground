@@ -57,7 +57,7 @@ game args g =
 
 tank : { animationFrame : Bool, storeFish : FishId -> msg, tankId : TankId } -> Game -> Html msg
 tank args g =
-    g.tanks
+    [ g.tanks
         |> Dict.get args.tankId
         |> Maybe.map Tank.fishIds
         |> Maybe.withDefault []
@@ -97,15 +97,39 @@ tank args g =
                                         }
                                 )
                                 { animationFrame = args.animationFrame }
-                            |> Tuple.pair (String.fromInt fishId)
+                            |> Tuple.pair ("fish" ++ String.fromInt fishId)
                     )
                     (Dict.get fishId g.fish)
                     (Dict.get fishId g.directions)
             )
+    , g.tanks
+        |> Dict.get args.tankId
+        |> Maybe.map Tank.getFoods
+        |> Maybe.withDefault Dict.empty
+        |> Dict.toList
+        |> List.map
+            (\( foodId, ( x, y ) ) ->
+                Html.div
+                    [ Html.Attributes.style "position" "absolute"
+                    , Html.Attributes.style "left"
+                        (String.fromFloat (Config.gridSize * x) ++ "px")
+                    , Html.Attributes.style "top"
+                        (String.fromFloat (Config.gridSize * y) ++ "px")
+                    , Html.Attributes.style "transition" "left 1s linear, top 1s linear"
+                    , Html.Attributes.style "background-color" "yellow"
+                    , Html.Attributes.style "height" "10px"
+                    , Html.Attributes.style "width" "10px"
+                    ]
+                    []
+                    |> Tuple.pair ("food" ++ String.fromInt foodId)
+            )
+    ]
+        |> List.concat
         |> Html.Keyed.node "div"
             [ Html.Attributes.style "position" "relative"
             , Html.Attributes.style "height" (String.fromFloat (Config.gridSize * Config.tankHeight) ++ "px")
             , Html.Attributes.style "width" (String.fromFloat (Config.gridSize * Config.tankWidth) ++ "px")
+            , Html.Attributes.style "border-radius" "0 0 16px 16px "
             , Html.Attributes.style "background-image" "linear-gradient(0deg,#A9C397 0%,#CEE5F2 100%)"
             ]
 
@@ -140,7 +164,7 @@ fishSprite attrs args f =
         |> (\url ->
                 Html.img
                     ([ Html.Attributes.src url
-                     , Html.Attributes.style "width" "64px"
+                     , Html.Attributes.style "width" (String.fromInt (Config.fishMinSize + 2 * f.size) ++ "px")
                      , Html.Attributes.style "image-rendering" "pixelated"
                      ]
                         ++ attrs

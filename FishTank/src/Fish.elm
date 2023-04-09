@@ -23,6 +23,7 @@ type alias Fish =
     , rules : List ( Bool, Pattern )
     , primary : Color
     , secondary : Color
+    , size : Int
     }
 
 
@@ -114,6 +115,7 @@ fromPattern p =
 
             _ ->
                 Color.darkRed
+    , size = 1
     }
 
 
