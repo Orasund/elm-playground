@@ -1,16 +1,35 @@
-module Main exposing (..)
+module Pages.Home_ exposing (Model, Msg, page)
 
 import Browser
 import Dict
 import Fish exposing (FishId)
 import Game exposing (Game)
+import Gen.Params.Home_ exposing (Params)
 import Layout
+import Page
 import Random exposing (Generator, Seed)
+import Request
 import Rule exposing (Pattern(..))
 import Set
+import Shared
 import Tank
 import Time
-import View
+import View exposing (View)
+import View.Common as View
+
+
+page : Shared.Model -> Request.With Params -> Page.With Model Msg
+page shared req =
+    Page.element
+        { init = init
+        , update = update
+        , view = view
+        , subscriptions = subscriptions
+        }
+
+
+
+-- INIT
 
 
 type alias Random a =
@@ -29,20 +48,8 @@ type alias Model =
     }
 
 
-type Msg
-    = NextAnimationRequested
-    | NextMovementRequested
-    | MatingTriggered
-    | FeedFish
-    | StoreFish FishId
-    | LoadFish FishId
-    | SellFish FishId
-    | SellAllFishInStorage
-    | SwitchTab Tab
-
-
-init : () -> ( Model, Cmd Msg )
-init () =
+init : ( Model, Cmd Msg )
+init =
     let
         r a =
             [ Horizontal, Vertical, TopDown, BottomUp ]
@@ -80,42 +87,20 @@ init () =
     )
 
 
-view : Model -> Browser.Document Msg
-view model =
-    { title = "Fish Tank"
-    , body =
-        [ model.game.tanks
-            |> Dict.keys
-            |> List.map
-                (\tankId ->
-                    Layout.textButton []
-                        { label = "Tank " ++ String.fromInt tankId
-                        , onPress = Just (SwitchTab (Tank tankId))
-                        }
-                )
-            |> Layout.row []
-        , [ Layout.textButton []
-                { label = "Feed Fish"
-                , onPress = Just FeedFish
-                }
-          , Layout.textButton []
-                { label = "Sell all stored Fish"
-                , onPress = Just SellAllFishInStorage
-                }
-          ]
-            |> Layout.row []
-        , case model.tab of
-            Tank tankId ->
-                model.game
-                    |> View.game
-                        { animationFrame = model.animationFrame
-                        , storeFish = StoreFish
-                        , loadFish = LoadFish
-                        , sellFish = SellFish
-                        , tankId = tankId
-                        }
-        ]
-    }
+
+-- UPDATE
+
+
+type Msg
+    = NextAnimationRequested
+    | NextMovementRequested
+    | MatingTriggered
+    | FeedFish
+    | StoreFish FishId
+    | LoadFish FishId
+    | SellFish FishId
+    | SellAllFishInStorage
+    | SwitchTab Tab
 
 
 apply : Seed -> Random Model -> Model
@@ -219,6 +204,10 @@ update msg model =
                 |> (\m -> ( m, Cmd.none ))
 
 
+
+-- SUBSCRIPTIONS
+
+
 subscriptions : Model -> Sub Msg
 subscriptions _ =
     Sub.batch
@@ -228,11 +217,43 @@ subscriptions _ =
         ]
 
 
-main : Program () Model Msg
-main =
-    Browser.document
-        { init = init
-        , view = view
-        , update = update
-        , subscriptions = subscriptions
-        }
+
+-- VIEW
+
+
+view : Model -> View Msg
+view model =
+    { title = "Fish Tank"
+    , body =
+        [ model.game.tanks
+            |> Dict.keys
+            |> List.map
+                (\tankId ->
+                    Layout.textButton []
+                        { label = "Tank " ++ String.fromInt tankId
+                        , onPress = Just (SwitchTab (Tank tankId))
+                        }
+                )
+            |> Layout.row []
+        , [ Layout.textButton []
+                { label = "Feed Fish"
+                , onPress = Just FeedFish
+                }
+          , Layout.textButton []
+                { label = "Sell all stored Fish"
+                , onPress = Just SellAllFishInStorage
+                }
+          ]
+            |> Layout.row []
+        , case model.tab of
+            Tank tankId ->
+                model.game
+                    |> View.game
+                        { animationFrame = model.animationFrame
+                        , storeFish = StoreFish
+                        , loadFish = LoadFish
+                        , sellFish = SellFish
+                        , tankId = tankId
+                        }
+        ]
+    }

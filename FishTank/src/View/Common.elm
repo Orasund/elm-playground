@@ -1,4 +1,4 @@
-module View exposing (..)
+module View.Common exposing (..)
 
 import Color exposing (Color)
 import Config
