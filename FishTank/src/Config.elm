@@ -19,3 +19,11 @@ tankHeight =
 
 gridSize =
     64
+
+
+fishCost =
+    1000
+
+
+maxFishPerTank =
+    10

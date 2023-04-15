@@ -119,6 +119,18 @@ fromPattern p =
     }
 
 
+generateDefault : Random Fish
+generateDefault =
+    let
+        r a =
+            [ Horizontal, Vertical, TopDown, BottomUp ]
+                |> List.map (Tuple.pair a)
+    in
+    r True
+        ++ r False
+        |> generate
+
+
 generate : List ( Bool, Pattern ) -> Random Fish
 generate list =
     let

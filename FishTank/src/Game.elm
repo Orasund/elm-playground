@@ -37,6 +37,7 @@ type alias Game =
     , storage : Set FishId
     , fed : Set FishId
     , nextFoodId : FoodId
+    , money : Int
     }
 
 
@@ -54,13 +55,14 @@ new =
     , storage = Set.empty
     , fed = Set.empty
     , nextFoodId = 0
+    , money = 0
     }
 
 
 randomLocation : Random ( Float, Float )
 randomLocation =
-    Random.pair (Random.float 1 (Config.tankWidth - 1))
-        (Random.float 1 (Config.tankHeight - 1))
+    Random.pair (Random.float 0.5 Config.tankWidth)
+        (Random.float 0.5 Config.tankHeight)
 
 
 randomLocationAround : ( Float, Float ) -> Random ( Float, Float )
@@ -111,9 +113,18 @@ pickTwo list =
 
 tryMating : TankId -> FishId -> Game -> Generator Game
 tryMating tankId fishId game =
-    if Set.member fishId game.fed then
-        game.tanks
-            |> Dict.get tankId
+    let
+        tank =
+            game.tanks |> Dict.get tankId
+
+        fishCount =
+            tank
+                |> Maybe.map Tank.getFish
+                |> Maybe.map Dict.size
+                |> Maybe.withDefault 0
+    in
+    if Set.member fishId game.fed && fishCount < Config.maxFishPerTank then
+        tank
             |> Maybe.map (Tank.getFishCell fishId)
             |> Maybe.map .fish
             |> Maybe.withDefault Set.empty
@@ -265,14 +276,29 @@ act tankId fishId game =
                                  else
                                     game.goals
                                 )
-                                    |> (\goals ->
+                                    |> Tuple.pair vector
+                           )
+                        |> (\( vector, goals ) ->
+                                game.fish
+                                    |> Dict.get fishId
+                                    |> Maybe.map .size
+                                    |> Maybe.withDefault 1
+                                    |> (\size ->
                                             { game | goals = goals }
                                                 |> moveTo
                                                     tankId
-                                                    (vector
-                                                        |> Vector.normalize
-                                                        |> Vector.scaleBy (1 / 3)
-                                                        |> Vector.addTo currentLocation
+                                                    (let
+                                                        vSize =
+                                                            1 / toFloat size
+                                                     in
+                                                     if Vector.length vector < vSize then
+                                                        location
+
+                                                     else
+                                                        vector
+                                                            |> Vector.normalize
+                                                            |> Vector.scaleBy vSize
+                                                            |> Vector.addTo currentLocation
                                                     )
                                                     fishId
                                        )
@@ -357,16 +383,44 @@ insertIntoTank location tankId fishId game =
     }
 
 
-sellFish : TankId -> FishId -> Game -> Game
-sellFish tankId fishId game =
+sellFish : FishId -> Game -> Game
+sellFish fishId game =
     game
-        |> removeFromTank tankId fishId
         |> (\g ->
-                { g
-                    | storage = game.storage |> Set.remove fishId
-                    , fish = game.fish |> Dict.remove fishId
-                }
+                if game.storage |> Set.member fishId then
+                    g.fish
+                        |> Dict.get fishId
+                        |> Maybe.map
+                            (\fish ->
+                                { g
+                                    | storage = game.storage |> Set.remove fishId
+                                    , fish = game.fish |> Dict.remove fishId
+                                    , money = game.money + fish.size * fish.size
+                                }
+                            )
+                        |> Maybe.withDefault game
+
+                else
+                    game
            )
+
+
+buyFish : Game -> Generator Game
+buyFish game =
+    if game.money >= Config.fishCost then
+        Fish.generateDefault
+            |> Random.map
+                (\fish ->
+                    { game
+                        | fish = game.fish |> Dict.insert game.nextFishId fish
+                        , nextFishId = game.nextFishId + 1
+                        , money = game.money - Config.fishCost
+                        , storage = game.storage |> Set.insert game.nextFishId
+                    }
+                )
+
+    else
+        Random.constant game
 
 
 load : TankId -> FishId -> Game -> Generator Game

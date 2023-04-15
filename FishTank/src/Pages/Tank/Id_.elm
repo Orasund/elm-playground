@@ -1,18 +1,23 @@
 module Pages.Tank.Id_ exposing (Model, Msg, page)
 
+import Effect exposing (Effect)
+import Game exposing (TankId)
 import Gen.Params.Tank.Id_ exposing (Params)
+import Layout
 import Page
 import Request
 import Shared
 import View exposing (View)
+import View.Common
+import View.Tank
 
 
 page : Shared.Model -> Request.With Params -> Page.With Model Msg
 page shared req =
-    Page.element
-        { init = init
+    Page.advanced
+        { init = init req.params
         , update = update
-        , view = view
+        , view = view shared
         , subscriptions = subscriptions
         }
 
@@ -22,12 +27,14 @@ page shared req =
 
 
 type alias Model =
-    {}
+    { tankId : TankId }
 
 
-init : ( Model, Cmd Msg )
-init =
-    ( {}, Cmd.none )
+init : Params -> ( Model, Effect Msg )
+init params =
+    ( { tankId = String.toInt params.id |> Maybe.withDefault 0 }
+    , Effect.none
+    )
 
 
 
@@ -35,14 +42,14 @@ init =
 
 
 type Msg
-    = ReplaceMe
+    = ToShared Shared.Msg
 
 
-update : Msg -> Model -> ( Model, Cmd Msg )
+update : Msg -> Model -> ( Model, Effect Msg )
 update msg model =
     case msg of
-        ReplaceMe ->
-            ( model, Cmd.none )
+        ToShared sharedMsg ->
+            ( model, Effect.fromShared sharedMsg )
 
 
 
@@ -50,7 +57,7 @@ update msg model =
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Sub.none
 
 
@@ -58,6 +65,22 @@ subscriptions model =
 -- VIEW
 
 
-view : Model -> View Msg
-view model =
-    View.placeholder "Tank.Id_"
+view : Shared.Model -> Model -> View Msg
+view shared model =
+    [ View.Common.storage
+        { onClick = \id -> Shared.LoadFish model.tankId id |> ToShared
+        }
+        shared.game
+    , Layout.textButton []
+        { label = "Feed Fish"
+        , onPress = Shared.FeedFish model.tankId |> ToShared |> Just
+        }
+    , View.Tank.toHtml
+        { animationFrame = shared.animationFrame
+        , storeFish = \id -> Shared.StoreFish model.tankId id |> ToShared
+        , tankId = model.tankId
+        }
+        shared.game
+    ]
+        |> Layout.column [ Layout.gap 16, Layout.alignAtCenter ]
+        |> Shared.view shared
