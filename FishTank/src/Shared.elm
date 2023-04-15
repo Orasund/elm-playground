@@ -48,7 +48,6 @@ type alias Model =
 type Msg
     = NextAnimationRequested
     | NextMovementRequested
-    | MatingTriggered
     | FeedFish TankId
     | StoreFish TankId FishId
     | LoadFish TankId FishId
@@ -120,8 +119,10 @@ update _ msg model =
                             |> List.map (Tuple.pair tankId)
                     )
                 |> List.foldl
-                    (\( tankId, fishId ) ->
-                        Random.andThen (Game.act tankId fishId)
+                    (\( tankId, fishId ) rand ->
+                        rand
+                            |> Random.andThen (Game.tryMating tankId fishId)
+                            |> Random.andThen (Game.act tankId fishId)
                     )
                     (Random.constant model.game)
                 |> Random.map (\game -> { model | game = game })
@@ -159,23 +160,6 @@ update _ msg model =
             , Cmd.none
             )
 
-        MatingTriggered ->
-            model.game.tanks
-                |> Dict.foldl
-                    (\tankId tank rand ->
-                        tank
-                            |> Tank.fishIds
-                            |> List.foldl
-                                (\fishId ->
-                                    Random.andThen (Game.tryMating tankId fishId)
-                                )
-                                rand
-                    )
-                    (Random.constant model.game)
-                |> Random.map (\game -> { model | game = game })
-                |> apply model.seed
-                |> (\m -> ( m, Cmd.none ))
-
         BuyFish ->
             model.game
                 |> Game.buyFish
@@ -189,7 +173,6 @@ subscriptions _ _ =
     Sub.batch
         [ Time.every 500 (\_ -> NextAnimationRequested)
         , Time.every 1000 (\_ -> NextMovementRequested)
-        , Time.every 1000 (\_ -> MatingTriggered)
         ]
 
 

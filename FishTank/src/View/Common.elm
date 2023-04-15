@@ -56,6 +56,10 @@ money int =
 
 fishSprite : List (Attribute msg) -> { animationFrame : Bool } -> Fish -> Html msg
 fishSprite attrs args f =
+    let
+        width =
+            Config.fishMinSize * 2 ^ ((toFloat f.size - 1) / 4)
+    in
     Fish.toBitmap { animate = args.animationFrame } f.pattern
         |> List.map
             (List.map
@@ -84,7 +88,7 @@ fishSprite attrs args f =
         |> (\url ->
                 Html.img
                     ([ Html.Attributes.src url
-                     , Html.Attributes.style "width" (String.fromInt (Config.fishMinSize + 2 * f.size) ++ "px")
+                     , Html.Attributes.style "width" (String.fromFloat width ++ "px")
                      , Html.Attributes.style "image-rendering" "pixelated"
                      ]
                         ++ attrs

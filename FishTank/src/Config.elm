@@ -6,7 +6,7 @@ spriteSize =
 
 
 fishMinSize =
-    32
+    48
 
 
 tankWidth =

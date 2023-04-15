@@ -213,23 +213,7 @@ startMoving tankId fishId game =
                     |> Tank.getFishLocation fishId
                     |> Maybe.map
                         (\currentLocation ->
-                            (if game.fed |> Set.member fishId then
-                                Nothing
-
-                             else
-                                tank
-                                    |> Tank.getFoods
-                                    |> Dict.toList
-                                    |> Internal.minBy
-                                        (\( _, location ) ->
-                                            currentLocation
-                                                |> Vector.to location
-                                                |> Vector.length
-                                        )
-                                    |> Maybe.map Tuple.second
-                                    |> Maybe.map Random.constant
-                            )
-                                |> Maybe.withDefault randomLocation
+                            randomLocation
                                 |> Random.map
                                     (\location ->
                                         { game
