@@ -18,6 +18,16 @@ type alias FishId =
     Int
 
 
+type alias BreedId =
+    Int
+
+
+type alias Breed =
+    { name : String
+    , pattern : Set ( Int, Int )
+    }
+
+
 type alias Fish =
     { pattern : Set ( Int, Int )
     , rules : List ( Bool, Pattern )
@@ -76,45 +86,21 @@ sprite =
             )
 
 
-fromPattern : List ( Int, Int ) -> Fish
-fromPattern p =
+new :
+    { pattern : List ( Int, Int )
+    , primary : Color
+    , secondary : Color
+    }
+    -> Fish
+new args =
     let
         computedRules =
-            computeRules (Set.fromList p)
-
-        ( secondaryRuleAmount, primaryRuleAmount ) =
-            computedRules
-                |> List.partition Tuple.first
-                |> Tuple.mapBoth List.length List.length
+            args.pattern |> Set.fromList |> computeRules
     in
-    { pattern = p |> Set.fromList
+    { pattern = args.pattern |> Set.fromList
     , rules = computedRules
-    , primary =
-        case primaryRuleAmount of
-            1 ->
-                Color.lightGray
-
-            2 ->
-                Color.lightBlue
-
-            3 ->
-                Color.blue
-
-            _ ->
-                Color.darkBlue
-    , secondary =
-        case secondaryRuleAmount of
-            1 ->
-                Color.darkGray
-
-            2 ->
-                Color.lightRed
-
-            3 ->
-                Color.red
-
-            _ ->
-                Color.darkRed
+    , primary = args.primary
+    , secondary = args.secondary
     , size = 1
     }
 
@@ -153,7 +139,14 @@ generate list =
                         )
                     |> Maybe.withDefault []
             )
-        |> Random.map fromPattern
+        |> Random.map
+            (\pattern ->
+                new
+                    { pattern = pattern
+                    , primary = Color.white
+                    , secondary = Color.black
+                    }
+            )
 
 
 computeRules : Set ( Int, Int ) -> List ( Bool, Pattern )
@@ -342,4 +335,11 @@ fromParents fish1 fish2 =
                         )
                     |> Maybe.withDefault []
             )
-        |> Random.map fromPattern
+        |> Random.map
+            (\pattern ->
+                new
+                    { pattern = pattern
+                    , primary = Color.white
+                    , secondary = Color.black
+                    }
+            )

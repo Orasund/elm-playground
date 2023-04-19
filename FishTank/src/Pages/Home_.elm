@@ -1,12 +1,16 @@
 module Pages.Home_ exposing (Model, Msg, page)
 
+import Color
 import Config
+import Dict
 import Effect exposing (Effect)
+import Fish
 import Gen.Params.Home_ exposing (Params)
 import Layout
 import Page
 import Request
 import Rule exposing (Pattern(..))
+import Set
 import Shared exposing (Msg(..), Tab(..))
 import View exposing (View)
 import View.Common
@@ -80,6 +84,23 @@ view shared () =
         { label = "Buy Fish for " ++ String.fromInt Config.fishCost ++ " Money"
         , onPress = BuyFish |> ToShared |> Just
         }
+    , shared.game.breeds
+        |> Dict.values
+        |> List.map
+            (\breed ->
+                breed.pattern
+                    |> Set.toList
+                    |> (\pattern ->
+                            Fish.new
+                                { pattern = pattern
+                                , primary = Color.white
+                                , secondary = Color.black
+                                }
+                       )
+                    |> View.Common.fishSprite []
+                        { animationFrame = False }
+            )
+        |> Layout.row []
     ]
         |> Layout.column [ Layout.gap 16, Layout.alignAtCenter ]
-        |> Shared.view shared
+        |> Shared.view ToShared shared

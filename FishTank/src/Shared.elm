@@ -9,12 +9,14 @@ module Shared exposing
     , view
     )
 
+import Action exposing (Action(..))
 import Config
 import Dict
 import Fish exposing (FishId)
 import Game exposing (Game, TankId)
 import Gen.Route
 import Html exposing (Html)
+import Html.Attributes
 import Json.Decode as Json
 import Layout
 import Random exposing (Generator, Seed)
@@ -24,6 +26,7 @@ import Set
 import Tank
 import Time
 import View exposing (View)
+import View.Overlay
 
 
 type alias Flags =
@@ -42,6 +45,7 @@ type alias Model =
     { seed : Seed
     , game : Game
     , animationFrame : Bool
+    , actions : List Action
     }
 
 
@@ -54,6 +58,7 @@ type Msg
     | SellFish FishId
     | BuyFish
     | SellAllFishInStorage
+    | NextActionRequested
 
 
 init : Request -> Flags -> ( Model, Cmd Msg )
@@ -80,9 +85,15 @@ init _ _ =
     ( { seed = seed
       , game =
             fish
-                |> List.foldl (\( f, p ) -> Game.addFish p tankId f)
+                |> List.foldl
+                    (\( f, p ) g ->
+                        g
+                            |> Game.addFish p tankId f
+                            |> Tuple.first
+                    )
                     Game.new
       , animationFrame = False
+      , actions = []
       }
     , Cmd.none
     )
@@ -121,11 +132,11 @@ update _ msg model =
                 |> List.foldl
                     (\( tankId, fishId ) rand ->
                         rand
-                            |> Random.andThen (Game.tryMating tankId fishId)
-                            |> Random.andThen (Game.act tankId fishId)
+                            |> Action.randAndThen (Game.tryMating tankId fishId)
+                            |> Action.randMap (Game.act tankId fishId)
                     )
-                    (Random.constant model.game)
-                |> Random.map (\game -> { model | game = game })
+                    (Random.constant ( model.game, [] ))
+                |> Random.map (\( game, actions ) -> { model | game = game, actions = actions ++ model.actions })
                 |> apply model.seed
                 |> (\m -> ( m, Cmd.none ))
 
@@ -167,20 +178,40 @@ update _ msg model =
                 |> apply model.seed
                 |> (\m -> ( m, Cmd.none ))
 
+        NextActionRequested ->
+            case model.actions of
+                (NewBreed breedId) :: tail ->
+                    model.game
+                        |> (\game ->
+                                ( { model
+                                    | actions = tail
+                                    , game = game
+                                  }
+                                , Cmd.none
+                                )
+                           )
+
+                [] ->
+                    ( model, Cmd.none )
+
 
 subscriptions : Request -> Model -> Sub Msg
-subscriptions _ _ =
-    Sub.batch
-        [ Time.every 500 (\_ -> NextAnimationRequested)
-        , Time.every 1000 (\_ -> NextMovementRequested)
-        ]
+subscriptions _ model =
+    if model.actions == [] then
+        Sub.batch
+            [ Time.every 500 (\_ -> NextAnimationRequested)
+            , Time.every 1000 (\_ -> NextMovementRequested)
+            ]
+
+    else
+        Sub.none
 
 
-view : Model -> Html msg -> View msg
-view model content =
+view : (Msg -> msg) -> Model -> Html msg -> View msg
+view fun model content =
     { title = "Fish Tank"
     , body =
-        [ [ model.game.tanks
+        [ [ [ model.game.tanks
                 |> Dict.toList
                 |> List.map
                     (\( tankId, tank ) ->
@@ -204,8 +235,27 @@ view model content =
                             (Gen.Route.Home_ |> Gen.Route.toHref)
                     ]
                 |> Layout.row [ Layout.gap 8 ]
-          , content
+            , content
+            ]
+                |> Layout.column
+                    [ Layout.alignAtCenter
+                    ]
+          , model.actions
+                |> List.head
+                |> View.Overlay.toHtml { onSubmit = fun NextActionRequested }
+                    model.game
           ]
-            |> Layout.column [ Layout.alignAtCenter ]
+            |> Html.div
+                [ Html.Attributes.style "position" "relative"
+                , Html.Attributes.style "width" "100%"
+                , Html.Attributes.style "height" "100%"
+                ]
+        , """:root,body {
+            height:100%;
+            margin:0px;
+            }"""
+            |> Html.text
+            |> List.singleton
+            |> Html.node "style" []
         ]
     }

@@ -3,11 +3,10 @@ module View.Common exposing (..)
 import Color exposing (Color)
 import Config
 import Dict
-import Fish exposing (BitColor(..), Fish, FishId)
-import Game exposing (Game, TankId)
+import Fish exposing (BitColor(..), BreedId, Fish, FishId)
+import Game exposing (Game)
 import Html exposing (Attribute, Html)
 import Html.Attributes
-import Html.Keyed
 import Image
 import Image.Color
 import Layout
@@ -15,7 +14,6 @@ import Rule exposing (Pattern(..))
 import Set
 import Svg.Path
 import Svg.Writer
-import Tank
 
 
 storage :
@@ -34,7 +32,7 @@ storage args g =
             )
         |> List.map
             (\( fishId, fish ) ->
-                fish
+                [ { fish | size = 1 }
                     |> fishSprite
                         (Layout.asButton
                             { label = "Load"
@@ -42,6 +40,18 @@ storage args g =
                             }
                         )
                         { animationFrame = False }
+                , "Size: " ++ String.fromInt fish.size |> Layout.text []
+                , g.assignedBreed
+                    |> Dict.get fishId
+                    |> Maybe.andThen
+                        (\breedId ->
+                            g.breeds |> Dict.get breedId
+                        )
+                    |> Maybe.map .name
+                    |> Maybe.withDefault "Unknown Breed"
+                    |> Layout.text []
+                ]
+                    |> Layout.column []
             )
         |> Layout.row [ Layout.gap 16, Layout.alignAtEnd ]
 

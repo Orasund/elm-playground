@@ -83,4 +83,4 @@ view shared model =
         shared.game
     ]
         |> Layout.column [ Layout.gap 16, Layout.alignAtCenter ]
-        |> Shared.view shared
+        |> Shared.view ToShared shared

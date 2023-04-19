@@ -1,10 +1,11 @@
 module Game exposing (..)
 
+import Action exposing (Action)
 import Array
 import Config
 import Dict exposing (Dict)
-import Fish exposing (Fish, FishId)
-import Internal
+import Fish exposing (Breed, BreedId, Fish, FishId)
+import Fish.Name
 import Random exposing (Generator)
 import Set exposing (Set)
 import Tank exposing (Tank)
@@ -38,6 +39,9 @@ type alias Game =
     , fed : Set FishId
     , nextFoodId : FoodId
     , money : Int
+    , breeds : Dict BreedId Breed
+    , nextBreedId : BreedId
+    , assignedBreed : Dict FishId BreedId
     }
 
 
@@ -56,6 +60,9 @@ new =
     , fed = Set.empty
     , nextFoodId = 0
     , money = 0
+    , breeds = Dict.empty
+    , nextBreedId = 0
+    , assignedBreed = Dict.empty
     }
 
 
@@ -78,13 +85,15 @@ randomLocationAround location =
             )
 
 
-addFish : ( Float, Float ) -> TankId -> Fish -> Game -> Game
+addFish : ( Float, Float ) -> TankId -> Fish -> Game -> ( Game, FishId )
 addFish pos tankId fish game =
-    { game
+    ( { game
         | fish = game.fish |> Dict.insert game.nextFishId fish
         , nextFishId = game.nextFishId + 1
-    }
+      }
         |> insertIntoTank pos tankId game.nextFishId
+    , game.nextFishId
+    )
 
 
 pickTwo : List a -> Random (Maybe ( a, a ))
@@ -111,7 +120,7 @@ pickTwo list =
         (Random.int 0 (List.length list - 2))
 
 
-tryMating : TankId -> FishId -> Game -> Generator Game
+tryMating : TankId -> FishId -> Game -> Generator ( Game, List Action )
 tryMating tankId fishId game =
     let
         tank =
@@ -148,11 +157,11 @@ tryMating tankId fishId game =
                                 game
                                     |> mate tankId ( fishId, fish )
                             )
-                        |> Maybe.withDefault (Random.constant game)
+                        |> Maybe.withDefault (Random.constant ( game, [] ))
                 )
 
     else
-        Random.constant game
+        Random.constant ( game, [] )
 
 
 tryEating : TankId -> FishId -> Game -> Maybe Game
@@ -321,12 +330,37 @@ moveTo tankId location fishId game =
         |> Maybe.withDefault game
 
 
-mate : TankId -> ( FishId, FishId ) -> Game -> Random Game
+mate : TankId -> ( FishId, FishId ) -> Game -> Random ( Game, List Action )
 mate tankId ( fishId1, fishId2 ) game =
+    let
+        fishBreed1 =
+            game.assignedBreed |> Dict.get fishId1
+
+        fishBreed2 =
+            game.assignedBreed |> Dict.get fishId2
+
+        newBreed =
+            case ( fishBreed1, fishBreed2 ) of
+                ( Just a, Nothing ) ->
+                    Just a
+
+                ( Nothing, Just a ) ->
+                    Just a
+
+                ( Just a, Just b ) ->
+                    if a == b then
+                        Just a
+
+                    else
+                        Nothing
+
+                ( Nothing, Nothing ) ->
+                    Nothing
+    in
     Maybe.map3
         (\location fish1 fish2 ->
             Fish.fromParents fish1 fish2
-                |> Random.map
+                |> Random.andThen
                     (\newFish ->
                         { game
                             | fed =
@@ -335,12 +369,37 @@ mate tankId ( fishId1, fishId2 ) game =
                                     |> Set.remove fishId2
                         }
                             |> addFish location tankId newFish
+                            |> (\( g, newFishId ) ->
+                                    case newBreed of
+                                        Just breedId ->
+                                            ( g |> assignBreedOf newFishId breedId
+                                            , []
+                                            )
+                                                |> Random.constant
+
+                                        Nothing ->
+                                            if fish1.pattern == fish2.pattern && fish1.pattern == newFish.pattern then
+                                                g
+                                                    |> addBreed newFish.pattern
+                                                    |> Random.map
+                                                        (\( g2, breedId ) ->
+                                                            ( g2
+                                                                |> assignBreedOf fishId1 breedId
+                                                                |> assignBreedOf fishId2 breedId
+                                                                |> assignBreedOf newFishId breedId
+                                                            , [ Action.NewBreed breedId ]
+                                                            )
+                                                        )
+
+                                            else
+                                                ( g, [] ) |> Random.constant
+                               )
                     )
         )
         (game.tanks |> Dict.get tankId |> Maybe.andThen (Tank.getFishLocation fishId1))
         (game.fish |> Dict.get fishId1)
         (game.fish |> Dict.get fishId2)
-        |> Maybe.withDefault (Random.constant game)
+        |> Maybe.withDefault (Random.constant ( game, [] ))
 
 
 removeFromTank : TankId -> FishId -> Game -> Game
@@ -439,3 +498,31 @@ addFood tankId game =
                     , nextFoodId = game.nextFoodId + 1
                 }
             )
+
+
+addBreed : Set ( Int, Int ) -> Game -> Generator ( Game, BreedId )
+addBreed pattern game =
+    Fish.Name.random
+        |> Random.map
+            (\name ->
+                ( { game
+                    | breeds =
+                        game.breeds
+                            |> Dict.insert game.nextBreedId
+                                { name = name
+                                , pattern = pattern
+                                }
+                    , nextBreedId = game.nextBreedId + 1
+                  }
+                , game.nextBreedId
+                )
+            )
+
+
+assignBreedOf : FishId -> BreedId -> Game -> Game
+assignBreedOf fishId breedId game =
+    { game
+        | assignedBreed =
+            game.assignedBreed
+                |> Dict.insert fishId breedId
+    }
