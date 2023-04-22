@@ -1,14 +1,12 @@
 module View.Overlay exposing (..)
 
 import Action exposing (Action(..))
-import Color
 import Dict
-import Fish
+import Fish.Common
 import Game exposing (Game)
 import Html exposing (Html)
 import Html.Attributes
 import Layout
-import Set
 import View.Common
 
 
@@ -17,23 +15,22 @@ toHtml args game maybeAction =
     case maybeAction of
         Just (NewBreed breedId) ->
             let
-                fish =
+                breed =
                     game.breeds
                         |> Dict.get breedId
-                        |> Maybe.map .pattern
-                        |> Maybe.withDefault Set.empty
-                        |> Set.toList
-                        |> (\pattern ->
-                                Fish.new
-                                    { pattern = pattern
-                                    , primary = Color.white
-                                    , secondary = Color.black
-                                    }
-                           )
+
+                fish =
+                    breed
+                        |> Maybe.withDefault Fish.Common.defaultBreed
+                        |> Fish.Common.new
             in
             [ Html.text "new breed found"
             , fish
                 |> View.Common.fishSprite [] { animationFrame = False }
+            , breed
+                |> Maybe.map .name
+                |> Maybe.withDefault "Common Goldfish"
+                |> Html.text
             , Layout.textButton []
                 { onPress = args.onSubmit |> Just
                 , label = "Submit"

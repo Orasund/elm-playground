@@ -1,8 +1,7 @@
 module Action exposing (..)
 
-import Fish exposing (BreedId)
+import Fish.Common exposing (BreedId)
 import Random exposing (Generator)
-import Set exposing (Set)
 
 
 type Action

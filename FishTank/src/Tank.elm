@@ -1,7 +1,7 @@
 module Tank exposing (..)
 
 import Dict exposing (Dict)
-import Fish exposing (FishId)
+import Fish.Common exposing (FishId)
 import Set exposing (Set)
 
 

@@ -3,13 +3,15 @@ module View.Common exposing (..)
 import Color exposing (Color)
 import Config
 import Dict
-import Fish exposing (BitColor(..), BreedId, Fish, FishId)
+import Fish
+import Fish.Common exposing (BitColor(..), Fish, FishId)
 import Game exposing (Game)
 import Html exposing (Attribute, Html)
 import Html.Attributes
 import Image
 import Image.Color
 import Layout
+import Pigment
 import Rule exposing (Pattern(..))
 import Set
 import Svg.Path
@@ -48,12 +50,16 @@ storage args g =
                             g.breeds |> Dict.get breedId
                         )
                     |> Maybe.map .name
-                    |> Maybe.withDefault "Unknown Breed"
+                    |> Maybe.withDefault "Common Goldfish"
                     |> Layout.text []
                 ]
-                    |> Layout.column []
+                    |> Layout.column [ Html.Attributes.style "width" "80px" ]
             )
-        |> Layout.row [ Layout.gap 16, Layout.alignAtEnd ]
+        |> Layout.row
+            [ Layout.gap 8
+            , Layout.alignAtEnd
+            , Html.Attributes.style "height" "120px"
+            ]
 
 
 money : Int -> Html msg
@@ -79,10 +85,10 @@ fishSprite attrs args f =
                             Color.black
 
                         Primary ->
-                            f.primary
+                            Pigment.color True f.primary
 
                         Secondary ->
-                            f.secondary
+                            Pigment.color False f.secondary
 
                         None ->
                             Color.fromRgba
@@ -117,10 +123,10 @@ fishInfo fish =
                         ( b
                         , patternCircle
                             (if b then
-                                fish.secondary
+                                Pigment.color False fish.secondary
 
                              else
-                                fish.primary
+                                Pigment.color True fish.primary
                             )
                             p
                         )

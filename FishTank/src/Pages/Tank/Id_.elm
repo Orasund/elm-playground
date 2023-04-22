@@ -3,6 +3,7 @@ module Pages.Tank.Id_ exposing (Model, Msg, page)
 import Effect exposing (Effect)
 import Game exposing (TankId)
 import Gen.Params.Tank.Id_ exposing (Params)
+import Html.Attributes
 import Layout
 import Page
 import Request
@@ -71,7 +72,7 @@ view shared model =
         { onClick = \id -> Shared.LoadFish model.tankId id |> ToShared
         }
         shared.game
-    , Layout.textButton []
+    , Layout.textButton [ Html.Attributes.class "feedButton" ]
         { label = "Feed Fish"
         , onPress = Shared.FeedFish model.tankId |> ToShared |> Just
         }

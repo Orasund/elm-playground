@@ -4,8 +4,10 @@ import Action exposing (Action)
 import Array
 import Config
 import Dict exposing (Dict)
-import Fish exposing (Breed, BreedId, Fish, FishId)
+import Fish
+import Fish.Common exposing (Breed, BreedId, Fish, FishId)
 import Fish.Name
+import Pigment exposing (Pigment)
 import Random exposing (Generator)
 import Set exposing (Set)
 import Tank exposing (Tank)
@@ -59,7 +61,7 @@ new =
     , storage = Set.empty
     , fed = Set.empty
     , nextFoodId = 0
-    , money = 0
+    , money = Config.fishCost * 2
     , breeds = Dict.empty
     , nextBreedId = 0
     , assignedBreed = Dict.empty
@@ -359,7 +361,7 @@ mate tankId ( fishId1, fishId2 ) game =
     in
     Maybe.map3
         (\location fish1 fish2 ->
-            Fish.fromParents fish1 fish2
+            Fish.Common.fromParents fish1 fish2
                 |> Random.andThen
                     (\newFish ->
                         { game
@@ -378,13 +380,32 @@ mate tankId ( fishId1, fishId2 ) game =
                                                 |> Random.constant
 
                                         Nothing ->
-                                            if fish1.pattern == fish2.pattern && fish1.pattern == newFish.pattern then
+                                            if fish1.pattern == newFish.pattern then
                                                 g
-                                                    |> addBreed newFish.pattern
+                                                    |> addBreed
+                                                        { pattern = newFish.pattern
+                                                        , primary = newFish.primary
+                                                        , secondary = newFish.secondary
+                                                        }
                                                     |> Random.map
                                                         (\( g2, breedId ) ->
                                                             ( g2
                                                                 |> assignBreedOf fishId1 breedId
+                                                                |> assignBreedOf newFishId breedId
+                                                            , [ Action.NewBreed breedId ]
+                                                            )
+                                                        )
+
+                                            else if fish2.pattern == newFish.pattern then
+                                                g
+                                                    |> addBreed
+                                                        { pattern = newFish.pattern
+                                                        , primary = newFish.primary
+                                                        , secondary = newFish.secondary
+                                                        }
+                                                    |> Random.map
+                                                        (\( g2, breedId ) ->
+                                                            ( g2
                                                                 |> assignBreedOf fishId2 breedId
                                                                 |> assignBreedOf newFishId breedId
                                                             , [ Action.NewBreed breedId ]
@@ -500,8 +521,14 @@ addFood tankId game =
             )
 
 
-addBreed : Set ( Int, Int ) -> Game -> Generator ( Game, BreedId )
-addBreed pattern game =
+addBreed :
+    { pattern : Set ( Int, Int )
+    , primary : Pigment
+    , secondary : Pigment
+    }
+    -> Game
+    -> Generator ( Game, BreedId )
+addBreed args game =
     Fish.Name.random
         |> Random.map
             (\name ->
@@ -510,7 +537,9 @@ addBreed pattern game =
                         game.breeds
                             |> Dict.insert game.nextBreedId
                                 { name = name
-                                , pattern = pattern
+                                , pattern = args.pattern
+                                , primary = args.primary
+                                , secondary = args.secondary
                                 }
                     , nextBreedId = game.nextBreedId + 1
                   }

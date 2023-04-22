@@ -12,7 +12,7 @@ module Shared exposing
 import Action exposing (Action(..))
 import Config
 import Dict
-import Fish exposing (FishId)
+import Fish.Common exposing (FishId)
 import Game exposing (Game, TankId)
 import Gen.Route
 import Html exposing (Html)
@@ -59,43 +59,17 @@ type Msg
     | BuyFish
     | SellAllFishInStorage
     | NextActionRequested
+    | GotSeed Seed
 
 
 init : Request -> Flags -> ( Model, Cmd Msg )
 init _ _ =
-    let
-        ( fish, seed ) =
-            List.repeat 2 ()
-                |> List.foldl
-                    (\() ->
-                        Random.andThen
-                            (\l ->
-                                Random.pair
-                                    Fish.generateDefault
-                                    Game.randomLocation
-                                    |> Random.map (\p -> p :: l)
-                            )
-                    )
-                    (Random.constant [])
-                |> (\gen -> Random.step gen (Random.initialSeed 42))
-
-        tankId =
-            0
-    in
-    ( { seed = seed
-      , game =
-            fish
-                |> List.foldl
-                    (\( f, p ) g ->
-                        g
-                            |> Game.addFish p tankId f
-                            |> Tuple.first
-                    )
-                    Game.new
+    ( { seed = Random.initialSeed 42
+      , game = Game.new
       , animationFrame = False
       , actions = []
       }
-    , Cmd.none
+    , Random.generate GotSeed Random.independentSeed
     )
 
 
@@ -108,6 +82,9 @@ apply s gen =
 update : Request -> Msg -> Model -> ( Model, Cmd Msg )
 update _ msg model =
     case msg of
+        GotSeed seed ->
+            ( { model | seed = seed }, Cmd.none )
+
         NextAnimationRequested ->
             ( { model | animationFrame = not model.animationFrame }
             , Cmd.none
@@ -141,9 +118,13 @@ update _ msg model =
                 |> (\m -> ( m, Cmd.none ))
 
         StoreFish tankId fishId ->
-            ( { model | game = model.game |> Game.store tankId fishId }
-            , Cmd.none
-            )
+            if (model.game.storage |> Set.size) < 5 then
+                ( { model | game = model.game |> Game.store tankId fishId }
+                , Cmd.none
+                )
+
+            else
+                ( model, Cmd.none )
 
         LoadFish tankId fishId ->
             model.game
@@ -180,7 +161,7 @@ update _ msg model =
 
         NextActionRequested ->
             case model.actions of
-                (NewBreed breedId) :: tail ->
+                (NewBreed _) :: tail ->
                     model.game
                         |> (\game ->
                                 ( { model
@@ -239,7 +220,14 @@ view fun model content =
             ]
                 |> Layout.column
                     [ Layout.alignAtCenter
+                    , Html.Attributes.style "height" "620px"
                     ]
+                |> Layout.el
+                    ([ Html.Attributes.style "height" "100%"
+                     , Html.Attributes.style "width" "100%"
+                     ]
+                        ++ Layout.centered
+                    )
           , model.actions
                 |> List.head
                 |> View.Overlay.toHtml { onSubmit = fun NextActionRequested }
@@ -253,7 +241,32 @@ view fun model content =
         , """:root,body {
             height:100%;
             margin:0px;
-            }"""
+            }
+            
+            body {
+                background-color:#83bb7e;
+            }
+
+            .feedButton {
+                aspect-ratio: 1;
+                width: 50px;
+                background-color: yellow;
+                border: 1px solid black;
+                position:relative;
+                top: 0px;
+                transition: top 0.1s;
+            }
+
+            button:hover {
+                filter: brightness(0.9);
+                top: -8px;
+            }
+
+            button:active {
+                filter: brightness(0.75);
+                top: 16px;
+            }
+            """
             |> Html.text
             |> List.singleton
             |> Html.node "style" []

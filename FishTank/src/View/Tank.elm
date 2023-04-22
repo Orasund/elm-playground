@@ -2,7 +2,7 @@ module View.Tank exposing (..)
 
 import Config
 import Dict
-import Fish exposing (FishId)
+import Fish.Common exposing (FishId)
 import Game exposing (Game, TankId)
 import Html exposing (Html)
 import Html.Attributes
