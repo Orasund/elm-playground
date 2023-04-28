@@ -13,7 +13,7 @@ type alias FishId =
 
 
 type alias BreedId =
-    Int
+    ( ( Int, Int, Int ), ( Int, Int, Int ) )
 
 
 type alias Breed =
@@ -38,6 +38,28 @@ type BitColor
     | Black
     | Primary
     | Secondary
+
+
+getBreedId : { breed | primary : Pigment, secondary : Pigment } -> BreedId
+getBreedId breed =
+    let
+        fromBool : Bool -> Int
+        fromBool b =
+            if b then
+                1
+
+            else
+                0
+    in
+    ( ( fromBool breed.primary.red
+      , fromBool breed.primary.yellow
+      , fromBool breed.primary.blue
+      )
+    , ( fromBool breed.secondary.red
+      , fromBool breed.secondary.yellow
+      , fromBool breed.secondary.blue
+      )
+    )
 
 
 defaultBreed : Breed

@@ -42,7 +42,6 @@ type alias Game =
     , nextFoodId : FoodId
     , money : Int
     , breeds : Dict BreedId Breed
-    , nextBreedId : BreedId
     , assignedBreed : Dict FishId BreedId
     }
 
@@ -63,15 +62,14 @@ new =
     , nextFoodId = 0
     , money = Config.fishCost * 2
     , breeds = Dict.empty
-    , nextBreedId = 0
     , assignedBreed = Dict.empty
     }
 
 
 randomLocation : Random ( Float, Float )
 randomLocation =
-    Random.pair (Random.float 0.5 Config.tankWidth)
-        (Random.float 0.5 Config.tankHeight)
+    Random.pair (Random.float 0 Config.tankWidth)
+        (Random.float 0 Config.tankHeight)
 
 
 randomLocationAround : ( Float, Float ) -> Random ( Float, Float )
@@ -340,30 +338,41 @@ mate tankId ( fishId1, fishId2 ) game =
 
         fishBreed2 =
             game.assignedBreed |> Dict.get fishId2
-
-        newBreed =
-            case ( fishBreed1, fishBreed2 ) of
-                ( Just a, Nothing ) ->
-                    Just a
-
-                ( Nothing, Just a ) ->
-                    Just a
-
-                ( Just a, Just b ) ->
-                    if a == b then
-                        Just a
-
-                    else
-                        Nothing
-
-                ( Nothing, Nothing ) ->
-                    Nothing
     in
     Maybe.map3
         (\location fish1 fish2 ->
             Fish.Common.fromParents fish1 fish2
                 |> Random.andThen
                     (\newFish ->
+                        let
+                            breed =
+                                { pattern = newFish.pattern
+                                , primary = newFish.primary
+                                , secondary = newFish.secondary
+                                }
+
+                            newBreedId =
+                                Fish.Common.getBreedId breed
+
+                            breedId =
+                                case ( fishBreed1, fishBreed2 ) of
+                                    ( Just a, _ ) ->
+                                        if a == newBreedId then
+                                            Just newBreedId
+
+                                        else
+                                            Nothing
+
+                                    ( _, Just a ) ->
+                                        if a == newBreedId then
+                                            Just newBreedId
+
+                                        else
+                                            Nothing
+
+                                    ( Nothing, Nothing ) ->
+                                        Nothing
+                        in
                         { game
                             | fed =
                                 game.fed
@@ -372,9 +381,9 @@ mate tankId ( fishId1, fishId2 ) game =
                         }
                             |> addFish location tankId newFish
                             |> (\( g, newFishId ) ->
-                                    case newBreed of
-                                        Just breedId ->
-                                            ( g |> assignBreedOf newFishId breedId
+                                    case breedId of
+                                        Just b ->
+                                            ( g |> assignBreedOf newFishId b
                                             , []
                                             )
                                                 |> Random.constant
@@ -382,17 +391,13 @@ mate tankId ( fishId1, fishId2 ) game =
                                         Nothing ->
                                             if fish1.pattern == newFish.pattern then
                                                 g
-                                                    |> addBreed
-                                                        { pattern = newFish.pattern
-                                                        , primary = newFish.primary
-                                                        , secondary = newFish.secondary
-                                                        }
+                                                    |> addBreed breed
                                                     |> Random.map
-                                                        (\( g2, breedId ) ->
+                                                        (\g2 ->
                                                             ( g2
-                                                                |> assignBreedOf fishId1 breedId
-                                                                |> assignBreedOf newFishId breedId
-                                                            , [ Action.NewBreed breedId ]
+                                                                |> assignBreedOf fishId1 newBreedId
+                                                                |> assignBreedOf newFishId newBreedId
+                                                            , [ Action.NewBreed newBreedId ]
                                                             )
                                                         )
 
@@ -404,11 +409,11 @@ mate tankId ( fishId1, fishId2 ) game =
                                                         , secondary = newFish.secondary
                                                         }
                                                     |> Random.map
-                                                        (\( g2, breedId ) ->
+                                                        (\g2 ->
                                                             ( g2
-                                                                |> assignBreedOf fishId2 breedId
-                                                                |> assignBreedOf newFishId breedId
-                                                            , [ Action.NewBreed breedId ]
+                                                                |> assignBreedOf fishId2 newBreedId
+                                                                |> assignBreedOf newFishId newBreedId
+                                                            , [ Action.NewBreed newBreedId ]
                                                             )
                                                         )
 
@@ -527,24 +532,31 @@ addBreed :
     , secondary : Pigment
     }
     -> Game
-    -> Generator ( Game, BreedId )
+    -> Generator Game
 addBreed args game =
-    Fish.Name.random
+    let
+        randBreed name =
+            { name = name
+            , pattern = args.pattern
+            , primary = args.primary
+            , secondary = args.secondary
+            }
+    in
+    (case game.breeds |> Dict.get (Fish.Common.getBreedId args) of
+        Just { name } ->
+            Random.constant name
+
+        Nothing ->
+            Fish.Name.random
+    )
+        |> Random.map randBreed
         |> Random.map
-            (\name ->
-                ( { game
+            (\breed ->
+                { game
                     | breeds =
                         game.breeds
-                            |> Dict.insert game.nextBreedId
-                                { name = name
-                                , pattern = args.pattern
-                                , primary = args.primary
-                                , secondary = args.secondary
-                                }
-                    , nextBreedId = game.nextBreedId + 1
-                  }
-                , game.nextBreedId
-                )
+                            |> Dict.insert (Fish.Common.getBreedId breed) breed
+                }
             )
 
 

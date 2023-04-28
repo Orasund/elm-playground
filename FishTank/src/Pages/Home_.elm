@@ -6,6 +6,7 @@ import Effect exposing (Effect)
 import Fish.Common
 import Gen.Params.Home_ exposing (Params)
 import Html
+import Html.Attributes
 import Layout
 import Page
 import Request
@@ -95,7 +96,7 @@ view shared () =
                 ]
                     |> Layout.column []
             )
-        |> Layout.row []
+        |> Layout.row [ Layout.gap 8, Html.Attributes.style "width" "80px" ]
     ]
         |> Layout.column [ Layout.gap 16, Layout.alignAtCenter ]
         |> Shared.view ToShared shared
