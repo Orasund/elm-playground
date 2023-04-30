@@ -14,6 +14,34 @@ import Tank
 import View.Common
 
 
+page :
+    { loadFish : FishId -> msg
+    , feedFish : msg
+    , storeFish : FishId -> msg
+    , animationFrame : Bool
+    , tankId : TankId
+    }
+    -> Game
+    -> Html msg
+page args game =
+    [ View.Common.storage
+        { onClick = \id -> args.loadFish id
+        }
+        game
+    , Layout.textButton [ Html.Attributes.class "feedButton" ]
+        { label = "Feed Fish"
+        , onPress = args.feedFish |> Just
+        }
+    , toHtml
+        { animationFrame = args.animationFrame
+        , storeFish = \id -> args.storeFish id
+        , tankId = args.tankId
+        }
+        game
+    ]
+        |> Layout.column [ Layout.gap 16, Layout.alignAtCenter ]
+
+
 toHtml : { animationFrame : Bool, storeFish : FishId -> msg, tankId : TankId } -> Game -> Html msg
 toHtml args g =
     [ ( "waves"

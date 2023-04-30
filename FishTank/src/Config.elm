@@ -1,6 +1,10 @@
 module Config exposing (..)
 
 
+title =
+    "Cats love Fish"
+
+
 spriteSize =
     16
 
@@ -22,6 +26,10 @@ gridSize =
 
 
 fishCost =
+    500
+
+
+tankCost =
     1000
 
 

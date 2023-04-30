@@ -1,36 +1,22 @@
-module Shared exposing
-    ( Flags
-    , Model
-    , Msg(..)
-    , Tab(..)
-    , init
-    , subscriptions
-    , update
-    , view
-    )
+module Main exposing (main)
 
 import Action exposing (Action(..))
+import Browser exposing (Document)
 import Config
 import Dict
-import Fish.Common exposing (FishId)
+import Fish.Common exposing (Breed, FishId)
 import Game exposing (Game, TankId)
-import Gen.Route
-import Html exposing (Html)
+import Html
 import Html.Attributes
-import Json.Decode as Json
 import Layout
 import Random exposing (Generator, Seed)
-import Request exposing (Request)
 import Rule exposing (Pattern(..))
 import Set
 import Tank
 import Time
-import View exposing (View)
+import View.Market
 import View.Overlay
-
-
-type alias Flags =
-    Json.Value
+import View.Tank
 
 
 type alias Random a =
@@ -39,6 +25,7 @@ type alias Random a =
 
 type Tab
     = TankTab Int
+    | MarketTab
 
 
 type alias Model =
@@ -46,6 +33,7 @@ type alias Model =
     , game : Game
     , animationFrame : Bool
     , actions : List Action
+    , tab : Tab
     }
 
 
@@ -56,18 +44,21 @@ type Msg
     | StoreFish TankId FishId
     | LoadFish TankId FishId
     | SellFish FishId
-    | BuyFish
+    | BuyFish (Maybe Breed)
     | SellAllFishInStorage
     | NextActionRequested
+    | BuyTank
     | GotSeed Seed
+    | ChangeTab Tab
 
 
-init : Request -> Flags -> ( Model, Cmd Msg )
-init _ _ =
+init : () -> ( Model, Cmd Msg )
+init _ =
     ( { seed = Random.initialSeed 42
       , game = Game.new
       , animationFrame = False
       , actions = []
+      , tab = MarketTab
       }
     , Random.generate GotSeed Random.independentSeed
     )
@@ -79,8 +70,8 @@ apply s gen =
         |> (\( m, seed ) -> { m | seed = seed })
 
 
-update : Request -> Msg -> Model -> ( Model, Cmd Msg )
-update _ msg model =
+update : Msg -> Model -> ( Model, Cmd Msg )
+update msg model =
     case msg of
         GotSeed seed ->
             ( { model | seed = seed }, Cmd.none )
@@ -152,9 +143,9 @@ update _ msg model =
             , Cmd.none
             )
 
-        BuyFish ->
+        BuyFish maybeBreed ->
             model.game
-                |> Game.buyFish
+                |> Game.buyFish maybeBreed
                 |> Random.map (\game -> { model | game = game })
                 |> apply model.seed
                 |> (\m -> ( m, Cmd.none ))
@@ -175,9 +166,15 @@ update _ msg model =
                 [] ->
                     ( model, Cmd.none )
 
+        BuyTank ->
+            ( { model | game = Game.buyTank model.game }, Cmd.none )
 
-subscriptions : Request -> Model -> Sub Msg
-subscriptions _ model =
+        ChangeTab tab ->
+            ( { model | tab = tab }, Cmd.none )
+
+
+subscriptions : Model -> Sub Msg
+subscriptions model =
     if model.actions == [] then
         Sub.batch
             [ Time.every 500 (\_ -> NextAnimationRequested)
@@ -188,32 +185,53 @@ subscriptions _ model =
         Sub.none
 
 
-view : (Msg -> msg) -> Model -> Html msg -> View msg
-view fun model content =
-    { title = "Fish Tank"
+view : Model -> Document Msg
+view model =
+    let
+        content =
+            case model.tab of
+                TankTab tankId ->
+                    View.Tank.page
+                        { loadFish = LoadFish tankId
+                        , feedFish = FeedFish tankId
+                        , storeFish = StoreFish tankId
+                        , animationFrame = model.animationFrame
+                        , tankId = tankId
+                        }
+                        model.game
+
+                MarketTab ->
+                    View.Market.toHtml
+                        { sellFish = SellFish
+                        , sellAllFishInStorage = SellAllFishInStorage
+                        , buyFish = BuyFish
+                        , buyTank = BuyTank
+                        }
+                        model.game
+    in
+    { title = Config.title
     , body =
         [ [ [ model.game.tanks
                 |> Dict.toList
                 |> List.map
                     (\( tankId, tank ) ->
-                        Html.text
-                            ("Tank "
-                                ++ String.fromInt tankId
-                                ++ " ("
-                                ++ (tank |> Tank.getFish |> Dict.size |> String.fromInt)
-                                ++ "/"
-                                ++ String.fromInt Config.maxFishPerTank
-                                ++ ")"
-                            )
-                            |> Layout.linkTo []
-                                (Gen.Route.Tank__Id_ { id = String.fromInt tankId }
-                                    |> Gen.Route.toHref
-                                )
+                        Layout.textButton []
+                            { onPress = ChangeTab (TankTab tankId) |> Just
+                            , label =
+                                "Tank "
+                                    ++ String.fromInt tankId
+                                    ++ " ("
+                                    ++ (tank |> Tank.getFish |> Dict.size |> String.fromInt)
+                                    ++ "/"
+                                    ++ String.fromInt Config.maxFishPerTank
+                                    ++ ")"
+                            }
                     )
                 |> (++)
-                    [ Html.text "Market"
-                        |> Layout.linkTo []
-                            (Gen.Route.Home_ |> Gen.Route.toHref)
+                    [ Layout.textButton []
+                        { label = "Market"
+                        , onPress = ChangeTab MarketTab |> Just
+                        }
                     ]
                 |> Layout.row [ Layout.gap 8 ]
             , content
@@ -230,7 +248,7 @@ view fun model content =
                     )
           , model.actions
                 |> List.head
-                |> View.Overlay.toHtml { onSubmit = fun NextActionRequested }
+                |> View.Overlay.toHtml { onSubmit = NextActionRequested }
                     model.game
           ]
             |> Html.div
@@ -272,3 +290,13 @@ view fun model content =
             |> Html.node "style" []
         ]
     }
+
+
+main : Program () Model Msg
+main =
+    Browser.document
+        { init = init
+        , view = view
+        , update = update
+        , subscriptions = subscriptions
+        }

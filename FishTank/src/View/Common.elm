@@ -11,7 +11,7 @@ import Html.Attributes
 import Image
 import Image.Color
 import Layout
-import Pigment
+import Pigment exposing (Pigment)
 import Rule exposing (Pattern(..))
 import Set
 import Svg.Path
@@ -141,6 +141,38 @@ fishInfo fish =
         |> Layout.row []
     ]
         |> Layout.column []
+
+
+pigmentCircle : { primary : Pigment, secondary : Pigment } -> Html msg
+pigmentCircle args =
+    [ Svg.Path.startAt ( 0, 0 )
+        |> Svg.Path.drawLineTo ( 10, 0 )
+        |> Svg.Path.drawLineTo ( 0, 10 )
+        |> Svg.Path.endClosed
+        |> Svg.Writer.path
+        |> Svg.Writer.withFillColor
+            (args.primary
+                |> Pigment.color True
+                |> Color.toCssString
+            )
+        |> Svg.Writer.withNoStrokeColor
+    , Svg.Path.startAt ( 0, 10 )
+        |> Svg.Path.drawLineTo ( 10, 0 )
+        |> Svg.Path.drawLineTo ( 10, 10 )
+        |> Svg.Path.endClosed
+        |> Svg.Writer.path
+        |> Svg.Writer.withFillColor
+            (args.secondary
+                |> Pigment.color False
+                |> Color.toCssString
+            )
+        |> Svg.Writer.withNoStrokeColor
+    ]
+        |> Svg.Writer.toHtml
+            [ Html.Attributes.style "border-radius" "100%"
+            , Html.Attributes.style "border" "1px solid black"
+            ]
+            { width = 10, height = 10 }
 
 
 patternCircle : Color -> Pattern -> Html msg

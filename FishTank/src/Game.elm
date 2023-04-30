@@ -43,6 +43,7 @@ type alias Game =
     , money : Int
     , breeds : Dict BreedId Breed
     , assignedBreed : Dict FishId BreedId
+    , order : { primary : Pigment, secondary : Pigment }
     }
 
 
@@ -63,6 +64,10 @@ new =
     , money = Config.fishCost * 2
     , breeds = Dict.empty
     , assignedBreed = Dict.empty
+    , order =
+        { primary = { red = True, yellow = True, blue = False }
+        , secondary = { red = True, yellow = True, blue = False }
+        }
     }
 
 
@@ -474,10 +479,16 @@ sellFish fishId game =
            )
 
 
-buyFish : Game -> Generator Game
-buyFish game =
+buyFish : Maybe Breed -> Game -> Generator Game
+buyFish maybeBreed game =
     if game.money >= Config.fishCost then
-        Fish.generateDefault
+        (case maybeBreed of
+            Nothing ->
+                Fish.generateDefault
+
+            Just breed ->
+                Fish.Common.new breed |> Random.constant
+        )
             |> Random.map
                 (\fish ->
                     { game
@@ -490,6 +501,14 @@ buyFish game =
 
     else
         Random.constant game
+
+
+buyTank : Game -> Game
+buyTank game =
+    { game
+        | tanks = game.tanks |> Dict.insert (Dict.size game.tanks) Tank.empty
+        , money = game.money - Config.tankCost
+    }
 
 
 load : TankId -> FishId -> Game -> Generator Game
