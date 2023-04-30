@@ -1,7 +1,7 @@
 module Main exposing (..)
 
 import Browser
-import Config
+import Common
 import Dict exposing (Dict)
 import Game
 import Game.Gravity
@@ -9,9 +9,9 @@ import Game.Merge
 import Game.Type exposing (Game, TileId)
 import Html exposing (Html)
 import Html.Attributes
-import Html.Events
-import Layout
+import Html.Keyed
 import Random exposing (Generator, Seed)
+import View
 
 
 type alias Model =
@@ -50,68 +50,30 @@ init () =
 
 view : Model -> Html Msg
 view model =
-    List.repeat Config.size ()
-        |> List.indexedMap
-            (\y () ->
-                List.repeat Config.size ()
-                    |> List.indexedMap
-                        (\x () ->
-                            model.displayGrid
-                                |> Dict.get ( x, y )
-                                |> Maybe.andThen
-                                    (\id ->
-                                        model.game.tiles
-                                            |> Dict.get id
-                                    )
-                                |> Maybe.map String.fromInt
-                                |> Maybe.withDefault ""
-                                |> (\value ->
-                                        Html.text value
-                                            |> Layout.button
-                                                ([ Html.Attributes.style "aspect-ratio" "1"
-                                                 , Html.Attributes.style "width" "100px"
-                                                 , Html.Attributes.style "border" "1px solid black"
-                                                 ]
-                                                    ++ Layout.centered
-                                                    ++ (case model.dragging of
-                                                            Just { to } ->
-                                                                (if to == ( x, y ) then
-                                                                    [ Html.Attributes.style "font-weight" "bold" ]
-
-                                                                 else
-                                                                    []
-                                                                )
-                                                                    ++ [ if to == ( x, y ) then
-                                                                            StopDragging
-                                                                                |> Html.Events.onMouseUp
-
-                                                                         else
-                                                                            DragTo ( x, y )
-                                                                                |> Html.Events.onMouseEnter
-                                                                       ]
-
-                                                            Nothing ->
-                                                                []
-                                                       )
-                                                )
-                                                { onPress =
-                                                    case model.dragging of
-                                                        Just { to } ->
-                                                            if to == ( x, y ) then
-                                                                StopDragging |> Just
-
-                                                            else
-                                                                DragTo ( x, y ) |> Just
-
-                                                        Nothing ->
-                                                            StartDraggingFrom ( x, y ) |> Just
-                                                , label = value
-                                                }
-                                   )
+    Common.grid
+        |> List.map
+            (\( x, y ) ->
+                model.displayGrid
+                    |> Dict.get ( x, y )
+                    |> Maybe.map
+                        (\id ->
+                            model.game.tiles
+                                |> Dict.get id
+                                |> Tuple.pair (String.fromInt id)
                         )
-                    |> Layout.row []
+                    |> Maybe.withDefault ( "empty_" ++ String.fromInt x ++ "_" ++ String.fromInt y, Nothing )
+                    |> (\( id, value ) ->
+                            View.tile
+                                { startDraggingFrom = StartDraggingFrom
+                                , dragTo = DragTo
+                                , stopDragging = StopDragging
+                                , dragging = model.dragging
+                                }
+                                ( ( x, y ), value )
+                                |> Tuple.pair id
+                       )
             )
-        |> Layout.column []
+        |> Html.Keyed.node "div" [ Html.Attributes.style "position" "relative" ]
 
 
 applyModel : Model -> Generator Model -> Model

@@ -1,5 +1,6 @@
 module Game exposing (..)
 
+import Common
 import Config
 import Dict exposing (Dict)
 import Game.Type exposing (Game)
@@ -17,7 +18,7 @@ addTile pos value game =
 
 generate : Random.Generator Game
 generate =
-    Random.int 1 5
+    Random.int 1 (1 + Config.maxValue)
         |> Random.list (Config.size * Config.size)
         |> Random.map
             (\list ->
@@ -49,7 +50,13 @@ dragRow args readDict =
                                     )
                                     tile
                         )
-                    |> Maybe.withDefault writeDict
+                    |> Maybe.withDefault
+                        (writeDict
+                            |> Dict.remove
+                                ( x + args.amount |> modBy Config.size
+                                , args.row
+                                )
+                        )
             )
             readDict
 
@@ -70,7 +77,13 @@ dragColumn args readDict =
                                     )
                                     tile
                         )
-                    |> Maybe.withDefault writeDict
+                    |> Maybe.withDefault
+                        (writeDict
+                            |> Dict.remove
+                                ( args.column
+                                , y + args.amount |> modBy Config.size
+                                )
+                        )
             )
             readDict
 
@@ -107,30 +120,17 @@ refill game =
     game
         |> getEmptyPositions
         |> List.foldl
-            (\pos ->
-                Random.andThen
-                    (\g ->
-                        Random.int 1 5
-                            |> Random.map
-                                (\value ->
-                                    addTile pos value g
-                                )
-                    )
+            (\pos g1 ->
+                Random.map2 (addTile pos)
+                    (Random.int (floor game.minValue) (floor game.minValue + Config.maxValue))
+                    g1
             )
             (Random.constant game)
 
 
 getEmptyPositions : Game -> List ( Int, Int )
 getEmptyPositions game =
-    List.range 0 (Config.size - 1)
-        |> List.concatMap
-            (\y ->
-                List.range 0 (Config.size - 1)
-                    |> List.map
-                        (\x ->
-                            ( x, y )
-                        )
-            )
+    Common.grid
         |> List.filter
             (\pos ->
                 game.grid

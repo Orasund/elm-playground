@@ -11,6 +11,7 @@ type alias Game =
     { tiles : Dict TileId Int
     , nextTileId : TileId
     , grid : Dict ( Int, Int ) TileId
+    , minValue : Float
     }
 
 
@@ -19,6 +20,7 @@ empty =
     { tiles = Dict.empty
     , nextTileId = 0
     , grid = Dict.empty
+    , minValue = 1
     }
 
 

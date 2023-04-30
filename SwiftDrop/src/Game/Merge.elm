@@ -1,5 +1,6 @@
 module Game.Merge exposing (mergeTiles)
 
+import Config
 import Dict
 import Game.Type exposing (Game)
 import Set exposing (Set)
@@ -31,7 +32,7 @@ upgradeAll set game =
                 Game.Type.updateValueAtPosition pos
                     (\int -> int + 1)
             )
-            game
+            { game | minValue = game.minValue + Config.minValueIncrease }
 
 
 calcHorizontalActionOf : ( Int, Int ) -> Game -> { upgrade : List ( Int, Int ), remove : List ( Int, Int ) }
