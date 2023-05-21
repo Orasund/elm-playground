@@ -14,6 +14,7 @@ import Rule exposing (Pattern(..))
 import Set
 import Tank
 import Time
+import View.Lab
 import View.Market
 import View.Overlay
 import View.Tank
@@ -26,6 +27,7 @@ type alias Random a =
 type Tab
     = TankTab Int
     | MarketTab
+    | LabTab
 
 
 type alias Model =
@@ -58,7 +60,7 @@ init _ =
       , game = Game.new
       , animationFrame = False
       , actions = []
-      , tab = MarketTab
+      , tab = TankTab 0
       }
     , Random.generate GotSeed Random.independentSeed
     )
@@ -74,7 +76,13 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         GotSeed seed ->
-            ( { model | seed = seed }, Cmd.none )
+            ( model.game
+                |> Game.buyFish Nothing
+                |> Random.andThen (Game.buyFish Nothing)
+                |> Random.map (\game -> { model | game = game })
+                |> apply seed
+            , Cmd.none
+            )
 
         NextAnimationRequested ->
             ( { model | animationFrame = not model.animationFrame }
@@ -109,7 +117,7 @@ update msg model =
                 |> (\m -> ( m, Cmd.none ))
 
         StoreFish tankId fishId ->
-            if (model.game.storage |> Set.size) < 5 then
+            if (model.game.storage |> Set.size) < Config.storageSize then
                 ( { model | game = model.game |> Game.store tankId fishId }
                 , Cmd.none
                 )
@@ -125,23 +133,23 @@ update msg model =
                 |> (\m -> ( m, Cmd.none ))
 
         SellFish fishId ->
-            ( { model
-                | game =
-                    model.game
-                        |> Game.sellFish fishId
-              }
-            , Cmd.none
-            )
+            model.game
+                |> Game.sellFish fishId
+                |> Random.map (\game -> { model | game = game })
+                |> apply model.seed
+                |> (\m -> ( m, Cmd.none ))
 
         SellAllFishInStorage ->
-            ( { model
-                | game =
-                    model.game.storage
-                        |> Set.foldl Game.sellFish
-                            model.game
-              }
-            , Cmd.none
-            )
+            model.game.storage
+                |> Set.foldl
+                    (\fishId ->
+                        Random.andThen
+                            (Game.sellFish fishId)
+                    )
+                    (Random.constant model.game)
+                |> Random.map (\game -> { model | game = game })
+                |> apply model.seed
+                |> (\m -> ( m, Cmd.none ))
 
         BuyFish maybeBreed ->
             model.game
@@ -167,7 +175,13 @@ update msg model =
                     ( model, Cmd.none )
 
         BuyTank ->
-            ( { model | game = Game.buyTank model.game }, Cmd.none )
+            ( if model.game.money >= Config.tankCost then
+                { model | game = Game.buyTank model.game }
+
+              else
+                model
+            , Cmd.none
+            )
 
         ChangeTab tab ->
             ( { model | tab = tab }, Cmd.none )
@@ -208,6 +222,13 @@ view model =
                         , buyTank = BuyTank
                         }
                         model.game
+
+                LabTab ->
+                    View.Lab.toHtml
+                        { buyFish = BuyFish
+                        , buyTank = BuyTank
+                        }
+                        model.game
     in
     { title = Config.title
     , body =
@@ -229,8 +250,12 @@ view model =
                     )
                 |> (++)
                     [ Layout.textButton []
-                        { label = "Market"
+                        { label = "Sell"
                         , onPress = ChangeTab MarketTab |> Just
+                        }
+                    , Layout.textButton []
+                        { label = "Buy"
+                        , onPress = ChangeTab LabTab |> Just
                         }
                     ]
                 |> Layout.row [ Layout.gap 8 ]

@@ -1,5 +1,6 @@
 module View.Common exposing (..)
 
+import Cat exposing (Cat)
 import Color exposing (Color)
 import Config
 import Dict
@@ -19,7 +20,8 @@ import Svg.Writer
 
 
 storage :
-    { onClick : FishId -> msg
+    { onClick : FishId -> Maybe msg
+    , infos : FishId -> List (Html msg)
     }
     -> Game
     -> Html msg
@@ -34,32 +36,79 @@ storage args g =
             )
         |> List.map
             (\( fishId, fish ) ->
-                [ { fish | size = 1 }
-                    |> fishSprite
-                        (Layout.asButton
-                            { label = "Load"
-                            , onPress = Just (args.onClick fishId)
-                            }
+                args.infos fishId
+                    |> (::)
+                        ({ fish | size = 1 }
+                            |> fishSprite
+                                (Layout.asButton
+                                    { label = "Load"
+                                    , onPress = args.onClick fishId
+                                    }
+                                )
+                                { animationFrame = False }
                         )
-                        { animationFrame = False }
-                , "Size: " ++ String.fromInt fish.size |> Layout.text []
-                , g.assignedBreed
-                    |> Dict.get fishId
-                    |> Maybe.andThen
-                        (\breedId ->
-                            g.breeds |> Dict.get breedId
-                        )
-                    |> Maybe.map .name
-                    |> Maybe.withDefault "Common Goldfish"
-                    |> Layout.text []
-                ]
-                    |> Layout.column [ Html.Attributes.style "width" "80px" ]
+                    |> Layout.column (Layout.centered ++ [ Html.Attributes.style "width" "120px" ])
             )
         |> Layout.row
             [ Layout.gap 8
             , Layout.alignAtEnd
+            , Layout.contentCentered
             , Html.Attributes.style "height" "120px"
             ]
+
+
+sizeInfo : Game -> FishId -> Html msg
+sizeInfo game fishId =
+    game.fish
+        |> Dict.get fishId
+        |> Maybe.map .size
+        |> Maybe.withDefault 0
+        |> (\size -> "Size: " ++ String.fromInt size)
+        |> Layout.text []
+
+
+breedInfo : Game -> FishId -> Html msg
+breedInfo game fishId =
+    let
+        primary =
+            game.fish
+                |> Dict.get fishId
+                |> Maybe.map
+                    (\fish ->
+                        pigmentCircle fish.primary
+                    )
+                |> Maybe.withDefault Layout.none
+
+        secondary =
+            game.fish
+                |> Dict.get fishId
+                |> Maybe.map
+                    (\fish ->
+                        pigmentCircle fish.secondary
+                    )
+                |> Maybe.withDefault Layout.none
+
+        breedName =
+            game.assignedBreed
+                |> Dict.get fishId
+                |> Maybe.andThen
+                    (\breedId ->
+                        game.breeds |> Dict.get breedId
+                    )
+                |> Maybe.map .name
+                |> Maybe.withDefault "Common Goldfish"
+    in
+    [ [ primary
+      , secondary
+      ]
+        |> Layout.row [ Layout.gap 8 ]
+    , breedName
+        |> Layout.text
+            [ Html.Attributes.style "font-size" "0.9rem"
+            , Html.Attributes.style "width" "60px"
+            ]
+    ]
+        |> Layout.column [ Layout.noWrap, Layout.contentWithSpaceBetween ]
 
 
 money : Int -> Html msg
@@ -68,6 +117,50 @@ money int =
         |> Layout.text
             [ Html.Attributes.style "font-size" "3rem"
             ]
+
+
+catSprite : List (Attribute msg) -> Cat -> Html msg
+catSprite attrs f =
+    let
+        width =
+            Config.catSize
+    in
+    Cat.toBitmap f.pattern
+        |> List.map
+            (List.map
+                (\bitColor ->
+                    case bitColor of
+                        Black ->
+                            Color.black
+
+                        Primary ->
+                            Pigment.color True f.primary
+
+                        Secondary ->
+                            Pigment.color False f.secondary
+
+                        None ->
+                            Color.fromRgba
+                                { red = 0
+                                , blue = 0
+                                , green = 0
+                                , alpha = 0
+                                }
+                )
+            )
+        |> Image.Color.fromList2d
+        |> Image.toPngUrl
+        |> (\url ->
+                Html.img
+                    ([ Html.Attributes.src url
+                     , Html.Attributes.style "width" (String.fromFloat width ++ "px")
+                     , Html.Attributes.style "height" (String.fromFloat width ++ "px")
+                     , Html.Attributes.style "image-rendering" "pixelated"
+                     ]
+                        ++ attrs
+                    )
+                    []
+           )
 
 
 fishSprite : List (Attribute msg) -> { animationFrame : Bool } -> Fish -> Html msg
@@ -143,36 +236,25 @@ fishInfo fish =
         |> Layout.column []
 
 
-pigmentCircle : { primary : Pigment, secondary : Pigment } -> Html msg
-pigmentCircle args =
-    [ Svg.Path.startAt ( 0, 0 )
-        |> Svg.Path.drawLineTo ( 10, 0 )
-        |> Svg.Path.drawLineTo ( 0, 10 )
-        |> Svg.Path.endClosed
-        |> Svg.Writer.path
-        |> Svg.Writer.withFillColor
-            (args.primary
-                |> Pigment.color True
-                |> Color.toCssString
-            )
-        |> Svg.Writer.withNoStrokeColor
-    , Svg.Path.startAt ( 0, 10 )
-        |> Svg.Path.drawLineTo ( 10, 0 )
-        |> Svg.Path.drawLineTo ( 10, 10 )
-        |> Svg.Path.endClosed
-        |> Svg.Writer.path
-        |> Svg.Writer.withFillColor
-            (args.secondary
+pigmentCircle : Pigment -> Html msg
+pigmentCircle pigment =
+    pigment
+        |> Pigment.name
+        |> String.left 1
+        |> Layout.text [ Html.Attributes.style "font-size" "0.5em" ]
+        |> Layout.el
+            ([ pigment
                 |> Pigment.color False
                 |> Color.toCssString
+                |> Html.Attributes.style "background-color"
+             , Html.Attributes.style "width" "0.9em"
+             , Html.Attributes.style "height" "0.9em"
+             , Html.Attributes.style "border-radius" "100%"
+             , Html.Attributes.style "border" "1px solid black"
+             , Html.Attributes.style "display" "inline-flex"
+             ]
+                ++ Layout.centered
             )
-        |> Svg.Writer.withNoStrokeColor
-    ]
-        |> Svg.Writer.toHtml
-            [ Html.Attributes.style "border-radius" "100%"
-            , Html.Attributes.style "border" "1px solid black"
-            ]
-            { width = 10, height = 10 }
 
 
 patternCircle : Color -> Pattern -> Html msg
@@ -205,5 +287,6 @@ patternCircle color p =
         |> Svg.Writer.toHtml
             [ Html.Attributes.style "border-radius" "100%"
             , Html.Attributes.style "border" ("3px solid " ++ Color.toCssString color)
+            , Layout.asEl
             ]
             { width = 10, height = 10 }

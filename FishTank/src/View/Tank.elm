@@ -25,7 +25,12 @@ page :
     -> Html msg
 page args game =
     [ View.Common.storage
-        { onClick = \id -> args.loadFish id
+        { onClick = \id -> args.loadFish id |> Just
+        , infos =
+            \fishId ->
+                [ View.Common.sizeInfo game fishId
+                , View.Common.breedInfo game fishId
+                ]
         }
         game
     , Layout.textButton [ Html.Attributes.class "feedButton" ]

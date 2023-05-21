@@ -13,6 +13,10 @@ fishMinSize =
     48
 
 
+catSize =
+    64
+
+
 tankWidth =
     5
 
@@ -31,6 +35,18 @@ fishCost =
 
 tankCost =
     1000
+
+
+basePrice =
+    5
+
+
+featurePrice =
+    5
+
+
+storageSize =
+    3
 
 
 maxFishPerTank =

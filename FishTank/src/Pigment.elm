@@ -46,6 +46,34 @@ color isPrimary pigment =
         c
 
 
+name : Pigment -> String
+name pigment =
+    case ( pigment.blue, pigment.red, pigment.yellow ) of
+        ( False, False, False ) ->
+            "White"
+
+        ( False, False, True ) ->
+            "Yellow"
+
+        ( False, True, False ) ->
+            "Red"
+
+        ( False, True, True ) ->
+            "Orange"
+
+        ( True, False, False ) ->
+            "Violet"
+
+        ( True, False, True ) ->
+            "Gray"
+
+        ( True, True, False ) ->
+            "Brown"
+
+        ( True, True, True ) ->
+            "Dark"
+
+
 white : Color
 white =
     Color.rgb255 204 211 167

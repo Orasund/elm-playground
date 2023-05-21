@@ -2,12 +2,13 @@ module Game exposing (..)
 
 import Action exposing (Action)
 import Array
+import Cat exposing (Cat)
 import Config
 import Dict exposing (Dict)
 import Fish
 import Fish.Common exposing (Breed, BreedId, Fish, FishId)
 import Fish.Name
-import Pigment exposing (Pigment)
+import Pigment exposing (Pigment, yellow)
 import Random exposing (Generator)
 import Set exposing (Set)
 import Tank exposing (Tank)
@@ -31,6 +32,13 @@ type Goal
     | MoveTo ( Float, Float )
 
 
+type alias Order =
+    { primary : Pigment
+    , secondary : Pigment
+    , cat : Cat
+    }
+
+
 type alias Game =
     { fish : Dict FishId Fish
     , nextFishId : FishId
@@ -43,7 +51,7 @@ type alias Game =
     , money : Int
     , breeds : Dict BreedId Breed
     , assignedBreed : Dict FishId BreedId
-    , order : { primary : Pigment, secondary : Pigment }
+    , order : Order
     }
 
 
@@ -55,7 +63,6 @@ new =
     , goals = Dict.empty
     , tanks =
         [ ( 0, Tank.empty )
-        , ( 1, Tank.empty )
         ]
             |> Dict.fromList
     , storage = Set.empty
@@ -67,6 +74,7 @@ new =
     , order =
         { primary = { red = True, yellow = True, blue = False }
         , secondary = { red = True, yellow = True, blue = False }
+        , cat = Cat.default
         }
     }
 
@@ -457,26 +465,87 @@ insertIntoTank location tankId fishId game =
     }
 
 
-sellFish : FishId -> Game -> Game
+randomOrder : Generator Order
+randomOrder =
+    let
+        randBool =
+            Random.int 0 1
+                |> Random.map ((==) 1)
+
+        randPigment =
+            Random.map3
+                (\red yellow blue ->
+                    { red = red
+                    , yellow = yellow
+                    , blue = blue
+                    }
+                )
+                randBool
+                randBool
+                randBool
+
+        randCat =
+            Random.map3
+                (\primary secondary pattern ->
+                    { primary = primary, secondary = secondary, pattern = pattern }
+                )
+                randPigment
+                randPigment
+                (Random.constant Cat.default.pattern)
+    in
+    Random.map3
+        (\primary secondary cat ->
+            { primary = primary, secondary = secondary, cat = cat }
+        )
+        randPigment
+        randPigment
+        randCat
+
+
+price : Fish -> { primary : Pigment, secondary : Pigment } -> Int
+price fish order =
+    [ Config.basePrice
+    , if fish.primary == order.primary then
+        Config.featurePrice
+
+      else
+        0
+    , if fish.secondary == order.secondary then
+        Config.featurePrice
+
+      else
+        0
+    ]
+        |> List.sum
+
+
+sellFish : FishId -> Game -> Generator Game
 sellFish fishId game =
-    game
-        |> (\g ->
-                if game.storage |> Set.member fishId then
-                    g.fish
-                        |> Dict.get fishId
-                        |> Maybe.map
-                            (\fish ->
-                                { g
+    if game.storage |> Set.member fishId then
+        game.fish
+            |> Dict.get fishId
+            |> Maybe.map
+                (\fish ->
+                    randomOrder
+                        |> Random.map
+                            (\newOrder ->
+                                { game
                                     | storage = game.storage |> Set.remove fishId
                                     , fish = game.fish |> Dict.remove fishId
-                                    , money = game.money + fish.size * fish.size
+                                    , money =
+                                        game.money
+                                            + price fish
+                                                { primary = game.order.primary
+                                                , secondary = game.order.secondary
+                                                }
+                                    , order = newOrder
                                 }
                             )
-                        |> Maybe.withDefault game
+                )
+            |> Maybe.withDefault (Random.constant game)
 
-                else
-                    game
-           )
+    else
+        Random.constant game
 
 
 buyFish : Maybe Breed -> Game -> Generator Game
