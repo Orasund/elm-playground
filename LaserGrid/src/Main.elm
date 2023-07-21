@@ -31,8 +31,13 @@ init () =
         level =
             1
 
-        ( grid, targets ) =
+        grid =
             Level.fromInt level
+
+        targets =
+            grid
+                |> Dict.filter (\_ -> (==) (Target False))
+                |> Dict.keys
     in
     ( { grid = grid
       , targets = targets
@@ -111,6 +116,11 @@ view model =
 
       else
         Layout.none
+    , Html.node "meta"
+        [ Html.Attributes.name "viewport"
+        , Html.Attributes.attribute "content" "width=device-width, initial-scale=1"
+        ]
+        []
     ]
         |> Html.div (Layout.centered ++ [ Layout.asEl, Html.Attributes.style "position" "relative" ])
 
@@ -120,7 +130,7 @@ tick ( ( x, y ), cell ) dict =
     let
         hasEnergy pos =
             case Dict.get pos dict of
-                Just (Glass (Just _)) ->
+                Just (Glass (_ :: _)) ->
                     True
 
                 Just Laser ->
@@ -159,8 +169,8 @@ tick ( ( x, y ), cell ) dict =
         sendsEnergyFromDir : ( Int, Int ) -> Bool
         sendsEnergyFromDir dir =
             case dict |> Dict.get (posFromDir dir) of
-                Just (Glass (Just { to })) ->
-                    ( x, y ) == to
+                Just (Glass to) ->
+                    to |> List.member ( x, y )
 
                 Just Laser ->
                     True
@@ -173,53 +183,29 @@ tick ( ( x, y ), cell ) dict =
             case neighborsDir of
                 [ dir1, dir2 ] ->
                     if sendsEnergyFromDir dir1 then
-                        Glass
-                            (Just
-                                { from = posFromDir dir1
-                                , to = posFromDir dir2
-                                }
-                            )
+                        Glass [ posFromDir dir2 ]
 
                     else if sendsEnergyFromDir dir2 then
-                        Glass
-                            (Just
-                                { from = posFromDir dir2
-                                , to = posFromDir dir1
-                                }
-                            )
+                        Glass [ posFromDir dir1 ]
 
                     else
-                        Glass Nothing
+                        Glass []
 
                 _ ->
                     neighboringDir
                         |> List.filter sendsEnergyFromDir
                         |> (\list ->
-                                case list of
-                                    [ ( x0, y0 ) ] ->
-                                        Glass
-                                            (Just
-                                                { from = ( x + x0, y + y0 )
-                                                , to = ( x - x0, y - y0 )
-                                                }
-                                            )
-
-                                    _ ->
-                                        Glass Nothing
+                                list
+                                    |> List.map
+                                        (\( x0, y0 ) ->
+                                            ( x - x0, y - y0 )
+                                        )
+                                    |> Glass
                            )
 
         Target _ ->
             [ ( -1, 0 ), ( 1, 0 ), ( 0, -1 ), ( 0, 1 ) ]
-                |> List.map posFromDir
-                |> List.any
-                    (\pos ->
-                        case Dict.get pos dict of
-                            Just (Glass (Just _)) ->
-                                True
-
-                            _ ->
-                                False
-                    )
+                |> List.any sendsEnergyFromDir
                 |> Target
 
         _ ->
@@ -241,7 +227,7 @@ update msg model =
                                             Nothing
 
                                         Nothing ->
-                                            Just (Glass Nothing)
+                                            Just (Glass [])
 
                                         _ ->
                                             maybe
@@ -275,8 +261,13 @@ update msg model =
                 level =
                     model.level + 1
 
-                ( grid, targets ) =
+                grid =
                     Level.fromInt level
+
+                targets =
+                    grid
+                        |> Dict.filter (\_ -> (==) (Target False))
+                        |> Dict.keys
             in
             ( { model
                 | grid = grid

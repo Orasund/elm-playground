@@ -2,7 +2,7 @@ module Cell exposing (..)
 
 
 type Cell
-    = Glass (Maybe { from : ( Int, Int ), to : ( Int, Int ) })
+    = Glass (List ( Int, Int ))
     | Wall
     | Laser
     | Target Bool
@@ -11,7 +11,7 @@ type Cell
 toEmoji : Cell -> String
 toEmoji cell =
     case cell of
-        Glass Nothing ->
+        Glass [] ->
             "🔲"
 
         Glass _ ->

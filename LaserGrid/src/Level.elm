@@ -4,44 +4,97 @@ import Cell exposing (Cell(..))
 import Dict exposing (Dict)
 
 
-type alias Level =
-    ( Dict ( Int, Int ) Cell, List ( Int, Int ) )
-
-
 empty : Dict ( Int, Int ) Cell
 empty =
-    List.range -1 4
-        |> List.concatMap (\i -> [ ( i, -1 ), ( i, 4 ) ])
-        |> (++) (List.range 0 3 |> List.concatMap (\i -> [ ( -1, i ), ( 4, i ) ]))
-        |> List.map (\pos -> ( pos, Wall ))
-        |> Dict.fromList
+    parse
+        [ "⬛⬛⬛⬛⬛⬛"
+        , "⬛⬜️⬜️⬜️⬜️⬛"
+        , "⬛⬜️⬜️⬜️⬜️⬛"
+        , "⬛⬜️⬜️⬜️⬜️⬛"
+        , "⬛⬜️⬜️⬜️⬜️⬛"
+        , "⬛⬛⬛⬛⬛⬛"
+        ]
 
 
-fromInt : Int -> Level
+fromInt : Int -> Dict ( Int, Int ) Cell
 fromInt int =
     case int of
+        4 ->
+            parse
+                [ "⬛⬛⬛🔘🔘⬛"
+                , "🟥⬜⬜⬜⬜🟥"
+                , "⬛⬜⬜⬜⬜⬛"
+                , "⬛⬜⬜⬜⬜⬛"
+                , "🟥⬜⬜⬜⬜🟥"
+                , "⬛🔘🔘⬛⬛⬛"
+                ]
+
+        3 ->
+            parse
+                [ "⬛🟥🟥⬛⬛⬛"
+                , "🔘⬜⬜⬜⬜⬛"
+                , "⬛⬜⬜⬜⬜⬛"
+                , "⬛⬜⬜⬜⬜⬛"
+                , "🔘⬜⬜⬜⬜⬛"
+                , "⬛⬛⬛⬛⬛⬛"
+                ]
+
         2 ->
-            ( empty
-                |> withLaserAt ( 0, -1 )
-                |> withLaserAt ( 1, -1 )
-            , []
-            )
-                |> withTargetAt ( 2, 4 )
-                |> withTargetAt ( 1, 4 )
+            parse
+                [ "⬛🟥⬛⬛🟥⬛"
+                , "🟥⬜⬜⬜⬜🔘"
+                , "⬛⬜⬜⬜⬜⬛"
+                , "⬛⬜⬜⬜⬜⬛"
+                , "🟥⬜⬜⬜⬜🔘"
+                , "⬛🔘⬛⬛🔘⬛"
+                ]
 
         _ ->
-            ( empty
-                |> withLaserAt ( 0, -1 )
-            , []
+            parse
+                [ "⬛🟥⬛⬛🟥⬛"
+                , "⬛⬜⬜⬜⬜🔘"
+                , "⬛⬜⬜⬜⬜⬛"
+                , "⬛⬛⬛⬛⬜⬛"
+                , "⬛⬛⬛⬛⬜🔘"
+                , "⬛⬛⬛⬛⬛⬛"
+                ]
+
+
+parse : List String -> Dict ( Int, Int ) Cell
+parse rows =
+    rows
+        |> List.indexedMap
+            (\y string ->
+                string
+                    |> String.toList
+                    |> List.indexedMap
+                        (\x char ->
+                            let
+                                pos =
+                                    ( x - 1, y - 1 )
+                            in
+                            case char of
+                                '🔲' ->
+                                    Just ( pos, Glass [] )
+
+                                '🟥' ->
+                                    Just ( pos, Laser )
+
+                                '🔘' ->
+                                    Just ( pos, Target False )
+
+                                '⬛' ->
+                                    Just ( pos, Wall )
+
+                                _ ->
+                                    Nothing
+                        )
+                    |> List.filterMap identity
             )
-                |> withTargetAt ( 3, 4 )
+        |> List.concat
+        |> Dict.fromList
 
 
 withLaserAt : ( Int, Int ) -> Dict ( Int, Int ) Cell -> Dict ( Int, Int ) Cell
 withLaserAt pos =
     Dict.insert pos Laser
-
-
-withTargetAt : ( Int, Int ) -> Level -> Level
-withTargetAt pos ( grid, list ) =
-    ( grid |> Dict.insert pos (Target False), pos :: list )
