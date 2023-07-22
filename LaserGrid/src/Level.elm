@@ -1,22 +1,39 @@
 module Level exposing (..)
 
-import Cell exposing (Cell(..))
+import Cell exposing (Cell(..), ConnectionShape)
 import Dict exposing (Dict)
+import Dir exposing (Dir)
 
 
-empty : Dict ( Int, Int ) Cell
-empty =
-    parse
-        [ "⬛⬛⬛⬛⬛⬛"
-        , "⬛⬜️⬜️⬜️⬜️⬛"
-        , "⬛⬜️⬜️⬜️⬜️⬛"
-        , "⬛⬜️⬜️⬜️⬜️⬛"
-        , "⬛⬜️⬜️⬜️⬜️⬛"
-        , "⬛⬛⬛⬛⬛⬛"
+type alias Module =
+    Dict
+        Dir
+        { from : Dir
+        , shape : ConnectionShape
+        }
+
+
+modules : Dict Int Module
+modules =
+    [ ( 1
+      , [ ( Dir.new ( 1, 0 )
+          , { from = Dir.new ( 0, -1 )
+            , shape = Cell.DoubleConnection
+            }
+          )
+        , ( Dir.new ( 0, -1 )
+          , { from = Dir.new ( 1, 0 )
+            , shape = Cell.DoubleConnection
+            }
+          )
         ]
+            |> Dict.fromList
+      )
+    ]
+        |> Dict.fromList
 
 
-fromInt : Int -> Dict ( Int, Int ) Cell
+fromInt : Int -> Dict ( Int, Int ) (Cell a)
 fromInt int =
     case int of
         4 ->
@@ -60,7 +77,7 @@ fromInt int =
                 ]
 
 
-parse : List String -> Dict ( Int, Int ) Cell
+parse : List String -> Dict ( Int, Int ) (Cell a)
 parse rows =
     rows
         |> List.indexedMap
@@ -74,9 +91,6 @@ parse rows =
                                     ( x - 1, y - 1 )
                             in
                             case char of
-                                '🔲' ->
-                                    Just ( pos, Glass [] )
-
                                 '🟥' ->
                                     Just ( pos, Laser )
 
@@ -95,6 +109,6 @@ parse rows =
         |> Dict.fromList
 
 
-withLaserAt : ( Int, Int ) -> Dict ( Int, Int ) Cell -> Dict ( Int, Int ) Cell
+withLaserAt : ( Int, Int ) -> Dict ( Int, Int ) (Cell a) -> Dict ( Int, Int ) (Cell a)
 withLaserAt pos =
     Dict.insert pos Laser

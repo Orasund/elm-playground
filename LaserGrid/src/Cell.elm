@@ -1,21 +1,85 @@
 module Cell exposing (..)
 
+import Dict exposing (Dict)
 
-type Cell
-    = Glass (List ( Int, Int ))
+
+type ConnectionShape
+    = SingleConnection
+    | DoubleConnection
+
+
+type alias Connection1 =
+    List ( Int, Int )
+
+
+type alias Connection2 =
+    { moduleId : Int
+    , activePos : List ( Int, Int )
+    }
+
+
+type Cell a
+    = Glass a
     | Wall
     | Laser
     | Target Bool
 
 
-toEmoji : Cell -> String
-toEmoji cell =
+map : (a -> b) -> Cell a -> Cell b
+map fun cell =
     case cell of
-        Glass [] ->
-            "🔲"
+        Glass a ->
+            Glass (fun a)
 
-        Glass _ ->
-            "🟥"
+        Wall ->
+            Wall
+
+        Laser ->
+            Laser
+
+        Target b ->
+            Target b
+
+
+type alias Cell1 =
+    Cell Connection1
+
+
+type alias Cell2 =
+    Cell Connection2
+
+
+cell1ToEmoji : Cell1 -> String
+cell1ToEmoji =
+    toEmoji
+        (\list ->
+            case list of
+                [] ->
+                    "🔲"
+
+                _ ->
+                    "🟥"
+        )
+
+
+cell2ToEmoji : Cell2 -> String
+cell2ToEmoji =
+    toEmoji
+        (\connection ->
+            case connection.activePos of
+                [] ->
+                    "🔲"
+
+                _ ->
+                    "🟥"
+        )
+
+
+toEmoji : (a -> String) -> Cell a -> String
+toEmoji fun cell =
+    case cell of
+        Glass a ->
+            fun a
 
         Wall ->
             "⬛️"
@@ -28,3 +92,13 @@ toEmoji cell =
 
         Target True ->
             "🟥"
+
+
+cell1sendsEnergyTo : ( Int, Int ) -> Connection1 -> Bool
+cell1sendsEnergyTo to list =
+    list |> List.member to
+
+
+cell2sendsEnergyTo : ( Int, Int ) -> Connection2 -> Bool
+cell2sendsEnergyTo to { activePos } =
+    activePos |> List.member to
