@@ -1,41 +1,28 @@
 module Level exposing (..)
 
-import Cell exposing (Cell(..), ConnectionShape)
+import Cell exposing (Cell(..))
 import Dict exposing (Dict)
-import Dir exposing (Dir)
+import Grid exposing (Grid(..))
 
 
-type alias Module =
-    Dict
-        Dir
-        { from : Dir
-        , shape : ConnectionShape
-        }
-
-
-modules : Dict Int Module
-modules =
-    [ ( 1
-      , [ ( Dir.new ( 1, 0 )
-          , { from = Dir.new ( 0, -1 )
-            , shape = Cell.DoubleConnection
-            }
-          )
-        , ( Dir.new ( 0, -1 )
-          , { from = Dir.new ( 1, 0 )
-            , shape = Cell.DoubleConnection
-            }
-          )
-        ]
-            |> Dict.fromList
-      )
-    ]
-        |> Dict.fromList
-
-
-fromInt : Int -> Dict ( Int, Int ) (Cell a)
+fromInt : Int -> Grid
 fromInt int =
+    let
+        default =
+            5
+    in
     case int of
+        5 ->
+            parse
+                [ "⬛🟥⬛⬛🟥⬛"
+                , "⬛⬜⬜⬜⬜⬛"
+                , "⬛⬜⬜⬜⬜⬛"
+                , "⬛⬜⬜⬜⬜⬛"
+                , "⬛⬜⬜⬜⬜⬛"
+                , "⬛🔘⬛⬛🔘⬛"
+                ]
+                |> Stage2
+
         4 ->
             parse
                 [ "⬛⬛⬛🔘🔘⬛"
@@ -45,6 +32,7 @@ fromInt int =
                 , "🟥⬜⬜⬜⬜🟥"
                 , "⬛🔘🔘⬛⬛⬛"
                 ]
+                |> Stage1
 
         3 ->
             parse
@@ -55,6 +43,7 @@ fromInt int =
                 , "🔘⬜⬜⬜⬜⬛"
                 , "⬛⬛⬛⬛⬛⬛"
                 ]
+                |> Stage1
 
         2 ->
             parse
@@ -65,8 +54,9 @@ fromInt int =
                 , "🟥⬜⬜⬜⬜🔘"
                 , "⬛🔘⬛⬛🔘⬛"
                 ]
+                |> Stage1
 
-        _ ->
+        0 ->
             parse
                 [ "⬛🟥⬛⬛🟥⬛"
                 , "⬛⬜⬜⬜⬜🔘"
@@ -75,6 +65,10 @@ fromInt int =
                 , "⬛⬛⬛⬛⬜🔘"
                 , "⬛⬛⬛⬛⬛⬛"
                 ]
+                |> Stage1
+
+        _ ->
+            fromInt default
 
 
 parse : List String -> Dict ( Int, Int ) (Cell a)

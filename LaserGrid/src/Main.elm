@@ -3,12 +3,13 @@ module Main exposing (..)
 import Browser
 import Cell exposing (Cell(..))
 import Dict exposing (Dict)
-import Grid exposing (Grid(..))
+import Grid exposing (Grid(..), Module)
 import Html exposing (Html)
 import Html.Attributes
 import Layout
-import Level exposing (Module)
+import Level
 import Time
+import View
 
 
 type alias Model =
@@ -17,11 +18,13 @@ type alias Model =
     , updating : Bool
     , targets : List ( Int, Int )
     , level : Int
+    , selected : Maybe ( Int, Int )
     }
 
 
 type Msg
     = Toggle ( Int, Int )
+    | PlaceModule Int
     | UpdateGrid
     | NextLevel
 
@@ -37,14 +40,16 @@ init () =
 
         targets =
             grid
+                |> Grid.toDict
                 |> Dict.filter (\_ -> (==) (Target False))
                 |> Dict.keys
     in
-    ( { grid = grid |> Stage1
+    ( { grid = grid
       , modules = Dict.empty
       , targets = targets
       , updating = False
       , level = level
+      , selected = Nothing
       }
     , Cmd.none
     )
@@ -76,7 +81,7 @@ view model =
                     |> Layout.row []
             )
         |> Layout.column []
-    , if
+    , (if
         model.updating
             == False
             && List.all
@@ -89,7 +94,7 @@ view model =
                             False
                 )
                 model.targets
-      then
+       then
         [ "You Win"
             |> Layout.text []
         , Layout.textButton []
@@ -97,26 +102,47 @@ view model =
             , onPress = Just NextLevel
             }
         ]
-            |> Layout.column
-                (Layout.centered
-                    ++ [ Html.Attributes.style "width" "200px"
-                       , Html.Attributes.style "height" "75px"
-                       , Html.Attributes.style "background" "white"
-                       , Html.Attributes.style "border" "1px solid black"
-                       , Html.Attributes.style "position" "absolute"
-                       , Layout.gap 8
-                       ]
-                )
-            |> Layout.el
-                (Layout.centered
-                    ++ [ Html.Attributes.style "width" "100%"
-                       , Html.Attributes.style "height" "100%"
-                       , Html.Attributes.style "position" "absolute"
-                       ]
-                )
+            |> Just
 
-      else
-        Layout.none
+       else if model.selected /= Nothing then
+        [ "Select a tile you want to place"
+            |> Layout.text []
+        , Grid.modules
+            |> Dict.keys
+            |> List.map
+                (\id ->
+                    Layout.textButton
+                        []
+                        { label = "Level " ++ String.fromInt id
+                        , onPress = Just (PlaceModule id)
+                        }
+                )
+            |> Layout.row [ Layout.gap 8 ]
+        ]
+            |> Just
+
+       else
+        Nothing
+      )
+        |> Maybe.map
+            (\html ->
+                html
+                    |> View.dialog
+                        (Layout.centered
+                            ++ [ Html.Attributes.style "width" "200px"
+                               , Html.Attributes.style "height" "75px"
+                               , Html.Attributes.style "position" "absolute"
+                               ]
+                        )
+                    |> Layout.el
+                        (Layout.centered
+                            ++ [ Html.Attributes.style "width" "100%"
+                               , Html.Attributes.style "height" "100%"
+                               , Html.Attributes.style "position" "absolute"
+                               ]
+                        )
+            )
+        |> Maybe.withDefault Layout.none
     , Html.node "meta"
         [ Html.Attributes.name "viewport"
         , Html.Attributes.attribute "content" "width=device-width, initial-scale=1"
@@ -130,33 +156,67 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Toggle ( x, y ) ->
-            ( { model
-                | grid =
-                    if x >= 0 && x <= 3 && y >= 0 && y <= 3 then
-                        case model.grid of
-                            Stage1 dict ->
+            ( (if x >= 0 && x <= 3 && y >= 0 && y <= 3 then
+                case model.grid of
+                    Stage1 dict ->
+                        dict
+                            |> Dict.update ( x, y )
+                                (\maybe ->
+                                    case maybe of
+                                        Just (Glass _) ->
+                                            Nothing
+
+                                        Nothing ->
+                                            Just (Glass [])
+
+                                        _ ->
+                                            maybe
+                                )
+                            |> Stage1
+                            |> (\grid -> { model | grid = grid })
+
+                    Stage2 dict ->
+                        case dict |> Dict.get ( x, y ) of
+                            Just (Glass _) ->
                                 dict
-                                    |> Dict.update ( x, y )
-                                        (\maybe ->
-                                            case maybe of
-                                                Just (Glass _) ->
-                                                    Nothing
+                                    |> Dict.remove ( x, y )
+                                    |> Stage2
+                                    |> (\grid -> { model | grid = grid })
 
-                                                Nothing ->
-                                                    Just (Glass [])
-
-                                                _ ->
-                                                    maybe
-                                        )
-                                    |> Stage1
+                            Nothing ->
+                                { model | selected = Just ( x, y ) }
 
                             _ ->
-                                model.grid
+                                model
 
-                    else
-                        model.grid
-                , updating = True
-              }
+               else
+                model
+              )
+                |> (\m -> { m | updating = True })
+            , Cmd.none
+            )
+
+        PlaceModule moduleId ->
+            ( case model.grid of
+                Stage1 _ ->
+                    model
+
+                Stage2 dict ->
+                    dict
+                        |> Dict.insert (model.selected |> Maybe.withDefault ( 0, 0 ))
+                            ({ moduleId = moduleId
+                             , activePos = []
+                             }
+                                |> Glass
+                            )
+                        |> Stage2
+                        |> (\grid ->
+                                { model
+                                    | grid = grid
+                                    , updating = True
+                                    , selected = Nothing
+                                }
+                           )
             , Cmd.none
             )
 
@@ -183,11 +243,12 @@ update msg model =
 
                 targets =
                     grid
+                        |> Grid.toDict
                         |> Dict.filter (\_ -> (==) (Target False))
                         |> Dict.keys
             in
             ( { model
-                | grid = Stage1 grid
+                | grid = grid
                 , targets = targets
                 , level = level
               }

@@ -1,7 +1,5 @@
 module Cell exposing (..)
 
-import Dict exposing (Dict)
-
 
 type ConnectionShape
     = SingleConnection
@@ -68,10 +66,38 @@ cell2ToEmoji =
         (\connection ->
             case connection.activePos of
                 [] ->
-                    "🔲"
+                    case connection.moduleId of
+                        1 ->
+                            "a"
+
+                        2 ->
+                            "b"
+
+                        3 ->
+                            "c"
+
+                        4 ->
+                            "d"
+
+                        _ ->
+                            "."
 
                 _ ->
-                    "🟥"
+                    case connection.moduleId of
+                        1 ->
+                            "A"
+
+                        2 ->
+                            "B"
+
+                        3 ->
+                            "C"
+
+                        4 ->
+                            "D"
+
+                        _ ->
+                            ":"
         )
 
 
