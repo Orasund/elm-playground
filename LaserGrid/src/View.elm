@@ -1,11 +1,13 @@
 module View exposing (..)
 
 import Cell exposing (Cell(..), Cell1, Cell2)
-import Dict
-import Grid exposing (Grid(..))
+import Config
+import Dict exposing (Dict)
+import Grid exposing (Grid(..), modules)
 import Html exposing (Attribute, Html)
 import Html.Attributes
 import Layout
+import View.Svg
 
 
 dialog : List (Attribute msg) -> List (Html msg) -> Html msg
@@ -22,45 +24,79 @@ dialog attrs =
 
 tile1 : Cell1 -> Html msg
 tile1 cell =
-    cell
-        |> Cell.cell1ToEmoji
-        |> Layout.text []
+    Cell.cell1ToColor cell
+        |> View.Svg.cell1
+            { height = Config.cellSize
+            , width = Config.cellSize
+            }
 
 
-tile2 : Cell2 -> Html msg
-tile2 cell =
+tile2 : Dict Int (Dict ( Int, Int ) Cell1) -> Cell2 -> Html msg
+tile2 g cell =
     case cell of
-        Connection c ->
-            cell
-                |> Cell.cell2ToEmoji
-                |> Layout.text
+        ConnectionCell c ->
+            g
+                |> Dict.get c.sort.moduleId
+                |> Maybe.withDefault Dict.empty
+                |> View.Svg.grid
+                    { height = Config.cellSize
+                    , width = Config.cellSize
+                    }
+                |> Layout.el
                     [ Html.Attributes.style "transform"
-                        ("rotate(" ++ String.fromInt (c.rotation * 90) ++ "deg)")
+                        ("rotate(" ++ String.fromInt (c.sort.rotation * 90) ++ "deg)")
                     ]
 
         _ ->
             cell
-                |> Cell.cell2ToEmoji
-                |> Layout.text []
+                |> Cell.cell1ToColor
+                |> View.Svg.cell1
+                    { height = Config.cellSize
+                    , width = Config.cellSize
+                    }
 
 
-tile : List (Attribute msg) -> ( Int, Int ) -> Grid -> Html msg
-tile attrs ( x, y ) grid =
-    (case grid of
-        Stage1 dict ->
+grid : { levels : Dict Int (Dict ( Int, Int ) Cell1), onToggle : ( Int, Int ) -> msg } -> Grid -> Html msg
+grid args g =
+    List.range -1 4
+        |> List.map
+            (\y ->
+                List.range -1 4
+                    |> List.map
+                        (\x ->
+                            g
+                                |> tile
+                                    (Layout.asButton
+                                        { onPress = Just (args.onToggle ( x, y ))
+                                        , label = "Toggle " ++ String.fromInt x ++ "," ++ String.fromInt y
+                                        }
+                                    )
+                                    { pos = ( x, y )
+                                    , levels = args.levels
+                                    }
+                        )
+                    |> Layout.row []
+            )
+        |> Layout.column []
+
+
+tile : List (Attribute msg) -> { pos : ( Int, Int ), levels : Dict Int (Dict ( Int, Int ) Cell1) } -> Grid -> Html msg
+tile attrs args g =
+    (case g of
+        Level1 dict ->
             dict
-                |> Dict.get ( x, y )
+                |> Dict.get args.pos
                 |> Maybe.map tile1
 
-        Stage2 dict ->
+        Level2 dict ->
             dict
-                |> Dict.get ( x, y )
-                |> Maybe.map tile2
+                |> Dict.get args.pos
+                |> Maybe.map (tile2 args.levels)
     )
         |> Maybe.withDefault Layout.none
         |> Layout.el
-            ([ Html.Attributes.style "width" "64px"
-             , Html.Attributes.style "height" "64px"
+            ([ Html.Attributes.style "width" (String.fromInt Config.cellSize ++ "px")
+             , Html.Attributes.style "height" (String.fromInt Config.cellSize ++ "px")
              , Html.Attributes.style "font-size" "56px"
              ]
                 ++ Layout.centered

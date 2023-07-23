@@ -1,24 +1,22 @@
 module Cell exposing (..)
 
 
-type ConnectionShape
-    = SingleConnection
-    | DoubleConnection
+type alias ConnectionSort1 =
+    ()
 
 
-type alias Connection1 =
-    List ( Int, Int )
-
-
-type alias Connection2 =
+type alias ConnectionSort2 =
     { moduleId : Int
     , rotation : Int
-    , activePos : List ( Int, Int )
     }
 
 
+type alias Connection a =
+    { active : List ( Int, Int ), sort : a }
+
+
 type Cell a
-    = Connection a
+    = ConnectionCell (Connection a)
     | Wall
     | Laser
     | Target Bool
@@ -27,8 +25,11 @@ type Cell a
 map : (a -> b) -> Cell a -> Cell b
 map fun cell =
     case cell of
-        Connection a ->
-            Connection (fun a)
+        ConnectionCell connection ->
+            ConnectionCell
+                { active = connection.active
+                , sort = fun connection.sort
+                }
 
         Wall ->
             Wall
@@ -41,91 +42,37 @@ map fun cell =
 
 
 type alias Cell1 =
-    Cell Connection1
+    Cell ConnectionSort1
 
 
 type alias Cell2 =
-    Cell Connection2
+    Cell ConnectionSort2
 
 
-cell1ToEmoji : Cell1 -> String
-cell1ToEmoji =
-    toEmoji
-        (\list ->
-            case list of
+cell1ToColor : Cell a -> String
+cell1ToColor cell1 =
+    case cell1 of
+        ConnectionCell { active } ->
+            case active of
                 [] ->
-                    "🔲"
+                    "gray"
 
                 _ ->
-                    "🟥"
-        )
-
-
-cell2ToEmoji : Cell2 -> String
-cell2ToEmoji =
-    toEmoji
-        (\connection ->
-            case connection.activePos of
-                [] ->
-                    case connection.moduleId of
-                        1 ->
-                            "a"
-
-                        2 ->
-                            "b"
-
-                        3 ->
-                            "c"
-
-                        4 ->
-                            "d"
-
-                        _ ->
-                            "."
-
-                _ ->
-                    case connection.moduleId of
-                        1 ->
-                            "A"
-
-                        2 ->
-                            "B"
-
-                        3 ->
-                            "C"
-
-                        4 ->
-                            "D"
-
-                        _ ->
-                            ":"
-        )
-
-
-toEmoji : (a -> String) -> Cell a -> String
-toEmoji fun cell =
-    case cell of
-        Connection a ->
-            fun a
+                    "red"
 
         Wall ->
-            "⬛️"
+            "black"
 
         Laser ->
-            "🟥"
+            "red"
 
         Target False ->
-            "🔲"
+            "gray"
 
         Target True ->
-            "🟥"
+            "red"
 
 
-cell1sendsEnergyTo : ( Int, Int ) -> Connection1 -> Bool
-cell1sendsEnergyTo to list =
-    list |> List.member to
-
-
-cell2sendsEnergyTo : ( Int, Int ) -> Connection2 -> Bool
-cell2sendsEnergyTo to { activePos } =
-    activePos |> List.member to
+connectionSendsEnergyTo : ( Int, Int ) -> Connection a -> Bool
+connectionSendsEnergyTo to { active } =
+    active |> List.member to

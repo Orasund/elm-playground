@@ -1,7 +1,8 @@
 module Main exposing (..)
 
 import Browser
-import Cell exposing (Cell(..))
+import Cell exposing (Cell(..), Cell1)
+import Config
 import Dict exposing (Dict)
 import Grid exposing (Grid(..), Module)
 import Html exposing (Html)
@@ -10,6 +11,7 @@ import Layout
 import Level
 import Time
 import View
+import View.Svg
 
 
 type alias Model =
@@ -17,7 +19,7 @@ type alias Model =
     , modules : Dict Int Module
     , updating : Bool
     , targets : List ( Int, Int )
-    , levels : Dict Int (Cell ())
+    , levels : Dict Int (Dict ( Int, Int ) Cell1)
     , level : Int
     , selected : Maybe ( Int, Int )
     }
@@ -60,24 +62,20 @@ init () =
 
 view : Model -> Html Msg
 view model =
-    [ List.range -1 4
-        |> List.map
-            (\y ->
-                List.range -1 4
-                    |> List.map
-                        (\x ->
-                            model.grid
-                                |> View.tile
-                                    (Layout.asButton
-                                        { onPress = Just (Toggle ( x, y ))
-                                        , label = "Toggle " ++ String.fromInt x ++ "," ++ String.fromInt y
-                                        }
-                                    )
-                                    ( x, y )
-                        )
-                    |> Layout.row []
-            )
-        |> Layout.column []
+    [ [ model.grid |> View.grid { levels = model.levels, onToggle = Toggle }
+      , model.levels
+            |> Dict.toList
+            |> List.map
+                (\( _, grid ) ->
+                    grid
+                        |> View.Svg.grid
+                            { width = Config.cellSize
+                            , height = Config.cellSize
+                            }
+                )
+            |> Layout.row [ Layout.gap 8 ]
+      ]
+        |> Layout.column [ Layout.gap 16 ]
     , (if
         model.updating
             == False
@@ -111,12 +109,14 @@ view model =
                     List.range 0 3
                         |> List.map
                             (\rotate ->
-                                { moduleId = id
-                                , rotation = rotate
-                                , activePos = []
+                                { sort =
+                                    { moduleId = id
+                                    , rotation = rotate
+                                    }
+                                , active = []
                                 }
-                                    |> Connection
-                                    |> View.tile2
+                                    |> ConnectionCell
+                                    |> View.tile2 model.levels
                                     |> Layout.el
                                         (Layout.asButton
                                             { label = "Level " ++ String.fromInt id ++ "(" ++ String.fromInt rotate ++ ")"
@@ -166,29 +166,29 @@ update msg model =
         Toggle ( x, y ) ->
             ( (if x >= 0 && x <= 3 && y >= 0 && y <= 3 then
                 case model.grid of
-                    Stage1 dict ->
+                    Level1 dict ->
                         dict
                             |> Dict.update ( x, y )
                                 (\maybe ->
                                     case maybe of
-                                        Just (Connection _) ->
+                                        Just (ConnectionCell _) ->
                                             Nothing
 
                                         Nothing ->
-                                            Just (Connection [])
+                                            Just (ConnectionCell { active = [], sort = () })
 
                                         _ ->
                                             maybe
                                 )
-                            |> Stage1
+                            |> Level1
                             |> (\grid -> { model | grid = grid })
 
-                    Stage2 dict ->
+                    Level2 dict ->
                         case dict |> Dict.get ( x, y ) of
-                            Just (Connection _) ->
+                            Just (ConnectionCell _) ->
                                 dict
                                     |> Dict.remove ( x, y )
-                                    |> Stage2
+                                    |> Level2
                                     |> (\grid -> { model | grid = grid })
 
                             Nothing ->
@@ -206,19 +206,21 @@ update msg model =
 
         PlaceModule { moduleId, rotation } ->
             ( case model.grid of
-                Stage1 _ ->
+                Level1 _ ->
                     model
 
-                Stage2 dict ->
+                Level2 dict ->
                     dict
                         |> Dict.insert (model.selected |> Maybe.withDefault ( 0, 0 ))
-                            ({ moduleId = moduleId
-                             , activePos = []
-                             , rotation = rotation
+                            ({ sort =
+                                { moduleId = moduleId
+                                , rotation = rotation
+                                }
+                             , active = []
                              }
-                                |> Connection
+                                |> ConnectionCell
                             )
-                        |> Stage2
+                        |> Level2
                         |> (\grid ->
                                 { model
                                     | grid = grid
@@ -259,6 +261,16 @@ update msg model =
             ( { model
                 | grid = grid
                 , targets = targets
+                , levels =
+                    model.levels
+                        |> Dict.insert model.level
+                            (case model.grid of
+                                Level1 dict ->
+                                    dict
+
+                                Level2 _ ->
+                                    Debug.todo "implement recursion"
+                            )
                 , level = level
               }
             , Cmd.none
