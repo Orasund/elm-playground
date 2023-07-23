@@ -63,7 +63,7 @@ view model =
                         |> View.Svg.grid
                             { width = Config.cellSize
                             , height = Config.cellSize
-                            , active = Set.empty
+                            , active = False
                             }
                 )
             |> Layout.row [ Layout.gap 8 ]
@@ -170,7 +170,7 @@ update msg model =
                             |> (\grid -> { model | game = grid })
 
                     Level2 stage ->
-                        case stage.grid |> Dict.get ( x, y ) of
+                        case stage.grid |> Dict.get ( x, y ) |> Debug.log "cell" of
                             Just (ConnectionCell _) ->
                                 { stage
                                     | grid =

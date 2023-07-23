@@ -7,6 +7,13 @@ type alias Dir =
     ( Int, String )
 
 
+{-|
+
+      3
+    2 + 0
+      1
+
+-}
 new : Int -> Dir
 new i =
     ( i, "Dir" )

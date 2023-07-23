@@ -17,9 +17,9 @@ type alias SavedLevel =
         Dict
             RelativePos
             { from : RelativePos
-            , path : List ( Int, Int )
+            , path : List RelativePos
             }
-    , grid : Dict ( Int, Int ) Cell1
+    , grid : Dict RelativePos Cell1
     }
 
 
@@ -59,13 +59,30 @@ toSave game =
                                     ConnectionCell connection ->
                                         connection.sendsTo
                                             |> Dict.get (Debug.log "to" to)
-                                            |> Maybe.map (\{ from } -> { pos = from, path = pos :: path, to = pos })
+                                            |> Maybe.map
+                                                (\{ from } ->
+                                                    { pos = from
+                                                    , path = RelativePos.fromTuple pos :: path
+                                                    , to = pos
+                                                    }
+                                                )
 
                                     Origin ->
-                                        Just { pos = pos, path = path, to = pos }
+                                        Just
+                                            { pos = pos
+                                            , path = RelativePos.fromTuple pos :: path
+                                            , to = pos
+                                            }
 
                                     Target maybe ->
-                                        maybe |> Maybe.map (\from -> { pos = from, path = pos :: path, to = pos })
+                                        maybe
+                                            |> Maybe.map
+                                                (\from ->
+                                                    { pos = from
+                                                    , path = RelativePos.fromTuple pos :: path
+                                                    , to = pos
+                                                    }
+                                                )
 
                                     _ ->
                                         Nothing
@@ -93,6 +110,9 @@ toSave game =
                     case game of
                         Level1 stage ->
                             stage.grid
+                                |> Dict.toList
+                                |> List.map (\( k, v ) -> ( RelativePos.fromTuple k, v ))
+                                |> Dict.fromList
 
                         Level2 _ ->
                             Dict.empty
@@ -132,7 +152,7 @@ update modules grid =
                     )
 
         tick :
-            { connection : ( ( Int, Int ), Connection a ) -> Stage a -> Dict ( Int, Int ) { from : ( Int, Int ) }
+            { computeActiveConnections : ( ( Int, Int ), Connection a ) -> Stage a -> Dict ( Int, Int ) { from : ( Int, Int ) }
             , toGame : Stage a -> Game
             }
             -> Stage a
@@ -144,7 +164,7 @@ update modules grid =
                         case cell of
                             ConnectionCell conncetion ->
                                 { conncetion
-                                    | sendsTo = stage |> args.connection ( pos, conncetion )
+                                    | sendsTo = stage |> args.computeActiveConnections ( pos, conncetion )
                                 }
                                     |> ConnectionCell
 
@@ -174,14 +194,14 @@ update modules grid =
     case grid of
         Level1 stage ->
             tick
-                { connection = \( pos, _ ) -> computeActiveConnectionsLv1 (neighborsDir pos stage) pos
+                { computeActiveConnections = \( pos, _ ) -> computeActiveConnectionsLv1 (neighborsDir pos stage) pos
                 , toGame = Level1
                 }
                 stage
 
         Level2 stage ->
             tick
-                { connection = \( pos, a ) -> computeActiveConnectionsLv2 modules a.sort pos
+                { computeActiveConnections = \( pos, a ) -> computeActiveConnectionsLv2 modules a.sort pos
                 , toGame = Level2
                 }
                 stage
@@ -205,19 +225,22 @@ computeActiveConnectionsLv2 modules { moduleId, rotation } pos stage =
                     sendsEnergy
                         { from =
                             from
-                                |> RelativePos.rotate rotation
-                                |> RelativePos.add pos
+                                |> RelativePos.toDir
+                                |> Dir.rotate rotation
+                                |> Dir.add pos
                         , to = pos
                         }
                         stage
                 then
                     ( to
-                        |> RelativePos.rotate rotation
-                        |> RelativePos.add pos
+                        |> RelativePos.toDir
+                        |> Dir.rotate rotation
+                        |> Dir.add pos
                     , { from =
                             from
-                                |> RelativePos.rotate rotation
-                                |> RelativePos.add pos
+                                |> RelativePos.toDir
+                                |> Dir.rotate rotation
+                                |> Dir.add pos
                       }
                     )
                         |> Just
@@ -226,6 +249,7 @@ computeActiveConnectionsLv2 modules { moduleId, rotation } pos stage =
                     Nothing
             )
         |> Dict.fromList
+        |> Debug.log ("activeConnection of " ++ (pos |> (\( x, y ) -> String.fromInt x ++ " " ++ String.fromInt y)))
 
 
 computeActiveConnectionsLv1 : List Dir -> ( Int, Int ) -> Stage ConnectionSort1 -> Dict ( Int, Int ) { from : ( Int, Int ) }

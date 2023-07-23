@@ -46,16 +46,7 @@ tile2 g cell =
                                 { height = Config.cellSize
                                 , width = Config.cellSize
                                 , active =
-                                    c.sendsTo
-                                        |> Dict.keys
-                                        |> List.concatMap
-                                            (\to ->
-                                                level.connections
-                                                    |> Dict.get (RelativePos.fromTuple to)
-                                                    |> Maybe.map .path
-                                                    |> Maybe.withDefault []
-                                            )
-                                        |> Set.fromList
+                                    c.sendsTo /= Dict.empty
                                 }
                             |> Layout.el
                                 [ Html.Attributes.style "transform"
