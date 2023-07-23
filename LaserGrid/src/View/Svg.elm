@@ -2,8 +2,6 @@ module View.Svg exposing (..)
 
 import Cell exposing (Cell1)
 import Dict exposing (Dict)
-import Grid exposing (Grid(..))
-import Level
 import Svg exposing (Svg)
 import Svg.Attributes
 

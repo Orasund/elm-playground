@@ -3,7 +3,7 @@ module View exposing (..)
 import Cell exposing (Cell(..), Cell1, Cell2)
 import Config
 import Dict exposing (Dict)
-import Grid exposing (Grid(..), modules)
+import Game exposing (Game(..))
 import Html exposing (Attribute, Html)
 import Html.Attributes
 import Layout
@@ -56,7 +56,7 @@ tile2 g cell =
                     }
 
 
-grid : { levels : Dict Int (Dict ( Int, Int ) Cell1), onToggle : ( Int, Int ) -> msg } -> Grid -> Html msg
+grid : { levels : Dict Int (Dict ( Int, Int ) Cell1), onToggle : ( Int, Int ) -> msg } -> Game -> Html msg
 grid args g =
     List.range -1 4
         |> List.map
@@ -80,16 +80,16 @@ grid args g =
         |> Layout.column []
 
 
-tile : List (Attribute msg) -> { pos : ( Int, Int ), levels : Dict Int (Dict ( Int, Int ) Cell1) } -> Grid -> Html msg
+tile : List (Attribute msg) -> { pos : ( Int, Int ), levels : Dict Int (Dict ( Int, Int ) Cell1) } -> Game -> Html msg
 tile attrs args g =
     (case g of
-        Level1 dict ->
-            dict
+        Level1 game ->
+            game.grid
                 |> Dict.get args.pos
                 |> Maybe.map tile1
 
-        Level2 dict ->
-            dict
+        Level2 game ->
+            game.grid
                 |> Dict.get args.pos
                 |> Maybe.map (tile2 args.levels)
     )

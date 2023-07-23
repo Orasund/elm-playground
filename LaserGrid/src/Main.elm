@@ -4,21 +4,20 @@ import Browser
 import Cell exposing (Cell(..), Cell1)
 import Config
 import Dict exposing (Dict)
-import Grid exposing (Grid(..), Module)
+import Game exposing (Game(..), Module)
+import Game.Generate
 import Html exposing (Html)
 import Html.Attributes
 import Layout
-import Level
 import Time
 import View
 import View.Svg
 
 
 type alias Model =
-    { grid : Grid
+    { game : Game
     , modules : Dict Int Module
     , updating : Bool
-    , targets : List ( Int, Int )
     , levels : Dict Int (Dict ( Int, Int ) Cell1)
     , level : Int
     , selected : Maybe ( Int, Int )
@@ -38,19 +37,9 @@ init () =
     let
         level =
             1
-
-        grid =
-            Level.fromInt level
-
-        targets =
-            grid
-                |> Grid.toDict
-                |> Dict.filter (\_ -> (==) (Target False))
-                |> Dict.keys
     in
-    ( { grid = grid
+    ( { game = Game.Generate.fromId level
       , modules = Dict.empty
-      , targets = targets
       , updating = False
       , levels = Dict.empty
       , level = level
@@ -62,7 +51,7 @@ init () =
 
 view : Model -> Html Msg
 view model =
-    [ [ model.grid |> View.grid { levels = model.levels, onToggle = Toggle }
+    [ [ model.game |> View.grid { levels = model.levels, onToggle = Toggle }
       , model.levels
             |> Dict.toList
             |> List.map
@@ -76,20 +65,7 @@ view model =
             |> Layout.row [ Layout.gap 8 ]
       ]
         |> Layout.column [ Layout.gap 16 ]
-    , (if
-        model.updating
-            == False
-            && List.all
-                (\pos ->
-                    case model.grid |> Grid.toDict |> Dict.get pos of
-                        Just (Target True) ->
-                            True
-
-                        _ ->
-                            False
-                )
-                model.targets
-       then
+    , (if (model.updating == False) && Game.isSolved model.game then
         [ "You Win"
             |> Layout.text []
         , Layout.textButton []
@@ -102,7 +78,7 @@ view model =
        else if model.selected /= Nothing then
         [ "Select a tile you want to place"
             |> Layout.text []
-        , Grid.modules
+        , Game.modules
             |> Dict.keys
             |> List.map
                 (\id ->
@@ -165,9 +141,9 @@ update msg model =
     case msg of
         Toggle ( x, y ) ->
             ( (if x >= 0 && x <= 3 && y >= 0 && y <= 3 then
-                case model.grid of
-                    Level1 dict ->
-                        dict
+                case model.game of
+                    Level1 stage ->
+                        stage.grid
                             |> Dict.update ( x, y )
                                 (\maybe ->
                                     case maybe of
@@ -180,16 +156,20 @@ update msg model =
                                         _ ->
                                             maybe
                                 )
+                            |> (\grid -> { stage | grid = grid })
                             |> Level1
-                            |> (\grid -> { model | grid = grid })
+                            |> (\grid -> { model | game = grid })
 
-                    Level2 dict ->
-                        case dict |> Dict.get ( x, y ) of
+                    Level2 stage ->
+                        case stage.grid |> Dict.get ( x, y ) of
                             Just (ConnectionCell _) ->
-                                dict
-                                    |> Dict.remove ( x, y )
+                                { stage
+                                    | grid =
+                                        stage.grid
+                                            |> Dict.remove ( x, y )
+                                }
                                     |> Level2
-                                    |> (\grid -> { model | grid = grid })
+                                    |> (\grid -> { model | game = grid })
 
                             Nothing ->
                                 { model | selected = Just ( x, y ) }
@@ -205,25 +185,28 @@ update msg model =
             )
 
         PlaceModule { moduleId, rotation } ->
-            ( case model.grid of
+            ( case model.game of
                 Level1 _ ->
                     model
 
-                Level2 dict ->
-                    dict
-                        |> Dict.insert (model.selected |> Maybe.withDefault ( 0, 0 ))
-                            ({ sort =
-                                { moduleId = moduleId
-                                , rotation = rotation
-                                }
-                             , active = []
-                             }
-                                |> ConnectionCell
-                            )
+                Level2 stage ->
+                    { stage
+                        | grid =
+                            stage.grid
+                                |> Dict.insert (model.selected |> Maybe.withDefault ( 0, 0 ))
+                                    ({ sort =
+                                        { moduleId = moduleId
+                                        , rotation = rotation
+                                        }
+                                     , active = []
+                                     }
+                                        |> ConnectionCell
+                                    )
+                    }
                         |> Level2
                         |> (\grid ->
                                 { model
-                                    | grid = grid
+                                    | game = grid
                                     , updating = True
                                     , selected = Nothing
                                 }
@@ -234,11 +217,11 @@ update msg model =
         UpdateGrid ->
             let
                 ( newGrid, updating ) =
-                    model.grid
-                        |> Grid.update
+                    model.game
+                        |> Game.update
             in
             ( { model
-                | grid = newGrid
+                | game = newGrid
                 , updating = updating
               }
             , Cmd.none
@@ -250,23 +233,16 @@ update msg model =
                     model.level + 1
 
                 grid =
-                    Level.fromInt level
-
-                targets =
-                    grid
-                        |> Grid.toDict
-                        |> Dict.filter (\_ -> (==) (Target False))
-                        |> Dict.keys
+                    Game.Generate.fromId level
             in
             ( { model
-                | grid = grid
-                , targets = targets
+                | game = grid
                 , levels =
                     model.levels
                         |> Dict.insert model.level
-                            (case model.grid of
-                                Level1 dict ->
-                                    dict
+                            (case model.game of
+                                Level1 stage ->
+                                    stage.grid
 
                                 Level2 _ ->
                                     Debug.todo "implement recursion"
