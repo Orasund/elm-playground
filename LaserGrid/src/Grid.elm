@@ -16,13 +16,13 @@ type alias Module =
 modules : Dict Int Module
 modules =
     [ ( 1
-      , [ ( Dir.new ( 1, 0 )
-          , { from = Dir.new ( 0, -1 )
+      , [ ( Dir.new 0
+          , { from = Dir.new 1
             , shape = Cell.DoubleConnection
             }
           )
-        , ( Dir.new ( 0, -1 )
-          , { from = Dir.new ( 1, 0 )
+        , ( Dir.new 1
+          , { from = Dir.new 0
             , shape = Cell.DoubleConnection
             }
           )
@@ -30,13 +30,13 @@ modules =
             |> Dict.fromList
       )
     , ( 2
-      , [ ( Dir.new ( -1, 0 )
-          , { from = Dir.new ( 0, 1 )
+      , [ ( Dir.new 1
+          , { from = Dir.new 2
             , shape = Cell.DoubleConnection
             }
           )
-        , ( Dir.new ( 0, 1 )
-          , { from = Dir.new ( -1, 0 )
+        , ( Dir.new 2
+          , { from = Dir.new 1
             , shape = Cell.DoubleConnection
             }
           )
@@ -44,13 +44,13 @@ modules =
             |> Dict.fromList
       )
     , ( 3
-      , [ ( Dir.new ( 1, 0 )
-          , { from = Dir.new ( 0, 1 )
+      , [ ( Dir.new 2
+          , { from = Dir.new 3
             , shape = Cell.DoubleConnection
             }
           )
-        , ( Dir.new ( 0, 1 )
-          , { from = Dir.new ( 1, 0 )
+        , ( Dir.new 3
+          , { from = Dir.new 2
             , shape = Cell.DoubleConnection
             }
           )
@@ -58,13 +58,13 @@ modules =
             |> Dict.fromList
       )
     , ( 4
-      , [ ( Dir.new ( -1, 0 )
-          , { from = Dir.new ( 0, -1 )
+      , [ ( Dir.new 3
+          , { from = Dir.new 0
             , shape = Cell.DoubleConnection
             }
           )
-        , ( Dir.new ( 0, -1 )
-          , { from = Dir.new ( -1, 0 )
+        , ( Dir.new 0
+          , { from = Dir.new 3
             , shape = Cell.DoubleConnection
             }
           )
@@ -111,11 +111,11 @@ update : Grid -> ( Grid, Bool )
 update grid =
     let
         neighborsDir pos dict =
-            neighboringDir
+            Dir.list
                 |> List.filterMap
                     (\dir ->
-                        case Dict.get (Dir.add dir pos) dict of
-                            Just (Glass _) ->
+                        case Dict.get (dir |> Dir.add pos) dict of
+                            Just (Connection _) ->
                                 Just dir
 
                             Just Laser ->
@@ -140,17 +140,17 @@ update grid =
                 |> Dict.map
                     (\pos cell ->
                         case cell of
-                            Glass a ->
+                            Connection a ->
                                 dict
                                     |> args.connection ( pos, a )
-                                    |> Glass
+                                    |> Connection
 
                             Target _ ->
-                                neighboringDir
+                                Dir.list
                                     |> List.any
                                         (\fromDir ->
                                             sendsEnergy args.sendsEnergy
-                                                { from = Dir.add fromDir pos
+                                                { from = fromDir |> Dir.add pos
                                                 , pos = pos
                                                 }
                                                 dict
@@ -177,7 +177,7 @@ update grid =
 
         Stage2 dict ->
             tick
-                { connection = \( pos, a ) -> connection2Tick a.moduleId pos
+                { connection = \( pos, a ) -> connection2Tick a pos
                 , sendsEnergy = Cell.cell2sendsEnergyTo
                 , toGrid = Stage2
                 }
@@ -185,23 +185,38 @@ update grid =
 
 
 connection2Tick :
-    Int
+    Connection2
     -> ( Int, Int )
     -> Dict ( Int, Int ) Cell2
     -> Connection2
-connection2Tick moduleId pos dict =
+connection2Tick { moduleId, rotation } pos dict =
     modules
         |> Dict.get moduleId
         |> Maybe.withDefault Dict.empty
         |> Dict.filter
             (\_ { from } ->
                 sendsEnergy Cell.cell2sendsEnergyTo
-                    { from = Dir.add from pos, pos = pos }
+                    { from =
+                        from
+                            |> Dir.rotate rotation
+                            |> Dir.add pos
+                    , pos = pos
+                    }
                     dict
             )
         |> Dict.keys
-        |> List.map (\dir -> Dir.add dir pos)
-        |> (\list -> { moduleId = moduleId, activePos = list })
+        |> List.map
+            (\dir ->
+                dir
+                    |> Dir.rotate rotation
+                    |> Dir.add pos
+            )
+        |> (\list ->
+                { moduleId = moduleId
+                , activePos = list
+                , rotation = rotation
+                }
+           )
 
 
 connection1Tick : List Dir -> ( Int, Int ) -> Dict ( Int, Int ) Cell1 -> Connection1
@@ -214,47 +229,48 @@ connection1Tick neighborsDir pos dict =
         [ dir1, dir2 ] ->
             if
                 sendsEnergy Cell.cell1sendsEnergyTo
-                    { from = Dir.add dir1 pos
+                    { from = dir1 |> Dir.add pos
                     , pos = pos
                     }
                     dict
             then
-                [ Dir.add dir2 pos ]
+                [ dir2 |> Dir.add pos ]
 
             else if
                 sendsEnergy Cell.cell1sendsEnergyTo
-                    { from = Dir.add dir2 pos
+                    { from = dir2 |> Dir.add pos
                     , pos = pos
                     }
                     dict
             then
-                [ Dir.add dir1 pos ]
+                [ dir1 |> Dir.add pos ]
 
             else
                 []
 
         _ ->
-            neighboringDir
+            Dir.list
                 |> List.filter
                     (\fromDir ->
                         sendsEnergy Cell.cell1sendsEnergyTo
-                            { from = Dir.add fromDir pos
+                            { from = fromDir |> Dir.add pos
                             , pos = pos
                             }
                             dict
                     )
                 |> List.map
                     (\dir ->
-                        Dir.add
-                            (dir |> Dir.reverse)
-                            ( x, y )
+                        dir
+                            |> Dir.reverse
+                            |> Dir.add
+                                ( x, y )
                     )
 
 
 sendsEnergy : (( Int, Int ) -> a -> Bool) -> { from : ( Int, Int ), pos : ( Int, Int ) } -> Dict ( Int, Int ) (Cell a) -> Bool
 sendsEnergy fun args dict =
     case dict |> Dict.get args.from of
-        Just (Glass to) ->
+        Just (Connection to) ->
             fun args.pos to
 
         Just Laser ->
@@ -262,13 +278,3 @@ sendsEnergy fun args dict =
 
         _ ->
             False
-
-
-neighboringDir : List Dir
-neighboringDir =
-    [ ( -1, 0 )
-    , ( 1, 0 )
-    , ( 0, -1 )
-    , ( 0, 1 )
-    ]
-        |> List.map Dir.new

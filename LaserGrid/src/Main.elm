@@ -17,6 +17,7 @@ type alias Model =
     , modules : Dict Int Module
     , updating : Bool
     , targets : List ( Int, Int )
+    , levels : Dict Int (Cell ())
     , level : Int
     , selected : Maybe ( Int, Int )
     }
@@ -24,7 +25,8 @@ type alias Model =
 
 type Msg
     = Toggle ( Int, Int )
-    | PlaceModule Int
+    | PlaceModule { moduleId : Int, rotation : Int }
+    | Unselect
     | UpdateGrid
     | NextLevel
 
@@ -48,6 +50,7 @@ init () =
       , modules = Dict.empty
       , targets = targets
       , updating = False
+      , levels = Dict.empty
       , level = level
       , selected = Nothing
       }
@@ -64,19 +67,13 @@ view model =
                     |> List.map
                         (\x ->
                             model.grid
-                                |> Grid.getEmoji ( x, y )
-                                |> Maybe.withDefault ""
-                                |> Layout.text
+                                |> View.tile
                                     (Layout.asButton
                                         { onPress = Just (Toggle ( x, y ))
                                         , label = "Toggle " ++ String.fromInt x ++ "," ++ String.fromInt y
                                         }
-                                        ++ [ Html.Attributes.style "width" "64px"
-                                           , Html.Attributes.style "height" "64px"
-                                           , Html.Attributes.style "font-size" "56px"
-                                           ]
-                                        ++ Layout.centered
                                     )
+                                    ( x, y )
                         )
                     |> Layout.row []
             )
@@ -111,13 +108,29 @@ view model =
             |> Dict.keys
             |> List.map
                 (\id ->
-                    Layout.textButton
-                        []
-                        { label = "Level " ++ String.fromInt id
-                        , onPress = Just (PlaceModule id)
-                        }
+                    List.range 0 3
+                        |> List.map
+                            (\rotate ->
+                                { moduleId = id
+                                , rotation = rotate
+                                , activePos = []
+                                }
+                                    |> Connection
+                                    |> View.tile2
+                                    |> Layout.el
+                                        (Layout.asButton
+                                            { label = "Level " ++ String.fromInt id ++ "(" ++ String.fromInt rotate ++ ")"
+                                            , onPress = Just (PlaceModule { moduleId = id, rotation = rotate })
+                                            }
+                                        )
+                            )
+                        |> Layout.row [ Layout.gap 8 ]
                 )
-            |> Layout.row [ Layout.gap 8 ]
+            |> Layout.column [ Layout.gap 8 ]
+        , Layout.textButton []
+            { label = "Cancel"
+            , onPress = Just Unselect
+            }
         ]
             |> Just
 
@@ -128,12 +141,7 @@ view model =
             (\html ->
                 html
                     |> View.dialog
-                        (Layout.centered
-                            ++ [ Html.Attributes.style "width" "200px"
-                               , Html.Attributes.style "height" "75px"
-                               , Html.Attributes.style "position" "absolute"
-                               ]
-                        )
+                        Layout.centered
                     |> Layout.el
                         (Layout.centered
                             ++ [ Html.Attributes.style "width" "100%"
@@ -163,11 +171,11 @@ update msg model =
                             |> Dict.update ( x, y )
                                 (\maybe ->
                                     case maybe of
-                                        Just (Glass _) ->
+                                        Just (Connection _) ->
                                             Nothing
 
                                         Nothing ->
-                                            Just (Glass [])
+                                            Just (Connection [])
 
                                         _ ->
                                             maybe
@@ -177,7 +185,7 @@ update msg model =
 
                     Stage2 dict ->
                         case dict |> Dict.get ( x, y ) of
-                            Just (Glass _) ->
+                            Just (Connection _) ->
                                 dict
                                     |> Dict.remove ( x, y )
                                     |> Stage2
@@ -196,7 +204,7 @@ update msg model =
             , Cmd.none
             )
 
-        PlaceModule moduleId ->
+        PlaceModule { moduleId, rotation } ->
             ( case model.grid of
                 Stage1 _ ->
                     model
@@ -206,8 +214,9 @@ update msg model =
                         |> Dict.insert (model.selected |> Maybe.withDefault ( 0, 0 ))
                             ({ moduleId = moduleId
                              , activePos = []
+                             , rotation = rotation
                              }
-                                |> Glass
+                                |> Connection
                             )
                         |> Stage2
                         |> (\grid ->
@@ -254,6 +263,9 @@ update msg model =
               }
             , Cmd.none
             )
+
+        Unselect ->
+            ( { model | selected = Nothing }, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg

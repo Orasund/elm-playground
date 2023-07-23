@@ -12,12 +12,13 @@ type alias Connection1 =
 
 type alias Connection2 =
     { moduleId : Int
+    , rotation : Int
     , activePos : List ( Int, Int )
     }
 
 
 type Cell a
-    = Glass a
+    = Connection a
     | Wall
     | Laser
     | Target Bool
@@ -26,8 +27,8 @@ type Cell a
 map : (a -> b) -> Cell a -> Cell b
 map fun cell =
     case cell of
-        Glass a ->
-            Glass (fun a)
+        Connection a ->
+            Connection (fun a)
 
         Wall ->
             Wall
@@ -104,7 +105,7 @@ cell2ToEmoji =
 toEmoji : (a -> String) -> Cell a -> String
 toEmoji fun cell =
     case cell of
-        Glass a ->
+        Connection a ->
             fun a
 
         Wall ->
