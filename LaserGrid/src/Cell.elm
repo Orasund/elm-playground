@@ -1,5 +1,7 @@
 module Cell exposing (..)
 
+import Dict exposing (Dict)
+
 
 type alias ConnectionSort1 =
     ()
@@ -12,14 +14,16 @@ type alias ConnectionSort2 =
 
 
 type alias Connection a =
-    { active : List ( Int, Int ), sort : a }
+    { sendsTo : Dict ( Int, Int ) { from : ( Int, Int ) }
+    , sort : a
+    }
 
 
 type Cell a
     = ConnectionCell (Connection a)
     | Wall
-    | Laser
-    | Target Bool
+    | Origin
+    | Target (Maybe ( Int, Int ))
 
 
 map : (a -> b) -> Cell a -> Cell b
@@ -27,15 +31,15 @@ map fun cell =
     case cell of
         ConnectionCell connection ->
             ConnectionCell
-                { active = connection.active
+                { sendsTo = connection.sendsTo
                 , sort = fun connection.sort
                 }
 
         Wall ->
             Wall
 
-        Laser ->
-            Laser
+        Origin ->
+            Origin
 
         Target b ->
             Target b
@@ -49,30 +53,57 @@ type alias Cell2 =
     Cell ConnectionSort2
 
 
-cell1ToColor : Cell a -> String
-cell1ToColor cell1 =
+cell1ToColor : Maybe Bool -> Cell a -> String
+cell1ToColor isActive cell1 =
     case cell1 of
-        ConnectionCell { active } ->
-            case active of
-                [] ->
+        ConnectionCell { sendsTo } ->
+            case isActive of
+                Just True ->
+                    "red"
+
+                Just False ->
                     "gray"
 
-                _ ->
-                    "red"
+                Nothing ->
+                    case sendsTo |> Dict.toList of
+                        [] ->
+                            "gray"
+
+                        _ ->
+                            "red"
 
         Wall ->
             "black"
 
-        Laser ->
-            "red"
+        Origin ->
+            case isActive of
+                Just True ->
+                    "red"
 
-        Target False ->
-            "gray"
+                Just False ->
+                    "gray"
 
-        Target True ->
-            "red"
+                Nothing ->
+                    "red"
 
+        Target Nothing ->
+            case isActive of
+                Just True ->
+                    "red"
 
-connectionSendsEnergyTo : ( Int, Int ) -> Connection a -> Bool
-connectionSendsEnergyTo to { active } =
-    active |> List.member to
+                Just False ->
+                    "gray"
+
+                Nothing ->
+                    "gray"
+
+        Target _ ->
+            case isActive of
+                Just True ->
+                    "red"
+
+                Just False ->
+                    "gray"
+
+                Nothing ->
+                    "red"

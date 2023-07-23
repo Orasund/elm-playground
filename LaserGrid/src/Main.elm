@@ -1,14 +1,15 @@
 module Main exposing (..)
 
 import Browser
-import Cell exposing (Cell(..), Cell1)
+import Cell exposing (Cell(..))
 import Config
 import Dict exposing (Dict)
-import Game exposing (Game(..), Module)
+import Game exposing (Game(..), SavedLevel)
 import Game.Generate
 import Html exposing (Html)
 import Html.Attributes
 import Layout
+import Set
 import Time
 import View
 import View.Svg
@@ -16,9 +17,8 @@ import View.Svg
 
 type alias Model =
     { game : Game
-    , modules : Dict Int Module
+    , levels : Dict Int SavedLevel
     , updating : Bool
-    , levels : Dict Int (Dict ( Int, Int ) Cell1)
     , level : Int
     , selected : Maybe ( Int, Int )
     }
@@ -39,9 +39,8 @@ init () =
             1
     in
     ( { game = Game.Generate.fromId level
-      , modules = Dict.empty
-      , updating = False
       , levels = Dict.empty
+      , updating = False
       , level = level
       , selected = Nothing
       }
@@ -51,15 +50,20 @@ init () =
 
 view : Model -> Html Msg
 view model =
-    [ [ model.game |> View.grid { levels = model.levels, onToggle = Toggle }
+    [ [ model.game
+            |> View.grid
+                { levels = model.levels
+                , onToggle = Toggle
+                }
       , model.levels
             |> Dict.toList
             |> List.map
-                (\( _, grid ) ->
-                    grid
+                (\( _, level ) ->
+                    level.grid
                         |> View.Svg.grid
                             { width = Config.cellSize
                             , height = Config.cellSize
+                            , active = Set.empty
                             }
                 )
             |> Layout.row [ Layout.gap 8 ]
@@ -78,7 +82,7 @@ view model =
        else if model.selected /= Nothing then
         [ "Select a tile you want to place"
             |> Layout.text []
-        , Game.modules
+        , model.levels
             |> Dict.keys
             |> List.map
                 (\id ->
@@ -89,7 +93,7 @@ view model =
                                     { moduleId = id
                                     , rotation = rotate
                                     }
-                                , active = []
+                                , sendsTo = Dict.empty
                                 }
                                     |> ConnectionCell
                                     |> View.tile2 model.levels
@@ -151,7 +155,12 @@ update msg model =
                                             Nothing
 
                                         Nothing ->
-                                            Just (ConnectionCell { active = [], sort = () })
+                                            Just
+                                                (ConnectionCell
+                                                    { sendsTo = Dict.empty
+                                                    , sort = ()
+                                                    }
+                                                )
 
                                         _ ->
                                             maybe
@@ -198,7 +207,7 @@ update msg model =
                                         { moduleId = moduleId
                                         , rotation = rotation
                                         }
-                                     , active = []
+                                     , sendsTo = Dict.empty
                                      }
                                         |> ConnectionCell
                                     )
@@ -218,7 +227,7 @@ update msg model =
             let
                 ( newGrid, updating ) =
                     model.game
-                        |> Game.update
+                        |> Game.update model.levels
             in
             ( { model
                 | game = newGrid
@@ -239,14 +248,7 @@ update msg model =
                 | game = grid
                 , levels =
                     model.levels
-                        |> Dict.insert model.level
-                            (case model.game of
-                                Level1 stage ->
-                                    stage.grid
-
-                                Level2 _ ->
-                                    Debug.todo "implement recursion"
-                            )
+                        |> Dict.insert model.level (model.game |> Game.toSave |> Debug.log "save")
                 , level = level
               }
             , Cmd.none

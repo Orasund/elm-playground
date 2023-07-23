@@ -2,15 +2,19 @@ module View.Svg exposing (..)
 
 import Cell exposing (Cell1)
 import Dict exposing (Dict)
+import Set exposing (Set)
 import Svg exposing (Svg)
 import Svg.Attributes
 
 
-grid : { width : Int, height : Int } -> Dict ( Int, Int ) Cell1 -> Svg msg
+grid : { width : Int, height : Int, active : Set ( Int, Int ) } -> Dict ( Int, Int ) Cell1 -> Svg msg
 grid args dict =
     dict
         |> Dict.toList
-        |> List.map (\( ( x, y ), cell ) -> ( ( x + 1, y + 1 ), cell |> Cell.cell1ToColor ))
+        |> List.map
+            (\( ( x, y ), cell ) ->
+                ( ( x + 1, y + 1 ), cell |> Cell.cell1ToColor (Set.member ( x, y ) args.active |> Just) )
+            )
         |> fromPixels { width = args.width, height = args.height, size = 6 }
 
 

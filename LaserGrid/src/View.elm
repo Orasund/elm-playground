@@ -3,10 +3,12 @@ module View exposing (..)
 import Cell exposing (Cell(..), Cell1, Cell2)
 import Config
 import Dict exposing (Dict)
-import Game exposing (Game(..))
+import Game exposing (Game(..), SavedLevel)
 import Html exposing (Attribute, Html)
 import Html.Attributes
 import Layout
+import RelativePos
+import Set
 import View.Svg
 
 
@@ -24,39 +26,54 @@ dialog attrs =
 
 tile1 : Cell1 -> Html msg
 tile1 cell =
-    Cell.cell1ToColor cell
+    Cell.cell1ToColor Nothing cell
         |> View.Svg.cell1
             { height = Config.cellSize
             , width = Config.cellSize
             }
 
 
-tile2 : Dict Int (Dict ( Int, Int ) Cell1) -> Cell2 -> Html msg
+tile2 : Dict Int SavedLevel -> Cell2 -> Html msg
 tile2 g cell =
     case cell of
         ConnectionCell c ->
             g
                 |> Dict.get c.sort.moduleId
-                |> Maybe.withDefault Dict.empty
-                |> View.Svg.grid
-                    { height = Config.cellSize
-                    , width = Config.cellSize
-                    }
-                |> Layout.el
-                    [ Html.Attributes.style "transform"
-                        ("rotate(" ++ String.fromInt (c.sort.rotation * 90) ++ "deg)")
-                    ]
+                |> Maybe.map
+                    (\level ->
+                        level.grid
+                            |> View.Svg.grid
+                                { height = Config.cellSize
+                                , width = Config.cellSize
+                                , active =
+                                    c.sendsTo
+                                        |> Dict.keys
+                                        |> List.concatMap
+                                            (\to ->
+                                                level.connections
+                                                    |> Dict.get (RelativePos.fromTuple to)
+                                                    |> Maybe.map .path
+                                                    |> Maybe.withDefault []
+                                            )
+                                        |> Set.fromList
+                                }
+                            |> Layout.el
+                                [ Html.Attributes.style "transform"
+                                    ("rotate(" ++ String.fromInt (c.sort.rotation * 90) ++ "deg)")
+                                ]
+                    )
+                |> Maybe.withDefault Layout.none
 
         _ ->
             cell
-                |> Cell.cell1ToColor
+                |> Cell.cell1ToColor Nothing
                 |> View.Svg.cell1
                     { height = Config.cellSize
                     , width = Config.cellSize
                     }
 
 
-grid : { levels : Dict Int (Dict ( Int, Int ) Cell1), onToggle : ( Int, Int ) -> msg } -> Game -> Html msg
+grid : { levels : Dict Int SavedLevel, onToggle : ( Int, Int ) -> msg } -> Game -> Html msg
 grid args g =
     List.range -1 4
         |> List.map
@@ -80,7 +97,7 @@ grid args g =
         |> Layout.column []
 
 
-tile : List (Attribute msg) -> { pos : ( Int, Int ), levels : Dict Int (Dict ( Int, Int ) Cell1) } -> Game -> Html msg
+tile : List (Attribute msg) -> { pos : ( Int, Int ), levels : Dict Int SavedLevel } -> Game -> Html msg
 tile attrs args g =
     (case g of
         Level1 game ->

@@ -15,7 +15,7 @@ isSolved stage =
     List.all
         (\pos ->
             case stage.grid |> Dict.get pos of
-                Just (Target True) ->
+                Just (Target (Just _)) ->
                     True
 
                 _ ->
@@ -44,10 +44,10 @@ parse rows =
                             in
                             case char of
                                 '🟥' ->
-                                    Just ( pos, Laser )
+                                    Just ( pos, Origin )
 
                                 '🔘' ->
-                                    Just ( pos, Target False )
+                                    Just ( pos, Target Nothing )
 
                                 '⬛' ->
                                     Just ( pos, Wall )
@@ -79,4 +79,4 @@ parse rows =
 
 withLaserAt : ( Int, Int ) -> Dict ( Int, Int ) (Cell a) -> Dict ( Int, Int ) (Cell a)
 withLaserAt pos =
-    Dict.insert pos Laser
+    Dict.insert pos Origin
