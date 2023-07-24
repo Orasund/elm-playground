@@ -35,8 +35,8 @@ positions =
     [ ( 1, 0 ), ( 0, 1 ), ( -1, 0 ), ( 0, -1 ) ] |> Array.fromList
 
 
-add : ( Int, Int ) -> Dir -> ( Int, Int )
-add ( x2, y2 ) ( i, _ ) =
+addTo : ( Int, Int ) -> Dir -> ( Int, Int )
+addTo ( x2, y2 ) ( i, _ ) =
     let
         ( x1, y1 ) =
             positions |> Array.get i |> Maybe.withDefault ( 0, 0 )

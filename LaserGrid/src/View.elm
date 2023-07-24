@@ -7,13 +7,38 @@ import Game exposing (Game(..), SavedLevel)
 import Html exposing (Attribute, Html)
 import Html.Attributes
 import Layout
-import RelativePos
-import Set
 import View.Svg
 
 
-dialog : List (Attribute msg) -> List (Html msg) -> Html msg
-dialog attrs =
+savedLevels : (Int -> msg) -> Dict Int SavedLevel -> Html msg
+savedLevels fun dict =
+    dict
+        |> Dict.toList
+        |> List.map
+            (\( id, level ) ->
+                [ level.grid
+                    |> View.Svg.grid
+                        { width = Config.cellSize
+                        , height = Config.cellSize
+                        , active = False
+                        }
+                , Layout.text [] ("Stage" ++ String.fromInt id)
+                ]
+                    |> Layout.column
+                        (Layout.asButton
+                            { label = "Select Level"
+                            , onPress = fun id |> Just
+                            }
+                            ++ [ Layout.gap 8
+                               , Layout.alignAtCenter
+                               ]
+                        )
+            )
+        |> Layout.row [ Layout.gap 16 ]
+
+
+card : List (Attribute msg) -> List (Html msg) -> Html msg
+card attrs =
     Layout.column
         ([ Html.Attributes.style "padding" "1rem"
          , Html.Attributes.style "border" "1px solid black"
@@ -38,7 +63,7 @@ tile2 g cell =
     case cell of
         ConnectionCell c ->
             g
-                |> Dict.get c.sort.moduleId
+                |> Dict.get c.moduleId
                 |> Maybe.map
                     (\level ->
                         level.grid
@@ -50,7 +75,7 @@ tile2 g cell =
                                 }
                             |> Layout.el
                                 [ Html.Attributes.style "transform"
-                                    ("rotate(" ++ String.fromInt (c.sort.rotation * 90) ++ "deg)")
+                                    ("rotate(" ++ String.fromInt (c.rotation * 90) ++ "deg)")
                                 ]
                     )
                 |> Maybe.withDefault Layout.none
@@ -64,8 +89,8 @@ tile2 g cell =
                     }
 
 
-grid : { levels : Dict Int SavedLevel, onToggle : ( Int, Int ) -> msg } -> Game -> Html msg
-grid args g =
+grid : List (Attribute msg) -> { levels : Dict Int SavedLevel, onToggle : ( Int, Int ) -> msg } -> Game -> Html msg
+grid attrs args g =
     List.range -1 4
         |> List.map
             (\y ->
@@ -85,7 +110,7 @@ grid args g =
                         )
                     |> Layout.row []
             )
-        |> Layout.column []
+        |> Layout.column attrs
 
 
 tile : List (Attribute msg) -> { pos : ( Int, Int ), levels : Dict Int SavedLevel } -> Game -> Html msg

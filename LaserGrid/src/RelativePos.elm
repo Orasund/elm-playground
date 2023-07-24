@@ -12,11 +12,6 @@ fromTuple pos =
     ( pos, "RelativePos" )
 
 
-add : ( Int, Int ) -> RelativePos -> ( Int, Int )
-add ( x1, y1 ) ( ( x2, y2 ), _ ) =
-    ( x1 + x2, y1 + y2 )
-
-
 rotate : Int -> RelativePos -> RelativePos
 rotate amount a =
     List.range 0 (amount - 1)
@@ -27,6 +22,11 @@ rotateClockwise : RelativePos -> RelativePos
 rotateClockwise ( ( x, y ), _ ) =
     ( 4 - (y + 1), x )
         |> fromTuple
+
+
+reverse : RelativePos -> RelativePos
+reverse =
+    rotate 2
 
 
 toDir : RelativePos -> Dir

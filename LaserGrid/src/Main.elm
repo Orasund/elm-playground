@@ -9,6 +9,7 @@ import Game.Generate
 import Html exposing (Html)
 import Html.Attributes
 import Layout
+import Platform.Cmd as Cmd
 import Set
 import Time
 import View
@@ -30,6 +31,7 @@ type Msg
     | Unselect
     | UpdateGrid
     | NextLevel
+    | SelectLevel Int
 
 
 init : () -> ( Model, Cmd Msg )
@@ -48,25 +50,39 @@ init () =
     )
 
 
+saveLevel : Model -> Model
+saveLevel model =
+    { model
+        | levels =
+            model.levels
+                |> Dict.insert model.level (model.game |> Game.toSave |> Debug.log "save")
+    }
+
+
+loadLevel : Int -> Model -> Model
+loadLevel level model =
+    let
+        grid =
+            Game.Generate.fromId level
+    in
+    { model
+        | game = grid
+        , level = level
+    }
+
+
 view : Model -> Html Msg
 view model =
     [ [ model.game
-            |> View.grid
+            |> View.grid []
                 { levels = model.levels
                 , onToggle = Toggle
                 }
-      , model.levels
-            |> Dict.toList
-            |> List.map
-                (\( _, level ) ->
-                    level.grid
-                        |> View.Svg.grid
-                            { width = Config.cellSize
-                            , height = Config.cellSize
-                            , active = False
-                            }
-                )
-            |> Layout.row [ Layout.gap 8 ]
+      , [ Layout.text [] "Edit Stages"
+        , model.levels
+            |> View.savedLevels SelectLevel
+        ]
+            |> View.card [ Layout.gap 16 ]
       ]
         |> Layout.column [ Layout.gap 16 ]
     , (if (model.updating == False) && Game.isSolved model.game then
@@ -89,10 +105,8 @@ view model =
                     List.range 0 3
                         |> List.map
                             (\rotate ->
-                                { sort =
-                                    { moduleId = id
-                                    , rotation = rotate
-                                    }
+                                { moduleId = id
+                                , rotation = rotate
                                 , sendsTo = Dict.empty
                                 }
                                     |> ConnectionCell
@@ -120,7 +134,7 @@ view model =
         |> Maybe.map
             (\html ->
                 html
-                    |> View.dialog
+                    |> View.card
                         Layout.centered
                     |> Layout.el
                         (Layout.centered
@@ -158,7 +172,6 @@ update msg model =
                                             Just
                                                 (ConnectionCell
                                                     { sendsTo = Dict.empty
-                                                    , sort = ()
                                                     }
                                                 )
 
@@ -203,10 +216,8 @@ update msg model =
                         | grid =
                             stage.grid
                                 |> Dict.insert (model.selected |> Maybe.withDefault ( 0, 0 ))
-                                    ({ sort =
-                                        { moduleId = moduleId
-                                        , rotation = rotation
-                                        }
+                                    ({ moduleId = moduleId
+                                     , rotation = rotation
                                      , sendsTo = Dict.empty
                                      }
                                         |> ConnectionCell
@@ -237,25 +248,19 @@ update msg model =
             )
 
         NextLevel ->
-            let
-                level =
-                    model.level + 1
-
-                grid =
-                    Game.Generate.fromId level
-            in
-            ( { model
-                | game = grid
-                , levels =
-                    model.levels
-                        |> Dict.insert model.level (model.game |> Game.toSave |> Debug.log "save")
-                , level = level
-              }
+            ( model
+                |> saveLevel
+                |> loadLevel (model.level + 1)
             , Cmd.none
             )
 
         Unselect ->
             ( { model | selected = Nothing }, Cmd.none )
+
+        SelectLevel level ->
+            ( model |> loadLevel level
+            , Cmd.none
+            )
 
 
 subscriptions : Model -> Sub Msg

@@ -1,26 +1,23 @@
 module Cell exposing (..)
 
 import Dict exposing (Dict)
+import Dir exposing (Dir)
+import RelativePos exposing (RelativePos)
 
 
 type alias ConnectionSort1 =
-    ()
+    { sendsTo : Dict Dir { from : Dir } }
 
 
 type alias ConnectionSort2 =
     { moduleId : Int
     , rotation : Int
-    }
-
-
-type alias Connection a =
-    { sendsTo : Dict ( Int, Int ) { from : ( Int, Int ) }
-    , sort : a
+    , sendsTo : Dict RelativePos { from : RelativePos }
     }
 
 
 type Cell a
-    = ConnectionCell (Connection a)
+    = ConnectionCell a
     | Wall
     | Origin
     | Target (Maybe ( Int, Int ))
@@ -30,10 +27,7 @@ map : (a -> b) -> Cell a -> Cell b
 map fun cell =
     case cell of
         ConnectionCell connection ->
-            ConnectionCell
-                { sendsTo = connection.sendsTo
-                , sort = fun connection.sort
-                }
+            ConnectionCell (fun connection)
 
         Wall ->
             Wall
@@ -53,10 +47,10 @@ type alias Cell2 =
     Cell ConnectionSort2
 
 
-cell1ToColor : Maybe Bool -> Cell a -> String
+cell1ToColor : Maybe Bool -> Cell { connection | sendsTo : Dict a b } -> String
 cell1ToColor isActive cell1 =
     case cell1 of
-        ConnectionCell { sendsTo } ->
+        ConnectionCell sort ->
             case isActive of
                 Just True ->
                     "red"
@@ -65,7 +59,7 @@ cell1ToColor isActive cell1 =
                     "gray"
 
                 Nothing ->
-                    case sendsTo |> Dict.toList of
+                    case sort.sendsTo |> Dict.toList of
                         [] ->
                             "gray"
 

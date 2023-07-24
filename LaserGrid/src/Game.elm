@@ -1,6 +1,6 @@
 module Game exposing (..)
 
-import Cell exposing (Cell(..), Cell1, Connection, ConnectionSort1, ConnectionSort2)
+import Cell exposing (Cell(..), Cell1, ConnectionSort1, ConnectionSort2)
 import Dict exposing (Dict)
 import Dir exposing (Dir)
 import RelativePos exposing (RelativePos)
@@ -36,10 +36,6 @@ isSolved game =
 toSave : Game -> SavedLevel
 toSave game =
     let
-        grid =
-            game
-                |> toDict
-
         targets =
             case game of
                 Level1 stage ->
@@ -48,7 +44,11 @@ toSave game =
                 Level2 stage ->
                     stage.targets
 
-        buildPath =
+        buildPath :
+            Dict ( Int, Int ) Cell1
+            -> Maybe { pos : ( Int, Int ), to : ( Int, Int ), path : List ( Int, Int ) }
+            -> Maybe { pos : ( Int, Int ), to : ( Int, Int ), path : List ( Int, Int ) }
+        buildPath grid =
             Maybe.andThen
                 (\{ pos, to, path } ->
                     grid
@@ -58,11 +58,14 @@ toSave game =
                                 case cell |> Debug.log "cell" of
                                     ConnectionCell connection ->
                                         connection.sendsTo
+                                            |> Dict.toList
+                                            |> List.map (\( k, v ) -> ( Dir.addTo pos k, v ))
+                                            |> Dict.fromList
                                             |> Dict.get (Debug.log "to" to)
                                             |> Maybe.map
                                                 (\{ from } ->
-                                                    { pos = from
-                                                    , path = RelativePos.fromTuple pos :: path
+                                                    { pos = Dir.addTo pos from
+                                                    , path = pos :: path
                                                     , to = pos
                                                     }
                                                 )
@@ -70,7 +73,7 @@ toSave game =
                                     Origin ->
                                         Just
                                             { pos = pos
-                                            , path = RelativePos.fromTuple pos :: path
+                                            , path = pos :: path
                                             , to = pos
                                             }
 
@@ -79,7 +82,7 @@ toSave game =
                                             |> Maybe.map
                                                 (\from ->
                                                     { pos = from
-                                                    , path = RelativePos.fromTuple pos :: path
+                                                    , path = pos :: path
                                                     , to = pos
                                                     }
                                                 )
@@ -89,35 +92,47 @@ toSave game =
                             )
                 )
     in
-    targets
-        |> List.filterMap
-            (\target ->
-                List.range 0 16
-                    |> List.foldl (\_ -> buildPath)
-                        (Just { pos = target, to = target, path = [] })
-                    |> Maybe.map
-                        (\{ pos, path } ->
-                            [ ( RelativePos.fromTuple target, { from = RelativePos.fromTuple pos, path = path } )
-                            , ( RelativePos.fromTuple pos, { from = RelativePos.fromTuple target, path = path } )
-                            ]
-                        )
-            )
-        |> List.concat
-        |> Dict.fromList
-        |> (\dict ->
-                { connections = dict |> Debug.log "connections"
-                , grid =
-                    case game of
-                        Level1 stage ->
+    case game of
+        Level1 stage ->
+            targets
+                |> List.filterMap
+                    (\target ->
+                        List.range 0 16
+                            |> List.foldl (\_ -> buildPath stage.grid)
+                                (Just { pos = target, to = target, path = [] })
+                            |> Maybe.map
+                                (\{ pos, path } ->
+                                    [ ( RelativePos.fromTuple target
+                                      , { from = RelativePos.fromTuple pos
+                                        , path =
+                                            path
+                                                |> List.map RelativePos.fromTuple
+                                        }
+                                      )
+                                    , ( RelativePos.fromTuple pos
+                                      , { from = RelativePos.fromTuple target
+                                        , path =
+                                            path
+                                                |> List.map RelativePos.fromTuple
+                                        }
+                                      )
+                                    ]
+                                )
+                    )
+                |> List.concat
+                |> Dict.fromList
+                |> (\dict ->
+                        { connections = dict |> Debug.log "connections"
+                        , grid =
                             stage.grid
                                 |> Dict.toList
                                 |> List.map (\( k, v ) -> ( RelativePos.fromTuple k, v ))
                                 |> Dict.fromList
+                        }
+                   )
 
-                        Level2 _ ->
-                            Dict.empty
-                }
-           )
+        Level2 _ ->
+            Debug.todo "implement SaveLevel for Level2"
 
 
 toDict : Game -> Dict ( Int, Int ) (Cell ())
@@ -137,7 +152,7 @@ update modules grid =
             Dir.list
                 |> List.filterMap
                     (\dir ->
-                        case Dict.get (dir |> Dir.add pos) stage.grid of
+                        case Dict.get (dir |> Dir.addTo pos) stage.grid of
                             Just (ConnectionCell _) ->
                                 Just dir
 
@@ -152,8 +167,9 @@ update modules grid =
                     )
 
         tick :
-            { computeActiveConnections : ( ( Int, Int ), Connection a ) -> Stage a -> Dict ( Int, Int ) { from : ( Int, Int ) }
+            { computeActiveConnections : ( ( Int, Int ), a ) -> Stage a -> a
             , toGame : Stage a -> Game
+            , connectionSendsTo : { from : ( Int, Int ), to : ( Int, Int ) } -> a -> Bool
             }
             -> Stage a
             -> ( Game, Bool )
@@ -163,9 +179,8 @@ update modules grid =
                     (\pos cell ->
                         case cell of
                             ConnectionCell conncetion ->
-                                { conncetion
-                                    | sendsTo = stage |> args.computeActiveConnections ( pos, conncetion )
-                                }
+                                stage
+                                    |> args.computeActiveConnections ( pos, conncetion )
                                     |> ConnectionCell
 
                             Target _ ->
@@ -173,13 +188,14 @@ update modules grid =
                                     |> List.filter
                                         (\fromDir ->
                                             sendsEnergy
-                                                { from = fromDir |> Dir.add pos
+                                                { from = fromDir |> Dir.addTo pos
                                                 , to = pos
+                                                , connectionSends = args.connectionSendsTo
                                                 }
                                                 stage
                                         )
                                     |> List.head
-                                    |> Maybe.map (Dir.add pos)
+                                    |> Maybe.map (Dir.addTo pos)
                                     |> Target
 
                             _ ->
@@ -194,15 +210,17 @@ update modules grid =
     case grid of
         Level1 stage ->
             tick
-                { computeActiveConnections = \( pos, _ ) -> computeActiveConnectionsLv1 (neighborsDir pos stage) pos
+                { computeActiveConnections = \( pos, a ) -> computeActiveConnectionsLv1 (neighborsDir pos stage) ( pos, a )
                 , toGame = Level1
+                , connectionSendsTo = connection1SendsTo
                 }
                 stage
 
         Level2 stage ->
             tick
-                { computeActiveConnections = \( pos, a ) -> computeActiveConnectionsLv2 modules a.sort pos
+                { computeActiveConnections = \( pos, a ) -> computeActiveConnectionsLv2 modules a pos
                 , toGame = Level2
+                , connectionSendsTo = connection2SendsTo
                 }
                 stage
 
@@ -212,10 +230,10 @@ computeActiveConnectionsLv2 :
     -> ConnectionSort2
     -> ( Int, Int )
     -> Stage ConnectionSort2
-    -> Dict ( Int, Int ) { from : ( Int, Int ) }
-computeActiveConnectionsLv2 modules { moduleId, rotation } pos stage =
+    -> ConnectionSort2
+computeActiveConnectionsLv2 modules connection pos stage =
     modules
-        |> Dict.get moduleId
+        |> Dict.get connection.moduleId
         |> Maybe.map .connections
         |> Maybe.withDefault Dict.empty
         |> Dict.toList
@@ -226,21 +244,18 @@ computeActiveConnectionsLv2 modules { moduleId, rotation } pos stage =
                         { from =
                             from
                                 |> RelativePos.toDir
-                                |> Dir.rotate rotation
-                                |> Dir.add pos
+                                |> Dir.rotate connection.rotation
+                                |> Dir.addTo pos
                         , to = pos
+                        , connectionSends = connection2SendsTo
                         }
                         stage
                 then
                     ( to
-                        |> RelativePos.toDir
-                        |> Dir.rotate rotation
-                        |> Dir.add pos
+                        |> RelativePos.rotate connection.rotation
                     , { from =
                             from
-                                |> RelativePos.toDir
-                                |> Dir.rotate rotation
-                                |> Dir.add pos
+                                |> RelativePos.rotate connection.rotation
                       }
                     )
                         |> Just
@@ -249,34 +264,32 @@ computeActiveConnectionsLv2 modules { moduleId, rotation } pos stage =
                     Nothing
             )
         |> Dict.fromList
-        |> Debug.log ("activeConnection of " ++ (pos |> (\( x, y ) -> String.fromInt x ++ " " ++ String.fromInt y)))
+        |> (\sendsTo -> { connection | sendsTo = sendsTo })
 
 
-computeActiveConnectionsLv1 : List Dir -> ( Int, Int ) -> Stage ConnectionSort1 -> Dict ( Int, Int ) { from : ( Int, Int ) }
-computeActiveConnectionsLv1 neighborsDir pos stage =
-    let
-        ( x, y ) =
-            pos
-    in
+computeActiveConnectionsLv1 : List Dir -> ( ( Int, Int ), ConnectionSort1 ) -> Stage ConnectionSort1 -> ConnectionSort1
+computeActiveConnectionsLv1 neighborsDir ( pos, connection ) stage =
     (case neighborsDir of
         [ dir1, dir2 ] ->
             if
                 sendsEnergy
-                    { from = dir1 |> Dir.add pos
+                    { from = dir1 |> Dir.addTo pos
                     , to = pos
+                    , connectionSends = connection1SendsTo
                     }
                     stage
             then
-                [ ( dir2 |> Dir.add pos, { from = dir1 |> Dir.add pos } ) ]
+                [ ( dir2, { from = dir1 } ) ]
 
             else if
                 sendsEnergy
-                    { from = dir2 |> Dir.add pos
+                    { from = dir2 |> Dir.addTo pos
                     , to = pos
+                    , connectionSends = connection1SendsTo
                     }
                     stage
             then
-                [ ( dir1 |> Dir.add pos, { from = dir2 |> Dir.add pos } ) ]
+                [ ( dir1, { from = dir2 } ) ]
 
             else
                 []
@@ -287,13 +300,14 @@ computeActiveConnectionsLv1 neighborsDir pos stage =
                     (\fromDir ->
                         if
                             sendsEnergy
-                                { from = fromDir |> Dir.add pos
+                                { from = fromDir |> Dir.addTo pos
                                 , to = pos
+                                , connectionSends = connection1SendsTo
                                 }
                                 stage
                         then
-                            ( fromDir |> Dir.reverse |> Dir.add ( x, y )
-                            , { from = fromDir |> Dir.add pos }
+                            ( fromDir |> Dir.reverse
+                            , { from = fromDir }
                             )
                                 |> Just
 
@@ -302,13 +316,46 @@ computeActiveConnectionsLv1 neighborsDir pos stage =
                     )
     )
         |> Dict.fromList
+        |> (\sendsTo -> { connection | sendsTo = sendsTo })
 
 
-sendsEnergy : { from : ( Int, Int ), to : ( Int, Int ) } -> Stage a -> Bool
+connection2SendsTo : { from : ( Int, Int ), to : ( Int, Int ) } -> ConnectionSort2 -> Bool
+connection2SendsTo args connection =
+    connection.sendsTo
+        |> Dict.keys
+        |> List.any
+            (\relPos ->
+                relPos
+                    |> RelativePos.toDir
+                    |> Dir.addTo args.from
+                    |> (==) args.to
+            )
+
+
+connection1SendsTo : { from : ( Int, Int ), to : ( Int, Int ) } -> ConnectionSort1 -> Bool
+connection1SendsTo args connection =
+    connection.sendsTo
+        |> Dict.keys
+        |> List.any
+            (\dir ->
+                (dir |> Dir.addTo args.from) == args.to
+            )
+
+
+sendsEnergy :
+    { connectionSends :
+        { from : ( Int, Int ), to : ( Int, Int ) }
+        -> a
+        -> Bool
+    , from : ( Int, Int )
+    , to : ( Int, Int )
+    }
+    -> Stage a
+    -> Bool
 sendsEnergy args stage =
     case stage.grid |> Dict.get args.from of
-        Just (ConnectionCell { sendsTo }) ->
-            sendsTo |> Dict.member args.to
+        Just (ConnectionCell a) ->
+            args.connectionSends { from = args.from, to = args.to } a
 
         Just Origin ->
             True
