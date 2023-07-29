@@ -103,3 +103,8 @@ toDir ( ( x, y ), _ ) =
 
     else
         Debug.todo ("trying to convert" ++ String.fromInt x ++ "," ++ String.fromInt y)
+
+
+unsafeToTuple : RelativePos -> ( Int, Int )
+unsafeToTuple ( ( x, y ), _ ) =
+    ( x, y )

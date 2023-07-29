@@ -29,6 +29,24 @@ toDict stage =
     stage.grid |> Dict.map (\_ -> Cell.map (\_ -> ()))
 
 
+fromDict : Dict ( Int, Int ) (Cell a) -> Stage a
+fromDict dict =
+    { grid = dict
+    , targets =
+        dict
+            |> Dict.filter
+                (\_ cell ->
+                    case cell of
+                        Target _ ->
+                            True
+
+                        _ ->
+                            False
+                )
+            |> Dict.keys
+    }
+
+
 parse : List String -> Stage a
 parse rows =
     rows
@@ -59,22 +77,7 @@ parse rows =
             )
         |> List.concat
         |> Dict.fromList
-        |> (\dict ->
-                { grid = dict
-                , targets =
-                    dict
-                        |> Dict.filter
-                            (\_ cell ->
-                                case cell of
-                                    Target _ ->
-                                        True
-
-                                    _ ->
-                                        False
-                            )
-                        |> Dict.keys
-                }
-           )
+        |> fromDict
 
 
 withLaserAt : ( Int, Int ) -> Dict ( Int, Int ) (Cell a) -> Dict ( Int, Int ) (Cell a)

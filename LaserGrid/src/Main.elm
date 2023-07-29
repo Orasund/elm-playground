@@ -66,10 +66,22 @@ loadLevel : Int -> Model -> Model
 loadLevel level model =
     let
         grid =
-            Game.Generate.fromId level
+            model.levels
+                |> Dict.get level
+                |> Maybe.map Game.fromSave
+                |> Maybe.map Just
+                |> Maybe.withDefault (Game.Generate.fromId level)
     in
     { model
         | game = grid
+        , level = level
+    }
+
+
+generateLevel : Int -> Model -> Model
+generateLevel level model =
+    { model
+        | game = Game.Generate.fromId level
         , level = level
     }
 
@@ -282,7 +294,7 @@ update msg model =
             ( { model | selected = Nothing }, Cmd.none )
 
         SelectLevel level ->
-            ( model |> loadLevel level
+            ( model |> generateLevel level
             , Cmd.none
             )
 

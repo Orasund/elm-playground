@@ -33,6 +33,16 @@ isSolved game =
             Stage.isSolved stage
 
 
+fromSave : SavedLevel -> Game
+fromSave savedLevel =
+    savedLevel.grid
+        |> Dict.toList
+        |> List.map (\( k, v ) -> ( RelativePos.unsafeToTuple k, v ))
+        |> Dict.fromList
+        |> Stage.fromDict
+        |> Level1
+
+
 toSave : Game -> Maybe SavedLevel
 toSave game =
     let
