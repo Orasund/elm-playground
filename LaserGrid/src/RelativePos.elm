@@ -2,7 +2,6 @@ module RelativePos exposing (..)
 
 import Dict exposing (Dict)
 import Dir exposing (Dir)
-import Svg.Attributes exposing (from)
 
 
 type alias RelativePos =

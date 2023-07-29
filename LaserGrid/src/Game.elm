@@ -33,7 +33,7 @@ isSolved game =
             Stage.isSolved stage
 
 
-toSave : Game -> SavedLevel
+toSave : Game -> Maybe SavedLevel
 toSave game =
     let
         targets =
@@ -130,9 +130,10 @@ toSave game =
                                 |> Dict.fromList
                         }
                    )
+                |> Just
 
         Level2 _ ->
-            Debug.todo "implement SaveLevel for Level2"
+            Nothing
 
 
 toDict : Game -> Dict ( Int, Int ) (Cell ())

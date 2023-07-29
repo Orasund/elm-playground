@@ -7,8 +7,24 @@ import Game exposing (Game(..), SavedLevel)
 import Html exposing (Attribute, Html)
 import Html.Attributes
 import Layout
-import RelativePos exposing (RelativePos)
+import RelativePos
+import Set
 import View.Svg
+
+
+gameWon : Html msg
+gameWon =
+    "You Win!"
+        |> Layout.text []
+        |> Layout.el
+            ([ Html.Attributes.style "background" "linear-gradient(45deg,orange, yellow)"
+             , Html.Attributes.style "width" ((Config.cellSize * 6 |> String.fromInt) ++ "px")
+             , Html.Attributes.style "height" ((Config.cellSize * 6 |> String.fromInt) ++ "px")
+             , Html.Attributes.style "color" "white"
+             , Html.Attributes.style "font-size" "2rem"
+             ]
+                ++ Layout.centered
+            )
 
 
 savedLevels : (Int -> msg) -> Dict Int SavedLevel -> Html msg
@@ -67,24 +83,25 @@ tile2 g cell =
                 |> Dict.get c.moduleId
                 |> Maybe.map
                     (\level ->
+                        let
+                            activePos =
+                                c.sendsTo
+                                    |> Dict.keys
+                                    |> List.map (RelativePos.rotate (4 - c.rotation))
+                                    |> List.concatMap
+                                        (\to ->
+                                            level.connections
+                                                |> Dict.get to
+                                                |> Maybe.map .path
+                                                |> Maybe.withDefault []
+                                        )
+                                    |> Set.fromList
+                        in
                         level.grid
                             |> View.Svg.grid
                                 { height = Config.cellSize
                                 , width = Config.cellSize
-                                , active =
-                                    \pos ->
-                                        c.sendsTo /= Dict.empty
-
-                                {--c.sendsTo
-                                            |> Dict.keys
-                                            |> List.any
-                                                (\relPos ->
-                                                    RelativePos.fromTuple pos
-                                                        |> (==)
-                                                            (relPos
-                                                                |> RelativePos.rotate c.rotation
-                                                            )
-                                                )--}
+                                , active = \pos -> Set.member (RelativePos.fromTuple pos) activePos
                                 }
                             |> Layout.el
                                 [ Html.Attributes.style "transform"

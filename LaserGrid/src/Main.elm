@@ -2,7 +2,6 @@ module Main exposing (..)
 
 import Browser
 import Cell exposing (Cell(..))
-import Config
 import Dict exposing (Dict)
 import Game exposing (Game(..), SavedLevel)
 import Game.Generate
@@ -10,14 +9,12 @@ import Html exposing (Html)
 import Html.Attributes
 import Layout
 import Platform.Cmd as Cmd
-import Set
 import Time
 import View
-import View.Svg
 
 
 type alias Model =
-    { game : Game
+    { game : Maybe Game
     , levels : Dict Int SavedLevel
     , updating : Bool
     , level : Int
@@ -54,8 +51,14 @@ saveLevel : Model -> Model
 saveLevel model =
     { model
         | levels =
-            model.levels
-                |> Dict.insert model.level (model.game |> Game.toSave |> Debug.log "save")
+            model.game
+                |> Maybe.andThen Game.toSave
+                |> Maybe.map
+                    (\savedGame ->
+                        model.levels
+                            |> Dict.insert model.level savedGame
+                    )
+                |> Maybe.withDefault model.levels
     }
 
 
@@ -74,10 +77,13 @@ loadLevel level model =
 view : Model -> Html Msg
 view model =
     [ [ model.game
-            |> View.grid []
-                { levels = model.levels
-                , onToggle = Toggle
-                }
+            |> Maybe.map
+                (View.grid []
+                    { levels = model.levels
+                    , onToggle = Toggle
+                    }
+                )
+            |> Maybe.withDefault View.gameWon
       , [ Layout.text [] "Edit Stages"
         , model.levels
             |> View.savedLevels SelectLevel
@@ -85,7 +91,13 @@ view model =
             |> View.card [ Layout.gap 16 ]
       ]
         |> Layout.column [ Layout.gap 16 ]
-    , (if (model.updating == False) && Game.isSolved model.game then
+    , (if
+        (model.updating == False)
+            && (model.game
+                    |> Maybe.map Game.isSolved
+                    |> Maybe.withDefault False
+               )
+       then
         [ "You Win"
             |> Layout.text []
         , Layout.textButton []
@@ -160,7 +172,7 @@ update msg model =
         Toggle ( x, y ) ->
             ( (if x >= 0 && x <= 3 && y >= 0 && y <= 3 then
                 case model.game of
-                    Level1 stage ->
+                    Just (Level1 stage) ->
                         stage.grid
                             |> Dict.update ( x, y )
                                 (\maybe ->
@@ -180,9 +192,9 @@ update msg model =
                                 )
                             |> (\grid -> { stage | grid = grid })
                             |> Level1
-                            |> (\grid -> { model | game = grid })
+                            |> (\grid -> { model | game = Just grid })
 
-                    Level2 stage ->
+                    Just (Level2 stage) ->
                         case stage.grid |> Dict.get ( x, y ) |> Debug.log "cell" of
                             Just (ConnectionCell _) ->
                                 { stage
@@ -191,13 +203,16 @@ update msg model =
                                             |> Dict.remove ( x, y )
                                 }
                                     |> Level2
-                                    |> (\grid -> { model | game = grid })
+                                    |> (\grid -> { model | game = Just grid })
 
                             Nothing ->
                                 { model | selected = Just ( x, y ) }
 
                             _ ->
                                 model
+
+                    Nothing ->
+                        model
 
                else
                 model
@@ -208,10 +223,10 @@ update msg model =
 
         PlaceModule { moduleId, rotation } ->
             ( case model.game of
-                Level1 _ ->
+                Just (Level1 _) ->
                     model
 
-                Level2 stage ->
+                Just (Level2 stage) ->
                     { stage
                         | grid =
                             stage.grid
@@ -224,13 +239,16 @@ update msg model =
                                     )
                     }
                         |> Level2
-                        |> (\grid ->
+                        |> (\game ->
                                 { model
-                                    | game = grid
+                                    | game = Just game
                                     , updating = True
                                     , selected = Nothing
                                 }
                            )
+
+                Nothing ->
+                    model
             , Cmd.none
             )
 
@@ -238,7 +256,13 @@ update msg model =
             let
                 ( newGrid, updating ) =
                     model.game
-                        |> Game.update model.levels
+                        |> Maybe.map
+                            (\game ->
+                                game
+                                    |> Game.update model.levels
+                                    |> Tuple.mapFirst Just
+                            )
+                        |> Maybe.withDefault ( Nothing, False )
             in
             ( { model
                 | game = newGrid

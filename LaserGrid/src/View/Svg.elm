@@ -3,7 +3,6 @@ module View.Svg exposing (..)
 import Cell exposing (Cell1)
 import Dict exposing (Dict)
 import RelativePos exposing (RelativePos)
-import Set exposing (Set)
 import Svg exposing (Svg)
 import Svg.Attributes
 
@@ -13,7 +12,7 @@ grid args dict =
     dict
         |> Dict.toList
         |> List.map
-            (\( ( ( x, y ), _ ) as pos, cell ) ->
+            (\( ( ( x, y ), _ ), cell ) ->
                 ( ( x + 1, y + 1 ), cell |> Cell.cell1ToColor (args.active ( x, y ) |> Just) )
             )
         |> fromPixels { width = args.width, height = args.height, size = 6 }
