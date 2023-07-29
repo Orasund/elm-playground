@@ -8,13 +8,13 @@ import Svg exposing (Svg)
 import Svg.Attributes
 
 
-grid : { width : Int, height : Int, active : Bool } -> Dict RelativePos Cell1 -> Svg msg
+grid : { width : Int, height : Int, active : ( Int, Int ) -> Bool } -> Dict RelativePos Cell1 -> Svg msg
 grid args dict =
     dict
         |> Dict.toList
         |> List.map
             (\( ( ( x, y ), _ ) as pos, cell ) ->
-                ( ( x + 1, y + 1 ), cell |> Cell.cell1ToColor (args.active |> Just) )
+                ( ( x + 1, y + 1 ), cell |> Cell.cell1ToColor (args.active ( x, y ) |> Just) )
             )
         |> fromPixels { width = args.width, height = args.height, size = 6 }
 

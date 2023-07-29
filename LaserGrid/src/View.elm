@@ -7,6 +7,7 @@ import Game exposing (Game(..), SavedLevel)
 import Html exposing (Attribute, Html)
 import Html.Attributes
 import Layout
+import RelativePos exposing (RelativePos)
 import View.Svg
 
 
@@ -20,7 +21,7 @@ savedLevels fun dict =
                     |> View.Svg.grid
                         { width = Config.cellSize
                         , height = Config.cellSize
-                        , active = False
+                        , active = \_ -> False
                         }
                 , Layout.text [] ("Stage" ++ String.fromInt id)
                 ]
@@ -71,7 +72,19 @@ tile2 g cell =
                                 { height = Config.cellSize
                                 , width = Config.cellSize
                                 , active =
-                                    c.sendsTo /= Dict.empty
+                                    \pos ->
+                                        c.sendsTo /= Dict.empty
+
+                                {--c.sendsTo
+                                            |> Dict.keys
+                                            |> List.any
+                                                (\relPos ->
+                                                    RelativePos.fromTuple pos
+                                                        |> (==)
+                                                            (relPos
+                                                                |> RelativePos.rotate c.rotation
+                                                            )
+                                                )--}
                                 }
                             |> Layout.el
                                 [ Html.Attributes.style "transform"
