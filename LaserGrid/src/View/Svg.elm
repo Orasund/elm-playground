@@ -15,8 +15,8 @@ grid :
     { width : Int
     , height : Int
     , active : ( Int, Int ) -> Bool
-    , laserColor : String
     , render : Cell -> RenderFunction msg
+    , level : Int
     }
     -> Dict RelativePos Cell
     -> Svg msg
@@ -29,7 +29,7 @@ grid args dict =
                 , color =
                     cell
                         |> Cell.cell1ToColor
-                            { laserColor = args.laserColor }
+                            { level = args.level }
                             (args.active ( x, y ) |> Just)
                 , render = args.render cell
                 }

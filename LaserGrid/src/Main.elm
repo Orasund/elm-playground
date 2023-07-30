@@ -3,6 +3,7 @@ module Main exposing (..)
 import Browser
 import Cell exposing (Cell(..))
 import Color
+import Config
 import Dict exposing (Dict)
 import Game exposing (Game, SavedStage)
 import Game.Generate
@@ -31,6 +32,7 @@ type Msg
     | UpdateGrid
     | NextStage
     | LoadStage { level : Int, stage : Int }
+    | RemoveTile ( Int, Int )
 
 
 init : () -> ( Model, Cmd Msg )
@@ -118,16 +120,32 @@ view model =
                             }
                 )
             |> Maybe.withDefault View.gameWon
-      , [ "Edit Stages" |> View.cardTitle
-        , model.levels
-            |> Dict.get (model.level - 1)
-            |> Maybe.withDefault Dict.empty
-            |> View.savedLevels { level = model.level - 1 }
-                (\stage -> LoadStage { level = model.level - 1, stage = stage })
-        ]
-            |> View.card [ Layout.gap 16 ]
+            |> Layout.el
+                [ Html.Attributes.style "border-radius" "1rem"
+                , Html.Attributes.style "overflow" "hidden"
+                ]
+      , if model.level == 1 then
+            [ "Connect the circles with energy by placing tiles." |> Layout.text []
+            , "Energy will flow along the tiles." |> Layout.text []
+            , "If the direction is ambiguous, it will always go straight." |> Layout.text []
+            ]
+                |> View.card [ Layout.gap 16 ]
+
+        else
+            [ "Edit Stages" |> View.cardTitle
+            , model.levels
+                |> Dict.get (model.level - 1)
+                |> Maybe.withDefault Dict.empty
+                |> View.savedLevels { level = model.level - 1 }
+                    (\stage -> LoadStage { level = model.level - 1, stage = stage })
+            ]
+                |> View.card [ Layout.gap 16 ]
       ]
-        |> Layout.column [ Layout.gap 16 ]
+        |> Layout.column
+            [ Layout.gap 16
+            , Html.Attributes.style "padding" "1rem"
+            , Html.Attributes.style "width" ((Config.cellSize * 6 |> String.fromInt) ++ "px")
+            ]
     , (if
         (model.updating == False)
             && (model.game
@@ -142,42 +160,50 @@ view model =
         ]
             |> Just
 
-       else if model.selected /= Nothing then
-        [ "Select a tile you want to place"
-            |> View.cardTitle
-        , model.levels
-            |> Dict.get (model.level - 1)
-            |> Maybe.withDefault Dict.empty
-            |> Dict.keys
-            |> List.map
-                (\id ->
-                    List.range 0 3
-                        |> List.map
-                            (\rotate ->
-                                { moduleId = id
-                                , rotation = rotate
-                                , sendsTo = Dict.empty
-                                }
-                                    |> ConnectionCell
-                                    |> View.tile2 { level = model.game |> Maybe.map .level |> Maybe.withDefault 1 }
-                                        (model.levels |> Dict.get (model.level - 1) |> Maybe.withDefault Dict.empty)
-                                    |> Layout.el
-                                        (Layout.asButton
-                                            { label = "Level " ++ String.fromInt id ++ "(" ++ String.fromInt rotate ++ ")"
-                                            , onPress = Just (PlaceModule { moduleId = id, rotation = rotate })
-                                            }
-                                        )
-                            )
-                        |> Layout.row [ Layout.gap 8 ]
-                )
-            |> Layout.column [ Layout.gap 8 ]
-        , View.button Unselect
-            "Cancel"
-        ]
-            |> Just
-
        else
-        Nothing
+        case model.selected of
+            Just selected ->
+                [ "Select a tile you want to place"
+                    |> View.cardTitle
+                , model.levels
+                    |> Dict.get (model.level - 1)
+                    |> Maybe.withDefault Dict.empty
+                    |> Dict.keys
+                    |> List.map
+                        (\id ->
+                            List.range 0 3
+                                |> List.map
+                                    (\rotate ->
+                                        { moduleId = id
+                                        , rotation = rotate
+                                        , sendsTo = Dict.empty
+                                        }
+                                            |> ConnectionCell
+                                            |> View.tile2 { level = model.game |> Maybe.map .level |> Maybe.withDefault 1 }
+                                                (model.levels |> Dict.get (model.level - 1) |> Maybe.withDefault Dict.empty)
+                                            |> Layout.el
+                                                (Layout.asButton
+                                                    { label = "Level " ++ String.fromInt id ++ "(" ++ String.fromInt rotate ++ ")"
+                                                    , onPress = Just (PlaceModule { moduleId = id, rotation = rotate })
+                                                    }
+                                                )
+                                    )
+                                |> Layout.row [ Layout.gap 8 ]
+                        )
+                    |> Layout.column [ Layout.gap 8 ]
+                , (if model.game |> Maybe.map (\game -> game.stage.grid) |> Maybe.withDefault Dict.empty |> Dict.member selected then
+                    [ View.button (RemoveTile selected) "Remove" ]
+
+                   else
+                    []
+                  )
+                    ++ [ View.primaryButton Unselect "Cancel" ]
+                    |> Layout.row [ Layout.gap 8 ]
+                ]
+                    |> Just
+
+            Nothing ->
+                Nothing
       )
         |> Maybe.map
             (\html ->
@@ -189,6 +215,7 @@ view model =
                             ++ [ Html.Attributes.style "width" "100%"
                                , Html.Attributes.style "height" "100%"
                                , Html.Attributes.style "position" "absolute"
+                               , Html.Attributes.style "backdrop-filter" "blur(2px)"
                                ]
                         )
             )
@@ -201,15 +228,14 @@ view model =
     , View.stylesheet
     ]
         |> Html.div
-            (Layout.centered
-                ++ [ Layout.asEl
-                   , Html.Attributes.style "position" "relative"
-                   , Html.Attributes.style "color" Color.fontColor
-                   , Html.Attributes.style "background" (Color.background (model.game |> Maybe.map .level |> Maybe.withDefault 1))
-                   , Html.Attributes.style "font-family" "sans-serif"
-                   , Html.Attributes.style "height" "100%"
-                   ]
-            )
+            [ Layout.asEl
+            , Html.Attributes.style "position" "relative"
+            , Html.Attributes.style "color" Color.fontColor
+            , Html.Attributes.style "background" (Color.background (model.game |> Maybe.map .level |> Maybe.withDefault 1))
+            , Html.Attributes.style "font-family" "sans-serif"
+            , Html.Attributes.style "height" "100%"
+            , Layout.contentCentered
+            ]
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -252,17 +278,7 @@ update msg model =
                                 2 ->
                                     case game.stage.grid |> Dict.get ( x, y ) of
                                         Just (ConnectionCell _) ->
-                                            game.stage.grid
-                                                |> Dict.remove ( x, y )
-                                                |> (\grid ->
-                                                        { model
-                                                            | game =
-                                                                { game
-                                                                    | stage = game.stage |> (\stage -> { stage | grid = grid })
-                                                                }
-                                                                    |> Just
-                                                        }
-                                                   )
+                                            { model | selected = Just ( x, y ) }
 
                                         Nothing ->
                                             { model | selected = Just ( x, y ) }
@@ -356,6 +372,27 @@ update msg model =
 
         LoadStage level ->
             ( model |> generateStage level
+            , Cmd.none
+            )
+
+        RemoveTile pos ->
+            ( model.game
+                |> Maybe.map
+                    (\game ->
+                        game.stage.grid
+                            |> Dict.remove pos
+                            |> (\grid ->
+                                    { model
+                                        | game =
+                                            { game
+                                                | stage = game.stage |> (\stage -> { stage | grid = grid })
+                                            }
+                                                |> Just
+                                        , selected = Nothing
+                                    }
+                               )
+                    )
+                |> Maybe.withDefault model
             , Cmd.none
             )
 

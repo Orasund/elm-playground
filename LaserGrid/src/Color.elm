@@ -2,7 +2,7 @@ module Color exposing (..)
 
 
 background level =
-    "linear-gradient(" ++ white ++ ", color-mix(in lch," ++ laserColor level ++ " 33%,white))"
+    "linear-gradient(" ++ white ++ ", " ++ inactiveLaser level ++ ")"
 
 
 fontColor =
@@ -29,8 +29,8 @@ laserColorLevel1 =
     primaryLevel1
 
 
-inactiveLaser =
-    darkGray
+inactiveLaser level =
+    "color-mix(in lch," ++ laserColor level ++ " 33%,white)"
 
 
 

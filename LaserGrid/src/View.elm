@@ -38,9 +38,9 @@ savedLevels args fun dict =
                     |> View.Svg.grid
                         { width = Config.cellSize
                         , height = Config.cellSize
-                        , active = \_ -> False
-                        , laserColor = Color.laserColorLevel1
+                        , active = \_ -> True
                         , render = \_ -> View.Svg.boxRender
+                        , level = args.level
                         }
                 , Layout.text [] ("Stage " ++ String.fromInt args.level ++ " - " ++ String.fromInt id)
                 ]
@@ -79,15 +79,15 @@ card attrs =
         )
 
 
-tile1 : Cell -> Html msg
-tile1 cell =
-    Cell.cell1ToColor { laserColor = Color.laserColorLevel1 }
+tile1 : { level : Int } -> Cell -> Html msg
+tile1 args cell =
+    Cell.cell1ToColor args
         Nothing
         cell
         |> View.Svg.cell1
             { height = Config.cellSize
             , width = Config.cellSize
-            , render = cellRender { laserColor = Color.laserColorLevel1 } cell
+            , render = cellRender { laserColor = Color.laserColor args.level } cell
             }
 
 
@@ -118,8 +118,8 @@ tile2 args g cell =
                                 { height = Config.cellSize
                                 , width = Config.cellSize
                                 , active = \pos -> Set.member (RelativePos.fromTuple pos) activePos
-                                , laserColor = Color.laserColor args.level
                                 , render = \_ -> View.Svg.boxRender
+                                , level = args.level
                                 }
                             |> Layout.el
                                 [ Html.Attributes.style "transform"
@@ -130,9 +130,7 @@ tile2 args g cell =
 
         _ ->
             cell
-                |> Cell.cell1ToColor
-                    { laserColor = Color.laserColor args.level }
-                    Nothing
+                |> Cell.cell1ToColor { level = args.level } Nothing
                 |> View.Svg.cell1
                     { height = Config.cellSize
                     , width = Config.cellSize
@@ -170,7 +168,7 @@ game attrs args g =
         1 ->
             g.stage.grid
                 |> Dict.get args.pos
-                |> Maybe.map tile1
+                |> Maybe.map (tile1 { level = g.level })
 
         2 ->
             g.stage.grid

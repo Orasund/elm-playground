@@ -27,24 +27,24 @@ connectionLevel1 sendsTo =
     }
 
 
-cell1ToColor : { laserColor : String } -> Maybe Bool -> Cell -> String
+cell1ToColor : { level : Int } -> Maybe Bool -> Cell -> String
 cell1ToColor args isActive cell1 =
     case cell1 of
         ConnectionCell sort ->
             case isActive of
                 Just True ->
-                    args.laserColor
+                    Color.laserColor args.level
 
                 Just False ->
-                    Color.inactiveLaser
+                    Color.inactiveLaser args.level
 
                 Nothing ->
                     case sort.sendsTo |> Dict.toList of
                         [] ->
-                            Color.inactiveLaser
+                            Color.inactiveLaser args.level
 
                         _ ->
-                            args.laserColor
+                            Color.laserColor args.level
 
         Wall ->
             Color.wallColor
@@ -52,32 +52,32 @@ cell1ToColor args isActive cell1 =
         Origin ->
             case isActive of
                 Just True ->
-                    args.laserColor
+                    Color.laserColor args.level
 
                 Just False ->
-                    Color.inactiveLaser
+                    Color.inactiveLaser args.level
 
                 Nothing ->
-                    args.laserColor
+                    Color.laserColor args.level
 
         Target Nothing ->
             case isActive of
                 Just True ->
-                    args.laserColor
+                    Color.laserColor args.level
 
                 Just False ->
-                    Color.inactiveLaser
+                    Color.inactiveLaser args.level
 
                 Nothing ->
-                    Color.inactiveLaser
+                    Color.inactiveLaser args.level
 
         Target _ ->
             case isActive of
                 Just True ->
-                    args.laserColor
+                    Color.laserColor args.level
 
                 Just False ->
-                    Color.inactiveLaser
+                    Color.inactiveLaser args.level
 
                 Nothing ->
-                    args.laserColor
+                    Color.laserColor args.level
