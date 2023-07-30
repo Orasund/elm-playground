@@ -3,28 +3,107 @@ module View.Svg exposing (..)
 import Cell exposing (Cell1)
 import Dict exposing (Dict)
 import RelativePos exposing (RelativePos)
-import Svg exposing (Svg)
+import Svg exposing (Attribute, Svg)
 import Svg.Attributes
 
 
-grid : { width : Int, height : Int, active : ( Int, Int ) -> Bool } -> Dict RelativePos Cell1 -> Svg msg
+type alias RenderFunction msg =
+    { pos : ( Int, Int ), color : String, size : Int } -> Svg msg
+
+
+grid :
+    { width : Int
+    , height : Int
+    , active : ( Int, Int ) -> Bool
+    , laserColor : String
+    , render : Cell1 -> RenderFunction msg
+    }
+    -> Dict RelativePos Cell1
+    -> Svg msg
 grid args dict =
     dict
         |> Dict.toList
         |> List.map
             (\( ( ( x, y ), _ ), cell ) ->
-                ( ( x + 1, y + 1 ), cell |> Cell.cell1ToColor (args.active ( x, y ) |> Just) )
+                { pos = ( x + 1, y + 1 )
+                , color =
+                    cell
+                        |> Cell.cell1ToColor
+                            { laserColor = args.laserColor }
+                            (args.active ( x, y ) |> Just)
+                , render = args.render cell
+                }
             )
         |> fromPixels { width = args.width, height = args.height, size = 6 }
 
 
-cell1 : { width : Int, height : Int } -> String -> Svg msg
+cell1 : { width : Int, height : Int, render : RenderFunction msg } -> String -> Svg msg
 cell1 args color =
-    [ ( ( 0, 0 ), color ) ]
+    [ { pos = ( 0, 0 ), color = color, render = args.render } ]
         |> fromPixels { width = args.width, height = args.height, size = 1 }
 
 
-fromPixels : { width : Int, height : Int, size : Int } -> List ( ( Int, Int ), String ) -> Svg msg
+targetRender : { secondaryColor : String } -> RenderFunction msg
+targetRender { secondaryColor } args =
+    let
+        ( x, y ) =
+            args.pos
+    in
+    Svg.g
+        []
+        [ Svg.rect
+            [ Svg.Attributes.width (args.size |> String.fromInt)
+            , Svg.Attributes.height (args.size |> String.fromInt)
+            , Svg.Attributes.fill args.color
+            , Svg.Attributes.mask "url(#no-power)"
+            , Svg.Attributes.x (x |> String.fromInt)
+            , Svg.Attributes.y (y |> String.fromInt)
+            ]
+            []
+        , Svg.circle
+            [ Svg.Attributes.cx (toFloat x + toFloat args.size / 2 |> String.fromFloat)
+            , Svg.Attributes.cy (toFloat y + toFloat args.size / 2 |> String.fromFloat)
+            , Svg.Attributes.r (toFloat args.size * 2 / 8 |> String.fromFloat)
+            , Svg.Attributes.strokeWidth (toFloat args.size / 8 |> String.fromFloat)
+            , Svg.Attributes.fill "none"
+            , Svg.Attributes.stroke secondaryColor
+            ]
+            []
+        ]
+
+
+boxRender : { pos : ( Int, Int ), color : String, size : Int } -> Svg msg
+boxRender args =
+    let
+        ( x, y ) =
+            args.pos
+    in
+    Svg.rect
+        [ Svg.Attributes.x (x |> String.fromInt)
+        , Svg.Attributes.y (y |> String.fromInt)
+        , Svg.Attributes.width (args.size |> String.fromInt)
+        , Svg.Attributes.height (args.size |> String.fromInt)
+        , Svg.Attributes.fill args.color
+        ]
+        []
+
+
+connectionRender : { pos : ( Int, Int ), color : String, size : Int } -> Svg msg
+connectionRender args =
+    let
+        ( x, y ) =
+            args.pos
+    in
+    Svg.circle
+        [ Svg.Attributes.cx (toFloat x + toFloat args.size / 2 |> String.fromFloat)
+        , Svg.Attributes.cy (toFloat y + toFloat args.size / 2 |> String.fromFloat)
+        , Svg.Attributes.r (toFloat args.size / 2 |> String.fromFloat)
+        , Svg.Attributes.fill args.color
+        ]
+        []
+
+
+fromPixels : { width : Int, height : Int, size : Int } -> List { pos : ( Int, Int ), color : String, render : RenderFunction msg } -> Svg msg
 fromPixels args pixels =
     let
         canvasSize =
@@ -35,15 +114,16 @@ fromPixels args pixels =
     in
     pixels
         |> List.map
-            (\( ( x, y ), color ) ->
-                Svg.rect
-                    [ Svg.Attributes.x (x * pixelSize |> String.fromInt)
-                    , Svg.Attributes.y (y * pixelSize |> String.fromInt)
-                    , Svg.Attributes.width (pixelSize |> String.fromInt)
-                    , Svg.Attributes.height (pixelSize |> String.fromInt)
-                    , Svg.Attributes.fill color
-                    ]
-                    []
+            (\{ pos, color, render } ->
+                let
+                    ( x, y ) =
+                        pos
+                in
+                render
+                    { pos = ( x * pixelSize, y * pixelSize )
+                    , size = pixelSize
+                    , color = color
+                    }
             )
         |> Svg.svg
             [ Svg.Attributes.width (String.fromInt args.width)

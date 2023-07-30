@@ -2,6 +2,7 @@ module Main exposing (..)
 
 import Browser
 import Cell exposing (Cell(..))
+import Color
 import Dict exposing (Dict)
 import Game exposing (Game(..), SavedLevel)
 import Game.Generate
@@ -88,15 +89,18 @@ generateLevel level model =
 
 view : Model -> Html Msg
 view model =
-    [ [ model.game
+    [ [ "Stage " ++ String.fromInt model.level |> View.title
+      , model.game
             |> Maybe.map
-                (View.grid []
-                    { levels = model.levels
-                    , onToggle = Toggle
-                    }
+                (\game ->
+                    game
+                        |> View.grid []
+                            { levels = model.levels
+                            , onToggle = Toggle
+                            }
                 )
             |> Maybe.withDefault View.gameWon
-      , [ Layout.text [] "Edit Stages"
+      , [ "Edit Stages" |> View.cardTitle
         , model.levels
             |> View.savedLevels SelectLevel
         ]
@@ -110,18 +114,16 @@ view model =
                     |> Maybe.withDefault False
                )
        then
-        [ "You Win"
-            |> Layout.text []
-        , Layout.textButton []
-            { label = "Next Level"
-            , onPress = Just NextLevel
-            }
+        [ "Stage Complete"
+            |> View.cardTitle
+        , View.primaryButton NextLevel
+            "Next Level"
         ]
             |> Just
 
        else if model.selected /= Nothing then
         [ "Select a tile you want to place"
-            |> Layout.text []
+            |> View.cardTitle
         , model.levels
             |> Dict.keys
             |> List.map
@@ -145,10 +147,8 @@ view model =
                         |> Layout.row [ Layout.gap 8 ]
                 )
             |> Layout.column [ Layout.gap 8 ]
-        , Layout.textButton []
-            { label = "Cancel"
-            , onPress = Just Unselect
-            }
+        , View.button Unselect
+            "Cancel"
         ]
             |> Just
 
@@ -174,8 +174,18 @@ view model =
         , Html.Attributes.attribute "content" "width=device-width, initial-scale=1"
         ]
         []
+    , View.stylesheet
     ]
-        |> Html.div (Layout.centered ++ [ Layout.asEl, Html.Attributes.style "position" "relative" ])
+        |> Html.div
+            (Layout.centered
+                ++ [ Layout.asEl
+                   , Html.Attributes.style "position" "relative"
+                   , Html.Attributes.style "color" Color.fontColor
+                   , Html.Attributes.style "background" Color.background
+                   , Html.Attributes.style "font-family" "sans-serif"
+                   , Html.Attributes.style "height" "100%"
+                   ]
+            )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )

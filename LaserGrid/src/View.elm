@@ -1,6 +1,7 @@
 module View exposing (..)
 
 import Cell exposing (Cell(..), Cell1, Cell2)
+import Color
 import Config
 import Dict exposing (Dict)
 import Game exposing (Game(..), SavedLevel)
@@ -9,7 +10,7 @@ import Html.Attributes
 import Layout
 import RelativePos
 import Set
-import View.Svg
+import View.Svg exposing (RenderFunction)
 
 
 gameWon : Html msg
@@ -38,6 +39,8 @@ savedLevels fun dict =
                         { width = Config.cellSize
                         , height = Config.cellSize
                         , active = \_ -> False
+                        , laserColor = Color.laserColorLevel1
+                        , render = \_ -> View.Svg.boxRender
                         }
                 , Layout.text [] ("Stage" ++ String.fromInt id)
                 ]
@@ -54,13 +57,23 @@ savedLevels fun dict =
         |> Layout.row [ Layout.gap 16 ]
 
 
+title : String -> Html msg
+title =
+    Layout.text [ Html.Attributes.style "font-size" "2rem" ]
+
+
+cardTitle : String -> Html msg
+cardTitle =
+    Layout.text [ Html.Attributes.style "font-size" "1.5rem" ]
+
+
 card : List (Attribute msg) -> List (Html msg) -> Html msg
 card attrs =
     Layout.column
-        ([ Html.Attributes.style "padding" "1rem"
-         , Html.Attributes.style "border" "1px solid black"
-         , Html.Attributes.style "background-color" "white"
-         , Layout.gap 8
+        ([ Html.Attributes.style "padding" "2rem"
+         , Html.Attributes.style "background-color" Color.lightGray
+         , Html.Attributes.style "border-radius" "1rem"
+         , Layout.gap 16
          ]
             ++ attrs
         )
@@ -68,10 +81,13 @@ card attrs =
 
 tile1 : Cell1 -> Html msg
 tile1 cell =
-    Cell.cell1ToColor Nothing cell
+    Cell.cell1ToColor { laserColor = Color.laserColorLevel1 }
+        Nothing
+        cell
         |> View.Svg.cell1
             { height = Config.cellSize
             , width = Config.cellSize
+            , render = cellRender cell
             }
 
 
@@ -102,6 +118,8 @@ tile2 g cell =
                                 { height = Config.cellSize
                                 , width = Config.cellSize
                                 , active = \pos -> Set.member (RelativePos.fromTuple pos) activePos
+                                , laserColor = Color.laserColorLevel2
+                                , render = \_ -> View.Svg.boxRender
                                 }
                             |> Layout.el
                                 [ Html.Attributes.style "transform"
@@ -112,10 +130,13 @@ tile2 g cell =
 
         _ ->
             cell
-                |> Cell.cell1ToColor Nothing
+                |> Cell.cell1ToColor
+                    { laserColor = Color.laserColorLevel2 }
+                    Nothing
                 |> View.Svg.cell1
                     { height = Config.cellSize
                     , width = Config.cellSize
+                    , render = cellRender cell
                     }
 
 
@@ -128,7 +149,7 @@ grid attrs args g =
                     |> List.map
                         (\x ->
                             g
-                                |> tile
+                                |> game
                                     (Layout.asButton
                                         { onPress = Just (args.onToggle ( x, y ))
                                         , label = "Toggle " ++ String.fromInt x ++ "," ++ String.fromInt y
@@ -143,16 +164,16 @@ grid attrs args g =
         |> Layout.column attrs
 
 
-tile : List (Attribute msg) -> { pos : ( Int, Int ), levels : Dict Int SavedLevel } -> Game -> Html msg
-tile attrs args g =
+game : List (Attribute msg) -> { pos : ( Int, Int ), levels : Dict Int SavedLevel } -> Game -> Html msg
+game attrs args g =
     (case g of
-        Level1 game ->
-            game.grid
+        Level1 stage ->
+            stage.grid
                 |> Dict.get args.pos
                 |> Maybe.map tile1
 
-        Level2 game ->
-            game.grid
+        Level2 stage ->
+            stage.grid
                 |> Dict.get args.pos
                 |> Maybe.map (tile2 args.levels)
     )
@@ -160,8 +181,76 @@ tile attrs args g =
         |> Layout.el
             ([ Html.Attributes.style "width" (String.fromInt Config.cellSize ++ "px")
              , Html.Attributes.style "height" (String.fromInt Config.cellSize ++ "px")
-             , Html.Attributes.style "font-size" "56px"
              ]
                 ++ Layout.centered
                 ++ attrs
             )
+
+
+primaryButton : msg -> String -> Html msg
+primaryButton onPress label =
+    Layout.textButton
+        [ Html.Attributes.style "background" Color.fontColor
+        , Html.Attributes.style "border" ("1px solid " ++ Color.fontColor)
+        , Html.Attributes.style "color" Color.white
+        , Html.Attributes.style "padding" "0.5rem"
+        , Html.Attributes.style "border-radius" "0.5rem"
+        , Html.Attributes.style "font-weight" "bold"
+        ]
+        { onPress = Just onPress
+        , label = label
+        }
+
+
+cellRender : Cell connection -> RenderFunction msg
+cellRender cell =
+    case cell of
+        ConnectionCell _ ->
+            View.Svg.boxRender
+
+        Wall ->
+            View.Svg.boxRender
+
+        Origin ->
+            View.Svg.boxRender
+
+        Target Nothing ->
+            View.Svg.targetRender { secondaryColor = Color.laserColorLevel1 }
+
+        Target (Just _) ->
+            View.Svg.targetRender { secondaryColor = Color.wallColor }
+
+
+button : msg -> String -> Html msg
+button onPress label =
+    Layout.textButton
+        [ Html.Attributes.style "background" "transparent"
+        , Html.Attributes.style "border" ("1px solid " ++ Color.fontColor)
+        , Html.Attributes.style "color" Color.fontColor
+        , Html.Attributes.style "padding" "0.5rem"
+        , Html.Attributes.style "border-radius" "0.5rem"
+        , Html.Attributes.style "font-weight" "bold"
+        ]
+        { onPress = Just onPress
+        , label = label
+        }
+
+
+stylesheet : Html msg
+stylesheet =
+    """
+html,body {
+    height: 100%;
+    margin:0;
+    padding:0;
+}
+button:hover {
+    filter: brightness(1.5);
+}
+button:focus {
+    filter: brightness(2);
+}
+    """
+        |> Html.text
+        |> List.singleton
+        |> Html.node "style" []

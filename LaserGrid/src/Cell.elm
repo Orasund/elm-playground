@@ -1,5 +1,6 @@
 module Cell exposing (..)
 
+import Color
 import Dict exposing (Dict)
 import Dir exposing (Dir)
 import RelativePos exposing (RelativePos)
@@ -47,57 +48,57 @@ type alias Cell2 =
     Cell ConnectionSort2
 
 
-cell1ToColor : Maybe Bool -> Cell { connection | sendsTo : Dict a b } -> String
-cell1ToColor isActive cell1 =
+cell1ToColor : { laserColor : String } -> Maybe Bool -> Cell { connection | sendsTo : Dict a b } -> String
+cell1ToColor args isActive cell1 =
     case cell1 of
         ConnectionCell sort ->
             case isActive of
                 Just True ->
-                    "red"
+                    args.laserColor
 
                 Just False ->
-                    "gray"
+                    Color.inactiveLaser
 
                 Nothing ->
                     case sort.sendsTo |> Dict.toList of
                         [] ->
-                            "gray"
+                            Color.inactiveLaser
 
                         _ ->
-                            "red"
+                            args.laserColor
 
         Wall ->
-            "black"
+            Color.wallColor
 
         Origin ->
             case isActive of
                 Just True ->
-                    "red"
+                    args.laserColor
 
                 Just False ->
-                    "gray"
+                    Color.inactiveLaser
 
                 Nothing ->
-                    "red"
+                    args.laserColor
 
         Target Nothing ->
             case isActive of
                 Just True ->
-                    "red"
+                    args.laserColor
 
                 Just False ->
-                    "gray"
+                    Color.inactiveLaser
 
                 Nothing ->
-                    "gray"
+                    Color.inactiveLaser
 
         Target _ ->
             case isActive of
                 Just True ->
-                    "red"
+                    args.laserColor
 
                 Just False ->
-                    "gray"
+                    Color.inactiveLaser
 
                 Nothing ->
-                    "red"
+                    args.laserColor
