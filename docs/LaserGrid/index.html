@@ -5258,12 +5258,10 @@ var $elm$core$Task$perform = F2(
 var $elm$browser$Browser$element = _Browser_element;
 var $elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
 var $elm$core$Dict$empty = $elm$core$Dict$RBEmpty_elm_builtin;
-var $author$project$Game$Level1 = function (a) {
-	return {$: 'Level1', a: a};
-};
-var $author$project$Game$Level2 = function (a) {
-	return {$: 'Level2', a: a};
-};
+var $author$project$Game$fromStage = F2(
+	function (args, stage) {
+		return {level: args.level, stage: stage};
+	});
 var $author$project$Cell$Origin = {$: 'Origin'};
 var $author$project$Cell$Target = function (a) {
 	return {$: 'Target', a: a};
@@ -5512,44 +5510,69 @@ var $author$project$Stage$parse = function (rows) {
 						}),
 					rows))));
 };
-var $author$project$Game$Generate$fromId = function (stageId) {
-	switch (stageId) {
-		case 6:
-			return $elm$core$Maybe$Just(
-				$author$project$Game$Level2(
-					$author$project$Stage$parse(
-						_List_fromArray(
-							['⬛⬛⬛⬛🔘⬛', '🟥⬜⬜⬜⬜⬛', '⬛⬜⬜⬜⬜⬛', '⬛⬜⬜⬜⬜⬛', '⬛⬜⬜⬜⬜🟥', '⬛🔘⬛⬛⬛⬛']))));
-		case 5:
-			return $elm$core$Maybe$Just(
-				$author$project$Game$Level2(
-					$author$project$Stage$parse(
-						_List_fromArray(
-							['⬛🟥⬛⬛🔘⬛', '⬛⬜⬜⬜⬜⬛', '⬛⬜⬜⬜⬜⬛', '⬛⬜⬜⬜⬜⬛', '⬛⬜⬜⬜⬜🔘', '⬛🟥⬛⬛⬛⬛']))));
-		case 4:
-			return $elm$core$Maybe$Just(
-				$author$project$Game$Level2(
-					$author$project$Stage$parse(
-						_List_fromArray(
-							['⬛🟥⬛⬛🟥⬛', '⬛⬜⬜⬜⬜⬛', '⬛⬜⬜⬜⬜⬛', '⬛⬜⬜⬜⬜⬛', '🔘⬜⬜⬜⬜⬛', '⬛⬛⬛⬛🔘⬛']))));
-		case 3:
-			return $elm$core$Maybe$Just(
-				$author$project$Game$Level1(
-					$author$project$Stage$parse(
-						_List_fromArray(
-							['⬛⬛⬛⬛🟥⬛', '🟥⬜⬜⬜⬜🔘', '⬛⬜⬜⬜⬜⬛', '⬛⬜⬜⬜⬜⬛', '🔘⬜⬜⬜⬜⬛', '⬛🔘⬛⬛🟥⬛']))));
-		case 2:
-			return $elm$core$Maybe$Just(
-				$author$project$Game$Level1(
-					$author$project$Stage$parse(
-						_List_fromArray(
-							['⬛🟥⬛⬛🟥⬛', '⬛⬜⬜⬜⬜🔘', '⬛⬜⬜⬜⬜⬛', '⬛⬜⬜⬜⬜⬛', '🟥⬜⬜⬜⬜🔘', '⬛🔘⬛⬛⬛⬛']))));
+var $author$project$Game$Generate$new = function (args) {
+	var _v0 = args.level;
+	switch (_v0) {
 		case 1:
-			return $elm$core$Maybe$Just(
-				$author$project$Game$Level1(
-					$author$project$Stage$parse(
-						_List_fromArray(
-							['⬛🔘⬛⬛🟥⬛', '🟥⬜⬜⬜⬜🔘', '⬛⬜⬜⬜⬜⬛', '⬛⬜⬜⬜⬜⬛', '🔘⬜⬜⬜⬜⬛', '⬛🟥⬛⬛⬛⬛']))));
+			var _v1 = args.stage;
+			switch (_v1) {
+				case 3:
+					return $elm$core$Maybe$Just(
+						A2(
+							$author$project$Game$fromStage,
+							{level: args.level},
+							$author$project$Stage$parse(
+								_List_fromArray(
+									['⬛⬛⬛⬛🟥⬛', '🟥⬜⬜⬜⬜🔘', '⬛⬜⬜⬜⬜⬛', '⬛⬜⬜⬜⬜⬛', '🔘⬜⬜⬜⬜⬛', '⬛🔘⬛⬛🟥⬛']))));
+				case 2:
+					return $elm$core$Maybe$Just(
+						A2(
+							$author$project$Game$fromStage,
+							{level: args.level},
+							$author$project$Stage$parse(
+								_List_fromArray(
+									['⬛🟥⬛⬛🟥⬛', '⬛⬜⬜⬜⬜🔘', '⬛⬜⬜⬜⬜⬛', '⬛⬜⬜⬜⬜⬛', '🟥⬜⬜⬜⬜🔘', '⬛🔘⬛⬛⬛⬛']))));
+				case 1:
+					return $elm$core$Maybe$Just(
+						A2(
+							$author$project$Game$fromStage,
+							{level: args.level},
+							$author$project$Stage$parse(
+								_List_fromArray(
+									['⬛🔘⬛⬛🟥⬛', '🟥⬜⬜⬜⬜🔘', '⬛⬜⬜⬜⬜⬛', '⬛⬜⬜⬜⬜⬛', '🔘⬜⬜⬜⬜⬛', '⬛🟥⬛⬛⬛⬛']))));
+				default:
+					return $elm$core$Maybe$Nothing;
+			}
+		case 2:
+			var _v2 = args.stage;
+			switch (_v2) {
+				case 3:
+					return $elm$core$Maybe$Just(
+						A2(
+							$author$project$Game$fromStage,
+							{level: 2},
+							$author$project$Stage$parse(
+								_List_fromArray(
+									['⬛⬛⬛⬛🔘⬛', '🟥⬜⬜⬜⬜⬛', '⬛⬜⬜⬜⬜⬛', '⬛⬜⬜⬜⬜⬛', '⬛⬜⬜⬜⬜🟥', '⬛🔘⬛⬛⬛⬛']))));
+				case 2:
+					return $elm$core$Maybe$Just(
+						A2(
+							$author$project$Game$fromStage,
+							{level: 2},
+							$author$project$Stage$parse(
+								_List_fromArray(
+									['⬛🟥⬛⬛🔘⬛', '⬛⬜⬜⬜⬜⬛', '⬛⬜⬜⬜⬜⬛', '⬛⬜⬜⬜⬜⬛', '⬛⬜⬜⬜⬜🔘', '⬛🟥⬛⬛⬛⬛']))));
+				case 1:
+					return $elm$core$Maybe$Just(
+						A2(
+							$author$project$Game$fromStage,
+							{level: 2},
+							$author$project$Stage$parse(
+								_List_fromArray(
+									['⬛🟥⬛⬛🟥⬛', '⬛⬜⬜⬜⬜⬛', '⬛⬜⬜⬜⬜⬛', '⬛⬜⬜⬜⬜⬛', '🔘⬜⬜⬜⬜⬛', '⬛⬛⬛⬛🔘⬛']))));
+				default:
+					return $elm$core$Maybe$Nothing;
+			}
 		default:
 			return $elm$core$Maybe$Nothing;
 	}
@@ -5557,13 +5580,16 @@ var $author$project$Game$Generate$fromId = function (stageId) {
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
 var $author$project$Main$init = function (_v0) {
+	var stage = 1;
 	var level = 1;
 	return _Utils_Tuple2(
 		{
-			game: $author$project$Game$Generate$fromId(level),
+			game: $author$project$Game$Generate$new(
+				{level: level, stage: stage}),
 			level: level,
 			levels: $elm$core$Dict$empty,
 			selected: $elm$core$Maybe$Nothing,
+			stage: 1,
 			updating: false
 		},
 		$elm$core$Platform$Cmd$none);
@@ -5861,14 +5887,21 @@ var $author$project$Main$subscriptions = function (model) {
 var $author$project$Cell$ConnectionCell = function (a) {
 	return {$: 'ConnectionCell', a: a};
 };
+var $elm$core$Basics$negate = function (n) {
+	return -n;
+};
+var $author$project$Cell$connectionLevel1 = function (sendsTo) {
+	return {moduleId: -1, rotation: 0, sendsTo: sendsTo};
+};
 var $elm$core$Basics$ge = _Utils_ge;
-var $author$project$Main$generateLevel = F2(
-	function (level, model) {
+var $author$project$Main$generateStage = F2(
+	function (args, model) {
 		return _Utils_update(
 			model,
 			{
-				game: $author$project$Game$Generate$fromId(level),
-				level: level
+				game: $author$project$Game$Generate$new(args),
+				level: args.level,
+				stage: args.stage
 			});
 	});
 var $author$project$RelativePos$unsafeToTuple = function (_v0) {
@@ -5878,8 +5911,9 @@ var $author$project$RelativePos$unsafeToTuple = function (_v0) {
 	return _Utils_Tuple2(x, y);
 };
 var $author$project$Game$fromSave = function (savedLevel) {
-	return $author$project$Game$Level1(
-		$author$project$Stage$fromDict(
+	return {
+		level: savedLevel.level,
+		stage: $author$project$Stage$fromDict(
 			$elm$core$Dict$fromList(
 				A2(
 					$elm$core$List$map,
@@ -5890,7 +5924,8 @@ var $author$project$Game$fromSave = function (savedLevel) {
 							$author$project$RelativePos$unsafeToTuple(k),
 							v);
 					},
-					$elm$core$Dict$toList(savedLevel.grid)))));
+					$elm$core$Dict$toList(savedLevel.grid))))
+	};
 };
 var $elm$core$Maybe$map = F2(
 	function (f, maybe) {
@@ -5911,23 +5946,36 @@ var $elm$core$Maybe$withDefault = F2(
 			return _default;
 		}
 	});
-var $author$project$Main$loadLevel = F2(
-	function (level, model) {
-		var grid = A2(
-			$elm$core$Maybe$withDefault,
-			$author$project$Game$Generate$fromId(level),
+var $author$project$Main$loadStage = F2(
+	function (args, model) {
+		return A2(
+			$elm$core$Maybe$map,
+			function (grid) {
+				return _Utils_update(
+					model,
+					{
+						game: $elm$core$Maybe$Just(grid),
+						level: args.level,
+						stage: args.stage
+					});
+			},
 			A2(
-				$elm$core$Maybe$map,
-				$elm$core$Maybe$Just,
+				$elm$core$Maybe$withDefault,
+				$author$project$Game$Generate$new(args),
 				A2(
 					$elm$core$Maybe$map,
-					$author$project$Game$fromSave,
-					A2($elm$core$Dict$get, level, model.levels))));
-		return _Utils_update(
-			model,
-			{game: grid, level: level});
+					$elm$core$Maybe$Just,
+					A2(
+						$elm$core$Maybe$map,
+						$author$project$Game$fromSave,
+						A2(
+							$elm$core$Dict$get,
+							args.stage,
+							A2(
+								$elm$core$Maybe$withDefault,
+								$elm$core$Dict$empty,
+								A2($elm$core$Dict$get, args.level, model.levels)))))));
 	});
-var $elm$core$Debug$log = _Debug_log;
 var $elm$core$Tuple$mapFirst = F2(
 	function (func, _v0) {
 		var x = _v0.a;
@@ -6383,9 +6431,6 @@ var $elm$core$Array$fromList = function (list) {
 		return A3($elm$core$Array$fromListHelp, list, _List_Nil, 0);
 	}
 };
-var $elm$core$Basics$negate = function (n) {
-	return -n;
-};
 var $author$project$Dir$positions = $elm$core$Array$fromList(
 	_List_fromArray(
 		[
@@ -6410,16 +6455,27 @@ var $author$project$Dir$addTo = F2(
 var $author$project$RelativePos$fromTuple = function (pos) {
 	return _Utils_Tuple2(pos, 'RelativePos');
 };
+var $author$project$Config$maxPosLevel1 = 1;
+var $author$project$Dir$new = function (i) {
+	return _Utils_Tuple2(i, 'Dir');
+};
+var $elm$core$Debug$todo = _Debug_todo;
+var $author$project$RelativePos$toDir = F2(
+	function (args, _v0) {
+		var _v1 = _v0.a;
+		var x = _v1.a;
+		var y = _v1.b;
+		var minPos = -1;
+		var maxPos = args.maxPos;
+		return _Utils_eq(x, maxPos) ? $author$project$Dir$new(0) : (_Utils_eq(y, maxPos) ? $author$project$Dir$new(1) : (_Utils_eq(x, minPos) ? $author$project$Dir$new(2) : (_Utils_eq(y, minPos) ? $author$project$Dir$new(3) : _Debug_todo(
+			'RelativePos',
+			{
+				start: {line: 94, column: 9},
+				end: {line: 94, column: 19}
+			})(
+			'trying to convert ' + ($elm$core$String$fromInt(x) + (',' + $elm$core$String$fromInt(y)))))));
+	});
 var $author$project$Game$toSave = function (game) {
-	var targets = function () {
-		if (game.$ === 'Level1') {
-			var stage = game.a;
-			return stage.targets;
-		} else {
-			var stage = game.a;
-			return stage.targets;
-		}
-	}();
 	var buildPath = function (grid) {
 		return $elm$core$Maybe$andThen(
 			function (_v4) {
@@ -6429,23 +6485,28 @@ var $author$project$Game$toSave = function (game) {
 				return A2(
 					$elm$core$Maybe$andThen,
 					function (cell) {
-						var _v5 = A2($elm$core$Debug$log, 'cell', cell);
-						switch (_v5.$) {
+						switch (cell.$) {
 							case 'ConnectionCell':
-								var connection = _v5.a;
+								var connection = cell.a;
 								return A2(
 									$elm$core$Maybe$map,
 									function (_v7) {
 										var from = _v7.from;
 										return {
 											path: A2($elm$core$List$cons, pos, path),
-											pos: A2($author$project$Dir$addTo, pos, from),
+											pos: A2(
+												$author$project$Dir$addTo,
+												pos,
+												A2(
+													$author$project$RelativePos$toDir,
+													{maxPos: $author$project$Config$maxPosLevel1},
+													from)),
 											to: pos
 										};
 									},
 									A2(
 										$elm$core$Dict$get,
-										A2($elm$core$Debug$log, 'to', to),
+										to,
 										$elm$core$Dict$fromList(
 											A2(
 												$elm$core$List$map,
@@ -6453,7 +6514,13 @@ var $author$project$Game$toSave = function (game) {
 													var k = _v6.a;
 													var v = _v6.b;
 													return _Utils_Tuple2(
-														A2($author$project$Dir$addTo, pos, k),
+														A2(
+															$author$project$Dir$addTo,
+															pos,
+															A2(
+																$author$project$RelativePos$toDir,
+																{maxPos: $author$project$Config$maxPosLevel1},
+																k)),
 														v);
 												},
 												$elm$core$Dict$toList(connection.sendsTo)))));
@@ -6465,7 +6532,7 @@ var $author$project$Game$toSave = function (game) {
 										to: pos
 									});
 							case 'Target':
-								var maybe = _v5.a;
+								var maybe = cell.a;
 								return A2(
 									$elm$core$Maybe$map,
 									function (from) {
@@ -6483,79 +6550,73 @@ var $author$project$Game$toSave = function (game) {
 					A2($elm$core$Dict$get, pos, grid));
 			});
 	};
-	if (game.$ === 'Level1') {
-		var stage = game.a;
-		return $elm$core$Maybe$Just(
-			function (dict) {
-				return {
-					connections: A2($elm$core$Debug$log, 'connections', dict),
-					grid: $elm$core$Dict$fromList(
-						A2(
-							$elm$core$List$map,
-							function (_v3) {
-								var k = _v3.a;
-								var v = _v3.b;
-								return _Utils_Tuple2(
-									$author$project$RelativePos$fromTuple(k),
-									v);
-							},
-							$elm$core$Dict$toList(stage.grid)))
-				};
-			}(
-				$elm$core$Dict$fromList(
-					$elm$core$List$concat(
-						A2(
-							$elm$core$List$filterMap,
-							function (target) {
-								return A2(
-									$elm$core$Maybe$map,
-									function (_v2) {
-										var pos = _v2.pos;
-										var path = _v2.path;
-										return _List_fromArray(
-											[
-												_Utils_Tuple2(
-												$author$project$RelativePos$fromTuple(target),
-												{
-													from: $author$project$RelativePos$fromTuple(pos),
-													path: A2($elm$core$List$map, $author$project$RelativePos$fromTuple, path)
-												}),
-												_Utils_Tuple2(
-												$author$project$RelativePos$fromTuple(pos),
-												{
-													from: $author$project$RelativePos$fromTuple(target),
-													path: A2($elm$core$List$map, $author$project$RelativePos$fromTuple, path)
-												})
-											]);
-									},
-									A3(
-										$elm$core$List$foldl,
-										function (_v1) {
-											return buildPath(stage.grid);
+	var _v0 = game.level;
+	switch (_v0) {
+		case 1:
+			return $elm$core$Maybe$Just(
+				function (dict) {
+					return {
+						connections: dict,
+						grid: $elm$core$Dict$fromList(
+							A2(
+								$elm$core$List$map,
+								function (_v3) {
+									var k = _v3.a;
+									var v = _v3.b;
+									return _Utils_Tuple2(
+										$author$project$RelativePos$fromTuple(k),
+										v);
+								},
+								$elm$core$Dict$toList(game.stage.grid))),
+						level: game.level
+					};
+				}(
+					$elm$core$Dict$fromList(
+						$elm$core$List$concat(
+							A2(
+								$elm$core$List$filterMap,
+								function (target) {
+									return A2(
+										$elm$core$Maybe$map,
+										function (_v2) {
+											var pos = _v2.pos;
+											var path = _v2.path;
+											return _List_fromArray(
+												[
+													_Utils_Tuple2(
+													$author$project$RelativePos$fromTuple(target),
+													{
+														from: $author$project$RelativePos$fromTuple(pos),
+														path: A2($elm$core$List$map, $author$project$RelativePos$fromTuple, path)
+													}),
+													_Utils_Tuple2(
+													$author$project$RelativePos$fromTuple(pos),
+													{
+														from: $author$project$RelativePos$fromTuple(target),
+														path: A2($elm$core$List$map, $author$project$RelativePos$fromTuple, path)
+													})
+												]);
 										},
-										$elm$core$Maybe$Just(
-											{path: _List_Nil, pos: target, to: target}),
-										A2($elm$core$List$range, 0, 16)));
-							},
-							targets)))));
-	} else {
-		return $elm$core$Maybe$Nothing;
+										A3(
+											$elm$core$List$foldl,
+											function (_v1) {
+												return buildPath(game.stage.grid);
+											},
+											$elm$core$Maybe$Just(
+												{path: _List_Nil, pos: target, to: target}),
+											A2($elm$core$List$range, 0, 16)));
+								},
+								game.stage.targets)))));
+		case 2:
+			return $elm$core$Maybe$Nothing;
+		default:
+			return _Debug_todo(
+				'Game',
+				{
+					start: {line: 157, column: 13},
+					end: {line: 157, column: 23}
+				})('Implement recursive saving');
 	}
-};
-var $author$project$Main$saveLevel = function (model) {
-	return _Utils_update(
-		model,
-		{
-			levels: A2(
-				$elm$core$Maybe$withDefault,
-				model.levels,
-				A2(
-					$elm$core$Maybe$map,
-					function (savedGame) {
-						return A3($elm$core$Dict$insert, model.level, savedGame, model.levels);
-					},
-					A2($elm$core$Maybe$andThen, $author$project$Game$toSave, model.game)))
-		});
 };
 var $elm$core$Dict$update = F3(
 	function (targetKey, alter, dictionary) {
@@ -6567,6 +6628,67 @@ var $elm$core$Dict$update = F3(
 		} else {
 			return A2($elm$core$Dict$remove, targetKey, dictionary);
 		}
+	});
+var $author$project$Main$saveLevel = function (model) {
+	return _Utils_update(
+		model,
+		{
+			levels: A2(
+				$elm$core$Maybe$withDefault,
+				model.levels,
+				A2(
+					$elm$core$Maybe$map,
+					function (savedGame) {
+						return A3(
+							$elm$core$Dict$update,
+							model.level,
+							function (maybe) {
+								return $elm$core$Maybe$Just(
+									A3(
+										$elm$core$Dict$insert,
+										model.stage,
+										savedGame,
+										A2($elm$core$Maybe$withDefault, $elm$core$Dict$empty, maybe)));
+							},
+							model.levels);
+					},
+					A2($elm$core$Maybe$andThen, $author$project$Game$toSave, model.game)))
+		});
+};
+var $elm$core$List$concatMap = F2(
+	function (f, list) {
+		return $elm$core$List$concat(
+			A2($elm$core$List$map, f, list));
+	});
+var $author$project$RelativePos$list = function (args) {
+	return A2(
+		$elm$core$List$map,
+		$author$project$RelativePos$fromTuple,
+		A2(
+			$elm$core$List$concatMap,
+			function (i) {
+				return _List_fromArray(
+					[
+						_Utils_Tuple2(-1, i),
+						_Utils_Tuple2(args.maxPos, i),
+						_Utils_Tuple2(i, -1),
+						_Utils_Tuple2(i, args.maxPos)
+					]);
+			},
+			A2($elm$core$List$range, 0, 3)));
+};
+var $author$project$RelativePos$reverse = F2(
+	function (args, _v0) {
+		var _v1 = _v0.a;
+		var x = _v1.a;
+		var y = _v1.b;
+		var rev = function (i) {
+			return _Utils_eq(i, -1) ? args.maxPos : (_Utils_eq(i, args.maxPos) ? (-1) : i);
+		};
+		return $author$project$RelativePos$fromTuple(
+			_Utils_Tuple2(
+				rev(x),
+				rev(y)));
 	});
 var $elm$core$List$any = F2(
 	function (isOkay, list) {
@@ -6589,30 +6711,13 @@ var $elm$core$List$any = F2(
 			}
 		}
 	});
-var $author$project$Game$connection1SendsTo = F2(
+var $author$project$Game$connectionSendsTo = F2(
 	function (to, connection) {
 		return A2(
 			$elm$core$List$any,
-			function (dir) {
-				return _Utils_eq(dir, to);
-			},
+			$elm$core$Basics$eq(to),
 			$elm$core$Dict$keys(connection.sendsTo));
 	});
-var $author$project$Dir$new = function (i) {
-	return _Utils_Tuple2(i, 'Dir');
-};
-var $author$project$Dir$list = A2(
-	$elm$core$List$map,
-	$author$project$Dir$new,
-	A2($elm$core$List$range, 0, 3));
-var $elm$core$Basics$modBy = _Basics_modBy;
-var $author$project$Dir$rotate = F2(
-	function (amount, _v0) {
-		var i = _v0.a;
-		return $author$project$Dir$new(
-			A2($elm$core$Basics$modBy, 4, i + amount));
-	});
-var $author$project$Dir$reverse = $author$project$Dir$rotate(2);
 var $author$project$Game$sendsEnergy = F3(
 	function (args, stage, pos) {
 		var _v0 = A2($elm$core$Dict$get, pos, stage.grid);
@@ -6622,7 +6727,7 @@ var $author$project$Game$sendsEnergy = F3(
 				switch (_v0.a.$) {
 					case 'ConnectionCell':
 						var a = _v0.a.a;
-						return A2(args.connectionSends, args.to, a);
+						return A2($author$project$Game$connectionSendsTo, args.to, a);
 					case 'Origin':
 						var _v1 = _v0.a;
 						return true;
@@ -6653,11 +6758,19 @@ var $author$project$Game$computeActiveConnectionsLv1 = F3(
 						return A3(
 							$author$project$Game$sendsEnergy,
 							{
-								connectionSends: $author$project$Game$connection1SendsTo,
-								to: $author$project$Dir$reverse(dir1)
+								to: A2(
+									$author$project$RelativePos$reverse,
+									{maxPos: $author$project$Config$maxPosLevel1},
+									dir1)
 							},
 							stage,
-							A2($author$project$Dir$addTo, pos, dir1)) ? _List_fromArray(
+							A2(
+								$author$project$Dir$addTo,
+								pos,
+								A2(
+									$author$project$RelativePos$toDir,
+									{maxPos: $author$project$Config$maxPosLevel1},
+									dir1))) ? _List_fromArray(
 							[
 								_Utils_Tuple2(
 								dir2,
@@ -6665,11 +6778,19 @@ var $author$project$Game$computeActiveConnectionsLv1 = F3(
 							]) : (A3(
 							$author$project$Game$sendsEnergy,
 							{
-								connectionSends: $author$project$Game$connection1SendsTo,
-								to: $author$project$Dir$reverse(dir2)
+								to: A2(
+									$author$project$RelativePos$reverse,
+									{maxPos: $author$project$Config$maxPosLevel1},
+									dir2)
 							},
 							stage,
-							A2($author$project$Dir$addTo, pos, dir2)) ? _List_fromArray(
+							A2(
+								$author$project$Dir$addTo,
+								pos,
+								A2(
+									$author$project$RelativePos$toDir,
+									{maxPos: $author$project$Config$maxPosLevel1},
+									dir2))) ? _List_fromArray(
 							[
 								_Utils_Tuple2(
 								dir1,
@@ -6682,40 +6803,39 @@ var $author$project$Game$computeActiveConnectionsLv1 = F3(
 								return A3(
 									$author$project$Game$sendsEnergy,
 									{
-										connectionSends: $author$project$Game$connection1SendsTo,
-										to: $author$project$Dir$reverse(fromDir)
+										to: A2(
+											$author$project$RelativePos$reverse,
+											{maxPos: $author$project$Config$maxPosLevel1},
+											fromDir)
 									},
 									stage,
-									A2($author$project$Dir$addTo, pos, fromDir)) ? $elm$core$Maybe$Just(
+									A2(
+										$author$project$Dir$addTo,
+										pos,
+										A2(
+											$author$project$RelativePos$toDir,
+											{maxPos: $author$project$Config$maxPosLevel1},
+											fromDir))) ? $elm$core$Maybe$Just(
 									_Utils_Tuple2(
-										$author$project$Dir$reverse(fromDir),
+										A2(
+											$author$project$RelativePos$reverse,
+											{maxPos: $author$project$Config$maxPosLevel1},
+											fromDir),
 										{from: fromDir})) : $elm$core$Maybe$Nothing;
 							},
-							$author$project$Dir$list);
+							$author$project$RelativePos$list(
+								{maxPos: $author$project$Config$maxPosLevel1}));
 					}
 				}()));
 	});
-var $author$project$Game$connection2SendsTo = F2(
-	function (to, connection) {
-		return A2(
-			$elm$core$List$any,
-			function (relPos) {
-				return _Utils_eq(to, relPos);
-			},
-			$elm$core$Dict$keys(connection.sendsTo));
+var $author$project$Config$maxPosLevel2 = 4;
+var $elm$core$Basics$modBy = _Basics_modBy;
+var $author$project$Dir$rotate = F2(
+	function (amount, _v0) {
+		var i = _v0.a;
+		return $author$project$Dir$new(
+			A2($elm$core$Basics$modBy, 4, i + amount));
 	});
-var $author$project$RelativePos$reverse = function (_v0) {
-	var _v1 = _v0.a;
-	var x = _v1.a;
-	var y = _v1.b;
-	var rev = function (i) {
-		return _Utils_eq(i, -1) ? 4 : ((i === 4) ? (-1) : i);
-	};
-	return $author$project$RelativePos$fromTuple(
-		_Utils_Tuple2(
-			rev(x),
-			rev(y)));
-};
 var $elm$core$Tuple$mapBoth = F3(
 	function (funcA, funcB, _v0) {
 		var x = _v0.a;
@@ -6724,100 +6844,61 @@ var $elm$core$Tuple$mapBoth = F3(
 			funcA(x),
 			funcB(y));
 	});
-var $author$project$RelativePos$rotationMatrix = $elm$core$Dict$fromList(
-	A2(
-		$elm$core$List$map,
-		A2($elm$core$Tuple$mapBoth, $author$project$RelativePos$fromTuple, $author$project$RelativePos$fromTuple),
-		_List_fromArray(
-			[
-				_Utils_Tuple2(
-				_Utils_Tuple2(-1, 0),
-				_Utils_Tuple2(3, -1)),
-				_Utils_Tuple2(
-				_Utils_Tuple2(-1, 1),
-				_Utils_Tuple2(2, -1)),
-				_Utils_Tuple2(
-				_Utils_Tuple2(-1, 2),
-				_Utils_Tuple2(1, -1)),
-				_Utils_Tuple2(
-				_Utils_Tuple2(-1, 3),
-				_Utils_Tuple2(0, -1)),
-				_Utils_Tuple2(
-				_Utils_Tuple2(3, -1),
-				_Utils_Tuple2(4, 3)),
-				_Utils_Tuple2(
-				_Utils_Tuple2(2, -1),
-				_Utils_Tuple2(4, 2)),
-				_Utils_Tuple2(
-				_Utils_Tuple2(1, -1),
-				_Utils_Tuple2(4, 1)),
-				_Utils_Tuple2(
-				_Utils_Tuple2(0, -1),
-				_Utils_Tuple2(4, 0)),
-				_Utils_Tuple2(
-				_Utils_Tuple2(4, 3),
-				_Utils_Tuple2(0, 4)),
-				_Utils_Tuple2(
-				_Utils_Tuple2(4, 2),
-				_Utils_Tuple2(1, 4)),
-				_Utils_Tuple2(
-				_Utils_Tuple2(4, 1),
-				_Utils_Tuple2(2, 4)),
-				_Utils_Tuple2(
-				_Utils_Tuple2(4, 0),
-				_Utils_Tuple2(3, 4)),
-				_Utils_Tuple2(
-				_Utils_Tuple2(0, 4),
-				_Utils_Tuple2(-1, 0)),
-				_Utils_Tuple2(
-				_Utils_Tuple2(1, 4),
-				_Utils_Tuple2(-1, 1)),
-				_Utils_Tuple2(
-				_Utils_Tuple2(2, 4),
-				_Utils_Tuple2(-1, 2)),
-				_Utils_Tuple2(
-				_Utils_Tuple2(3, 4),
-				_Utils_Tuple2(-1, 3))
-			])));
-var $elm$core$Debug$todo = _Debug_todo;
-var $author$project$RelativePos$rotateClockwise = function (relPos) {
-	var _v0 = A2($elm$core$Dict$get, relPos, $author$project$RelativePos$rotationMatrix);
-	if (_v0.$ === 'Just') {
-		var pos = _v0.a;
-		return pos;
-	} else {
-		return _Debug_todo(
-			'RelativePos',
-			{
-				start: {line: 63, column: 13},
-				end: {line: 63, column: 23}
-			})('tried rotating a center position');
-	}
+var $author$project$RelativePos$rotationMatrix = function (args) {
+	return $elm$core$Dict$fromList(
+		A2(
+			$elm$core$List$map,
+			A2($elm$core$Tuple$mapBoth, $author$project$RelativePos$fromTuple, $author$project$RelativePos$fromTuple),
+			$elm$core$List$concat(
+				A2(
+					$elm$core$List$map,
+					function (i) {
+						return _List_fromArray(
+							[
+								_Utils_Tuple2(
+								_Utils_Tuple2(-1, i),
+								_Utils_Tuple2((args.maxPos - 1) - i, -1)),
+								_Utils_Tuple2(
+								_Utils_Tuple2(i, -1),
+								_Utils_Tuple2(args.maxPos, i)),
+								_Utils_Tuple2(
+								_Utils_Tuple2(args.maxPos, (args.maxPos - 1) - i),
+								_Utils_Tuple2(i, args.maxPos)),
+								_Utils_Tuple2(
+								_Utils_Tuple2(i, args.maxPos),
+								_Utils_Tuple2(-1, i))
+							]);
+					},
+					A2($elm$core$List$range, 0, args.maxPos - 1)))));
 };
-var $author$project$RelativePos$rotate = F2(
-	function (amount, a) {
+var $author$project$RelativePos$rotateClockwise = F2(
+	function (args, relPos) {
+		var _v0 = A2(
+			$elm$core$Dict$get,
+			relPos,
+			$author$project$RelativePos$rotationMatrix(args));
+		if (_v0.$ === 'Just') {
+			var pos = _v0.a;
+			return pos;
+		} else {
+			return _Debug_todo(
+				'RelativePos',
+				{
+					start: {line: 52, column: 13},
+					end: {line: 52, column: 23}
+				})('tried rotating a center position');
+		}
+	});
+var $author$project$RelativePos$rotate = F3(
+	function (args, amount, a) {
 		return A3(
 			$elm$core$List$foldl,
 			function (_v0) {
-				return $author$project$RelativePos$rotateClockwise;
+				return $author$project$RelativePos$rotateClockwise(args);
 			},
 			a,
 			A2($elm$core$List$range, 0, amount - 1));
 	});
-var $author$project$RelativePos$toDir = function (_v0) {
-	var _v1 = _v0.a;
-	var x = _v1.a;
-	var y = _v1.b;
-	var minPos = -1;
-	var maxPos = 4;
-	return _Utils_eq(x, maxPos) ? $author$project$Dir$new(0) : (_Utils_eq(y, maxPos) ? $author$project$Dir$new(1) : (_Utils_eq(x, minPos) ? $author$project$Dir$new(2) : (_Utils_eq(y, minPos) ? $author$project$Dir$new(3) : _Debug_todo(
-		'RelativePos',
-		{
-			start: {line: 105, column: 9},
-			end: {line: 105, column: 19}
-		})(
-		'trying to convert' + ($elm$core$String$fromInt(x) + (',' + $elm$core$String$fromInt(y)))))));
-};
 var $author$project$Game$computeActiveConnectionsLv2 = F4(
 	function (modules, connection, pos, stage) {
 		return function (sendsTo) {
@@ -6834,11 +6915,14 @@ var $author$project$Game$computeActiveConnectionsLv2 = F4(
 						return A3(
 							$author$project$Game$sendsEnergy,
 							{
-								connectionSends: $author$project$Game$connection2SendsTo,
-								to: A2(
+								to: A3(
 									$author$project$RelativePos$rotate,
+									{maxPos: $author$project$Config$maxPosLevel2},
 									connection.rotation,
-									$author$project$RelativePos$reverse(from))
+									A2(
+										$author$project$RelativePos$reverse,
+										{maxPos: $author$project$Config$maxPosLevel2},
+										from))
 							},
 							stage,
 							A2(
@@ -6847,11 +6931,22 @@ var $author$project$Game$computeActiveConnectionsLv2 = F4(
 								A2(
 									$author$project$Dir$rotate,
 									connection.rotation,
-									$author$project$RelativePos$toDir(from)))) ? $elm$core$Maybe$Just(
+									A2(
+										$author$project$RelativePos$toDir,
+										{maxPos: $author$project$Config$maxPosLevel2},
+										from)))) ? $elm$core$Maybe$Just(
 							_Utils_Tuple2(
-								A2($author$project$RelativePos$rotate, connection.rotation, to),
+								A3(
+									$author$project$RelativePos$rotate,
+									{maxPos: $author$project$Config$maxPosLevel2},
+									connection.rotation,
+									to),
 								{
-									from: A2($author$project$RelativePos$rotate, connection.rotation, from)
+									from: A3(
+										$author$project$RelativePos$rotate,
+										{maxPos: $author$project$Config$maxPosLevel2},
+										connection.rotation,
+										from)
 								})) : $elm$core$Maybe$Nothing;
 					},
 					$elm$core$Dict$toList(
@@ -6885,26 +6980,10 @@ var $elm$core$List$head = function (list) {
 		return $elm$core$Maybe$Nothing;
 	}
 };
-var $elm$core$List$concatMap = F2(
-	function (f, list) {
-		return $elm$core$List$concat(
-			A2($elm$core$List$map, f, list));
-	});
-var $author$project$RelativePos$list = A2(
+var $author$project$Dir$list = A2(
 	$elm$core$List$map,
-	$author$project$RelativePos$fromTuple,
-	A2(
-		$elm$core$List$concatMap,
-		function (i) {
-			return _List_fromArray(
-				[
-					_Utils_Tuple2(-1, i),
-					_Utils_Tuple2(4, i),
-					_Utils_Tuple2(i, -1),
-					_Utils_Tuple2(i, 4)
-				]);
-		},
-		A2($elm$core$List$range, 0, 3)));
+	$author$project$Dir$new,
+	A2($elm$core$List$range, 0, 3));
 var $elm$core$Dict$map = F2(
 	function (func, dict) {
 		if (dict.$ === 'RBEmpty_elm_builtin') {
@@ -6926,7 +7005,7 @@ var $elm$core$Dict$map = F2(
 	});
 var $elm$core$Basics$neq = _Utils_notEqual;
 var $author$project$Game$update = F2(
-	function (modules, grid) {
+	function (modules, game) {
 		var tick = F2(
 			function (args, stage) {
 				return function (d) {
@@ -6969,7 +7048,7 @@ var $author$project$Game$update = F2(
 															function (dir) {
 																return A3(
 																	$author$project$Game$sendsEnergy,
-																	{connectionSends: args.connectionSendsTo, to: dir.to},
+																	{to: dir.to},
 																	stage,
 																	dir.pos);
 															},
@@ -6980,14 +7059,20 @@ var $author$project$Game$update = F2(
 							}),
 						stage.grid));
 			});
-		var neighborsDir = F2(
+		var neighborsDirLevel1 = F2(
 			function (pos, stage) {
 				return A2(
 					$elm$core$List$filterMap,
 					function (dir) {
 						var _v3 = A2(
 							$elm$core$Dict$get,
-							A2($author$project$Dir$addTo, pos, dir),
+							A2(
+								$author$project$Dir$addTo,
+								pos,
+								A2(
+									$author$project$RelativePos$toDir,
+									{maxPos: $author$project$Config$maxPosLevel1},
+									dir)),
 							stage.grid);
 						_v3$3:
 						while (true) {
@@ -7009,66 +7094,103 @@ var $author$project$Game$update = F2(
 						}
 						return $elm$core$Maybe$Nothing;
 					},
-					$author$project$Dir$list);
+					A2(
+						$elm$core$List$map,
+						$author$project$RelativePos$fromTuple,
+						A2(
+							$elm$core$List$map,
+							$author$project$Dir$addTo(
+								_Utils_Tuple2(0, 0)),
+							$author$project$Dir$list)));
 			});
-		if (grid.$ === 'Level1') {
-			var stage = grid.a;
-			return A2(
-				tick,
-				{
-					computeActiveConnections: function (_v1) {
-						var pos = _v1.a;
-						var a = _v1.b;
-						return A2(
-							$author$project$Game$computeActiveConnectionsLv1,
-							A2(neighborsDir, pos, stage),
-							_Utils_Tuple2(pos, a));
+		var _v0 = game.level;
+		switch (_v0) {
+			case 1:
+				return A2(
+					tick,
+					{
+						computeActiveConnections: function (_v1) {
+							var pos = _v1.a;
+							var a = _v1.b;
+							return A2(
+								$author$project$Game$computeActiveConnectionsLv1,
+								A2(neighborsDirLevel1, pos, game.stage),
+								_Utils_Tuple2(pos, a));
+						},
+						dirList: function (p) {
+							return A2(
+								$elm$core$List$map,
+								function (relPos) {
+									return {
+										pos: A2(
+											$author$project$Dir$addTo,
+											p,
+											A2(
+												$author$project$RelativePos$toDir,
+												{maxPos: $author$project$Config$maxPosLevel1},
+												relPos)),
+										to: A2(
+											$author$project$RelativePos$reverse,
+											{maxPos: $author$project$Config$maxPosLevel1},
+											relPos)
+									};
+								},
+								$author$project$RelativePos$list(
+									{maxPos: $author$project$Config$maxPosLevel1}));
+						},
+						powerStrength: 1,
+						toGame: function (stage) {
+							return _Utils_update(
+								game,
+								{stage: stage});
+						}
 					},
-					connectionSendsTo: $author$project$Game$connection1SendsTo,
-					dirList: function (p) {
-						return A2(
-							$elm$core$List$map,
-							function (dir) {
-								return {
-									pos: A2($author$project$Dir$addTo, p, dir),
-									to: $author$project$Dir$reverse(dir)
-								};
-							},
-							$author$project$Dir$list);
+					game.stage);
+			case 2:
+				return A2(
+					tick,
+					{
+						computeActiveConnections: function (_v2) {
+							var pos = _v2.a;
+							var a = _v2.b;
+							return A3($author$project$Game$computeActiveConnectionsLv2, modules, a, pos);
+						},
+						dirList: function (p) {
+							return A2(
+								$elm$core$List$map,
+								function (relPos) {
+									return {
+										pos: A2(
+											$author$project$Dir$addTo,
+											p,
+											A2(
+												$author$project$RelativePos$toDir,
+												{maxPos: $author$project$Config$maxPosLevel2},
+												relPos)),
+										to: A2(
+											$author$project$RelativePos$reverse,
+											{maxPos: $author$project$Config$maxPosLevel2},
+											relPos)
+									};
+								},
+								$author$project$RelativePos$list(
+									{maxPos: $author$project$Config$maxPosLevel2}));
+						},
+						powerStrength: 2,
+						toGame: function (stage) {
+							return _Utils_update(
+								game,
+								{stage: stage});
+						}
 					},
-					powerStrength: 1,
-					toGame: $author$project$Game$Level1
-				},
-				stage);
-		} else {
-			var stage = grid.a;
-			return A2(
-				tick,
-				{
-					computeActiveConnections: function (_v2) {
-						var pos = _v2.a;
-						var a = _v2.b;
-						return A3($author$project$Game$computeActiveConnectionsLv2, modules, a, pos);
-					},
-					connectionSendsTo: $author$project$Game$connection2SendsTo,
-					dirList: function (p) {
-						return A2(
-							$elm$core$List$map,
-							function (relPos) {
-								return {
-									pos: A2(
-										$author$project$Dir$addTo,
-										p,
-										$author$project$RelativePos$toDir(relPos)),
-									to: $author$project$RelativePos$reverse(relPos)
-								};
-							},
-							$author$project$RelativePos$list);
-					},
-					powerStrength: 2,
-					toGame: $author$project$Game$Level2
-				},
-				stage);
+					game.stage);
+			default:
+				return _Debug_todo(
+					'Game',
+					{
+						start: {line: 284, column: 13},
+						end: {line: 284, column: 23}
+					})('update for recursive structure');
 		}
 	});
 var $author$project$Main$update = F2(
@@ -7084,128 +7206,135 @@ var $author$project$Main$update = F2(
 							m,
 							{updating: true});
 					}(
-						function () {
-							if ((x >= 0) && ((x <= 3) && ((y >= 0) && (y <= 3)))) {
-								var _v2 = model.game;
-								if (_v2.$ === 'Just') {
-									if (_v2.a.$ === 'Level1') {
-										var stage = _v2.a.a;
-										return function (grid) {
-											return _Utils_update(
-												model,
-												{
-													game: $elm$core$Maybe$Just(grid)
-												});
-										}(
-											$author$project$Game$Level1(
-												function (grid) {
-													return _Utils_update(
-														stage,
-														{grid: grid});
-												}(
-													A3(
-														$elm$core$Dict$update,
-														_Utils_Tuple2(x, y),
-														function (maybe) {
-															if (maybe.$ === 'Just') {
-																if (maybe.a.$ === 'ConnectionCell') {
-																	return $elm$core$Maybe$Nothing;
-																} else {
-																	return maybe;
-																}
+						((x >= 0) && ((x <= 3) && ((y >= 0) && (y <= 3)))) ? A2(
+							$elm$core$Maybe$withDefault,
+							model,
+							A2(
+								$elm$core$Maybe$map,
+								function (game) {
+									var _v2 = game.level;
+									switch (_v2) {
+										case 1:
+											return function (grid) {
+												return _Utils_update(
+													model,
+													{
+														game: $elm$core$Maybe$Just(
+															_Utils_update(
+																game,
+																{
+																	stage: function (stage) {
+																		return _Utils_update(
+																			stage,
+																			{grid: grid});
+																	}(game.stage)
+																}))
+													});
+											}(
+												A3(
+													$elm$core$Dict$update,
+													_Utils_Tuple2(x, y),
+													function (maybe) {
+														if (maybe.$ === 'Just') {
+															if (maybe.a.$ === 'ConnectionCell') {
+																return $elm$core$Maybe$Nothing;
 															} else {
-																return $elm$core$Maybe$Just(
-																	$author$project$Cell$ConnectionCell(
-																		{sendsTo: $elm$core$Dict$empty}));
+																return maybe;
 															}
-														},
-														stage.grid))));
-									} else {
-										var stage = _v2.a.a;
-										var _v4 = A2(
-											$elm$core$Debug$log,
-											'cell',
-											A2(
+														} else {
+															return $elm$core$Maybe$Just(
+																$author$project$Cell$ConnectionCell(
+																	$author$project$Cell$connectionLevel1($elm$core$Dict$empty)));
+														}
+													},
+													game.stage.grid));
+										case 2:
+											var _v4 = A2(
 												$elm$core$Dict$get,
 												_Utils_Tuple2(x, y),
-												stage.grid));
-										if (_v4.$ === 'Just') {
-											if (_v4.a.$ === 'ConnectionCell') {
-												return function (grid) {
+												game.stage.grid);
+											if (_v4.$ === 'Just') {
+												if (_v4.a.$ === 'ConnectionCell') {
 													return _Utils_update(
 														model,
 														{
-															game: $elm$core$Maybe$Just(grid)
+															selected: $elm$core$Maybe$Just(
+																_Utils_Tuple2(x, y))
 														});
-												}(
-													$author$project$Game$Level2(
-														_Utils_update(
-															stage,
-															{
-																grid: A2(
-																	$elm$core$Dict$remove,
-																	_Utils_Tuple2(x, y),
-																	stage.grid)
-															})));
+												} else {
+													return model;
+												}
 											} else {
-												return model;
+												return _Utils_update(
+													model,
+													{
+														selected: $elm$core$Maybe$Just(
+															_Utils_Tuple2(x, y))
+													});
 											}
-										} else {
-											return _Utils_update(
-												model,
+										default:
+											return _Debug_todo(
+												'Main',
 												{
-													selected: $elm$core$Maybe$Just(
-														_Utils_Tuple2(x, y))
-												});
-										}
+													start: {line: 290, column: 37},
+													end: {line: 290, column: 47}
+												})('recursive Updates');
 									}
-								} else {
-									return model;
-								}
-							} else {
-								return model;
-							}
-						}()),
+								},
+								model.game)) : model),
 					$elm$core$Platform$Cmd$none);
 			case 'PlaceModule':
 				var moduleId = msg.a.moduleId;
 				var rotation = msg.a.rotation;
 				return _Utils_Tuple2(
-					function () {
-						var _v5 = model.game;
-						if (_v5.$ === 'Just') {
-							if (_v5.a.$ === 'Level1') {
-								return model;
-							} else {
-								var stage = _v5.a.a;
-								return function (game) {
-									return _Utils_update(
-										model,
-										{
-											game: $elm$core$Maybe$Just(game),
-											selected: $elm$core$Maybe$Nothing,
-											updating: true
-										});
-								}(
-									$author$project$Game$Level2(
-										_Utils_update(
-											stage,
+					A2(
+						$elm$core$Maybe$withDefault,
+						model,
+						A2(
+							$elm$core$Maybe$map,
+							function (game) {
+								var _v5 = game.level;
+								switch (_v5) {
+									case 1:
+										return model;
+									case 2:
+										return function (grid) {
+											return _Utils_update(
+												model,
+												{
+													game: $elm$core$Maybe$Just(
+														_Utils_update(
+															game,
+															{
+																stage: function (stage) {
+																	return _Utils_update(
+																		stage,
+																		{grid: grid});
+																}(game.stage)
+															})),
+													selected: $elm$core$Maybe$Nothing,
+													updating: true
+												});
+										}(
+											A3(
+												$elm$core$Dict$insert,
+												A2(
+													$elm$core$Maybe$withDefault,
+													_Utils_Tuple2(0, 0),
+													model.selected),
+												$author$project$Cell$ConnectionCell(
+													{moduleId: moduleId, rotation: rotation, sendsTo: $elm$core$Dict$empty}),
+												game.stage.grid));
+									default:
+										return _Debug_todo(
+											'Main',
 											{
-												grid: A3(
-													$elm$core$Dict$insert,
-													A2(
-														$elm$core$Maybe$withDefault,
-														_Utils_Tuple2(0, 0),
-														model.selected),
-													$author$project$Cell$ConnectionCell(
-														{moduleId: moduleId, rotation: rotation, sendsTo: $elm$core$Dict$empty}),
-													stage.grid)
-											})));
-							}
-						} else {
-							return model;
-						}
-					}(),
+												start: {line: 327, column: 33},
+												end: {line: 327, column: 43}
+											})('recursive placing modules');
+								}
+							},
+							model.game)),
 					$elm$core$Platform$Cmd$none);
 			case 'UpdateGrid':
 				var _v6 = A2(
@@ -7217,7 +7346,13 @@ var $author$project$Main$update = F2(
 							return A2(
 								$elm$core$Tuple$mapFirst,
 								$elm$core$Maybe$Just,
-								A2($author$project$Game$update, model.levels, game));
+								A2(
+									$author$project$Game$update,
+									A2(
+										$elm$core$Maybe$withDefault,
+										$elm$core$Dict$empty,
+										A2($elm$core$Dict$get, model.level - 1, model.levels)),
+									game));
 						},
 						model.game));
 				var newGrid = _v6.a;
@@ -7227,11 +7362,28 @@ var $author$project$Main$update = F2(
 						model,
 						{game: newGrid, updating: updating}),
 					$elm$core$Platform$Cmd$none);
-			case 'NextLevel':
+			case 'NextStage':
 				return _Utils_Tuple2(
-					A2(
-						$author$project$Main$loadLevel,
-						model.level + 1,
+					function (m) {
+						var _v7 = A2(
+							$author$project$Main$loadStage,
+							{level: m.level, stage: m.stage + 1},
+							m);
+						if (_v7.$ === 'Just') {
+							var a = _v7.a;
+							return a;
+						} else {
+							return A2(
+								$elm$core$Maybe$withDefault,
+								_Utils_update(
+									m,
+									{game: $elm$core$Maybe$Nothing}),
+								A2(
+									$author$project$Main$loadStage,
+									{level: m.level + 1, stage: 1},
+									m));
+						}
+					}(
 						$author$project$Main$saveLevel(model)),
 					$elm$core$Platform$Cmd$none);
 			case 'Unselect':
@@ -7240,19 +7392,52 @@ var $author$project$Main$update = F2(
 						model,
 						{selected: $elm$core$Maybe$Nothing}),
 					$elm$core$Platform$Cmd$none);
-			default:
+			case 'LoadStage':
 				var level = msg.a;
 				return _Utils_Tuple2(
-					A2($author$project$Main$generateLevel, level, model),
+					A2($author$project$Main$generateStage, level, model),
+					$elm$core$Platform$Cmd$none);
+			default:
+				var pos = msg.a;
+				return _Utils_Tuple2(
+					A2(
+						$elm$core$Maybe$withDefault,
+						model,
+						A2(
+							$elm$core$Maybe$map,
+							function (game) {
+								return function (grid) {
+									return _Utils_update(
+										model,
+										{
+											game: $elm$core$Maybe$Just(
+												_Utils_update(
+													game,
+													{
+														stage: function (stage) {
+															return _Utils_update(
+																stage,
+																{grid: grid});
+														}(game.stage)
+													})),
+											selected: $elm$core$Maybe$Nothing
+										});
+								}(
+									A2($elm$core$Dict$remove, pos, game.stage.grid));
+							},
+							model.game)),
 					$elm$core$Platform$Cmd$none);
 		}
 	});
-var $author$project$Main$NextLevel = {$: 'NextLevel'};
+var $author$project$Main$LoadStage = function (a) {
+	return {$: 'LoadStage', a: a};
+};
+var $author$project$Main$NextStage = {$: 'NextStage'};
 var $author$project$Main$PlaceModule = function (a) {
 	return {$: 'PlaceModule', a: a};
 };
-var $author$project$Main$SelectLevel = function (a) {
-	return {$: 'SelectLevel', a: a};
+var $author$project$Main$RemoveTile = function (a) {
+	return {$: 'RemoveTile', a: a};
 };
 var $author$project$Main$Toggle = function (a) {
 	return {$: 'Toggle', a: a};
@@ -7307,6 +7492,66 @@ var $Orasund$elm_layout$Layout$asButton = function (args) {
 				args.onPress)));
 };
 var $Orasund$elm_layout$Layout$asEl = A2($elm$html$Html$Attributes$style, 'display', 'flex');
+var $author$project$Color$primaryLevel1 = '#cc353c';
+var $author$project$Color$primaryLevel2 = '#23bf24';
+var $author$project$Color$laserColor = function (level) {
+	switch (level) {
+		case 2:
+			return $author$project$Color$primaryLevel2;
+		case 1:
+			return $author$project$Color$primaryLevel1;
+		default:
+			return _Debug_todo(
+				'Color',
+				{
+					start: {line: 25, column: 13},
+					end: {line: 25, column: 23}
+				})('add Laser color');
+	}
+};
+var $author$project$Color$inactiveLaser = function (level) {
+	return 'color-mix(in lch,' + ($author$project$Color$laserColor(level) + ' 33%,white)');
+};
+var $author$project$Color$white = '#f6feff';
+var $author$project$Color$background = function (level) {
+	return 'linear-gradient(' + ($author$project$Color$white + (', ' + ($author$project$Color$inactiveLaser(level) + ')')));
+};
+var $author$project$Color$secondary = '#122a58';
+var $author$project$Color$black = $author$project$Color$secondary;
+var $author$project$Color$fontColor = $author$project$Color$black;
+var $elm$html$Html$button = _VirtualDom_node('button');
+var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
+var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
+var $Orasund$elm_layout$Layout$textButton = F2(
+	function (attrs, args) {
+		return A2(
+			$elm$html$Html$button,
+			_Utils_ap(
+				$Orasund$elm_layout$Layout$asButton(args),
+				attrs),
+			_List_fromArray(
+				[
+					$elm$html$Html$text(args.label)
+				]));
+	});
+var $author$project$View$button = F2(
+	function (onPress, label) {
+		return A2(
+			$Orasund$elm_layout$Layout$textButton,
+			_List_fromArray(
+				[
+					A2($elm$html$Html$Attributes$style, 'background', 'transparent'),
+					A2($elm$html$Html$Attributes$style, 'border', '1px solid ' + $author$project$Color$fontColor),
+					A2($elm$html$Html$Attributes$style, 'color', $author$project$Color$fontColor),
+					A2($elm$html$Html$Attributes$style, 'padding', '0.5rem'),
+					A2($elm$html$Html$Attributes$style, 'border-radius', '0.5rem'),
+					A2($elm$html$Html$Attributes$style, 'font-weight', 'bold')
+				]),
+			{
+				label: label,
+				onPress: $elm$core$Maybe$Just(onPress)
+			});
+	});
 var $elm$html$Html$div = _VirtualDom_node('div');
 var $Orasund$elm_layout$Layout$column = function (attrs) {
 	return $elm$html$Html$div(
@@ -7330,17 +7575,13 @@ var $author$project$View$card = function (attrs) {
 		_Utils_ap(
 			_List_fromArray(
 				[
-					A2($elm$html$Html$Attributes$style, 'padding', '1rem'),
-					A2($elm$html$Html$Attributes$style, 'border', '1px solid black'),
-					A2($elm$html$Html$Attributes$style, 'background-color', 'white'),
-					$Orasund$elm_layout$Layout$gap(8)
+					A2($elm$html$Html$Attributes$style, 'padding', '2rem'),
+					A2($elm$html$Html$Attributes$style, 'background-color', $author$project$Color$white),
+					A2($elm$html$Html$Attributes$style, 'border-radius', '1rem'),
+					$Orasund$elm_layout$Layout$gap(16)
 				]),
 			attrs));
 };
-var $Orasund$elm_layout$Layout$alignAtCenter = A2($elm$html$Html$Attributes$style, 'align-items', 'center');
-var $Orasund$elm_layout$Layout$contentCentered = A2($elm$html$Html$Attributes$style, 'justify-content', 'center');
-var $Orasund$elm_layout$Layout$centered = _List_fromArray(
-	[$Orasund$elm_layout$Layout$contentCentered, $Orasund$elm_layout$Layout$alignAtCenter]);
 var $Orasund$elm_layout$Layout$el = F2(
 	function (attrs, content) {
 		return A2(
@@ -7352,9 +7593,6 @@ var $Orasund$elm_layout$Layout$el = F2(
 			_List_fromArray(
 				[content]));
 	});
-var $author$project$Config$cellSize = 64;
-var $elm$virtual_dom$VirtualDom$text = _VirtualDom_text;
-var $elm$html$Html$text = $elm$virtual_dom$VirtualDom$text;
 var $Orasund$elm_layout$Layout$text = F2(
 	function (attrs, content) {
 		return A2(
@@ -7362,6 +7600,16 @@ var $Orasund$elm_layout$Layout$text = F2(
 			attrs,
 			$elm$html$Html$text(content));
 	});
+var $author$project$View$cardTitle = $Orasund$elm_layout$Layout$text(
+	_List_fromArray(
+		[
+			A2($elm$html$Html$Attributes$style, 'font-size', '1.5rem')
+		]));
+var $author$project$Config$cellSize = 64;
+var $Orasund$elm_layout$Layout$alignAtCenter = A2($elm$html$Html$Attributes$style, 'align-items', 'center');
+var $Orasund$elm_layout$Layout$contentCentered = A2($elm$html$Html$Attributes$style, 'justify-content', 'center');
+var $Orasund$elm_layout$Layout$centered = _List_fromArray(
+	[$Orasund$elm_layout$Layout$contentCentered, $Orasund$elm_layout$Layout$alignAtCenter]);
 var $author$project$View$gameWon = A2(
 	$Orasund$elm_layout$Layout$el,
 	_Utils_ap(
@@ -7381,27 +7629,12 @@ var $author$project$View$gameWon = A2(
 			]),
 		$Orasund$elm_layout$Layout$centered),
 	A2($Orasund$elm_layout$Layout$text, _List_Nil, 'You Win!'));
-var $Orasund$elm_layout$Layout$row = function (attrs) {
-	return $elm$html$Html$div(
-		_Utils_ap(
-			_List_fromArray(
-				[
-					A2($elm$html$Html$Attributes$style, 'display', 'flex'),
-					A2($elm$html$Html$Attributes$style, 'flex-direction', 'row'),
-					A2($elm$html$Html$Attributes$style, 'flex-wrap', 'wrap')
-				]),
-			attrs));
-};
 var $Orasund$elm_layout$Layout$none = $elm$html$Html$text('');
-var $elm$svg$Svg$Attributes$fill = _VirtualDom_attribute('fill');
 var $elm$svg$Svg$Attributes$height = _VirtualDom_attribute('height');
 var $elm$svg$Svg$trustedNode = _VirtualDom_nodeNS('http://www.w3.org/2000/svg');
-var $elm$svg$Svg$rect = $elm$svg$Svg$trustedNode('rect');
 var $elm$svg$Svg$svg = $elm$svg$Svg$trustedNode('svg');
 var $elm$svg$Svg$Attributes$viewBox = _VirtualDom_attribute('viewBox');
 var $elm$svg$Svg$Attributes$width = _VirtualDom_attribute('width');
-var $elm$svg$Svg$Attributes$x = _VirtualDom_attribute('x');
-var $elm$svg$Svg$Attributes$y = _VirtualDom_attribute('y');
 var $author$project$View$Svg$fromPixels = F2(
 	function (args, pixels) {
 		var canvasSize = 120;
@@ -7420,25 +7653,18 @@ var $author$project$View$Svg$fromPixels = F2(
 			A2(
 				$elm$core$List$map,
 				function (_v0) {
-					var _v1 = _v0.a;
+					var pos = _v0.pos;
+					var color = _v0.color;
+					var render = _v0.render;
+					var _v1 = pos;
 					var x = _v1.a;
 					var y = _v1.b;
-					var color = _v0.b;
-					return A2(
-						$elm$svg$Svg$rect,
-						_List_fromArray(
-							[
-								$elm$svg$Svg$Attributes$x(
-								$elm$core$String$fromInt(x * pixelSize)),
-								$elm$svg$Svg$Attributes$y(
-								$elm$core$String$fromInt(y * pixelSize)),
-								$elm$svg$Svg$Attributes$width(
-								$elm$core$String$fromInt(pixelSize)),
-								$elm$svg$Svg$Attributes$height(
-								$elm$core$String$fromInt(pixelSize)),
-								$elm$svg$Svg$Attributes$fill(color)
-							]),
-						_List_Nil);
+					return render(
+						{
+							color: color,
+							pos: _Utils_Tuple2(x * pixelSize, y * pixelSize),
+							size: pixelSize
+						});
 				},
 				pixels));
 	});
@@ -7449,73 +7675,183 @@ var $author$project$View$Svg$cell1 = F2(
 			{height: args.height, size: 1, width: args.width},
 			_List_fromArray(
 				[
-					_Utils_Tuple2(
-					_Utils_Tuple2(0, 0),
-					color)
+					{
+					color: color,
+					pos: _Utils_Tuple2(0, 0),
+					render: args.render
+				}
 				]));
 	});
-var $author$project$Cell$cell1ToColor = F2(
-	function (isActive, cell1) {
+var $author$project$Color$wallColor = $author$project$Color$black;
+var $author$project$Cell$cell1ToColor = F3(
+	function (args, isActive, cell1) {
 		switch (cell1.$) {
 			case 'ConnectionCell':
 				var sort = cell1.a;
 				if (isActive.$ === 'Just') {
 					if (isActive.a) {
-						return 'red';
+						return $author$project$Color$laserColor(args.level);
 					} else {
-						return 'gray';
+						return $author$project$Color$inactiveLaser(args.level);
 					}
 				} else {
 					var _v2 = $elm$core$Dict$toList(sort.sendsTo);
 					if (!_v2.b) {
-						return 'gray';
+						return $author$project$Color$inactiveLaser(args.level);
 					} else {
-						return 'red';
+						return $author$project$Color$laserColor(args.level);
 					}
 				}
 			case 'Wall':
-				return 'black';
+				return $author$project$Color$wallColor;
 			case 'Origin':
 				if (isActive.$ === 'Just') {
 					if (isActive.a) {
-						return 'red';
+						return $author$project$Color$laserColor(args.level);
 					} else {
-						return 'gray';
+						return $author$project$Color$inactiveLaser(args.level);
 					}
 				} else {
-					return 'red';
+					return $author$project$Color$laserColor(args.level);
 				}
 			default:
 				if (cell1.a.$ === 'Nothing') {
 					var _v4 = cell1.a;
 					if (isActive.$ === 'Just') {
 						if (isActive.a) {
-							return 'red';
+							return $author$project$Color$laserColor(args.level);
 						} else {
-							return 'gray';
+							return $author$project$Color$inactiveLaser(args.level);
 						}
 					} else {
-						return 'gray';
+						return $author$project$Color$inactiveLaser(args.level);
 					}
 				} else {
 					if (isActive.$ === 'Just') {
 						if (isActive.a) {
-							return 'red';
+							return $author$project$Color$laserColor(args.level);
 						} else {
-							return 'gray';
+							return $author$project$Color$inactiveLaser(args.level);
 						}
 					} else {
-						return 'red';
+						return $author$project$Color$laserColor(args.level);
 					}
 				}
 		}
 	});
-var $author$project$View$tile1 = function (cell) {
+var $elm$svg$Svg$Attributes$fill = _VirtualDom_attribute('fill');
+var $elm$svg$Svg$rect = $elm$svg$Svg$trustedNode('rect');
+var $elm$svg$Svg$Attributes$x = _VirtualDom_attribute('x');
+var $elm$svg$Svg$Attributes$y = _VirtualDom_attribute('y');
+var $author$project$View$Svg$boxRender = function (args) {
+	var _v0 = args.pos;
+	var x = _v0.a;
+	var y = _v0.b;
 	return A2(
-		$author$project$View$Svg$cell1,
-		{height: $author$project$Config$cellSize, width: $author$project$Config$cellSize},
-		A2($author$project$Cell$cell1ToColor, $elm$core$Maybe$Nothing, cell));
+		$elm$svg$Svg$rect,
+		_List_fromArray(
+			[
+				$elm$svg$Svg$Attributes$x(
+				$elm$core$String$fromInt(x)),
+				$elm$svg$Svg$Attributes$y(
+				$elm$core$String$fromInt(y)),
+				$elm$svg$Svg$Attributes$width(
+				$elm$core$String$fromInt(args.size)),
+				$elm$svg$Svg$Attributes$height(
+				$elm$core$String$fromInt(args.size)),
+				$elm$svg$Svg$Attributes$fill(args.color)
+			]),
+		_List_Nil);
 };
+var $elm$svg$Svg$circle = $elm$svg$Svg$trustedNode('circle');
+var $elm$svg$Svg$Attributes$cx = _VirtualDom_attribute('cx');
+var $elm$svg$Svg$Attributes$cy = _VirtualDom_attribute('cy');
+var $elm$svg$Svg$g = $elm$svg$Svg$trustedNode('g');
+var $elm$svg$Svg$Attributes$mask = _VirtualDom_attribute('mask');
+var $elm$svg$Svg$Attributes$r = _VirtualDom_attribute('r');
+var $elm$svg$Svg$Attributes$stroke = _VirtualDom_attribute('stroke');
+var $elm$svg$Svg$Attributes$strokeWidth = _VirtualDom_attribute('stroke-width');
+var $author$project$View$Svg$targetRender = F2(
+	function (_v0, args) {
+		var secondaryColor = _v0.secondaryColor;
+		var _v1 = args.pos;
+		var x = _v1.a;
+		var y = _v1.b;
+		return A2(
+			$elm$svg$Svg$g,
+			_List_Nil,
+			_List_fromArray(
+				[
+					A2(
+					$elm$svg$Svg$rect,
+					_List_fromArray(
+						[
+							$elm$svg$Svg$Attributes$width(
+							$elm$core$String$fromInt(args.size)),
+							$elm$svg$Svg$Attributes$height(
+							$elm$core$String$fromInt(args.size)),
+							$elm$svg$Svg$Attributes$fill(args.color),
+							$elm$svg$Svg$Attributes$mask('url(#no-power)'),
+							$elm$svg$Svg$Attributes$x(
+							$elm$core$String$fromInt(x)),
+							$elm$svg$Svg$Attributes$y(
+							$elm$core$String$fromInt(y))
+						]),
+					_List_Nil),
+					A2(
+					$elm$svg$Svg$circle,
+					_List_fromArray(
+						[
+							$elm$svg$Svg$Attributes$cx(
+							$elm$core$String$fromFloat(x + (args.size / 2))),
+							$elm$svg$Svg$Attributes$cy(
+							$elm$core$String$fromFloat(y + (args.size / 2))),
+							$elm$svg$Svg$Attributes$r(
+							$elm$core$String$fromFloat((args.size * 2) / 8)),
+							$elm$svg$Svg$Attributes$strokeWidth(
+							$elm$core$String$fromFloat(args.size / 8)),
+							$elm$svg$Svg$Attributes$fill('none'),
+							$elm$svg$Svg$Attributes$stroke(secondaryColor)
+						]),
+					_List_Nil)
+				]));
+	});
+var $author$project$View$cellRender = F2(
+	function (args, cell) {
+		switch (cell.$) {
+			case 'ConnectionCell':
+				return $author$project$View$Svg$boxRender;
+			case 'Wall':
+				return $author$project$View$Svg$boxRender;
+			case 'Origin':
+				return $author$project$View$Svg$boxRender;
+			default:
+				if (cell.a.$ === 'Nothing') {
+					var _v1 = cell.a;
+					return $author$project$View$Svg$targetRender(
+						{secondaryColor: args.laserColor});
+				} else {
+					return $author$project$View$Svg$targetRender(
+						{secondaryColor: $author$project$Color$wallColor});
+				}
+		}
+	});
+var $author$project$View$tile1 = F2(
+	function (args, cell) {
+		return A2(
+			$author$project$View$Svg$cell1,
+			{
+				height: $author$project$Config$cellSize,
+				render: A2(
+					$author$project$View$cellRender,
+					{
+						laserColor: $author$project$Color$laserColor(args.level)
+					},
+					cell),
+				width: $author$project$Config$cellSize
+			},
+			A3($author$project$Cell$cell1ToColor, args, $elm$core$Maybe$Nothing, cell));
+	});
 var $elm$core$Set$Set_elm_builtin = function (a) {
 	return {$: 'Set_elm_builtin', a: a};
 };
@@ -7542,14 +7878,17 @@ var $author$project$View$Svg$grid = F2(
 					var x = _v2.a;
 					var y = _v2.b;
 					var cell = _v0.b;
-					return _Utils_Tuple2(
-						_Utils_Tuple2(x + 1, y + 1),
-						A2(
+					return {
+						color: A3(
 							$author$project$Cell$cell1ToColor,
+							{level: args.level},
 							$elm$core$Maybe$Just(
 								args.active(
 									_Utils_Tuple2(x, y))),
-							cell));
+							cell),
+						pos: _Utils_Tuple2(x + 1, y + 1),
+						render: args.render(cell)
+					};
 				},
 				$elm$core$Dict$toList(dict)));
 	});
@@ -7567,8 +7906,8 @@ var $elm$core$Set$member = F2(
 		var dict = _v0.a;
 		return A2($elm$core$Dict$member, key, dict);
 	});
-var $author$project$View$tile2 = F2(
-	function (g, cell) {
+var $author$project$View$tile2 = F3(
+	function (args, g, cell) {
 		if (cell.$ === 'ConnectionCell') {
 			var c = cell.a;
 			return A2(
@@ -7593,7 +7932,10 @@ var $author$project$View$tile2 = F2(
 								},
 								A2(
 									$elm$core$List$map,
-									$author$project$RelativePos$rotate(4 - c.rotation),
+									A2(
+										$author$project$RelativePos$rotate,
+										{maxPos: $author$project$Config$maxPosLevel2},
+										4 - c.rotation),
 									$elm$core$Dict$keys(c.sendsTo))));
 						return A2(
 							$Orasund$elm_layout$Layout$el,
@@ -7614,6 +7956,10 @@ var $author$project$View$tile2 = F2(
 											activePos);
 									},
 									height: $author$project$Config$cellSize,
+									level: args.level,
+									render: function (_v1) {
+										return $author$project$View$Svg$boxRender;
+									},
 									width: $author$project$Config$cellSize
 								},
 								level.grid));
@@ -7622,11 +7968,24 @@ var $author$project$View$tile2 = F2(
 		} else {
 			return A2(
 				$author$project$View$Svg$cell1,
-				{height: $author$project$Config$cellSize, width: $author$project$Config$cellSize},
-				A2($author$project$Cell$cell1ToColor, $elm$core$Maybe$Nothing, cell));
+				{
+					height: $author$project$Config$cellSize,
+					render: A2(
+						$author$project$View$cellRender,
+						{
+							laserColor: $author$project$Color$laserColor(args.level)
+						},
+						cell),
+					width: $author$project$Config$cellSize
+				},
+				A3(
+					$author$project$Cell$cell1ToColor,
+					{level: args.level},
+					$elm$core$Maybe$Nothing,
+					cell));
 		}
 	});
-var $author$project$View$tile = F3(
+var $author$project$View$game = F3(
 	function (attrs, args, g) {
 		return A2(
 			$Orasund$elm_layout$Layout$el,
@@ -7640,29 +7999,50 @@ var $author$project$View$tile = F3(
 						A2(
 						$elm$html$Html$Attributes$style,
 						'height',
-						$elm$core$String$fromInt($author$project$Config$cellSize) + 'px'),
-						A2($elm$html$Html$Attributes$style, 'font-size', '56px')
+						$elm$core$String$fromInt($author$project$Config$cellSize) + 'px')
 					]),
 				_Utils_ap($Orasund$elm_layout$Layout$centered, attrs)),
 			A2(
 				$elm$core$Maybe$withDefault,
 				$Orasund$elm_layout$Layout$none,
 				function () {
-					if (g.$ === 'Level1') {
-						var game = g.a;
-						return A2(
-							$elm$core$Maybe$map,
-							$author$project$View$tile1,
-							A2($elm$core$Dict$get, args.pos, game.grid));
-					} else {
-						var game = g.a;
-						return A2(
-							$elm$core$Maybe$map,
-							$author$project$View$tile2(args.levels),
-							A2($elm$core$Dict$get, args.pos, game.grid));
+					var _v0 = g.level;
+					switch (_v0) {
+						case 1:
+							return A2(
+								$elm$core$Maybe$map,
+								$author$project$View$tile1(
+									{level: g.level}),
+								A2($elm$core$Dict$get, args.pos, g.stage.grid));
+						case 2:
+							return A2(
+								$elm$core$Maybe$map,
+								A2(
+									$author$project$View$tile2,
+									{level: g.level},
+									args.levels),
+								A2($elm$core$Dict$get, args.pos, g.stage.grid));
+						default:
+							return _Debug_todo(
+								'View',
+								{
+									start: {line: 179, column: 13},
+									end: {line: 179, column: 23}
+								})('visuals');
 					}
 				}()));
 	});
+var $Orasund$elm_layout$Layout$row = function (attrs) {
+	return $elm$html$Html$div(
+		_Utils_ap(
+			_List_fromArray(
+				[
+					A2($elm$html$Html$Attributes$style, 'display', 'flex'),
+					A2($elm$html$Html$Attributes$style, 'flex-direction', 'row'),
+					A2($elm$html$Html$Attributes$style, 'flex-wrap', 'wrap')
+				]),
+			attrs));
+};
 var $author$project$View$grid = F3(
 	function (attrs, args, g) {
 		return A2(
@@ -7678,7 +8058,7 @@ var $author$project$View$grid = F3(
 							$elm$core$List$map,
 							function (x) {
 								return A3(
-									$author$project$View$tile,
+									$author$project$View$game,
 									$Orasund$elm_layout$Layout$asButton(
 										{
 											label: 'Toggle ' + ($elm$core$String$fromInt(x) + (',' + $elm$core$String$fromInt(y))),
@@ -7718,13 +8098,7 @@ var $author$project$Stage$isSolved = function (stage) {
 		stage.targets);
 };
 var $author$project$Game$isSolved = function (game) {
-	if (game.$ === 'Level1') {
-		var stage = game.a;
-		return $author$project$Stage$isSolved(stage);
-	} else {
-		var stage = game.a;
-		return $author$project$Stage$isSolved(stage);
-	}
+	return $author$project$Stage$isSolved(game.stage);
 };
 var $elm$json$Json$Encode$string = _Json_wrap;
 var $elm$html$Html$Attributes$stringProperty = F2(
@@ -7740,8 +8114,26 @@ var $elm$virtual_dom$VirtualDom$node = function (tag) {
 		_VirtualDom_noScript(tag));
 };
 var $elm$html$Html$node = $elm$virtual_dom$VirtualDom$node;
-var $author$project$View$savedLevels = F2(
-	function (fun, dict) {
+var $author$project$View$primaryButton = F2(
+	function (onPress, label) {
+		return A2(
+			$Orasund$elm_layout$Layout$textButton,
+			_List_fromArray(
+				[
+					A2($elm$html$Html$Attributes$style, 'background', $author$project$Color$fontColor),
+					A2($elm$html$Html$Attributes$style, 'border', '1px solid ' + $author$project$Color$fontColor),
+					A2($elm$html$Html$Attributes$style, 'color', $author$project$Color$white),
+					A2($elm$html$Html$Attributes$style, 'padding', '0.5rem'),
+					A2($elm$html$Html$Attributes$style, 'border-radius', '0.5rem'),
+					A2($elm$html$Html$Attributes$style, 'font-weight', 'bold')
+				]),
+			{
+				label: label,
+				onPress: $elm$core$Maybe$Just(onPress)
+			});
+	});
+var $author$project$View$savedLevels = F3(
+	function (args, fun, dict) {
 		return A2(
 			$Orasund$elm_layout$Layout$row,
 			_List_fromArray(
@@ -7773,64 +8165,108 @@ var $author$project$View$savedLevels = F2(
 								$author$project$View$Svg$grid,
 								{
 									active: function (_v1) {
-										return false;
+										return true;
 									},
 									height: $author$project$Config$cellSize,
+									level: args.level,
+									render: function (_v2) {
+										return $author$project$View$Svg$boxRender;
+									},
 									width: $author$project$Config$cellSize
 								},
 								level.grid),
 								A2(
 								$Orasund$elm_layout$Layout$text,
 								_List_Nil,
-								'Stage' + $elm$core$String$fromInt(id))
+								'Stage ' + ($elm$core$String$fromInt(args.level) + (' - ' + $elm$core$String$fromInt(id))))
 							]));
 				},
 				$elm$core$Dict$toList(dict)));
 	});
-var $elm$html$Html$button = _VirtualDom_node('button');
-var $Orasund$elm_layout$Layout$textButton = F2(
-	function (attrs, args) {
-		return A2(
-			$elm$html$Html$button,
-			_Utils_ap(
-				$Orasund$elm_layout$Layout$asButton(args),
-				attrs),
-			_List_fromArray(
-				[
-					$elm$html$Html$text(args.label)
-				]));
-	});
+var $elm$core$List$singleton = function (value) {
+	return _List_fromArray(
+		[value]);
+};
+var $author$project$View$stylesheet = A3(
+	$elm$html$Html$node,
+	'style',
+	_List_Nil,
+	$elm$core$List$singleton(
+		$elm$html$Html$text('\nhtml,body {\n    height: 100%;\n    margin:0;\n    padding:0;\n}\nbutton:hover {\n    filter: brightness(1.5);\n}\nbutton:focus {\n    filter: brightness(2);\n}\n    ')));
+var $author$project$View$title = $Orasund$elm_layout$Layout$text(
+	_List_fromArray(
+		[
+			A2($elm$html$Html$Attributes$style, 'font-size', '2rem')
+		]));
 var $author$project$Main$view = function (model) {
 	return A2(
 		$elm$html$Html$div,
-		_Utils_ap(
-			$Orasund$elm_layout$Layout$centered,
-			_List_fromArray(
-				[
-					$Orasund$elm_layout$Layout$asEl,
-					A2($elm$html$Html$Attributes$style, 'position', 'relative')
-				])),
+		_List_fromArray(
+			[
+				$Orasund$elm_layout$Layout$asEl,
+				A2($elm$html$Html$Attributes$style, 'position', 'relative'),
+				A2($elm$html$Html$Attributes$style, 'color', $author$project$Color$fontColor),
+				A2(
+				$elm$html$Html$Attributes$style,
+				'background',
+				$author$project$Color$background(
+					A2(
+						$elm$core$Maybe$withDefault,
+						1,
+						A2(
+							$elm$core$Maybe$map,
+							function ($) {
+								return $.level;
+							},
+							model.game)))),
+				A2($elm$html$Html$Attributes$style, 'font-family', 'sans-serif'),
+				A2($elm$html$Html$Attributes$style, 'height', '100%'),
+				$Orasund$elm_layout$Layout$contentCentered
+			]),
 		_List_fromArray(
 			[
 				A2(
 				$Orasund$elm_layout$Layout$column,
 				_List_fromArray(
 					[
-						$Orasund$elm_layout$Layout$gap(16)
+						$Orasund$elm_layout$Layout$gap(16),
+						A2($elm$html$Html$Attributes$style, 'padding', '1rem'),
+						A2(
+						$elm$html$Html$Attributes$style,
+						'width',
+						$elm$core$String$fromInt($author$project$Config$cellSize * 6) + 'px')
 					]),
 				_List_fromArray(
 					[
+						$author$project$View$title(
+						'Level ' + ($elm$core$String$fromInt(model.level) + (' - ' + $elm$core$String$fromInt(model.stage)))),
 						A2(
-						$elm$core$Maybe$withDefault,
-						$author$project$View$gameWon,
+						$Orasund$elm_layout$Layout$el,
+						_List_fromArray(
+							[
+								A2($elm$html$Html$Attributes$style, 'border-radius', '1rem'),
+								A2($elm$html$Html$Attributes$style, 'overflow', 'hidden')
+							]),
 						A2(
-							$elm$core$Maybe$map,
+							$elm$core$Maybe$withDefault,
+							$author$project$View$gameWon,
 							A2(
-								$author$project$View$grid,
-								_List_Nil,
-								{levels: model.levels, onToggle: $author$project$Main$Toggle}),
-							model.game)),
-						A2(
+								$elm$core$Maybe$map,
+								function (game) {
+									return A3(
+										$author$project$View$grid,
+										_List_Nil,
+										{
+											levels: A2(
+												$elm$core$Maybe$withDefault,
+												$elm$core$Dict$empty,
+												A2($elm$core$Dict$get, model.level - 1, model.levels)),
+											onToggle: $author$project$Main$Toggle
+										},
+										game);
+								},
+								model.game))),
+						(model.level === 1) ? A2(
 						$author$project$View$card,
 						_List_fromArray(
 							[
@@ -7838,8 +8274,29 @@ var $author$project$Main$view = function (model) {
 							]),
 						_List_fromArray(
 							[
-								A2($Orasund$elm_layout$Layout$text, _List_Nil, 'Edit Stages'),
-								A2($author$project$View$savedLevels, $author$project$Main$SelectLevel, model.levels)
+								A2($Orasund$elm_layout$Layout$text, _List_Nil, 'Connect the circles with energy by placing tiles.'),
+								A2($Orasund$elm_layout$Layout$text, _List_Nil, 'Energy will flow along the tiles.'),
+								A2($Orasund$elm_layout$Layout$text, _List_Nil, 'If the direction is ambiguous, it will always go straight.')
+							])) : A2(
+						$author$project$View$card,
+						_List_fromArray(
+							[
+								$Orasund$elm_layout$Layout$gap(16)
+							]),
+						_List_fromArray(
+							[
+								$author$project$View$cardTitle('Edit Stages'),
+								A3(
+								$author$project$View$savedLevels,
+								{level: model.level - 1},
+								function (stage) {
+									return $author$project$Main$LoadStage(
+										{level: model.level - 1, stage: stage});
+								},
+								A2(
+									$elm$core$Maybe$withDefault,
+									$elm$core$Dict$empty,
+									A2($elm$core$Dict$get, model.level - 1, model.levels)))
 							]))
 					])),
 				A2(
@@ -7856,72 +8313,119 @@ var $author$project$Main$view = function (model) {
 									[
 										A2($elm$html$Html$Attributes$style, 'width', '100%'),
 										A2($elm$html$Html$Attributes$style, 'height', '100%'),
-										A2($elm$html$Html$Attributes$style, 'position', 'absolute')
+										A2($elm$html$Html$Attributes$style, 'position', 'absolute'),
+										A2($elm$html$Html$Attributes$style, 'backdrop-filter', 'blur(2px)')
 									])),
 							A2($author$project$View$card, $Orasund$elm_layout$Layout$centered, html));
 					},
-					((!model.updating) && A2(
-						$elm$core$Maybe$withDefault,
-						false,
-						A2($elm$core$Maybe$map, $author$project$Game$isSolved, model.game))) ? $elm$core$Maybe$Just(
-						_List_fromArray(
-							[
-								A2($Orasund$elm_layout$Layout$text, _List_Nil, 'You Win'),
-								A2(
-								$Orasund$elm_layout$Layout$textButton,
-								_List_Nil,
-								{
-									label: 'Next Level',
-									onPress: $elm$core$Maybe$Just($author$project$Main$NextLevel)
-								})
-							])) : ((!_Utils_eq(model.selected, $elm$core$Maybe$Nothing)) ? $elm$core$Maybe$Just(
-						_List_fromArray(
-							[
-								A2($Orasund$elm_layout$Layout$text, _List_Nil, 'Select a tile you want to place'),
-								A2(
-								$Orasund$elm_layout$Layout$column,
+					function () {
+						if ((!model.updating) && A2(
+							$elm$core$Maybe$withDefault,
+							false,
+							A2($elm$core$Maybe$map, $author$project$Game$isSolved, model.game))) {
+							return $elm$core$Maybe$Just(
 								_List_fromArray(
 									[
-										$Orasund$elm_layout$Layout$gap(8)
-									]),
-								A2(
-									$elm$core$List$map,
-									function (id) {
-										return A2(
-											$Orasund$elm_layout$Layout$row,
+										$author$project$View$cardTitle('Stage Complete'),
+										A2($author$project$View$primaryButton, $author$project$Main$NextStage, 'Next Level')
+									]));
+						} else {
+							var _v0 = model.selected;
+							if (_v0.$ === 'Just') {
+								var selected = _v0.a;
+								return $elm$core$Maybe$Just(
+									_List_fromArray(
+										[
+											$author$project$View$cardTitle('Select a tile you want to place'),
+											A2(
+											$Orasund$elm_layout$Layout$column,
 											_List_fromArray(
 												[
 													$Orasund$elm_layout$Layout$gap(8)
 												]),
 											A2(
 												$elm$core$List$map,
-												function (rotate) {
+												function (id) {
 													return A2(
-														$Orasund$elm_layout$Layout$el,
-														$Orasund$elm_layout$Layout$asButton(
-															{
-																label: 'Level ' + ($elm$core$String$fromInt(id) + ('(' + ($elm$core$String$fromInt(rotate) + ')'))),
-																onPress: $elm$core$Maybe$Just(
-																	$author$project$Main$PlaceModule(
-																		{moduleId: id, rotation: rotate}))
-															}),
+														$Orasund$elm_layout$Layout$row,
+														_List_fromArray(
+															[
+																$Orasund$elm_layout$Layout$gap(8)
+															]),
 														A2(
-															$author$project$View$tile2,
-															model.levels,
-															$author$project$Cell$ConnectionCell(
-																{moduleId: id, rotation: rotate, sendsTo: $elm$core$Dict$empty})));
+															$elm$core$List$map,
+															function (rotate) {
+																return A2(
+																	$Orasund$elm_layout$Layout$el,
+																	$Orasund$elm_layout$Layout$asButton(
+																		{
+																			label: 'Level ' + ($elm$core$String$fromInt(id) + ('(' + ($elm$core$String$fromInt(rotate) + ')'))),
+																			onPress: $elm$core$Maybe$Just(
+																				$author$project$Main$PlaceModule(
+																					{moduleId: id, rotation: rotate}))
+																		}),
+																	A3(
+																		$author$project$View$tile2,
+																		{
+																			level: A2(
+																				$elm$core$Maybe$withDefault,
+																				1,
+																				A2(
+																					$elm$core$Maybe$map,
+																					function ($) {
+																						return $.level;
+																					},
+																					model.game))
+																		},
+																		A2(
+																			$elm$core$Maybe$withDefault,
+																			$elm$core$Dict$empty,
+																			A2($elm$core$Dict$get, model.level - 1, model.levels)),
+																		$author$project$Cell$ConnectionCell(
+																			{moduleId: id, rotation: rotate, sendsTo: $elm$core$Dict$empty})));
+															},
+															A2($elm$core$List$range, 0, 3)));
 												},
-												A2($elm$core$List$range, 0, 3)));
-									},
-									$elm$core$Dict$keys(model.levels))),
-								A2(
-								$Orasund$elm_layout$Layout$textButton,
-								_List_Nil,
-								{
-									label: 'Cancel',
-									onPress: $elm$core$Maybe$Just($author$project$Main$Unselect)
-								})
-							])) : $elm$core$Maybe$Nothing))),
+												$elm$core$Dict$keys(
+													A2(
+														$elm$core$Maybe$withDefault,
+														$elm$core$Dict$empty,
+														A2($elm$core$Dict$get, model.level - 1, model.levels))))),
+											A2(
+											$Orasund$elm_layout$Layout$row,
+											_List_fromArray(
+												[
+													$Orasund$elm_layout$Layout$gap(8)
+												]),
+											_Utils_ap(
+												A2(
+													$elm$core$Dict$member,
+													selected,
+													A2(
+														$elm$core$Maybe$withDefault,
+														$elm$core$Dict$empty,
+														A2(
+															$elm$core$Maybe$map,
+															function (game) {
+																return game.stage.grid;
+															},
+															model.game))) ? _List_fromArray(
+													[
+														A2(
+														$author$project$View$button,
+														$author$project$Main$RemoveTile(selected),
+														'Remove')
+													]) : _List_Nil,
+												_List_fromArray(
+													[
+														A2($author$project$View$primaryButton, $author$project$Main$Unselect, 'Cancel')
+													])))
+										]));
+							} else {
+								return $elm$core$Maybe$Nothing;
+							}
+						}
+					}())),
 				A3(
 				$elm$html$Html$node,
 				'meta',
@@ -7930,7 +8434,8 @@ var $author$project$Main$view = function (model) {
 						$elm$html$Html$Attributes$name('viewport'),
 						A2($elm$html$Html$Attributes$attribute, 'content', 'width=device-width, initial-scale=1')
 					]),
-				_List_Nil)
+				_List_Nil),
+				$author$project$View$stylesheet
 			]));
 };
 var $author$project$Main$main = $elm$browser$Browser$element(
