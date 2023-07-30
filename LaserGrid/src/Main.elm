@@ -4,7 +4,7 @@ import Browser
 import Cell exposing (Cell(..))
 import Color
 import Dict exposing (Dict)
-import Game exposing (Game, SavedLevel)
+import Game exposing (Game, SavedStage)
 import Game.Generate
 import Html exposing (Html)
 import Html.Attributes
@@ -16,8 +16,9 @@ import View
 
 type alias Model =
     { game : Maybe Game
-    , levels : Dict Int SavedLevel
+    , levels : Dict Int (Dict Int SavedStage)
     , updating : Bool
+    , stage : Int
     , level : Int
     , selected : Maybe ( Int, Int )
     }
@@ -28,8 +29,8 @@ type Msg
     | PlaceModule { moduleId : Int, rotation : Int }
     | Unselect
     | UpdateGrid
-    | NextLevel
-    | SelectLevel Int
+    | NextStage
+    | LoadStage { level : Int, stage : Int }
 
 
 init : () -> ( Model, Cmd Msg )
@@ -37,11 +38,15 @@ init () =
     let
         level =
             1
+
+        stage =
+            1
     in
-    ( { game = Game.Generate.fromId level
+    ( { game = Game.Generate.new { level = level, stage = stage }
       , levels = Dict.empty
       , updating = False
       , level = level
+      , stage = 1
       , selected = Nothing
       }
     , Cmd.none
@@ -57,52 +62,68 @@ saveLevel model =
                 |> Maybe.map
                     (\savedGame ->
                         model.levels
-                            |> Dict.insert model.level savedGame
+                            |> Dict.update model.level
+                                (\maybe ->
+                                    maybe
+                                        |> Maybe.withDefault Dict.empty
+                                        |> Dict.insert model.stage savedGame
+                                        |> Just
+                                )
                     )
                 |> Maybe.withDefault model.levels
     }
 
 
-loadLevel : Int -> Model -> Model
-loadLevel level model =
-    let
-        grid =
-            model.levels
-                |> Dict.get level
-                |> Maybe.map Game.fromSave
-                |> Maybe.map Just
-                |> Maybe.withDefault (Game.Generate.fromId level)
-    in
-    { model
-        | game = grid
-        , level = level
-    }
+loadStage : { stage : Int, level : Int } -> Model -> Maybe Model
+loadStage args model =
+    model.levels
+        |> Dict.get args.level
+        |> Maybe.withDefault Dict.empty
+        |> Dict.get args.stage
+        |> Maybe.map Game.fromSave
+        |> Maybe.map Just
+        |> Maybe.withDefault (Game.Generate.new args)
+        |> Maybe.map
+            (\grid ->
+                { model
+                    | game = Just grid
+                    , level = args.level
+                    , stage = args.stage
+                }
+            )
 
 
-generateLevel : Int -> Model -> Model
-generateLevel level model =
+generateStage : { stage : Int, level : Int } -> Model -> Model
+generateStage args model =
     { model
-        | game = Game.Generate.fromId level
-        , level = level
+        | game = Game.Generate.new args
+        , level = args.level
+        , stage = args.stage
     }
 
 
 view : Model -> Html Msg
 view model =
-    [ [ "Stage " ++ String.fromInt model.level |> View.title
+    [ [ "Level " ++ String.fromInt model.level ++ " - " ++ String.fromInt model.stage |> View.title
       , model.game
             |> Maybe.map
                 (\game ->
                     game
                         |> View.grid []
-                            { levels = model.levels
+                            { levels =
+                                model.levels
+                                    |> Dict.get (model.level - 1)
+                                    |> Maybe.withDefault Dict.empty
                             , onToggle = Toggle
                             }
                 )
             |> Maybe.withDefault View.gameWon
       , [ "Edit Stages" |> View.cardTitle
         , model.levels
-            |> View.savedLevels SelectLevel
+            |> Dict.get (model.level - 1)
+            |> Maybe.withDefault Dict.empty
+            |> View.savedLevels { level = model.level - 1 }
+                (\stage -> LoadStage { level = model.level - 1, stage = stage })
         ]
             |> View.card [ Layout.gap 16 ]
       ]
@@ -116,7 +137,7 @@ view model =
        then
         [ "Stage Complete"
             |> View.cardTitle
-        , View.primaryButton NextLevel
+        , View.primaryButton NextStage
             "Next Level"
         ]
             |> Just
@@ -125,6 +146,8 @@ view model =
         [ "Select a tile you want to place"
             |> View.cardTitle
         , model.levels
+            |> Dict.get (model.level - 1)
+            |> Maybe.withDefault Dict.empty
             |> Dict.keys
             |> List.map
                 (\id ->
@@ -136,7 +159,8 @@ view model =
                                 , sendsTo = Dict.empty
                                 }
                                     |> ConnectionCell
-                                    |> View.tile2 { level = model.game |> Maybe.map .level |> Maybe.withDefault 1 } model.levels
+                                    |> View.tile2 { level = model.game |> Maybe.map .level |> Maybe.withDefault 1 }
+                                        (model.levels |> Dict.get (model.level - 1) |> Maybe.withDefault Dict.empty)
                                     |> Layout.el
                                         (Layout.asButton
                                             { label = "Level " ++ String.fromInt id ++ "(" ++ String.fromInt rotate ++ ")"
@@ -195,10 +219,10 @@ update msg model =
             ( (if x >= 0 && x <= 3 && y >= 0 && y <= 3 then
                 model.game
                     |> Maybe.map
-                        (\{ stage, level } ->
-                            case level of
+                        (\game ->
+                            case game.level of
                                 1 ->
-                                    stage.grid
+                                    game.stage.grid
                                         |> Dict.update ( x, y )
                                             (\maybe ->
                                                 case maybe of
@@ -218,23 +242,23 @@ update msg model =
                                         |> (\grid ->
                                                 { model
                                                     | game =
-                                                        { stage = { stage | grid = grid }
-                                                        , level = level
+                                                        { game
+                                                            | stage = game.stage |> (\stage -> { stage | grid = grid })
                                                         }
                                                             |> Just
                                                 }
                                            )
 
                                 2 ->
-                                    case stage.grid |> Dict.get ( x, y ) of
+                                    case game.stage.grid |> Dict.get ( x, y ) of
                                         Just (ConnectionCell _) ->
-                                            stage.grid
+                                            game.stage.grid
                                                 |> Dict.remove ( x, y )
                                                 |> (\grid ->
                                                         { model
                                                             | game =
-                                                                { stage = { stage | grid = grid }
-                                                                , level = level
+                                                                { game
+                                                                    | stage = game.stage |> (\stage -> { stage | grid = grid })
                                                                 }
                                                                     |> Just
                                                         }
@@ -261,13 +285,13 @@ update msg model =
         PlaceModule { moduleId, rotation } ->
             ( model.game
                 |> Maybe.map
-                    (\{ stage, level } ->
-                        case level of
+                    (\game ->
+                        case game.level of
                             1 ->
                                 model
 
                             2 ->
-                                stage.grid
+                                game.stage.grid
                                     |> Dict.insert (model.selected |> Maybe.withDefault ( 0, 0 ))
                                         ({ moduleId = moduleId
                                          , rotation = rotation
@@ -277,7 +301,7 @@ update msg model =
                                         )
                                     |> (\grid ->
                                             { model
-                                                | game = Just { level = level, stage = { stage | grid = grid } }
+                                                | game = Just { game | stage = game.stage |> (\stage -> { stage | grid = grid }) }
                                                 , updating = True
                                                 , selected = Nothing
                                             }
@@ -297,7 +321,7 @@ update msg model =
                         |> Maybe.map
                             (\game ->
                                 game
-                                    |> Game.update model.levels
+                                    |> Game.update (model.levels |> Dict.get (model.level - 1) |> Maybe.withDefault Dict.empty)
                                     |> Tuple.mapFirst Just
                             )
                         |> Maybe.withDefault ( Nothing, False )
@@ -309,18 +333,29 @@ update msg model =
             , Cmd.none
             )
 
-        NextLevel ->
+        NextStage ->
             ( model
                 |> saveLevel
-                |> loadLevel (model.level + 1)
+                |> (\m ->
+                        case
+                            m |> loadStage { level = m.level, stage = m.stage + 1 }
+                        of
+                            Just a ->
+                                a
+
+                            Nothing ->
+                                m
+                                    |> loadStage { level = m.level + 1, stage = 1 }
+                                    |> Maybe.withDefault { m | game = Nothing }
+                   )
             , Cmd.none
             )
 
         Unselect ->
             ( { model | selected = Nothing }, Cmd.none )
 
-        SelectLevel level ->
-            ( model |> generateLevel level
+        LoadStage level ->
+            ( model |> generateStage level
             , Cmd.none
             )
 

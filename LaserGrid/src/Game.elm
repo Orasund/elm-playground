@@ -14,7 +14,7 @@ type alias Game =
     }
 
 
-type alias SavedLevel =
+type alias SavedStage =
     { connections :
         Dict
             RelativePos
@@ -36,7 +36,7 @@ isSolved game =
     Stage.isSolved game.stage
 
 
-fromSave : SavedLevel -> Game
+fromSave : SavedStage -> Game
 fromSave savedLevel =
     { stage =
         savedLevel.grid
@@ -48,7 +48,7 @@ fromSave savedLevel =
     }
 
 
-toSave : Game -> Maybe SavedLevel
+toSave : Game -> Maybe SavedStage
 toSave game =
     let
         buildPath :
@@ -157,7 +157,7 @@ toSave game =
             Debug.todo "Implement recursive saving"
 
 
-update : Dict Int SavedLevel -> Game -> ( Game, Bool )
+update : Dict Int SavedStage -> Game -> ( Game, Bool )
 update modules game =
     let
         neighborsDirLevel1 pos stage =
@@ -239,7 +239,7 @@ update modules game =
         1 ->
             tick
                 { computeActiveConnections = \( pos, a ) -> computeActiveConnectionsLv1 (neighborsDirLevel1 pos game.stage) ( pos, a )
-                , toGame = \stage -> { stage = stage, level = 1 }
+                , toGame = \stage -> { game | stage = stage }
                 , dirList =
                     \p ->
                         RelativePos.list { maxPos = Config.maxPosLevel1 }
@@ -261,7 +261,7 @@ update modules game =
         2 ->
             tick
                 { computeActiveConnections = \( pos, a ) -> computeActiveConnectionsLv2 modules a pos
-                , toGame = \stage -> { stage = stage, level = 2 }
+                , toGame = \stage -> { game | stage = stage }
                 , dirList =
                     \p ->
                         RelativePos.list { maxPos = Config.maxPosLevel2 }
@@ -285,7 +285,7 @@ update modules game =
 
 
 computeActiveConnectionsLv2 :
-    Dict Int SavedLevel
+    Dict Int SavedStage
     -> Connection
     -> ( Int, Int )
     -> Stage

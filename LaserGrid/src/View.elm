@@ -4,7 +4,7 @@ import Cell exposing (Cell(..))
 import Color
 import Config
 import Dict exposing (Dict)
-import Game exposing (Game, SavedLevel)
+import Game exposing (Game, SavedStage)
 import Html exposing (Attribute, Html)
 import Html.Attributes
 import Layout
@@ -28,8 +28,8 @@ gameWon =
             )
 
 
-savedLevels : (Int -> msg) -> Dict Int SavedLevel -> Html msg
-savedLevels fun dict =
+savedLevels : { level : Int } -> (Int -> msg) -> Dict Int SavedStage -> Html msg
+savedLevels args fun dict =
     dict
         |> Dict.toList
         |> List.map
@@ -42,7 +42,7 @@ savedLevels fun dict =
                         , laserColor = Color.laserColorLevel1
                         , render = \_ -> View.Svg.boxRender
                         }
-                , Layout.text [] ("Stage" ++ String.fromInt id)
+                , Layout.text [] ("Stage " ++ String.fromInt args.level ++ " - " ++ String.fromInt id)
                 ]
                     |> Layout.column
                         (Layout.asButton
@@ -91,7 +91,7 @@ tile1 cell =
             }
 
 
-tile2 : { level : Int } -> Dict Int SavedLevel -> Cell -> Html msg
+tile2 : { level : Int } -> Dict Int SavedStage -> Cell -> Html msg
 tile2 args g cell =
     case cell of
         ConnectionCell c ->
@@ -140,7 +140,7 @@ tile2 args g cell =
                     }
 
 
-grid : List (Attribute msg) -> { levels : Dict Int SavedLevel, onToggle : ( Int, Int ) -> msg } -> Game -> Html msg
+grid : List (Attribute msg) -> { levels : Dict Int SavedStage, onToggle : ( Int, Int ) -> msg } -> Game -> Html msg
 grid attrs args g =
     List.range -1 4
         |> List.map
@@ -164,7 +164,7 @@ grid attrs args g =
         |> Layout.column attrs
 
 
-game : List (Attribute msg) -> { pos : ( Int, Int ), levels : Dict Int SavedLevel } -> Game -> Html msg
+game : List (Attribute msg) -> { pos : ( Int, Int ), levels : Dict Int SavedStage } -> Game -> Html msg
 game attrs args g =
     (case g.level of
         1 ->
