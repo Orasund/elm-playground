@@ -157,7 +157,7 @@ grid attrs args g =
                                     , levels = args.levels
                                     }
                         )
-                    |> Layout.row []
+                    |> Layout.row [ Layout.noWrap ]
             )
         |> Layout.column attrs
 

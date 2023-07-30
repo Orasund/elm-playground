@@ -8032,6 +8032,7 @@ var $author$project$View$game = F3(
 					}
 				}()));
 	});
+var $Orasund$elm_layout$Layout$noWrap = A2($elm$html$Html$Attributes$style, 'flex-wrap', 'nowrap');
 var $Orasund$elm_layout$Layout$row = function (attrs) {
 	return $elm$html$Html$div(
 		_Utils_ap(
@@ -8053,7 +8054,8 @@ var $author$project$View$grid = F3(
 				function (y) {
 					return A2(
 						$Orasund$elm_layout$Layout$row,
-						_List_Nil,
+						_List_fromArray(
+							[$Orasund$elm_layout$Layout$noWrap]),
 						A2(
 							$elm$core$List$map,
 							function (x) {
