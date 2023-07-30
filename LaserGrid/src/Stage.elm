@@ -4,13 +4,13 @@ import Cell exposing (Cell(..))
 import Dict exposing (Dict)
 
 
-type alias Stage a =
-    { grid : Dict ( Int, Int ) (Cell a)
+type alias Stage =
+    { grid : Dict ( Int, Int ) Cell
     , targets : List ( Int, Int )
     }
 
 
-isSolved : Stage a -> Bool
+isSolved : Stage -> Bool
 isSolved stage =
     List.all
         (\pos ->
@@ -24,12 +24,7 @@ isSolved stage =
         stage.targets
 
 
-toDict : Stage a -> Dict ( Int, Int ) (Cell ())
-toDict stage =
-    stage.grid |> Dict.map (\_ -> Cell.map (\_ -> ()))
-
-
-fromDict : Dict ( Int, Int ) (Cell a) -> Stage a
+fromDict : Dict ( Int, Int ) Cell -> Stage
 fromDict dict =
     { grid = dict
     , targets =
@@ -47,7 +42,7 @@ fromDict dict =
     }
 
 
-parse : List String -> Stage a
+parse : List String -> Stage
 parse rows =
     rows
         |> List.indexedMap
@@ -80,6 +75,6 @@ parse rows =
         |> fromDict
 
 
-withLaserAt : ( Int, Int ) -> Dict ( Int, Int ) (Cell a) -> Dict ( Int, Int ) (Cell a)
+withLaserAt : ( Int, Int ) -> Dict ( Int, Int ) Cell -> Dict ( Int, Int ) Cell
 withLaserAt pos =
     Dict.insert pos Origin

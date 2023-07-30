@@ -8,9 +8,10 @@ type alias RelativePos =
     ( ( Int, Int ), String )
 
 
-list =
+list : { maxPos : Int } -> List RelativePos
+list args =
     List.range 0 3
-        |> List.concatMap (\i -> [ ( -1, i ), ( 4, i ), ( i, -1 ), ( i, 4 ) ])
+        |> List.concatMap (\i -> [ ( -1, i ), ( args.maxPos, i ), ( i, -1 ), ( i, args.maxPos ) ])
         |> List.map fromTuple
 
 
@@ -19,43 +20,31 @@ fromTuple pos =
     ( pos, "RelativePos" )
 
 
-rotate : Int -> RelativePos -> RelativePos
-rotate amount a =
+rotate : { maxPos : Int } -> Int -> RelativePos -> RelativePos
+rotate args amount a =
     List.range 0 (amount - 1)
-        |> List.foldl (\_ -> rotateClockwise) a
+        |> List.foldl (\_ -> rotateClockwise args) a
 
 
-rotationMatrix : Dict RelativePos RelativePos
-rotationMatrix =
-    [ ( ( -1, 0 ), ( 3, -1 ) )
-    , ( ( -1, 1 ), ( 2, -1 ) )
-    , ( ( -1, 2 ), ( 1, -1 ) )
-    , ( ( -1, 3 ), ( 0, -1 ) )
-    , ( ( 3, -1 ), ( 4, 3 ) )
-    , ( ( 2, -1 ), ( 4, 2 ) )
-    , ( ( 1, -1 ), ( 4, 1 ) )
-    , ( ( 0, -1 ), ( 4, 0 ) )
-    , ( ( 4, 3 ), ( 0, 4 ) )
-    , ( ( 4, 2 ), ( 1, 4 ) )
-    , ( ( 4, 1 ), ( 2, 4 ) )
-    , ( ( 4, 0 ), ( 3, 4 ) )
-    , ( ( 0, 4 ), ( -1, 0 ) )
-    , ( ( 1, 4 ), ( -1, 1 ) )
-    , ( ( 2, 4 ), ( -1, 2 ) )
-    , ( ( 3, 4 ), ( -1, 3 ) )
-    ]
+rotationMatrix : { maxPos : Int } -> Dict RelativePos RelativePos
+rotationMatrix args =
+    List.range 0 (args.maxPos - 1)
+        |> List.map
+            (\i ->
+                [ ( ( -1, i ), ( args.maxPos - 1 - i, -1 ) )
+                , ( ( i, -1 ), ( args.maxPos, i ) )
+                , ( ( args.maxPos, args.maxPos - 1 - i ), ( i, args.maxPos ) )
+                , ( ( i, args.maxPos ), ( -1, i ) )
+                ]
+            )
+        |> List.concat
         |> List.map (Tuple.mapBoth fromTuple fromTuple)
         |> Dict.fromList
 
 
-{-|
-
-    (0,-1) ->
-
--}
-rotateClockwise : RelativePos -> RelativePos
-rotateClockwise relPos =
-    case rotationMatrix |> Dict.get relPos of
+rotateClockwise : { maxPos : Int } -> RelativePos -> RelativePos
+rotateClockwise args relPos =
+    case rotationMatrix args |> Dict.get relPos of
         Just pos ->
             pos
 
@@ -63,14 +52,14 @@ rotateClockwise relPos =
             Debug.todo "tried rotating a center position"
 
 
-reverse : RelativePos -> RelativePos
-reverse ( ( x, y ), _ ) =
+reverse : { maxPos : Int } -> RelativePos -> RelativePos
+reverse args ( ( x, y ), _ ) =
     let
         rev i =
             if i == -1 then
-                4
+                args.maxPos
 
-            else if i == 4 then
+            else if i == args.maxPos then
                 -1
 
             else
@@ -80,14 +69,14 @@ reverse ( ( x, y ), _ ) =
         |> fromTuple
 
 
-toDir : RelativePos -> Dir
-toDir ( ( x, y ), _ ) =
+toDir : { maxPos : Int } -> RelativePos -> Dir
+toDir args ( ( x, y ), _ ) =
     let
         minPos =
             -1
 
         maxPos =
-            4
+            args.maxPos
     in
     if x == maxPos then
         Dir.new 0
@@ -102,7 +91,7 @@ toDir ( ( x, y ), _ ) =
         Dir.new 3
 
     else
-        Debug.todo ("trying to convert" ++ String.fromInt x ++ "," ++ String.fromInt y)
+        Debug.todo ("trying to convert " ++ String.fromInt x ++ "," ++ String.fromInt y)
 
 
 unsafeToTuple : RelativePos -> ( Int, Int )

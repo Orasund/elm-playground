@@ -1,8 +1,8 @@
 module Color exposing (..)
 
 
-background =
-    white
+background level =
+    "linear-gradient(" ++ white ++ ", color-mix(in lch," ++ laserColor level ++ " 33%,white))"
 
 
 fontColor =
@@ -13,12 +13,20 @@ wallColor =
     black
 
 
-laserColorLevel2 =
-    primary
+laserColor level =
+    case level of
+        2 ->
+            primaryLevel2
+
+        1 ->
+            primaryLevel1
+
+        _ ->
+            Debug.todo "add Laser color"
 
 
 laserColorLevel1 =
-    primary
+    primaryLevel1
 
 
 inactiveLaser =
@@ -51,11 +59,19 @@ darkGray =
     "#d9d9d9"
 
 
-primary : String
-primary =
+primaryLevel1 : String
+primaryLevel1 =
+    --red
     "#cc353c"
+
+
+primaryLevel2 : String
+primaryLevel2 =
+    --green
+    "#23bf24"
 
 
 secondary : String
 secondary =
+    --dark blue
     "#122a58"

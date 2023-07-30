@@ -4,7 +4,7 @@ import Browser
 import Cell exposing (Cell(..))
 import Color
 import Dict exposing (Dict)
-import Game exposing (Game(..), SavedLevel)
+import Game exposing (Game, SavedLevel)
 import Game.Generate
 import Html exposing (Html)
 import Html.Attributes
@@ -136,7 +136,7 @@ view model =
                                 , sendsTo = Dict.empty
                                 }
                                     |> ConnectionCell
-                                    |> View.tile2 model.levels
+                                    |> View.tile2 { level = model.game |> Maybe.map .level |> Maybe.withDefault 1 } model.levels
                                     |> Layout.el
                                         (Layout.asButton
                                             { label = "Level " ++ String.fromInt id ++ "(" ++ String.fromInt rotate ++ ")"
@@ -181,7 +181,7 @@ view model =
                 ++ [ Layout.asEl
                    , Html.Attributes.style "position" "relative"
                    , Html.Attributes.style "color" Color.fontColor
-                   , Html.Attributes.style "background" Color.background
+                   , Html.Attributes.style "background" (Color.background (model.game |> Maybe.map .level |> Maybe.withDefault 1))
                    , Html.Attributes.style "font-family" "sans-serif"
                    , Html.Attributes.style "height" "100%"
                    ]
@@ -193,48 +193,63 @@ update msg model =
     case msg of
         Toggle ( x, y ) ->
             ( (if x >= 0 && x <= 3 && y >= 0 && y <= 3 then
-                case model.game of
-                    Just (Level1 stage) ->
-                        stage.grid
-                            |> Dict.update ( x, y )
-                                (\maybe ->
-                                    case maybe of
+                model.game
+                    |> Maybe.map
+                        (\{ stage, level } ->
+                            case level of
+                                1 ->
+                                    stage.grid
+                                        |> Dict.update ( x, y )
+                                            (\maybe ->
+                                                case maybe of
+                                                    Just (ConnectionCell _) ->
+                                                        Nothing
+
+                                                    Nothing ->
+                                                        Just
+                                                            (Dict.empty
+                                                                |> Cell.connectionLevel1
+                                                                |> ConnectionCell
+                                                            )
+
+                                                    _ ->
+                                                        maybe
+                                            )
+                                        |> (\grid ->
+                                                { model
+                                                    | game =
+                                                        { stage = { stage | grid = grid }
+                                                        , level = level
+                                                        }
+                                                            |> Just
+                                                }
+                                           )
+
+                                2 ->
+                                    case stage.grid |> Dict.get ( x, y ) of
                                         Just (ConnectionCell _) ->
-                                            Nothing
+                                            stage.grid
+                                                |> Dict.remove ( x, y )
+                                                |> (\grid ->
+                                                        { model
+                                                            | game =
+                                                                { stage = { stage | grid = grid }
+                                                                , level = level
+                                                                }
+                                                                    |> Just
+                                                        }
+                                                   )
 
                                         Nothing ->
-                                            Just
-                                                (ConnectionCell
-                                                    { sendsTo = Dict.empty
-                                                    }
-                                                )
+                                            { model | selected = Just ( x, y ) }
 
                                         _ ->
-                                            maybe
-                                )
-                            |> (\grid -> { stage | grid = grid })
-                            |> Level1
-                            |> (\grid -> { model | game = Just grid })
+                                            model
 
-                    Just (Level2 stage) ->
-                        case stage.grid |> Dict.get ( x, y ) |> Debug.log "cell" of
-                            Just (ConnectionCell _) ->
-                                { stage
-                                    | grid =
-                                        stage.grid
-                                            |> Dict.remove ( x, y )
-                                }
-                                    |> Level2
-                                    |> (\grid -> { model | game = Just grid })
-
-                            Nothing ->
-                                { model | selected = Just ( x, y ) }
-
-                            _ ->
-                                model
-
-                    Nothing ->
-                        model
+                                _ ->
+                                    Debug.todo "recursive Updates"
+                        )
+                    |> Maybe.withDefault model
 
                else
                 model
@@ -244,33 +259,34 @@ update msg model =
             )
 
         PlaceModule { moduleId, rotation } ->
-            ( case model.game of
-                Just (Level1 _) ->
-                    model
+            ( model.game
+                |> Maybe.map
+                    (\{ stage, level } ->
+                        case level of
+                            1 ->
+                                model
 
-                Just (Level2 stage) ->
-                    { stage
-                        | grid =
-                            stage.grid
-                                |> Dict.insert (model.selected |> Maybe.withDefault ( 0, 0 ))
-                                    ({ moduleId = moduleId
-                                     , rotation = rotation
-                                     , sendsTo = Dict.empty
-                                     }
-                                        |> ConnectionCell
-                                    )
-                    }
-                        |> Level2
-                        |> (\game ->
-                                { model
-                                    | game = Just game
-                                    , updating = True
-                                    , selected = Nothing
-                                }
-                           )
+                            2 ->
+                                stage.grid
+                                    |> Dict.insert (model.selected |> Maybe.withDefault ( 0, 0 ))
+                                        ({ moduleId = moduleId
+                                         , rotation = rotation
+                                         , sendsTo = Dict.empty
+                                         }
+                                            |> ConnectionCell
+                                        )
+                                    |> (\grid ->
+                                            { model
+                                                | game = Just { level = level, stage = { stage | grid = grid } }
+                                                , updating = True
+                                                , selected = Nothing
+                                            }
+                                       )
 
-                Nothing ->
-                    model
+                            _ ->
+                                Debug.todo "recursive placing modules"
+                    )
+                |> Maybe.withDefault model
             , Cmd.none
             )
 

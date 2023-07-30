@@ -1,10 +1,10 @@
 module View exposing (..)
 
-import Cell exposing (Cell(..), Cell1, Cell2)
+import Cell exposing (Cell(..))
 import Color
 import Config
 import Dict exposing (Dict)
-import Game exposing (Game(..), SavedLevel)
+import Game exposing (Game, SavedLevel)
 import Html exposing (Attribute, Html)
 import Html.Attributes
 import Layout
@@ -71,7 +71,7 @@ card : List (Attribute msg) -> List (Html msg) -> Html msg
 card attrs =
     Layout.column
         ([ Html.Attributes.style "padding" "2rem"
-         , Html.Attributes.style "background-color" Color.lightGray
+         , Html.Attributes.style "background-color" Color.white
          , Html.Attributes.style "border-radius" "1rem"
          , Layout.gap 16
          ]
@@ -79,7 +79,7 @@ card attrs =
         )
 
 
-tile1 : Cell1 -> Html msg
+tile1 : Cell -> Html msg
 tile1 cell =
     Cell.cell1ToColor { laserColor = Color.laserColorLevel1 }
         Nothing
@@ -87,12 +87,12 @@ tile1 cell =
         |> View.Svg.cell1
             { height = Config.cellSize
             , width = Config.cellSize
-            , render = cellRender cell
+            , render = cellRender { laserColor = Color.laserColorLevel1 } cell
             }
 
 
-tile2 : Dict Int SavedLevel -> Cell2 -> Html msg
-tile2 g cell =
+tile2 : { level : Int } -> Dict Int SavedLevel -> Cell -> Html msg
+tile2 args g cell =
     case cell of
         ConnectionCell c ->
             g
@@ -103,7 +103,7 @@ tile2 g cell =
                             activePos =
                                 c.sendsTo
                                     |> Dict.keys
-                                    |> List.map (RelativePos.rotate (4 - c.rotation))
+                                    |> List.map (RelativePos.rotate { maxPos = Config.maxPosLevel2 } (4 - c.rotation))
                                     |> List.concatMap
                                         (\to ->
                                             level.connections
@@ -118,7 +118,7 @@ tile2 g cell =
                                 { height = Config.cellSize
                                 , width = Config.cellSize
                                 , active = \pos -> Set.member (RelativePos.fromTuple pos) activePos
-                                , laserColor = Color.laserColorLevel2
+                                , laserColor = Color.laserColor args.level
                                 , render = \_ -> View.Svg.boxRender
                                 }
                             |> Layout.el
@@ -131,12 +131,12 @@ tile2 g cell =
         _ ->
             cell
                 |> Cell.cell1ToColor
-                    { laserColor = Color.laserColorLevel2 }
+                    { laserColor = Color.laserColor args.level }
                     Nothing
                 |> View.Svg.cell1
                     { height = Config.cellSize
                     , width = Config.cellSize
-                    , render = cellRender cell
+                    , render = cellRender { laserColor = Color.laserColor args.level } cell
                     }
 
 
@@ -166,16 +166,19 @@ grid attrs args g =
 
 game : List (Attribute msg) -> { pos : ( Int, Int ), levels : Dict Int SavedLevel } -> Game -> Html msg
 game attrs args g =
-    (case g of
-        Level1 stage ->
-            stage.grid
+    (case g.level of
+        1 ->
+            g.stage.grid
                 |> Dict.get args.pos
                 |> Maybe.map tile1
 
-        Level2 stage ->
-            stage.grid
+        2 ->
+            g.stage.grid
                 |> Dict.get args.pos
-                |> Maybe.map (tile2 args.levels)
+                |> Maybe.map (tile2 { level = g.level } args.levels)
+
+        _ ->
+            Debug.todo "visuals"
     )
         |> Maybe.withDefault Layout.none
         |> Layout.el
@@ -202,8 +205,8 @@ primaryButton onPress label =
         }
 
 
-cellRender : Cell connection -> RenderFunction msg
-cellRender cell =
+cellRender : { laserColor : String } -> Cell -> RenderFunction msg
+cellRender args cell =
     case cell of
         ConnectionCell _ ->
             View.Svg.boxRender
@@ -215,7 +218,7 @@ cellRender cell =
             View.Svg.boxRender
 
         Target Nothing ->
-            View.Svg.targetRender { secondaryColor = Color.laserColorLevel1 }
+            View.Svg.targetRender { secondaryColor = args.laserColor }
 
         Target (Just _) ->
             View.Svg.targetRender { secondaryColor = Color.wallColor }

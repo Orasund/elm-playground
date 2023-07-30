@@ -1,9 +1,9 @@
 module View.Svg exposing (..)
 
-import Cell exposing (Cell1)
+import Cell exposing (Cell)
 import Dict exposing (Dict)
 import RelativePos exposing (RelativePos)
-import Svg exposing (Attribute, Svg)
+import Svg exposing (Svg)
 import Svg.Attributes
 
 
@@ -16,9 +16,9 @@ grid :
     , height : Int
     , active : ( Int, Int ) -> Bool
     , laserColor : String
-    , render : Cell1 -> RenderFunction msg
+    , render : Cell -> RenderFunction msg
     }
-    -> Dict RelativePos Cell1
+    -> Dict RelativePos Cell
     -> Svg msg
 grid args dict =
     dict

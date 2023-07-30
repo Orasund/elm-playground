@@ -1,6 +1,6 @@
 module Game.Generate exposing (..)
 
-import Game exposing (Game(..))
+import Game exposing (Game)
 import Stage
 
 
@@ -16,7 +16,7 @@ fromId stageId =
                 , "⬛⬜⬜⬜⬜🟥"
                 , "⬛🔘⬛⬛⬛⬛"
                 ]
-                |> Level2
+                |> Game.fromStage { level = 2 }
                 |> Just
 
         5 ->
@@ -28,7 +28,7 @@ fromId stageId =
                 , "⬛⬜⬜⬜⬜🔘"
                 , "⬛🟥⬛⬛⬛⬛"
                 ]
-                |> Level2
+                |> Game.fromStage { level = 2 }
                 |> Just
 
         4 ->
@@ -40,7 +40,7 @@ fromId stageId =
                 , "🔘⬜⬜⬜⬜⬛"
                 , "⬛⬛⬛⬛🔘⬛"
                 ]
-                |> Level2
+                |> Game.fromStage { level = 2 }
                 |> Just
 
         3 ->
@@ -52,7 +52,7 @@ fromId stageId =
                 , "🔘⬜⬜⬜⬜⬛"
                 , "⬛🔘⬛⬛🟥⬛"
                 ]
-                |> Level1
+                |> Game.fromStage { level = 1 }
                 |> Just
 
         2 ->
@@ -64,7 +64,7 @@ fromId stageId =
                 , "🟥⬜⬜⬜⬜🔘"
                 , "⬛🔘⬛⬛⬛⬛"
                 ]
-                |> Level1
+                |> Game.fromStage { level = 1 }
                 |> Just
 
         1 ->
@@ -76,7 +76,7 @@ fromId stageId =
                 , "🔘⬜⬜⬜⬜⬛"
                 , "⬛🟥⬛⬛⬛⬛"
                 ]
-                |> Level1
+                |> Game.fromStage { level = 1 }
                 |> Just
 
         _ ->

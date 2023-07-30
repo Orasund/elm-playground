@@ -1,15 +1,17 @@
 module Game exposing (..)
 
-import Cell exposing (Cell(..), Cell1, ConnectionSort1, ConnectionSort2)
+import Cell exposing (Cell(..), Connection)
+import Config
 import Dict exposing (Dict)
-import Dir exposing (Dir)
+import Dir
 import RelativePos exposing (RelativePos)
 import Stage exposing (Stage)
 
 
-type Game
-    = Level1 (Stage ConnectionSort1)
-    | Level2 (Stage ConnectionSort2)
+type alias Game =
+    { stage : Stage
+    , level : Int
+    }
 
 
 type alias SavedLevel =
@@ -19,43 +21,38 @@ type alias SavedLevel =
             { from : RelativePos
             , path : List RelativePos
             }
-    , grid : Dict RelativePos Cell1
+    , grid : Dict RelativePos Cell
+    , level : Int
     }
+
+
+fromStage : { level : Int } -> Stage -> Game
+fromStage args stage =
+    { stage = stage, level = args.level }
 
 
 isSolved : Game -> Bool
 isSolved game =
-    case game of
-        Level1 stage ->
-            Stage.isSolved stage
-
-        Level2 stage ->
-            Stage.isSolved stage
+    Stage.isSolved game.stage
 
 
 fromSave : SavedLevel -> Game
 fromSave savedLevel =
-    savedLevel.grid
-        |> Dict.toList
-        |> List.map (\( k, v ) -> ( RelativePos.unsafeToTuple k, v ))
-        |> Dict.fromList
-        |> Stage.fromDict
-        |> Level1
+    { stage =
+        savedLevel.grid
+            |> Dict.toList
+            |> List.map (\( k, v ) -> ( RelativePos.unsafeToTuple k, v ))
+            |> Dict.fromList
+            |> Stage.fromDict
+    , level = savedLevel.level
+    }
 
 
 toSave : Game -> Maybe SavedLevel
 toSave game =
     let
-        targets =
-            case game of
-                Level1 stage ->
-                    stage.targets
-
-                Level2 stage ->
-                    stage.targets
-
         buildPath :
-            Dict ( Int, Int ) Cell1
+            Dict ( Int, Int ) Cell
             -> Maybe { pos : ( Int, Int ), to : ( Int, Int ), path : List ( Int, Int ) }
             -> Maybe { pos : ( Int, Int ), to : ( Int, Int ), path : List ( Int, Int ) }
         buildPath grid =
@@ -65,16 +62,26 @@ toSave game =
                         |> Dict.get pos
                         |> Maybe.andThen
                             (\cell ->
-                                case cell |> Debug.log "cell" of
+                                case cell of
                                     ConnectionCell connection ->
                                         connection.sendsTo
                                             |> Dict.toList
-                                            |> List.map (\( k, v ) -> ( Dir.addTo pos k, v ))
+                                            |> List.map
+                                                (\( k, v ) ->
+                                                    ( k
+                                                        |> RelativePos.toDir { maxPos = Config.maxPosLevel1 }
+                                                        |> Dir.addTo pos
+                                                    , v
+                                                    )
+                                                )
                                             |> Dict.fromList
-                                            |> Dict.get (Debug.log "to" to)
+                                            |> Dict.get to
                                             |> Maybe.map
                                                 (\{ from } ->
-                                                    { pos = Dir.addTo pos from
+                                                    { pos =
+                                                        from
+                                                            |> RelativePos.toDir { maxPos = Config.maxPosLevel1 }
+                                                            |> Dir.addTo pos
                                                     , path = pos :: path
                                                     , to = pos
                                                     }
@@ -102,13 +109,13 @@ toSave game =
                             )
                 )
     in
-    case game of
-        Level1 stage ->
-            targets
+    case game.level of
+        1 ->
+            game.stage.targets
                 |> List.filterMap
                     (\target ->
                         List.range 0 16
-                            |> List.foldl (\_ -> buildPath stage.grid)
+                            |> List.foldl (\_ -> buildPath game.stage.grid)
                                 (Just { pos = target, to = target, path = [] })
                             |> Maybe.map
                                 (\{ pos, path } ->
@@ -132,38 +139,41 @@ toSave game =
                 |> List.concat
                 |> Dict.fromList
                 |> (\dict ->
-                        { connections = dict |> Debug.log "connections"
+                        { connections = dict
                         , grid =
-                            stage.grid
+                            game.stage.grid
                                 |> Dict.toList
                                 |> List.map (\( k, v ) -> ( RelativePos.fromTuple k, v ))
                                 |> Dict.fromList
+                        , level = game.level
                         }
                    )
                 |> Just
 
-        Level2 _ ->
+        2 ->
             Nothing
 
-
-toDict : Game -> Dict ( Int, Int ) (Cell ())
-toDict game =
-    case game of
-        Level1 dict ->
-            Stage.toDict dict
-
-        Level2 dict ->
-            Stage.toDict dict
+        _ ->
+            Debug.todo "Implement recursive saving"
 
 
 update : Dict Int SavedLevel -> Game -> ( Game, Bool )
-update modules grid =
+update modules game =
     let
-        neighborsDir pos stage =
+        neighborsDirLevel1 pos stage =
             Dir.list
+                |> List.map (Dir.addTo ( 0, 0 ))
+                |> List.map RelativePos.fromTuple
                 |> List.filterMap
                     (\dir ->
-                        case Dict.get (dir |> Dir.addTo pos) stage.grid of
+                        case
+                            Dict.get
+                                (dir
+                                    |> RelativePos.toDir { maxPos = Config.maxPosLevel1 }
+                                    |> Dir.addTo pos
+                                )
+                                stage.grid
+                        of
                             Just (ConnectionCell _) ->
                                 Just dir
 
@@ -178,13 +188,12 @@ update modules grid =
                     )
 
         tick :
-            { computeActiveConnections : ( ( Int, Int ), a ) -> Stage a -> a
-            , toGame : Stage a -> Game
-            , connectionSendsTo : dir -> a -> Bool
-            , dirList : ( Int, Int ) -> List { pos : ( Int, Int ), to : dir }
+            { computeActiveConnections : ( ( Int, Int ), Connection ) -> Stage -> Connection
+            , toGame : Stage -> Game
+            , dirList : ( Int, Int ) -> List { pos : ( Int, Int ), to : RelativePos }
             , powerStrength : Int
             }
-            -> Stage a
+            -> Stage
             -> ( Game, Bool )
         tick args stage =
             stage.grid
@@ -203,7 +212,6 @@ update modules grid =
                                             dir.pos
                                                 |> sendsEnergy
                                                     { to = dir.to
-                                                    , connectionSends = args.connectionSendsTo
                                                     }
                                                     stage
                                         )
@@ -227,42 +235,61 @@ update modules grid =
                         )
                    )
     in
-    case grid of
-        Level1 stage ->
+    case game.level of
+        1 ->
             tick
-                { computeActiveConnections = \( pos, a ) -> computeActiveConnectionsLv1 (neighborsDir pos stage) ( pos, a )
-                , toGame = Level1
-                , connectionSendsTo = connection1SendsTo
-                , dirList = \p -> Dir.list |> List.map (\dir -> { pos = dir |> Dir.addTo p, to = dir |> Dir.reverse })
-                , powerStrength = 1
-                }
-                stage
-
-        Level2 stage ->
-            tick
-                { computeActiveConnections = \( pos, a ) -> computeActiveConnectionsLv2 modules a pos
-                , toGame = Level2
-                , connectionSendsTo = connection2SendsTo
+                { computeActiveConnections = \( pos, a ) -> computeActiveConnectionsLv1 (neighborsDirLevel1 pos game.stage) ( pos, a )
+                , toGame = \stage -> { stage = stage, level = 1 }
                 , dirList =
                     \p ->
-                        RelativePos.list
+                        RelativePos.list { maxPos = Config.maxPosLevel1 }
                             |> List.map
                                 (\relPos ->
-                                    { pos = relPos |> RelativePos.toDir |> Dir.addTo p
-                                    , to = relPos |> RelativePos.reverse
+                                    { pos =
+                                        relPos
+                                            |> RelativePos.toDir { maxPos = Config.maxPosLevel1 }
+                                            |> Dir.addTo p
+                                    , to =
+                                        relPos
+                                            |> RelativePos.reverse { maxPos = Config.maxPosLevel1 }
+                                    }
+                                )
+                , powerStrength = 1
+                }
+                game.stage
+
+        2 ->
+            tick
+                { computeActiveConnections = \( pos, a ) -> computeActiveConnectionsLv2 modules a pos
+                , toGame = \stage -> { stage = stage, level = 2 }
+                , dirList =
+                    \p ->
+                        RelativePos.list { maxPos = Config.maxPosLevel2 }
+                            |> List.map
+                                (\relPos ->
+                                    { pos =
+                                        relPos
+                                            |> RelativePos.toDir { maxPos = Config.maxPosLevel2 }
+                                            |> Dir.addTo p
+                                    , to =
+                                        relPos
+                                            |> RelativePos.reverse { maxPos = Config.maxPosLevel2 }
                                     }
                                 )
                 , powerStrength = 2
                 }
-                stage
+                game.stage
+
+        _ ->
+            Debug.todo "update for recursive structure"
 
 
 computeActiveConnectionsLv2 :
     Dict Int SavedLevel
-    -> ConnectionSort2
+    -> Connection
     -> ( Int, Int )
-    -> Stage ConnectionSort2
-    -> ConnectionSort2
+    -> Stage
+    -> Connection
 computeActiveConnectionsLv2 modules connection pos stage =
     modules
         |> Dict.get connection.moduleId
@@ -273,23 +300,22 @@ computeActiveConnectionsLv2 modules connection pos stage =
             (\( to, { from } ) ->
                 if
                     from
-                        |> RelativePos.toDir
+                        |> RelativePos.toDir { maxPos = Config.maxPosLevel2 }
                         |> Dir.rotate connection.rotation
                         |> Dir.addTo pos
                         |> sendsEnergy
                             { to =
                                 from
-                                    |> RelativePos.reverse
-                                    |> RelativePos.rotate connection.rotation
-                            , connectionSends = connection2SendsTo
+                                    |> RelativePos.reverse { maxPos = Config.maxPosLevel2 }
+                                    |> RelativePos.rotate { maxPos = Config.maxPosLevel2 } connection.rotation
                             }
                             stage
                 then
                     ( to
-                        |> RelativePos.rotate connection.rotation
+                        |> RelativePos.rotate { maxPos = Config.maxPosLevel2 } connection.rotation
                     , { from =
                             from
-                                |> RelativePos.rotate connection.rotation
+                                |> RelativePos.rotate { maxPos = Config.maxPosLevel2 } connection.rotation
                       }
                     )
                         |> Just
@@ -301,16 +327,16 @@ computeActiveConnectionsLv2 modules connection pos stage =
         |> (\sendsTo -> { connection | sendsTo = sendsTo })
 
 
-computeActiveConnectionsLv1 : List Dir -> ( ( Int, Int ), ConnectionSort1 ) -> Stage ConnectionSort1 -> ConnectionSort1
+computeActiveConnectionsLv1 : List RelativePos -> ( ( Int, Int ), Connection ) -> Stage -> Connection
 computeActiveConnectionsLv1 neighborsDir ( pos, connection ) stage =
     (case neighborsDir of
         [ dir1, dir2 ] ->
             if
                 dir1
+                    |> RelativePos.toDir { maxPos = Config.maxPosLevel1 }
                     |> Dir.addTo pos
                     |> sendsEnergy
-                        { to = dir1 |> Dir.reverse
-                        , connectionSends = connection1SendsTo
+                        { to = dir1 |> RelativePos.reverse { maxPos = Config.maxPosLevel1 }
                         }
                         stage
             then
@@ -318,10 +344,10 @@ computeActiveConnectionsLv1 neighborsDir ( pos, connection ) stage =
 
             else if
                 dir2
+                    |> RelativePos.toDir { maxPos = Config.maxPosLevel1 }
                     |> Dir.addTo pos
                     |> sendsEnergy
-                        { to = dir2 |> Dir.reverse
-                        , connectionSends = connection1SendsTo
+                        { to = dir2 |> RelativePos.reverse { maxPos = Config.maxPosLevel1 }
                         }
                         stage
             then
@@ -331,19 +357,19 @@ computeActiveConnectionsLv1 neighborsDir ( pos, connection ) stage =
                 []
 
         _ ->
-            Dir.list
+            RelativePos.list { maxPos = Config.maxPosLevel1 }
                 |> List.filterMap
                     (\fromDir ->
                         if
                             fromDir
+                                |> RelativePos.toDir { maxPos = Config.maxPosLevel1 }
                                 |> Dir.addTo pos
                                 |> sendsEnergy
-                                    { to = fromDir |> Dir.reverse
-                                    , connectionSends = connection1SendsTo
+                                    { to = fromDir |> RelativePos.reverse { maxPos = Config.maxPosLevel1 }
                                     }
                                     stage
                         then
-                            ( fromDir |> Dir.reverse
+                            ( fromDir |> RelativePos.reverse { maxPos = Config.maxPosLevel1 }
                             , { from = fromDir }
                             )
                                 |> Just
@@ -356,38 +382,23 @@ computeActiveConnectionsLv1 neighborsDir ( pos, connection ) stage =
         |> (\sendsTo -> { connection | sendsTo = sendsTo })
 
 
-connection2SendsTo : RelativePos -> ConnectionSort2 -> Bool
-connection2SendsTo to connection =
+connectionSendsTo : RelativePos -> Connection -> Bool
+connectionSendsTo to connection =
     connection.sendsTo
         |> Dict.keys
-        |> List.any
-            (\relPos ->
-                relPos
-                    |> (==) to
-            )
-
-
-connection1SendsTo : Dir -> ConnectionSort1 -> Bool
-connection1SendsTo to connection =
-    connection.sendsTo
-        |> Dict.keys
-        |> List.any
-            (\dir ->
-                dir == to
-            )
+        |> List.any ((==) to)
 
 
 sendsEnergy :
-    { connectionSends : dir -> a -> Bool
-    , to : dir
+    { to : RelativePos
     }
-    -> Stage a
+    -> Stage
     -> ( Int, Int )
     -> Bool
 sendsEnergy args stage pos =
     case stage.grid |> Dict.get pos of
         Just (ConnectionCell a) ->
-            args.connectionSends args.to a
+            connectionSendsTo args.to a
 
         Just Origin ->
             True
