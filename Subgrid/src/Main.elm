@@ -125,14 +125,14 @@ view model =
                 , Html.Attributes.style "overflow" "hidden"
                 ]
       , if model.level == 1 then
-            [ "Connect the circles with energy by placing tiles." |> Layout.text []
+            [ "Activate the circles by placing tiles on the grid." |> Layout.text []
             , "Energy will flow along the tiles." |> Layout.text []
             , "If the direction is ambiguous, it will always go straight." |> Layout.text []
             ]
                 |> View.card [ Layout.gap 16 ]
 
         else
-            [ "Edit Stages" |> View.cardTitle
+            [ "Edit Levels" |> View.cardTitle
             , model.levels
                 |> Dict.get (model.level - 1)
                 |> Maybe.withDefault Dict.empty

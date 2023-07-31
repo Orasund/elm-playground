@@ -15,6 +15,9 @@ wallColor =
 
 laserColor level =
     case level of
+        3 ->
+            primaryLevel3
+
         2 ->
             primaryLevel2
 
@@ -23,10 +26,6 @@ laserColor level =
 
         _ ->
             Debug.todo "add Laser color"
-
-
-laserColorLevel1 =
-    primaryLevel1
 
 
 inactiveLaser level =
@@ -69,6 +68,12 @@ primaryLevel2 : String
 primaryLevel2 =
     --green
     "#23bf24"
+
+
+primaryLevel3 : String
+primaryLevel3 =
+    --violett
+    "#cc35a1"
 
 
 secondary : String

@@ -59,7 +59,7 @@ new args =
                         , "⬛⬜⬜⬜⬜🟥"
                         , "⬛🔘⬛⬛⬛⬛"
                         ]
-                        |> Game.fromStage { level = 2 }
+                        |> Game.fromStage { level = args.level }
                         |> Just
 
                 2 ->
@@ -71,7 +71,7 @@ new args =
                         , "⬛⬜⬜⬜⬜🔘"
                         , "⬛🟥⬛⬛⬛⬛"
                         ]
-                        |> Game.fromStage { level = 2 }
+                        |> Game.fromStage { level = args.level }
                         |> Just
 
                 1 ->
@@ -83,11 +83,27 @@ new args =
                         , "🔘⬜⬜⬜⬜⬛"
                         , "⬛⬛⬛⬛🔘⬛"
                         ]
-                        |> Game.fromStage { level = 2 }
+                        |> Game.fromStage { level = args.level }
                         |> Just
 
                 _ ->
                     Nothing
 
+        {--3 ->
+            case args.stage of
+                1 ->
+                    Stage.parse
+                        [ "⬛🟥⬛⬛🟥⬛"
+                        , "⬛⬜⬜⬜⬜⬛"
+                        , "⬛⬜⬜⬜⬜⬛"
+                        , "⬛⬜⬜⬜⬜⬛"
+                        , "🔘⬜⬜⬜⬜⬛"
+                        , "⬛⬛⬛⬛🔘⬛"
+                        ]
+                        |> Game.fromStage { level = args.level }
+                        |> Just
+
+                _ ->
+                    Nothing--}
         _ ->
             Nothing

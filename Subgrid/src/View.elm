@@ -42,7 +42,7 @@ savedLevels args fun dict =
                         , render = \_ -> View.Svg.boxRender
                         , level = args.level
                         }
-                , Layout.text [] ("Stage " ++ String.fromInt args.level ++ " - " ++ String.fromInt id)
+                , Layout.text [] ("Level " ++ String.fromInt args.level ++ " - " ++ String.fromInt id)
                 ]
                     |> Layout.column
                         (Layout.asButton
