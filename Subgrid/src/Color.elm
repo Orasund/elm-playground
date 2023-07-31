@@ -1,33 +1,34 @@
 module Color exposing (..)
 
+import Level exposing (Level(..))
 
+
+background : Level -> String
 background level =
     "linear-gradient(" ++ white ++ ", " ++ inactiveLaser level ++ ")"
 
 
+fontColor : String
 fontColor =
     black
 
 
+wallColor : String
 wallColor =
     black
 
 
+laserColor : Level -> String
 laserColor level =
     case level of
-        3 ->
-            primaryLevel3
-
-        2 ->
+        Level2 ->
             primaryLevel2
 
-        1 ->
+        Level1 ->
             primaryLevel1
 
-        _ ->
-            Debug.todo "add Laser color"
 
-
+inactiveLaser : Level -> String
 inactiveLaser level =
     "color-mix(in lch," ++ laserColor level ++ " 33%,white)"
 

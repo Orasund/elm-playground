@@ -2,6 +2,7 @@ module Cell exposing (..)
 
 import Color
 import Dict exposing (Dict)
+import Level exposing (Level)
 import RelativePos exposing (RelativePos)
 
 
@@ -27,9 +28,9 @@ connectionLevel1 sendsTo =
     }
 
 
-cell1ToColor : { level : Int } -> Maybe Bool -> Cell -> String
-cell1ToColor args isActive cell1 =
-    case cell1 of
+cell1ToColor : { level : Level } -> Maybe Bool -> Cell -> String
+cell1ToColor args isActive cell =
+    case cell of
         ConnectionCell sort ->
             case isActive of
                 Just True ->

@@ -8,6 +8,7 @@ import Game exposing (Game, SavedStage)
 import Html exposing (Attribute, Html)
 import Html.Attributes
 import Layout
+import Level exposing (Level(..))
 import RelativePos
 import Set
 import View.Svg exposing (RenderFunction)
@@ -28,7 +29,7 @@ gameWon =
             )
 
 
-savedLevels : { level : Int } -> (Int -> msg) -> Dict Int SavedStage -> Html msg
+savedLevels : { level : Level } -> (Int -> msg) -> Dict Int SavedStage -> Html msg
 savedLevels args fun dict =
     dict
         |> Dict.toList
@@ -42,7 +43,7 @@ savedLevels args fun dict =
                         , render = \_ -> View.Svg.boxRender
                         , level = args.level
                         }
-                , Layout.text [] ("Level " ++ String.fromInt args.level ++ " - " ++ String.fromInt id)
+                , Layout.text [] ("Level " ++ Level.toString args.level ++ " - " ++ String.fromInt id)
                 ]
                     |> Layout.column
                         (Layout.asButton
@@ -79,7 +80,7 @@ card attrs =
         )
 
 
-tile1 : { level : Int } -> Cell -> Html msg
+tile1 : { level : Level } -> Cell -> Html msg
 tile1 args cell =
     Cell.cell1ToColor args
         Nothing
@@ -91,7 +92,7 @@ tile1 args cell =
             }
 
 
-tile2 : { level : Int } -> Dict Int SavedStage -> Cell -> Html msg
+tile2 : { level : Level } -> Dict Int SavedStage -> Cell -> Html msg
 tile2 args g cell =
     case cell of
         ConnectionCell c ->
@@ -138,7 +139,15 @@ tile2 args g cell =
                     }
 
 
-grid : List (Attribute msg) -> { levels : Dict Int SavedStage, onToggle : ( Int, Int ) -> msg } -> Game -> Html msg
+grid :
+    List (Attribute msg)
+    ->
+        { levels : Dict Int SavedStage
+        , onToggle : ( Int, Int ) -> msg
+        , level : Level
+        }
+    -> Game
+    -> Html msg
 grid attrs args g =
     List.range -1 4
         |> List.map
@@ -155,6 +164,7 @@ grid attrs args g =
                                     )
                                     { pos = ( x, y )
                                     , levels = args.levels
+                                    , level = args.level
                                     }
                         )
                     |> Layout.row [ Layout.noWrap ]
@@ -162,21 +172,26 @@ grid attrs args g =
         |> Layout.column attrs
 
 
-game : List (Attribute msg) -> { pos : ( Int, Int ), levels : Dict Int SavedStage } -> Game -> Html msg
+game :
+    List (Attribute msg)
+    ->
+        { pos : ( Int, Int )
+        , levels : Dict Int SavedStage
+        , level : Level
+        }
+    -> Game
+    -> Html msg
 game attrs args g =
-    (case g.level of
-        1 ->
+    (case args.level of
+        Level1 ->
             g.stage.grid
                 |> Dict.get args.pos
-                |> Maybe.map (tile1 { level = g.level })
+                |> Maybe.map (tile1 { level = args.level })
 
-        2 ->
+        Level2 ->
             g.stage.grid
                 |> Dict.get args.pos
-                |> Maybe.map (tile2 { level = g.level } args.levels)
-
-        _ ->
-            Debug.todo "visuals"
+                |> Maybe.map (tile2 { level = args.level } args.levels)
     )
         |> Maybe.withDefault Layout.none
         |> Layout.el

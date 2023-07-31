@@ -1,13 +1,14 @@
 module Game.Generate exposing (..)
 
 import Game exposing (Game)
+import Level exposing (Level(..))
 import Stage
 
 
-new : { level : Int, stage : Int } -> Maybe Game
+new : { level : Level, stage : Int } -> Maybe Game
 new args =
     case args.level of
-        1 ->
+        Level1 ->
             case args.stage of
                 3 ->
                     Stage.parse
@@ -18,7 +19,7 @@ new args =
                         , "🔘⬜⬜⬜⬜⬛"
                         , "⬛🔘⬛⬛🟥⬛"
                         ]
-                        |> Game.fromStage { level = args.level }
+                        |> Game.fromStage
                         |> Just
 
                 2 ->
@@ -30,7 +31,7 @@ new args =
                         , "🟥⬜⬜⬜⬜🔘"
                         , "⬛🔘⬛⬛⬛⬛"
                         ]
-                        |> Game.fromStage { level = args.level }
+                        |> Game.fromStage
                         |> Just
 
                 1 ->
@@ -42,13 +43,13 @@ new args =
                         , "🔘⬜⬜⬜⬜⬛"
                         , "⬛🟥⬛⬛⬛⬛"
                         ]
-                        |> Game.fromStage { level = args.level }
+                        |> Game.fromStage
                         |> Just
 
                 _ ->
                     Nothing
 
-        2 ->
+        Level2 ->
             case args.stage of
                 3 ->
                     Stage.parse
@@ -59,7 +60,7 @@ new args =
                         , "⬛⬜⬜⬜⬜🟥"
                         , "⬛🔘⬛⬛⬛⬛"
                         ]
-                        |> Game.fromStage { level = args.level }
+                        |> Game.fromStage
                         |> Just
 
                 2 ->
@@ -71,7 +72,7 @@ new args =
                         , "⬛⬜⬜⬜⬜🔘"
                         , "⬛🟥⬛⬛⬛⬛"
                         ]
-                        |> Game.fromStage { level = args.level }
+                        |> Game.fromStage
                         |> Just
 
                 1 ->
@@ -83,13 +84,15 @@ new args =
                         , "🔘⬜⬜⬜⬜⬛"
                         , "⬛⬛⬛⬛🔘⬛"
                         ]
-                        |> Game.fromStage { level = args.level }
+                        |> Game.fromStage
                         |> Just
 
                 _ ->
                     Nothing
 
-        {--3 ->
+
+
+{--3 ->
             case args.stage of
                 1 ->
                     Stage.parse
@@ -100,10 +103,8 @@ new args =
                         , "🔘⬜⬜⬜⬜⬛"
                         , "⬛⬛⬛⬛🔘⬛"
                         ]
-                        |> Game.fromStage { level = args.level }
+                        |> Game.fromStage
                         |> Just
 
                 _ ->
                     Nothing--}
-        _ ->
-            Nothing

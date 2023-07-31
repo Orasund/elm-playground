@@ -2,6 +2,7 @@ module View.Svg exposing (..)
 
 import Cell exposing (Cell)
 import Dict exposing (Dict)
+import Level exposing (Level)
 import RelativePos exposing (RelativePos)
 import Svg exposing (Svg)
 import Svg.Attributes
@@ -16,7 +17,7 @@ grid :
     , height : Int
     , active : ( Int, Int ) -> Bool
     , render : Cell -> RenderFunction msg
-    , level : Int
+    , level : Level
     }
     -> Dict RelativePos Cell
     -> Svg msg

@@ -4,13 +4,13 @@ import Cell exposing (Cell(..), Connection)
 import Config
 import Dict exposing (Dict)
 import Dir
+import Level exposing (Level(..))
 import RelativePos exposing (RelativePos)
 import Stage exposing (Stage)
 
 
 type alias Game =
     { stage : Stage
-    , level : Int
     }
 
 
@@ -22,13 +22,13 @@ type alias SavedStage =
             , path : List RelativePos
             }
     , grid : Dict RelativePos Cell
-    , level : Int
+    , level : Level
     }
 
 
-fromStage : { level : Int } -> Stage -> Game
-fromStage args stage =
-    { stage = stage, level = args.level }
+fromStage : Stage -> Game
+fromStage stage =
+    { stage = stage }
 
 
 isSolved : Game -> Bool
@@ -44,12 +44,11 @@ fromSave savedLevel =
             |> List.map (\( k, v ) -> ( RelativePos.unsafeToTuple k, v ))
             |> Dict.fromList
             |> Stage.fromDict
-    , level = savedLevel.level
     }
 
 
-toSave : Game -> Maybe SavedStage
-toSave game =
+toSave : Level -> Game -> Maybe SavedStage
+toSave level game =
     let
         buildPath :
             Dict ( Int, Int ) Cell
@@ -109,8 +108,8 @@ toSave game =
                             )
                 )
     in
-    case game.level of
-        1 ->
+    case level of
+        Level1 ->
             game.stage.targets
                 |> List.filterMap
                     (\target ->
@@ -145,20 +144,17 @@ toSave game =
                                 |> Dict.toList
                                 |> List.map (\( k, v ) -> ( RelativePos.fromTuple k, v ))
                                 |> Dict.fromList
-                        , level = game.level
+                        , level = level
                         }
                    )
                 |> Just
 
-        2 ->
+        Level2 ->
             Nothing
 
-        _ ->
-            Debug.todo "Implement recursive saving"
 
-
-update : Dict Int SavedStage -> Game -> ( Game, Bool )
-update modules game =
+update : Level -> Dict Int SavedStage -> Game -> ( Game, Bool )
+update level modules game =
     let
         neighborsDirLevel1 pos stage =
             Dir.list
@@ -235,8 +231,8 @@ update modules game =
                         )
                    )
     in
-    case game.level of
-        1 ->
+    case level of
+        Level1 ->
             tick
                 { computeActiveConnections = \( pos, a ) -> computeActiveConnectionsLv1 (neighborsDirLevel1 pos game.stage) ( pos, a )
                 , toGame = \stage -> { game | stage = stage }
@@ -258,7 +254,7 @@ update modules game =
                 }
                 game.stage
 
-        2 ->
+        Level2 ->
             tick
                 { computeActiveConnections = \( pos, a ) -> computeActiveConnectionsLv2 modules a pos
                 , toGame = \stage -> { game | stage = stage }
@@ -279,9 +275,6 @@ update modules game =
                 , powerStrength = 2
                 }
                 game.stage
-
-        _ ->
-            Debug.todo "update for recursive structure"
 
 
 computeActiveConnectionsLv2 :
