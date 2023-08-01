@@ -46,8 +46,8 @@ cell1 args color =
         |> fromPixels { width = args.width, height = args.height, size = 1 }
 
 
-targetRender : { secondaryColor : String } -> RenderFunction msg
-targetRender { secondaryColor } args =
+targetRender : { secondaryColor : String, variant : Int } -> RenderFunction msg
+targetRender { secondaryColor, variant } args =
     let
         ( x, y ) =
             args.pos
@@ -63,15 +63,29 @@ targetRender { secondaryColor } args =
             , Svg.Attributes.y (y |> String.fromInt)
             ]
             []
-        , Svg.circle
-            [ Svg.Attributes.cx (toFloat x + toFloat args.size / 2 |> String.fromFloat)
-            , Svg.Attributes.cy (toFloat y + toFloat args.size / 2 |> String.fromFloat)
-            , Svg.Attributes.r (toFloat args.size * 2 / 8 |> String.fromFloat)
-            , Svg.Attributes.strokeWidth (toFloat args.size / 8 |> String.fromFloat)
-            , Svg.Attributes.fill "none"
-            , Svg.Attributes.stroke secondaryColor
-            ]
-            []
+        , case variant of
+            1 ->
+                Svg.rect
+                    [ Svg.Attributes.x (toFloat x + toFloat args.size / 4 |> String.fromFloat)
+                    , Svg.Attributes.y (toFloat y + toFloat args.size / 4 |> String.fromFloat)
+                    , Svg.Attributes.width (toFloat args.size / 2 |> String.fromFloat)
+                    , Svg.Attributes.height (toFloat args.size / 2 |> String.fromFloat)
+                    , Svg.Attributes.strokeWidth (toFloat args.size / 8 |> String.fromFloat)
+                    , Svg.Attributes.fill "none"
+                    , Svg.Attributes.stroke secondaryColor
+                    ]
+                    []
+
+            _ ->
+                Svg.circle
+                    [ Svg.Attributes.cx (toFloat x + toFloat args.size / 2 |> String.fromFloat)
+                    , Svg.Attributes.cy (toFloat y + toFloat args.size / 2 |> String.fromFloat)
+                    , Svg.Attributes.r (toFloat args.size / 4 |> String.fromFloat)
+                    , Svg.Attributes.strokeWidth (toFloat args.size / 8 |> String.fromFloat)
+                    , Svg.Attributes.fill "none"
+                    , Svg.Attributes.stroke secondaryColor
+                    ]
+                    []
         ]
 
 

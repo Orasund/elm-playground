@@ -256,10 +256,10 @@ cellRender args cell =
             View.Svg.boxRender
 
         Target Nothing ->
-            View.Svg.targetRender { secondaryColor = args.laserColor }
+            View.Svg.targetRender { secondaryColor = args.laserColor, variant = 0 }
 
         Target (Just _) ->
-            View.Svg.targetRender { secondaryColor = Color.wallColor }
+            View.Svg.targetRender { secondaryColor = Color.wallColor, variant = 0 }
 
 
 button : msg -> String -> Html msg
