@@ -4,6 +4,7 @@ module Level exposing (..)
 type Level
     = Level1
     | Level2
+    | Level3
 
 
 previous : Level -> Level
@@ -13,6 +14,9 @@ previous level =
             Level1
 
         Level2 ->
+            Level1
+
+        Level3 ->
             Level2
 
 
@@ -23,6 +27,9 @@ next level =
             Level2 |> Just
 
         Level2 ->
+            Level3 |> Just
+
+        Level3 ->
             Nothing
 
 
@@ -34,3 +41,6 @@ toString level =
 
         Level2 ->
             "2"
+
+        Level3 ->
+            "3"

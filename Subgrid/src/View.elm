@@ -4,13 +4,14 @@ import Cell exposing (Cell(..))
 import Color
 import Config
 import Dict exposing (Dict)
-import Game exposing (Game, SavedStage)
+import Game exposing (Game)
 import Html exposing (Attribute, Html)
 import Html.Attributes
 import Layout
 import Level exposing (Level(..))
 import RelativePos
 import Set
+import Stage exposing (SavedStage)
 import View.Svg exposing (RenderFunction)
 
 
@@ -39,7 +40,7 @@ savedLevels args fun dict =
                     |> View.Svg.grid
                         { width = Config.cellSize
                         , height = Config.cellSize
-                        , active = \_ -> True
+                        , active = \pos -> level.paths |> Dict.get (RelativePos.fromTuple pos) |> Maybe.withDefault Set.empty |> Set.toList |> List.head
                         , render = \_ -> View.Svg.boxRender
                         , level = args.level
                         }
@@ -80,15 +81,15 @@ card attrs =
         )
 
 
-tile1 : { level : Level } -> Cell -> Html msg
-tile1 args cell =
+tileLevel1 : { level : Level, amount : Int } -> Cell -> Html msg
+tileLevel1 args cell =
     Cell.cell1ToColor args
         Nothing
         cell
         |> View.Svg.cell1
             { height = Config.cellSize
             , width = Config.cellSize
-            , render = cellRender { laserColor = Color.laserColor args.level } cell
+            , render = cellRender { laserColor = Color.laserColor args.level args.amount } cell
             }
 
 
@@ -101,16 +102,15 @@ tile2 args g cell =
                 |> Maybe.map
                     (\level ->
                         let
-                            activePos =
+                            activePaths =
                                 c.sendsTo
                                     |> Dict.keys
-                                    |> List.map (RelativePos.rotate { maxPos = Config.maxPosLevel2 } (4 - c.rotation))
-                                    |> List.concatMap
+                                    |> List.map (RelativePos.rotate args.level (4 - c.rotation))
+                                    |> List.filterMap
                                         (\to ->
                                             level.connections
                                                 |> Dict.get to
-                                                |> Maybe.map .path
-                                                |> Maybe.withDefault []
+                                                |> Maybe.map .pathId
                                         )
                                     |> Set.fromList
                         in
@@ -118,7 +118,14 @@ tile2 args g cell =
                             |> View.Svg.grid
                                 { height = Config.cellSize
                                 , width = Config.cellSize
-                                , active = \pos -> Set.member (RelativePos.fromTuple pos) activePos
+                                , active =
+                                    \pos ->
+                                        level.paths
+                                            |> Dict.get (RelativePos.fromTuple pos)
+                                            |> Maybe.withDefault Set.empty
+                                            |> Set.toList
+                                            |> List.filter (\p -> Set.member p activePaths)
+                                            |> List.head
                                 , render = \_ -> View.Svg.boxRender
                                 , level = args.level
                                 }
@@ -131,11 +138,19 @@ tile2 args g cell =
 
         _ ->
             cell
-                |> Cell.cell1ToColor { level = args.level } Nothing
+                |> Cell.cell1ToColor
+                    { level = args.level
+                    , amount = 0
+                    }
+                    Nothing
                 |> View.Svg.cell1
                     { height = Config.cellSize
                     , width = Config.cellSize
-                    , render = cellRender { laserColor = Color.laserColor args.level } cell
+                    , render =
+                        cellRender
+                            { laserColor = Color.laserColor args.level 0
+                            }
+                            cell
                     }
 
 
@@ -186,9 +201,19 @@ game attrs args g =
         Level1 ->
             g.stage.grid
                 |> Dict.get args.pos
-                |> Maybe.map (tile1 { level = args.level })
+                |> Maybe.map
+                    (tileLevel1
+                        { level = args.level
+                        , amount = 0
+                        }
+                    )
 
         Level2 ->
+            g.stage.grid
+                |> Dict.get args.pos
+                |> Maybe.map (tile2 { level = args.level } args.levels)
+
+        Level3 ->
             g.stage.grid
                 |> Dict.get args.pos
                 |> Maybe.map (tile2 { level = args.level } args.levels)

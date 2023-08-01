@@ -1,17 +1,19 @@
 module RelativePos exposing (..)
 
+import Config
 import Dict exposing (Dict)
 import Dir exposing (Dir)
+import Level exposing (Level)
 
 
 type alias RelativePos =
     ( ( Int, Int ), String )
 
 
-list : { maxPos : Int } -> List RelativePos
-list args =
+list : Level -> List RelativePos
+list level =
     List.range 0 3
-        |> List.concatMap (\i -> [ ( -1, i ), ( args.maxPos, i ), ( i, -1 ), ( i, args.maxPos ) ])
+        |> List.concatMap (\i -> [ ( -1, i ), ( Config.maxPos level, i ), ( i, -1 ), ( i, Config.maxPos level ) ])
         |> List.map fromTuple
 
 
@@ -20,21 +22,21 @@ fromTuple pos =
     ( pos, "RelativePos" )
 
 
-rotate : { maxPos : Int } -> Int -> RelativePos -> RelativePos
-rotate args amount a =
+rotate : Level -> Int -> RelativePos -> RelativePos
+rotate level amount a =
     List.range 0 (amount - 1)
-        |> List.foldl (\_ -> rotateClockwise args) a
+        |> List.foldl (\_ -> rotateClockwise level) a
 
 
-rotationMatrix : { maxPos : Int } -> Dict RelativePos RelativePos
-rotationMatrix args =
-    List.range 0 (args.maxPos - 1)
+rotationMatrix : Level -> Dict RelativePos RelativePos
+rotationMatrix level =
+    List.range 0 (Config.maxPos level - 1)
         |> List.map
             (\i ->
-                [ ( ( -1, i ), ( args.maxPos - 1 - i, -1 ) )
-                , ( ( i, -1 ), ( args.maxPos, i ) )
-                , ( ( args.maxPos, args.maxPos - 1 - i ), ( i, args.maxPos ) )
-                , ( ( i, args.maxPos ), ( -1, i ) )
+                [ ( ( -1, i ), ( Config.maxPos level - 1 - i, -1 ) )
+                , ( ( i, -1 ), ( Config.maxPos level, i ) )
+                , ( ( Config.maxPos level, Config.maxPos level - 1 - i ), ( i, Config.maxPos level ) )
+                , ( ( i, Config.maxPos level ), ( -1, i ) )
                 ]
             )
         |> List.concat
@@ -42,9 +44,9 @@ rotationMatrix args =
         |> Dict.fromList
 
 
-rotateClockwise : { maxPos : Int } -> RelativePos -> RelativePos
-rotateClockwise args relPos =
-    case rotationMatrix args |> Dict.get relPos of
+rotateClockwise : Level -> RelativePos -> RelativePos
+rotateClockwise level relPos =
+    case rotationMatrix level |> Dict.get relPos of
         Just pos ->
             pos
 
@@ -52,14 +54,14 @@ rotateClockwise args relPos =
             Debug.todo "tried rotating a center position"
 
 
-reverse : { maxPos : Int } -> RelativePos -> RelativePos
-reverse args ( ( x, y ), _ ) =
+reverse : Level -> RelativePos -> RelativePos
+reverse level ( ( x, y ), _ ) =
     let
         rev i =
             if i == -1 then
-                args.maxPos
+                Config.maxPos level
 
-            else if i == args.maxPos then
+            else if i == Config.maxPos level then
                 -1
 
             else
@@ -69,14 +71,14 @@ reverse args ( ( x, y ), _ ) =
         |> fromTuple
 
 
-toDir : { maxPos : Int } -> RelativePos -> Dir
-toDir args ( ( x, y ), _ ) =
+toDir : Level -> RelativePos -> Dir
+toDir level ( ( x, y ), _ ) =
     let
         minPos =
             -1
 
         maxPos =
-            args.maxPos
+            Config.maxPos level
     in
     if x == maxPos then
         Dir.new 0
@@ -91,7 +93,7 @@ toDir args ( ( x, y ), _ ) =
         Dir.new 3
 
     else
-        Debug.todo ("trying to convert " ++ String.fromInt x ++ "," ++ String.fromInt y)
+        Debug.todo ("trying to convert " ++ String.fromInt x ++ "," ++ String.fromInt y ++ "with maxPos " ++ String.fromInt maxPos)
 
 
 unsafeToTuple : RelativePos -> ( Int, Int )

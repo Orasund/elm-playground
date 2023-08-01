@@ -15,7 +15,7 @@ type alias RenderFunction msg =
 grid :
     { width : Int
     , height : Int
-    , active : ( Int, Int ) -> Bool
+    , active : ( Int, Int ) -> Maybe Int
     , render : Cell -> RenderFunction msg
     , level : Level
     }
@@ -30,8 +30,10 @@ grid args dict =
                 , color =
                     cell
                         |> Cell.cell1ToColor
-                            { level = args.level }
-                            (args.active ( x, y ) |> Just)
+                            { level = args.level
+                            , amount = args.active ( x, y ) |> Maybe.withDefault 0
+                            }
+                            (args.active ( x, y ) /= Nothing |> Just)
                 , render = args.render cell
                 }
             )

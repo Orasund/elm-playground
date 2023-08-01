@@ -18,19 +18,28 @@ wallColor =
     black
 
 
-laserColor : Level -> String
-laserColor level =
-    case level of
-        Level2 ->
-            primaryLevel2
+laserColor : Level -> Int -> String
+laserColor level amount =
+    "color-mix(in lch,"
+        ++ (case level of
+                Level3 ->
+                    primaryLevel3
 
-        Level1 ->
-            primaryLevel1
+                Level2 ->
+                    primaryLevel2
+
+                Level1 ->
+                    primaryLevel1
+           )
+        ++ ", white "
+        ++ String.fromInt 0
+        --(amount * 20)
+        ++ "%)"
 
 
 inactiveLaser : Level -> String
 inactiveLaser level =
-    "color-mix(in lch," ++ laserColor level ++ " 33%,white)"
+    "color-mix(in lch," ++ laserColor level 0 ++ " 33%,white)"
 
 
 

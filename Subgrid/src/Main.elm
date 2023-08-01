@@ -5,13 +5,14 @@ import Cell exposing (Cell(..))
 import Color
 import Config
 import Dict exposing (Dict)
-import Game exposing (Game, SavedStage)
+import Game exposing (Game)
 import Game.Generate
 import Html exposing (Html)
 import Html.Attributes
 import Layout
 import Level exposing (Level(..))
 import Platform.Cmd as Cmd
+import Stage exposing (SavedStage)
 import Time
 import View
 
@@ -284,7 +285,7 @@ update msg model =
                                                 }
                                            )
 
-                                Level2 ->
+                                _ ->
                                     case game.stage.grid |> Dict.get ( x, y ) of
                                         Just (ConnectionCell _) ->
                                             { model | selected = Just ( x, y ) }
@@ -308,26 +309,21 @@ update msg model =
             ( model.game
                 |> Maybe.map
                     (\game ->
-                        case model.level of
-                            Level1 ->
-                                model
-
-                            Level2 ->
-                                game.stage.grid
-                                    |> Dict.insert (model.selected |> Maybe.withDefault ( 0, 0 ))
-                                        ({ moduleId = moduleId
-                                         , rotation = rotation
-                                         , sendsTo = Dict.empty
-                                         }
-                                            |> ConnectionCell
-                                        )
-                                    |> (\grid ->
-                                            { model
-                                                | game = Just { game | stage = game.stage |> (\stage -> { stage | grid = grid }) }
-                                                , updating = True
-                                                , selected = Nothing
-                                            }
-                                       )
+                        game.stage.grid
+                            |> Dict.insert (model.selected |> Maybe.withDefault ( 0, 0 ))
+                                ({ moduleId = moduleId
+                                 , rotation = rotation
+                                 , sendsTo = Dict.empty
+                                 }
+                                    |> ConnectionCell
+                                )
+                            |> (\grid ->
+                                    { model
+                                        | game = Just { game | stage = game.stage |> (\stage -> { stage | grid = grid }) }
+                                        , updating = True
+                                        , selected = Nothing
+                                    }
+                               )
                     )
                 |> Maybe.withDefault model
             , Cmd.none

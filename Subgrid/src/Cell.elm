@@ -28,13 +28,13 @@ connectionLevel1 sendsTo =
     }
 
 
-cell1ToColor : { level : Level } -> Maybe Bool -> Cell -> String
+cell1ToColor : { level : Level, amount : Int } -> Maybe Bool -> Cell -> String
 cell1ToColor args isActive cell =
     case cell of
         ConnectionCell sort ->
             case isActive of
                 Just True ->
-                    Color.laserColor args.level
+                    Color.laserColor args.level args.amount
 
                 Just False ->
                     Color.inactiveLaser args.level
@@ -45,7 +45,7 @@ cell1ToColor args isActive cell =
                             Color.inactiveLaser args.level
 
                         _ ->
-                            Color.laserColor args.level
+                            Color.laserColor args.level args.amount
 
         Wall ->
             Color.wallColor
@@ -53,18 +53,18 @@ cell1ToColor args isActive cell =
         Origin ->
             case isActive of
                 Just True ->
-                    Color.laserColor args.level
+                    Color.laserColor args.level args.amount
 
                 Just False ->
                     Color.inactiveLaser args.level
 
                 Nothing ->
-                    Color.laserColor args.level
+                    Color.laserColor args.level args.amount
 
         Target Nothing ->
             case isActive of
                 Just True ->
-                    Color.laserColor args.level
+                    Color.laserColor args.level args.amount
 
                 Just False ->
                     Color.inactiveLaser args.level
@@ -75,10 +75,10 @@ cell1ToColor args isActive cell =
         Target _ ->
             case isActive of
                 Just True ->
-                    Color.laserColor args.level
+                    Color.laserColor args.level args.amount
 
                 Just False ->
                     Color.inactiveLaser args.level
 
                 Nothing ->
-                    Color.laserColor args.level
+                    Color.laserColor args.level args.amount

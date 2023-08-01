@@ -1,13 +1,19 @@
 module Config exposing (..)
 
+import Level exposing (Level(..))
+
 
 cellSize =
     64
 
 
-maxPosLevel2 =
-    4
+maxPos level =
+    case level of
+        Level1 ->
+            1
 
+        Level2 ->
+            4
 
-maxPosLevel1 =
-    1
+        Level3 ->
+            4
