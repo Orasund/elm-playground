@@ -94,7 +94,7 @@ targetRender { secondaryColor, variant, small, fill } args =
         , case variant of
             2 ->
                 Svg.path
-                    ([ Svg.Attributes.d
+                    (Svg.Attributes.d
                         (("M "
                             ++ (toFloat x + toFloat args.size / 2 |> String.fromFloat)
                             ++ " "
@@ -105,8 +105,7 @@ targetRender { secondaryColor, variant, small, fill } args =
                             ++ ("l " ++ (-size * 2 |> String.fromFloat) ++ " 0")
                             ++ "Z"
                         )
-                     ]
-                        ++ baseattrs
+                        :: baseattrs
                     )
                     []
 

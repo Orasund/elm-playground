@@ -19,7 +19,7 @@ wallColor =
 
 
 laserColor : Level -> Int -> String
-laserColor level amount =
+laserColor level _ =
     "color-mix(in lch,"
         ++ (case level of
                 Level4 ->

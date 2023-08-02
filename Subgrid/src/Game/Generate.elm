@@ -11,6 +11,35 @@ new args =
         Level1 ->
             case args.stage of
                 1 ->
+                    Stage.parse
+                        [ "⬛🔘⬛⬛🔘⬛"
+                        , "🟥⬜⬜⬜⬜⬛"
+                        , "⬛⬜⬜⬜⬜⬛"
+                        , "⬛⬜⬜⬜⬜⬛"
+                        , "🟥⬜⬜⬜⬜⬛"
+                        , "⬛⬛⬛⬛⬛⬛"
+                        ]
+                        |> Game.fromStage
+                        |> Just
+
+                2 ->
+                    Stage.parse
+                        [ "⬛🔘⬛⬛🔘⬛"
+                        , "🟥⬜⬜⬜⬜🔘"
+                        , "⬛⬜⬜⬜⬜⬛"
+                        , "⬛⬜⬜⬜⬜⬛"
+                        , "🟥⬜⬜⬜⬜🔘"
+                        , "⬛🟥⬛⬛🟥⬛"
+                        ]
+                        |> Game.fromStage
+                        |> Just
+
+                _ ->
+                    Nothing
+
+        Level2 ->
+            case args.stage of
+                1 ->
                     --player learns that lasers will prefer straight lines
                     Stage.parse
                         [ "⬛🟥⬛⬛🔘⬛"
@@ -52,7 +81,7 @@ new args =
                 _ ->
                     Nothing
 
-        Level2 ->
+        Level3 ->
             case args.stage of
                 3 ->
                     Stage.parse
@@ -93,7 +122,7 @@ new args =
                 _ ->
                     Nothing
 
-        Level3 ->
+        Level4 ->
             case args.stage of
                 1 ->
                     Stage.parse
@@ -115,23 +144,6 @@ new args =
                         , "⬛⬜⬜⬜⬜⬛"
                         , "🔘⬜⬜⬜⬜⬛"
                         , "⬛⬛⬛⬛⬛⬛"
-                        ]
-                        |> Game.fromStage
-                        |> Just
-
-                _ ->
-                    Nothing
-
-        Level4 ->
-            case args.stage of
-                1 ->
-                    Stage.parse
-                        [ "⬛🟥⬛⬛🟥⬛"
-                        , "⬛⬜⬜⬜⬜⬛"
-                        , "⬛⬜⬜⬜⬜⬛"
-                        , "⬛⬜⬜⬜⬜⬛"
-                        , "🔘⬜⬜⬜⬜⬛"
-                        , "⬛⬛⬛⬛🔘⬛"
                         ]
                         |> Game.fromStage
                         |> Just

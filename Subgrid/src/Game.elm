@@ -200,19 +200,18 @@ toSave level game =
 
 tick :
     { computeActiveConnections : ( ( Int, Int ), Connection ) -> Stage -> Connection
-    , toGame : Stage -> Game
     , powerStrength : Int
     , level : Level
     }
-    -> Stage
+    -> Game
     -> ( Game, Bool )
-tick args stage =
-    stage.grid
+tick args game =
+    game.stage.grid
         |> Dict.map
             (\pos cell ->
                 case cell of
                     ConnectionCell conncetion ->
-                        stage
+                        game.stage
                             |> args.computeActiveConnections ( pos, conncetion )
                             |> ConnectionCell
 
@@ -231,7 +230,7 @@ tick args stage =
                                 )
                             |> List.filter
                                 (\dir ->
-                                    (stage.grid
+                                    (game.stage.grid
                                         |> Dict.get dir.pos
                                         |> (/=) (Just Origin)
                                     )
@@ -239,7 +238,7 @@ tick args stage =
                                                 |> Stage.sendsEnergy
                                                     { to = dir.to
                                                     }
-                                                    stage
+                                                    game.stage
                                            )
                                 )
                             |> (\list ->
@@ -257,9 +256,9 @@ tick args stage =
                         cell
             )
         |> (\d ->
-                ( args.toGame { stage | grid = d }
+                ( { game | stage = game.stage |> (\stage -> { stage | grid = d }) }
                     |> (\g -> { g | isConnected = g |> buildPaths args.level |> reevaluatePaths })
-                , Dict.toList d /= Dict.toList stage.grid
+                , Dict.toList d /= Dict.toList game.stage.grid
                 )
            )
 
@@ -298,35 +297,15 @@ update level modules game =
         Level1 ->
             tick
                 { computeActiveConnections = \( pos, a ) -> Stage.computeActiveConnectionsLv1 (neighborsDirLevel1 pos game.stage) ( pos, a )
-                , toGame = \stage -> { game | stage = stage }
                 , level = level
                 , powerStrength = 1
                 }
-                game.stage
+                game
 
-        Level2 ->
+        _ ->
             tick
-                { computeActiveConnections = \( pos, a ) -> Stage.computeActiveConnectionsLv2 modules a pos
-                , toGame = \stage -> { game | stage = stage }
+                { computeActiveConnections = \( pos, a ) -> Stage.computeActiveConnectionsGeneric level modules a pos
                 , level = level
                 , powerStrength = 2
                 }
-                game.stage
-
-        Level3 ->
-            tick
-                { computeActiveConnections = \( pos, a ) -> Stage.computeActiveConnectionsLv3 modules a pos
-                , toGame = \stage -> { game | stage = stage }
-                , level = level
-                , powerStrength = 1
-                }
-                game.stage
-
-        Level4 ->
-            tick
-                { computeActiveConnections = \( pos, a ) -> Stage.computeActiveConnectionsLv4 modules a pos
-                , toGame = \stage -> { game | stage = stage }
-                , level = level
-                , powerStrength = 1
-                }
-                game.stage
+                game

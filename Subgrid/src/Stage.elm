@@ -104,105 +104,14 @@ withLaserAt pos =
     Dict.insert pos Origin
 
 
-computeActiveConnectionsLv4 modules connection pos stage =
-    let
-        level =
-            Level4
-    in
-    modules
-        |> Dict.get connection.moduleId
-        |> Maybe.map .connections
-        |> Maybe.withDefault Dict.empty
-        |> Dict.toList
-        |> List.filterMap
-            (\( to, { from } ) ->
-                if
-                    from
-                        |> RelativePos.toDir level
-                        |> Dir.rotate connection.rotation
-                        |> Dir.addTo pos
-                        |> sendsEnergy
-                            { to =
-                                from
-                                    |> RelativePos.reverse level
-                                    |> RelativePos.rotate level connection.rotation
-                            }
-                            stage
-                then
-                    ( to
-                        |> RelativePos.rotate level connection.rotation
-                    , { from =
-                            from
-                                |> RelativePos.rotate level connection.rotation
-                      }
-                    )
-                        |> Just
-
-                else
-                    Nothing
-            )
-        |> Dict.fromList
-        |> (\sendsTo -> { connection | sendsTo = sendsTo })
-
-
-computeActiveConnectionsLv3 :
-    Dict Int SavedStage
+computeActiveConnectionsGeneric :
+    Level
+    -> Dict Int SavedStage
     -> Connection
     -> ( Int, Int )
     -> Stage
     -> Connection
-computeActiveConnectionsLv3 modules connection pos stage =
-    let
-        level =
-            Level3
-    in
-    modules
-        |> Dict.get connection.moduleId
-        |> Maybe.map .connections
-        |> Maybe.withDefault Dict.empty
-        |> Dict.toList
-        |> List.filterMap
-            (\( to, { from } ) ->
-                if
-                    from
-                        |> RelativePos.toDir level
-                        |> Dir.rotate connection.rotation
-                        |> Dir.addTo pos
-                        |> sendsEnergy
-                            { to =
-                                from
-                                    |> RelativePos.reverse level
-                                    |> RelativePos.rotate level connection.rotation
-                            }
-                            stage
-                then
-                    ( to
-                        |> RelativePos.rotate level connection.rotation
-                    , { from =
-                            from
-                                |> RelativePos.rotate level connection.rotation
-                      }
-                    )
-                        |> Just
-
-                else
-                    Nothing
-            )
-        |> Dict.fromList
-        |> (\sendsTo -> { connection | sendsTo = sendsTo })
-
-
-computeActiveConnectionsLv2 :
-    Dict Int SavedStage
-    -> Connection
-    -> ( Int, Int )
-    -> Stage
-    -> Connection
-computeActiveConnectionsLv2 modules connection pos stage =
-    let
-        level =
-            Level2
-    in
+computeActiveConnectionsGeneric level modules connection pos stage =
     modules
         |> Dict.get connection.moduleId
         |> Maybe.map .connections
