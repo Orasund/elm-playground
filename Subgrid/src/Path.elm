@@ -21,11 +21,11 @@ type alias PathBuilder =
 stepThroughPath :
     Level
     -> Dict ( Int, Int ) Cell
-    -> Maybe { pos : ( Int, Int ), to : ( Int, Int ), path : List ( Int, Int ), id : Int }
-    -> Maybe { pos : ( Int, Int ), to : ( Int, Int ), path : List ( Int, Int ), id : Int }
+    -> Maybe { pos : ( Int, Int ), to : ( Int, Int ), path : List ( Int, Int ) }
+    -> Maybe { pos : ( Int, Int ), to : ( Int, Int ), path : List ( Int, Int ) }
 stepThroughPath level grid =
     Maybe.andThen
-        (\{ pos, to, path, id } ->
+        (\{ pos, to, path } ->
             grid
                 |> Dict.get pos
                 |> Maybe.andThen
@@ -52,7 +52,6 @@ stepThroughPath level grid =
                                                     |> Dir.addTo pos
                                             , path = pos :: path
                                             , to = pos
-                                            , id = id
                                             }
                                         )
 
@@ -61,19 +60,7 @@ stepThroughPath level grid =
                                     { pos = pos
                                     , path = pos :: path
                                     , to = pos
-                                    , id = id
                                     }
-
-                            Target target ->
-                                target.dir
-                                    |> Maybe.map
-                                        (\from ->
-                                            { pos = from
-                                            , path = pos :: path
-                                            , to = pos
-                                            , id = target.id
-                                            }
-                                        )
 
                             _ ->
                                 Nothing
@@ -109,22 +96,54 @@ build : Level -> Stage -> PathBuilder
 build level stage =
     stage.targets
         |> List.filterMap
+            (\pos ->
+                case stage.grid |> Dict.get pos of
+                    Just (Target target) ->
+                        Just
+                            { pos = pos
+                            , id = target.id
+                            , from =
+                                target.dir
+                                    |> List.map
+                                        (\relativePos ->
+                                            relativePos
+                                                |> RelativePos.toDir level
+                                                |> Dir.addTo pos
+                                        )
+                            }
+
+                    _ ->
+                        Nothing
+            )
+        |> List.concatMap
             (\target ->
-                List.range 0 16
-                    |> List.foldl (\_ -> stepThroughPath level stage.grid)
-                        (Just
-                            { pos = target
-                            , to = target
-                            , path = []
-                            , id = 0
-                            }
+                target.from
+                    |> List.filterMap
+                        (\from ->
+                            List.range
+                                0
+                                16
+                                |> List.foldl (\_ -> stepThroughPath level stage.grid)
+                                    (Just
+                                        { pos = from
+                                        , to = target.pos
+                                        , path = [ target.pos ]
+                                        }
+                                    )
+                                |> Maybe.map
+                                    (\{ pos, path } ->
+                                        { from = RelativePos.fromTuple target.pos
+                                        , to = RelativePos.fromTuple pos
+                                        , path = path |> List.map RelativePos.fromTuple
+                                        , id = target.id
+                                        }
+                                    )
                         )
-                    |> Maybe.map
-                        (\{ pos, path, id } ->
-                            { from = RelativePos.fromTuple target
-                            , to = RelativePos.fromTuple pos
-                            , path = path |> List.map RelativePos.fromTuple
-                            , id = id
-                            }
-                        )
+                    |> (\list ->
+                            if list |> List.map .to |> Set.fromList |> Set.size |> (==) 1 then
+                                list
+
+                            else
+                                []
+                       )
             )

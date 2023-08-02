@@ -17,7 +17,7 @@ type Cell
     = ConnectionCell Connection
     | Wall
     | Origin
-    | Target { dir : Maybe ( Int, Int ), id : Int }
+    | Target { dir : List RelativePos, id : Int }
 
 
 connectionLevel1 : Dict RelativePos { from : RelativePos } -> Connection
@@ -71,7 +71,7 @@ toColor args isActive cell =
 
                 Nothing ->
                     case dir of
-                        Nothing ->
+                        [] ->
                             Color.inactiveLaser args.level
 
                         _ ->

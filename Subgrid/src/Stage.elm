@@ -34,7 +34,7 @@ isSolved stage =
         (\pos ->
             case stage.grid |> Dict.get pos of
                 Just (Target { dir }) ->
-                    dir /= Nothing
+                    dir /= []
 
                 _ ->
                     False
@@ -82,7 +82,7 @@ parse rows =
 
                     '🔘' ->
                         { out
-                            | cells = ( pos, Target { dir = Nothing, id = out.nextTargetId } ) :: out.cells
+                            | cells = ( pos, Target { dir = [], id = out.nextTargetId } ) :: out.cells
                             , nextTargetId = out.nextTargetId + 1
                         }
 

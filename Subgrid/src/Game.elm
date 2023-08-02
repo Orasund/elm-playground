@@ -25,7 +25,17 @@ fromStage stage =
 
 isSolved : Game -> Bool
 isSolved game =
-    Stage.isSolved game.stage
+    game.stage.targets
+        |> List.all
+            (\pos ->
+                game.isConnected
+                    |> Dict.get (RelativePos.fromTuple pos)
+                    |> Maybe.map
+                        (\s ->
+                            Set.size s == 1
+                        )
+                    |> Maybe.withDefault False
+            )
 
 
 fromSave : SavedStage -> Game
@@ -102,6 +112,7 @@ tick args game =
                                         relPos
                                             |> RelativePos.toDir args.level
                                             |> Dir.addTo pos
+                                    , from = relPos
                                     , to =
                                         relPos
                                             |> RelativePos.reverse args.level
@@ -127,8 +138,7 @@ tick args game =
                                     else
                                         list
                                )
-                            |> List.head
-                            |> Maybe.map .pos
+                            |> List.map .from
                             |> (\dir -> Target { dir = dir, id = id })
 
                     _ ->
