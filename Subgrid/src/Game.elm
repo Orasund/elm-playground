@@ -4,6 +4,7 @@ import Cell exposing (Cell(..), Connection)
 import Dict exposing (Dict)
 import Dir
 import Level exposing (Level(..))
+import Path
 import RelativePos exposing (RelativePos)
 import Set exposing (Set)
 import Stage exposing (SavedStage, Stage)
@@ -13,15 +14,6 @@ type alias Game =
     { stage : Stage
     , isConnected : Dict RelativePos (Set Int)
     }
-
-
-type alias PathBuilder =
-    List
-        { from : RelativePos
-        , to : RelativePos
-        , path : List RelativePos
-        , id : Int
-        }
 
 
 fromStage : Stage -> Game
@@ -48,123 +40,10 @@ fromSave savedLevel =
     }
 
 
-buildPath :
-    Level
-    -> Dict ( Int, Int ) Cell
-    -> Maybe { pos : ( Int, Int ), to : ( Int, Int ), path : List ( Int, Int ), id : Int }
-    -> Maybe { pos : ( Int, Int ), to : ( Int, Int ), path : List ( Int, Int ), id : Int }
-buildPath level grid =
-    Maybe.andThen
-        (\{ pos, to, path, id } ->
-            grid
-                |> Dict.get pos
-                |> Maybe.andThen
-                    (\cell ->
-                        case cell of
-                            ConnectionCell connection ->
-                                connection.sendsTo
-                                    |> Dict.toList
-                                    |> List.map
-                                        (\( k, v ) ->
-                                            ( k
-                                                |> RelativePos.toDir level
-                                                |> Dir.addTo pos
-                                            , v
-                                            )
-                                        )
-                                    |> Dict.fromList
-                                    |> Dict.get to
-                                    |> Maybe.map
-                                        (\{ from } ->
-                                            { pos =
-                                                from
-                                                    |> RelativePos.toDir level
-                                                    |> Dir.addTo pos
-                                            , path = pos :: path
-                                            , to = pos
-                                            , id = id
-                                            }
-                                        )
-
-                            Origin ->
-                                Just
-                                    { pos = pos
-                                    , path = pos :: path
-                                    , to = pos
-                                    , id = id
-                                    }
-
-                            Target target ->
-                                target.dir
-                                    |> Maybe.map
-                                        (\from ->
-                                            { pos = from
-                                            , path = pos :: path
-                                            , to = pos
-                                            , id = target.id
-                                            }
-                                        )
-
-                            _ ->
-                                Nothing
-                    )
-        )
-
-
-reevaluatePaths : PathBuilder -> Dict RelativePos (Set Int)
-reevaluatePaths list =
-    list
-        |> List.foldl
-            (\{ path, id } d ->
-                path
-                    |> List.foldl
-                        (\pos ->
-                            Dict.update pos
-                                (\maybe ->
-                                    (case maybe of
-                                        Nothing ->
-                                            Set.singleton id
-
-                                        Just l ->
-                                            Set.insert id l
-                                    )
-                                        |> Just
-                                )
-                        )
-                        d
-            )
-            Dict.empty
-
-
-buildPaths : Level -> Game -> PathBuilder
-buildPaths level game =
-    game.stage.targets
-        |> List.filterMap
-            (\target ->
-                List.range 0 16
-                    |> List.foldl (\_ -> buildPath level game.stage.grid)
-                        (Just
-                            { pos = target
-                            , to = target
-                            , path = []
-                            , id = 0
-                            }
-                        )
-                    |> Maybe.map
-                        (\{ pos, path, id } ->
-                            { from = RelativePos.fromTuple target
-                            , to = RelativePos.fromTuple pos
-                            , path = path |> List.map RelativePos.fromTuple
-                            , id = id
-                            }
-                        )
-            )
-
-
 toSave : Level -> Game -> Maybe SavedStage
 toSave level game =
-    game
-        |> buildPaths level
+    game.stage
+        |> Path.build level
         |> (\list ->
                 { connections =
                     list
@@ -257,7 +136,7 @@ tick args game =
             )
         |> (\d ->
                 ( { game | stage = game.stage |> (\stage -> { stage | grid = d }) }
-                    |> (\g -> { g | isConnected = g |> buildPaths args.level |> reevaluatePaths })
+                    |> (\g -> { g | isConnected = g.stage |> Path.build args.level |> Path.toDict })
                 , Dict.toList d /= Dict.toList game.stage.grid
                 )
            )

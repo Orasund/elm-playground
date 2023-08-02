@@ -137,6 +137,7 @@ view model =
 
         else
             [ "Edit Levels" |> View.cardTitle
+            , "If you are stuck, try editing your solutions of previous levels." |> Layout.text []
             , model.levels
                 |> Dict.get (model.level |> Level.previous |> Level.toString)
                 |> Maybe.withDefault Dict.empty

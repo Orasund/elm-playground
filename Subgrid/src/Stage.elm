@@ -1,7 +1,6 @@
 module Stage exposing (..)
 
 import Cell exposing (Cell(..), Connection)
-import Connection
 import Dict exposing (Dict)
 import Dir
 import Level exposing (Level(..))
@@ -215,8 +214,10 @@ sendsEnergy :
     -> Bool
 sendsEnergy args stage pos =
     case stage.grid |> Dict.get pos of
-        Just (ConnectionCell a) ->
-            Connection.connectionSendsTo args.to a
+        Just (ConnectionCell connection) ->
+            connection.sendsTo
+                |> Dict.keys
+                |> List.any ((==) args.to)
 
         Just Origin ->
             True

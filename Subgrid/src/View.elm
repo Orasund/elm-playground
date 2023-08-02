@@ -49,7 +49,7 @@ savedLevels args fun dict =
                                     |> List.head
                         , render = \_ -> View.Svg.boxRender
                         , level = args.level
-                        , isConnected = False
+                        , connectedPathIds = []
                         }
                 , Layout.text [] ("Level " ++ Level.toString args.level ++ " - " ++ String.fromInt id)
                 ]
@@ -88,9 +88,9 @@ card attrs =
         )
 
 
-tileLevel1 : { level : Level, amount : Int, isConnected : Maybe Int } -> Cell -> Html msg
+tileLevel1 : { level : Level, amount : Int, connectedPathIds : List Int } -> Cell -> Html msg
 tileLevel1 args cell =
-    Cell.toColor { level = args.level, amount = args.amount, isConnected = args.isConnected /= Nothing }
+    Cell.toColor { level = args.level, amount = args.amount, connectedPathIds = args.connectedPathIds }
         Nothing
         cell
         |> View.Svg.cell1
@@ -99,14 +99,14 @@ tileLevel1 args cell =
             , render =
                 cellRender
                     { level = args.level
-                    , isConnected = args.isConnected
+                    , connectedPathIds = args.connectedPathIds
                     }
                     cell
             }
 
 
-tile2 : { level : Level, isConnected : Maybe Int } -> Dict Int SavedStage -> Cell -> Html msg
-tile2 args g cell =
+tileGeneric : { level : Level, connectedPathIds : List Int } -> Dict Int SavedStage -> Cell -> Html msg
+tileGeneric args g cell =
     case cell of
         ConnectionCell c ->
             g
@@ -141,7 +141,7 @@ tile2 args g cell =
                                             Nothing
                                 , render = \_ -> View.Svg.boxRender
                                 , level = args.level
-                                , isConnected = False
+                                , connectedPathIds = []
                                 }
                             |> Layout.el
                                 [ Html.Attributes.style "transform"
@@ -155,7 +155,7 @@ tile2 args g cell =
                 |> Cell.toColor
                     { level = args.level
                     , amount = 0
-                    , isConnected = args.isConnected /= Nothing
+                    , connectedPathIds = args.connectedPathIds
                     }
                     Nothing
                 |> View.Svg.cell1
@@ -164,7 +164,7 @@ tile2 args g cell =
                     , render =
                         cellRender
                             { level = args.level
-                            , isConnected = args.isConnected
+                            , connectedPathIds = args.connectedPathIds
                             }
                             cell
                     }
@@ -221,10 +221,11 @@ game attrs args g =
                     (tileLevel1
                         { level = args.level
                         , amount = 0
-                        , isConnected =
+                        , connectedPathIds =
                             g.isConnected
                                 |> Dict.get (RelativePos.fromTuple args.pos)
-                                |> Maybe.andThen (\s -> s |> Set.toList |> List.head)
+                                |> Maybe.map Set.toList
+                                |> Maybe.withDefault []
                         }
                     )
 
@@ -232,12 +233,13 @@ game attrs args g =
             g.stage.grid
                 |> Dict.get args.pos
                 |> Maybe.map
-                    (tile2
+                    (tileGeneric
                         { level = args.level
-                        , isConnected =
+                        , connectedPathIds =
                             g.isConnected
                                 |> Dict.get (RelativePos.fromTuple args.pos)
-                                |> Maybe.andThen (\s -> s |> Set.toList |> List.head)
+                                |> Maybe.map Set.toList
+                                |> Maybe.withDefault []
                         }
                         args.levels
                     )
@@ -267,7 +269,7 @@ primaryButton onPress label =
         }
 
 
-cellRender : { level : Level, isConnected : Maybe Int } -> Cell -> RenderFunction msg
+cellRender : { level : Level, connectedPathIds : List Int } -> Cell -> RenderFunction msg
 cellRender args cell =
     case cell of
         ConnectionCell _ ->
@@ -277,8 +279,8 @@ cellRender args cell =
             View.Svg.boxRender
 
         Origin ->
-            case args.isConnected of
-                Just pathId ->
+            case args.connectedPathIds of
+                [ pathId ] ->
                     View.Svg.targetRender
                         { secondaryColor = Color.wallColor
                         , variant = pathId
@@ -286,12 +288,12 @@ cellRender args cell =
                         , fill = True
                         }
 
-                Nothing ->
+                _ ->
                     View.Svg.boxRender
 
         Target { id } ->
-            case args.isConnected of
-                Just _ ->
+            case args.connectedPathIds of
+                [ _ ] ->
                     View.Svg.targetRender
                         { secondaryColor = Color.wallColor
                         , variant = id
@@ -299,7 +301,7 @@ cellRender args cell =
                         , fill = True
                         }
 
-                Nothing ->
+                _ ->
                     View.Svg.targetRender
                         { secondaryColor = Color.wallColor
                         , variant = id

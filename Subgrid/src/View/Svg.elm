@@ -18,7 +18,7 @@ grid :
     , active : ( Int, Int ) -> Maybe Int
     , render : Cell -> RenderFunction msg
     , level : Level
-    , isConnected : Bool
+    , connectedPathIds : List Int
     }
     -> Dict RelativePos Cell
     -> Svg msg
@@ -33,7 +33,7 @@ grid args dict =
                         |> Cell.toColor
                             { level = args.level
                             , amount = args.active ( x, y ) |> Maybe.withDefault 0
-                            , isConnected = args.isConnected
+                            , connectedPathIds = args.connectedPathIds
                             }
                             (args.active ( x, y ) /= Nothing |> Just)
                 , render = args.render cell

@@ -28,7 +28,7 @@ connectionLevel1 sendsTo =
     }
 
 
-toColor : { level : Level, amount : Int, isConnected : Bool } -> Maybe Bool -> Cell -> String
+toColor : { level : Level, amount : Int, connectedPathIds : List Int } -> Maybe Bool -> Cell -> String
 toColor args isActive cell =
     case cell of
         ConnectionCell sort ->
