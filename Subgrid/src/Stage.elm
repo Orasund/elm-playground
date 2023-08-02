@@ -21,6 +21,7 @@ type alias SavedStage =
             RelativePos
             { from : RelativePos
             , pathId : Int
+            , path : List RelativePos
             }
     , paths : Dict RelativePos (Set Int)
     , grid : Dict RelativePos Cell

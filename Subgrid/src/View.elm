@@ -10,7 +10,7 @@ import Html.Attributes
 import Layout
 import Level exposing (Level(..))
 import RelativePos exposing (RelativePos)
-import Set
+import Set exposing (Set)
 import Stage exposing (SavedStage)
 import View.Svg exposing (RenderFunction)
 
@@ -114,7 +114,8 @@ tile2 args g cell =
                 |> Maybe.map
                     (\level ->
                         let
-                            activePaths =
+                            activePos : Set RelativePos
+                            activePos =
                                 c.sendsTo
                                     |> Dict.keys
                                     |> List.map (RelativePos.rotate args.level (4 - c.rotation))
@@ -122,8 +123,9 @@ tile2 args g cell =
                                         (\to ->
                                             level.connections
                                                 |> Dict.get to
-                                                |> Maybe.map .pathId
+                                                |> Maybe.map .path
                                         )
+                                    |> List.concat
                                     |> Set.fromList
                         in
                         level.grid
@@ -132,13 +134,11 @@ tile2 args g cell =
                                 , width = Config.cellSize
                                 , active =
                                     \pos ->
-                                        level.paths
-                                            |> Dict.get
-                                                (RelativePos.fromTuple pos)
-                                            |> Maybe.withDefault Set.empty
-                                            |> Set.toList
-                                            |> List.filter (\p -> Set.member p activePaths)
-                                            |> List.head
+                                        if Set.member (RelativePos.fromTuple pos) activePos then
+                                            Just 0
+
+                                        else
+                                            Nothing
                                 , render = \_ -> View.Svg.boxRender
                                 , level = args.level
                                 , isConnected = False

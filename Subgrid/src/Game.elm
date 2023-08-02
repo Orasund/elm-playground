@@ -143,7 +143,13 @@ buildPaths level game =
             (\target ->
                 List.range 0 16
                     |> List.foldl (\_ -> buildPath level game.stage.grid)
-                        (Just { pos = target, to = target, path = [], id = 0 })
+                        (Just
+                            { pos = target
+                            , to = target
+                            , path = []
+                            , id = 0
+                            }
+                        )
                     |> Maybe.map
                         (\{ pos, path, id } ->
                             { from = RelativePos.fromTuple target
@@ -162,7 +168,22 @@ toSave level game =
         |> (\list ->
                 { connections =
                     list
-                        |> List.indexedMap (\id { from, to } -> [ ( from, { from = to, pathId = id } ), ( to, { from = from, pathId = id } ) ])
+                        |> List.indexedMap
+                            (\id { from, to, path } ->
+                                [ ( from
+                                  , { from = to
+                                    , pathId = id
+                                    , path = path
+                                    }
+                                  )
+                                , ( to
+                                  , { from = from
+                                    , pathId = id
+                                    , path = path
+                                    }
+                                  )
+                                ]
+                            )
                         |> List.concat
                         |> Dict.fromList
                 , paths = game.isConnected
