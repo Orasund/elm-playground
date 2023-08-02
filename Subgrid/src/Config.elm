@@ -17,3 +17,6 @@ maxPos level =
 
         Level3 ->
             4
+
+        Level4 ->
+            5

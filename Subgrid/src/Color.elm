@@ -22,6 +22,9 @@ laserColor : Level -> Int -> String
 laserColor level amount =
     "color-mix(in lch,"
         ++ (case level of
+                Level4 ->
+                    primaryLevel4
+
                 Level3 ->
                     primaryLevel3
 
@@ -82,6 +85,12 @@ primaryLevel2 =
 
 primaryLevel3 : String
 primaryLevel3 =
+    --violett
+    "#cc35a1"
+
+
+primaryLevel4 : String
+primaryLevel4 =
     --violett
     "#cc35a1"
 

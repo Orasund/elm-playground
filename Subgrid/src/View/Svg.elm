@@ -18,6 +18,7 @@ grid :
     , active : ( Int, Int ) -> Maybe Int
     , render : Cell -> RenderFunction msg
     , level : Level
+    , isConnected : Bool
     }
     -> Dict RelativePos Cell
     -> Svg msg
@@ -29,9 +30,10 @@ grid args dict =
                 { pos = ( x + 1, y + 1 )
                 , color =
                     cell
-                        |> Cell.cell1ToColor
+                        |> Cell.toColor
                             { level = args.level
                             , amount = args.active ( x, y ) |> Maybe.withDefault 0
+                            , isConnected = args.isConnected
                             }
                             (args.active ( x, y ) /= Nothing |> Just)
                 , render = args.render cell
@@ -46,11 +48,37 @@ cell1 args color =
         |> fromPixels { width = args.width, height = args.height, size = 1 }
 
 
-targetRender : { secondaryColor : String, variant : Int } -> RenderFunction msg
-targetRender { secondaryColor, variant } args =
+targetRender : { secondaryColor : String, variant : Int, small : Bool, fill : Bool } -> RenderFunction msg
+targetRender { secondaryColor, variant, small, fill } args =
     let
         ( x, y ) =
             args.pos
+
+        size =
+            (if small then
+                toFloat args.size / 8
+
+             else
+                toFloat args.size / 4
+            )
+                |> (\f ->
+                        if fill then
+                            f * 1.25
+
+                        else
+                            f * 1
+                   )
+
+        baseattrs =
+            if fill then
+                [ Svg.Attributes.fill secondaryColor ]
+
+            else
+                [ Svg.Attributes.strokeWidth
+                    (size / 2 |> String.fromFloat)
+                , Svg.Attributes.stroke secondaryColor
+                , Svg.Attributes.fill "none"
+                ]
     in
     Svg.g
         []
@@ -64,27 +92,43 @@ targetRender { secondaryColor, variant } args =
             ]
             []
         , case variant of
+            2 ->
+                Svg.path
+                    ([ Svg.Attributes.d
+                        (("M "
+                            ++ (toFloat x + toFloat args.size / 2 |> String.fromFloat)
+                            ++ " "
+                            ++ (toFloat y + toFloat args.size / 2 - size |> String.fromFloat)
+                            ++ ", "
+                         )
+                            ++ ("l " ++ (size |> String.fromFloat) ++ " " ++ (size * 2 |> String.fromFloat) ++ ", ")
+                            ++ ("l " ++ (-size * 2 |> String.fromFloat) ++ " 0")
+                            ++ "Z"
+                        )
+                     ]
+                        ++ baseattrs
+                    )
+                    []
+
             1 ->
                 Svg.rect
-                    [ Svg.Attributes.x (toFloat x + toFloat args.size / 4 |> String.fromFloat)
-                    , Svg.Attributes.y (toFloat y + toFloat args.size / 4 |> String.fromFloat)
-                    , Svg.Attributes.width (toFloat args.size / 2 |> String.fromFloat)
-                    , Svg.Attributes.height (toFloat args.size / 2 |> String.fromFloat)
-                    , Svg.Attributes.strokeWidth (toFloat args.size / 8 |> String.fromFloat)
-                    , Svg.Attributes.fill "none"
-                    , Svg.Attributes.stroke secondaryColor
-                    ]
+                    ([ Svg.Attributes.x (toFloat x + toFloat args.size / 2 - size |> String.fromFloat)
+                     , Svg.Attributes.y (toFloat y + toFloat args.size / 2 - size |> String.fromFloat)
+                     , Svg.Attributes.width (size * 2 |> String.fromFloat)
+                     , Svg.Attributes.height (size * 2 |> String.fromFloat)
+                     ]
+                        ++ baseattrs
+                    )
                     []
 
             _ ->
                 Svg.circle
-                    [ Svg.Attributes.cx (toFloat x + toFloat args.size / 2 |> String.fromFloat)
-                    , Svg.Attributes.cy (toFloat y + toFloat args.size / 2 |> String.fromFloat)
-                    , Svg.Attributes.r (toFloat args.size / 4 |> String.fromFloat)
-                    , Svg.Attributes.strokeWidth (toFloat args.size / 8 |> String.fromFloat)
-                    , Svg.Attributes.fill "none"
-                    , Svg.Attributes.stroke secondaryColor
-                    ]
+                    ([ Svg.Attributes.cx (toFloat x + toFloat args.size / 2 |> String.fromFloat)
+                     , Svg.Attributes.cy (toFloat y + toFloat args.size / 2 |> String.fromFloat)
+                     , Svg.Attributes.r (size |> String.fromFloat)
+                     ]
+                        ++ baseattrs
+                    )
                     []
         ]
 

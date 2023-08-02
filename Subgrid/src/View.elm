@@ -9,7 +9,7 @@ import Html exposing (Attribute, Html)
 import Html.Attributes
 import Layout
 import Level exposing (Level(..))
-import RelativePos
+import RelativePos exposing (RelativePos)
 import Set
 import Stage exposing (SavedStage)
 import View.Svg exposing (RenderFunction)
@@ -40,9 +40,16 @@ savedLevels args fun dict =
                     |> View.Svg.grid
                         { width = Config.cellSize
                         , height = Config.cellSize
-                        , active = \pos -> level.paths |> Dict.get (RelativePos.fromTuple pos) |> Maybe.withDefault Set.empty |> Set.toList |> List.head
+                        , active =
+                            \pos ->
+                                level.paths
+                                    |> Dict.get (RelativePos.fromTuple pos)
+                                    |> Maybe.withDefault Set.empty
+                                    |> Set.toList
+                                    |> List.head
                         , render = \_ -> View.Svg.boxRender
                         , level = args.level
+                        , isConnected = False
                         }
                 , Layout.text [] ("Level " ++ Level.toString args.level ++ " - " ++ String.fromInt id)
                 ]
@@ -81,19 +88,24 @@ card attrs =
         )
 
 
-tileLevel1 : { level : Level, amount : Int } -> Cell -> Html msg
+tileLevel1 : { level : Level, amount : Int, isConnected : Maybe Int } -> Cell -> Html msg
 tileLevel1 args cell =
-    Cell.cell1ToColor args
+    Cell.toColor { level = args.level, amount = args.amount, isConnected = args.isConnected /= Nothing }
         Nothing
         cell
         |> View.Svg.cell1
             { height = Config.cellSize
             , width = Config.cellSize
-            , render = cellRender { laserColor = Color.laserColor args.level args.amount } cell
+            , render =
+                cellRender
+                    { level = args.level
+                    , isConnected = args.isConnected
+                    }
+                    cell
             }
 
 
-tile2 : { level : Level } -> Dict Int SavedStage -> Cell -> Html msg
+tile2 : { level : Level, isConnected : Maybe Int } -> Dict Int SavedStage -> Cell -> Html msg
 tile2 args g cell =
     case cell of
         ConnectionCell c ->
@@ -121,13 +133,15 @@ tile2 args g cell =
                                 , active =
                                     \pos ->
                                         level.paths
-                                            |> Dict.get (RelativePos.fromTuple pos)
+                                            |> Dict.get
+                                                (RelativePos.fromTuple pos)
                                             |> Maybe.withDefault Set.empty
                                             |> Set.toList
                                             |> List.filter (\p -> Set.member p activePaths)
                                             |> List.head
                                 , render = \_ -> View.Svg.boxRender
                                 , level = args.level
+                                , isConnected = False
                                 }
                             |> Layout.el
                                 [ Html.Attributes.style "transform"
@@ -138,9 +152,10 @@ tile2 args g cell =
 
         _ ->
             cell
-                |> Cell.cell1ToColor
+                |> Cell.toColor
                     { level = args.level
                     , amount = 0
+                    , isConnected = args.isConnected /= Nothing
                     }
                     Nothing
                 |> View.Svg.cell1
@@ -148,7 +163,8 @@ tile2 args g cell =
                     , width = Config.cellSize
                     , render =
                         cellRender
-                            { laserColor = Color.laserColor args.level 0
+                            { level = args.level
+                            , isConnected = args.isConnected
                             }
                             cell
                     }
@@ -205,18 +221,26 @@ game attrs args g =
                     (tileLevel1
                         { level = args.level
                         , amount = 0
+                        , isConnected =
+                            g.isConnected
+                                |> Dict.get (RelativePos.fromTuple args.pos)
+                                |> Maybe.andThen (\s -> s |> Set.toList |> List.head)
                         }
                     )
 
-        Level2 ->
+        _ ->
             g.stage.grid
                 |> Dict.get args.pos
-                |> Maybe.map (tile2 { level = args.level } args.levels)
-
-        Level3 ->
-            g.stage.grid
-                |> Dict.get args.pos
-                |> Maybe.map (tile2 { level = args.level } args.levels)
+                |> Maybe.map
+                    (tile2
+                        { level = args.level
+                        , isConnected =
+                            g.isConnected
+                                |> Dict.get (RelativePos.fromTuple args.pos)
+                                |> Maybe.andThen (\s -> s |> Set.toList |> List.head)
+                        }
+                        args.levels
+                    )
     )
         |> Maybe.withDefault Layout.none
         |> Layout.el
@@ -243,7 +267,7 @@ primaryButton onPress label =
         }
 
 
-cellRender : { laserColor : String } -> Cell -> RenderFunction msg
+cellRender : { level : Level, isConnected : Maybe Int } -> Cell -> RenderFunction msg
 cellRender args cell =
     case cell of
         ConnectionCell _ ->
@@ -253,13 +277,35 @@ cellRender args cell =
             View.Svg.boxRender
 
         Origin ->
-            View.Svg.boxRender
+            case args.isConnected of
+                Just pathId ->
+                    View.Svg.targetRender
+                        { secondaryColor = Color.wallColor
+                        , variant = pathId
+                        , small = True
+                        , fill = True
+                        }
 
-        Target Nothing ->
-            View.Svg.targetRender { secondaryColor = args.laserColor, variant = 0 }
+                Nothing ->
+                    View.Svg.boxRender
 
-        Target (Just _) ->
-            View.Svg.targetRender { secondaryColor = Color.wallColor, variant = 0 }
+        Target { id } ->
+            case args.isConnected of
+                Just _ ->
+                    View.Svg.targetRender
+                        { secondaryColor = Color.wallColor
+                        , variant = id
+                        , small = False
+                        , fill = True
+                        }
+
+                Nothing ->
+                    View.Svg.targetRender
+                        { secondaryColor = Color.wallColor
+                        , variant = id
+                        , small = False
+                        , fill = False
+                        }
 
 
 button : msg -> String -> Html msg

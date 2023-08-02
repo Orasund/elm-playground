@@ -33,8 +33,8 @@ isSolved stage =
     List.all
         (\pos ->
             case stage.grid |> Dict.get pos of
-                Just (Target (Just _)) ->
-                    True
+                Just (Target { dir }) ->
+                    dir /= Nothing
 
                 _ ->
                     False
@@ -67,28 +67,33 @@ parse rows =
             (\y string ->
                 string
                     |> String.toList
-                    |> List.indexedMap
-                        (\x char ->
-                            let
-                                pos =
-                                    ( x - 1, y - 1 )
-                            in
-                            case char of
-                                '🟥' ->
-                                    Just ( pos, Origin )
-
-                                '🔘' ->
-                                    Just ( pos, Target Nothing )
-
-                                '⬛' ->
-                                    Just ( pos, Wall )
-
-                                _ ->
-                                    Nothing
-                        )
-                    |> List.filterMap identity
+                    |> List.indexedMap (\x a -> ( ( x, y ), a ))
             )
         |> List.concat
+        |> List.foldl
+            (\( ( x, y ), char ) out ->
+                let
+                    pos =
+                        ( x - 1, y - 1 )
+                in
+                case char of
+                    '🟥' ->
+                        { out | cells = ( pos, Origin ) :: out.cells }
+
+                    '🔘' ->
+                        { out
+                            | cells = ( pos, Target { dir = Nothing, id = out.nextTargetId } ) :: out.cells
+                            , nextTargetId = out.nextTargetId + 1
+                        }
+
+                    '⬛' ->
+                        { out | cells = ( pos, Wall ) :: out.cells }
+
+                    _ ->
+                        out
+            )
+            { cells = [], nextTargetId = 0 }
+        |> .cells
         |> Dict.fromList
         |> fromDict
 
@@ -96,6 +101,47 @@ parse rows =
 withLaserAt : ( Int, Int ) -> Dict ( Int, Int ) Cell -> Dict ( Int, Int ) Cell
 withLaserAt pos =
     Dict.insert pos Origin
+
+
+computeActiveConnectionsLv4 modules connection pos stage =
+    let
+        level =
+            Level4
+    in
+    modules
+        |> Dict.get connection.moduleId
+        |> Maybe.map .connections
+        |> Maybe.withDefault Dict.empty
+        |> Dict.toList
+        |> List.filterMap
+            (\( to, { from } ) ->
+                if
+                    from
+                        |> RelativePos.toDir level
+                        |> Dir.rotate connection.rotation
+                        |> Dir.addTo pos
+                        |> sendsEnergy
+                            { to =
+                                from
+                                    |> RelativePos.reverse level
+                                    |> RelativePos.rotate level connection.rotation
+                            }
+                            stage
+                then
+                    ( to
+                        |> RelativePos.rotate level connection.rotation
+                    , { from =
+                            from
+                                |> RelativePos.rotate level connection.rotation
+                      }
+                    )
+                        |> Just
+
+                else
+                    Nothing
+            )
+        |> Dict.fromList
+        |> (\sendsTo -> { connection | sendsTo = sendsTo })
 
 
 computeActiveConnectionsLv3 :

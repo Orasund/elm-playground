@@ -15,6 +15,7 @@ import Platform.Cmd as Cmd
 import Stage exposing (SavedStage)
 import Time
 import View
+import View.TileSelect as TileSelect
 
 
 type alias Model =
@@ -172,46 +173,18 @@ view model =
         model.selected
             |> Maybe.andThen
                 (\selected ->
-                    [ "Select a tile you want to place"
-                        |> View.cardTitle
-                    , model.levels
+                    model.levels
                         |> Dict.get (model.level |> Level.previous |> Level.toString)
                         |> Maybe.withDefault Dict.empty
-                        |> Dict.keys
-                        |> List.map
-                            (\id ->
-                                List.range 0 3
-                                    |> List.map
-                                        (\rotate ->
-                                            { moduleId = id
-                                            , rotation = rotate
-                                            , sendsTo = Dict.empty
-                                            }
-                                                |> ConnectionCell
-                                                |> View.tile2 { level = model.level }
-                                                    (model.levels
-                                                        |> Dict.get (model.level |> Level.previous |> Level.toString)
-                                                        |> Maybe.withDefault Dict.empty
-                                                    )
-                                                |> Layout.el
-                                                    (Layout.asButton
-                                                        { label = "Level " ++ String.fromInt id ++ "(" ++ String.fromInt rotate ++ ")"
-                                                        , onPress = Just (PlaceModule { moduleId = id, rotation = rotate })
-                                                        }
-                                                    )
-                                        )
-                                    |> Layout.row [ Layout.gap 8 ]
-                            )
-                        |> Layout.column [ Layout.gap 8 ]
-                    , (if model.game |> Maybe.map (\game -> game.stage.grid) |> Maybe.withDefault Dict.empty |> Dict.member selected then
-                        [ View.button (RemoveTile selected) "Remove" ]
-
-                       else
-                        []
-                      )
-                        ++ [ View.primaryButton Unselect "Cancel" ]
-                        |> Layout.row [ Layout.gap 8 ]
-                    ]
+                        |> TileSelect.toHtml
+                            { removeTile = RemoveTile
+                            , selected = selected
+                            , unselect = Unselect
+                            , game = model.game
+                            , level = model.level
+                            , placeModule = PlaceModule
+                            , levels = model.levels
+                            }
                         |> Just
                 )
       )

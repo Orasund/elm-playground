@@ -5,6 +5,7 @@ type Level
     = Level1
     | Level2
     | Level3
+    | Level4
 
 
 previous : Level -> Level
@@ -19,6 +20,9 @@ previous level =
         Level3 ->
             Level2
 
+        Level4 ->
+            Level3
+
 
 next : Level -> Maybe Level
 next level =
@@ -30,6 +34,9 @@ next level =
             Level3 |> Just
 
         Level3 ->
+            Level4 |> Just
+
+        Level4 ->
             Nothing
 
 
@@ -44,3 +51,6 @@ toString level =
 
         Level3 ->
             "3"
+
+        Level4 ->
+            "4"
