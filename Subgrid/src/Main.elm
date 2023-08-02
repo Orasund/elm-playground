@@ -10,9 +10,10 @@ import Game.Generate
 import Html exposing (Html)
 import Html.Attributes
 import Layout
-import Level exposing (Level(..))
+import Level exposing (Level)
 import Platform.Cmd as Cmd
 import Stage exposing (SavedStage)
+import StaticArray.Index as Index
 import Time
 import View
 import View.TileSelect as TileSelect
@@ -42,7 +43,7 @@ init : () -> ( Model, Cmd Msg )
 init () =
     let
         level =
-            Level1
+            Index.first
 
         stage =
             1
@@ -128,7 +129,7 @@ view model =
                 [ Html.Attributes.style "border-radius" "1rem"
                 , Html.Attributes.style "overflow" "hidden"
                 ]
-      , if model.level == Level1 then
+      , if model.level == Index.first then
             [ "Activate the circles by placing tiles on the grid." |> Layout.text []
             , "Energy will flow along the tiles." |> Layout.text []
             , "If the direction is ambiguous, it will always go straight." |> Layout.text []
@@ -230,45 +231,44 @@ update msg model =
                 model.game
                     |> Maybe.map
                         (\game ->
-                            case model.level of
-                                Level1 ->
-                                    game.stage.grid
-                                        |> Dict.update ( x, y )
-                                            (\maybe ->
-                                                case maybe of
-                                                    Just (ConnectionCell _) ->
-                                                        Nothing
+                            if model.level == Index.first then
+                                game.stage.grid
+                                    |> Dict.update ( x, y )
+                                        (\maybe ->
+                                            case maybe of
+                                                Just (ConnectionCell _) ->
+                                                    Nothing
 
-                                                    Nothing ->
-                                                        Just
-                                                            (Dict.empty
-                                                                |> Cell.connectionLevel1
-                                                                |> ConnectionCell
-                                                            )
+                                                Nothing ->
+                                                    Just
+                                                        (Dict.empty
+                                                            |> Cell.connectionLevel1
+                                                            |> ConnectionCell
+                                                        )
 
-                                                    _ ->
-                                                        maybe
-                                            )
-                                        |> (\grid ->
-                                                { model
-                                                    | game =
-                                                        { game
-                                                            | stage = game.stage |> (\stage -> { stage | grid = grid })
-                                                        }
-                                                            |> Just
-                                                }
-                                           )
+                                                _ ->
+                                                    maybe
+                                        )
+                                    |> (\grid ->
+                                            { model
+                                                | game =
+                                                    { game
+                                                        | stage = game.stage |> (\stage -> { stage | grid = grid })
+                                                    }
+                                                        |> Just
+                                            }
+                                       )
 
-                                _ ->
-                                    case game.stage.grid |> Dict.get ( x, y ) of
-                                        Just (ConnectionCell _) ->
-                                            { model | selected = Just ( x, y ) }
+                            else
+                                case game.stage.grid |> Dict.get ( x, y ) of
+                                    Just (ConnectionCell _) ->
+                                        { model | selected = Just ( x, y ) }
 
-                                        Nothing ->
-                                            { model | selected = Just ( x, y ) }
+                                    Nothing ->
+                                        { model | selected = Just ( x, y ) }
 
-                                        _ ->
-                                            model
+                                    _ ->
+                                        model
                         )
                     |> Maybe.withDefault model
 

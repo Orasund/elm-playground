@@ -1,44 +1,64 @@
 module Game.Generate exposing (..)
 
 import Game exposing (Game)
-import Level exposing (Level(..))
+import Level exposing (Level, LevelAmount)
 import Stage
+import StaticArray exposing (StaticArray)
 
 
-new : { level : Level, stage : Int } -> Maybe Game
-new args =
-    case args.level of
-        Level1 ->
-            case args.stage of
+levels : StaticArray LevelAmount (Int -> Maybe Game)
+levels =
+    ( \stage ->
+        case stage of
+            1 ->
+                --simplest pattern
+                Stage.parse
+                    [ "⬛🔘⬛⬛🔘⬛"
+                    , "🟥⬜⬜⬜⬜⬛"
+                    , "⬛⬜⬜⬜⬜⬛"
+                    , "⬛⬜⬜⬜⬜⬛"
+                    , "🟥⬜⬜⬜⬜⬛"
+                    , "⬛⬛⬛⬛⬛⬛"
+                    ]
+                    |> Game.fromStage
+                    |> Just
+
+            _ ->
+                Nothing
+    , [ \stage ->
+            case stage of
                 1 ->
+                    --again a curve
+                    --no alternative solutions
                     Stage.parse
-                        [ "⬛🔘⬛⬛🔘⬛"
-                        , "🟥⬜⬜⬜⬜⬛"
+                        [ "⬛🟥⬛⬛🔘⬛"
+                        , "🔘⬜⬜⬜⬜⬛"
                         , "⬛⬜⬜⬜⬜⬛"
                         , "⬛⬜⬜⬜⬜⬛"
-                        , "🟥⬜⬜⬜⬜⬛"
-                        , "⬛⬛⬛⬛⬛⬛"
+                        , "🟥⬜⬜⬜⬜🔘"
+                        , "⬛⬛⬛⬛🟥⬛"
                         ]
                         |> Game.fromStage
                         |> Just
 
                 2 ->
+                    --only way how to make a straight with just a curve
+                    --again no alternatives
                     Stage.parse
-                        [ "⬛🔘⬛⬛🔘⬛"
-                        , "🟥⬜⬜⬜⬜🔘"
+                        [ "⬛⬛⬛⬛⬛⬛"
+                        , "🔘⬜⬜⬜⬜🟥"
                         , "⬛⬜⬜⬜⬜⬛"
                         , "⬛⬜⬜⬜⬜⬛"
-                        , "🟥⬜⬜⬜⬜🔘"
-                        , "⬛🟥⬛⬛🟥⬛"
+                        , "🔘⬜⬜⬜⬜🟥"
+                        , "⬛🟥⬛⬛🔘⬛"
                         ]
                         |> Game.fromStage
                         |> Just
 
                 _ ->
                     Nothing
-
-        Level2 ->
-            case args.stage of
+      , \stage ->
+            case stage of
                 1 ->
                     --player learns that lasers will prefer straight lines
                     Stage.parse
@@ -80,9 +100,8 @@ new args =
 
                 _ ->
                     Nothing
-
-        Level3 ->
-            case args.stage of
+      , \stage ->
+            case stage of
                 3 ->
                     Stage.parse
                         [ "⬛⬛⬛🔘⬛⬛"
@@ -121,9 +140,8 @@ new args =
 
                 _ ->
                     Nothing
-
-        Level4 ->
-            case args.stage of
+      , \stage ->
+            case stage of
                 1 ->
                     Stage.parse
                         [ "⬛🟥⬛⬛🟥⬛"
@@ -150,3 +168,13 @@ new args =
 
                 _ ->
                     Nothing
+      ]
+    )
+        |> StaticArray.fromList Level.maxLevel
+
+
+new : { level : Level, stage : Int } -> Maybe Game
+new args =
+    levels
+        |> StaticArray.get args.level
+        |> (\fun -> fun args.stage)

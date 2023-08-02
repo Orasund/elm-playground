@@ -1,6 +1,6 @@
 module Config exposing (..)
 
-import Level exposing (Level(..))
+import StaticArray.Index as Index
 
 
 cellSize =
@@ -8,15 +8,8 @@ cellSize =
 
 
 maxPos level =
-    case level of
-        Level1 ->
-            1
+    if level == Index.first then
+        1
 
-        Level2 ->
-            4
-
-        Level3 ->
-            4
-
-        Level4 ->
-            5
+    else
+        4

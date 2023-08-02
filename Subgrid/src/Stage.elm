@@ -3,9 +3,10 @@ module Stage exposing (..)
 import Cell exposing (Cell(..), Connection)
 import Dict exposing (Dict)
 import Dir
-import Level exposing (Level(..))
+import Level exposing (Level)
 import RelativePos exposing (RelativePos)
 import Set exposing (Set)
+import StaticArray.Index as Index
 
 
 type alias Stage =
@@ -150,8 +151,9 @@ computeActiveConnectionsGeneric level modules connection pos stage =
 computeActiveConnectionsLv1 : List RelativePos -> ( ( Int, Int ), Connection ) -> Stage -> Connection
 computeActiveConnectionsLv1 neighborsDir ( pos, connection ) stage =
     let
+        level : Level
         level =
-            Level1
+            Index.first
     in
     (case neighborsDir of
         [ dir1, dir2 ] ->

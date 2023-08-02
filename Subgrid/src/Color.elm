@@ -1,6 +1,7 @@
 module Color exposing (..)
 
-import Level exposing (Level(..))
+import Level exposing (Level, LevelAmount)
+import StaticArray exposing (StaticArray)
 
 
 background : Level -> String
@@ -21,19 +22,7 @@ wallColor =
 laserColor : Level -> Int -> String
 laserColor level _ =
     "color-mix(in lch,"
-        ++ (case level of
-                Level4 ->
-                    primaryLevel4
-
-                Level3 ->
-                    primaryLevel3
-
-                Level2 ->
-                    primaryLevel2
-
-                Level1 ->
-                    primaryLevel1
-           )
+        ++ (primaryColors |> StaticArray.get level)
         ++ ", white "
         ++ String.fromInt 0
         --(amount * 20)
@@ -71,28 +60,17 @@ darkGray =
     "#d9d9d9"
 
 
-primaryLevel1 : String
-primaryLevel1 =
-    --red
-    "#cc353c"
-
-
-primaryLevel2 : String
-primaryLevel2 =
-    --green
-    "#23bf24"
-
-
-primaryLevel3 : String
-primaryLevel3 =
-    --violett
-    "#cc35a1"
-
-
-primaryLevel4 : String
-primaryLevel4 =
-    --violett
-    "#cc35a1"
+primaryColors : StaticArray LevelAmount String
+primaryColors =
+    ( --red
+      "#cc353c"
+    , [ --green
+        "#23bf24"
+      , --violett
+        "#cc35a1"
+      ]
+    )
+        |> StaticArray.fromList Level.maxLevel
 
 
 secondary : String

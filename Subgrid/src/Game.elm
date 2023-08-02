@@ -3,11 +3,12 @@ module Game exposing (..)
 import Cell exposing (Cell(..), Connection)
 import Dict exposing (Dict)
 import Dir
-import Level exposing (Level(..))
+import Level exposing (Level)
 import Path
 import RelativePos exposing (RelativePos)
 import Set exposing (Set)
 import Stage exposing (SavedStage, Stage)
+import StaticArray.Index as Index
 
 
 type alias Game =
@@ -182,19 +183,18 @@ update level modules game =
                                 Nothing
                     )
     in
-    case level of
-        Level1 ->
-            tick
-                { computeActiveConnections = \( pos, a ) -> Stage.computeActiveConnectionsLv1 (neighborsDirLevel1 pos game.stage) ( pos, a )
-                , level = level
-                , powerStrength = 1
-                }
-                game
+    if level == Index.first then
+        tick
+            { computeActiveConnections = \( pos, a ) -> Stage.computeActiveConnectionsLv1 (neighborsDirLevel1 pos game.stage) ( pos, a )
+            , level = level
+            , powerStrength = 1
+            }
+            game
 
-        _ ->
-            tick
-                { computeActiveConnections = \( pos, a ) -> Stage.computeActiveConnectionsGeneric level modules a pos
-                , level = level
-                , powerStrength = 2
-                }
-                game
+    else
+        tick
+            { computeActiveConnections = \( pos, a ) -> Stage.computeActiveConnectionsGeneric level modules a pos
+            , level = level
+            , powerStrength = 2
+            }
+            game

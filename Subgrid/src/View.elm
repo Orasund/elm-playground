@@ -8,10 +8,11 @@ import Game exposing (Game)
 import Html exposing (Attribute, Html)
 import Html.Attributes
 import Layout
-import Level exposing (Level(..))
+import Level exposing (Level)
 import RelativePos exposing (RelativePos)
 import Set exposing (Set)
 import Stage exposing (SavedStage)
+import StaticArray.Index as Index
 import View.Svg exposing (RenderFunction)
 
 
@@ -213,36 +214,35 @@ game :
     -> Game
     -> Html msg
 game attrs args g =
-    (case args.level of
-        Level1 ->
-            g.stage.grid
-                |> Dict.get args.pos
-                |> Maybe.map
-                    (tileLevel1
-                        { level = args.level
-                        , amount = 0
-                        , connectedPathIds =
-                            g.isConnected
-                                |> Dict.get (RelativePos.fromTuple args.pos)
-                                |> Maybe.map Set.toList
-                                |> Maybe.withDefault []
-                        }
-                    )
+    (if args.level == Index.first then
+        g.stage.grid
+            |> Dict.get args.pos
+            |> Maybe.map
+                (tileLevel1
+                    { level = args.level
+                    , amount = 0
+                    , connectedPathIds =
+                        g.isConnected
+                            |> Dict.get (RelativePos.fromTuple args.pos)
+                            |> Maybe.map Set.toList
+                            |> Maybe.withDefault []
+                    }
+                )
 
-        _ ->
-            g.stage.grid
-                |> Dict.get args.pos
-                |> Maybe.map
-                    (tileGeneric
-                        { level = args.level
-                        , connectedPathIds =
-                            g.isConnected
-                                |> Dict.get (RelativePos.fromTuple args.pos)
-                                |> Maybe.map Set.toList
-                                |> Maybe.withDefault []
-                        }
-                        args.levels
-                    )
+     else
+        g.stage.grid
+            |> Dict.get args.pos
+            |> Maybe.map
+                (tileGeneric
+                    { level = args.level
+                    , connectedPathIds =
+                        g.isConnected
+                            |> Dict.get (RelativePos.fromTuple args.pos)
+                            |> Maybe.map Set.toList
+                            |> Maybe.withDefault []
+                    }
+                    args.levels
+                )
     )
         |> Maybe.withDefault Layout.none
         |> Layout.el
