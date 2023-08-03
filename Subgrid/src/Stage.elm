@@ -11,8 +11,8 @@ import StaticArray.Index as Index
 
 type alias Stage =
     { grid : Dict ( Int, Int ) Cell
-    , targets : List ( Int, Int )
-    , origins : List ( Int, Int )
+    , targets : Dict ( Int, Int ) Int
+    , origins : Dict ( Int, Int ) Int
     }
 
 
@@ -35,28 +35,30 @@ fromDict dict =
     { grid = dict
     , targets =
         dict
-            |> Dict.filter
-                (\_ cell ->
+            |> Dict.toList
+            |> List.filterMap
+                (\( pos, cell ) ->
                     case cell of
-                        Target _ ->
-                            True
+                        Target { id } ->
+                            Just ( pos, id )
 
                         _ ->
-                            False
+                            Nothing
                 )
-            |> Dict.keys
+            |> Dict.fromList
     , origins =
         dict
-            |> Dict.filter
-                (\_ cell ->
+            |> Dict.toList
+            |> List.filterMap
+                (\( pos, cell ) ->
                     case cell of
-                        Origin _ ->
-                            True
+                        Origin { id } ->
+                            Just ( pos, id )
 
                         _ ->
-                            False
+                            Nothing
                 )
-            |> Dict.keys
+            |> Dict.fromList
     }
 
 

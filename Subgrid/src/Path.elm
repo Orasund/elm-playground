@@ -14,7 +14,8 @@ type alias PathBuilder =
         { from : RelativePos
         , to : RelativePos
         , path : List RelativePos
-        , id : Int
+        , targetId : Int
+        , originId : Int
         }
 
 
@@ -68,7 +69,7 @@ stepThroughPath level grid =
         )
 
 
-toDict : PathBuilder -> Dict RelativePos (Set Int)
+toDict : PathBuilder -> Dict RelativePos { targetIds : Set Int }
 toDict list =
     let
         insert id pos =
@@ -76,48 +77,70 @@ toDict list =
                 (\maybe ->
                     (case maybe of
                         Nothing ->
-                            Set.singleton id
+                            { targetIds = Set.singleton id }
 
-                        Just l ->
-                            Set.insert id l
+                        Just { targetIds } ->
+                            { targetIds = Set.insert id targetIds }
                     )
                         |> Just
                 )
     in
     list
         |> List.foldl
-            (\{ path, id } d ->
-                path |> List.foldl (insert id) d
+            (\{ path, targetId } d ->
+                path |> List.foldl (insert targetId) d
             )
             Dict.empty
+
+
+fromTarget : Level -> Stage -> ( Int, Int ) -> Maybe { pos : ( Int, Int ), targetId : Int, from : List ( Int, Int ), originId : Int }
+fromTarget level stage pos =
+    case stage.grid |> Dict.get pos of
+        Just (Target target) ->
+            let
+                from =
+                    target.sendsTo
+                        |> Dict.keys
+                        |> List.map
+                            (\relativePos ->
+                                relativePos
+                                    |> RelativePos.toDir level
+                                    |> Dir.addTo pos
+                            )
+
+                maybeOriginId =
+                    case
+                        target.sendsTo
+                            |> Dict.values
+                            |> List.map .originId
+                            |> Set.fromList
+                            |> Set.toList
+                    of
+                        [ a ] ->
+                            Just a
+
+                        _ ->
+                            Nothing
+            in
+            maybeOriginId
+                |> Maybe.map
+                    (\originId ->
+                        { pos = pos
+                        , targetId = target.id
+                        , from = from
+                        , originId = originId
+                        }
+                    )
+
+        _ ->
+            Nothing
 
 
 build : Level -> Stage -> PathBuilder
 build level stage =
     stage.targets
-        |> List.filterMap
-            (\pos ->
-                case stage.grid |> Dict.get pos of
-                    Just (Target target) ->
-                        target.sendsTo
-                            |> Dict.keys
-                            |> List.map
-                                (\relativePos ->
-                                    relativePos
-                                        |> RelativePos.toDir level
-                                        |> Dir.addTo pos
-                                )
-                            |> (\from ->
-                                    { pos = pos
-                                    , id = target.id
-                                    , from = from
-                                    }
-                               )
-                            |> Just
-
-                    _ ->
-                        Nothing
-            )
+        |> Dict.keys
+        |> List.filterMap (fromTarget level stage)
         |> List.concatMap
             (\target ->
                 target.from
@@ -138,7 +161,8 @@ build level stage =
                                         { from = RelativePos.fromTuple target.pos
                                         , to = RelativePos.fromTuple pos
                                         , path = path |> List.map RelativePos.fromTuple
-                                        , id = target.id
+                                        , targetId = target.targetId
+                                        , originId = target.originId
                                         }
                                     )
                         )

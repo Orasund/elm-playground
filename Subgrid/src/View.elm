@@ -232,6 +232,7 @@ game attrs args g =
                     , connectedPathIds =
                         g.isConnected
                             |> Dict.get (RelativePos.fromTuple args.pos)
+                            |> Maybe.map .targetIds
                             |> Maybe.map Set.toList
                             |> Maybe.withDefault []
                     }
@@ -246,6 +247,7 @@ game attrs args g =
                     , connectedPathIds =
                         g.isConnected
                             |> Dict.get (RelativePos.fromTuple args.pos)
+                            |> Maybe.map .targetIds
                             |> Maybe.map Set.toList
                             |> Maybe.withDefault []
                     }
@@ -299,8 +301,8 @@ cellRender args cell =
                 _ ->
                     View.Svg.boxRender
 
-        Target { id } ->
-            case args.connectedPathIds of
+        Target { id, sendsTo } ->
+            case sendsTo |> Dict.toList of
                 [ _ ] ->
                     View.Svg.targetRender
                         { secondaryColor = Color.wallColor

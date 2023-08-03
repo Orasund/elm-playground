@@ -13,7 +13,7 @@ import StaticArray.Index as Index
 
 type alias Game =
     { stage : Stage
-    , isConnected : Dict RelativePos (Set Int)
+    , isConnected : Dict RelativePos { targetIds : Set Int }
     }
 
 
@@ -27,13 +27,14 @@ fromStage stage =
 isSolved : Game -> Bool
 isSolved game =
     game.stage.origins
+        |> Dict.toList
         |> List.all
-            (\pos ->
+            (\( pos, _ ) ->
                 game.isConnected
                     |> Dict.get (RelativePos.fromTuple pos)
                     |> Maybe.map
-                        (\s ->
-                            Set.size s == 1
+                        (\{ targetIds } ->
+                            Set.size targetIds == 1
                         )
                     |> Maybe.withDefault False
             )
@@ -41,50 +42,82 @@ isSolved game =
 
 fromSave : SavedStage -> Game
 fromSave savedLevel =
-    { stage =
-        savedLevel.grid
-            |> Dict.toList
-            |> List.map (\( k, v ) -> ( RelativePos.unsafeToTuple k, v ))
-            |> Dict.fromList
-            |> Stage.fromDict
-    , isConnected = savedLevel.paths
-    }
+    savedLevel.grid
+        |> Dict.toList
+        |> List.map (Tuple.mapFirst RelativePos.unsafeToTuple)
+        |> Dict.fromList
+        |> Stage.fromDict
+        |> fromStage
 
 
 toSave : Level -> Game -> Maybe SavedStage
 toSave level game =
-    game.stage
-        |> Path.build level
-        |> (\list ->
-                { connections =
-                    list
-                        |> List.indexedMap
-                            (\id { from, to, path } ->
-                                [ ( from
-                                  , { from = to
-                                    , pathId = id
-                                    , path = path
-                                    }
-                                  )
-                                , ( to
-                                  , { from = from
-                                    , pathId = id
-                                    , path = path
-                                    }
-                                  )
-                                ]
-                            )
-                        |> List.concat
-                        |> Dict.fromList
-                , paths = game.isConnected
-                , grid =
-                    game.stage.grid
-                        |> Dict.toList
-                        |> List.map (\( k, v ) -> ( RelativePos.fromTuple k, v ))
-                        |> Dict.fromList
-                , level = level
+    let
+        list =
+            game.stage
+                |> Path.build level
+
+        connections :
+            Dict
+                RelativePos
+                { from : RelativePos
+                , pathId : Int
+                , path : List RelativePos
                 }
-           )
+        connections =
+            list
+                |> List.indexedMap
+                    (\id { from, to, path } ->
+                        [ ( from
+                          , { from = to
+                            , pathId = id
+                            , path = path
+                            }
+                          )
+                        , ( to
+                          , { from = from
+                            , pathId = id
+                            , path = path
+                            }
+                          )
+                        ]
+                    )
+                |> List.concat
+                |> Dict.fromList
+
+        paths : Dict RelativePos (Set Int)
+        paths =
+            list
+                |> List.indexedMap Tuple.pair
+                |> List.foldl
+                    (\( id, { path } ) d ->
+                        path
+                            |> List.foldl
+                                (\pos ->
+                                    Dict.update pos
+                                        (\maybe ->
+                                            maybe
+                                                |> Maybe.map (Set.insert id)
+                                                |> Maybe.withDefault (Set.singleton id)
+                                                |> Just
+                                        )
+                                )
+                                d
+                    )
+                    Dict.empty
+
+        grid : Dict RelativePos Cell
+        grid =
+            game.stage.grid
+                |> Dict.toList
+                |> List.map (\( k, v ) -> ( RelativePos.fromTuple k, v ))
+                |> Dict.fromList
+    in
+    { connections = connections
+    , paths = paths
+    , grid = grid
+    , level = level
+    }
         |> Just
 
 
@@ -123,8 +156,11 @@ tick args game =
                                 (\dir ->
                                     if
                                         game.stage.origins
-                                            |> List.member dir.pos
+                                            |> Dict.member dir.pos
                                     then
+                                        Nothing
+
+                                    else
                                         dir.pos
                                             |> Stage.sendsEnergy
                                                 { to = dir.to
@@ -134,9 +170,6 @@ tick args game =
                                                 (\{ originId } ->
                                                     ( dir.from, { originId = originId } )
                                                 )
-
-                                    else
-                                        Nothing
                                 )
                             |> (\list ->
                                     if List.length list < args.powerStrength then
