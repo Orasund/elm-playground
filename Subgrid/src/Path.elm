@@ -99,18 +99,21 @@ build level stage =
             (\pos ->
                 case stage.grid |> Dict.get pos of
                     Just (Target target) ->
-                        Just
-                            { pos = pos
-                            , id = target.id
-                            , from =
-                                target.dir
-                                    |> List.map
-                                        (\relativePos ->
-                                            relativePos
-                                                |> RelativePos.toDir level
-                                                |> Dir.addTo pos
-                                        )
-                            }
+                        target.sendsTo
+                            |> Dict.keys
+                            |> List.map
+                                (\relativePos ->
+                                    relativePos
+                                        |> RelativePos.toDir level
+                                        |> Dir.addTo pos
+                                )
+                            |> (\from ->
+                                    { pos = pos
+                                    , id = target.id
+                                    , from = from
+                                    }
+                               )
+                            |> Just
 
                     _ ->
                         Nothing

@@ -119,18 +119,24 @@ tick args game =
                                             |> RelativePos.reverse args.level
                                     }
                                 )
-                            |> List.filter
+                            |> List.filterMap
                                 (\dir ->
-                                    (game.stage.origins
-                                        |> List.member dir.pos
-                                    )
-                                        && (dir.pos
-                                                |> Stage.sendsEnergy
-                                                    { to = dir.to
-                                                    }
-                                                    game.stage
-                                                |> (/=) Nothing
-                                           )
+                                    if
+                                        game.stage.origins
+                                            |> List.member dir.pos
+                                    then
+                                        dir.pos
+                                            |> Stage.sendsEnergy
+                                                { to = dir.to
+                                                }
+                                                game.stage
+                                            |> Maybe.map
+                                                (\{ originId } ->
+                                                    ( dir.from, { originId = originId } )
+                                                )
+
+                                    else
+                                        Nothing
                                 )
                             |> (\list ->
                                     if List.length list < args.powerStrength then
@@ -139,8 +145,8 @@ tick args game =
                                     else
                                         list
                                )
-                            |> List.map .from
-                            |> (\dir -> Target { dir = dir, id = id })
+                            |> Dict.fromList
+                            |> (\sendsTo -> Target { sendsTo = sendsTo, id = id })
 
                     _ ->
                         cell

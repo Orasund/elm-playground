@@ -30,20 +30,6 @@ type alias SavedStage =
     }
 
 
-isSolved : Stage -> Bool
-isSolved stage =
-    List.all
-        (\pos ->
-            case stage.grid |> Dict.get pos of
-                Just (Target { dir }) ->
-                    dir /= []
-
-                _ ->
-                    False
-        )
-        stage.targets
-
-
 fromDict : Dict ( Int, Int ) Cell -> Stage
 fromDict dict =
     { grid = dict
@@ -92,11 +78,14 @@ parse rows =
                 in
                 case char of
                     '🟥' ->
-                        { out | cells = ( pos, Origin { id = out.nextOriginid } ) :: out.cells }
+                        { out
+                            | cells = ( pos, Origin { id = out.nextOriginid } ) :: out.cells
+                            , nextOriginid = out.nextOriginid + 1
+                        }
 
                     '🔘' ->
                         { out
-                            | cells = ( pos, Target { dir = [], id = out.nextTargetId } ) :: out.cells
+                            | cells = ( pos, Target { sendsTo = Dict.empty, id = out.nextTargetId } ) :: out.cells
                             , nextTargetId = out.nextTargetId + 1
                         }
 

@@ -17,7 +17,10 @@ type Cell
     = ConnectionCell Connection
     | Wall
     | Origin { id : Int }
-    | Target { dir : List RelativePos, id : Int }
+    | Target
+        { sendsTo : Dict RelativePos { originId : Int }
+        , id : Int
+        }
 
 
 connectionLevel1 : Dict RelativePos { from : RelativePos, originId : Int } -> Connection
@@ -61,7 +64,7 @@ toColor args isActive cell =
                 Nothing ->
                     Color.laserColor args.level args.amount
 
-        Target { dir } ->
+        Target { sendsTo } ->
             case isActive of
                 Just True ->
                     Color.laserColor args.level args.amount
@@ -70,9 +73,8 @@ toColor args isActive cell =
                     Color.inactiveLaser args.level
 
                 Nothing ->
-                    case dir of
-                        [] ->
-                            Color.inactiveLaser args.level
+                    if sendsTo == Dict.empty then
+                        Color.inactiveLaser args.level
 
-                        _ ->
-                            Color.laserColor args.level args.amount
+                    else
+                        Color.laserColor args.level args.amount
