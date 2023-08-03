@@ -8,79 +8,31 @@ import StaticArray exposing (StaticArray)
 
 levels : StaticArray LevelAmount (Int -> Maybe Game)
 levels =
-    ( \stage ->
-        case stage of
-            1 ->
-                --simplest pattern
-                Stage.parse
-                    [ "⬛🔘⬛⬛🔘⬛"
-                    , "🟥⬜⬜⬜⬜⬛"
-                    , "⬛⬜⬜⬜⬜⬛"
-                    , "⬛⬜⬜⬜⬜⬛"
-                    , "🟥⬜⬜⬜⬜⬛"
-                    , "⬛⬛⬛⬛⬛⬛"
-                    ]
-                    |> Game.fromStage
-                    |> Just
-
-            _ ->
-                Nothing
+    ( level1
     , [ \stage ->
             case stage of
                 1 ->
-                    --again a curve
-                    --no alternative solutions
-                    Stage.parse
-                        [ "⬛🟥⬛⬛🔘⬛"
-                        , "🔘⬜⬜⬜⬜⬛"
-                        , "⬛⬜⬜⬜⬜⬛"
-                        , "⬛⬜⬜⬜⬜⬛"
-                        , "🟥⬜⬜⬜⬜🔘"
-                        , "⬛⬛⬛⬛🟥⬛"
-                        ]
-                        |> Game.fromStage
-                        |> Just
-
-                2 ->
-                    --only way how to make a straight with just a curve
-                    --again no alternatives
-                    Stage.parse
-                        [ "⬛⬛⬛⬛⬛⬛"
-                        , "🔘⬜⬜⬜⬜🟥"
-                        , "⬛⬜⬜⬜⬜⬛"
-                        , "⬛⬜⬜⬜⬜⬛"
-                        , "🔘⬜⬜⬜⬜🟥"
-                        , "⬛🟥⬛⬛🔘⬛"
-                        ]
-                        |> Game.fromStage
-                        |> Just
-
-                _ ->
-                    Nothing
-      , \stage ->
-            case stage of
-                1 ->
-                    --player learns that lasers will prefer straight lines
-                    Stage.parse
-                        [ "⬛🟥⬛⬛🔘⬛"
-                        , "🔘⬜⬜⬜⬜⬛"
-                        , "⬛⬜⬜⬜⬜⬛"
-                        , "⬛⬜⬜⬜⬜⬛"
-                        , "🟥⬜⬜⬜⬜🔘"
-                        , "⬛⬛⬛⬛🟥⬛"
-                        ]
-                        |> Game.fromStage
-                        |> Just
-
-                2 ->
                     --player is forced to cross lines
                     Stage.parse
-                        [ "⬛🔘⬛⬛🟥⬛"
-                        , "🔘⬜⬜⬜⬜🟥"
+                        [ "⬛⬛🔘🟥⬛⬛"
                         , "⬛⬜⬜⬜⬜⬛"
+                        , "🟥⬜⬜⬜⬜🔘"
+                        , "🔘⬜⬜⬜⬜⬛"
+                        , "⬛⬜⬜⬜⬜⬛"
+                        , "⬛⬛🟥⬛⬛⬛"
+                        ]
+                        |> Game.fromStage
+                        |> Just
+
+                2 ->
+                    --player learns that lasers will prefer straight lines
+                    Stage.parse
+                        [ "⬛⬛🟥🔘⬛⬛"
                         , "⬛⬜⬜⬜⬜⬛"
                         , "🔘⬜⬜⬜⬜⬛"
-                        , "⬛🟥⬛⬛⬛⬛"
+                        , "🟥⬜⬜⬜⬜🔘"
+                        , "⬛⬜⬜⬜⬜⬛"
+                        , "⬛⬛⬛🟥⬛⬛"
                         ]
                         |> Game.fromStage
                         |> Just
@@ -88,12 +40,12 @@ levels =
                 3 ->
                     --player will not be able to make a straight line
                     Stage.parse
-                        [ "⬛🔘⬛⬛🟥⬛"
+                        [ "⬛⬛🔘🟥⬛⬛"
+                        , "⬛⬜⬜⬜⬜⬛"
                         , "🔘⬜⬜⬜⬜⬛"
-                        , "⬛⬜⬜⬜⬜⬛"
-                        , "⬛⬜⬜⬜⬜⬛"
                         , "🟥⬜⬜⬜⬜🟥"
-                        , "⬛⬛⬛⬛🔘⬛"
+                        , "⬛⬜⬜⬜⬜⬛"
+                        , "⬛⬛⬛🔘⬛⬛"
                         ]
                         |> Game.fromStage
                         |> Just
@@ -106,10 +58,10 @@ levels =
                     Stage.parse
                         [ "⬛⬛⬛🔘⬛⬛"
                         , "⬛⬜⬜⬜⬜⬛"
-                        , "🟥⬜⬜⬜⬜🔘"
+                        , "🟥⬜⬜⬜⬜🟥"
                         , "🔘⬜⬜⬜⬜🟥"
                         , "⬛⬜⬜⬜⬜⬛"
-                        , "⬛⬛🟥⬛⬛⬛"
+                        , "⬛⬛⬛🔘⬛⬛"
                         ]
                         |> Game.fromStage
                         |> Just
@@ -119,9 +71,9 @@ levels =
                         [ "⬛⬛🟥🔘⬛⬛"
                         , "⬛⬜⬜⬜⬜⬛"
                         , "🟥⬜⬜⬜⬜🔘"
-                        , "🔘⬜⬜⬜⬜🟥"
+                        , "🔘⬜⬜⬜⬜⬛"
                         , "⬛⬜⬜⬜⬜⬛"
-                        , "⬛⬛⬛⬛⬛⬛"
+                        , "⬛⬛⬛🟥⬛⬛"
                         ]
                         |> Game.fromStage
                         |> Just
@@ -171,6 +123,59 @@ levels =
       ]
     )
         |> StaticArray.fromList Level.maxLevel
+
+
+{-| We have to start with these three stages, because you always need three varients in order to solve all levels
+
+An alternative to this would be to introduce a stage that is just a crossing. But this is not really fun.
+
+So this is the next best thing.
+
+-}
+level1 : Int -> Maybe Game
+level1 stage =
+    case stage of
+        1 ->
+            --player is forced to cross lines
+            Stage.parse
+                [ "⬛🔘⬛⬛🟥⬛"
+                , "🟥⬜⬜⬜⬜🔘"
+                , "⬛⬜⬜⬜⬜⬛"
+                , "⬛⬜⬜⬜⬜⬛"
+                , "🔘⬜⬜⬜⬜⬛"
+                , "⬛🟥⬛⬛⬛⬛"
+                ]
+                |> Game.fromStage
+                |> Just
+
+        2 ->
+            --player learns that lasers will prefer straight lines
+            Stage.parse
+                [ "⬛🟥⬛⬛🔘⬛"
+                , "🔘⬜⬜⬜⬜⬛"
+                , "⬛⬜⬜⬜⬜⬛"
+                , "⬛⬜⬜⬜⬜⬛"
+                , "🟥⬜⬜⬜⬜🔘"
+                , "⬛⬛⬛⬛🟥⬛"
+                ]
+                |> Game.fromStage
+                |> Just
+
+        3 ->
+            --player will not be able to make a straight line
+            Stage.parse
+                [ "⬛🔘⬛⬛🟥⬛"
+                , "🔘⬜⬜⬜⬜⬛"
+                , "⬛⬜⬜⬜⬜⬛"
+                , "⬛⬜⬜⬜⬜⬛"
+                , "🟥⬜⬜⬜⬜🟥"
+                , "⬛⬛⬛⬛🔘⬛"
+                ]
+                |> Game.fromStage
+                |> Just
+
+        _ ->
+            Nothing
 
 
 new : { level : Level, stage : Int } -> Maybe Game
