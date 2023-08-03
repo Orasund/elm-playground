@@ -15,10 +15,9 @@ type alias RenderFunction msg =
 grid :
     { width : Int
     , height : Int
-    , active : ( Int, Int ) -> Maybe Int
+    , active : ( Int, Int ) -> { originId : Maybe Int }
     , render : Cell -> RenderFunction msg
     , level : Level
-    , connectedPathIds : List Int
     }
     -> Dict RelativePos Cell
     -> Svg msg
@@ -32,10 +31,8 @@ grid args dict =
                     cell
                         |> Cell.toColor
                             { level = args.level
-                            , amount = args.active ( x, y ) |> Maybe.withDefault 0
-                            , connectedPathIds = args.connectedPathIds
                             }
-                            (args.active ( x, y ) /= Nothing |> Just)
+                            (args.active ( x, y ) |> Just)
                 , render = args.render cell
                 }
             )

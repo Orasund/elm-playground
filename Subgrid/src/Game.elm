@@ -186,7 +186,7 @@ tick args game =
             )
         |> (\d ->
                 ( { game | stage = game.stage |> (\stage -> { stage | grid = d }) }
-                    |> (\g -> { g | isConnected = g.stage |> Path.build args.level |> Path.toDict })
+                    |> (\g -> { g | isConnected = g.stage |> Path.build args.level |> Path.toDict |> Debug.log "isConnected" })
                 , Dict.toList d /= Dict.toList game.stage.grid
                 )
            )

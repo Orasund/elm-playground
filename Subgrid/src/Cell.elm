@@ -31,50 +31,48 @@ connectionLevel1 sendsTo =
     }
 
 
-toColor : { level : Level, amount : Int, connectedPathIds : List Int } -> Maybe Bool -> Cell -> String
+toColor : { level : Level } -> Maybe { originId : Maybe Int } -> Cell -> String
 toColor args isActive cell =
     case cell of
         ConnectionCell sort ->
             case isActive of
-                Just True ->
-                    Color.laserColor args.level args.amount
-
-                Just False ->
-                    Color.inactiveLaser args.level
+                Just { originId } ->
+                    originId
+                        |> Maybe.map (Color.laserColor args.level)
+                        |> Maybe.withDefault (Color.inactiveLaser args.level)
 
                 Nothing ->
                     case sort.sendsTo |> Dict.toList of
                         [] ->
                             Color.inactiveLaser args.level
 
-                        _ ->
-                            Color.laserColor args.level args.amount
+                        ( _, { originId } ) :: _ ->
+                            Color.laserColor args.level originId
 
         Wall ->
             Color.wallColor
 
-        Origin _ ->
+        Origin { id } ->
             case isActive of
-                Just True ->
-                    Color.laserColor args.level args.amount
-
-                Just False ->
-                    Color.inactiveLaser args.level
+                Just { originId } ->
+                    originId
+                        |> Maybe.map (Color.laserColor args.level)
+                        |> Maybe.withDefault (Color.inactiveLaser args.level)
 
                 Nothing ->
-                    Color.laserColor args.level args.amount
+                    Color.laserColor args.level id
 
         Target { sendsTo } ->
             case isActive of
-                Just True ->
-                    Color.laserColor args.level args.amount
-
-                Just False ->
-                    Color.inactiveLaser args.level
+                Just { originId } ->
+                    originId
+                        |> Maybe.map (Color.laserColor args.level)
+                        |> Maybe.withDefault (Color.inactiveLaser args.level)
 
                 Nothing ->
-                    if sendsTo == Dict.empty then
-                        Color.inactiveLaser args.level
+                    case sendsTo |> Dict.toList of
+                        [] ->
+                            Color.inactiveLaser args.level
 
-                    else
-                        Color.laserColor args.level args.amount
+                        ( _, { originId } ) :: _ ->
+                            Color.laserColor args.level originId

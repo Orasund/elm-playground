@@ -56,9 +56,9 @@ savedLevels args fun dict =
                                     |> Maybe.withDefault Set.empty
                                     |> Set.toList
                                     |> List.head
+                                    |> (\originId -> { originId = originId })
                         , render = \_ -> View.Svg.boxRender
                         , level = args.level
-                        , connectedPathIds = []
                         }
                 , Layout.text [] ("Level " ++ Level.toString args.level ++ " - " ++ String.fromInt id)
                 ]
@@ -99,7 +99,9 @@ card attrs =
 
 tileLevel1 : { level : Level, amount : Int, connectedPathIds : List Int } -> Cell -> Html msg
 tileLevel1 args cell =
-    Cell.toColor { level = args.level, amount = args.amount, connectedPathIds = args.connectedPathIds }
+    Cell.toColor
+        { level = args.level
+        }
         Nothing
         cell
         |> View.Svg.cell1
@@ -123,19 +125,20 @@ tileGeneric args g cell =
                 |> Maybe.map
                     (\level ->
                         let
-                            activePos : Set RelativePos
+                            activePos : Dict RelativePos { originId : Maybe Int }
                             activePos =
                                 c.sendsTo
-                                    |> Dict.keys
-                                    |> List.map (RelativePos.rotate args.level (4 - c.rotation))
-                                    |> List.filterMap
-                                        (\to ->
+                                    |> Dict.toList
+                                    |> List.map (Tuple.mapFirst (RelativePos.rotate args.level (4 - c.rotation)))
+                                    |> List.concatMap
+                                        (\( to, { originId } ) ->
                                             level.connections
                                                 |> Dict.get to
                                                 |> Maybe.map .path
+                                                |> Maybe.withDefault []
+                                                |> List.map (\p -> ( p, { originId = Just originId } ))
                                         )
-                                    |> List.concat
-                                    |> Set.fromList
+                                    |> Dict.fromList
                         in
                         level.grid
                             |> View.Svg.grid
@@ -143,14 +146,11 @@ tileGeneric args g cell =
                                 , width = Config.cellSize
                                 , active =
                                     \pos ->
-                                        if Set.member (RelativePos.fromTuple pos) activePos then
-                                            Just 0
-
-                                        else
-                                            Nothing
+                                        activePos
+                                            |> Dict.get (RelativePos.fromTuple pos)
+                                            |> Maybe.withDefault { originId = Nothing }
                                 , render = \_ -> View.Svg.boxRender
                                 , level = args.level
-                                , connectedPathIds = []
                                 }
                             |> Layout.el
                                 [ Html.Attributes.style "transform"
@@ -163,8 +163,6 @@ tileGeneric args g cell =
             cell
                 |> Cell.toColor
                     { level = args.level
-                    , amount = 0
-                    , connectedPathIds = args.connectedPathIds
                     }
                     Nothing
                 |> View.Svg.cell1
