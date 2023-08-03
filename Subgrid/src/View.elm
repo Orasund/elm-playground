@@ -10,7 +10,7 @@ import Html.Attributes
 import Layout
 import Level exposing (Level)
 import RelativePos exposing (RelativePos)
-import Set exposing (Set)
+import Set
 import Stage exposing (SavedStage)
 import StaticArray.Index as Index
 import View.Svg exposing (RenderFunction)
@@ -97,7 +97,7 @@ card attrs =
         )
 
 
-tileLevel1 : { level : Level, amount : Int, connectedPathIds : List Int } -> Cell -> Html msg
+tileLevel1 : { level : Level, amount : Int } -> Cell -> Html msg
 tileLevel1 args cell =
     Cell.toColor
         { level = args.level
@@ -109,14 +109,11 @@ tileLevel1 args cell =
             , width = Config.cellSize
             , render =
                 cellRender
-                    { level = args.level
-                    , connectedPathIds = args.connectedPathIds
-                    }
                     cell
             }
 
 
-tileGeneric : { level : Level, connectedPathIds : List Int } -> Dict Int SavedStage -> Cell -> Html msg
+tileGeneric : { level : Level } -> Dict Int SavedStage -> Cell -> Html msg
 tileGeneric args g cell =
     case cell of
         ConnectionCell c ->
@@ -170,9 +167,6 @@ tileGeneric args g cell =
                     , width = Config.cellSize
                     , render =
                         cellRender
-                            { level = args.level
-                            , connectedPathIds = args.connectedPathIds
-                            }
                             cell
                     }
 
@@ -227,12 +221,6 @@ game attrs args g =
                 (tileLevel1
                     { level = args.level
                     , amount = 0
-                    , connectedPathIds =
-                        g.isConnected
-                            |> Dict.get (RelativePos.fromTuple args.pos)
-                            |> Maybe.map .targetIds
-                            |> Maybe.map Set.toList
-                            |> Maybe.withDefault []
                     }
                 )
 
@@ -242,12 +230,6 @@ game attrs args g =
             |> Maybe.map
                 (tileGeneric
                     { level = args.level
-                    , connectedPathIds =
-                        g.isConnected
-                            |> Dict.get (RelativePos.fromTuple args.pos)
-                            |> Maybe.map .targetIds
-                            |> Maybe.map Set.toList
-                            |> Maybe.withDefault []
                     }
                     args.levels
                 )
@@ -277,8 +259,8 @@ primaryButton onPress label =
         }
 
 
-cellRender : { level : Level, connectedPathIds : List Int } -> Cell -> RenderFunction msg
-cellRender args cell =
+cellRender : Cell -> RenderFunction msg
+cellRender cell =
     case cell of
         ConnectionCell _ ->
             View.Svg.boxRender
@@ -287,17 +269,7 @@ cellRender args cell =
             View.Svg.boxRender
 
         Origin _ ->
-            case args.connectedPathIds of
-                [ pathId ] ->
-                    View.Svg.targetRender
-                        { secondaryColor = Color.wallColor
-                        , variant = pathId
-                        , small = True
-                        , fill = True
-                        }
-
-                _ ->
-                    View.Svg.boxRender
+            View.Svg.boxRender
 
         Target { id, sendsTo } ->
             case sendsTo |> Dict.toList of

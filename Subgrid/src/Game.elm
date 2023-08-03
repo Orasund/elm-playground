@@ -26,17 +26,21 @@ fromStage stage =
 
 isSolved : Game -> Bool
 isSolved game =
-    game.stage.origins
+    game.stage.targets
         |> Dict.toList
         |> List.all
             (\( pos, _ ) ->
-                game.isConnected
-                    |> Dict.get (RelativePos.fromTuple pos)
-                    |> Maybe.map
-                        (\{ targetIds } ->
-                            Set.size targetIds == 1
-                        )
-                    |> Maybe.withDefault False
+                case game.stage.grid |> Dict.get pos of
+                    Just (Target target) ->
+                        target.sendsTo
+                            |> Dict.values
+                            |> List.map .originId
+                            |> Set.fromList
+                            |> Set.size
+                            |> (==) 1
+
+                    _ ->
+                        False
             )
 
 

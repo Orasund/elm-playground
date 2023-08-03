@@ -38,7 +38,6 @@ toHtml args dict =
                                 |> ConnectionCell
                                 |> View.tileGeneric
                                     { level = args.level
-                                    , connectedPathIds = []
                                     }
                                     (args.levels
                                         |> Dict.get (args.level |> Level.previous |> Level.toString)
