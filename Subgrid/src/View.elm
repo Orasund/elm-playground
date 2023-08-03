@@ -286,7 +286,7 @@ cellRender args cell =
         Wall ->
             View.Svg.boxRender
 
-        Origin ->
+        Origin _ ->
             case args.connectedPathIds of
                 [ pathId ] ->
                     View.Svg.targetRender

@@ -26,7 +26,7 @@ fromStage stage =
 
 isSolved : Game -> Bool
 isSolved game =
-    game.stage.targets
+    game.stage.origins
         |> List.all
             (\pos ->
                 game.isConnected
@@ -121,15 +121,15 @@ tick args game =
                                 )
                             |> List.filter
                                 (\dir ->
-                                    (game.stage.grid
-                                        |> Dict.get dir.pos
-                                        |> (/=) (Just Origin)
+                                    (game.stage.origins
+                                        |> List.member dir.pos
                                     )
                                         && (dir.pos
                                                 |> Stage.sendsEnergy
                                                     { to = dir.to
                                                     }
                                                     game.stage
+                                                |> (/=) Nothing
                                            )
                                 )
                             |> (\list ->
@@ -173,7 +173,7 @@ update level modules game =
                             Just (ConnectionCell _) ->
                                 Just dir
 
-                            Just Origin ->
+                            Just (Origin _) ->
                                 Just dir
 
                             Just (Target _) ->

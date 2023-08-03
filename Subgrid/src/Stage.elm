@@ -12,6 +12,7 @@ import StaticArray.Index as Index
 type alias Stage =
     { grid : Dict ( Int, Int ) Cell
     , targets : List ( Int, Int )
+    , origins : List ( Int, Int )
     }
 
 
@@ -58,6 +59,18 @@ fromDict dict =
                             False
                 )
             |> Dict.keys
+    , origins =
+        dict
+            |> Dict.filter
+                (\_ cell ->
+                    case cell of
+                        Origin _ ->
+                            True
+
+                        _ ->
+                            False
+                )
+            |> Dict.keys
     }
 
 
@@ -79,7 +92,7 @@ parse rows =
                 in
                 case char of
                     '🟥' ->
-                        { out | cells = ( pos, Origin ) :: out.cells }
+                        { out | cells = ( pos, Origin { id = out.nextOriginid } ) :: out.cells }
 
                     '🔘' ->
                         { out
@@ -93,15 +106,10 @@ parse rows =
                     _ ->
                         out
             )
-            { cells = [], nextTargetId = 0 }
+            { cells = [], nextTargetId = 0, nextOriginid = 0 }
         |> .cells
         |> Dict.fromList
         |> fromDict
-
-
-withLaserAt : ( Int, Int ) -> Dict ( Int, Int ) Cell -> Dict ( Int, Int ) Cell
-withLaserAt pos =
-    Dict.insert pos Origin
 
 
 computeActiveConnectionsGeneric :
@@ -119,30 +127,28 @@ computeActiveConnectionsGeneric level modules connection pos stage =
         |> Dict.toList
         |> List.filterMap
             (\( to, { from } ) ->
-                if
-                    from
-                        |> RelativePos.toDir level
-                        |> Dir.rotate connection.rotation
-                        |> Dir.addTo pos
-                        |> sendsEnergy
-                            { to =
-                                from
-                                    |> RelativePos.reverse level
-                                    |> RelativePos.rotate level connection.rotation
-                            }
-                            stage
-                then
-                    ( to
-                        |> RelativePos.rotate level connection.rotation
-                    , { from =
+                from
+                    |> RelativePos.toDir level
+                    |> Dir.rotate connection.rotation
+                    |> Dir.addTo pos
+                    |> sendsEnergy
+                        { to =
                             from
+                                |> RelativePos.reverse level
                                 |> RelativePos.rotate level connection.rotation
-                      }
-                    )
-                        |> Just
-
-                else
-                    Nothing
+                        }
+                        stage
+                    |> Maybe.map
+                        (\{ originId } ->
+                            ( to
+                                |> RelativePos.rotate level connection.rotation
+                            , { from =
+                                    from
+                                        |> RelativePos.rotate level connection.rotation
+                              , originId = originId
+                              }
+                            )
+                        )
             )
         |> Dict.fromList
         |> (\sendsTo -> { connection | sendsTo = sendsTo })
@@ -157,7 +163,7 @@ computeActiveConnectionsLv1 neighborsDir ( pos, connection ) stage =
     in
     (case neighborsDir of
         [ dir1, dir2 ] ->
-            if
+            case
                 dir1
                     |> RelativePos.toDir level
                     |> Dir.addTo pos
@@ -165,43 +171,43 @@ computeActiveConnectionsLv1 neighborsDir ( pos, connection ) stage =
                         { to = dir1 |> RelativePos.reverse level
                         }
                         stage
-            then
-                [ ( dir2, { from = dir1 } ) ]
+            of
+                Just { originId } ->
+                    [ ( dir2, { from = dir1, originId = originId } ) ]
 
-            else if
-                dir2
-                    |> RelativePos.toDir level
-                    |> Dir.addTo pos
-                    |> sendsEnergy
-                        { to = dir2 |> RelativePos.reverse level
-                        }
-                        stage
-            then
-                [ ( dir1, { from = dir2 } ) ]
+                Nothing ->
+                    case
+                        dir2
+                            |> RelativePos.toDir level
+                            |> Dir.addTo pos
+                            |> sendsEnergy
+                                { to = dir2 |> RelativePos.reverse level
+                                }
+                                stage
+                    of
+                        Just { originId } ->
+                            [ ( dir1, { from = dir2, originId = originId } ) ]
 
-            else
-                []
+                        Nothing ->
+                            []
 
         _ ->
             RelativePos.list level
                 |> List.filterMap
                     (\fromDir ->
-                        if
-                            fromDir
-                                |> RelativePos.toDir level
-                                |> Dir.addTo pos
-                                |> sendsEnergy
-                                    { to = fromDir |> RelativePos.reverse level
-                                    }
-                                    stage
-                        then
-                            ( fromDir |> RelativePos.reverse level
-                            , { from = fromDir }
-                            )
-                                |> Just
-
-                        else
-                            Nothing
+                        fromDir
+                            |> RelativePos.toDir level
+                            |> Dir.addTo pos
+                            |> sendsEnergy
+                                { to = fromDir |> RelativePos.reverse level
+                                }
+                                stage
+                            |> Maybe.map
+                                (\{ originId } ->
+                                    ( fromDir |> RelativePos.reverse level
+                                    , { from = fromDir, originId = originId }
+                                    )
+                                )
                     )
     )
         |> Dict.fromList
@@ -213,19 +219,19 @@ sendsEnergy :
     }
     -> Stage
     -> ( Int, Int )
-    -> Bool
+    -> Maybe { originId : Int }
 sendsEnergy args stage pos =
     case stage.grid |> Dict.get pos of
         Just (ConnectionCell connection) ->
             connection.sendsTo
-                |> Dict.keys
-                |> List.any ((==) args.to)
+                |> Dict.get args.to
+                |> Maybe.map (\{ originId } -> { originId = originId })
 
-        Just Origin ->
-            True
+        Just (Origin { id }) ->
+            Just { originId = id }
 
         _ ->
-            False
+            Nothing
 
 
 clear : Stage -> Stage

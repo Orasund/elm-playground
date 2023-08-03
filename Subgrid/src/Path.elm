@@ -55,7 +55,7 @@ stepThroughPath level grid =
                                             }
                                         )
 
-                            Origin ->
+                            Origin _ ->
                                 Just
                                     { pos = pos
                                     , path = pos :: path
