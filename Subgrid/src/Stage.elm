@@ -226,3 +226,15 @@ sendsEnergy args stage pos =
 
         _ ->
             False
+
+
+clear : Stage -> Stage
+clear stage =
+    { stage
+        | grid =
+            stage.grid
+                |> Dict.filter
+                    (\( x, y ) _ ->
+                        x == -1 || x == 4 || y == -1 || y == 4
+                    )
+    }

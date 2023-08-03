@@ -198,3 +198,8 @@ update level modules game =
             , powerStrength = 2
             }
             game
+
+
+clearStage : Game -> Game
+clearStage game =
+    { game | stage = game.stage |> Stage.clear }

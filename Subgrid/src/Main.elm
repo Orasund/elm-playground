@@ -37,6 +37,7 @@ type Msg
     | NextStage
     | LoadStage { level : Level, stage : Int }
     | RemoveTile ( Int, Int )
+    | ClearStage
 
 
 init : () -> ( Model, Cmd Msg )
@@ -110,7 +111,7 @@ generateStage args model =
 
 view : Model -> Html Msg
 view model =
-    [ [ "Level " ++ Level.toString model.level ++ " - " ++ String.fromInt model.stage |> View.title
+    [ [ View.topBar { level = model.level, stage = model.stage, clearStage = ClearStage }
       , model.game
             |> Maybe.map
                 (\game ->
@@ -371,6 +372,25 @@ update msg model =
                                             }
                                                 |> Just
                                         , selected = Nothing
+                                        , updating = True
+                                    }
+                               )
+                    )
+                |> Maybe.withDefault model
+            , Cmd.none
+            )
+
+        ClearStage ->
+            ( model.game
+                |> Maybe.map
+                    (\game ->
+                        game
+                            |> Game.clearStage
+                            |> (\g ->
+                                    { model
+                                        | game = g |> Just
+                                        , selected = Nothing
+                                        , updating = True
                                     }
                                )
                     )

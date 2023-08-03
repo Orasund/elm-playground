@@ -16,6 +16,14 @@ import StaticArray.Index as Index
 import View.Svg exposing (RenderFunction)
 
 
+topBar : { level : Level, stage : Int, clearStage : msg } -> Html msg
+topBar args =
+    [ "Level " ++ Level.toString args.level ++ " - " ++ String.fromInt args.stage |> title
+    , button args.clearStage "Reset Level"
+    ]
+        |> Layout.row [ Layout.contentWithSpaceBetween ]
+
+
 gameWon : Html msg
 gameWon =
     "You Win!"
