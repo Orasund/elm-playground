@@ -13,7 +13,8 @@ import RelativePos exposing (RelativePos)
 import Set
 import Stage exposing (SavedStage)
 import StaticArray.Index as Index
-import View.Svg exposing (RenderFunction)
+import View.Render
+import View.Svg
 
 
 topBar : { level : Level, stage : Int, clearStage : msg } -> Html msg
@@ -30,8 +31,8 @@ gameWon =
         |> Layout.text []
         |> Layout.el
             ([ Html.Attributes.style "background" "linear-gradient(45deg,orange, yellow)"
-             , Html.Attributes.style "width" ((Config.cellSize * 6 |> String.fromInt) ++ "px")
-             , Html.Attributes.style "height" ((Config.cellSize * 6 |> String.fromInt) ++ "px")
+             , Html.Attributes.style "width" ((Config.defaultCellSize * 6 |> String.fromInt) ++ "px")
+             , Html.Attributes.style "height" ((Config.defaultCellSize * 6 |> String.fromInt) ++ "px")
              , Html.Attributes.style "color" "white"
              , Html.Attributes.style "font-size" "2rem"
              ]
@@ -46,9 +47,8 @@ savedLevels args fun dict =
         |> List.map
             (\( id, level ) ->
                 [ level.grid
-                    |> View.Svg.grid
-                        { width = Config.cellSize
-                        , height = Config.cellSize
+                    |> View.Svg.tile
+                        { cellSize = Config.defaultCellSize
                         , active =
                             \pos ->
                                 level.paths
@@ -57,7 +57,7 @@ savedLevels args fun dict =
                                     |> Set.toList
                                     |> List.head
                                     |> (\originId -> { originId = originId })
-                        , render = \_ -> View.Svg.boxRender
+                        , render = \_ -> View.Render.boxRender
                         , level = args.level
                         }
                 , Layout.text [] ("Level " ++ Level.toString args.level ++ " - " ++ String.fromInt id)
@@ -97,23 +97,22 @@ card attrs =
         )
 
 
-tileLevel1 : { level : Level, amount : Int } -> Cell -> Html msg
+tileLevel1 : { level : Level, amount : Int, cellSize : Int } -> Cell -> Html msg
 tileLevel1 args cell =
     Cell.toColor
         { level = args.level
         }
         Nothing
         cell
-        |> View.Svg.cell1
-            { height = Config.cellSize
-            , width = Config.cellSize
+        |> View.Svg.singleCell
+            { cellSize = args.cellSize
             , render =
-                cellRender
+                View.Render.cellRender
                     cell
             }
 
 
-tileGeneric : { level : Level } -> Dict Int SavedStage -> Cell -> Html msg
+tileGeneric : { level : Level, cellSize : Int } -> Dict Int SavedStage -> Cell -> Html msg
 tileGeneric args g cell =
     case cell of
         ConnectionCell c ->
@@ -138,15 +137,14 @@ tileGeneric args g cell =
                                     |> Dict.fromList
                         in
                         level.grid
-                            |> View.Svg.grid
-                                { height = Config.cellSize
-                                , width = Config.cellSize
+                            |> View.Svg.tile
+                                { cellSize = args.cellSize
                                 , active =
                                     \pos ->
                                         activePos
                                             |> Dict.get (RelativePos.fromTuple pos)
                                             |> Maybe.withDefault { originId = Nothing }
-                                , render = \_ -> View.Svg.boxRender
+                                , render = \_ -> View.Render.boxRender
                                 , level = args.level
                                 }
                             |> Layout.el
@@ -162,58 +160,69 @@ tileGeneric args g cell =
                     { level = args.level
                     }
                     Nothing
-                |> View.Svg.cell1
-                    { height = Config.cellSize
-                    , width = Config.cellSize
+                |> View.Svg.singleCell
+                    { cellSize = args.cellSize
                     , render =
-                        cellRender
+                        View.Render.cellRender
                             cell
                     }
-
-
-grid :
-    List (Attribute msg)
-    ->
-        { levels : Dict Int SavedStage
-        , onToggle : ( Int, Int ) -> msg
-        , level : Level
-        }
-    -> Game
-    -> Html msg
-grid attrs args g =
-    List.range -1 4
-        |> List.map
-            (\y ->
-                List.range -1 4
-                    |> List.map
-                        (\x ->
-                            g
-                                |> game
-                                    (Layout.asButton
-                                        { onPress = Just (args.onToggle ( x, y ))
-                                        , label = "Toggle " ++ String.fromInt x ++ "," ++ String.fromInt y
-                                        }
-                                    )
-                                    { pos = ( x, y )
-                                    , levels = args.levels
-                                    , level = args.level
-                                    }
-                        )
-                    |> Layout.row [ Layout.noWrap ]
-            )
-        |> Layout.column attrs
 
 
 game :
     List (Attribute msg)
     ->
+        { levels : Dict Int SavedStage
+        , onToggle : ( Int, Int ) -> Maybe msg
+        , level : Level
+        , cellSize : Int
+        }
+    -> Maybe Game
+    -> Html msg
+game attrs args maybeGame =
+    maybeGame
+        |> Maybe.map
+            (\g ->
+                List.range -1 4
+                    |> List.map
+                        (\y ->
+                            List.range -1 4
+                                |> List.map
+                                    (\x ->
+                                        g
+                                            |> gamePos
+                                                (Layout.asButton
+                                                    { onPress = args.onToggle ( x, y )
+                                                    , label = "Toggle " ++ String.fromInt x ++ "," ++ String.fromInt y
+                                                    }
+                                                )
+                                                { pos = ( x, y )
+                                                , levels = args.levels
+                                                , level = args.level
+                                                , cellSize = args.cellSize
+                                                }
+                                    )
+                                |> Layout.row [ Layout.noWrap ]
+                        )
+                    |> Layout.column attrs
+            )
+        |> Maybe.withDefault gameWon
+        |> Layout.el
+            [ Html.Attributes.style "border-radius" "1rem"
+            , Html.Attributes.style "overflow" "hidden"
+            ]
+
+
+gamePos :
+    List (Attribute msg)
+    ->
         { pos : ( Int, Int )
         , levels : Dict Int SavedStage
         , level : Level
+        , cellSize : Int
         }
     -> Game
     -> Html msg
-game attrs args g =
+gamePos attrs args g =
     (if args.level == Index.first then
         g.stage.grid
             |> Dict.get args.pos
@@ -221,6 +230,7 @@ game attrs args g =
                 (tileLevel1
                     { level = args.level
                     , amount = 0
+                    , cellSize = args.cellSize
                     }
                 )
 
@@ -230,14 +240,15 @@ game attrs args g =
             |> Maybe.map
                 (tileGeneric
                     { level = args.level
+                    , cellSize = args.cellSize
                     }
                     args.levels
                 )
     )
         |> Maybe.withDefault Layout.none
         |> Layout.el
-            ([ Html.Attributes.style "width" (String.fromInt Config.cellSize ++ "px")
-             , Html.Attributes.style "height" (String.fromInt Config.cellSize ++ "px")
+            ([ Html.Attributes.style "width" (String.fromInt args.cellSize ++ "px")
+             , Html.Attributes.style "height" (String.fromInt args.cellSize ++ "px")
              ]
                 ++ Layout.centered
                 ++ attrs
@@ -257,37 +268,6 @@ primaryButton onPress label =
         { onPress = Just onPress
         , label = label
         }
-
-
-cellRender : Cell -> RenderFunction msg
-cellRender cell =
-    case cell of
-        ConnectionCell _ ->
-            View.Svg.boxRender
-
-        Wall ->
-            View.Svg.boxRender
-
-        Origin _ ->
-            View.Svg.boxRender
-
-        Target { id, sendsTo } ->
-            case sendsTo |> Dict.toList of
-                [ _ ] ->
-                    View.Svg.targetRender
-                        { secondaryColor = Color.wallColor
-                        , variant = id
-                        , small = False
-                        , fill = True
-                        }
-
-                _ ->
-                    View.Svg.targetRender
-                        { secondaryColor = Color.wallColor
-                        , variant = id
-                        , small = False
-                        , fill = False
-                        }
 
 
 button : msg -> String -> Html msg

@@ -112,24 +112,16 @@ generateStage args model =
 view : Model -> Html Msg
 view model =
     [ [ View.topBar { level = model.level, stage = model.stage, clearStage = ClearStage }
-      , model.game
-            |> Maybe.map
-                (\game ->
-                    game
-                        |> View.grid []
-                            { levels =
-                                model.levels
-                                    |> Dict.get (model.level |> Level.previous |> Level.toString)
-                                    |> Maybe.withDefault Dict.empty
-                            , onToggle = Toggle
-                            , level = model.level
-                            }
-                )
-            |> Maybe.withDefault View.gameWon
-            |> Layout.el
-                [ Html.Attributes.style "border-radius" "1rem"
-                , Html.Attributes.style "overflow" "hidden"
-                ]
+      , View.game []
+            { levels =
+                model.levels
+                    |> Dict.get (model.level |> Level.previous |> Level.toString)
+                    |> Maybe.withDefault Dict.empty
+            , onToggle = \pos -> Just (Toggle pos)
+            , level = model.level
+            , cellSize = Config.defaultCellSize
+            }
+            model.game
       , if model.level == Index.first then
             [ "Activate the circles by placing tiles on the grid." |> Layout.text []
             , "Energy will flow along the tiles." |> Layout.text []
@@ -156,7 +148,7 @@ view model =
         |> Layout.column
             [ Layout.gap 16
             , Html.Attributes.style "padding" "1rem"
-            , Html.Attributes.style "width" ((Config.cellSize * 6 |> String.fromInt) ++ "px")
+            , Html.Attributes.style "width" ((Config.defaultCellSize * 6 |> String.fromInt) ++ "px")
             ]
     , (if
         (model.updating == False)
@@ -167,6 +159,16 @@ view model =
        then
         [ "Stage Complete"
             |> View.cardTitle
+        , View.game []
+            { levels =
+                model.levels
+                    |> Dict.get (model.level |> Level.previous |> Level.toString)
+                    |> Maybe.withDefault Dict.empty
+            , onToggle = \_ -> Nothing
+            , level = model.level
+            , cellSize = Config.smallCellSize
+            }
+            model.game
         , View.primaryButton NextStage
             "Next Level"
         ]
@@ -187,6 +189,7 @@ view model =
                             , level = model.level
                             , placeModule = PlaceModule
                             , levels = model.levels
+                            , cellSize = Config.smallCellSize
                             }
                         |> Just
                 )

@@ -18,12 +18,13 @@ toHtml :
     , level : Level
     , placeModule : { moduleId : Int, rotation : Int } -> msg
     , levels : Dict String (Dict Int SavedStage)
+    , cellSize : Int
     }
     -> Dict Int SavedStage
     -> List (Html msg)
 toHtml args dict =
-    [ "Select a tile you want to place"
-        |> View.cardTitle
+    [ "Select Tile" |> View.cardTitle
+    , "Select a tile you want to place" |> Layout.text []
     , dict
         |> Dict.keys
         |> List.map
@@ -38,6 +39,7 @@ toHtml args dict =
                                 |> ConnectionCell
                                 |> View.tileGeneric
                                     { level = args.level
+                                    , cellSize = args.cellSize
                                     }
                                     (args.levels
                                         |> Dict.get (args.level |> Level.previous |> Level.toString)

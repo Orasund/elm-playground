@@ -3,8 +3,12 @@ module Config exposing (..)
 import StaticArray.Index as Index
 
 
-cellSize =
+defaultCellSize =
     64
+
+
+smallCellSize =
+    48
 
 
 maxPos level =
