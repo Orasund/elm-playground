@@ -16,7 +16,7 @@ import Stage exposing (SavedStage)
 import StaticArray.Index as Index
 import Time
 import View
-import View.TileSelect as TileSelect
+import View.Dialog
 
 
 type alias Model =
@@ -26,6 +26,7 @@ type alias Model =
     , stage : Int
     , level : Level
     , selected : Maybe ( Int, Int )
+    , levelSelect : Bool
     }
 
 
@@ -38,6 +39,8 @@ type Msg
     | LoadStage { level : Level, stage : Int }
     | RemoveTile ( Int, Int )
     | ClearStage
+    | SelectLevel
+    | DismissDialog
 
 
 init : () -> ( Model, Cmd Msg )
@@ -55,6 +58,7 @@ init () =
       , level = level
       , stage = 1
       , selected = Nothing
+      , levelSelect = False
       }
     , Cmd.none
     )
@@ -111,7 +115,11 @@ generateStage args model =
 
 view : Model -> Html Msg
 view model =
-    [ [ View.topBar { level = model.level, stage = model.stage, clearStage = ClearStage }
+    [ [ View.topBar
+            { level = model.level
+            , stage = model.stage
+            , selectLevel = SelectLevel
+            }
       , View.game []
             { levels =
                 model.levels
@@ -122,28 +130,9 @@ view model =
             , cellSize = Config.defaultCellSize
             }
             model.game
-      , if model.level == Index.first then
-            [ "Activate the circles by placing tiles on the grid." |> Layout.text []
-            , "Energy will flow along the tiles." |> Layout.text []
-            , "If the direction is ambiguous, it will always go straight." |> Layout.text []
-            ]
-                |> View.card [ Layout.gap 16 ]
-
-        else
-            [ "Edit Levels" |> View.cardTitle
-            , "If you are stuck, try editing your solutions of previous levels." |> Layout.text []
-            , model.levels
-                |> Dict.get (model.level |> Level.previous |> Level.toString)
-                |> Maybe.withDefault Dict.empty
-                |> View.savedLevels { level = model.level |> Level.previous }
-                    (\stage ->
-                        LoadStage
-                            { level = model.level |> Level.previous
-                            , stage = stage
-                            }
-                    )
-            ]
-                |> View.card [ Layout.gap 16 ]
+      , [ View.button ClearStage "Reset Level"
+        ]
+            |> View.card [ Layout.gap 16 ]
       ]
         |> Layout.column
             [ Layout.gap 16
@@ -157,21 +146,21 @@ view model =
                     |> Maybe.withDefault False
                )
        then
-        [ "Stage Complete"
-            |> View.cardTitle
-        , View.game []
-            { levels =
-                model.levels
-                    |> Dict.get (model.level |> Level.previous |> Level.toString)
-                    |> Maybe.withDefault Dict.empty
-            , onToggle = \_ -> Nothing
-            , level = model.level
-            , cellSize = Config.smallCellSize
+        View.Dialog.levelSolved
+            { level = model.level
+            , stage = model.stage
+            , levels = model.levels
+            , game = model.game
+            , nextStage = NextStage
             }
-            model.game
-        , View.primaryButton NextStage
-            "Next Level"
-        ]
+            |> Just
+
+       else if model.levelSelect then
+        View.Dialog.levelSelect
+            { load = LoadStage
+            , levels = model.levels
+            , dismiss = DismissDialog
+            }
             |> Just
 
        else
@@ -181,7 +170,7 @@ view model =
                     model.levels
                         |> Dict.get (model.level |> Level.previous |> Level.toString)
                         |> Maybe.withDefault Dict.empty
-                        |> TileSelect.toHtml
+                        |> View.Dialog.tileSelect
                             { removeTile = RemoveTile
                             , selected = selected
                             , unselect = Unselect
@@ -195,8 +184,8 @@ view model =
                 )
       )
         |> Maybe.map
-            (\html ->
-                html
+            (\{ content, dismiss } ->
+                content
                     |> View.card
                         Layout.centered
                     |> Layout.el
@@ -206,6 +195,10 @@ view model =
                                , Html.Attributes.style "position" "absolute"
                                , Html.Attributes.style "backdrop-filter" "blur(2px)"
                                ]
+                            ++ Layout.asButton
+                                { label = "Dismiss"
+                                , onPress = dismiss
+                                }
                         )
             )
         |> Maybe.withDefault Layout.none
@@ -400,6 +393,12 @@ update msg model =
                 |> Maybe.withDefault model
             , Cmd.none
             )
+
+        SelectLevel ->
+            ( { model | levelSelect = True }, Cmd.none )
+
+        DismissDialog ->
+            ( { model | levelSelect = False }, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg

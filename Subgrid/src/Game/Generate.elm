@@ -10,7 +10,7 @@ levels : StaticArray LevelAmount (Int -> Maybe Game)
 levels =
     ( level1
     , [ level2
-      , level1
+      , level2
       , level2
       ]
     )

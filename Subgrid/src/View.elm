@@ -17,10 +17,11 @@ import View.Render
 import View.Svg
 
 
-topBar : { level : Level, stage : Int, clearStage : msg } -> Html msg
+topBar : { level : Level, stage : Int, selectLevel : msg } -> Html msg
 topBar args =
-    [ "Level " ++ Level.toString args.level ++ " - " ++ String.fromInt args.stage |> title
-    , button args.clearStage "Reset Level"
+    [ stageName { level = args.level, stage = args.stage }
+        |> title
+    , button args.selectLevel "Edit Levels"
     ]
         |> Layout.row [ Layout.contentWithSpaceBetween ]
 
@@ -60,7 +61,7 @@ savedLevels args fun dict =
                         , render = \_ -> View.Render.boxRender
                         , level = args.level
                         }
-                , Layout.text [] ("Level " ++ Level.toString args.level ++ " - " ++ String.fromInt id)
+                , Layout.text [] (stageName { level = args.level, stage = id })
                 ]
                     |> Layout.column
                         (Layout.asButton
@@ -73,6 +74,11 @@ savedLevels args fun dict =
                         )
             )
         |> Layout.row [ Layout.gap 16 ]
+
+
+stageName : { level : Level, stage : Int } -> String
+stageName args =
+    "Level " ++ Level.toString args.level ++ " - " ++ String.fromInt args.stage
 
 
 title : String -> Html msg

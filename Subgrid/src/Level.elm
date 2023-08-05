@@ -29,4 +29,4 @@ next level =
 
 toString : Level -> String
 toString level =
-    level |> Index.toInt |> String.fromInt
+    level |> Index.toInt |> (+) 1 |> String.fromInt
