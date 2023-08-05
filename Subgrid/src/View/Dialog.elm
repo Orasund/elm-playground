@@ -17,7 +17,7 @@ import View.Render
 import View.Svg
 
 
-type alias Dialog msg =
+type alias DialogHtml msg =
     { content : List (Html msg)
     , dismiss : Maybe msg
     }
@@ -34,7 +34,7 @@ tileSelect :
     , cellSize : Int
     }
     -> Dict Int SavedStage
-    -> Dialog msg
+    -> DialogHtml msg
 tileSelect args dict =
     [ "Select Tile" |> View.cardTitle
     , "Select a tile you want to place" |> Layout.text []
@@ -95,7 +95,7 @@ levelSelect :
     , levels : Dict String (Dict Int SavedStage)
     , dismiss : msg
     }
-    -> Dialog msg
+    -> DialogHtml msg
 levelSelect args =
     [ "Edit Levels" |> View.cardTitle
     , Index.range Level.maxLevel
@@ -125,7 +125,7 @@ levelSolved :
     , stage : Int
     , nextStage : msg
     }
-    -> Dialog msg
+    -> DialogHtml msg
 levelSolved args =
     [ View.stageName { level = args.level, stage = args.stage }
         ++ " Complete"

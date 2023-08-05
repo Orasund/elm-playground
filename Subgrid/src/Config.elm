@@ -4,11 +4,11 @@ import StaticArray.Index as Index
 
 
 defaultCellSize =
-    64
+    48
 
 
 smallCellSize =
-    48
+    32
 
 
 maxPos level =

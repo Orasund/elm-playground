@@ -17,6 +17,96 @@ import View.Render
 import View.Svg
 
 
+tileSelect :
+    { selected : Maybe { moduleId : Int, rotation : Int }
+    , unselect : msg
+    , game : Maybe Game
+    , level : Level
+    , selectTile : { moduleId : Int, rotation : Int } -> msg
+    , levels : Dict String (Dict Int SavedStage)
+    , cellSize : Int
+    , clearStage : msg
+    }
+    -> Dict Int SavedStage
+    -> List (Html msg)
+tileSelect args dict =
+    case args.selected of
+        Just { moduleId, rotation } ->
+            if args.selected /= Nothing then
+                [ dict
+                    |> Dict.get moduleId
+                    |> Maybe.map
+                        (\level ->
+                            level.grid
+                                |> View.Svg.tile
+                                    { cellSize = Config.defaultCellSize
+                                    , active =
+                                        \pos ->
+                                            level.paths
+                                                |> Dict.get (RelativePos.fromTuple pos)
+                                                |> Maybe.withDefault Set.empty
+                                                |> Set.toList
+                                                |> List.head
+                                                |> (\originId -> { originId = originId })
+                                    , render = \_ -> View.Render.boxRender
+                                    , level = args.level
+                                    }
+                                |> Layout.el
+                                    [ Html.Attributes.style "transform"
+                                        ("rotate(" ++ String.fromInt (rotation * 90) ++ "deg)")
+                                    ]
+                        )
+                    |> Maybe.withDefault Layout.none
+                , button args.unselect "Cancel"
+                ]
+
+            else
+                []
+
+        Nothing ->
+            [ [ "Select Tile" |> cardTitle
+              , button args.clearStage "Reset Level"
+              ]
+                |> Layout.row [ Layout.contentWithSpaceBetween ]
+            , "Select a tile you want to place" |> Layout.text []
+            , dict
+                |> Dict.toList
+                |> List.map
+                    (\( id, level ) ->
+                        List.range 0 3
+                            |> List.map
+                                (\rotate ->
+                                    level.grid
+                                        |> View.Svg.tile
+                                            { cellSize = Config.defaultCellSize
+                                            , active =
+                                                \pos ->
+                                                    level.paths
+                                                        |> Dict.get (RelativePos.fromTuple pos)
+                                                        |> Maybe.withDefault Set.empty
+                                                        |> Set.toList
+                                                        |> List.head
+                                                        |> (\originId -> { originId = originId })
+                                            , render = \_ -> View.Render.boxRender
+                                            , level = args.level
+                                            }
+                                        |> Layout.el
+                                            [ Html.Attributes.style "transform"
+                                                ("rotate(" ++ String.fromInt (rotate * 90) ++ "deg)")
+                                            ]
+                                        |> Layout.el
+                                            (Layout.asButton
+                                                { label = "Level " ++ String.fromInt id ++ "(" ++ String.fromInt rotate ++ ")"
+                                                , onPress = Just (args.selectTile { moduleId = id, rotation = rotate })
+                                                }
+                                            )
+                                )
+                            |> Layout.row [ Layout.gap 8 ]
+                    )
+                |> Layout.column [ Layout.gap 8 ]
+            ]
+
+
 topBar : { level : Level, stage : Int, selectLevel : msg } -> Html msg
 topBar args =
     [ stageName { level = args.level, stage = args.stage }

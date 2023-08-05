@@ -19,21 +19,26 @@ import View
 import View.Dialog
 
 
+type Dialog
+    = LevelComplete
+    | LevelSelect
+    | TileSelect ( Int, Int )
+
+
 type alias Model =
     { game : Maybe Game
     , levels : Dict String (Dict Int SavedStage)
     , updating : Bool
     , stage : Int
     , level : Level
-    , selected : Maybe ( Int, Int )
-    , levelSelect : Bool
+    , dialog : Maybe Dialog
+    , tileSelected : Maybe { moduleId : Int, rotation : Int }
     }
 
 
 type Msg
     = Toggle ( Int, Int )
-    | PlaceModule { moduleId : Int, rotation : Int }
-    | Unselect
+    | PlaceModule { moduleId : Int, rotation : Int, pos : ( Int, Int ) }
     | UpdateGrid
     | NextStage
     | LoadStage { level : Level, stage : Int }
@@ -41,6 +46,7 @@ type Msg
     | ClearStage
     | SelectLevel
     | DismissDialog
+    | SelectTile (Maybe { moduleId : Int, rotation : Int })
 
 
 init : () -> ( Model, Cmd Msg )
@@ -57,8 +63,8 @@ init () =
       , updating = False
       , level = level
       , stage = 1
-      , selected = Nothing
-      , levelSelect = False
+      , dialog = Nothing
+      , tileSelected = Nothing
       }
     , Cmd.none
     )
@@ -100,6 +106,7 @@ loadStage args model =
                     | game = Just grid
                     , level = args.level
                     , stage = args.stage
+                    , dialog = Nothing
                 }
             )
 
@@ -110,6 +117,7 @@ generateStage args model =
         | game = Game.Generate.new args
         , level = args.level
         , stage = args.stage
+        , dialog = Nothing
     }
 
 
@@ -130,8 +138,20 @@ view model =
             , cellSize = Config.defaultCellSize
             }
             model.game
-      , [ View.button ClearStage "Reset Level"
-        ]
+      , View.tileSelect
+            { selected = model.tileSelected
+            , unselect = SelectTile Nothing
+            , game = model.game
+            , level = model.level
+            , selectTile = \a -> SelectTile (Just { moduleId = a.moduleId, rotation = a.rotation })
+            , levels = model.levels
+            , cellSize = Config.smallCellSize
+            , clearStage = ClearStage
+            }
+            (model.levels
+                |> Dict.get (model.level |> Level.previous |> Level.toString)
+                |> Maybe.withDefault Dict.empty
+            )
             |> View.card [ Layout.gap 16 ]
       ]
         |> Layout.column
@@ -139,50 +159,44 @@ view model =
             , Html.Attributes.style "padding" "1rem"
             , Html.Attributes.style "width" ((Config.defaultCellSize * 6 |> String.fromInt) ++ "px")
             ]
-    , (if
-        (model.updating == False)
-            && (model.game
-                    |> Maybe.map Game.isSolved
-                    |> Maybe.withDefault False
-               )
-       then
-        View.Dialog.levelSolved
-            { level = model.level
-            , stage = model.stage
-            , levels = model.levels
-            , game = model.game
-            , nextStage = NextStage
-            }
-            |> Just
-
-       else if model.levelSelect then
-        View.Dialog.levelSelect
-            { load = LoadStage
-            , levels = model.levels
-            , dismiss = DismissDialog
-            }
-            |> Just
-
-       else
-        model.selected
-            |> Maybe.andThen
-                (\selected ->
-                    model.levels
-                        |> Dict.get (model.level |> Level.previous |> Level.toString)
-                        |> Maybe.withDefault Dict.empty
-                        |> View.Dialog.tileSelect
-                            { removeTile = RemoveTile
-                            , selected = selected
-                            , unselect = Unselect
-                            , game = model.game
-                            , level = model.level
-                            , placeModule = PlaceModule
+    , model.dialog
+        |> Maybe.andThen
+            (\dialog ->
+                case dialog of
+                    LevelComplete ->
+                        View.Dialog.levelSolved
+                            { level = model.level
+                            , stage = model.stage
                             , levels = model.levels
-                            , cellSize = Config.smallCellSize
+                            , game = model.game
+                            , nextStage = NextStage
                             }
-                        |> Just
-                )
-      )
+                            |> Just
+
+                    LevelSelect ->
+                        View.Dialog.levelSelect
+                            { load = LoadStage
+                            , levels = model.levels
+                            , dismiss = DismissDialog
+                            }
+                            |> Just
+
+                    TileSelect selected ->
+                        model.levels
+                            |> Dict.get (model.level |> Level.previous |> Level.toString)
+                            |> Maybe.withDefault Dict.empty
+                            |> View.Dialog.tileSelect
+                                { removeTile = RemoveTile
+                                , selected = selected
+                                , unselect = DismissDialog
+                                , game = model.game
+                                , level = model.level
+                                , placeModule = \a -> PlaceModule { moduleId = a.moduleId, rotation = a.rotation, pos = selected }
+                                , levels = model.levels
+                                , cellSize = Config.smallCellSize
+                                }
+                            |> Just
+            )
         |> Maybe.map
             (\{ content, dismiss } ->
                 content
@@ -220,54 +234,83 @@ view model =
             ]
 
 
+placeModule model { moduleId, rotation, pos } =
+    model.game
+        |> Maybe.map
+            (\game ->
+                game.stage.grid
+                    |> Dict.insert pos
+                        ({ moduleId = moduleId
+                         , rotation = rotation
+                         , sendsTo = Dict.empty
+                         }
+                            |> ConnectionCell
+                        )
+                    |> (\grid ->
+                            { model
+                                | game = Just { game | stage = game.stage |> (\stage -> { stage | grid = grid }) }
+                                , updating = True
+                                , dialog = Nothing
+                                , tileSelected = Nothing
+                            }
+                       )
+            )
+        |> Maybe.withDefault model
+
+
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         Toggle ( x, y ) ->
             ( (if x >= 0 && x <= 3 && y >= 0 && y <= 3 then
-                model.game
-                    |> Maybe.map
-                        (\game ->
-                            if model.level == Index.first then
-                                game.stage.grid
-                                    |> Dict.update ( x, y )
-                                        (\maybe ->
-                                            case maybe of
-                                                Just (ConnectionCell _) ->
-                                                    Nothing
+                case model.tileSelected of
+                    Just a ->
+                        placeModule model { moduleId = a.moduleId, rotation = a.rotation, pos = ( x, y ) }
 
-                                                Nothing ->
-                                                    Just
-                                                        (Dict.empty
-                                                            |> Cell.connectionLevel1
-                                                            |> ConnectionCell
-                                                        )
+                    Nothing ->
+                        model.game
+                            |> Maybe.map
+                                (\game ->
+                                    if model.level == Index.first then
+                                        game.stage.grid
+                                            |> Dict.update ( x, y )
+                                                (\maybe ->
+                                                    case maybe of
+                                                        Just (ConnectionCell _) ->
+                                                            Nothing
 
-                                                _ ->
-                                                    maybe
-                                        )
-                                    |> (\grid ->
-                                            { model
-                                                | game =
-                                                    { game
-                                                        | stage = game.stage |> (\stage -> { stage | grid = grid })
+                                                        Nothing ->
+                                                            Just
+                                                                (Dict.empty
+                                                                    |> Cell.connectionLevel1
+                                                                    |> ConnectionCell
+                                                                )
+
+                                                        _ ->
+                                                            maybe
+                                                )
+                                            |> (\grid ->
+                                                    { model
+                                                        | game =
+                                                            { game
+                                                                | stage = game.stage |> (\stage -> { stage | grid = grid })
+                                                            }
+                                                                |> Just
                                                     }
-                                                        |> Just
-                                            }
-                                       )
+                                               )
 
-                            else
-                                case game.stage.grid |> Dict.get ( x, y ) of
-                                    Just (ConnectionCell _) ->
-                                        { model | selected = Just ( x, y ) }
+                                    else
+                                        case game.stage.grid |> Dict.get ( x, y ) of
+                                            Just (ConnectionCell _) ->
+                                                { model | dialog = TileSelect ( x, y ) |> Just }
 
-                                    Nothing ->
-                                        { model | selected = Just ( x, y ) }
+                                            Nothing ->
+                                                { model | dialog = TileSelect ( x, y ) |> Just }
 
-                                    _ ->
-                                        model
-                        )
-                    |> Maybe.withDefault model
+                                            _ ->
+                                                model
+                                )
+                            |> Maybe.withDefault model
 
                else
                 model
@@ -276,27 +319,8 @@ update msg model =
             , Cmd.none
             )
 
-        PlaceModule { moduleId, rotation } ->
-            ( model.game
-                |> Maybe.map
-                    (\game ->
-                        game.stage.grid
-                            |> Dict.insert (model.selected |> Maybe.withDefault ( 0, 0 ))
-                                ({ moduleId = moduleId
-                                 , rotation = rotation
-                                 , sendsTo = Dict.empty
-                                 }
-                                    |> ConnectionCell
-                                )
-                            |> (\grid ->
-                                    { model
-                                        | game = Just { game | stage = game.stage |> (\stage -> { stage | grid = grid }) }
-                                        , updating = True
-                                        , selected = Nothing
-                                    }
-                               )
-                    )
-                |> Maybe.withDefault model
+        PlaceModule a ->
+            ( placeModule model a
             , Cmd.none
             )
 
@@ -319,6 +343,18 @@ update msg model =
             ( { model
                 | game = newGrid
                 , updating = updating
+                , dialog =
+                    if
+                        not updating
+                            && (newGrid
+                                    |> Maybe.map Game.isSolved
+                                    |> Maybe.withDefault False
+                               )
+                    then
+                        Just LevelComplete
+
+                    else
+                        model.dialog
               }
             , Cmd.none
             )
@@ -346,9 +382,6 @@ update msg model =
             , Cmd.none
             )
 
-        Unselect ->
-            ( { model | selected = Nothing }, Cmd.none )
-
         LoadStage level ->
             ( model |> generateStage level
             , Cmd.none
@@ -367,7 +400,7 @@ update msg model =
                                                 | stage = game.stage |> (\stage -> { stage | grid = grid })
                                             }
                                                 |> Just
-                                        , selected = Nothing
+                                        , dialog = Nothing
                                         , updating = True
                                     }
                                )
@@ -385,7 +418,7 @@ update msg model =
                             |> (\g ->
                                     { model
                                         | game = g |> Just
-                                        , selected = Nothing
+                                        , dialog = Nothing
                                         , updating = True
                                     }
                                )
@@ -395,10 +428,13 @@ update msg model =
             )
 
         SelectLevel ->
-            ( { model | levelSelect = True }, Cmd.none )
+            ( { model | dialog = LevelSelect |> Just }, Cmd.none )
 
         DismissDialog ->
-            ( { model | levelSelect = False }, Cmd.none )
+            ( { model | dialog = Nothing }, Cmd.none )
+
+        SelectTile tileId ->
+            ( { model | tileSelected = tileId }, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg
