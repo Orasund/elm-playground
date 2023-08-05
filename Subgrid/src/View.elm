@@ -51,7 +51,8 @@ tileSelect args dict =
                                     , render = \_ -> View.Render.boxRender
                                     , level = args.level
                                     }
-                                |> Layout.el
+                                |> List.singleton
+                                |> Html.div
                                     [ Html.Attributes.style "transform"
                                         ("rotate(" ++ String.fromInt (rotation * 90) ++ "deg)")
                                     ]
