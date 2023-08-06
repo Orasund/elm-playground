@@ -47,7 +47,7 @@ tileSelect args dict =
                         (\rotate ->
                             level.grid
                                 |> View.Svg.tile
-                                    { cellSize = Config.defaultCellSize
+                                    { cellSize = Config.bigCellSize
                                     , active =
                                         \pos ->
                                             level.paths
@@ -133,12 +133,17 @@ levelSolved args =
         |> View.cardTitle
     , View.game []
         { levels =
-            args.levels
-                |> Dict.get (args.level |> Level.previous |> Level.toString)
+            args.level
+                |> Level.previous
+                |> Maybe.andThen
+                    (\level ->
+                        args.levels
+                            |> Dict.get (level |> Level.toString)
+                    )
                 |> Maybe.withDefault Dict.empty
         , onToggle = \_ -> Nothing
         , level = args.level
-        , cellSize = Config.smallCellSize
+        , cellSize = Config.midCellSize
         }
         args.game
     , View.primaryButton args.nextStage

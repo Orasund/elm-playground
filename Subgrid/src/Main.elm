@@ -123,41 +123,60 @@ generateStage args model =
 
 view : Model -> Html Msg
 view model =
-    [ [ View.topBar
-            { level = model.level
-            , stage = model.stage
-            , selectLevel = SelectLevel
-            }
+    [ [ (if Dict.isEmpty model.levels |> not then
+            View.button SelectLevel "Edit Levels"
+
+         else
+            Layout.none
+        )
+            |> View.topBar
+                { level = model.level
+                , stage = model.stage
+                }
       , View.game []
             { levels =
-                model.levels
-                    |> Dict.get (model.level |> Level.previous |> Level.toString)
+                model.level
+                    |> Level.previous
+                    |> Maybe.andThen
+                        (\level ->
+                            model.levels
+                                |> Dict.get (Level.toString level)
+                        )
                     |> Maybe.withDefault Dict.empty
             , onToggle = \pos -> Just (Toggle pos)
             , level = model.level
-            , cellSize = Config.defaultCellSize
+            , cellSize = Config.bigCellSize
             }
             model.game
-      , View.tileSelect
-            { selected = model.tileSelected
-            , unselect = SelectTile Nothing
-            , game = model.game
-            , level = model.level
-            , selectTile = \a -> SelectTile (Just { moduleId = a.moduleId, rotation = a.rotation })
-            , levels = model.levels
-            , cellSize = Config.smallCellSize
-            , clearStage = ClearStage
-            }
-            (model.levels
-                |> Dict.get (model.level |> Level.previous |> Level.toString)
-                |> Maybe.withDefault Dict.empty
-            )
-            |> View.card [ Layout.gap 16 ]
+      , (model.level
+            |> Level.previous
+            |> Maybe.andThen
+                (\level ->
+                    model.levels
+                        |> Dict.get (level |> Level.toString)
+                )
+            |> Maybe.map
+                (\grid ->
+                    grid
+                        |> View.tileSelect
+                            { selected = model.tileSelected
+                            , unselect = SelectTile Nothing
+                            , game = model.game
+                            , level = model.level
+                            , selectTile = \a -> SelectTile (Just { moduleId = a.moduleId, rotation = a.rotation })
+                            , levels = model.levels
+                            , cellSize = Config.smallCellSize
+                            , clearStage = ClearStage
+                            }
+                        |> View.card [ Layout.gap 16 ]
+                )
+        )
+            |> Maybe.withDefault Layout.none
       ]
         |> Layout.column
             [ Layout.gap 16
             , Html.Attributes.style "padding" "1rem"
-            , Html.Attributes.style "width" ((Config.defaultCellSize * 6 |> String.fromInt) ++ "px")
+            , Html.Attributes.style "width" ((Config.bigCellSize * 6 |> String.fromInt) ++ "px")
             ]
     , model.dialog
         |> Maybe.andThen
@@ -182,20 +201,24 @@ view model =
                             |> Just
 
                     TileSelect selected ->
-                        model.levels
-                            |> Dict.get (model.level |> Level.previous |> Level.toString)
-                            |> Maybe.withDefault Dict.empty
-                            |> View.Dialog.tileSelect
-                                { removeTile = RemoveTile
-                                , selected = selected
-                                , unselect = DismissDialog
-                                , game = model.game
-                                , level = model.level
-                                , placeModule = \a -> PlaceModule { moduleId = a.moduleId, rotation = a.rotation, pos = selected }
-                                , levels = model.levels
-                                , cellSize = Config.smallCellSize
-                                }
-                            |> Just
+                        model.level
+                            |> Level.previous
+                            |> Maybe.map
+                                (\level ->
+                                    model.levels
+                                        |> Dict.get (Level.toString level)
+                                        |> Maybe.withDefault Dict.empty
+                                        |> View.Dialog.tileSelect
+                                            { removeTile = RemoveTile
+                                            , selected = selected
+                                            , unselect = DismissDialog
+                                            , game = model.game
+                                            , level = model.level
+                                            , placeModule = \a -> PlaceModule { moduleId = a.moduleId, rotation = a.rotation, pos = selected }
+                                            , levels = model.levels
+                                            , cellSize = Config.smallCellSize
+                                            }
+                                )
             )
         |> Maybe.map
             (\{ content, dismiss } ->
@@ -332,8 +355,13 @@ update msg model =
                             (\game ->
                                 game
                                     |> Game.update model.level
-                                        (model.levels
-                                            |> Dict.get (model.level |> Level.previous |> Level.toString)
+                                        (model.level
+                                            |> Level.previous
+                                            |> Maybe.andThen
+                                                (\level ->
+                                                    model.levels
+                                                        |> Dict.get (Level.toString level)
+                                                )
                                             |> Maybe.withDefault Dict.empty
                                         )
                                     |> Tuple.mapFirst Just
@@ -383,7 +411,12 @@ update msg model =
             )
 
         LoadStage level ->
-            ( model |> generateStage level
+            ( case model |> loadStage level of
+                Just a ->
+                    a
+
+                Nothing ->
+                    model |> generateStage level
             , Cmd.none
             )
 

@@ -33,13 +33,15 @@ tileSelect args dict =
     case args.selected of
         Just { moduleId, rotation } ->
             if args.selected /= Nothing then
-                [ dict
+                [ "Select Position" |> cardTitle
+                , "Click on the position where you want to place the tile" |> Layout.text []
+                , dict
                     |> Dict.get moduleId
                     |> Maybe.map
                         (\level ->
                             level.grid
                                 |> View.Svg.tile
-                                    { cellSize = Config.defaultCellSize
+                                    { cellSize = Config.bigCellSize
                                     , active =
                                         \pos ->
                                             level.paths
@@ -52,11 +54,11 @@ tileSelect args dict =
                                     , render = \_ -> View.Render.boxRender
                                     , level = args.level
                                     }
-                                |> List.singleton
-                                |> Html.div
+                                |> Layout.el
                                     [ Html.Attributes.style "transform"
                                         ("rotate(" ++ String.fromInt (rotation * 90) ++ "deg)")
                                     ]
+                                |> Layout.el []
                         )
                     |> Maybe.withDefault Layout.none
                 , button args.unselect "Cancel"
@@ -110,11 +112,11 @@ tileSelect args dict =
             ]
 
 
-topBar : { level : Level, stage : Int, selectLevel : msg } -> Html msg
-topBar args =
+topBar : { level : Level, stage : Int } -> Html msg -> Html msg
+topBar args content =
     [ stageName { level = args.level, stage = args.stage }
         |> title
-    , button args.selectLevel "Edit Levels"
+    , content
     ]
         |> Layout.row [ Layout.contentWithSpaceBetween ]
 
@@ -125,8 +127,8 @@ gameWon =
         |> Layout.text []
         |> Layout.el
             ([ Html.Attributes.style "background" "linear-gradient(45deg,orange, yellow)"
-             , Html.Attributes.style "width" ((Config.defaultCellSize * 6 |> String.fromInt) ++ "px")
-             , Html.Attributes.style "height" ((Config.defaultCellSize * 6 |> String.fromInt) ++ "px")
+             , Html.Attributes.style "width" ((Config.bigCellSize * 6 |> String.fromInt) ++ "px")
+             , Html.Attributes.style "height" ((Config.bigCellSize * 6 |> String.fromInt) ++ "px")
              , Html.Attributes.style "color" "white"
              , Html.Attributes.style "font-size" "2rem"
              ]
@@ -142,7 +144,7 @@ savedLevels args fun dict =
             (\( id, level ) ->
                 [ level.grid
                     |> View.Svg.tile
-                        { cellSize = Config.defaultCellSize
+                        { cellSize = Config.bigCellSize
                         , active =
                             \pos ->
                                 level.paths

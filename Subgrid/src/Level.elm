@@ -17,9 +17,9 @@ maxLevel =
     Length.five
 
 
-previous : Level -> Level
+previous : Level -> Maybe Level
 previous level =
-    level |> Index.decrease |> Maybe.withDefault Index.first
+    level |> Index.decrease
 
 
 next : Level -> Maybe Level
