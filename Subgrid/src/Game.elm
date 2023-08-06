@@ -32,7 +32,7 @@ isSolved game =
             (\( pos, _ ) ->
                 case game.stage.grid |> Dict.get pos of
                     Just (Target target) ->
-                        target.sendsTo
+                        target.from
                             |> Dict.values
                             |> List.map .originId
                             |> Set.fromList
@@ -184,7 +184,7 @@ tick args game =
                                         list
                                )
                             |> Dict.fromList
-                            |> (\sendsTo -> Target { sendsTo = sendsTo, id = id })
+                            |> (\from -> Target { from = from, id = id })
 
                     _ ->
                         cell

@@ -20,8 +20,8 @@ cellRender cell =
         Origin _ ->
             boxRender
 
-        Target { id, sendsTo } ->
-            case sendsTo |> Dict.toList of
+        Target { id, from } ->
+            case from |> Dict.toList of
                 [ _ ] ->
                     targetRender
                         { secondaryColor = Color.wallColor

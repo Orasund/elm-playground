@@ -87,7 +87,7 @@ parse rows =
 
                     '🔘' ->
                         { out
-                            | cells = ( pos, Target { sendsTo = Dict.empty, id = out.nextTargetId } ) :: out.cells
+                            | cells = ( pos, Target { from = Dict.empty, id = out.nextTargetId } ) :: out.cells
                             , nextTargetId = out.nextTargetId + 1
                         }
 

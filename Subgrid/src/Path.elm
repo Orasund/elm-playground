@@ -20,14 +20,16 @@ type alias PathBuilder =
 
 
 stepThroughPath :
-    Level
-    -> Dict ( Int, Int ) Cell
-    -> Maybe { pos : ( Int, Int ), to : ( Int, Int ), path : List ( Int, Int ) }
-    -> Maybe { pos : ( Int, Int ), to : ( Int, Int ), path : List ( Int, Int ) }
-stepThroughPath level grid =
+    { level : Level
+    , grid : Dict ( Int, Int ) Cell
+    , originId : Int
+    }
+    -> Maybe { pos : ( Int, Int ), path : List ( Int, Int ) }
+    -> Maybe { pos : ( Int, Int ), path : List ( Int, Int ) }
+stepThroughPath args =
     Maybe.andThen
-        (\{ pos, to, path } ->
-            grid
+        (\{ pos, path } ->
+            args.grid
                 |> Dict.get pos
                 |> Maybe.andThen
                     (\cell ->
@@ -35,24 +37,22 @@ stepThroughPath level grid =
                             ConnectionCell connection ->
                                 connection.sendsTo
                                     |> Dict.toList
-                                    |> List.map
-                                        (\( k, v ) ->
-                                            ( k
-                                                |> RelativePos.toDir level
-                                                |> Dir.addTo pos
-                                            , v
-                                            )
-                                        )
-                                    |> Dict.fromList
-                                    |> Dict.get to
-                                    |> Maybe.map
-                                        (\{ from } ->
-                                            { pos =
-                                                from
-                                                    |> RelativePos.toDir level
+                                    |> List.filterMap
+                                        (\( _, v ) ->
+                                            if v.originId == args.originId then
+                                                v.from
+                                                    |> RelativePos.toDir args.level
                                                     |> Dir.addTo pos
+                                                    |> Just
+
+                                            else
+                                                Nothing
+                                        )
+                                    |> List.head
+                                    |> Maybe.map
+                                        (\from ->
+                                            { pos = from
                                             , path = pos :: path
-                                            , to = pos
                                             }
                                         )
 
@@ -60,7 +60,6 @@ stepThroughPath level grid =
                                 Just
                                     { pos = pos
                                     , path = pos :: path
-                                    , to = pos
                                     }
 
                             _ ->
@@ -99,7 +98,7 @@ fromTarget level stage pos =
         Just (Target target) ->
             let
                 from =
-                    target.sendsTo
+                    target.from
                         |> Dict.keys
                         |> List.map
                             (\relativePos ->
@@ -110,7 +109,7 @@ fromTarget level stage pos =
 
                 maybeOriginId =
                     case
-                        target.sendsTo
+                        target.from
                             |> Dict.values
                             |> List.map .originId
                             |> Set.fromList
@@ -149,10 +148,16 @@ build level stage =
                             List.range
                                 0
                                 16
-                                |> List.foldl (\_ -> stepThroughPath level stage.grid)
+                                |> List.foldl
+                                    (\_ ->
+                                        stepThroughPath
+                                            { level = level
+                                            , grid = stage.grid
+                                            , originId = target.originId
+                                            }
+                                    )
                                     (Just
                                         { pos = from
-                                        , to = target.pos
                                         , path = [ target.pos ]
                                         }
                                     )

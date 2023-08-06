@@ -18,7 +18,7 @@ type Cell
     | Wall
     | Origin { id : Int }
     | Target
-        { sendsTo : Dict RelativePos { originId : Int }
+        { from : Dict RelativePos { originId : Int }
         , id : Int
         }
 
@@ -62,7 +62,7 @@ toColor args isActive cell =
                 Nothing ->
                     Color.laserColor args.level id
 
-        Target { sendsTo } ->
+        Target { from } ->
             case isActive of
                 Just { originId } ->
                     originId
@@ -70,7 +70,7 @@ toColor args isActive cell =
                         |> Maybe.withDefault (Color.inactiveLaser args.level)
 
                 Nothing ->
-                    case sendsTo |> Dict.toList of
+                    case from |> Dict.toList of
                         [] ->
                             Color.inactiveLaser args.level
 
