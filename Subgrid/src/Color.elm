@@ -9,6 +9,11 @@ background level =
     "linear-gradient(" ++ white ++ ", " ++ inactiveLaser level ++ ")"
 
 
+tileBackground : String
+tileBackground =
+    wallColor
+
+
 fontColor : String
 fontColor =
     black

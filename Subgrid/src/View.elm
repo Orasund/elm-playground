@@ -53,6 +53,7 @@ tileSelect args dict =
                                                 |> (\originId -> { originId = originId })
                                     , render = \_ -> View.Render.boxRender
                                     , level = args.level
+                                    , background = Color.tileBackground
                                     }
                                 |> Layout.el
                                     [ Html.Attributes.style "transform"
@@ -94,6 +95,7 @@ tileSelect args dict =
                                                         |> (\originId -> { originId = originId })
                                             , render = \_ -> View.Render.boxRender
                                             , level = args.level
+                                            , background = Color.tileBackground
                                             }
                                         |> Layout.el
                                             [ Html.Attributes.style "transform"
@@ -156,6 +158,7 @@ savedLevels args fun dict =
                                     |> (\originId -> { originId = originId })
                         , render = \_ -> View.Render.boxRender
                         , level = args.level
+                        , background = Color.tileBackground
                         }
                 , Layout.text [] (stageName { level = args.level, stage = id })
                 ]
@@ -211,6 +214,7 @@ tileLevel1 args cell =
             , render =
                 View.Render.cellRender
                     cell
+            , background = Color.tileBackground
             }
 
 
@@ -248,6 +252,7 @@ tileGeneric args g cell =
                                             |> Maybe.withDefault { originId = Nothing }
                                 , render = \_ -> View.Render.boxRender
                                 , level = args.level
+                                , background = Color.tileBackground
                                 }
                             |> Layout.el
                                 [ Html.Attributes.style "transform"
@@ -267,6 +272,7 @@ tileGeneric args g cell =
                     , render =
                         View.Render.cellRender
                             cell
+                    , background = Color.tileBackground
                     }
 
 

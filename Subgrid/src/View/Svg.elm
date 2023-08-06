@@ -17,6 +17,7 @@ tile :
     , active : ( Int, Int ) -> { originId : Maybe Int }
     , render : Cell -> RenderFunction msg
     , level : Level
+    , background : String
     }
     -> Dict RelativePos Cell
     -> Svg msg
@@ -35,16 +36,16 @@ tile args dict =
                 , render = args.render cell
                 }
             )
-        |> fromPixels { cellSize = args.cellSize, size = 6 }
+        |> fromPixels { cellSize = args.cellSize, size = 6, background = args.background }
 
 
-singleCell : { cellSize : Int, render : RenderFunction msg } -> String -> Svg msg
+singleCell : { cellSize : Int, render : RenderFunction msg, background : String } -> String -> Svg msg
 singleCell args color =
     [ { pos = ( 0, 0 ), color = color, render = args.render } ]
-        |> fromPixels { cellSize = args.cellSize, size = 1 }
+        |> fromPixels { cellSize = args.cellSize, size = 1, background = args.background }
 
 
-fromPixels : { cellSize : Int, size : Int } -> List { pos : ( Int, Int ), color : String, render : RenderFunction msg } -> Svg msg
+fromPixels : { cellSize : Int, size : Int, background : String } -> List { pos : ( Int, Int ), color : String, render : RenderFunction msg } -> Svg msg
 fromPixels args pixels =
     let
         canvasSize =
@@ -65,6 +66,16 @@ fromPixels args pixels =
                     , size = pixelSize
                     , color = color
                     }
+            )
+        |> (::)
+            (Svg.rect
+                [ Svg.Attributes.x "0"
+                , Svg.Attributes.y "0"
+                , Svg.Attributes.width (String.fromInt canvasSize)
+                , Svg.Attributes.height (String.fromInt canvasSize)
+                , Svg.Attributes.fill args.background
+                ]
+                []
             )
         |> Svg.svg
             [ Svg.Attributes.width (String.fromInt args.cellSize)

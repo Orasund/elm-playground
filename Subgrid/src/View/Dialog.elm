@@ -1,6 +1,7 @@
 module View.Dialog exposing (..)
 
 import Cell exposing (Cell(..))
+import Color
 import Config
 import Dict exposing (Dict)
 import Game exposing (Game)
@@ -59,6 +60,7 @@ tileSelect args dict =
                                                 |> (\originId -> { originId = originId })
                                     , render = \_ -> View.Render.boxRender
                                     , level = args.level
+                                    , background = Color.tileBackground
                                     }
                                 |> Layout.el
                                     [ Html.Attributes.style "transform"
