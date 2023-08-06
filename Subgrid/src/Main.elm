@@ -45,8 +45,8 @@ type Msg
     | RemoveTile ( Int, Int )
     | ClearStage
     | SelectLevel
-    | DismissDialog
     | SelectTile (Maybe { moduleId : Int, rotation : Int })
+    | SetDialog (Maybe Dialog)
 
 
 init : () -> ( Model, Cmd Msg )
@@ -123,7 +123,14 @@ generateStage args model =
 
 view : Model -> Html Msg
 view model =
-    [ [ (if Dict.isEmpty model.levels |> not then
+    [ [ (if
+            model.game
+                |> Maybe.map Game.isSolved
+                |> Maybe.withDefault False
+         then
+            View.primaryButton (SetDialog (Just LevelComplete)) "Done"
+
+         else if Dict.isEmpty model.levels |> not then
             View.button SelectLevel "Edit Levels"
 
          else
@@ -189,6 +196,7 @@ view model =
                             , levels = model.levels
                             , game = model.game
                             , nextStage = NextStage
+                            , dismiss = SetDialog Nothing
                             }
                             |> Just
 
@@ -196,7 +204,7 @@ view model =
                         View.Dialog.levelSelect
                             { load = LoadStage
                             , levels = model.levels
-                            , dismiss = DismissDialog
+                            , dismiss = SetDialog Nothing
                             }
                             |> Just
 
@@ -211,7 +219,7 @@ view model =
                                         |> View.Dialog.tileSelect
                                             { removeTile = RemoveTile
                                             , selected = selected
-                                            , unselect = DismissDialog
+                                            , unselect = SetDialog Nothing
                                             , game = model.game
                                             , level = model.level
                                             , placeModule = \a -> PlaceModule { moduleId = a.moduleId, rotation = a.rotation, pos = selected }
@@ -463,8 +471,8 @@ update msg model =
         SelectLevel ->
             ( { model | dialog = LevelSelect |> Just }, Cmd.none )
 
-        DismissDialog ->
-            ( { model | dialog = Nothing }, Cmd.none )
+        SetDialog dialog ->
+            ( { model | dialog = dialog }, Cmd.none )
 
         SelectTile tileId ->
             ( { model | tileSelected = tileId }, Cmd.none )

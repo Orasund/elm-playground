@@ -5938,7 +5938,7 @@ var $author$project$Game$Generate$level2 = function (stage) {
 				$author$project$Game$fromStage(
 					$author$project$Stage$parse(
 						_List_fromArray(
-							['⬛⬛🟥🟥⬛⬛', '⬛⬜⬜⬜⬜⬛', '🟥⬜⬜⬜⬜🔘', '🔘⬜⬜⬜⬜⬛', '⬛⬜⬜⬜⬜⬛', '⬛⬛🔘⬛⬛⬛']))));
+							['⬛⬛🟥🟥⬛⬛', '⬛⬜⬜⬜⬜⬛', '🔘⬜⬜⬜⬜🟥', '🔘⬜⬜⬜⬜⬛', '⬛⬜⬜⬜⬜⬛', '⬛⬛🔘⬛⬛⬛']))));
 		case 2:
 			return $elm$core$Maybe$Just(
 				$author$project$Game$fromStage(
@@ -5950,7 +5950,7 @@ var $author$project$Game$Generate$level2 = function (stage) {
 				$author$project$Game$fromStage(
 					$author$project$Stage$parse(
 						_List_fromArray(
-							['⬛⬛🔘🟥⬛⬛', '⬛⬜⬜⬜⬜⬛', '🔘⬜⬜⬜⬜⬛', '🔘⬜⬜⬜⬜🟥', '⬛⬜⬜⬜⬜⬛', '⬛⬛⬛🟥⬛⬛']))));
+							['⬛⬛🔘🔘⬛⬛', '⬛⬜⬜⬜⬜⬛', '🟥⬜⬜⬜⬜⬛', '🔘⬜⬜⬜⬜🟥', '⬛⬜⬜⬜⬜⬛', '⬛⬛⬛🟥⬛⬛']))));
 		default:
 			return $elm$core$Maybe$Nothing;
 	}
@@ -5958,8 +5958,8 @@ var $author$project$Game$Generate$level2 = function (stage) {
 var $Orasund$elm_static_array$StaticArray$Internal$C = function (a) {
 	return {$: 'C', a: a};
 };
-var $Orasund$elm_static_array$StaticArray$Length$five = $Orasund$elm_static_array$StaticArray$Internal$C(5);
-var $author$project$Level$maxLevel = $Orasund$elm_static_array$StaticArray$Length$five;
+var $Orasund$elm_static_array$StaticArray$Length$four = $Orasund$elm_static_array$StaticArray$Internal$C(4);
+var $author$project$Level$maxLevel = $Orasund$elm_static_array$StaticArray$Length$four;
 var $author$project$Game$Generate$levels = A2(
 	$Orasund$elm_static_array$StaticArray$fromList,
 	$author$project$Level$maxLevel,
@@ -8040,11 +8040,12 @@ var $author$project$Main$update = F2(
 							dialog: $elm$core$Maybe$Just($author$project$Main$LevelSelect)
 						}),
 					$elm$core$Platform$Cmd$none);
-			case 'DismissDialog':
+			case 'SetDialog':
+				var dialog = msg.a;
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
-						{dialog: $elm$core$Maybe$Nothing}),
+						{dialog: dialog}),
 					$elm$core$Platform$Cmd$none);
 			default:
 				var tileId = msg.a;
@@ -8056,7 +8057,6 @@ var $author$project$Main$update = F2(
 		}
 	});
 var $author$project$Main$ClearStage = {$: 'ClearStage'};
-var $author$project$Main$DismissDialog = {$: 'DismissDialog'};
 var $author$project$Main$LoadStage = function (a) {
 	return {$: 'LoadStage', a: a};
 };
@@ -8070,6 +8070,9 @@ var $author$project$Main$RemoveTile = function (a) {
 var $author$project$Main$SelectLevel = {$: 'SelectLevel'};
 var $author$project$Main$SelectTile = function (a) {
 	return {$: 'SelectTile', a: a};
+};
+var $author$project$Main$SetDialog = function (a) {
+	return {$: 'SetDialog', a: a};
 };
 var $author$project$Main$Toggle = function (a) {
 	return {$: 'Toggle', a: a};
@@ -8129,7 +8132,7 @@ var $author$project$Color$primaryColors = A2(
 	_Utils_Tuple2(
 		'#cc353c',
 		_List_fromArray(
-			['#23bf24', '#cc35a1'])));
+			['#23bf24', '#cc35a1', '#0096c0'])));
 var $author$project$Color$laserColor = F2(
 	function (level, originId) {
 		return 'color-mix(in lch,' + (A2($Orasund$elm_static_array$StaticArray$get, level, $author$project$Color$primaryColors) + (', color-mix(in lch, white ' + ($elm$core$String$fromInt(originId * 50) + '%,black) 20% )')));
@@ -8392,28 +8395,43 @@ var $author$project$View$Svg$fromPixels = F2(
 					'0 0 ' + ($elm$core$String$fromInt(canvasSize) + (' ' + $elm$core$String$fromInt(canvasSize))))
 				]),
 			A2(
-				$elm$core$List$map,
-				function (_v0) {
-					var pos = _v0.pos;
-					var color = _v0.color;
-					var render = _v0.render;
-					var _v1 = pos;
-					var x = _v1.a;
-					var y = _v1.b;
-					return render(
-						{
-							color: color,
-							pos: _Utils_Tuple2(x * pixelSize, y * pixelSize),
-							size: pixelSize
-						});
-				},
-				pixels));
+				$elm$core$List$cons,
+				A2(
+					$elm$svg$Svg$rect,
+					_List_fromArray(
+						[
+							$elm$svg$Svg$Attributes$x('0'),
+							$elm$svg$Svg$Attributes$y('0'),
+							$elm$svg$Svg$Attributes$width(
+							$elm$core$String$fromInt(canvasSize)),
+							$elm$svg$Svg$Attributes$height(
+							$elm$core$String$fromInt(canvasSize)),
+							$elm$svg$Svg$Attributes$fill(args.background)
+						]),
+					_List_Nil),
+				A2(
+					$elm$core$List$map,
+					function (_v0) {
+						var pos = _v0.pos;
+						var color = _v0.color;
+						var render = _v0.render;
+						var _v1 = pos;
+						var x = _v1.a;
+						var y = _v1.b;
+						return render(
+							{
+								color: color,
+								pos: _Utils_Tuple2(x * pixelSize, y * pixelSize),
+								size: pixelSize
+							});
+					},
+					pixels)));
 	});
 var $author$project$View$Svg$singleCell = F2(
 	function (args, color) {
 		return A2(
 			$author$project$View$Svg$fromPixels,
-			{cellSize: args.cellSize, size: 1},
+			{background: args.background, cellSize: args.cellSize, size: 1},
 			_List_fromArray(
 				[
 					{
@@ -8490,7 +8508,7 @@ var $author$project$View$Svg$tile = F2(
 	function (args, dict) {
 		return A2(
 			$author$project$View$Svg$fromPixels,
-			{cellSize: args.cellSize, size: 6},
+			{background: args.background, cellSize: args.cellSize, size: 6},
 			A2(
 				$elm$core$List$map,
 				function (_v0) {
@@ -8513,6 +8531,7 @@ var $author$project$View$Svg$tile = F2(
 				},
 				$elm$core$Dict$toList(dict)));
 	});
+var $author$project$Color$tileBackground = 'color-mix(in lch,' + ($author$project$Color$wallColor + (', ' + ($author$project$Color$white + ' 20%)')));
 var $author$project$View$tileGeneric = F3(
 	function (args, g, cell) {
 		if (cell.$ === 'ConnectionCell') {
@@ -8574,6 +8593,7 @@ var $author$project$View$tileGeneric = F3(
 												$author$project$RelativePos$fromTuple(pos),
 												activePos));
 									},
+									background: $author$project$Color$tileBackground,
 									cellSize: args.cellSize,
 									level: args.level,
 									render: function (_v1) {
@@ -8587,6 +8607,7 @@ var $author$project$View$tileGeneric = F3(
 			return A2(
 				$author$project$View$Svg$singleCell,
 				{
+					background: $author$project$Color$tileBackground,
 					cellSize: args.cellSize,
 					render: $author$project$View$Render$cellRender(cell)
 				},
@@ -8602,6 +8623,7 @@ var $author$project$View$tileLevel1 = F2(
 		return A2(
 			$author$project$View$Svg$singleCell,
 			{
+				background: $author$project$Color$tileBackground,
 				cellSize: args.cellSize,
 				render: $author$project$View$Render$cellRender(cell)
 			},
@@ -8804,6 +8826,7 @@ var $author$project$View$savedLevels = F3(
 																$author$project$RelativePos$fromTuple(pos),
 																level.paths))))));
 									},
+									background: $author$project$Color$tileBackground,
 									cellSize: $author$project$Config$bigCellSize,
 									level: args.level,
 									render: function (_v1) {
@@ -8879,7 +8902,10 @@ var $author$project$View$primaryButton = F2(
 	});
 var $author$project$View$Dialog$levelSolved = function (args) {
 	return function (list) {
-		return {content: list, dismiss: $elm$core$Maybe$Nothing};
+		return {
+			content: list,
+			dismiss: $elm$core$Maybe$Just(args.dismiss)
+		};
 	}(
 		_List_fromArray(
 			[
@@ -8909,7 +8935,17 @@ var $author$project$View$Dialog$levelSolved = function (args) {
 					}
 				},
 				args.game),
-				A2($author$project$View$primaryButton, args.nextStage, 'Next Level')
+				A2(
+				$Orasund$elm_layout$Layout$row,
+				_List_fromArray(
+					[
+						$Orasund$elm_layout$Layout$gap(8)
+					]),
+				_List_fromArray(
+					[
+						A2($author$project$View$button, args.dismiss, 'Dismiss'),
+						A2($author$project$View$primaryButton, args.nextStage, 'Next Level')
+					]))
 			]));
 };
 var $elm$json$Json$Encode$string = _Json_wrap;
@@ -8983,6 +9019,7 @@ var $author$project$View$tileSelect = F2(
 																	$author$project$RelativePos$fromTuple(pos),
 																	level.paths)).origins)));
 											},
+											background: $author$project$Color$tileBackground,
 											cellSize: $author$project$Config$bigCellSize,
 											level: args.level,
 											render: function (_v1) {
@@ -9067,6 +9104,7 @@ var $author$project$View$tileSelect = F2(
 																					$author$project$RelativePos$fromTuple(pos),
 																					level.paths))))));
 														},
+														background: $author$project$Color$tileBackground,
 														cellSize: $author$project$Config$smallCellSize,
 														level: args.level,
 														render: function (_v3) {
@@ -9153,6 +9191,7 @@ var $author$project$View$Dialog$tileSelect = F2(
 																					$author$project$RelativePos$fromTuple(pos),
 																					level.paths))))));
 														},
+														background: $author$project$Color$tileBackground,
 														cellSize: $author$project$Config$bigCellSize,
 														level: args.level,
 														render: function (_v1) {
@@ -9248,7 +9287,14 @@ var $author$project$Main$view = function (model) {
 						A2(
 						$author$project$View$topBar,
 						{level: model.level, stage: model.stage},
-						(!$elm$core$Dict$isEmpty(model.levels)) ? A2($author$project$View$button, $author$project$Main$SelectLevel, 'Edit Levels') : $Orasund$elm_layout$Layout$none),
+						A2(
+							$elm$core$Maybe$withDefault,
+							false,
+							A2($elm$core$Maybe$map, $author$project$Game$isSolved, model.game)) ? A2(
+							$author$project$View$primaryButton,
+							$author$project$Main$SetDialog(
+								$elm$core$Maybe$Just($author$project$Main$LevelComplete)),
+							'Done') : ((!$elm$core$Dict$isEmpty(model.levels)) ? A2($author$project$View$button, $author$project$Main$SelectLevel, 'Edit Levels') : $Orasund$elm_layout$Layout$none)),
 						A3(
 						$author$project$View$game,
 						_List_Nil,
@@ -9344,11 +9390,22 @@ var $author$project$Main$view = function (model) {
 								case 'LevelComplete':
 									return $elm$core$Maybe$Just(
 										$author$project$View$Dialog$levelSolved(
-											{game: model.game, level: model.level, levels: model.levels, nextStage: $author$project$Main$NextStage, stage: model.stage}));
+											{
+												dismiss: $author$project$Main$SetDialog($elm$core$Maybe$Nothing),
+												game: model.game,
+												level: model.level,
+												levels: model.levels,
+												nextStage: $author$project$Main$NextStage,
+												stage: model.stage
+											}));
 								case 'LevelSelect':
 									return $elm$core$Maybe$Just(
 										$author$project$View$Dialog$levelSelect(
-											{dismiss: $author$project$Main$DismissDialog, levels: model.levels, load: $author$project$Main$LoadStage}));
+											{
+												dismiss: $author$project$Main$SetDialog($elm$core$Maybe$Nothing),
+												levels: model.levels,
+												load: $author$project$Main$LoadStage
+											}));
 								default:
 									var selected = dialog.a;
 									return A2(
@@ -9367,7 +9424,7 @@ var $author$project$Main$view = function (model) {
 													},
 													removeTile: $author$project$Main$RemoveTile,
 													selected: selected,
-													unselect: $author$project$Main$DismissDialog
+													unselect: $author$project$Main$SetDialog($elm$core$Maybe$Nothing)
 												},
 												A2(
 													$elm$core$Maybe$withDefault,

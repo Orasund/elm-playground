@@ -127,6 +127,7 @@ levelSolved :
     , game : Maybe Game
     , stage : Int
     , nextStage : msg
+    , dismiss : msg
     }
     -> DialogHtml msg
 levelSolved args =
@@ -148,7 +149,9 @@ levelSolved args =
         , cellSize = Config.midCellSize
         }
         args.game
-    , View.primaryButton args.nextStage
-        "Next Level"
+    , [ View.button args.dismiss "Dismiss"
+      , View.primaryButton args.nextStage "Next Level"
+      ]
+        |> Layout.row [ Layout.gap 8 ]
     ]
-        |> (\list -> { content = list, dismiss = Nothing })
+        |> (\list -> { content = list, dismiss = Just args.dismiss })

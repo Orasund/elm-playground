@@ -1,6 +1,6 @@
 module Level exposing (..)
 
-import StaticArray.Index as Index exposing (Five, Four, Index)
+import StaticArray.Index as Index exposing (Four, Index)
 import StaticArray.Length as Length exposing (Length)
 
 
