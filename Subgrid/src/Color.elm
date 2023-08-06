@@ -11,7 +11,7 @@ background level =
 
 tileBackground : String
 tileBackground =
-    wallColor
+    "color-mix(in lch," ++ wallColor ++ ", " ++ white ++ " 20%)"
 
 
 fontColor : String
@@ -72,6 +72,8 @@ primaryColors =
         "#23bf24"
       , --violett
         "#cc35a1"
+      , --türkis
+        "#0096c0"
       ]
     )
         |> StaticArray.fromList Level.maxLevel
