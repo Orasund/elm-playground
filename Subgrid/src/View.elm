@@ -44,7 +44,8 @@ tileSelect args dict =
                                         \pos ->
                                             level.paths
                                                 |> Dict.get (RelativePos.fromTuple pos)
-                                                |> Maybe.withDefault Set.empty
+                                                |> Maybe.withDefault { origins = Set.empty }
+                                                |> .origins
                                                 |> Set.toList
                                                 |> List.head
                                                 |> (\originId -> { originId = originId })
@@ -79,11 +80,12 @@ tileSelect args dict =
                                 (\rotate ->
                                     level.grid
                                         |> View.Svg.tile
-                                            { cellSize = Config.defaultCellSize
+                                            { cellSize = Config.smallCellSize
                                             , active =
                                                 \pos ->
                                                     level.paths
                                                         |> Dict.get (RelativePos.fromTuple pos)
+                                                        |> Maybe.map .origins
                                                         |> Maybe.withDefault Set.empty
                                                         |> Set.toList
                                                         |> List.head
@@ -145,6 +147,7 @@ savedLevels args fun dict =
                             \pos ->
                                 level.paths
                                     |> Dict.get (RelativePos.fromTuple pos)
+                                    |> Maybe.map .origins
                                     |> Maybe.withDefault Set.empty
                                     |> Set.toList
                                     |> List.head

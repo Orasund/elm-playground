@@ -65,22 +65,22 @@ toSave level game =
             Dict
                 RelativePos
                 { from : RelativePos
-                , pathId : Int
+                , originId : Int
                 , path : List RelativePos
                 }
         connections =
             list
-                |> List.indexedMap
-                    (\id { from, to, path } ->
+                |> List.map
+                    (\{ from, to, path, originId } ->
                         [ ( from
                           , { from = to
-                            , pathId = id
+                            , originId = originId
                             , path = path
                             }
                           )
                         , ( to
                           , { from = from
-                            , pathId = id
+                            , originId = originId
                             , path = path
                             }
                           )
@@ -89,20 +89,21 @@ toSave level game =
                 |> List.concat
                 |> Dict.fromList
 
-        paths : Dict RelativePos (Set Int)
+        paths : Dict RelativePos { origins : Set Int }
         paths =
             list
-                |> List.indexedMap Tuple.pair
                 |> List.foldl
-                    (\( id, { path } ) d ->
+                    (\{ path, originId } d ->
                         path
                             |> List.foldl
                                 (\pos ->
                                     Dict.update pos
                                         (\maybe ->
-                                            maybe
-                                                |> Maybe.map (Set.insert id)
-                                                |> Maybe.withDefault (Set.singleton id)
+                                            { origins =
+                                                maybe
+                                                    |> Maybe.map (\{ origins } -> origins |> Set.insert originId)
+                                                    |> Maybe.withDefault (Set.singleton originId)
+                                            }
                                                 |> Just
                                         )
                                 )

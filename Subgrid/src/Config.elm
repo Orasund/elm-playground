@@ -4,7 +4,7 @@ import StaticArray.Index as Index
 
 
 defaultCellSize =
-    48
+    64
 
 
 smallCellSize =

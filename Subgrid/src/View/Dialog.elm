@@ -52,6 +52,7 @@ tileSelect args dict =
                                         \pos ->
                                             level.paths
                                                 |> Dict.get (RelativePos.fromTuple pos)
+                                                |> Maybe.map .origins
                                                 |> Maybe.withDefault Set.empty
                                                 |> Set.toList
                                                 |> List.head
@@ -128,7 +129,7 @@ levelSolved :
     -> DialogHtml msg
 levelSolved args =
     [ View.stageName { level = args.level, stage = args.stage }
-        ++ " Complete"
+        ++ " Solved"
         |> View.cardTitle
     , View.game []
         { levels =

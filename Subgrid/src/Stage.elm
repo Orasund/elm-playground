@@ -21,10 +21,10 @@ type alias SavedStage =
         Dict
             RelativePos
             { from : RelativePos
-            , pathId : Int
+            , originId : Int
             , path : List RelativePos
             }
-    , paths : Dict RelativePos (Set Int)
+    , paths : Dict RelativePos { origins : Set Int }
     , grid : Dict RelativePos Cell
     , level : Level
     }
@@ -110,8 +110,8 @@ computeActiveConnectionsGeneric :
     -> ( Int, Int )
     -> Stage
     -> Connection
-computeActiveConnectionsGeneric level modules connection pos stage =
-    modules
+computeActiveConnectionsGeneric level levels connection pos stage =
+    levels
         |> Dict.get connection.moduleId
         |> Maybe.map .connections
         |> Maybe.withDefault Dict.empty
