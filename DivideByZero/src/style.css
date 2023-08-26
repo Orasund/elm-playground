@@ -1,0 +1,117 @@
+:root {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    --dark-color: #6b184e;
+    --primary-color: #eb332b;
+    --secondary-color: #f4a128;
+    --light-color: #fdfcfc;
+    --rounded-edges: 1rem;
+    --space: 1rem;
+    --big-space: 2rem;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+
+}
+
+.body {
+    /*height: 100%;
+    width: 100%;*/
+}
+
+#screen {
+    background-color: var(--dark-color);
+    border-radius: var(--rounded-edges);
+    box-sizing: border-box;
+    padding: var(--space);
+    color: var(--light-color);
+    justify-content: end;
+    width: 100%;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 4rem;
+}
+
+#container {
+    height: 600px;
+    width: 400px;
+    gap: var(--space);
+    border-radius: var(--rounded-edges);
+}
+
+.info-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.button-row {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 20px;
+    width: 100%;
+}
+
+.column {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space);
+    width: 100%;
+    align-items: center;
+}
+
+button {
+    background-color: var(--light-color);
+    border-style: solid;
+    border-color: color-mix(in lab, var(--light-color), black 10%);
+    border-width: 1px 1px 0.5rem 1px;
+    border-radius: var(--rounded-edges);
+    padding: var(--space);
+    width: 190px;
+    height: 100px;
+    font-size: 2rem;
+}
+
+button:hover {
+    border-width: 0.125rem 1px 0.375rem 1px;
+}
+
+button:active {
+    border-width: 0.5rem 1px 1px 1px;
+}
+
+button:disabled {
+    border-width: 0.25rem 1px 0.25rem 1px;
+    background-color: color-mix(in lab, var(--light-color), black 10%);
+}
+
+.primary {
+    background-color: var(--primary-color);
+    border-color: color-mix(in lab, var(--primary-color), black 10%);
+    color: var(--light-color);
+}
+
+.secondary {
+    background-color: var(--secondary-color);
+    border-color: color-mix(in lab, var(--secondary-color), black 10%);
+    color: var(--light-color);
+}
+
+#overlay {
+    transition: clip-path 3s;
+    transition-timing-function: ease-in;
+    clip-path: circle(0%);
+    background-color: var(--dark-color);
+    height: 100%;
+    width: 100%;
+    color: var(--light-color);
+    position: absolute;
+    top: 0;
+    gap: var(--big-space)
+}
+
+.game-won {
+    clip-path: circle(75%) !important;
+}
