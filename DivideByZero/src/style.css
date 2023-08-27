@@ -15,9 +15,12 @@
 
 }
 
-.body {
-    /*height: 100%;
-    width: 100%;*/
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: 100%;
 }
 
 #screen {
@@ -35,8 +38,10 @@
 #container {
     height: 600px;
     width: 400px;
-    gap: var(--space);
+    gap: 20px;
     border-radius: var(--rounded-edges);
+    position: relative;
+    left: 0px;
 }
 
 .info-row {
@@ -69,9 +74,14 @@ button {
     border-width: 1px 1px 0.5rem 1px;
     border-radius: var(--rounded-edges);
     padding: var(--space);
-    width: 190px;
-    height: 100px;
+    width: 120px;
+    height: 90px;
     font-size: 2rem;
+}
+
+.no-button {
+    width: 120px;
+    height: 90px;
 }
 
 button:hover {
@@ -85,6 +95,8 @@ button:active {
 button:disabled {
     border-width: 0.25rem 1px 0.25rem 1px;
     background-color: color-mix(in lab, var(--light-color), black 10%);
+    border-color: color-mix(in lab, var(--light-color), black 10%);
+    color: color-mix(in lab, var(--light-color), black 30%);
 }
 
 .primary {
@@ -114,4 +126,28 @@ button:disabled {
 
 .game-won {
     clip-path: circle(75%) !important;
+}
+
+.shaking {
+    animation-name: shake;
+    animation-duration: 0.2s;
+    animation-iteration-count: infinite;
+}
+
+@keyframes shake {
+    0% {
+        left: 0;
+    }
+
+    25% {
+        left: -8px;
+    }
+
+    75% {
+        left: 8px;
+    }
+
+    100% {
+        left: 0px;
+    }
 }

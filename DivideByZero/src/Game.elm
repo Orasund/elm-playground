@@ -13,8 +13,16 @@ type alias Game =
 new : Game
 new =
     { expression = Expression.Number 0
-    , level = 0
+    , level = 1
     , var = Nothing
+    }
+
+
+loadLevel : Int -> Game -> Game
+loadLevel level game =
+    { game
+        | expression = Expression.Number 0
+        , level = level
     }
 
 
