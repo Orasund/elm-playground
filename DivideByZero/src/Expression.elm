@@ -10,6 +10,7 @@ type Operator
 
 type Symbol
     = NumberSymbol Int
+    | PointSymbol
     | OpSymbol Operator
     | VarSymbol
     | ErrSymbol
@@ -17,6 +18,8 @@ type Symbol
 
 type Expression
     = Number Int
+    | Dot Int
+    | FloatingPoint Int Int
     | Op Operator Expression
     | Error
     | DivisionByZero
@@ -44,6 +47,17 @@ toSymbols exp =
         Number int ->
             [ NumberSymbol int ]
 
+        FloatingPoint i1 i2 ->
+            [ NumberSymbol i1
+            , PointSymbol
+            , NumberSymbol i2
+            ]
+
+        Dot i1 ->
+            [ NumberSymbol i1
+            , PointSymbol
+            ]
+
         Op op exp2 ->
             toSymbols exp2 ++ [ OpSymbol op ]
 
@@ -64,6 +78,12 @@ delete exp =
                 |> String.toInt
                 |> Maybe.withDefault 0
                 |> Number
+
+        FloatingPoint i1 _ ->
+            Dot i1
+
+        Dot i1 ->
+            Number i1
 
         Op _ exp2 ->
             exp2
@@ -96,6 +116,14 @@ toString expression =
     case expression of
         Number int ->
             String.fromInt int
+
+        FloatingPoint i1 i2 ->
+            String.fromInt i1
+                ++ "."
+                ++ String.fromInt i2
+
+        Dot i1 ->
+            String.fromInt i1 ++ "."
 
         Op operator exp ->
             toString exp

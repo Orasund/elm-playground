@@ -43,7 +43,8 @@ levelSelect =
 levels : Array Level
 levels =
     errorLevel
-        :: [ { inputs = []
+        :: baseGame
+        ++ [ { inputs = []
              , withVar = True
              , goal = Number 6
              }
@@ -58,7 +59,6 @@ levels =
              , goal = Number 999
              }
            ]
-        ++ baseGame
         ++ [ { inputs =
                 [ NumberSymbol 1
                 , NumberSymbol 2
@@ -105,8 +105,8 @@ levels =
 
 baseGame : List Level
 baseGame =
-    divideTrack
-        ++ timesTrack
+    timesTrack
+        ++ divideTrack
         ++ varTrack
         ++ [ divideByZero ]
 

@@ -16,6 +16,9 @@ viewInput game input =
         OpSymbol op ->
             Expression.opToString op
 
+        PointSymbol ->
+            "."
+
         VarSymbol ->
             game.var
                 |> Maybe.map Expression.toString

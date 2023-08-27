@@ -44,7 +44,7 @@ applyOperator i1 i2 operator =
                 DivisionByZero
 
             else
-                i2 // i1 |> Number
+                toFloat i2 / toFloat i1 |> floatToExp
 
         PowOp ->
             i2 ^ i1 |> Number
@@ -52,8 +52,31 @@ applyOperator i1 i2 operator =
         RootOp ->
             toFloat i2
                 ^ (1 / toFloat i1)
-                |> round
-                |> Number
+                |> floatToExp
+
+
+floatToExp f =
+    FloatingPoint (floor f) (f * 10 |> floor |> modBy 10)
+
+
+applyOperatorFloat : Float -> Float -> Operator -> Expression
+applyOperatorFloat i1 i2 operator =
+    case operator of
+        TimesOp ->
+            i2 * i1 |> floatToExp
+
+        DividedOp ->
+            if i1 == 0 then
+                DivisionByZero
+
+            else
+                i2 / i1 |> floatToExp
+
+        PowOp ->
+            i2 ^ i1 |> floatToExp
+
+        RootOp ->
+            i2 ^ (1 / i1) |> floatToExp
 
 
 addSymbol : Symbol -> Game -> Game
@@ -68,10 +91,33 @@ addSymbol symbol game =
                         |> Maybe.map Number
                         |> Maybe.withDefault Error
 
+                FloatingPoint i2 i3 ->
+                    String.fromInt i3
+                        ++ String.fromInt i1
+                        |> String.toInt
+                        |> Maybe.map (\d -> FloatingPoint i2 d)
+                        |> Maybe.withDefault Error
+
+                Dot i2 ->
+                    FloatingPoint i2 i1
+
                 Op operator exp2 ->
                     case exp2 of
                         Number i2 ->
                             applyOperator i1 i2 operator
+
+                        FloatingPoint i2 i3 ->
+                            operator
+                                |> applyOperatorFloat (toFloat i1)
+                                    (String.fromInt i2
+                                        ++ "."
+                                        ++ String.fromInt i3
+                                        |> String.toFloat
+                                        |> Maybe.withDefault 0
+                                    )
+
+                        Dot _ ->
+                            Error
 
                         Op _ _ ->
                             Error
@@ -87,6 +133,28 @@ addSymbol symbol game =
 
                 DivisionByZero ->
                     DivisionByZero
+            )
+                |> setExpressionTo game
+
+        PointSymbol ->
+            (case game.expression of
+                Number i1 ->
+                    Dot i1
+
+                FloatingPoint _ _ ->
+                    Error
+
+                Dot _ ->
+                    Error
+
+                Op _ _ ->
+                    Error
+
+                Error ->
+                    Error
+
+                DivisionByZero ->
+                    Error
             )
                 |> setExpressionTo game
 
