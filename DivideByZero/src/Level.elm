@@ -6,7 +6,7 @@ import Expression exposing (Expression(..), Operator(..), Symbol(..))
 
 type alias Level =
     { inputs : List Symbol
-    , goal : Int
+    , goal : Expression
     , withVar : Bool
     }
 
@@ -22,7 +22,7 @@ errorLevel =
         , VarSymbol
         ]
     , withVar = True
-    , goal = -999
+    , goal = Error
     }
 
 
@@ -38,15 +38,14 @@ levelSelect =
         , OpSymbol TimesOp
         ]
     , withVar = False
-    , goal = 0
+    , goal = Number 0
     }
 
 
 levels : Array Level
 levels =
-    [ errorLevel
-    ]
-        ++ divideTrack
+    errorLevel
+        :: divideTrack
         ++ timesTrack
         ++ varTrack
         ++ finalTrack
@@ -57,7 +56,7 @@ levels =
                 , OpSymbol TimesOp
                 ]
              , withVar = True
-             , goal = 16
+             , goal = Number 16
              }
            , { inputs =
                 [ NumberSymbol 2
@@ -67,7 +66,7 @@ levels =
                 , OpSymbol TimesOp
                 ]
              , withVar = True
-             , goal = 33
+             , goal = Number 33
              }
            , setVarToOp
            , { inputs =
@@ -77,7 +76,7 @@ levels =
                 , OpSymbol DividedOp
                 ]
              , withVar = True
-             , goal = -999
+             , goal = Number -999
              }
            , { inputs =
                 [ NumberSymbol 2
@@ -86,11 +85,11 @@ levels =
                 , OpSymbol DividedOp
                 ]
              , withVar = False
-             , goal = 14
+             , goal = Number 14
              }
            , { inputs = []
              , withVar = True
-             , goal = 6
+             , goal = Number 6
              }
            ]
         |> Array.fromList
@@ -104,7 +103,7 @@ finalTrack =
             , OpSymbol TimesOp
             ]
       , withVar = True
-      , goal = 32
+      , goal = Number 32
       }
     , { inputs =
             [ NumberSymbol 2
@@ -112,7 +111,7 @@ finalTrack =
             , OpSymbol TimesOp
             ]
       , withVar = True
-      , goal = 88
+      , goal = Number 88
       }
     , { inputs =
             [ NumberSymbol 2
@@ -122,7 +121,7 @@ finalTrack =
             , OpSymbol DividedOp
             ]
       , withVar = True
-      , goal = -999
+      , goal = DivisionByZero
       }
     ]
 
@@ -136,16 +135,15 @@ varTrack =
             , OpSymbol TimesOp
             ]
       , withVar = True
-      , goal = 46
+      , goal = Number 46
       }
     , { inputs =
             [ NumberSymbol 2
             , NumberSymbol 3
-            , NumberSymbol 4
             , OpSymbol TimesOp
             ]
       , withVar = True
-      , goal = 66
+      , goal = Number 66
       }
     ]
 
@@ -159,7 +157,7 @@ timesTrack =
             , OpSymbol TimesOp
             ]
       , withVar = False
-      , goal = 12
+      , goal = Number 12
       }
     , { inputs =
             [ NumberSymbol 2
@@ -168,7 +166,7 @@ timesTrack =
             , OpSymbol TimesOp
             ]
       , withVar = False
-      , goal = 1
+      , goal = Number 1
       }
     ]
 
@@ -182,7 +180,7 @@ divideTrack =
             , OpSymbol DividedOp
             ]
       , withVar = False
-      , goal = 1
+      , goal = Number 1
       }
     , { inputs =
             [ NumberSymbol 2
@@ -191,7 +189,7 @@ divideTrack =
             , OpSymbol DividedOp
             ]
       , withVar = False
-      , goal = 12
+      , goal = Number 12
       }
     ]
 
@@ -205,7 +203,7 @@ plusTrack =
             , OpSymbol PlusOp
             ]
       , withVar = False
-      , goal = 5
+      , goal = Number 5
       }
     , { inputs =
             [ NumberSymbol 1
@@ -214,7 +212,7 @@ plusTrack =
             , OpSymbol PlusOp
             ]
       , withVar = False
-      , goal = 15
+      , goal = Number 15
       }
     ]
 
@@ -229,5 +227,5 @@ setVarToOp =
         , VarSymbol
         ]
     , withVar = False
-    , goal = 18
+    , goal = Number 18
     }

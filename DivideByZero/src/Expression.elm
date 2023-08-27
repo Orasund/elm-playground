@@ -105,4 +105,4 @@ toString expression =
             "ERR"
 
         DivisionByZero ->
-            "YOU WIN"
+            "DIVIDE BY ZERO"

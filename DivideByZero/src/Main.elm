@@ -8,7 +8,6 @@ import Html exposing (Html)
 import Html.Attributes
 import Layout
 import Level exposing (Level)
-import Set exposing (Set)
 import View
 
 
@@ -149,7 +148,7 @@ view model =
             model.game.expression == DivisionByZero
 
         levelWon =
-            model.game.expression == Number level.goal
+            model.game.expression == level.goal
     in
     [ View.stylesheet
     , [ model.game.expression
@@ -157,7 +156,7 @@ view model =
             |> Html.text
             |> Layout.el [ Html.Attributes.id "screen" ]
       , [ "Level " ++ String.fromInt model.game.level |> Layout.text []
-        , "Goal: " ++ String.fromInt level.goal |> Layout.text [ Html.Attributes.style "font-weight" "bold" ]
+        , "Goal: " ++ Expression.toString level.goal |> Layout.text [ Html.Attributes.style "font-weight" "bold" ]
         ]
             |> Html.div [ Html.Attributes.class "info-row" ]
       , viewButtons
@@ -167,8 +166,8 @@ view model =
             model
       ]
         |> Layout.column
-            ([ Html.Attributes.id "container" ]
-                ++ (if gameWon then
+            (Html.Attributes.id "container"
+                :: (if gameWon then
                         [ Html.Attributes.class "shaking" ]
 
                     else
