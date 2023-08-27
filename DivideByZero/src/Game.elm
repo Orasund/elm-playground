@@ -36,14 +36,8 @@ deleteInput game =
 applyOperator : Int -> Int -> Operator -> Expression
 applyOperator i1 i2 operator =
     case operator of
-        PlusOp ->
-            i2 + i1 |> Number
-
         TimesOp ->
             i2 * i1 |> Number
-
-        MinusOp ->
-            i2 - i1 |> Number
 
         DividedOp ->
             if i1 == 0 then
@@ -51,6 +45,15 @@ applyOperator i1 i2 operator =
 
             else
                 i2 // i1 |> Number
+
+        PowOp ->
+            i2 ^ i1 |> Number
+
+        RootOp ->
+            toFloat i2
+                ^ (1 / toFloat i1)
+                |> round
+                |> Number
 
 
 addSymbol : Symbol -> Game -> Game
@@ -74,7 +77,7 @@ addSymbol symbol game =
                             Error
 
                         Error ->
-                            applyOperator i1 0 (Expression.invert operator)
+                            Error
 
                         DivisionByZero ->
                             DivisionByZero
@@ -88,7 +91,16 @@ addSymbol symbol game =
                 |> setExpressionTo game
 
         OpSymbol operator ->
-            Op operator game.expression
+            (case ( operator, game.expression ) of
+                ( TimesOp, Op TimesOp exp2 ) ->
+                    Op PowOp exp2
+
+                ( DividedOp, Op DividedOp exp2 ) ->
+                    Op RootOp exp2
+
+                _ ->
+                    Op operator game.expression
+            )
                 |> setExpressionTo game
 
         VarSymbol ->

@@ -2,10 +2,10 @@ module Expression exposing (..)
 
 
 type Operator
-    = PlusOp
-    | TimesOp
-    | MinusOp
+    = TimesOp
     | DividedOp
+    | PowOp
+    | RootOp
 
 
 type Symbol
@@ -25,17 +25,17 @@ type Expression
 invert : Operator -> Operator
 invert op =
     case op of
-        PlusOp ->
-            MinusOp
-
-        MinusOp ->
-            PlusOp
-
         TimesOp ->
             DividedOp
 
         DividedOp ->
             TimesOp
+
+        PowOp ->
+            RootOp
+
+        RootOp ->
+            PowOp
 
 
 toSymbols : Expression -> List Symbol
@@ -78,17 +78,17 @@ delete exp =
 opToString : Operator -> String
 opToString op =
     case op of
-        PlusOp ->
-            "+"
-
         TimesOp ->
             "*"
 
-        MinusOp ->
-            "-"
-
         DividedOp ->
             "/"
+
+        PowOp ->
+            "^"
+
+        RootOp ->
+            "√"
 
 
 toString : Expression -> String

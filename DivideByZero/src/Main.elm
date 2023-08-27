@@ -151,8 +151,13 @@ view model =
             model.game.expression == level.goal
     in
     [ View.stylesheet
-    , [ model.game.expression
-            |> Expression.toString
+    , [ (if model.levelSelect == Nothing then
+            model.game.expression
+                |> Expression.toString
+
+         else
+            "LEVEL = "
+        )
             |> Html.text
             |> Layout.el [ Html.Attributes.id "screen" ]
       , [ "Level " ++ String.fromInt model.game.level |> Layout.text []
