@@ -15,6 +15,8 @@ type alias Model =
     { game : Game
     , levelSelect : Maybe { min : Int }
     , disabled : List Symbol
+    , showOverlay : Bool
+    , showDarkSide : Bool
     }
 
 
@@ -23,6 +25,7 @@ type Msg
     | DeletePressed
     | LevelSelectPressed
     | LoadLevelPressed Int
+    | ContinuePressed
 
 
 init : () -> ( Model, Cmd Msg )
@@ -30,6 +33,8 @@ init () =
     ( { game = Game.new
       , levelSelect = Nothing
       , disabled = []
+      , showOverlay = False
+      , showDarkSide = False
       }
     , Cmd.none
     )
@@ -60,7 +65,6 @@ viewButtons args model =
                     LevelSelectPressed
                         |> Just
                 }
-            , noButton
             , Layout.textButton
                 [ Html.Attributes.class "primary"
                 , Html.Attributes.disabled args.won
@@ -85,10 +89,11 @@ viewButtons args model =
                             )
                    )
                 ++ (placeholder
-                        |> List.repeat (6 - List.length args.level.inputs)
+                        |> List.repeat (4 - List.length args.level.inputs)
                    )
                 ++ [ Layout.textButton
-                        [ Html.Attributes.disabled
+                        [ Html.Attributes.class "secondary"
+                        , Html.Attributes.disabled
                             ((args.level.withVar && List.member VarSymbol model.disabled)
                                 || (not args.level.withVar && model.game.var == Nothing)
                                 || args.won
@@ -100,7 +105,6 @@ viewButtons args model =
                                 |> InputPressed
                                 |> Just
                         }
-                   , noButton
                    , Layout.textButton
                         [ Html.Attributes.class "secondary"
                         , Html.Attributes.disabled (not args.won)
@@ -113,26 +117,22 @@ viewButtons args model =
                    ]
 
         Just { min } ->
-            [ Layout.textButton [ Html.Attributes.class "secondary" ]
-                { label = "BACK"
-                , onPress =
-                    LevelSelectPressed
-                        |> Just
-                }
-            , Html.div [ Html.Attributes.class "no-button" ] []
-            , Html.div [ Html.Attributes.class "no-button" ] []
-            ]
-                ++ (List.range min (min + 8)
-                        |> List.map
-                            (\i ->
-                                Layout.textButton []
-                                    { label = String.fromInt i
-                                    , onPress =
-                                        LoadLevelPressed i
-                                            |> Just
-                                    }
+            List.range min (min + 7)
+                |> List.map
+                    (\i ->
+                        Layout.textButton
+                            (if i == model.game.level then
+                                [ Html.Attributes.class "secondary" ]
+
+                             else
+                                []
                             )
-                   )
+                            { label = String.fromInt i
+                            , onPress =
+                                LoadLevelPressed i
+                                    |> Just
+                            }
+                    )
     )
         |> Html.div [ Html.Attributes.class "button-row" ]
 
@@ -145,15 +145,19 @@ view model =
                 |> Maybe.withDefault Level.errorLevel
 
         gameWon =
-            model.game.expression == DivisionByZero
+            model.showOverlay
 
         levelWon =
             model.game.expression == level.goal
     in
     [ View.stylesheet
     , [ (if model.levelSelect == Nothing then
-            model.game.expression
-                |> Expression.toString
+            if model.game.expression == DivisionByZero then
+                "COMPUTING"
+
+            else
+                model.game.expression
+                    |> Expression.toString
 
          else
             "LEVEL = "
@@ -171,20 +175,31 @@ view model =
             model
       ]
         |> Layout.column
-            (Html.Attributes.id "container"
-                :: (if gameWon then
+            ([ Html.Attributes.id "container"
+             ]
+                ++ (if gameWon then
                         [ Html.Attributes.class "shaking" ]
 
                     else
                         []
                    )
             )
-    , View.overlay { gameWon = gameWon }
+    , View.overlay
+        [ Html.Attributes.class "light-theme" ]
+        { gameWon = gameWon, onContinue = ContinuePressed }
     ]
         |> Layout.column
             ([ Html.Attributes.style "width" "100%"
              , Html.Attributes.style "height" "100%"
              , Html.Attributes.style "position" "relative"
+             , Html.Attributes.class
+                (if model.showDarkSide then
+                    "dark-theme"
+
+                 else
+                    "light-theme"
+                )
+             , Html.Attributes.style "background-color" "var(--background-color)"
              ]
                 ++ Layout.centered
             )
@@ -193,16 +208,26 @@ view model =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        InputPressed input ->
-            ( { model
-                | game = model.game |> Game.addSymbol input
-                , disabled =
-                    if input == VarSymbol && model.game.var == Nothing then
-                        model.disabled
+        ContinuePressed ->
+            ( { model | showOverlay = False, showDarkSide = True }
+            , Cmd.none
+            )
 
-                    else
-                        input :: model.disabled
-              }
+        InputPressed input ->
+            ( model.game
+                |> Game.addSymbol input
+                |> (\game ->
+                        { model
+                            | game = game
+                            , disabled =
+                                if input == VarSymbol && model.game.var == Nothing then
+                                    model.disabled
+
+                                else
+                                    input :: model.disabled
+                            , showOverlay = game.expression == DivisionByZero
+                        }
+                   )
             , Cmd.none
             )
 

@@ -14,29 +14,13 @@ type alias Level =
 errorLevel : Level
 errorLevel =
     { inputs =
-        [ NumberSymbol 1
-        , NumberSymbol 2
+        [ NumberSymbol 2
         , NumberSymbol 3
         , OpSymbol TimesOp
-        , VarSymbol
+        , OpSymbol DividedOp
         ]
     , withVar = True
-    , goal = Error
-    }
-
-
-levelSelect : Level
-levelSelect =
-    { inputs =
-        [ NumberSymbol 0
-        , NumberSymbol 1
-        , NumberSymbol 2
-        , NumberSymbol 3
-        , NumberSymbol 4
-        , OpSymbol TimesOp
-        ]
-    , withVar = False
-    , goal = Number 0
+    , goal = DivisionByZero
     }
 
 
@@ -44,7 +28,21 @@ levels : Array Level
 levels =
     errorLevel
         :: baseGame
-        ++ [ { inputs = []
+        ++ [ { inputs =
+                [ NumberSymbol 1
+                , OpSymbol DividedOp
+                ]
+             , withVar = True
+             , goal = FloatingPoint 0 1
+             }
+           , { inputs =
+                [ OpSymbol TimesOp
+                , OpSymbol DividedOp
+                ]
+             , withVar = True
+             , goal = Error
+             }
+           , { inputs = []
              , withVar = True
              , goal = Number 6
              }
@@ -57,6 +55,10 @@ levels =
                 ]
              , withVar = True
              , goal = Number 999
+             }
+           , { inputs = []
+             , withVar = True
+             , goal = DivisionByZero
              }
            ]
         ++ [ { inputs =
@@ -108,21 +110,6 @@ baseGame =
     timesTrack
         ++ divideTrack
         ++ varTrack
-        ++ [ divideByZero ]
-
-
-divideByZero : Level
-divideByZero =
-    { inputs =
-        [ NumberSymbol 2
-        , NumberSymbol 3
-        , NumberSymbol 4
-        , OpSymbol TimesOp
-        , OpSymbol DividedOp
-        ]
-    , withVar = True
-    , goal = DivisionByZero
-    }
 
 
 varTrack : List Level
@@ -134,28 +121,28 @@ varTrack =
             , OpSymbol TimesOp
             ]
       , withVar = True
-      , goal = Number 46
+      , goal = Number 212
       }
     , { inputs =
             [ NumberSymbol 2
-            , NumberSymbol 3
             , OpSymbol TimesOp
             ]
       , withVar = True
-      , goal = Number 66
-      }
-    , { inputs =
-            [ NumberSymbol 4
-            , OpSymbol TimesOp
-            ]
-      , withVar = True
-      , goal = Number 256
+      , goal = Number 4
       }
     , { inputs =
             [ NumberSymbol 4
             ]
       , withVar = True
       , goal = Number 40
+      }
+    , { inputs =
+            [ NumberSymbol 0
+            , OpSymbol TimesOp
+            , OpSymbol DividedOp
+            ]
+      , withVar = True
+      , goal = Number 1
       }
     ]
 

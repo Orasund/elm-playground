@@ -4,15 +4,24 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    --dark-color: #6b184e;
-    --primary-color: #eb332b;
-    --secondary-color: #f4a128;
-    --light-color: #fdfcfc;
     --rounded-edges: 1rem;
     --space: 1rem;
     --big-space: 2rem;
     font-family: Verdana, Geneva, Tahoma, sans-serif;
+    --dark-color: #6b184e;
+    --primary-color: #eb332b;
+    --secondary-color: #f4a128;
+    --light-color: #fdfcfc;
+}
 
+.light-theme {
+    --background-color: var(--light-color);
+    --screen-color: var(--dark-color);
+}
+
+.dark-theme {
+    --background-color: var(--dark-color);
+    --screen-color: var(--light-color);
 }
 
 body {
@@ -24,11 +33,11 @@ body {
 }
 
 #screen {
-    background-color: var(--dark-color);
+    background-color: var(--screen-color);
     border-radius: var(--rounded-edges);
     box-sizing: border-box;
     padding: var(--space);
-    color: var(--light-color);
+    color: var(--background-color);
     justify-content: end;
     width: 100%;
     font-family: 'Courier New', Courier, monospace;
@@ -42,6 +51,8 @@ body {
     border-radius: var(--rounded-edges);
     position: relative;
     left: 0px;
+    padding: var(--space);
+    color: var(--dark-color);
 }
 
 .info-row {
@@ -74,13 +85,14 @@ button {
     border-width: 1px 1px 0.5rem 1px;
     border-radius: var(--rounded-edges);
     padding: var(--space);
-    width: 120px;
+    width: 190px;
     height: 90px;
     font-size: 2rem;
+    color: var(--dark-color);
 }
 
 .no-button {
-    width: 120px;
+    width: 190px;
     height: 90px;
 }
 
@@ -94,9 +106,9 @@ button:active {
 
 button:disabled {
     border-width: 0.25rem 1px 0.25rem 1px;
-    background-color: color-mix(in lab, var(--light-color), black 10%);
-    border-color: color-mix(in lab, var(--light-color), black 10%);
-    color: color-mix(in lab, var(--light-color), black 30%);
+    background-color: color-mix(in lab, var(--background-color), black 10%);
+    border-color: color-mix(in lab, var(--background-color), black 10%);
+    color: color-mix(in lab, var(--background-color), black 30%);
 }
 
 .primary {
@@ -113,9 +125,9 @@ button:disabled {
 
 #overlay {
     transition: clip-path 3s;
-    transition-timing-function: ease-in;
+    /*transition-timing-function: ease-in;*/
     clip-path: circle(0%);
-    background-color: var(--dark-color);
+    background-color: color-mix(in lab, var(--dark-color), black 10%);
     height: 100%;
     width: 100%;
     color: var(--light-color);

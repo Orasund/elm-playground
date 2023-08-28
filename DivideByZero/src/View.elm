@@ -2,7 +2,7 @@ module View exposing (..)
 
 import Expression exposing (Operator(..), Symbol(..))
 import Game exposing (Game)
-import Html exposing (Html)
+import Html exposing (Attribute, Html)
 import Html.Attributes
 import Layout
 
@@ -28,25 +28,30 @@ viewInput game input =
             "ERR"
 
 
-overlay : { gameWon : Bool } -> Html msg
-overlay { gameWon } =
+overlay : List (Attribute msg) -> { gameWon : Bool, onContinue : msg } -> Html msg
+overlay attrs args =
     [ "Divide by Zero" |> Layout.text [ Html.Attributes.style "font-size" "4em", Html.Attributes.style "text-align" "center" ]
     , "A game by Lucas Payr" |> Layout.text [ Html.Attributes.style "font-size" "1.5em" ]
-    , [ "There are still" |> Layout.text []
-      , "0" |> Layout.text [ Html.Attributes.style "font-size" "4em" ]
-      , "secrets to discover." |> Layout.text []
+    , [ "You solved" |> Layout.text []
+      , "50%" |> Layout.text [ Html.Attributes.style "font-size" "4em" ]
+      , "of all levels." |> Layout.text []
       ]
         |> Layout.column [ Html.Attributes.class "column" ]
+    , Layout.textButton [ Html.Attributes.style "width" "initial" ]
+        { label = "Continue"
+        , onPress = Just args.onContinue
+        }
     ]
         |> Layout.column
             (Html.Attributes.id "overlay"
-                :: (if gameWon then
+                :: (if args.gameWon then
                         [ Html.Attributes.class "game-won" ]
 
                     else
                         []
                    )
                 ++ Layout.centered
+                ++ attrs
             )
 
 
