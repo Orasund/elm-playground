@@ -24,6 +24,22 @@ toEmoji crop =
             "\u{1FADB}"
 
 
+badNeighbors : Crop -> { bad : List Crop }
+badNeighbors crop =
+    case crop of
+        Beans ->
+            { bad = [ Tomato ] }
+
+        Carrot ->
+            { bad = [] }
+
+        Tomato ->
+            { bad = [] }
+
+        Clover ->
+            { bad = [] }
+
+
 maxAge : Crop -> Int
 maxAge crop =
     case crop of
@@ -37,7 +53,7 @@ maxAge crop =
             6
 
         Beans ->
-            4
+            2
 
 
 price : Crop -> Int

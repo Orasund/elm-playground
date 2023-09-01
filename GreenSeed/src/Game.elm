@@ -64,11 +64,30 @@ cropEffect pos crop game =
 
 dayPassed : Game -> Game
 dayPassed g =
+    let
+        neighborsOf ( x, y ) =
+            [ ( x, y + 1 ), ( x, y - 1 ), ( x + 1, y ), ( x - 1, y ) ]
+                |> List.filterMap
+                    (\pos ->
+                        g.field
+                            |> Dict.get pos
+                            |> Maybe.andThen .crop
+                    )
+    in
     Dict.foldl
         (\pos cell game ->
             case cell.crop of
                 Just crop ->
-                    if cell.age + 1 == Crop.maxAge crop then
+                    if
+                        List.any
+                            (\c ->
+                                neighborsOf pos |> List.member c
+                            )
+                            (Crop.badNeighbors crop).bad
+                    then
+                        game
+
+                    else if cell.age + 1 == Crop.maxAge crop then
                         game.field
                             |> Dict.insert pos
                                 (Cell.soilWithHealth (cell.soilHealth - Crop.soilHealthNeeded crop))
