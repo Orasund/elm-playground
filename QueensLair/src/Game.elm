@@ -15,11 +15,26 @@ type alias Game =
 new : Game
 new =
     { board =
-        [ ( ( 2, 0 ), { isWhite = False, piece = King } )
+        [ ( ( 2, 0 ), { isWhite = False, piece = Bishop } )
         , ( ( 2, 3 ), { isWhite = True, piece = King } )
+        , ( ( 1, 0 ), { isWhite = False, piece = Bishop } )
+        , ( ( 0, 0 ), { isWhite = False, piece = Pawn } )
+        , ( ( 3, 0 ), { isWhite = False, piece = Pawn } )
         ]
             |> Dict.fromList
     }
+
+
+isSave : { isWhite : Bool, pos : ( Int, Int ) } -> Game -> Bool
+isSave args game =
+    game.board
+        |> Dict.filter (\_ square -> square.isWhite /= args.isWhite)
+        |> Dict.keys
+        |> List.any
+            (\from ->
+                isValidMove { from = from, to = args.pos } game
+            )
+        |> not
 
 
 isValidMove : { from : ( Int, Int ), to : ( Int, Int ) } -> Game -> Bool
@@ -31,9 +46,12 @@ isValidMove args game =
                 && (0 <= i2)
                 && (i2 < Config.boardSize)
 
-        canCapture square =
+        targetSquare =
             game.board
                 |> Dict.get args.to
+
+        canCapture square =
+            targetSquare
                 |> Maybe.map (\{ isWhite } -> isWhite /= square.isWhite)
                 |> Maybe.withDefault True
 
@@ -42,6 +60,61 @@ isValidMove args game =
 
         ( toX, toY ) =
             args.to
+
+        ( relX, relY ) =
+            ( toX - fromX, toY - fromY )
+
+        sign x =
+            if x > 0 then
+                1
+
+            else if x < 0 then
+                -1
+
+            else
+                0
+
+        specialCase square =
+            case square.piece of
+                King ->
+                    not square.isWhite
+                        || isSave { isWhite = True, pos = args.to }
+                            (move { from = args.from, to = args.to } game)
+
+                Bishop ->
+                    List.range 1 (abs relX)
+                        |> List.all
+                            (\i ->
+                                game.board
+                                    |> Dict.get ( i * sign relX, i * sign relY )
+                                    |> (==) Nothing
+                            )
+
+                Knight ->
+                    True
+
+                Pawn ->
+                    if relY == -1 then
+                        square.isWhite
+                            && (if relX == 0 then
+                                    targetSquare == Nothing
+
+                                else
+                                    targetSquare
+                                        |> Maybe.map .isWhite
+                                        |> (==) (Just False)
+                               )
+
+                    else
+                        not square.isWhite
+                            && (if relX == 0 then
+                                    targetSquare == Nothing
+
+                                else
+                                    targetSquare
+                                        |> Maybe.map .isWhite
+                                        |> (==) (Just True)
+                               )
     in
     isValidPos args.from
         && isValidPos args.to
@@ -51,8 +124,9 @@ isValidMove args game =
                     (\square ->
                         canCapture square
                             && (Piece.movement square.piece
-                                    |> Set.member ( toX - fromX, toY - fromY )
+                                    |> Set.member ( relX, relY )
                                )
+                            && specialCase square
                     )
                 |> Maybe.withDefault False
            )
@@ -132,7 +206,7 @@ isLost : Game -> Bool
 isLost game =
     game.board
         |> Dict.filter
-            (\( _, y ) square ->
+            (\( _, _ ) square ->
                 (square.piece == King)
                     && square.isWhite
             )
@@ -154,18 +228,27 @@ evaluateForWhite game =
 
     else
         game.board
-            |> Dict.values
+            |> Dict.toList
             |> List.foldl
-                (\square score ->
+                (\( ( x, y ), square ) score ->
                     case score of
                         Score n ->
                             n
-                                + Piece.value square.piece
-                                * (if square.isWhite then
-                                    1
+                                + (if square.isWhite then
+                                    case square.piece of
+                                        King ->
+                                            (Config.boardSize - y) * Piece.value square.piece
+
+                                        _ ->
+                                            Piece.value square.piece
 
                                    else
-                                    -1
+                                    case square.piece of
+                                        Pawn ->
+                                            -(Piece.value square.piece)
+
+                                        _ ->
+                                            -(Piece.value square.piece)
                                   )
                                 |> Score
 

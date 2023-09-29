@@ -17,3 +17,21 @@ toString square =
 
         ( King, False ) ->
             "♚"
+
+        ( Bishop, True ) ->
+            "♗"
+
+        ( Bishop, False ) ->
+            "♝"
+
+        ( Knight, True ) ->
+            "♘"
+
+        ( Knight, False ) ->
+            "♞"
+
+        ( Pawn, True ) ->
+            "♙"
+
+        ( Pawn, False ) ->
+            "♟"
