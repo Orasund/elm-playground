@@ -4,6 +4,7 @@ import Browser
 import Dict
 import Game exposing (Game)
 import Html exposing (Html)
+import Layout
 import Process
 import Set
 import String exposing (slice)
@@ -67,11 +68,27 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    View.Game.toHtml
+    [ View.Game.toHtml
         { selected = model.selected
         , onSelect = Select
         }
         model.game
+    , (if Game.isWon model.game then
+        "won"
+
+       else
+        ""
+      )
+        |> Layout.text []
+    , (if Game.isLost model.game then
+        "lost"
+
+       else
+        ""
+      )
+        |> Layout.text []
+    ]
+        |> Layout.column []
 
 
 subscriptions : Model -> Sub Msg

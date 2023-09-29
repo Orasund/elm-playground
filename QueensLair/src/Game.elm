@@ -9,20 +9,29 @@ import Square exposing (Square)
 
 
 type alias Game =
-    { board : Dict ( Int, Int ) Square }
+    { board : Dict ( Int, Int ) Square
+    , history : List (Dict ( Int, Int ) Square)
+    }
 
 
 new : Game
 new =
-    { board =
-        [ ( ( 2, 0 ), { isWhite = False, piece = Bishop } )
-        , ( ( 2, 3 ), { isWhite = True, piece = King } )
-        , ( ( 1, 0 ), { isWhite = False, piece = Bishop } )
-        , ( ( 0, 0 ), { isWhite = False, piece = Pawn } )
-        , ( ( 3, 0 ), { isWhite = False, piece = Pawn } )
-        ]
-            |> Dict.fromList
-    }
+    {--[ ( ( 2, 3 ), { isWhite = True, piece = King } )
+    , ( ( 1, 0 ), { isWhite = False, piece = Pawn } )
+    , ( ( 2, 0 ), { isWhite = False, piece = Pawn } )
+    , ( ( 0, 0 ), { isWhite = False, piece = Pawn } )
+    , ( ( 3, 0 ), { isWhite = False, piece = Pawn } )
+    ]--}
+    [ ( ( 2, 3 ), { isWhite = True, piece = King } )
+    , ( ( 2, 0 ), { isWhite = False, piece = King } )
+    ]
+        |> Dict.fromList
+        |> fromBoard
+
+
+fromBoard : Dict ( Int, Int ) Square -> Game
+fromBoard board =
+    { board = board, history = [] }
 
 
 isSave : { isWhite : Bool, pos : ( Int, Int ) } -> Game -> Bool
@@ -78,6 +87,7 @@ isValidMove args game =
             case square.piece of
                 King ->
                     not square.isWhite
+                        || (toY /= 0)
                         || isSave { isWhite = True, pos = args.to }
                             (move { from = args.from, to = args.to } game)
 
@@ -118,6 +128,7 @@ isValidMove args game =
     in
     isValidPos args.from
         && isValidPos args.to
+        --&& (move { from = args.from, to = args.to } game |> (\g -> List.member g.board g.history))
         && (game.board
                 |> Dict.get args.from
                 |> Maybe.map
@@ -132,8 +143,8 @@ isValidMove args game =
            )
 
 
-possibleMoves : ( Int, Int ) -> Game -> Set ( Int, Int )
-possibleMoves ( x, y ) game =
+possibleMovesFor : ( Int, Int ) -> Game -> Set ( Int, Int )
+possibleMovesFor ( x, y ) game =
     game.board
         |> Dict.get ( x, y )
         |> Maybe.map
@@ -162,26 +173,29 @@ findNextMove game =
         |> MinimaxSearch.findBestMove
             { apply = move
             , evaluate = evaluateForBlack
-            , possibleMoves =
-                \{ isYourTurn } g ->
-                    if isWon g || isLost g then
-                        []
-
-                    else
-                        g.board
-                            |> Dict.filter (\_ square -> not square.isWhite == isYourTurn)
-                            |> Dict.keys
-                            |> List.concatMap
-                                (\pos ->
-                                    possibleMoves pos g
-                                        |> Set.toList
-                                        |> List.map
-                                            (\to ->
-                                                { from = pos, to = to }
-                                            )
-                                )
+            , possibleMoves = possibleMoves
             , searchDepth = 5
             }
+
+
+possibleMoves : { isYourTurn : Bool } -> Game -> List { from : ( Int, Int ), to : ( Int, Int ) }
+possibleMoves args game =
+    if isWon game || isLost game then
+        []
+
+    else
+        game.board
+            |> Dict.filter (\_ square -> not square.isWhite == args.isYourTurn)
+            |> Dict.keys
+            |> List.concatMap
+                (\pos ->
+                    possibleMovesFor pos game
+                        |> Set.toList
+                        |> List.map
+                            (\to ->
+                                { from = pos, to = to }
+                            )
+                )
 
 
 isWon : Game -> Bool
@@ -213,6 +227,10 @@ isLost game =
         |> Dict.isEmpty
 
 
+
+--     || List.member game.board game.history
+
+
 evaluateForBlack : Game -> Evaluation
 evaluateForBlack game =
     evaluateForWhite game |> MinimaxSearch.negateEvaluation
@@ -234,10 +252,18 @@ evaluateForWhite game =
                     case score of
                         Score n ->
                             n
-                                + (if square.isWhite then
+                                + {--((possibleMoves ( x, y ) game |> Set.size) + Piece.value square.piece)
+                                * (if square.isWhite then
+                                    1
+
+                                   else
+                                    -1
+                                  )--}
+                                  (if square.isWhite then
                                     case square.piece of
                                         King ->
-                                            (Config.boardSize - y) * Piece.value square.piece
+                                            --(Config.boardSize - y) *
+                                            Piece.value square.piece
 
                                         _ ->
                                             Piece.value square.piece
@@ -269,4 +295,9 @@ move args game =
                     |> Dict.insert args.to square
             )
         |> Maybe.withDefault game.board
-        |> (\board -> { game | board = board })
+        |> (\board ->
+                { game
+                    | board = board
+                    , history = game.board :: game.history
+                }
+           )

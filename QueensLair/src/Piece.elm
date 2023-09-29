@@ -61,7 +61,7 @@ value : Piece -> Int
 value piece =
     let
         muliplier =
-            1
+            2
 
         --Config.boardSize * 2
     in
