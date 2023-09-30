@@ -15,8 +15,8 @@ viewSquare attrs args square =
         |> Maybe.map Square.toString
         |> Maybe.withDefault ""
         |> Layout.text
-            ([ Html.Attributes.style "width" "50px"
-             , Html.Attributes.style "height" "50px"
+            ([ Html.Attributes.style "width" "40px"
+             , Html.Attributes.style "height" "40px"
              , Html.Attributes.style "font-size" "40px"
              ]
                 ++ Layout.asButton args
@@ -33,10 +33,9 @@ toHtml args game =
                 List.range 0 (Config.boardSize - 1)
                     |> List.map
                         (\x ->
-                            game.board
-                                |> Dict.get ( x, y )
-                                |> viewSquare
-                                    [ args.selected
+                            let
+                                color =
+                                    args.selected
                                         |> Maybe.withDefault ( -1, -1 )
                                         |> (\from ->
                                                 if Game.isValidMove { from = from, to = ( x, y ) } game then
@@ -48,16 +47,27 @@ toHtml args game =
                                                 else
                                                     "grey"
                                            )
-                                        |> Html.Attributes.style "background-color"
+                            in
+                            game.board
+                                |> Dict.get ( x, y )
+                                |> viewSquare
+                                    [ (if args.selected == Just ( x, y ) then
+                                        "green"
+
+                                       else
+                                        color
+                                      )
+                                        |> (\c -> Html.Attributes.style "border" ("5px dotted " ++ c))
+                                    , Html.Attributes.style "background-color" color
                                     ]
                                     { label = "Select " ++ String.fromInt x ++ "," ++ String.fromInt y
                                     , onPress =
                                         case args.selected of
                                             Just from ->
-                                                if
-                                                    (( x, y ) == from)
-                                                        || Game.isValidMove { from = from, to = ( x, y ) } game
-                                                then
+                                                if ( x, y ) == from then
+                                                    args.onSelect Nothing |> Just
+
+                                                else if Game.isValidMove { from = from, to = ( x, y ) } game then
                                                     args.onSelect (Just ( x, y )) |> Just
 
                                                 else

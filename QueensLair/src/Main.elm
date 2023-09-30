@@ -3,30 +3,83 @@ module Main exposing (main)
 import Browser
 import Dict
 import Game exposing (Game)
+import Game.Generate
 import Html exposing (Html)
+import Html.Attributes
 import Layout
+import Piece exposing (Piece(..))
 import Process
-import Set
-import String exposing (slice)
+import Random exposing (Seed)
 import Task
 import View.Game
+import View.Shop
 
 
 type alias Model =
     { game : Game
     , selected : Maybe ( Int, Int )
+    , level : Int
+    , party : List Piece
+    , points : Int
+    , openShop : Bool
+    , seed : Seed
     }
 
 
 type Msg
     = Select (Maybe ( Int, Int ))
     | RequestOpponentMove
+    | GotSeed Seed
+    | CloseShop
+    | EndLevel
+    | Recruit Piece
 
 
 init : () -> ( Model, Cmd Msg )
 init () =
-    ( { game = Game.new
+    let
+        lv =
+            1
+
+        party =
+            [ King ]
+
+        ( game, seed ) =
+            Random.step
+                (Game.Generate.generateByLevel lv
+                    party
+                )
+                (Random.initialSeed 42)
+    in
+    ( { game = game
       , selected = Nothing
+      , level = lv
+      , party = party
+      , points = 0
+      , openShop = False
+      , seed = seed
+      }
+    , Cmd.none
+    )
+
+
+startNextLevel : Model -> ( Model, Cmd Msg )
+startNextLevel model =
+    let
+        level =
+            model.level + 1
+
+        ( game, seed ) =
+            Random.step
+                (Game.Generate.generateByLevel level
+                    model.party
+                )
+                model.seed
+    in
+    ( { model
+        | game = game
+        , seed = seed
+        , level = level
       }
     , Cmd.none
     )
@@ -59,40 +112,93 @@ update msg model =
                             )
 
         RequestOpponentMove ->
-            model.game
-                |> Game.findNextMove
-                |> Maybe.map (\args -> Game.move args model.game)
-                |> Maybe.withDefault model.game
-                |> (\game -> ( { model | game = game }, Cmd.none ))
+            (case model.game |> Game.findNextMove of
+                Just args ->
+                    { model | game = Game.move args model.game }
+
+                Nothing ->
+                    case model.game |> Game.possibleMoves { isYourTurn = True } of
+                        head :: tail ->
+                            Random.step (Random.uniform head tail)
+                                model.seed
+                                |> (\( move, seed ) ->
+                                        { model
+                                            | game = Game.move move model.game
+                                            , seed = seed
+                                        }
+                                   )
+
+                        [] ->
+                            model
+            )
+                |> (\m -> ( m, Cmd.none ))
+
+        GotSeed seed ->
+            ( { model | seed = seed }, Cmd.none )
+
+        EndLevel ->
+            ( { model
+                | openShop = True
+                , points = model.points + 1
+                , party =
+                    model.game.board
+                        |> Dict.filter (\_ square -> square.isWhite)
+                        |> Dict.toList
+                        |> List.map (\( _, { piece } ) -> piece)
+              }
+            , Cmd.none
+            )
+
+        CloseShop ->
+            startNextLevel { model | openShop = False }
+
+        Recruit piece ->
+            { model
+                | openShop = False
+                , party = piece :: model.party
+                , points = model.points - Piece.value piece
+            }
+                |> startNextLevel
 
 
 view : Model -> Html Msg
 view model =
-    [ View.Game.toHtml
-        { selected = model.selected
-        , onSelect = Select
-        }
-        model.game
-    , (if Game.isWon model.game then
-        "won"
+    (if model.openShop then
+        View.Shop.toHtml
+            { onLeave = CloseShop
+            , points = model.points
+            , onRecruit = Recruit
+            }
 
-       else
-        ""
-      )
-        |> Layout.text []
-    , (if Game.isLost model.game then
-        "lost"
+     else
+        [ View.Game.toHtml
+            { selected = model.selected
+            , onSelect = Select
+            }
+            model.game
+        , if Game.isWon model.game then
+            Layout.textButton []
+                { label = "Next Level"
+                , onPress = Just EndLevel
+                }
 
-       else
-        ""
-      )
-        |> Layout.text []
-    ]
-        |> Layout.column []
+          else
+            Layout.none
+        , (if Game.isLost model.game then
+            "lost"
+
+           else
+            ""
+          )
+            |> Layout.text []
+        ]
+            |> Layout.column []
+    )
+        |> Layout.el [ Html.Attributes.style "width" "200px" ]
 
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Sub.none
 
 

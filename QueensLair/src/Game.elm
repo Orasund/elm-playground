@@ -22,9 +22,49 @@ new =
     , ( ( 0, 0 ), { isWhite = False, piece = Pawn } )
     , ( ( 3, 0 ), { isWhite = False, piece = Pawn } )
     ]--}
-    [ ( ( 2, 3 ), { isWhite = True, piece = King } )
-    , ( ( 2, 0 ), { isWhite = False, piece = King } )
-    ]
+    fromPieces
+        { white = [ King ], black = [ King ] }
+
+
+fromPieces : { white : List Piece, black : List Piece } -> Game
+fromPieces args =
+    let
+        white =
+            args.white
+                |> List.sortBy (\piece -> Piece.value piece |> negate)
+                |> List.map2
+                    (\pos piece ->
+                        ( pos, { isWhite = True, piece = piece } )
+                    )
+                    [ ( 2, 3 )
+                    , ( 1, 3 )
+                    , ( 3, 3 )
+                    , ( 0, 3 )
+                    , ( 2, 2 )
+                    , ( 1, 2 )
+                    , ( 3, 2 )
+                    , ( 0, 2 )
+                    ]
+
+        black =
+            args.black
+                |> List.sortBy (\piece -> Piece.value piece |> negate)
+                |> List.map2
+                    (\pos piece ->
+                        ( pos, { isWhite = False, piece = piece } )
+                    )
+                    [ ( 2, 0 )
+                    , ( 1, 0 )
+                    , ( 3, 0 )
+                    , ( 0, 0 )
+                    , ( 2, 1 )
+                    , ( 1, 1 )
+                    , ( 3, 1 )
+                    , ( 0, 1 )
+                    ]
+    in
+    white
+        ++ black
         |> Dict.fromList
         |> fromBoard
 
@@ -92,11 +132,11 @@ isValidMove args game =
                             (move { from = args.from, to = args.to } game)
 
                 Bishop ->
-                    List.range 1 (abs relX)
+                    List.range 1 (abs relX - 1)
                         |> List.all
                             (\i ->
                                 game.board
-                                    |> Dict.get ( i * sign relX, i * sign relY )
+                                    |> Dict.get ( fromX + i * sign relX, fromY + i * sign relY )
                                     |> (==) Nothing
                             )
 
@@ -248,7 +288,7 @@ evaluateForWhite game =
         game.board
             |> Dict.toList
             |> List.foldl
-                (\( ( x, y ), square ) score ->
+                (\( _, square ) score ->
                     case score of
                         Score n ->
                             n

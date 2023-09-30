@@ -11,6 +11,27 @@ type Piece
     | Pawn
 
 
+list : List Piece
+list =
+    [ King, Bishop, Knight, Pawn ]
+
+
+name : Piece -> String
+name piece =
+    case piece of
+        King ->
+            "King"
+
+        Bishop ->
+            "Bishop"
+
+        Knight ->
+            "Knight"
+
+        Pawn ->
+            "Pawn"
+
+
 movement : Piece -> Set ( Int, Int )
 movement piece =
     case piece of
@@ -61,7 +82,7 @@ value : Piece -> Int
 value piece =
     let
         muliplier =
-            2
+            1
 
         --Config.boardSize * 2
     in
