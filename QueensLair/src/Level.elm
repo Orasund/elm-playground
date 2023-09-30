@@ -1,32 +1,28 @@
-module Game exposing (..)
+module Level exposing (..)
 
 import Config
 import Dict exposing (Dict)
 import MinimaxSearch exposing (Evaluation(..))
 import Piece exposing (Piece(..))
+import Random exposing (Generator)
 import Set exposing (Set)
 import Square exposing (Square)
 
 
-type alias Game =
+type alias Level =
     { board : Dict ( Int, Int ) Square
     , history : List (Dict ( Int, Int ) Square)
+    , loot : Maybe ( Int, Int )
     }
 
 
-new : Game
+new : Generator Level
 new =
-    {--[ ( ( 2, 3 ), { isWhite = True, piece = King } )
-    , ( ( 1, 0 ), { isWhite = False, piece = Pawn } )
-    , ( ( 2, 0 ), { isWhite = False, piece = Pawn } )
-    , ( ( 0, 0 ), { isWhite = False, piece = Pawn } )
-    , ( ( 3, 0 ), { isWhite = False, piece = Pawn } )
-    ]--}
     fromPieces
         { white = [ King ], black = [ King ] }
 
 
-fromPieces : { white : List Piece, black : List Piece } -> Game
+fromPieces : { white : List Piece, black : List Piece } -> Generator Level
 fromPieces args =
     let
         white =
@@ -69,12 +65,25 @@ fromPieces args =
         |> fromBoard
 
 
-fromBoard : Dict ( Int, Int ) Square -> Game
+fromBoard : Dict ( Int, Int ) Square -> Generator Level
 fromBoard board =
-    { board = board, history = [] }
+    let
+        randomPos =
+            Random.map2 Tuple.pair
+                (Random.int 0 (Config.boardSize - 1))
+                (Random.int 0 (Config.boardSize - 1))
+    in
+    randomPos
+        |> Random.map
+            (\loot ->
+                { board = board
+                , history = []
+                , loot = loot |> Just
+                }
+            )
 
 
-isSave : { isWhite : Bool, pos : ( Int, Int ) } -> Game -> Bool
+isSave : { isWhite : Bool, pos : ( Int, Int ) } -> Level -> Bool
 isSave args game =
     game.board
         |> Dict.filter (\_ square -> square.isWhite /= args.isWhite)
@@ -86,7 +95,7 @@ isSave args game =
         |> not
 
 
-isValidMove : { from : ( Int, Int ), to : ( Int, Int ) } -> Game -> Bool
+isValidMove : { from : ( Int, Int ), to : ( Int, Int ) } -> Level -> Bool
 isValidMove args game =
     let
         isValidPos ( i1, i2 ) =
@@ -192,7 +201,7 @@ isValidMove args game =
            )
 
 
-possibleMovesFor : ( Int, Int ) -> Game -> Set ( Int, Int )
+possibleMovesFor : ( Int, Int ) -> Level -> Set ( Int, Int )
 possibleMovesFor ( x, y ) game =
     game.board
         |> Dict.get ( x, y )
@@ -216,7 +225,7 @@ possibleMovesFor ( x, y ) game =
         |> Maybe.withDefault Set.empty
 
 
-findNextMove : Game -> Maybe { from : ( Int, Int ), to : ( Int, Int ) }
+findNextMove : Level -> Maybe { from : ( Int, Int ), to : ( Int, Int ) }
 findNextMove game =
     game
         |> MinimaxSearch.findBestMove
@@ -227,7 +236,7 @@ findNextMove game =
             }
 
 
-possibleMoves : { isYourTurn : Bool } -> Game -> List { from : ( Int, Int ), to : ( Int, Int ) }
+possibleMoves : { isYourTurn : Bool } -> Level -> List { from : ( Int, Int ), to : ( Int, Int ) }
 possibleMoves args game =
     if isWon game || isLost game then
         []
@@ -247,7 +256,7 @@ possibleMoves args game =
                 )
 
 
-isWon : Game -> Bool
+isWon : Level -> Bool
 isWon game =
     (game.board
         |> Dict.filter
@@ -265,7 +274,7 @@ isWon game =
            )
 
 
-isLost : Game -> Bool
+isLost : Level -> Bool
 isLost game =
     game.board
         |> Dict.filter
@@ -280,12 +289,12 @@ isLost game =
 --     || List.member game.board game.history
 
 
-evaluateForBlack : Game -> Evaluation
+evaluateForBlack : Level -> Evaluation
 evaluateForBlack game =
     evaluateForWhite game |> MinimaxSearch.negateEvaluation
 
 
-evaluateForWhite : Game -> Evaluation
+evaluateForWhite : Level -> Evaluation
 evaluateForWhite game =
     if isWon game then
         Winning
@@ -333,7 +342,7 @@ evaluateForWhite game =
                 (Score 0)
 
 
-move : { from : ( Int, Int ), to : ( Int, Int ) } -> Game -> Game
+move : { from : ( Int, Int ), to : ( Int, Int ) } -> Level -> Level
 move args game =
     game.board
         |> Dict.get args.from
@@ -350,3 +359,16 @@ move args game =
                     , history = game.board :: game.history
                 }
            )
+
+
+undo : Level -> Level
+undo level =
+    case level.history of
+        _ :: board :: history ->
+            { level
+                | board = board
+                , history = history
+            }
+
+        _ ->
+            level

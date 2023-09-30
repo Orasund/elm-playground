@@ -1,5 +1,6 @@
 module View.Shop exposing (..)
 
+import Action exposing (Action(..))
 import Config
 import Html exposing (Html)
 import Html.Attributes
@@ -10,9 +11,7 @@ import Square
 
 toHtml :
     { party : List Piece
-    , onLeave : msg
-    , onRecruit : Piece -> msg
-    , promote : Int -> msg
+    , onCloseOverlay : Action -> msg
     }
     -> Html msg
 toHtml args =
@@ -32,7 +31,19 @@ toHtml args =
                         (\newPiece ->
                             Layout.textButton []
                                 { label = "Promote " ++ Piece.name piece ++ " to " ++ Piece.name newPiece
-                                , onPress = args.promote i |> Just
+                                , onPress =
+                                    args.party
+                                        |> List.indexedMap
+                                            (\j ->
+                                                if i == j then
+                                                    \_ -> newPiece
+
+                                                else
+                                                    identity
+                                            )
+                                        |> NextLevel
+                                        |> args.onCloseOverlay
+                                        |> Just
                                 }
                         )
             )
@@ -41,14 +52,22 @@ toHtml args =
     , if List.length args.party < Config.maxPartyMembers then
         Layout.textButton []
             { label = "Recruit " ++ Piece.name Pawn
-            , onPress = args.onRecruit Pawn |> Just
+            , onPress =
+                (Pawn :: args.party)
+                    |> NextLevel
+                    |> args.onCloseOverlay
+                    |> Just
             }
 
       else
         Layout.none
     , Layout.textButton []
         { label = "Leave Shop"
-        , onPress = Just args.onLeave
+        , onPress =
+            args.party
+                |> NextLevel
+                |> args.onCloseOverlay
+                |> Just
         }
     ]
         |> Layout.column [ Layout.gap 8 ]

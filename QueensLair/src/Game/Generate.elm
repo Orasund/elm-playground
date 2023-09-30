@@ -1,22 +1,31 @@
 module Game.Generate exposing (..)
 
-import Game exposing (Game)
+import Level exposing (Level)
 import Piece exposing (Piece(..))
 import Random exposing (Generator)
 
 
-generateByLevel : Int -> List Piece -> Generator Game
+generateByLevel : Int -> List Piece -> Generator Level
 generateByLevel lv list =
     let
-        choose remaining =
+        choose remaining black =
             Piece.list
                 |> List.filterMap
                     (\piece ->
                         let
+                            amount =
+                                black
+                                    |> List.filter ((==) piece)
+                                    |> List.length
+
                             value =
                                 toFloat (Piece.value piece)
                         in
-                        if value <= toFloat remaining then
+                        if
+                            value
+                                <= toFloat remaining
+                                && (piece == Pawn || amount < 2)
+                        then
                             Just ( value, piece )
 
                         else
@@ -33,7 +42,7 @@ generateByLevel lv list =
                             Random.constant args
 
                         else
-                            choose args.remaining
+                            choose args.remaining args.black
                                 |> Random.map
                                     (\piece ->
                                         { remaining = args.remaining - Piece.value piece
@@ -42,10 +51,12 @@ generateByLevel lv list =
                                     )
                     )
             )
-            (Random.constant { remaining = 2 * lv, black = [] })
-        |> Random.map
+            ({ remaining = lv * 2, black = [] }
+                |> Random.constant
+            )
+        |> Random.andThen
             (\{ black } ->
-                Game.fromPieces
+                Level.fromPieces
                     { white = list
                     , black = black
                     }

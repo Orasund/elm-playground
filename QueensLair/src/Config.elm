@@ -7,3 +7,7 @@ boardSize =
 
 maxPartyMembers =
     4
+
+
+maxArtefacts =
+    2

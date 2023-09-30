@@ -101,7 +101,7 @@ value piece =
     muliplier
         * (case piece of
             King ->
-                10
+                20
 
             Rook ->
                 5

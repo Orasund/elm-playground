@@ -1,27 +1,33 @@
 module Main exposing (main)
 
+import Action exposing (Action(..))
+import Artefact exposing (Artefact(..))
 import Browser
-import Dict
-import Game exposing (Game)
+import Dict exposing (Dict)
 import Game.Generate
 import Html exposing (Html)
 import Html.Attributes
 import Layout
+import Level exposing (Level)
+import Overlay exposing (Overlay(..))
 import Piece exposing (Piece(..))
 import Process
 import Random exposing (Seed)
 import Task
-import View.Game
+import View.Artefact
+import View.Level
+import View.Overlay
 import View.Shop
 
 
 type alias Model =
-    { game : Game
+    { level : Level
+    , artefacts : Dict String Artefact
     , selected : Maybe ( Int, Int )
-    , level : Int
-    , party : List Piece
-    , openShop : Bool
+    , levelCount : Int
+    , overlay : Maybe Overlay
     , seed : Seed
+    , movementOverride : Maybe Piece
     }
 
 
@@ -29,10 +35,9 @@ type Msg
     = Select (Maybe ( Int, Int ))
     | RequestOpponentMove
     | GotSeed Seed
-    | CloseShop
     | EndLevel
-    | Recruit Piece
-    | Promote Int
+    | Activate Artefact
+    | CloseOverlay Action
 
 
 init : () -> ( Model, Cmd Msg )
@@ -44,45 +49,119 @@ init () =
         party =
             [ King ]
 
-        ( game, seed ) =
+        ( level, seed ) =
             Random.step
                 (Game.Generate.generateByLevel lv
                     party
                 )
                 (Random.initialSeed 42)
     in
-    ( { game = game
+    ( { level = level
+      , artefacts = Dict.empty
       , selected = Nothing
-      , level = lv
-      , party = party
-      , openShop = False
+      , levelCount = lv
+      , overlay = Nothing
       , seed = seed
+      , movementOverride = Nothing
       }
-    , Cmd.none
+    , Random.generate GotSeed Random.independentSeed
     )
 
 
-startNextLevel : Model -> ( Model, Cmd Msg )
-startNextLevel model =
+startLevel : List Piece -> Model -> ( Model, Cmd Msg )
+startLevel party model =
     let
-        level =
-            model.level + 1
+        levelCount =
+            model.levelCount + 1
 
-        ( game, seed ) =
+        ( level, seed ) =
             Random.step
-                (Game.Generate.generateByLevel level
-                    model.party
+                (Game.Generate.generateByLevel levelCount
+                    party
                 )
                 model.seed
     in
     ( { model
-        | game = game
+        | level = level
         , seed = seed
-        , level = level
+        , levelCount = levelCount
         , selected = Nothing
+        , overlay = Nothing
+        , movementOverride = Nothing
       }
     , Cmd.none
     )
+
+
+applyAction : Action -> Model -> ( Model, Cmd Msg )
+applyAction action model =
+    case action of
+        ResetLevel ->
+            startLevel
+                (model.level.board
+                    |> Dict.filter (\_ square -> square.isWhite)
+                    |> Dict.toList
+                    |> List.map (\( _, { piece } ) -> piece)
+                )
+                { model
+                    | levelCount = model.levelCount - 1
+                }
+
+        NextLevel party ->
+            startLevel party model
+
+        RemoveArtefactAnd artefact action2 ->
+            { model | artefacts = model.artefacts |> Dict.remove (Artefact.name artefact) }
+                |> applyAction action2
+
+        AddArtefactAnd artefact action2 ->
+            { model | artefacts = model.artefacts |> Dict.insert (Artefact.name artefact) artefact }
+                |> applyAction action2
+
+        UndoMove ->
+            ( { model | level = model.level |> Level.undo }
+            , Cmd.none
+            )
+
+        FindArtefact ->
+            ( Random.step
+                (case
+                    Artefact.list
+                        |> List.filter
+                            (\artefact ->
+                                model.artefacts
+                                    |> Dict.values
+                                    |> List.member artefact
+                                    |> not
+                            )
+                 of
+                    head :: tail ->
+                        Random.uniform head tail
+
+                    [] ->
+                        Random.constant EscapeRope
+                )
+                model.seed
+                |> (\( artefact, seed ) ->
+                        { model
+                            | overlay = Just (FoundArtefactOverlay artefact)
+                            , level = model.level |> (\l -> { l | loot = Nothing })
+                            , seed = seed
+                        }
+                   )
+            , Cmd.none
+            )
+
+        EndMove ->
+            ( { model | movementOverride = Nothing }
+            , Process.sleep 100
+                |> Task.perform (\() -> RequestOpponentMove)
+            )
+
+        OverrideMovement piece ->
+            ( { model | movementOverride = Just piece }
+            , Cmd.none
+            )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -99,31 +178,40 @@ update msg model =
                             ( { model | selected = maybe }, Cmd.none )
 
                         Just to ->
-                            ( model.game
-                                |> Game.move { from = selected, to = to }
-                                |> (\game ->
+                            model.level
+                                |> Level.move { from = selected, to = to }
+                                |> (\level ->
                                         { model
-                                            | game = game
+                                            | level = level
                                             , selected = Nothing
                                         }
                                    )
-                            , Process.sleep 100
-                                |> Task.perform (\() -> RequestOpponentMove)
-                            )
+                                |> applyAction
+                                    (if model.level.loot == Just to then
+                                        FindArtefact
+
+                                     else
+                                        EndMove
+                                    )
 
         RequestOpponentMove ->
-            (case model.game |> Game.findNextMove of
+            (case model.level |> Level.findNextMove of
                 Just args ->
-                    { model | game = Game.move args model.game }
+                    { model
+                        | level =
+                            Level.move args model.level
+                    }
 
                 Nothing ->
-                    case model.game |> Game.possibleMoves { isYourTurn = True } of
+                    case model.level |> Level.possibleMoves { isYourTurn = True } of
                         head :: tail ->
                             Random.step (Random.uniform head tail)
                                 model.seed
                                 |> (\( move, seed ) ->
                                         { model
-                                            | game = Game.move move model.game
+                                            | level =
+                                                model.level
+                                                    |> Level.move move
                                             , seed = seed
                                         }
                                    )
@@ -137,80 +225,68 @@ update msg model =
             ( { model | seed = seed }, Cmd.none )
 
         EndLevel ->
-            ( { model
-                | openShop = True
-                , party =
-                    model.game.board
-                        |> Dict.filter (\_ square -> square.isWhite)
-                        |> Dict.toList
-                        |> List.map (\( _, { piece } ) -> piece)
-              }
+            ( model.level.board
+                |> Dict.filter (\_ square -> square.isWhite)
+                |> Dict.toList
+                |> List.map (\( _, { piece } ) -> piece)
+                |> (\party ->
+                        { model
+                            | overlay = ShopOverlay { party = party } |> Just
+                        }
+                   )
             , Cmd.none
             )
 
-        CloseShop ->
-            startNextLevel { model | openShop = False }
+        Activate artefact ->
+            applyAction (Action.fromArtefact artefact)
+                { model
+                    | artefacts = model.artefacts |> Dict.remove (Artefact.name artefact)
+                }
 
-        Recruit piece ->
-            { model
-                | openShop = False
-                , party = piece :: model.party
-            }
-                |> startNextLevel
-
-        Promote j ->
-            model.party
-                |> List.indexedMap
-                    (\i piece ->
-                        if i == j then
-                            Piece.promote piece
-                                |> Maybe.withDefault piece
-
-                        else
-                            piece
-                    )
-                |> (\party ->
-                        { model
-                            | party = party
-                            , openShop = False
-                        }
-                   )
-                |> startNextLevel
+        CloseOverlay action ->
+            applyAction action
+                { model | overlay = Nothing }
 
 
 view : Model -> Html Msg
 view model =
-    (if model.openShop then
-        View.Shop.toHtml
-            { party = model.party
-            , onLeave = CloseShop
-            , onRecruit = Recruit
-            , promote = Promote
-            }
-
-     else
-        [ View.Game.toHtml
-            { selected = model.selected
-            , onSelect = Select
-            }
-            model.game
-        , if Game.isWon model.game then
-            Layout.textButton []
-                { label = "Next Level"
-                , onPress = Just EndLevel
+    (case model.overlay of
+        Just (ShopOverlay { party }) ->
+            View.Shop.toHtml
+                { party = party
+                , onCloseOverlay = CloseOverlay
                 }
 
-          else
-            Layout.none
-        , (if Game.isLost model.game then
-            "lost"
+        Just (FoundArtefactOverlay artefact) ->
+            View.Overlay.foundArtefact
+                { onCloseOverlay = CloseOverlay
+                , artefacts = model.artefacts |> Dict.values
+                }
+                artefact
 
-           else
-            ""
-          )
-            |> Layout.text []
-        ]
-            |> Layout.column []
+        Nothing ->
+            [ View.Level.toHtml
+                { selected = model.selected
+                , onSelect = Select
+                , movementOverride = model.movementOverride
+                }
+                model.level
+            , if Level.isWon model.level then
+                Layout.textButton []
+                    { label = "Next Level"
+                    , onPress = Just EndLevel
+                    }
+
+              else if Level.isLost model.level then
+                Layout.text [] "You Lost"
+
+              else
+                model.artefacts
+                    |> Dict.values
+                    |> View.Artefact.toHtml
+                        { onActivate = Activate }
+            ]
+                |> Layout.column [ Layout.gap 8 ]
     )
         |> Layout.el [ Html.Attributes.style "width" "200px" ]
 

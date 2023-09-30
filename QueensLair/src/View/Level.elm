@@ -1,18 +1,18 @@
-module View.Game exposing (..)
+module View.Level exposing (..)
 
 import Config
 import Dict
-import Game exposing (Game)
 import Html exposing (Attribute, Html)
 import Html.Attributes
 import Layout
-import Square exposing (Square)
+import Level exposing (Level)
+import Piece exposing (Piece)
+import Square
 
 
-viewSquare : List (Attribute msg) -> { label : String, onPress : Maybe msg } -> Maybe Square -> Html msg
-viewSquare attrs args square =
-    square
-        |> Maybe.map Square.toString
+viewSquare : List (Attribute msg) -> { label : String, onPress : Maybe msg } -> Maybe String -> Html msg
+viewSquare attrs args string =
+    string
         |> Maybe.withDefault ""
         |> Layout.text
             ([ Html.Attributes.style "width" "40px"
@@ -25,8 +25,25 @@ viewSquare attrs args square =
             )
 
 
-toHtml : { selected : Maybe ( Int, Int ), onSelect : Maybe ( Int, Int ) -> msg } -> Game -> Html msg
+toHtml : { selected : Maybe ( Int, Int ), onSelect : Maybe ( Int, Int ) -> msg, movementOverride : Maybe Piece } -> Level -> Html msg
 toHtml args game =
+    let
+        isValidMove move =
+            args.movementOverride
+                |> Maybe.map
+                    (\piece ->
+                        { game
+                            | board =
+                                game.board
+                                    |> Dict.insert move.from
+                                        { isWhite = True
+                                        , piece = piece
+                                        }
+                        }
+                    )
+                |> Maybe.withDefault game
+                |> Level.isValidMove move
+    in
     List.range 0 (Config.boardSize - 1)
         |> List.map
             (\y ->
@@ -38,7 +55,7 @@ toHtml args game =
                                     args.selected
                                         |> Maybe.withDefault ( -1, -1 )
                                         |> (\from ->
-                                                if Game.isValidMove { from = from, to = ( x, y ) } game then
+                                                if isValidMove { from = from, to = ( x, y ) } then
                                                     "green"
 
                                                 else if x + y |> modBy 2 |> (==) 0 then
@@ -48,8 +65,17 @@ toHtml args game =
                                                     "grey"
                                            )
                             in
-                            game.board
-                                |> Dict.get ( x, y )
+                            (case game.board |> Dict.get ( x, y ) of
+                                Just square ->
+                                    Square.toString square |> Just
+
+                                Nothing ->
+                                    if game.loot == Just ( x, y ) then
+                                        Just "💰"
+
+                                    else
+                                        Nothing
+                            )
                                 |> viewSquare
                                     [ (if args.selected == Just ( x, y ) then
                                         "green"
@@ -67,7 +93,7 @@ toHtml args game =
                                                 if ( x, y ) == from then
                                                     args.onSelect Nothing |> Just
 
-                                                else if Game.isValidMove { from = from, to = ( x, y ) } game then
+                                                else if isValidMove { from = from, to = ( x, y ) } then
                                                     args.onSelect (Just ( x, y )) |> Just
 
                                                 else
