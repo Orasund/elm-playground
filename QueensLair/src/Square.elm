@@ -18,6 +18,12 @@ toString square =
         ( King, False ) ->
             "♚"
 
+        ( Rook, True ) ->
+            "♖"
+
+        ( Rook, False ) ->
+            "♜"
+
         ( Bishop, True ) ->
             "♗"
 

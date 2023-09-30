@@ -131,6 +131,15 @@ isValidMove args game =
                         || isSave { isWhite = True, pos = args.to }
                             (move { from = args.from, to = args.to } game)
 
+                Rook ->
+                    List.range 1 (abs relX + abs relY - 1)
+                        |> List.all
+                            (\i ->
+                                game.board
+                                    |> Dict.get ( fromX + i * sign relX, fromY + i * sign relY )
+                                    |> (==) Nothing
+                            )
+
                 Bishop ->
                     List.range 1 (abs relX - 1)
                         |> List.all

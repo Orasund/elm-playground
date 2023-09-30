@@ -20,7 +20,6 @@ type alias Model =
     , selected : Maybe ( Int, Int )
     , level : Int
     , party : List Piece
-    , points : Int
     , openShop : Bool
     , seed : Seed
     }
@@ -33,6 +32,7 @@ type Msg
     | CloseShop
     | EndLevel
     | Recruit Piece
+    | Promote Int
 
 
 init : () -> ( Model, Cmd Msg )
@@ -55,7 +55,6 @@ init () =
       , selected = Nothing
       , level = lv
       , party = party
-      , points = 0
       , openShop = False
       , seed = seed
       }
@@ -140,7 +139,6 @@ update msg model =
         EndLevel ->
             ( { model
                 | openShop = True
-                , points = model.points + 1
                 , party =
                     model.game.board
                         |> Dict.filter (\_ square -> square.isWhite)
@@ -157,8 +155,26 @@ update msg model =
             { model
                 | openShop = False
                 , party = piece :: model.party
-                , points = model.points - Piece.value piece
             }
+                |> startNextLevel
+
+        Promote j ->
+            model.party
+                |> List.indexedMap
+                    (\i piece ->
+                        if i == j then
+                            Piece.promote piece
+                                |> Maybe.withDefault piece
+
+                        else
+                            piece
+                    )
+                |> (\party ->
+                        { model
+                            | party = party
+                            , openShop = False
+                        }
+                   )
                 |> startNextLevel
 
 
@@ -166,9 +182,10 @@ view : Model -> Html Msg
 view model =
     (if model.openShop then
         View.Shop.toHtml
-            { onLeave = CloseShop
-            , points = model.points
+            { party = model.party
+            , onLeave = CloseShop
             , onRecruit = Recruit
+            , promote = Promote
             }
 
      else

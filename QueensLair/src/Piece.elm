@@ -6,6 +6,7 @@ import Set exposing (Set)
 
 type Piece
     = King
+    | Rook
     | Bishop
     | Knight
     | Pawn
@@ -21,6 +22,9 @@ name piece =
     case piece of
         King ->
             "King"
+
+        Rook ->
+            "Rook"
 
         Bishop ->
             "Bishop"
@@ -47,8 +51,16 @@ movement piece =
             ]
                 |> Set.fromList
 
+        Rook ->
+            List.range 1 (Config.boardSize - 2)
+                |> List.concatMap
+                    (\i ->
+                        [ ( 0, i ), ( i, 0 ) ]
+                    )
+                |> Set.fromList
+
         Bishop ->
-            List.range 1 (Config.boardSize - 1)
+            List.range 1 (Config.boardSize - 2)
                 |> List.concatMap
                     (\i ->
                         [ ( i, i ), ( -i, i ), ( i, -i ), ( -i, -i ) ]
@@ -89,6 +101,9 @@ value piece =
     muliplier
         * (case piece of
             King ->
+                10
+
+            Rook ->
                 5
 
             Bishop ->
@@ -100,3 +115,22 @@ value piece =
             Pawn ->
                 1
           )
+
+
+promote : Piece -> Maybe Piece
+promote piece =
+    case piece of
+        Pawn ->
+            Just Knight
+
+        Knight ->
+            Just Bishop
+
+        Bishop ->
+            Nothing
+
+        Rook ->
+            Nothing
+
+        King ->
+            Nothing

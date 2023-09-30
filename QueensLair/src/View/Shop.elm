@@ -1,32 +1,51 @@
 module View.Shop exposing (..)
 
+import Config
 import Html exposing (Html)
+import Html.Attributes
 import Layout
-import Piece exposing (Piece)
+import Piece exposing (Piece(..))
+import Square
 
 
 toHtml :
-    { points : Int
+    { party : List Piece
     , onLeave : msg
     , onRecruit : Piece -> msg
+    , promote : Int -> msg
     }
     -> Html msg
 toHtml args =
-    [ "Points:" ++ String.fromInt args.points |> Layout.text []
-    , Piece.list
-        |> List.filterMap
+    [ args.party
+        |> List.map
             (\piece ->
-                if Piece.value piece <= args.points then
-                    Layout.textButton []
-                        { label = "Recruit " ++ Piece.name piece
-                        , onPress = args.onRecruit piece |> Just
-                        }
-                        |> Just
-
-                else
-                    Nothing
+                { isWhite = True, piece = piece }
+                    |> Square.toString
+                    |> Layout.text []
             )
+        |> Layout.row [ Html.Attributes.style "font-size" "1.2rem" ]
+    , args.party
+        |> List.indexedMap
+            (\i piece ->
+                Piece.promote piece
+                    |> Maybe.map
+                        (\newPiece ->
+                            Layout.textButton []
+                                { label = "Promote " ++ Piece.name piece ++ " to " ++ Piece.name newPiece
+                                , onPress = args.promote i |> Just
+                                }
+                        )
+            )
+        |> List.filterMap identity
         |> Layout.column []
+    , if List.length args.party < Config.maxPartyMembers then
+        Layout.textButton []
+            { label = "Recruit " ++ Piece.name Pawn
+            , onPress = args.onRecruit Pawn |> Just
+            }
+
+      else
+        Layout.none
     , Layout.textButton []
         { label = "Leave Shop"
         , onPress = Just args.onLeave
