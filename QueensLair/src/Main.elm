@@ -80,6 +80,7 @@ startNextLevel model =
         | game = game
         , seed = seed
         , level = level
+        , selected = Nothing
       }
     , Cmd.none
     )
