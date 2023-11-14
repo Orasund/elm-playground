@@ -1,7 +1,6 @@
 module Game exposing (..)
 
 import Dict exposing (Dict)
-import Set exposing (Set)
 
 
 type alias Game =
@@ -39,56 +38,6 @@ gameWon game =
     game.board
         |> Dict.get game.goal
         |> (==) (Just -1)
-
-
-validMoves : Game -> List Game
-validMoves game =
-    game.tiles
-        |> List.filterMap
-            (\id ->
-                move id game
-            )
-
-
-buildGraph : Game -> Set (List ( ( Int, Int ), Int ))
-buildGraph game =
-    let
-        rec : { remaining : List (List ( ( Int, Int ), Int )), graph : Set (List ( ( Int, Int ), Int )) } -> Set (List ( ( Int, Int ), Int ))
-        rec args =
-            case args.remaining of
-                head :: tail ->
-                    let
-                        moves : List (List ( ( Int, Int ), Int ))
-                        moves =
-                            validMoves { game | board = Dict.fromList head }
-                                |> List.map (\{ board } -> Dict.toList board)
-                    in
-                    if Set.member head args.graph then
-                        { args | remaining = tail } |> rec
-
-                    else
-                        { remaining = moves ++ tail
-                        , graph = args.graph |> Set.union (Set.fromList moves)
-                        }
-                            |> rec
-
-                [] ->
-                    args.graph
-    in
-    rec
-        { remaining = List.singleton (Dict.toList game.board)
-        , graph = Set.empty
-        }
-
-
-findSoftlocks : Game -> Set (List ( ( Int, Int ), Int ))
-findSoftlocks game =
-    game
-        |> buildGraph
-        |> Set.filter
-            (\board ->
-                validMoves { game | board = Dict.fromList board } == []
-            )
 
 
 move : Int -> Game -> Maybe Game
