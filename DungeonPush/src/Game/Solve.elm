@@ -22,6 +22,7 @@ validMoves game =
 
     else
         game.tiles
+            |> Dict.keys
             |> List.filterMap
                 (\id ->
                     Game.move id game

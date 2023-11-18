@@ -8,7 +8,12 @@ type alias Game =
     , width : Int
     , height : Int
     , goal : ( Int, Int )
-    , tiles : List Int
+    , tiles :
+        Dict
+            Int
+            { topLeft : ( Int, Int )
+            , size : ( Int, Int )
+            }
     }
 
 
@@ -29,7 +34,16 @@ test =
     , width = 3
     , height = 4
     , goal = ( 2, -1 )
-    , tiles = [ -1, 1, 2, 3, 4, 5, 6 ]
+    , tiles =
+        [ ( -1, { topLeft = ( 2, 3 ), size = ( 1, 1 ) } )
+        , ( 1, { topLeft = ( 0, 0 ), size = ( 1, 1 ) } )
+        , ( 2, { topLeft = ( 0, 1 ), size = ( 1, 1 ) } )
+        , ( 3, { topLeft = ( 1, 0 ), size = ( 1, 2 ) } )
+        , ( 4, { topLeft = ( 0, 2 ), size = ( 1, 2 ) } )
+        , ( 5, { topLeft = ( 1, 2 ), size = ( 1, 1 ) } )
+        , ( 6, { topLeft = ( 1, 3 ), size = ( 1, 1 ) } )
+        ]
+            |> Dict.fromList
     }
 
 
@@ -88,15 +102,32 @@ move targetId game =
                         (Just [])
                     |> Maybe.map
                         (\list ->
-                            list
-                                |> List.foldl (\pos -> Dict.insert pos targetId)
-                                    (Dict.filter (\_ tileId -> tileId /= targetId) game.board)
+                            { game
+                                | board =
+                                    list
+                                        |> List.foldl (\pos -> Dict.insert pos targetId)
+                                            (Dict.filter (\_ tileId -> tileId /= targetId) game.board)
+                                , tiles =
+                                    game.tiles
+                                        |> Dict.update targetId
+                                            (Maybe.map
+                                                (\tile ->
+                                                    { tile
+                                                        | topLeft =
+                                                            Tuple.mapBoth
+                                                                ((+) x1)
+                                                                ((+) y1)
+                                                                tile.topLeft
+                                                    }
+                                                )
+                                            )
+                            }
                         )
             )
         |> (\list ->
                 case list of
-                    [ dict ] ->
-                        { game | board = dict } |> Just
+                    [ g ] ->
+                        g |> Just
 
                     _ ->
                         Nothing

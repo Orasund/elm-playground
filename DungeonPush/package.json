@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "css": "css-in-elm build src/style.css generated/Css.elm"
+  },
+  "dependencies": {
+    "@ryannhg/css-in-elm": "github:ryannhg/css-in-elm"
+  }
+}
