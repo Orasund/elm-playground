@@ -6,6 +6,7 @@ type Suit
     | Diamant
     | Spade
     | Club
+    | Star
 
 
 asList : List Suit
@@ -14,6 +15,8 @@ asList =
     , Diamant
     , Spade
     , Club
+
+    --, Star
     ]
 
 
@@ -31,3 +34,25 @@ icon suit =
 
         Club ->
             "♣"
+
+        Star ->
+            "★"
+
+
+color : Suit -> String
+color suit =
+    case suit of
+        Heart ->
+            "#F9C09F"
+
+        Diamant ->
+            "#D6F6CB"
+
+        Spade ->
+            "#98CAEC"
+
+        Club ->
+            "#A2E2AA"
+
+        Star ->
+            "#FA9EC1"

@@ -22,10 +22,10 @@ type Goal
       --| NoFour
       --| NoFourAndNoThree
       --| NoFourOrNoThree
-    | PairOfTwoAndPairOfOne
+      --| PairOfTwoAndPairOfOne
     | ThreePairs
     | Tripple
-    | TrippleOfThree
+    | TrippleOf Suit
     | TrippleAndPairOfTwo
     | TrippleOfThreeAndPairOfTwo
     | TwoTripples
@@ -43,10 +43,9 @@ asList =
 
     --, NoFour
     -- , NoFourAndNoThree
-    , PairOfTwoAndPairOfOne
+    --, PairOfTwoAndPairOfOne
     , ThreePairs
     , Tripple
-    , TrippleOfThree
     , TrippleAndPairOfTwo
     , TrippleOfThreeAndPairOfTwo
     , TwoTripples
@@ -64,6 +63,7 @@ asList =
                           PairOf
                         , OnePairAndOnePairOf
                         , TwoPairsAndOnePairOf
+                        , TrippleOf
                         ]
                             |> List.map (\f -> f suit)
                     )
@@ -87,12 +87,11 @@ goalDescription card =
         PairOf suit ->
             "Two " ++ Suit.icon suit
 
-        PairOfTwoAndPairOfOne ->
-            "Pair of "
-                ++ Suit.icon Diamant
-                ++ " and pair of "
-                ++ Suit.icon Heart
-
+        --PairOfTwoAndPairOfOne ->
+        --    "Pair of "
+        --        ++ Suit.icon Diamant
+        --        ++ " and pair of "
+        --        ++ Suit.icon Heart
         ThreePairs ->
             "Three pairs"
 
@@ -105,8 +104,8 @@ goalDescription card =
         Tripple ->
             "Three of a kind"
 
-        TrippleOfThree ->
-            "Three " ++ Suit.icon Spade
+        TrippleOf suit ->
+            "Three " ++ Suit.icon suit
 
         TrippleAndPairOfTwo ->
             "Three of a kind and a pair of " ++ Suit.icon Diamant
@@ -159,14 +158,13 @@ goalMet card dict =
                             >= 2
                    )
 
-        PairOfTwoAndPairOfOne ->
-            dict
-                |> Dict.filter (\_ i -> i >= 2)
-                |> (\d ->
-                        Dict.member (Suit.icon Diamant) d
-                            && Dict.member (Suit.icon Heart) d
-                   )
-
+        --PairOfTwoAndPairOfOne ->
+        --    dict
+        --        |> Dict.filter (\_ i -> i >= 2)
+        --        |> (\d ->
+        --                Dict.member (Suit.icon Diamant) d
+        --                    && Dict.member (Suit.icon Heart) d
+        --           )
         ThreePairs ->
             dict
                 |> Dict.filter (\_ i -> i >= 2)
@@ -182,9 +180,9 @@ goalMet card dict =
                 |> Dict.filter (\_ i -> i >= 3)
                 |> (\d -> Dict.size d >= 1)
 
-        TrippleOfThree ->
+        TrippleOf suit ->
             dict
-                |> Dict.get (Suit.icon Spade)
+                |> Dict.get (Suit.icon suit)
                 |> Maybe.map (\i -> i >= 3)
                 |> Maybe.withDefault False
 

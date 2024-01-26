@@ -47,7 +47,7 @@ fromDeck deck =
         amount =
             Config.cardsPerHand
     in
-    { yourCards = List.take amount deck
+    { yourCards = List.take amount deck |> List.sortBy (\card -> Goal.probability card.goal)
     , opponentCards = deck |> List.drop amount |> List.take amount
     , playedCards = []
     }

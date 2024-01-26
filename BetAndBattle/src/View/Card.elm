@@ -29,13 +29,13 @@ small card =
         |> Game.Card.back
             [ Style.height "60px"
             , Html.Attributes.style "font-size" "18px"
+            , Html.Attributes.style "background-color" (Suit.color card.suit)
             ]
 
 
 toHtml : List (Attribute msg) -> Card -> Html msg
 toHtml attrs card =
     [ [ String.fromInt (Goal.probability card.goal)
-            ++ "%"
             |> Html.text
             |> Game.Card.element
                 []
@@ -50,4 +50,8 @@ toHtml attrs card =
         |> Game.Card.element [ Html.Attributes.style "text-align" "center" ]
     ]
         |> Game.Card.default
-            (Style.height height :: attrs)
+            ([ Style.height height
+             , Html.Attributes.style "background-color" (Suit.color card.suit)
+             ]
+                ++ attrs
+            )

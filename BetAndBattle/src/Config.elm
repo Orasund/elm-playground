@@ -3,7 +3,7 @@ module Config exposing (..)
 
 cardsPerSuit : Int
 cardsPerSuit =
-    5
+    4
 
 
 cardsPerHand : Int
