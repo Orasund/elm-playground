@@ -1,9 +1,10 @@
-module Card exposing (..)
+module Goal exposing (..)
 
 import Dict exposing (Dict)
+import Suit exposing (Suit(..))
 
 
-type Card
+type Goal
     = OneOne
     | Street
     | NoFour
@@ -24,7 +25,7 @@ type Card
     | QuadrippleAndTripple
 
 
-asList : List Card
+asList : List Goal
 asList =
     [ OneOne
     , Street
@@ -47,14 +48,14 @@ asList =
     ]
 
 
-goalDescription : Card -> String
+goalDescription : Goal -> String
 goalDescription card =
     case card of
         OneOne ->
-            "One 1"
+            "One " ++ Suit.icon Heart
 
         Street ->
-            "All numbers 1 to 4"
+            "Four different suits"
 
         NoFour ->
             "No four"
@@ -66,31 +67,34 @@ goalDescription card =
             "No four or no three"
 
         PairOfTwo ->
-            "Two 2"
+            "Two " ++ Suit.icon Diamant
 
         PairOfTwoAndPairOfOne ->
-            "Pair of 2 and pair of 1"
+            "Pair of "
+                ++ Suit.icon Diamant
+                ++ " and pair of "
+                ++ Suit.icon Heart
 
         ThreePairs ->
             "Three pairs"
 
         PairOfTwoAndOnePair ->
-            "Two 2 and another pair"
+            "Two " ++ Suit.icon Diamant ++ " and another pair"
 
         PairOfTwoAndTwoPairs ->
-            "Two 2 and two other pairs"
+            "Two " ++ Suit.icon Diamant ++ " and two other pairs"
 
         Tripple ->
             "Three of a kind"
 
         TrippleOfThree ->
-            "Three 3"
+            "Three " ++ Suit.icon Spade
 
         TrippleAndPairOfTwo ->
-            "Three of a kind and a pair of 2"
+            "Three of a kind and a pair of " ++ Suit.icon Diamant
 
         TrippleOfThreeAndPairOfTwo ->
-            "Three 3 and a pair of 2"
+            "Three " ++ Suit.icon Spade ++ " and a pair of " ++ Suit.icon Diamant
 
         TwoTripples ->
             "Two different three of a kind"
@@ -99,45 +103,53 @@ goalDescription card =
             "Four of a kind"
 
         QuadrippleOfFour ->
-            "Four 4"
+            "Four " ++ Suit.icon Club
 
         QuadrippleAndTripple ->
             "Four of a kind and three of a kind"
 
 
-goalMet : Card -> Dict Int Int -> Bool
+goalMet : Goal -> Dict String Int -> Bool
 goalMet card dict =
     case card of
         OneOne ->
-            Dict.member 1 dict
+            Dict.member (Suit.icon Heart) dict
 
         Street ->
-            Dict.member 1 dict
-                && Dict.member 2 dict
-                && Dict.member 3 dict
-                && Dict.member 4 dict
+            Suit.asList
+                |> List.all
+                    (\suit ->
+                        Dict.member (Suit.icon suit) dict
+                    )
 
         NoFour ->
-            Dict.member 4 dict |> not
+            Dict.member (Suit.icon Club) dict |> not
 
         NoFourAndNoThree ->
-            not (Dict.member 4 dict)
-                && not (Dict.member 3 dict)
+            not (Dict.member (Suit.icon Club) dict)
+                && not (Dict.member (Suit.icon Spade) dict)
 
         PairOfTwo ->
-            Dict.get 2 dict
+            Dict.get (Suit.icon Diamant) dict
                 |> Maybe.map (\i -> i >= 2)
                 |> Maybe.withDefault False
 
         PairOfTwoAndOnePair ->
             dict
                 |> Dict.filter (\_ i -> i >= 2)
-                |> (\d -> Dict.member 2 d && Dict.size d >= 2)
+                |> (\d ->
+                        Dict.member (Suit.icon Diamant) d
+                            && Dict.size d
+                            >= 2
+                   )
 
         PairOfTwoAndPairOfOne ->
             dict
                 |> Dict.filter (\_ i -> i >= 2)
-                |> (\d -> Dict.member 2 d && Dict.member 1 d)
+                |> (\d ->
+                        Dict.member (Suit.icon Diamant) d
+                            && Dict.member (Suit.icon Heart) d
+                   )
 
         ThreePairs ->
             dict
@@ -147,7 +159,7 @@ goalMet card dict =
         PairOfTwoAndTwoPairs ->
             dict
                 |> Dict.filter (\_ i -> i >= 2)
-                |> (\d -> Dict.member 2 d && Dict.size d >= 3)
+                |> (\d -> Dict.member (Suit.icon Diamant) d && Dict.size d >= 3)
 
         Tripple ->
             dict
@@ -156,7 +168,7 @@ goalMet card dict =
 
         TrippleOfThree ->
             dict
-                |> Dict.get 3
+                |> Dict.get (Suit.icon Spade)
                 |> Maybe.map (\i -> i >= 3)
                 |> Maybe.withDefault False
 
@@ -166,19 +178,19 @@ goalMet card dict =
                 |> (\d -> Dict.size d >= 1)
             )
                 && (dict
-                        |> Dict.get 2
+                        |> Dict.get (Suit.icon Diamant)
                         |> Maybe.map (\i -> i >= 2)
                         |> Maybe.withDefault False
                    )
 
         TrippleOfThreeAndPairOfTwo ->
             (dict
-                |> Dict.get 3
+                |> Dict.get (Suit.icon Spade)
                 |> Maybe.map (\i -> i >= 3)
                 |> Maybe.withDefault False
             )
                 && (dict
-                        |> Dict.get 2
+                        |> Dict.get (Suit.icon Diamant)
                         |> Maybe.map (\i -> i >= 2)
                         |> Maybe.withDefault False
                    )
@@ -195,13 +207,13 @@ goalMet card dict =
 
         QuadrippleOfFour ->
             dict
-                |> Dict.get 3
+                |> Dict.get (Suit.icon Spade)
                 |> Maybe.map (\i -> i >= 4)
                 |> Maybe.withDefault False
 
         NoFourOrNoThree ->
-            not (Dict.member 4 dict)
-                || not (Dict.member 3 dict)
+            not (Dict.member (Suit.icon Club) dict)
+                || not (Dict.member (Suit.icon Spade) dict)
 
         QuadrippleAndTripple ->
             (dict
@@ -214,59 +226,59 @@ goalMet card dict =
                    )
 
 
-probability : Card -> Int
+probability : Goal -> Int
 probability card =
     case card of
         NoFourAndNoThree ->
-            1
+            0
 
         QuadrippleOfFour ->
-            36
+            8
 
         NoFour ->
-            46
+            6
 
         NoFourOrNoThree ->
-            87
+            12
 
         TrippleOfThreeAndPairOfTwo ->
-            144
+            17
 
         QuadrippleAndTripple ->
-            154
+            18
 
         Quadripple ->
-            154
+            18
 
         TwoTripples ->
-            253
+            28
 
         TrippleOfThree ->
-            261
+            36
 
         PairOfTwoAndPairOfOne ->
-            487
+            45
 
         PairOfTwoAndTwoPairs ->
-            580
+            58
 
         TrippleAndPairOfTwo ->
-            616
+            63
 
         PairOfTwoAndOnePair ->
-            725
+            73
 
         PairOfTwo ->
-            725
+            73
 
         ThreePairs ->
-            748
+            73
 
         Street ->
-            845
+            81
 
         Tripple ->
-            891
+            90
 
         OneOne ->
-            973
+            96

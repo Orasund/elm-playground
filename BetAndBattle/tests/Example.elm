@@ -1,9 +1,10 @@
 module Example exposing (..)
 
-import Card exposing (Card)
 import Dict
 import Expect exposing (Expectation)
 import Fuzz exposing (Fuzzer, int, list, string)
+import Game exposing (Card)
+import Goal exposing (Goal)
 import List.Extra
 import Random
 import Random.List
@@ -14,41 +15,46 @@ type alias Random a =
     Random.Generator a
 
 
-simulateGame : Card -> Random Bool
-simulateGame card =
+randomDeck : Random (List Int)
+randomDeck =
     List.range 1 4
         |> List.concatMap (List.repeat 4)
         |> Random.List.shuffle
         |> Random.map (List.take 8)
-        |> Random.map
-            (\list ->
-                list
-                    |> List.Extra.gatherEquals
-                    |> List.map
-                        (Tuple.mapSecond
-                            (\l ->
-                                List.length l + 1
-                            )
-                        )
-                    |> Dict.fromList
+
+
+simulateGame : Goal -> List Int -> Bool
+simulateGame card list =
+    list
+        |> List.Extra.gatherEquals
+        |> List.map
+            (Tuple.mapSecond
+                (\l ->
+                    List.length l + 1
+                )
             )
-        |> Random.map (Card.goalMet card)
+        |> Dict.fromList
+        |> Goal.goalMet card
 
 
 suite : Test
 suite =
-    Card.asList
+    let
+        ( decks, _ ) =
+            randomDeck
+                |> Random.list 100
+                |> (\random -> Random.step random (Random.initialSeed 42))
+    in
+    Goal.asList
         |> List.map
             (\card ->
                 Test.test
-                    ("Simulate " ++ Card.goalDescription card)
+                    ("Simulate " ++ Goal.goalDescription card)
                     (\() ->
-                        simulateGame card
-                            |> Random.list 1000
-                            |> Random.map (List.Extra.count identity)
-                            |> (\random -> Random.step random (Random.initialSeed 42))
-                            |> Tuple.first
-                            |> Expect.equal (Card.probability card)
+                        decks
+                            |> List.map (simulateGame card)
+                            |> List.Extra.count identity
+                            |> Expect.equal (Goal.probability card)
                     )
             )
         |> Test.describe "Check probability"

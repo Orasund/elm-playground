@@ -1,13 +1,6 @@
 module Config exposing (..)
 
 
-suitAmount =
+cardsPerSuit : Int
+cardsPerSuit =
     4
-
-
-valuesAmount =
-    4
-
-
-deckSize =
-    suitAmount * valuesAmount
