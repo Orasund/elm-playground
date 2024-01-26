@@ -28,6 +28,7 @@ small card =
         |> Html.text
         |> Game.Card.back
             [ Style.height "60px"
+            , Html.Attributes.style "font-size" "18px"
             ]
 
 
@@ -37,13 +38,12 @@ toHtml attrs card =
             ++ "%"
             |> Html.text
             |> Game.Card.element
-                [ Html.Attributes.style "font-size" "18px"
-                ]
+                []
       , Suit.icon card.suit
             |> Html.text
             |> Game.Card.element []
       ]
-        |> Game.Card.row []
+        |> Game.Card.row [ Html.Attributes.style "font-size" "18px" ]
     , card.goal
         |> Goal.goalDescription
         |> Html.text

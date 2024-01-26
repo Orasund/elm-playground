@@ -33,7 +33,7 @@ toHtml args game =
             "Waiting..."
 
          else
-            "Play a card or challenge the played card"
+            "Play a card with a smaller number or challenge the played card"
         )
             |> Layout.text []
       , game.yourCards

@@ -8,6 +8,7 @@ import Goal exposing (Goal)
 import List.Extra
 import Random
 import Random.List
+import Suit exposing (Suit)
 import Test exposing (..)
 
 
@@ -15,23 +16,21 @@ type alias Random a =
     Random.Generator a
 
 
-randomDeck : Random (List Int)
+randomDeck : Random (List Suit)
 randomDeck =
-    List.range 1 4
+    Suit.asList
         |> List.concatMap (List.repeat 4)
         |> Random.List.shuffle
         |> Random.map (List.take 8)
 
 
-simulateGame : Goal -> List Int -> Bool
+simulateGame : Goal -> List Suit -> Bool
 simulateGame card list =
     list
         |> List.Extra.gatherEquals
         |> List.map
-            (Tuple.mapSecond
-                (\l ->
-                    List.length l + 1
-                )
+            (\( suit, l ) ->
+                ( Suit.icon suit, List.length l + 1 )
             )
         |> Dict.fromList
         |> Goal.goalMet card

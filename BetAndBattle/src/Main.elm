@@ -6,6 +6,7 @@ import Game exposing (Card, Game)
 import Game.Update
 import Goal exposing (Goal)
 import Html exposing (Html)
+import Html.Attributes
 import Html.Style as Style
 import Layout
 import Process
@@ -54,7 +55,7 @@ restartGame seed =
     { game = game
     , seed = newSeed
     , overlay = Nothing
-    , yourTurn = True
+    , yourTurn = False
     }
 
 
@@ -75,6 +76,8 @@ view model =
             |> Layout.el
                 ([ Style.width "400px"
                  , Style.height "700px"
+                 , Html.Attributes.style "padding" "8px"
+                 , Style.boxSizingBorderBox
                  ]
                     ++ Layout.centered
                 )
@@ -111,7 +114,10 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         RestartGame seed ->
-            ( restartGame seed, Cmd.none )
+            ( restartGame seed
+            , Process.sleep 1000
+                |> Task.perform (\() -> RequestOpponentTurn)
+            )
 
         PlayCard card ->
             ( playCard card model

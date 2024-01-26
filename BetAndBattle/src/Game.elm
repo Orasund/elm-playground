@@ -45,7 +45,7 @@ fromDeck : List Card -> Game
 fromDeck deck =
     let
         amount =
-            List.length Suit.asList * Config.cardsPerSuit // 4
+            Config.cardsPerHand
     in
     { yourCards = List.take amount deck
     , opponentCards = deck |> List.drop amount |> List.take amount
