@@ -30,7 +30,7 @@ fontSize args =
         "30px"
 
     else
-        "16px"
+        "12px"
 
 
 viewSuit : List (Attribute msg) -> { big : Bool } -> Maybe Suit -> Html msg

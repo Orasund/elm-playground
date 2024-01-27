@@ -21,10 +21,10 @@ gameEnd args game =
                 |> Maybe.withDefault { suit = Heart, goal = [] }
     in
     [ (if args.yourTurn then
-        "You challenge your opponent for "
+        "You called the bluff for "
 
        else
-        "Your opponent challenges you for "
+        "They called the bluff for "
       )
         ++ (Goal.probability bet.goal
                 |> String.fromInt
@@ -33,35 +33,39 @@ gameEnd args game =
         |> Layout.text
             [ Style.justifyContentCenter
             ]
-    , (if args.yourTurn then
-        "Opponents "
+    , [ (if args.yourTurn then
+            "Their "
 
-       else
-        "Your "
-      )
-        ++ "Challenge"
-        |> Layout.text
-            [ Style.justifyContentCenter
-            , Html.Attributes.style "font-size" "24px"
-            ]
-    , View.Goal.toHtml [] { big = True } bet.goal
-    , "Cards in game"
-        |> Layout.text
-            [ Html.Attributes.style "font-size" "24px"
-            , Style.justifyContentCenter
-            ]
-    , game.yourCards
-        ++ game.opponentCards
-        ++ game.playedCards
-        |> List.sortBy (\card -> Suit.icon card.suit)
-        |> List.map
-            (\card ->
-                card.suit
-                    |> Just
-                    |> View.Goal.viewSuit []
-                        { big = True }
-            )
-        |> Layout.row [ Style.gap "4px" ]
+         else
+            "Your "
+        )
+            ++ "Call"
+            |> Layout.text
+                [ Style.justifyContentCenter
+                , Html.Attributes.style "font-size" "24px"
+                ]
+      , View.Goal.toHtml [] { big = True } bet.goal
+      ]
+        |> Layout.column [ Style.gap "8px" ]
+    , [ "Cards in game"
+            |> Layout.text
+                [ Html.Attributes.style "font-size" "24px"
+                , Style.justifyContentCenter
+                ]
+      , game.yourCards
+            ++ game.opponentCards
+            ++ game.playedCards
+            |> List.sortBy (\card -> Suit.icon card.suit)
+            |> List.map
+                (\card ->
+                    card.suit
+                        |> Just
+                        |> View.Goal.viewSuit []
+                            { big = True }
+                )
+            |> Layout.row [ Style.gap "4px" ]
+      ]
+        |> Layout.column [ Style.gap "8px" ]
     , (if
         Game.isWon game
             |> (if args.yourTurn then

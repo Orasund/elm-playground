@@ -13,6 +13,7 @@ import Random exposing (Seed)
 import Task
 import View.Game
 import View.Overlay
+import View.Ui
 
 
 type Overlay
@@ -58,7 +59,7 @@ restartGame seed =
     , seed = newSeed
     , overlay = Nothing
     , yourTurn = False
-    , score = 50
+    , score = 100
     }
 
 
@@ -89,8 +90,27 @@ view model =
                 model.game
 
         Just EndOfGame ->
-            "You don't have any credits left"
-                |> Layout.text []
+            [ Layout.el [] Layout.none
+            , [ "You don't have any credits left"
+                    |> Layout.text [ Style.justifyContentCenter ]
+              , "Thanks for playing"
+                    |> Layout.text [ Html.Attributes.style "font-size" "36px" ]
+              , "Please subscribe and rate the game"
+                    |> Layout.text [ Style.justifyContentCenter ]
+              , "Thanks ;)"
+                    |> Layout.text [ Style.justifyContentCenter ]
+              ]
+                |> Layout.column
+                    [ Style.gap "16px"
+                    , Layout.contentWithSpaceBetween
+                    , Style.justifyContentCenter
+                    ]
+            , View.Ui.button []
+                { label = "Restart the game"
+                , onPress = Just (Restart model.seed)
+                }
+            ]
+                |> Layout.column [ Layout.contentWithSpaceBetween ]
 
         Nothing ->
             model.game
@@ -129,6 +149,11 @@ view model =
             , Style.boxSizingBorderBox
             , Style.width "100%"
             ]
+    , Html.node "meta"
+        [ Html.Attributes.name "viewport"
+        , Html.Attributes.attribute "content" "width=400, initial-scale=1.0"
+        ]
+        []
     ]
         |> Layout.column
             ([ Style.width "400px"
@@ -215,8 +240,12 @@ update msg model =
 
         NewRoundRequested score ->
             ( newGameRequested score model
-            , Process.sleep 1000
-                |> Task.perform (\() -> RequestOpponentTurn)
+            , if model.score + score > 0 then
+                Process.sleep 1000
+                    |> Task.perform (\() -> RequestOpponentTurn)
+
+              else
+                Cmd.none
             )
 
 

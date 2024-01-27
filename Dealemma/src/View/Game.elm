@@ -21,29 +21,39 @@ toHtml :
 toHtml args game =
     [ game.opponentCards
         |> View.Hand.opponent [ Style.justifyContentCenter ]
-    , game.playedCards
-        |> List.reverse
-        |> List.map
-            (\card ->
-                \attrs -> View.Card.toHtml attrs card
-            )
-        |> List.map Game.Entity.new
-        |> List.indexedMap
-            (\i ->
-                Game.Entity.move
-                    ( (List.length game.playedCards - i - 1) * 20 |> toFloat
-                    , 0
-                    )
-            )
-        |> Game.Entity.pileAbove (View.Card.empty [])
-        |> Game.Entity.toHtml [ Style.justifyContentCenter ]
+    , [ "Last Call"
+            |> Layout.text
+                [ Html.Attributes.style "font-size" "24px"
+                , Style.justifyContentCenter
+                ]
+      , game.playedCards
+            |> List.reverse
+            |> List.map
+                (\card ->
+                    \attrs -> View.Card.toHtml attrs card
+                )
+            |> List.map Game.Entity.new
+            |> List.indexedMap
+                (\i ->
+                    Game.Entity.move
+                        ( (List.length game.playedCards - i - 1) * 20 |> toFloat
+                        , 0
+                        )
+                )
+            |> Game.Entity.pileAbove (View.Card.empty [])
+            |> Game.Entity.toHtml [ Style.justifyContentCenter ]
+      ]
+        |> Layout.column
+            [ Style.justifyContentCenter
+            , Style.gap "8px"
+            ]
     , [ (if not args.yourTurn then
             "Waiting..."
 
          else
-            "Pick a card with a smaller value or challenge your opponent"
+            "Play a card with a smaller value or call the bluff"
         )
-            |> Layout.text []
+            |> Layout.text [ Style.justifyContentCenter ]
       , game.yourCards
             |> View.Hand.toHtml
                 [ Style.justifyContentCenter
@@ -53,8 +63,13 @@ toHtml args game =
                     Game.currentPercentage game
                 }
       , View.Ui.button []
-            { onPress = Just args.onChallenge
-            , label = "Challenge your Opponent"
+            { onPress =
+                if args.yourTurn then
+                    Just args.onChallenge
+
+                else
+                    Nothing
+            , label = "Call the bluff"
             }
             |> Layout.el [ Style.justifyContentCenter ]
       ]
