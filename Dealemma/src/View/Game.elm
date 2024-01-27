@@ -1,11 +1,14 @@
 module View.Game exposing (..)
 
 import Game exposing (Card, Game)
+import Game.Entity
 import Html exposing (Html)
+import Html.Attributes
 import Html.Style as Style
 import Layout
 import View.Card
 import View.Hand
+import View.Ui
 
 
 toHtml :
@@ -17,35 +20,43 @@ toHtml :
     -> Html msg
 toHtml args game =
     [ game.opponentCards
-        |> View.Hand.opponent
-    , case game.playedCards of
-        head :: tail ->
-            [ View.Card.toHtml [ Style.height "200px" ] head
-            , tail
-                |> List.map View.Card.small
-                |> Layout.row [ Style.gap "8px" ]
-            ]
-                |> Layout.row [ Style.gap "16px" ]
-
-        [] ->
-            Layout.el [] Layout.none
+        |> View.Hand.opponent [ Style.justifyContentCenter ]
+    , game.playedCards
+        |> List.reverse
+        |> List.map
+            (\card ->
+                \attrs -> View.Card.toHtml attrs card
+            )
+        |> List.map Game.Entity.new
+        |> List.indexedMap
+            (\i ->
+                Game.Entity.move
+                    ( (List.length game.playedCards - i - 1) * 20 |> toFloat
+                    , 0
+                    )
+            )
+        |> Game.Entity.pileAbove (View.Card.empty [])
+        |> Game.Entity.toHtml [ Style.justifyContentCenter ]
     , [ (if not args.yourTurn then
             "Waiting..."
 
          else
-            "Play a card with a smaller number or challenge the played card"
+            "Pick a card with a smaller value or challenge your opponent"
         )
             |> Layout.text []
       , game.yourCards
             |> View.Hand.toHtml
+                [ Style.justifyContentCenter
+                ]
                 { onPlay = args.onPlay
                 , currentPercentage =
                     Game.currentPercentage game
                 }
-      , Layout.textButton []
-            { label = "Challenge"
-            , onPress = Just args.onChallenge
+      , View.Ui.button []
+            { onPress = Just args.onChallenge
+            , label = "Challenge your Opponent"
             }
+            |> Layout.el [ Style.justifyContentCenter ]
       ]
         |> Layout.column [ Style.gap "16px" ]
     ]

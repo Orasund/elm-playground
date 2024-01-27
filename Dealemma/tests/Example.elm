@@ -48,7 +48,7 @@ suite =
         |> List.map
             (\card ->
                 Test.test
-                    ("Simulate " ++ Goal.goalDescription card)
+                    ("Simulate " ++ Goal.description card)
                     (\() ->
                         decks
                             |> List.map (simulateGame card)

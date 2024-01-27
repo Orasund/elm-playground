@@ -1,10 +1,9 @@
 module Main exposing (..)
 
 import Browser
-import Dict exposing (Dict)
 import Game exposing (Card, Game)
 import Game.Update
-import Goal exposing (Goal)
+import Goal
 import Html exposing (Html)
 import Html.Attributes
 import Html.Style as Style
@@ -17,7 +16,8 @@ import View.Overlay
 
 
 type Overlay
-    = GameEnd
+    = EndOfRound
+    | EndOfGame
 
 
 type alias Model =
@@ -25,21 +25,23 @@ type alias Model =
     , seed : Seed
     , overlay : Maybe Overlay
     , yourTurn : Bool
+    , score : Int
     }
 
 
 type Msg
-    = RestartGame Seed
+    = Restart Seed
     | PlayCard Card
     | ChallengeGoal
     | RequestOpponentTurn
+    | NewRoundRequested Int
 
 
 init : () -> ( Model, Cmd Msg )
 init () =
     ( restartGame (Random.initialSeed 42)
     , Random.independentSeed
-        |> Random.generate RestartGame
+        |> Random.generate Restart
     )
 
 
@@ -56,37 +58,90 @@ restartGame seed =
     , seed = newSeed
     , overlay = Nothing
     , yourTurn = False
+    , score = 50
     }
 
 
 view : Model -> Html Msg
 view model =
-    if model.overlay == Just GameEnd then
-        View.Overlay.gameEnd
-            { yourTurn = model.yourTurn }
-            model.game
+    let
+        currentScore =
+            model.game.playedCards
+                |> List.head
+                |> Maybe.map (\card -> Goal.probability card.goal)
+                |> Maybe.withDefault 0
+                |> (*)
+                    (if xor (Game.isWon model.game) model.yourTurn then
+                        1
 
-    else
-        model.game
-            |> View.Game.toHtml
-                { onChallenge = ChallengeGoal
-                , onPlay = PlayCard
-                , yourTurn = model.yourTurn
+                     else
+                        -2
+                    )
+    in
+    [ (case model.overlay of
+        Just EndOfRound ->
+            View.Overlay.gameEnd
+                { yourTurn = model.yourTurn
+                , onNextRound =
+                    NewRoundRequested
+                        currentScore
                 }
-            |> Layout.el
-                ([ Style.width "400px"
-                 , Style.height "700px"
-                 , Html.Attributes.style "padding" "8px"
-                 , Style.boxSizingBorderBox
-                 ]
-                    ++ Layout.centered
+                model.game
+
+        Just EndOfGame ->
+            "You don't have any credits left"
+                |> Layout.text []
+
+        Nothing ->
+            model.game
+                |> View.Game.toHtml
+                    { onChallenge = ChallengeGoal
+                    , onPlay = PlayCard
+                    , yourTurn = model.yourTurn
+                    }
+      )
+        |> Layout.el
+            [ Html.Attributes.style "padding" "16px"
+            , Html.Attributes.style "background-color" "#dfeaff"
+            , Style.width "100%"
+            , Style.height "100%"
+            , Style.boxSizingBorderBox
+            , Style.justifyContentCenter
+            ]
+    , "CREDITS: "
+        ++ String.fromInt model.score
+        ++ (if model.overlay == Just EndOfRound then
+                (if xor (Game.isWon model.game) model.yourTurn then
+                    "+"
+
+                 else
+                    ""
                 )
+                    ++ String.fromInt currentScore
+
+            else
+                ""
+           )
+        |> Layout.text
+            [ Html.Attributes.style "background-color" "#679aff"
+            , Html.Attributes.style "color" "white"
+            , Html.Attributes.style "padding" "32px"
+            , Style.boxSizingBorderBox
+            , Style.width "100%"
+            ]
+    ]
+        |> Layout.column
+            ([ Style.width "400px"
+             , Style.height "700px"
+             ]
+                ++ Layout.centered
+            )
 
 
 challengeGoal : Model -> Model
 challengeGoal model =
     { model
-        | overlay = Just GameEnd
+        | overlay = Just EndOfRound
     }
 
 
@@ -107,13 +162,38 @@ requestOpponentTurn model =
     model.game
         |> Game.Update.opponentsTurn
         |> Maybe.map (\game -> { model | yourTurn = True, game = game })
-        |> Maybe.withDefault { model | overlay = Just GameEnd }
+        |> Maybe.withDefault { model | overlay = Just EndOfRound }
+
+
+newGameRequested : Int -> Model -> Model
+newGameRequested score model =
+    let
+        ( game, newSeed ) =
+            Game.fromGoals Goal.asList
+                |> (\rand ->
+                        Random.step rand model.seed
+                   )
+
+        newScore =
+            model.score + score
+    in
+    if newScore > 0 then
+        { model
+            | game = game
+            , seed = newSeed
+            , overlay = Nothing
+            , yourTurn = False
+            , score = newScore
+        }
+
+    else
+        { model | score = 0, overlay = Just EndOfGame }
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        RestartGame seed ->
+        Restart seed ->
             ( restartGame seed
             , Process.sleep 1000
                 |> Task.perform (\() -> RequestOpponentTurn)
@@ -133,9 +213,15 @@ update msg model =
         RequestOpponentTurn ->
             ( requestOpponentTurn model, Cmd.none )
 
+        NewRoundRequested score ->
+            ( newGameRequested score model
+            , Process.sleep 1000
+                |> Task.perform (\() -> RequestOpponentTurn)
+            )
+
 
 subscriptions : Model -> Sub Msg
-subscriptions model =
+subscriptions _ =
     Sub.none
 
 

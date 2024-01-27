@@ -46,7 +46,7 @@ color suit =
             "#F9C09F"
 
         Diamant ->
-            "#D6F6CB"
+            "#f4ffc3"
 
         Spade ->
             "#98CAEC"

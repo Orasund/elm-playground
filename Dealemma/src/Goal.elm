@@ -12,237 +12,159 @@ type alias Random a =
     Generator a
 
 
-type Goal
-    = --Single Suit
-      --|
-      PairOf Suit
-    | OnePairAndOnePairOf Suit
-    | TwoPairsAndOnePairOf Suit
-    | Street
-      --| NoFour
-      --| NoFourAndNoThree
-      --| NoFourOrNoThree
-      --| PairOfTwoAndPairOfOne
-    | ThreePairs
-    | Tripple
-    | TrippleOf Suit
-    | TrippleAndPairOfTwo
-    | TrippleOfThreeAndPairOfTwo
-    | TwoTripples
-    | Quadripple
+type Category
+    = SingleOf Suit
+    | PairOf Suit
+    | Pair
+    | ThreeOf Suit
+    | ThreeOfAKind
+    | FourOfAKind
 
 
-
---| QuadrippleOfFour
---| QuadrippleAndTripple
+type alias Goal =
+    List Category
 
 
 asList : List Goal
 asList =
-    [ Street
-
-    --, NoFour
-    -- , NoFourAndNoThree
-    --, PairOfTwoAndPairOfOne
-    , ThreePairs
-    , Tripple
-    , TrippleAndPairOfTwo
-    , TrippleOfThreeAndPairOfTwo
-    , TwoTripples
-    , Quadripple
-
-    --, QuadrippleOfFour
-    -- , NoFourOrNoThree
-    --, QuadrippleAndTripple
+    [ Suit.asList
+        |> List.map SingleOf
+    , Pair
+        |> List.repeat 3
+    , [ ThreeOfAKind ]
+    , ThreeOfAKind
+        |> List.repeat 2
+    , [ FourOfAKind ]
     ]
         ++ (Suit.asList
                 |> List.concatMap
                     (\suit ->
-                        [ -- Single
-                          --,
-                          PairOf
-                        , OnePairAndOnePairOf
-                        , TwoPairsAndOnePairOf
-                        , TrippleOf
+                        [ [ PairOf suit ]
+                        , [ PairOf suit, Pair ]
+                        , [ PairOf suit, Pair, Pair ]
+                        , [ ThreeOf suit ]
+                        , [ ThreeOfAKind, PairOf suit ]
+                        , [ ThreeOf suit, ThreeOfAKind ]
                         ]
-                            |> List.map (\f -> f suit)
                     )
            )
 
 
-goalDescription : Goal -> String
-goalDescription card =
-    case card of
-        --Single suit ->
-        --    "One " ++ Suit.icon suit
-        Street ->
-            "Four different suits"
+description : Goal -> String
+description list =
+    list
+        |> List.map categoryDescription
+        |> String.join " and "
 
-        --NoFour ->
-        --    "No four"
-        --NoFourAndNoThree ->
-        --    "No four and no three"
-        --NoFourOrNoThree ->
-        --    "No four or no three"
+
+categoryDescription : Category -> String
+categoryDescription category =
+    case category of
+        SingleOf suit ->
+            "one " ++ Suit.icon suit
+
         PairOf suit ->
-            "Two " ++ Suit.icon suit
+            "two " ++ Suit.icon suit
 
-        --PairOfTwoAndPairOfOne ->
-        --    "Pair of "
-        --        ++ Suit.icon Diamant
-        --        ++ " and pair of "
-        --        ++ Suit.icon Heart
-        ThreePairs ->
-            "Three pairs"
+        Pair ->
+            "a pair"
 
-        OnePairAndOnePairOf suit ->
-            "Two " ++ Suit.icon suit ++ " and another pair"
+        ThreeOf suit ->
+            "three " ++ Suit.icon suit
 
-        TwoPairsAndOnePairOf suit ->
-            "Two " ++ Suit.icon suit ++ " and two other pairs"
+        ThreeOfAKind ->
+            "three of a kind"
 
-        Tripple ->
-            "Three of a kind"
-
-        TrippleOf suit ->
-            "Three " ++ Suit.icon suit
-
-        TrippleAndPairOfTwo ->
-            "Three of a kind and a pair of " ++ Suit.icon Diamant
-
-        TrippleOfThreeAndPairOfTwo ->
-            "Three " ++ Suit.icon Spade ++ " and a pair of " ++ Suit.icon Diamant
-
-        TwoTripples ->
-            "Two different three of a kind"
-
-        Quadripple ->
-            "Four of a kind"
+        FourOfAKind ->
+            "four of a kind"
 
 
+applyCategory : Category -> Dict String Int -> Maybe (Dict String Int)
+applyCategory category dict =
+    case category of
+        SingleOf suit ->
+            if Dict.member (Suit.icon suit) dict then
+                dict
+                    |> Dict.remove (Suit.icon suit)
+                    |> Just
 
---QuadrippleOfFour ->
---    "Four " ++ Suit.icon Club
---QuadrippleAndTripple ->
---    "Four of a kind and three of a kind"
+            else
+                Nothing
+
+        PairOf suit ->
+            if
+                Dict.get (Suit.icon suit) dict
+                    |> Maybe.map (\i -> i >= 2)
+                    |> Maybe.withDefault False
+            then
+                dict
+                    |> Dict.remove (Suit.icon suit)
+                    |> Just
+
+            else
+                Nothing
+
+        Pair ->
+            Suit.asList
+                |> List.Extra.find
+                    (\suit ->
+                        dict
+                            |> Dict.get (Suit.icon suit)
+                            |> Maybe.map (\i -> i >= 2)
+                            |> Maybe.withDefault False
+                    )
+                |> Maybe.map (\suit -> Dict.remove (Suit.icon suit) dict)
+
+        ThreeOf suit ->
+            if
+                Dict.get (Suit.icon suit) dict
+                    |> Maybe.map (\i -> i >= 3)
+                    |> Maybe.withDefault False
+            then
+                dict
+                    |> Dict.remove (Suit.icon suit)
+                    |> Just
+
+            else
+                Nothing
+
+        ThreeOfAKind ->
+            Suit.asList
+                |> List.Extra.find
+                    (\suit ->
+                        dict
+                            |> Dict.get (Suit.icon suit)
+                            |> Maybe.map (\i -> i >= 3)
+                            |> Maybe.withDefault False
+                    )
+                |> Maybe.map (\suit -> Dict.remove (Suit.icon suit) dict)
+
+        FourOfAKind ->
+            Suit.asList
+                |> List.Extra.find
+                    (\suit ->
+                        dict
+                            |> Dict.get (Suit.icon suit)
+                            |> Maybe.map (\i -> i >= 4)
+                            |> Maybe.withDefault False
+                    )
+                |> Maybe.map (\suit -> Dict.remove (Suit.icon suit) dict)
 
 
 goalMet : Goal -> Dict String Int -> Bool
-goalMet card dict =
-    case card of
-        --Single suit ->
-        --    Dict.member (Suit.icon suit) dict
-        Street ->
-            Suit.asList
-                |> List.all
-                    (\suit ->
-                        Dict.member (Suit.icon suit) dict
-                    )
-
-        --NoFour ->
-        --    Dict.member (Suit.icon Club) dict |> not
-        --NoFourAndNoThree ->
-        --    not (Dict.member (Suit.icon Club) dict)
-        --        && not (Dict.member (Suit.icon Spade) dict)
-        PairOf suit ->
-            Dict.get (Suit.icon suit) dict
-                |> Maybe.map (\i -> i >= 2)
-                |> Maybe.withDefault False
-
-        OnePairAndOnePairOf suit ->
-            dict
-                |> Dict.filter (\_ i -> i >= 2)
-                |> (\d ->
-                        Dict.member (Suit.icon suit) d
-                            && Dict.size d
-                            >= 2
-                   )
-
-        --PairOfTwoAndPairOfOne ->
-        --    dict
-        --        |> Dict.filter (\_ i -> i >= 2)
-        --        |> (\d ->
-        --                Dict.member (Suit.icon Diamant) d
-        --                    && Dict.member (Suit.icon Heart) d
-        --           )
-        ThreePairs ->
-            dict
-                |> Dict.filter (\_ i -> i >= 2)
-                |> (\d -> Dict.size d >= 3)
-
-        TwoPairsAndOnePairOf suit ->
-            dict
-                |> Dict.filter (\_ i -> i >= 2)
-                |> (\d -> Dict.member (Suit.icon suit) d && Dict.size d >= 3)
-
-        Tripple ->
-            dict
-                |> Dict.filter (\_ i -> i >= 3)
-                |> (\d -> Dict.size d >= 1)
-
-        TrippleOf suit ->
-            dict
-                |> Dict.get (Suit.icon suit)
-                |> Maybe.map (\i -> i >= 3)
-                |> Maybe.withDefault False
-
-        TrippleAndPairOfTwo ->
-            (dict
-                |> Dict.filter (\_ i -> i >= 3)
-                |> (\d -> Dict.size d >= 1)
+goalMet list dict =
+    list
+        |> List.foldl
+            (\category ->
+                Maybe.andThen (applyCategory category)
             )
-                && (dict
-                        |> Dict.get (Suit.icon Diamant)
-                        |> Maybe.map (\i -> i >= 2)
-                        |> Maybe.withDefault False
-                   )
-
-        TrippleOfThreeAndPairOfTwo ->
-            (dict
-                |> Dict.get (Suit.icon Spade)
-                |> Maybe.map (\i -> i >= 3)
-                |> Maybe.withDefault False
-            )
-                && (dict
-                        |> Dict.get (Suit.icon Diamant)
-                        |> Maybe.map (\i -> i >= 2)
-                        |> Maybe.withDefault False
-                   )
-
-        TwoTripples ->
-            dict
-                |> Dict.filter (\_ i -> i >= 3)
-                |> (\d -> Dict.size d >= 2)
-
-        Quadripple ->
-            dict
-                |> Dict.filter (\_ i -> i >= 4)
-                |> (\d -> Dict.size d >= 1)
-
-
-
---QuadrippleOfFour ->
---    dict
---       |> Dict.get (Suit.icon Spade)
---        |> Maybe.map (\i -> i >= 4)
---        |> Maybe.withDefault False
---NoFourOrNoThree ->
---    not (Dict.member (Suit.icon Club) dict)
---        || not (Dict.member (Suit.icon Spade) dict)
---QuadrippleAndTripple ->
---    (dict
---        |> Dict.filter (\_ i -> i >= 4)
---        |> (\d -> Dict.size d >= 1)
---    )
---        && (dict
---                |> Dict.filter (\_ i -> i >= 3)
---                |> (\d -> Dict.size d >= 1)
---           )
+            (Just dict)
+        |> (/=) Nothing
 
 
 probability : Goal -> Int
 probability goal =
-    Dict.get (goalDescription goal) probabilities
+    Dict.get (description goal) probabilities
         |> Maybe.withDefault 0
 
 
@@ -275,7 +197,7 @@ probabilities =
     asList
         |> List.map
             (\goal ->
-                ( goalDescription goal
+                ( description goal
                 , decks
                     |> List.map (simulateGame goal)
                     |> List.Extra.count identity
