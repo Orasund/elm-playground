@@ -27,12 +27,7 @@ type alias Goal =
 
 asList : List Goal
 asList =
-    [ Suit.asList
-        |> List.map SingleOf
-    , Pair
-        |> List.repeat 3
-    , [ ThreeOfAKind ]
-    , ThreeOfAKind
+    [ ThreeOfAKind
         |> List.repeat 2
     , [ FourOfAKind ]
     ]
@@ -40,11 +35,25 @@ asList =
                 |> List.concatMap
                     (\suit ->
                         [ [ PairOf suit ]
-                        , [ PairOf suit, Pair ]
-                        , [ PairOf suit, Pair, Pair ]
                         , [ ThreeOf suit ]
-                        , [ ThreeOfAKind, PairOf suit ]
+                        , [ PairOf suit, ThreeOfAKind ]
                         , [ ThreeOf suit, ThreeOfAKind ]
+                        ]
+                    )
+           )
+        ++ ([ ( Heart, Diamant )
+            , ( Heart, Club )
+            , ( Heart, Spade )
+            , ( Diamant, Club )
+            , ( Diamant, Spade )
+            , ( Club, Spade )
+            ]
+                |> List.concatMap
+                    (\( suit1, suit2 ) ->
+                        [ [ PairOf suit1, PairOf suit2 ]
+                        , [ ThreeOf suit1, PairOf suit2 ]
+                        , [ ThreeOf suit2, PairOf suit1 ]
+                        , [ ThreeOf suit1, ThreeOf suit2 ]
                         ]
                     )
            )

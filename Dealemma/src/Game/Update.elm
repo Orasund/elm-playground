@@ -2,6 +2,11 @@ module Game.Update exposing (..)
 
 import Game exposing (Card, Game, currentPercentage)
 import Goal
+import Random exposing (Generator)
+
+
+type alias Random a =
+    Generator a
 
 
 playCard : Card -> Game -> Game
@@ -16,7 +21,7 @@ challengeGoal game =
     Game.isWon game
 
 
-opponentsTurn : Game -> Maybe Game
+opponentsTurn : Game -> Random (Maybe Game)
 opponentsTurn game =
     let
         currentPercentage =
@@ -31,7 +36,17 @@ opponentsTurn game =
         |> List.head
         |> Maybe.map
             (\card ->
-                game
-                    |> Game.removeOpponentCard card
-                    |> Game.playCard card
+                Random.float 0 100
+                    |> Random.map
+                        (\float ->
+                            if float < toFloat (Goal.probability card.goal) || currentPercentage == 100 then
+                                game
+                                    |> Game.removeOpponentCard card
+                                    |> Game.playCard card
+                                    |> Just
+
+                            else
+                                Nothing
+                        )
             )
+        |> Maybe.withDefault (Random.constant Nothing)

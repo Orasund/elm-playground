@@ -19,6 +19,7 @@ import View.Ui
 type Overlay
     = EndOfRound
     | EndOfGame
+    | Tutorial Int
 
 
 type alias Model =
@@ -36,6 +37,7 @@ type Msg
     | ChallengeGoal
     | RequestOpponentTurn
     | NewRoundRequested Int
+    | RequestPageOfTurtorial Int
 
 
 init : () -> ( Model, Cmd Msg )
@@ -57,7 +59,7 @@ restartGame seed =
     in
     { game = game
     , seed = newSeed
-    , overlay = Nothing
+    , overlay = Just (Tutorial 0)
     , yourTurn = False
     , score = 100
     }
@@ -76,7 +78,7 @@ view model =
                         1
 
                      else
-                        -2
+                        -1
                     )
     in
     [ (case model.overlay of
@@ -111,6 +113,12 @@ view model =
                 }
             ]
                 |> Layout.column [ Layout.contentWithSpaceBetween ]
+
+        Just (Tutorial int) ->
+            View.Overlay.tutorial
+                { page = int
+                , onNext = RequestPageOfTurtorial
+                }
 
         Nothing ->
             model.game
@@ -184,10 +192,13 @@ playCard card model =
 
 requestOpponentTurn : Model -> Model
 requestOpponentTurn model =
-    model.game
-        |> Game.Update.opponentsTurn
-        |> Maybe.map (\game -> { model | yourTurn = True, game = game })
-        |> Maybe.withDefault { model | overlay = Just EndOfRound }
+    Random.step (Game.Update.opponentsTurn model.game)
+        model.seed
+        |> (\( maybe, seed ) ->
+                maybe
+                    |> Maybe.map (\game -> { model | yourTurn = True, game = game, seed = seed })
+                    |> Maybe.withDefault { model | overlay = Just EndOfRound, seed = seed }
+           )
 
 
 newGameRequested : Int -> Model -> Model
@@ -246,6 +257,18 @@ update msg model =
 
               else
                 Cmd.none
+            )
+
+        RequestPageOfTurtorial n ->
+            ( { model
+                | overlay =
+                    if n == 4 then
+                        Nothing
+
+                    else
+                        Just (Tutorial n)
+              }
+            , Cmd.none
             )
 
 

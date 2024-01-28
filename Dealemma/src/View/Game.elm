@@ -2,6 +2,7 @@ module View.Game exposing (..)
 
 import Game exposing (Card, Game)
 import Game.Entity
+import Goal
 import Html exposing (Html)
 import Html.Attributes
 import Html.Style as Style
@@ -26,7 +27,21 @@ toHtml args game =
                 [ Html.Attributes.style "font-size" "24px"
                 , Style.justifyContentCenter
                 ]
-      , game.playedCards
+      , [ {--game.playedCards
+            |> List.head
+            |> Maybe.map
+                (\card ->
+                    [ "There are at least "
+                        ++ Goal.description card.goal
+                        ++ " in the game."
+                        |> Layout.text []
+                    ]
+                        |> Layout.column [ Layout.gap 16, Layout.fill ]
+                )
+            |> Maybe.withDefault (Layout.el [ Layout.fill ] Layout.none)
+        --}
+          Layout.el [ Layout.fill ] Layout.none
+        , game.playedCards
             |> List.reverse
             |> List.map
                 (\card ->
@@ -42,6 +57,12 @@ toHtml args game =
                 )
             |> Game.Entity.pileAbove (View.Card.empty [])
             |> Game.Entity.toHtml [ Style.justifyContentCenter ]
+        , Layout.el [ Layout.fill ] Layout.none
+        ]
+            |> Layout.row
+                [ Layout.contentWithSpaceBetween
+                , Style.gap "8px"
+                ]
       ]
         |> Layout.column
             [ Style.justifyContentCenter
@@ -69,7 +90,16 @@ toHtml args game =
 
                 else
                     Nothing
-            , label = "Call the bluff"
+            , label =
+                "Call the bluff for "
+                    ++ (game.playedCards
+                            |> List.head
+                            |> Maybe.map
+                                (\card -> Goal.probability card.goal)
+                            |> Maybe.withDefault 0
+                            |> String.fromInt
+                       )
+                    ++ " CREDITS"
             }
             |> Layout.el [ Style.justifyContentCenter ]
       ]
