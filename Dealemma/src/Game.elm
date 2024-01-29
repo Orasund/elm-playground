@@ -8,6 +8,10 @@ import Random.List
 import Suit exposing (Suit)
 
 
+type alias Random a =
+    Generator a
+
+
 type alias Card =
     { suit : Suit
     , goal : Goal
@@ -26,8 +30,8 @@ buildCard value goal =
     { suit = value, goal = goal }
 
 
-fromGoals : List Goal -> Generator Game
-fromGoals list =
+newDeck : List Goal -> Random (List Card)
+newDeck list =
     Suit.asList
         |> List.concatMap (List.repeat Config.cardsPerSuit)
         |> Random.List.shuffle
@@ -37,20 +41,24 @@ fromGoals list =
                     randomList
                     list
             )
-        |> Random.andThen Random.List.shuffle
-        |> Random.map fromDeck
 
 
-fromDeck : List Card -> Game
-fromDeck deck =
-    let
-        amount =
-            Config.cardsPerHand
-    in
-    { yourCards = List.take amount deck |> List.sortBy (\card -> Goal.probability card.goal)
-    , opponentCards = deck |> List.drop amount |> List.take amount
-    , playedCards = []
-    }
+fromGoals : List Goal -> Random Game
+fromGoals list =
+    newDeck list
+        |> Random.andThen fromDeck
+
+
+fromDeck : List Card -> Random Game
+fromDeck sortedDeck =
+    Random.List.shuffle sortedDeck
+        |> Random.map
+            (\deck ->
+                { yourCards = List.take Config.cardsPerHand deck |> List.sortBy (\card -> Goal.probability card.goal)
+                , opponentCards = deck |> List.drop Config.cardsPerHand |> List.take Config.cardsPerHand
+                , playedCards = []
+                }
+            )
 
 
 removeYourCard : Card -> Game -> Game

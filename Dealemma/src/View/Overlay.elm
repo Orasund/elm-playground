@@ -11,7 +11,6 @@ import Suit exposing (Suit(..))
 import View.Card
 import View.Game
 import View.Goal
-import View.Hand
 import View.Ui
 
 

@@ -10,6 +10,7 @@ import Html.Style as Style
 import Layout
 import Process
 import Random exposing (Seed)
+import Random.List
 import Task
 import View.Game
 import View.Overlay
@@ -28,6 +29,7 @@ type alias Model =
     , overlay : Maybe Overlay
     , yourTurn : Bool
     , score : Int
+    , deck : List Card
     }
 
 
@@ -51,17 +53,24 @@ init () =
 restartGame : Seed -> Model
 restartGame seed =
     let
-        ( game, newSeed ) =
-            Game.fromGoals Goal.asList
-                |> (\rand ->
-                        Random.step rand seed
-                   )
+        rand =
+            Game.newDeck Goal.asList
+                |> Random.andThen
+                    (\d ->
+                        d
+                            |> Game.fromDeck
+                            |> Random.map (Tuple.pair d)
+                    )
+
+        ( ( deck, game ), newSeed ) =
+            Random.step rand seed
     in
     { game = game
     , seed = newSeed
     , overlay = Just (Tutorial 0)
     , yourTurn = False
     , score = 100
+    , deck = deck
     }
 
 
@@ -205,7 +214,7 @@ newGameRequested : Int -> Model -> Model
 newGameRequested score model =
     let
         ( game, newSeed ) =
-            Game.fromGoals Goal.asList
+            Game.fromDeck model.deck
                 |> (\rand ->
                         Random.step rand model.seed
                    )
