@@ -1,7 +1,9 @@
 module Main exposing (..)
 
 import Browser
-import Game exposing (Card, Game)
+import Card exposing (Card)
+import Dict
+import Game exposing (Game)
 import Game.Update
 import Goal
 import Html exposing (Html)
@@ -21,6 +23,7 @@ type Overlay
     = EndOfRound
     | EndOfGame
     | Tutorial Int
+    | Shop (List Card)
 
 
 type alias Model =
@@ -30,6 +33,7 @@ type alias Model =
     , yourTurn : Bool
     , score : Int
     , deck : List Card
+    , specialCards : List Card
     }
 
 
@@ -38,8 +42,9 @@ type Msg
     | PlayCard Card
     | ChallengeGoal
     | RequestOpponentTurn
-    | NewRoundRequested Int
+    | EndRoundAndOpenShop Int
     | RequestPageOfTurtorial Int
+    | AddCardAndStartNextRound Card
 
 
 init : () -> ( Model, Cmd Msg )
@@ -54,15 +59,31 @@ restartGame : Seed -> Model
 restartGame seed =
     let
         rand =
-            Game.newDeck Goal.asList
+            Card.newDeck Goal.asList
                 |> Random.andThen
                     (\d ->
                         d
                             |> Game.fromDeck
-                            |> Random.map (Tuple.pair d)
+                            |> Random.map
+                                (\g ->
+                                    { deck = d
+                                    , game = g
+                                    }
+                                )
+                    )
+                |> Random.andThen
+                    (\out ->
+                        Random.List.shuffle Card.specialCards
+                            |> Random.map
+                                (\s ->
+                                    { deck = out.deck
+                                    , game = out.game
+                                    , special = s
+                                    }
+                                )
                     )
 
-        ( ( deck, game ), newSeed ) =
+        ( { deck, game, special }, newSeed ) =
             Random.step rand seed
     in
     { game = game
@@ -71,6 +92,7 @@ restartGame seed =
     , yourTurn = False
     , score = 100
     , deck = deck
+    , specialCards = special
     }
 
 
@@ -80,7 +102,11 @@ view model =
         currentScore =
             model.game.playedCards
                 |> List.head
-                |> Maybe.map (\card -> Goal.probability card.goal)
+                |> Maybe.andThen
+                    (\card ->
+                        model.game.probabilities
+                            |> Dict.get (Goal.description card.goal)
+                    )
                 |> Maybe.withDefault 0
                 |> (*)
                     (if xor (Game.isWon model.game) model.yourTurn then
@@ -91,11 +117,19 @@ view model =
                     )
     in
     [ (case model.overlay of
+        Just (Shop list) ->
+            View.Overlay.shop
+                { onChoose = AddCardAndStartNextRound
+                , deck = model.deck
+                , probabilities = model.game.probabilities
+                }
+                list
+
         Just EndOfRound ->
             View.Overlay.gameEnd
                 { yourTurn = model.yourTurn
                 , onNextRound =
-                    NewRoundRequested
+                    EndRoundAndOpenShop
                         currentScore
                 }
                 model.game
@@ -210,25 +244,45 @@ requestOpponentTurn model =
            )
 
 
-newGameRequested : Int -> Model -> Model
-newGameRequested score model =
+addCardAndStartNextRound : Card -> Model -> Model
+addCardAndStartNextRound card model =
     let
+        deck =
+            card :: model.deck
+
         ( game, newSeed ) =
-            Game.fromDeck model.deck
+            Game.fromDeck deck
                 |> (\rand ->
                         Random.step rand model.seed
                    )
+    in
+    { model
+        | game = game
+        , deck = deck
+        , seed = newSeed
+        , overlay = Nothing
+        , specialCards = model.specialCards |> List.filter ((/=) card)
+    }
 
+
+endRoundAndOpenShop : Int -> Model -> Model
+endRoundAndOpenShop score model =
+    let
         newScore =
             model.score + score
     in
     if newScore > 0 then
         { model
-            | game = game
-            , seed = newSeed
-            , overlay = Nothing
+            | score = newScore
+            , overlay =
+                model.specialCards
+                    |> List.take 2
+                    |> Shop
+                    |> Just
             , yourTurn = False
-            , score = newScore
+            , specialCards =
+                (model.specialCards |> List.drop 2)
+                    ++ (model.specialCards |> List.take 2)
         }
 
     else
@@ -258,9 +312,14 @@ update msg model =
         RequestOpponentTurn ->
             ( requestOpponentTurn model, Cmd.none )
 
-        NewRoundRequested score ->
-            ( newGameRequested score model
-            , if model.score + score > 0 then
+        EndRoundAndOpenShop score ->
+            ( endRoundAndOpenShop score model
+            , Cmd.none
+            )
+
+        AddCardAndStartNextRound card ->
+            ( addCardAndStartNextRound card model
+            , if model.score > 0 then
                 Process.sleep 1000
                     |> Task.perform (\() -> RequestOpponentTurn)
 

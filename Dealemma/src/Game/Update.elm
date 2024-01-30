@@ -1,6 +1,8 @@
 module Game.Update exposing (..)
 
-import Game exposing (Card, Game, currentPercentage)
+import Card exposing (Card)
+import Dict
+import Game exposing (Game, currentPercentage)
 import Goal
 import Random exposing (Generator)
 
@@ -30,16 +32,36 @@ opponentsTurn game =
     game.opponentCards
         |> List.filter
             (\card ->
-                Goal.probability card.goal <= currentPercentage
+                (game.probabilities
+                    |> Dict.get (Goal.description card.goal)
+                    |> Maybe.withDefault 0
+                )
+                    <= currentPercentage
             )
-        |> List.sortBy (\card -> 100 - Goal.probability card.goal)
+        |> List.sortBy
+            (\card ->
+                100
+                    - (game.probabilities
+                        |> Dict.get (Goal.description card.goal)
+                        |> Maybe.withDefault 0
+                      )
+            )
         |> List.head
         |> Maybe.map
             (\card ->
                 Random.float 0 100
                     |> Random.map
                         (\float ->
-                            if float < toFloat (Goal.probability card.goal) || currentPercentage == 100 then
+                            if
+                                float
+                                    < toFloat
+                                        (game.probabilities
+                                            |> Dict.get (Goal.description card.goal)
+                                            |> Maybe.withDefault 0
+                                        )
+                                    || currentPercentage
+                                    == 100
+                            then
                                 game
                                     |> Game.removeOpponentCard card
                                     |> Game.playCard card

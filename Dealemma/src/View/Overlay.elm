@@ -1,6 +1,8 @@
 module View.Overlay exposing (..)
 
+import Card exposing (Card)
 import Config
+import Dict exposing (Dict)
 import Game exposing (Game)
 import Goal exposing (Category(..))
 import Html exposing (Html)
@@ -12,6 +14,49 @@ import View.Card
 import View.Game
 import View.Goal
 import View.Ui
+
+
+shop :
+    { onChoose : Card -> msg
+    , deck : List Card
+    , probabilities : Dict String Int
+    }
+    -> List Card
+    -> Html msg
+shop args list =
+    [ args.deck
+        |> List.sortBy (\card -> Suit.icon card.suit)
+        |> List.map
+            (\card ->
+                card.suit
+                    |> Just
+                    |> View.Goal.viewSuit []
+                        { big = True }
+            )
+        |> Layout.row [ Style.gap "4px" ]
+    , "Pick a card to add to the deck" |> Layout.text []
+    , list
+        |> List.map
+            (\card ->
+                View.Card.toHtml
+                    (Layout.asButton
+                        { label = "Pick"
+                        , onPress = Just (args.onChoose card)
+                        }
+                    )
+                    { probability =
+                        args.probabilities
+                            |> Dict.get (Goal.description card.goal)
+                            |> Maybe.withDefault 0
+                    }
+                    card
+            )
+        |> Layout.row
+            [ Style.justifyContentCenter
+            , Style.gap "8px"
+            ]
+    ]
+        |> Layout.column [ Layout.contentWithSpaceBetween ]
 
 
 tutorial : { onNext : Int -> msg, page : Int } -> Html msg
@@ -57,6 +102,7 @@ tutorial args =
                 |> Layout.text []
             , [ { suit = suit, goal = goal }
                     |> View.Card.toHtml []
+                        { probability = 42 }
               , Layout.column
                     [ Style.positionAbsolute
                     , Style.left "-100px"
@@ -65,7 +111,7 @@ tutorial args =
                     , Style.alignItemsFlexEnd
                     ]
                     [ "Value: " |> Layout.text [ Html.Attributes.style "font-weight" "bold" ]
-                    , String.fromInt (Goal.probability goal)
+                    , String.fromInt 42
                         ++ " CREDITS"
                         |> Layout.text []
                     ]
@@ -141,6 +187,7 @@ tutorial args =
                       , goal = []
                       }
                     ]
+              , probabilities = Dict.empty
               }
                 |> View.Game.toHtml
                     { onChallenge = args.onNext (args.page + 1)
@@ -176,7 +223,9 @@ gameEnd args game =
        else
         "They called the bluff for "
       )
-        ++ (Goal.probability bet.goal
+        ++ (game.probabilities
+                |> Dict.get (Goal.description bet.goal)
+                |> Maybe.withDefault 0
                 |> String.fromInt
            )
         ++ " CREDITS"

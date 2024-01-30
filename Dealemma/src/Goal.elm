@@ -1,10 +1,8 @@
 module Goal exposing (..)
 
-import Config
 import Dict exposing (Dict)
 import List.Extra
 import Random exposing (Generator)
-import Random.List
 import Suit exposing (Suit(..))
 
 
@@ -27,20 +25,30 @@ type alias Goal =
 
 asList : List Goal
 asList =
-    [ ThreeOfAKind
-        |> List.repeat 2
+    [ ThreeOfAKind |> List.repeat 2
     , [ FourOfAKind ]
     ]
         ++ (Suit.asList
                 |> List.concatMap
                     (\suit ->
-                        [ [ PairOf suit ]
-                        , [ ThreeOf suit ]
-                        , [ PairOf suit, ThreeOfAKind ]
+                        [ [ PairOf suit, ThreeOfAKind ]
+                        , [ ThreeOf suit, Pair ]
                         , [ ThreeOf suit, ThreeOfAKind ]
+                        , [ ThreeOf suit ]
                         ]
                     )
            )
+
+
+special : List Goal
+special =
+    (Suit.asList
+        |> List.concatMap
+            (\suit ->
+                [ [ PairOf suit ]
+                ]
+            )
+    )
         ++ ([ ( Heart, Diamant )
             , ( Heart, Club )
             , ( Heart, Spade )
@@ -169,47 +177,3 @@ goalMet list dict =
             )
             (Just dict)
         |> (/=) Nothing
-
-
-probability : Goal -> Int
-probability goal =
-    Dict.get (description goal) probabilities
-        |> Maybe.withDefault 0
-
-
-probabilities : Dict String Int
-probabilities =
-    let
-        randomDeck : Random (List Suit)
-        randomDeck =
-            Suit.asList
-                |> List.concatMap (List.repeat Config.cardsPerSuit)
-                |> Random.List.shuffle
-                |> Random.map (List.take (Config.cardsPerHand * 2))
-
-        simulateGame : Goal -> List Suit -> Bool
-        simulateGame card list =
-            list
-                |> List.Extra.gatherEquals
-                |> List.map
-                    (\( suit, l ) ->
-                        ( Suit.icon suit, List.length l + 1 )
-                    )
-                |> Dict.fromList
-                |> goalMet card
-
-        ( decks, _ ) =
-            randomDeck
-                |> Random.list 100
-                |> (\random -> Random.step random (Random.initialSeed 42))
-    in
-    asList
-        |> List.map
-            (\goal ->
-                ( description goal
-                , decks
-                    |> List.map (simulateGame goal)
-                    |> List.Extra.count identity
-                )
-            )
-        |> Dict.fromList

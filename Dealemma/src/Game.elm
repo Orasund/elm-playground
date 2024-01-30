@@ -1,51 +1,30 @@
 module Game exposing (..)
 
+import Card exposing (Card)
 import Config
-import Dict
+import Dict exposing (Dict)
+import Game.Evaluate exposing (probabilities)
 import Goal exposing (Goal)
 import Random exposing (Generator)
 import Random.List
-import Suit exposing (Suit)
+import Suit
 
 
 type alias Random a =
     Generator a
 
 
-type alias Card =
-    { suit : Suit
-    , goal : Goal
-    }
-
-
 type alias Game =
     { yourCards : List Card
     , opponentCards : List Card
     , playedCards : List Card
+    , probabilities : Dict String Int
     }
-
-
-buildCard : Suit -> Goal -> Card
-buildCard value goal =
-    { suit = value, goal = goal }
-
-
-newDeck : List Goal -> Random (List Card)
-newDeck list =
-    Suit.asList
-        |> List.concatMap (List.repeat Config.cardsPerSuit)
-        |> Random.List.shuffle
-        |> Random.map
-            (\randomList ->
-                List.map2 buildCard
-                    randomList
-                    list
-            )
 
 
 fromGoals : List Goal -> Random Game
 fromGoals list =
-    newDeck list
+    Card.newDeck list
         |> Random.andThen fromDeck
 
 
@@ -54,9 +33,27 @@ fromDeck sortedDeck =
     Random.List.shuffle sortedDeck
         |> Random.map
             (\deck ->
-                { yourCards = List.take Config.cardsPerHand deck |> List.sortBy (\card -> Goal.probability card.goal)
+                let
+                    probabilities =
+                        deck
+                            ++ Card.specialCards
+                            |> Game.Evaluate.probabilities
+                                { deck =
+                                    sortedDeck
+                                        |> List.map .suit
+                                }
+                in
+                { yourCards =
+                    List.take Config.cardsPerHand deck
+                        |> List.sortBy
+                            (\card ->
+                                probabilities
+                                    |> Dict.get (Goal.description card.goal)
+                                    |> Maybe.withDefault 0
+                            )
                 , opponentCards = deck |> List.drop Config.cardsPerHand |> List.take Config.cardsPerHand
                 , playedCards = []
+                , probabilities = probabilities
                 }
             )
 
@@ -115,8 +112,9 @@ currentPercentage : Game -> Int
 currentPercentage game =
     game.playedCards
         |> List.head
-        |> Maybe.map
+        |> Maybe.andThen
             (\card ->
-                Goal.probability card.goal
+                game.probabilities
+                    |> Dict.get (Goal.description card.goal)
             )
         |> Maybe.withDefault 100

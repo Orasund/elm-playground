@@ -1,8 +1,7 @@
 module View.Card exposing (..)
 
-import Game exposing (Card)
+import Card exposing (Card)
 import Game.Card
-import Goal
 import Html exposing (Attribute, Html)
 import Html.Attributes
 import Html.Style as Style
@@ -25,9 +24,9 @@ back =
         []
 
 
-big : List (Attribute msg) -> Card -> Html msg
-big attrs =
-    toHtml (Style.height "200px" :: attrs)
+big : List (Attribute msg) -> { probability : Int } -> Card -> Html msg
+big attrs args =
+    toHtml (Style.height "200px" :: attrs) args
 
 
 empty : List (Attribute msg) -> Html msg
@@ -36,9 +35,9 @@ empty attrs =
         "No card"
 
 
-toHtml : List (Attribute msg) -> Card -> Html msg
-toHtml attrs card =
-    [ [ String.fromInt (Goal.probability card.goal)
+toHtml : List (Attribute msg) -> { probability : Int } -> Card -> Html msg
+toHtml attrs args card =
+    [ [ String.fromInt args.probability
             |> Html.text
             |> Game.Card.element []
       , Suit.icon card.suit

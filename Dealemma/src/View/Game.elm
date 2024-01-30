@@ -1,6 +1,8 @@
 module View.Game exposing (..)
 
-import Game exposing (Card, Game)
+import Card exposing (Card)
+import Dict
+import Game exposing (Game)
 import Game.Entity
 import Goal
 import Html exposing (Html)
@@ -27,25 +29,19 @@ toHtml args game =
                 [ Html.Attributes.style "font-size" "24px"
                 , Style.justifyContentCenter
                 ]
-      , [ {--game.playedCards
-            |> List.head
-            |> Maybe.map
-                (\card ->
-                    [ "There are at least "
-                        ++ Goal.description card.goal
-                        ++ " in the game."
-                        |> Layout.text []
-                    ]
-                        |> Layout.column [ Layout.gap 16, Layout.fill ]
-                )
-            |> Maybe.withDefault (Layout.el [ Layout.fill ] Layout.none)
-        --}
-          Layout.el [ Layout.fill ] Layout.none
+      , [ Layout.el [ Layout.fill ] Layout.none
         , game.playedCards
             |> List.reverse
             |> List.map
                 (\card ->
-                    \attrs -> View.Card.toHtml attrs card
+                    \attrs ->
+                        View.Card.toHtml attrs
+                            { probability =
+                                game.probabilities
+                                    |> Dict.get (Goal.description card.goal)
+                                    |> Maybe.withDefault 0
+                            }
+                            card
                 )
             |> List.map Game.Entity.new
             |> List.indexedMap
@@ -80,8 +76,8 @@ toHtml args game =
                 [ Style.justifyContentCenter
                 ]
                 { onPlay = args.onPlay
-                , currentPercentage =
-                    Game.currentPercentage game
+                , currentPercentage = Game.currentPercentage game
+                , probabilities = game.probabilities
                 }
       , View.Ui.button []
             { onPress =
@@ -94,8 +90,11 @@ toHtml args game =
                 "Call the bluff for "
                     ++ (game.playedCards
                             |> List.head
-                            |> Maybe.map
-                                (\card -> Goal.probability card.goal)
+                            |> Maybe.andThen
+                                (\card ->
+                                    game.probabilities
+                                        |> Dict.get (Goal.description card.goal)
+                                )
                             |> Maybe.withDefault 0
                             |> String.fromInt
                        )

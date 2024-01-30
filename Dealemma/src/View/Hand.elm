@@ -1,6 +1,7 @@
 module View.Hand exposing (..)
 
-import Game exposing (Card)
+import Card exposing (Card)
+import Dict exposing (Dict)
 import Goal
 import Html exposing (Attribute, Html)
 import Html.Attributes
@@ -9,14 +10,28 @@ import Layout
 import View.Card
 
 
-toHtml : List (Attribute msg) -> { onPlay : Card -> msg, currentPercentage : Int } -> List Card -> Html msg
+toHtml :
+    List (Attribute msg)
+    ->
+        { onPlay : Card -> msg
+        , currentPercentage : Int
+        , probabilities : Dict String Int
+        }
+    -> List Card
+    -> Html msg
 toHtml attrs args list =
     list
         |> List.map
             (\card ->
+                let
+                    probability =
+                        args.probabilities
+                            |> Dict.get (Goal.description card.goal)
+                            |> Maybe.withDefault 0
+                in
                 card
                     |> View.Card.toHtml
-                        (if Goal.probability card.goal <= args.currentPercentage then
+                        (if probability <= args.currentPercentage then
                             Html.Attributes.style "border" "4px solid #679aff"
                                 :: Layout.asButton
                                     { label = "play"
@@ -28,6 +43,7 @@ toHtml attrs args list =
                             [ Html.Attributes.style "color" "rgba(0,0,0,0.5)"
                             ]
                         )
+                        { probability = probability }
             )
         |> Layout.row (Style.gap "8px" :: attrs)
 
