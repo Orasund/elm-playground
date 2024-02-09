@@ -9,6 +9,7 @@ import Html exposing (Html)
 import Html.Attributes
 import Html.Style as Style
 import Layout
+import List.Extra
 import Suit exposing (Suit(..))
 import View.Card
 import View.Game
@@ -25,16 +26,27 @@ shop :
     -> Html msg
 shop args list =
     [ args.deck
-        |> List.sortBy (\card -> Suit.icon card.suit)
+        |> List.Extra.gatherEqualsBy .suit
         |> List.map
-            (\card ->
+            (\( card, l ) ->
                 card.suit
                     |> Just
                     |> View.Goal.viewSuit []
                         { big = True }
+                    |> List.repeat (List.length l + 1)
+                    |> Layout.row
+                        [ Style.gap "4px"
+                        , Style.justifyContentCenter
+                        ]
             )
-        |> Layout.row [ Style.gap "4px" ]
-    , "Pick a card to add to the deck" |> Layout.text []
+        |> Layout.column
+            [ Style.justifyContentCenter
+            , Style.gap "4px"
+            ]
+    , "Pick a card to add to the deck"
+        |> Layout.text
+            [ Style.justifyContentCenter
+            ]
     , list
         |> List.map
             (\card ->
@@ -145,7 +157,7 @@ tutorial args =
                     , Style.height "200px"
                     ]
             , [ "By playing this card, im saying:" |> Layout.text []
-              , "\"I bet 50 CREDITS that there are at least three of a kind and two hearts in the game\"" |> Layout.text [ Html.Attributes.style "font-weight" "bold" ]
+              , "\"I bet 42 CREDITS that there are at least three of a kind and two hearts in the game\"" |> Layout.text [ Html.Attributes.style "font-weight" "bold" ]
               ]
                 |> Layout.column [ Layout.gap 8 ]
             , View.Ui.button []
@@ -187,7 +199,18 @@ tutorial args =
                       , goal = []
                       }
                     ]
-              , probabilities = Dict.empty
+              , probabilities =
+                    [ ( Goal.description [ ThreeOf Club ], 50 )
+                    , ( Goal.description
+                            [ FourOfAKind
+                            ]
+                      , 10
+                      )
+                    , ( Goal.description [ ThreeOf Spade ], 55 )
+                    , ( Goal.description [ PairOf Spade, ThreeOfAKind ], 20 )
+                    ]
+                        |> Dict.fromList
+              , outOfPlay = []
               }
                 |> View.Game.toHtml
                     { onChallenge = args.onNext (args.page + 1)
@@ -197,8 +220,16 @@ tutorial args =
             ]
 
         _ ->
-            [ "The game ends once you have no CREDITS left" |> Layout.text []
-            , "You start with 100 CREDITS" |> Layout.text []
+            [ "That's it"
+                |> Layout.text
+                    [ Html.Attributes.style "font-size" "24px"
+                    , Style.justifyContentCenter
+                    ]
+            , "The game ends once you have no CREDITS left" |> Layout.text []
+            , "You start with 100 CREDITS"
+                |> Layout.text
+                    [ Style.justifyContentCenter
+                    ]
             , View.Ui.button []
                 { label = "Start Game"
                 , onPress = Just (args.onNext (args.page + 1))

@@ -5446,18 +5446,32 @@ var $elm$random$Random$independentSeed = $elm$random$Random$Generator(
 var $author$project$Main$Tutorial = function (a) {
 	return {$: 'Tutorial', a: a};
 };
-var $author$project$Suit$Club = {$: 'Club'};
-var $author$project$Suit$Diamant = {$: 'Diamant'};
+var $elm$random$Random$andThen = F2(
+	function (callback, _v0) {
+		var genA = _v0.a;
+		return $elm$random$Random$Generator(
+			function (seed) {
+				var _v1 = genA(seed);
+				var result = _v1.a;
+				var newSeed = _v1.b;
+				var _v2 = callback(result);
+				var genB = _v2.a;
+				return genB(newSeed);
+			});
+	});
 var $author$project$Goal$FourOfAKind = {$: 'FourOfAKind'};
-var $author$project$Suit$Heart = {$: 'Heart'};
+var $author$project$Goal$Pair = {$: 'Pair'};
 var $author$project$Goal$PairOf = function (a) {
 	return {$: 'PairOf', a: a};
 };
-var $author$project$Suit$Spade = {$: 'Spade'};
 var $author$project$Goal$ThreeOf = function (a) {
 	return {$: 'ThreeOf', a: a};
 };
 var $author$project$Goal$ThreeOfAKind = {$: 'ThreeOfAKind'};
+var $author$project$Suit$Club = {$: 'Club'};
+var $author$project$Suit$Diamant = {$: 'Diamant'};
+var $author$project$Suit$Heart = {$: 'Heart'};
+var $author$project$Suit$Spade = {$: 'Spade'};
 var $author$project$Suit$asList = _List_fromArray(
 	[$author$project$Suit$Heart, $author$project$Suit$Diamant, $author$project$Suit$Spade, $author$project$Suit$Club]);
 var $elm$core$List$append = F2(
@@ -5504,111 +5518,34 @@ var $author$project$Goal$asList = _Utils_ap(
 			_List_fromArray(
 			[$author$project$Goal$FourOfAKind])
 		]),
-	_Utils_ap(
-		A2(
-			$elm$core$List$concatMap,
-			function (suit) {
-				return _List_fromArray(
-					[
-						_List_fromArray(
-						[
-							$author$project$Goal$PairOf(suit)
-						]),
-						_List_fromArray(
-						[
-							$author$project$Goal$ThreeOf(suit)
-						]),
-						_List_fromArray(
-						[
-							$author$project$Goal$PairOf(suit),
-							$author$project$Goal$ThreeOfAKind
-						]),
-						_List_fromArray(
-						[
-							$author$project$Goal$ThreeOf(suit),
-							$author$project$Goal$ThreeOfAKind
-						])
-					]);
-			},
-			$author$project$Suit$asList),
-		A2(
-			$elm$core$List$concatMap,
-			function (_v0) {
-				var suit1 = _v0.a;
-				var suit2 = _v0.b;
-				return _List_fromArray(
-					[
-						_List_fromArray(
-						[
-							$author$project$Goal$PairOf(suit1),
-							$author$project$Goal$PairOf(suit2)
-						]),
-						_List_fromArray(
-						[
-							$author$project$Goal$ThreeOf(suit1),
-							$author$project$Goal$PairOf(suit2)
-						]),
-						_List_fromArray(
-						[
-							$author$project$Goal$ThreeOf(suit2),
-							$author$project$Goal$PairOf(suit1)
-						]),
-						_List_fromArray(
-						[
-							$author$project$Goal$ThreeOf(suit1),
-							$author$project$Goal$ThreeOf(suit2)
-						])
-					]);
-			},
-			_List_fromArray(
+	A2(
+		$elm$core$List$concatMap,
+		function (suit) {
+			return _List_fromArray(
 				[
-					_Utils_Tuple2($author$project$Suit$Heart, $author$project$Suit$Diamant),
-					_Utils_Tuple2($author$project$Suit$Heart, $author$project$Suit$Club),
-					_Utils_Tuple2($author$project$Suit$Heart, $author$project$Suit$Spade),
-					_Utils_Tuple2($author$project$Suit$Diamant, $author$project$Suit$Club),
-					_Utils_Tuple2($author$project$Suit$Diamant, $author$project$Suit$Spade),
-					_Utils_Tuple2($author$project$Suit$Club, $author$project$Suit$Spade)
-				]))));
-var $elm$random$Random$andThen = F2(
-	function (callback, _v0) {
-		var genA = _v0.a;
-		return $elm$random$Random$Generator(
-			function (seed) {
-				var _v1 = genA(seed);
-				var result = _v1.a;
-				var newSeed = _v1.b;
-				var _v2 = callback(result);
-				var genB = _v2.a;
-				return genB(newSeed);
-			});
-	});
-var $author$project$Game$buildCard = F2(
-	function (value, goal) {
-		return {goal: goal, suit: value};
-	});
-var $author$project$Config$cardsPerSuit = 4;
+					_List_fromArray(
+					[
+						$author$project$Goal$PairOf(suit),
+						$author$project$Goal$ThreeOfAKind
+					]),
+					_List_fromArray(
+					[
+						$author$project$Goal$ThreeOf(suit),
+						$author$project$Goal$Pair
+					]),
+					_List_fromArray(
+					[
+						$author$project$Goal$ThreeOf(suit),
+						$author$project$Goal$ThreeOfAKind
+					]),
+					_List_fromArray(
+					[
+						$author$project$Goal$ThreeOf(suit)
+					])
+				]);
+		},
+		$author$project$Suit$asList));
 var $author$project$Config$cardsPerHand = 4;
-var $elm$core$List$drop = F2(
-	function (n, list) {
-		drop:
-		while (true) {
-			if (n <= 0) {
-				return list;
-			} else {
-				if (!list.b) {
-					return list;
-				} else {
-					var x = list.a;
-					var xs = list.b;
-					var $temp$n = n - 1,
-						$temp$list = xs;
-					n = $temp$n;
-					list = $temp$list;
-					continue drop;
-				}
-			}
-		}
-	});
 var $author$project$Suit$icon = function (suit) {
 	switch (suit.$) {
 		case 'Heart':
@@ -5648,6 +5585,27 @@ var $author$project$Goal$description = function (list) {
 		' and ',
 		A2($elm$core$List$map, $author$project$Goal$categoryDescription, list));
 };
+var $elm$core$List$drop = F2(
+	function (n, list) {
+		drop:
+		while (true) {
+			if (n <= 0) {
+				return list;
+			} else {
+				if (!list.b) {
+					return list;
+				} else {
+					var x = list.a;
+					var xs = list.b;
+					var $temp$n = n - 1,
+						$temp$list = xs;
+					n = $temp$n;
+					list = $temp$list;
+					continue drop;
+				}
+			}
+		}
+	});
 var $elm$core$Basics$compare = _Utils_compare;
 var $elm$core$Dict$get = F2(
 	function (targetKey, dict) {
@@ -6621,112 +6579,203 @@ var $elm$core$List$take = F2(
 	function (n, list) {
 		return A3($elm$core$List$takeFast, 0, n, list);
 	});
-var $author$project$Goal$probabilities = function () {
-	var simulateGame = F2(
-		function (card, list) {
+var $author$project$Game$Evaluate$probabilities = F2(
+	function (args, cards) {
+		var simulateGame = F2(
+			function (card, list) {
+				return A2(
+					$author$project$Goal$goalMet,
+					card,
+					$elm$core$Dict$fromList(
+						A2(
+							$elm$core$List$map,
+							function (_v1) {
+								var suit = _v1.a;
+								var l = _v1.b;
+								return _Utils_Tuple2(
+									$author$project$Suit$icon(suit),
+									$elm$core$List$length(l) + 1);
+							},
+							$elm_community$list_extra$List$Extra$gatherEquals(list))));
+			});
+		var randomDeck = A2(
+			$elm$random$Random$map,
+			$elm$core$List$take($author$project$Config$cardsPerHand * 2),
+			$elm_community$random_extra$Random$List$shuffle(args.deck));
+		var _v0 = function (random) {
 			return A2(
-				$author$project$Goal$goalMet,
-				card,
-				$elm$core$Dict$fromList(
-					A2(
-						$elm$core$List$map,
-						function (_v1) {
-							var suit = _v1.a;
-							var l = _v1.b;
-							return _Utils_Tuple2(
-								$author$project$Suit$icon(suit),
-								$elm$core$List$length(l) + 1);
-						},
-						$elm_community$list_extra$List$Extra$gatherEquals(list))));
-		});
-	var randomDeck = A2(
+				$elm$random$Random$step,
+				random,
+				$elm$random$Random$initialSeed(42));
+		}(
+			A2($elm$random$Random$list, 100, randomDeck));
+		var decks = _v0.a;
+		return $elm$core$Dict$fromList(
+			A2(
+				$elm$core$List$map,
+				function (card) {
+					return _Utils_Tuple2(
+						$author$project$Goal$description(card.goal),
+						A2(
+							$elm_community$list_extra$List$Extra$count,
+							$elm$core$Basics$identity,
+							A2(
+								$elm$core$List$map,
+								simulateGame(card.goal),
+								decks)));
+				},
+				cards));
+	});
+var $author$project$Card$buildCard = F2(
+	function (value, goal) {
+		return {goal: goal, suit: value};
+	});
+var $author$project$Goal$special = _Utils_ap(
+	A2(
+		$elm$core$List$concatMap,
+		function (suit) {
+			return _List_fromArray(
+				[
+					_List_fromArray(
+					[
+						$author$project$Goal$PairOf(suit)
+					])
+				]);
+		},
+		$author$project$Suit$asList),
+	A2(
+		$elm$core$List$concatMap,
+		function (_v0) {
+			var suit1 = _v0.a;
+			var suit2 = _v0.b;
+			return _List_fromArray(
+				[
+					_List_fromArray(
+					[
+						$author$project$Goal$PairOf(suit1),
+						$author$project$Goal$PairOf(suit2)
+					]),
+					_List_fromArray(
+					[
+						$author$project$Goal$ThreeOf(suit1),
+						$author$project$Goal$PairOf(suit2)
+					]),
+					_List_fromArray(
+					[
+						$author$project$Goal$ThreeOf(suit2),
+						$author$project$Goal$PairOf(suit1)
+					]),
+					_List_fromArray(
+					[
+						$author$project$Goal$ThreeOf(suit1),
+						$author$project$Goal$ThreeOf(suit2)
+					])
+				]);
+		},
+		_List_fromArray(
+			[
+				_Utils_Tuple2($author$project$Suit$Heart, $author$project$Suit$Diamant),
+				_Utils_Tuple2($author$project$Suit$Heart, $author$project$Suit$Club),
+				_Utils_Tuple2($author$project$Suit$Heart, $author$project$Suit$Spade),
+				_Utils_Tuple2($author$project$Suit$Diamant, $author$project$Suit$Club),
+				_Utils_Tuple2($author$project$Suit$Diamant, $author$project$Suit$Spade),
+				_Utils_Tuple2($author$project$Suit$Club, $author$project$Suit$Spade)
+			])));
+var $author$project$Card$specialCards = A2(
+	$elm$core$List$concatMap,
+	function (suit) {
+		return A2(
+			$elm$core$List$map,
+			$author$project$Card$buildCard(suit),
+			$author$project$Goal$special);
+	},
+	$author$project$Suit$asList);
+var $author$project$Game$fromDeck = function (sortedDeck) {
+	return A2(
 		$elm$random$Random$map,
-		$elm$core$List$take($author$project$Config$cardsPerHand * 2),
+		function (deck) {
+			var probabilities = A2(
+				$author$project$Game$Evaluate$probabilities,
+				{
+					deck: A2(
+						$elm$core$List$map,
+						function ($) {
+							return $.suit;
+						},
+						sortedDeck)
+				},
+				_Utils_ap(deck, $author$project$Card$specialCards));
+			return {
+				opponentCards: A2(
+					$elm$core$List$take,
+					$author$project$Config$cardsPerHand,
+					A2($elm$core$List$drop, $author$project$Config$cardsPerHand, deck)),
+				playedCards: _List_Nil,
+				probabilities: probabilities,
+				yourCards: A2(
+					$elm$core$List$sortBy,
+					function (card) {
+						return A2(
+							$elm$core$Maybe$withDefault,
+							0,
+							A2(
+								$elm$core$Dict$get,
+								$author$project$Goal$description(card.goal),
+								probabilities));
+					},
+					A2($elm$core$List$take, $author$project$Config$cardsPerHand, deck))
+			};
+		},
+		$elm_community$random_extra$Random$List$shuffle(sortedDeck));
+};
+var $author$project$Config$cardsPerSuit = 4;
+var $author$project$Card$newDeck = function (list) {
+	return A2(
+		$elm$random$Random$map,
+		function (randomList) {
+			return A3($elm$core$List$map2, $author$project$Card$buildCard, randomList, list);
+		},
 		$elm_community$random_extra$Random$List$shuffle(
 			A2(
 				$elm$core$List$concatMap,
 				$elm$core$List$repeat($author$project$Config$cardsPerSuit),
 				$author$project$Suit$asList)));
-	var _v0 = function (random) {
-		return A2(
-			$elm$random$Random$step,
-			random,
-			$elm$random$Random$initialSeed(42));
-	}(
-		A2($elm$random$Random$list, 100, randomDeck));
-	var decks = _v0.a;
-	return $elm$core$Dict$fromList(
-		A2(
-			$elm$core$List$map,
-			function (goal) {
-				return _Utils_Tuple2(
-					$author$project$Goal$description(goal),
-					A2(
-						$elm_community$list_extra$List$Extra$count,
-						$elm$core$Basics$identity,
-						A2(
-							$elm$core$List$map,
-							simulateGame(goal),
-							decks)));
-			},
-			$author$project$Goal$asList));
-}();
-var $author$project$Goal$probability = function (goal) {
-	return A2(
-		$elm$core$Maybe$withDefault,
-		0,
-		A2(
-			$elm$core$Dict$get,
-			$author$project$Goal$description(goal),
-			$author$project$Goal$probabilities));
-};
-var $author$project$Game$fromDeck = function (deck) {
-	var amount = $author$project$Config$cardsPerHand;
-	return {
-		opponentCards: A2(
-			$elm$core$List$take,
-			amount,
-			A2($elm$core$List$drop, amount, deck)),
-		playedCards: _List_Nil,
-		yourCards: A2(
-			$elm$core$List$sortBy,
-			function (card) {
-				return $author$project$Goal$probability(card.goal);
-			},
-			A2($elm$core$List$take, amount, deck))
-	};
-};
-var $author$project$Game$fromGoals = function (list) {
-	return A2(
-		$elm$random$Random$map,
-		$author$project$Game$fromDeck,
-		A2(
-			$elm$random$Random$andThen,
-			$elm_community$random_extra$Random$List$shuffle,
-			A2(
-				$elm$random$Random$map,
-				function (randomList) {
-					return A3($elm$core$List$map2, $author$project$Game$buildCard, randomList, list);
-				},
-				$elm_community$random_extra$Random$List$shuffle(
-					A2(
-						$elm$core$List$concatMap,
-						$elm$core$List$repeat($author$project$Config$cardsPerSuit),
-						$author$project$Suit$asList)))));
 };
 var $author$project$Main$restartGame = function (seed) {
-	var _v0 = function (rand) {
-		return A2($elm$random$Random$step, rand, seed);
-	}(
-		$author$project$Game$fromGoals($author$project$Goal$asList));
-	var game = _v0.a;
+	var rand = A2(
+		$elm$random$Random$andThen,
+		function (out) {
+			return A2(
+				$elm$random$Random$map,
+				function (s) {
+					return {deck: out.deck, game: out.game, special: s};
+				},
+				$elm_community$random_extra$Random$List$shuffle($author$project$Card$specialCards));
+		},
+		A2(
+			$elm$random$Random$andThen,
+			function (d) {
+				return A2(
+					$elm$random$Random$map,
+					function (g) {
+						return {deck: d, game: g};
+					},
+					$author$project$Game$fromDeck(d));
+			},
+			$author$project$Card$newDeck($author$project$Goal$asList)));
+	var _v0 = A2($elm$random$Random$step, rand, seed);
+	var deck = _v0.a.deck;
+	var game = _v0.a.game;
+	var special = _v0.a.special;
 	var newSeed = _v0.b;
 	return {
+		deck: deck,
 		game: game,
 		overlay: $elm$core$Maybe$Just(
 			$author$project$Main$Tutorial(0)),
 		score: 100,
 		seed: newSeed,
+		specialCards: special,
 		yourTurn: false
 	};
 };
@@ -6742,6 +6791,39 @@ var $author$project$Main$subscriptions = function (_v0) {
 	return $elm$core$Platform$Sub$none;
 };
 var $author$project$Main$RequestOpponentTurn = {$: 'RequestOpponentTurn'};
+var $elm$core$List$filter = F2(
+	function (isGood, list) {
+		return A3(
+			$elm$core$List$foldr,
+			F2(
+				function (x, xs) {
+					return isGood(x) ? A2($elm$core$List$cons, x, xs) : xs;
+				}),
+			_List_Nil,
+			list);
+	});
+var $author$project$Main$addCardAndStartNextRound = F2(
+	function (card, model) {
+		var deck = A2($elm$core$List$cons, card, model.deck);
+		var _v0 = function (rand) {
+			return A2($elm$random$Random$step, rand, model.seed);
+		}(
+			$author$project$Game$fromDeck(deck));
+		var game = _v0.a;
+		var newSeed = _v0.b;
+		return _Utils_update(
+			model,
+			{
+				deck: deck,
+				game: game,
+				overlay: $elm$core$Maybe$Nothing,
+				seed: newSeed,
+				specialCards: A2(
+					$elm$core$List$filter,
+					$elm$core$Basics$neq(card),
+					model.specialCards)
+			});
+	});
 var $author$project$Main$EndOfRound = {$: 'EndOfRound'};
 var $author$project$Main$challengeGoal = function (model) {
 	return _Utils_update(
@@ -6751,18 +6833,24 @@ var $author$project$Main$challengeGoal = function (model) {
 		});
 };
 var $author$project$Main$EndOfGame = {$: 'EndOfGame'};
-var $author$project$Main$newGameRequested = F2(
+var $author$project$Main$Shop = function (a) {
+	return {$: 'Shop', a: a};
+};
+var $author$project$Main$endRoundAndOpenShop = F2(
 	function (score, model) {
 		var newScore = model.score + score;
-		var _v0 = function (rand) {
-			return A2($elm$random$Random$step, rand, model.seed);
-		}(
-			$author$project$Game$fromGoals($author$project$Goal$asList));
-		var game = _v0.a;
-		var newSeed = _v0.b;
 		return (newScore > 0) ? _Utils_update(
 			model,
-			{game: game, overlay: $elm$core$Maybe$Nothing, score: newScore, seed: newSeed, yourTurn: false}) : _Utils_update(
+			{
+				overlay: $elm$core$Maybe$Just(
+					$author$project$Main$Shop(
+						A2($elm$core$List$take, 2, model.specialCards))),
+				score: newScore,
+				specialCards: _Utils_ap(
+					A2($elm$core$List$drop, 2, model.specialCards),
+					A2($elm$core$List$take, 2, model.specialCards)),
+				yourTurn: false
+			}) : _Utils_update(
 			model,
 			{
 				overlay: $elm$core$Maybe$Just($author$project$Main$EndOfGame),
@@ -6778,17 +6866,6 @@ var $author$project$Game$playCard = F2(
 			{
 				playedCards: A2($elm$core$List$cons, card, game.playedCards)
 			});
-	});
-var $elm$core$List$filter = F2(
-	function (isGood, list) {
-		return A3(
-			$elm$core$List$foldr,
-			F2(
-				function (x, xs) {
-					return isGood(x) ? A2($elm$core$List$cons, x, xs) : xs;
-				}),
-			_List_Nil,
-			list);
 	});
 var $author$project$Game$removeYourCard = F2(
 	function (card, game) {
@@ -6837,9 +6914,12 @@ var $author$project$Game$currentPercentage = function (game) {
 		$elm$core$Maybe$withDefault,
 		100,
 		A2(
-			$elm$core$Maybe$map,
+			$elm$core$Maybe$andThen,
 			function (card) {
-				return $author$project$Goal$probability(card.goal);
+				return A2(
+					$elm$core$Dict$get,
+					$author$project$Goal$description(card.goal),
+					game.probabilities);
 			},
 			$elm$core$List$head(game.playedCards)));
 };
@@ -6887,7 +6967,13 @@ var $author$project$Game$Update$opponentsTurn = function (game) {
 					function (_float) {
 						return ((_Utils_cmp(
 							_float,
-							$author$project$Goal$probability(card.goal)) < 0) || (currentPercentage === 100)) ? $elm$core$Maybe$Just(
+							A2(
+								$elm$core$Maybe$withDefault,
+								0,
+								A2(
+									$elm$core$Dict$get,
+									$author$project$Goal$description(card.goal),
+									game.probabilities))) < 0) || (currentPercentage === 100)) ? $elm$core$Maybe$Just(
 							A2(
 								$author$project$Game$playCard,
 								card,
@@ -6899,13 +6985,25 @@ var $author$project$Game$Update$opponentsTurn = function (game) {
 				A2(
 					$elm$core$List$sortBy,
 					function (card) {
-						return 100 - $author$project$Goal$probability(card.goal);
+						return 100 - A2(
+							$elm$core$Maybe$withDefault,
+							0,
+							A2(
+								$elm$core$Dict$get,
+								$author$project$Goal$description(card.goal),
+								game.probabilities));
 					},
 					A2(
 						$elm$core$List$filter,
 						function (card) {
 							return _Utils_cmp(
-								$author$project$Goal$probability(card.goal),
+								A2(
+									$elm$core$Maybe$withDefault,
+									0,
+									A2(
+										$elm$core$Dict$get,
+										$author$project$Goal$description(card.goal),
+										game.probabilities)),
 								currentPercentage) < 1;
 						},
 						game.opponentCards)))));
@@ -6968,11 +7066,16 @@ var $author$project$Main$update = F2(
 				return _Utils_Tuple2(
 					$author$project$Main$requestOpponentTurn(model),
 					$elm$core$Platform$Cmd$none);
-			case 'NewRoundRequested':
+			case 'EndRoundAndOpenShop':
 				var score = msg.a;
 				return _Utils_Tuple2(
-					A2($author$project$Main$newGameRequested, score, model),
-					((model.score + score) > 0) ? A2(
+					A2($author$project$Main$endRoundAndOpenShop, score, model),
+					$elm$core$Platform$Cmd$none);
+			case 'AddCardAndStartNextRound':
+				var card = msg.a;
+				return _Utils_Tuple2(
+					A2($author$project$Main$addCardAndStartNextRound, card, model),
+					(model.score > 0) ? A2(
 						$elm$core$Task$perform,
 						function (_v3) {
 							return $author$project$Main$RequestOpponentTurn;
@@ -6990,9 +7093,12 @@ var $author$project$Main$update = F2(
 					$elm$core$Platform$Cmd$none);
 		}
 	});
+var $author$project$Main$AddCardAndStartNextRound = function (a) {
+	return {$: 'AddCardAndStartNextRound', a: a};
+};
 var $author$project$Main$ChallengeGoal = {$: 'ChallengeGoal'};
-var $author$project$Main$NewRoundRequested = function (a) {
-	return {$: 'NewRoundRequested', a: a};
+var $author$project$Main$EndRoundAndOpenShop = function (a) {
+	return {$: 'EndRoundAndOpenShop', a: a};
 };
 var $author$project$Main$PlayCard = function (a) {
 	return {$: 'PlayCard', a: a};
@@ -7471,7 +7577,13 @@ var $author$project$View$Overlay$gameEnd = F2(
 					_List_fromArray(
 						[$Orasund$elm_layout$Html$Style$justifyContentCenter]),
 					(args.yourTurn ? 'You called the bluff for ' : 'They called the bluff for ') + ($elm$core$String$fromInt(
-						$author$project$Goal$probability(bet.goal)) + ' CREDITS')),
+						A2(
+							$elm$core$Maybe$withDefault,
+							0,
+							A2(
+								$elm$core$Dict$get,
+								$author$project$Goal$description(bet.goal),
+								game.probabilities))) + ' CREDITS')),
 					A2(
 					$Orasund$elm_layout$Layout$column,
 					_List_fromArray(
@@ -7570,6 +7682,181 @@ var $elm$virtual_dom$VirtualDom$node = function (tag) {
 		_VirtualDom_noScript(tag));
 };
 var $elm$html$Html$node = $elm$virtual_dom$VirtualDom$node;
+var $elm_community$list_extra$List$Extra$gatherEqualsBy = F2(
+	function (extract, list) {
+		return A2(
+			$elm_community$list_extra$List$Extra$gatherWith,
+			F2(
+				function (a, b) {
+					return _Utils_eq(
+						extract(a),
+						extract(b));
+				}),
+			list);
+	});
+var $Orasund$elm_card_game$Game$Card$element = F2(
+	function (attrs, content) {
+		return A2(
+			$elm$html$Html$div,
+			_Utils_ap(
+				_List_fromArray(
+					[
+						A2($elm$html$Html$Attributes$style, 'display', 'flex'),
+						A2($elm$html$Html$Attributes$style, 'padding', '8px 8px')
+					]),
+				attrs),
+			_List_fromArray(
+				[content]));
+	});
+var $author$project$View$Card$height = '120px';
+var $Orasund$elm_card_game$Game$Card$row = F2(
+	function (attrs, content) {
+		return A2(
+			$elm$html$Html$div,
+			_Utils_ap(
+				_List_fromArray(
+					[
+						A2($elm$html$Html$Attributes$style, 'display', 'flex'),
+						A2($elm$html$Html$Attributes$style, 'flex-direction', 'row'),
+						A2($elm$html$Html$Attributes$style, 'justify-content', 'space-between')
+					]),
+				attrs),
+			content);
+	});
+var $author$project$View$Card$toHtml = F3(
+	function (attrs, args, card) {
+		return A2(
+			$Orasund$elm_card_game$Game$Card$default,
+			_Utils_ap(
+				_List_fromArray(
+					[
+						$Orasund$elm_layout$Html$Style$height($author$project$View$Card$height),
+						A2(
+						$elm$html$Html$Attributes$style,
+						'background-color',
+						$author$project$Suit$color(card.suit)),
+						$Orasund$elm_layout$Html$Style$boxSizingBorderBox
+					]),
+				attrs),
+			_List_fromArray(
+				[
+					A2(
+					$Orasund$elm_card_game$Game$Card$row,
+					_List_fromArray(
+						[
+							A2($elm$html$Html$Attributes$style, 'font-size', '18px')
+						]),
+					_List_fromArray(
+						[
+							A2(
+							$Orasund$elm_card_game$Game$Card$element,
+							_List_Nil,
+							$elm$html$Html$text(
+								$elm$core$String$fromInt(args.probability))),
+							A2(
+							$Orasund$elm_card_game$Game$Card$element,
+							_List_Nil,
+							$elm$html$Html$text(
+								$author$project$Suit$icon(card.suit)))
+						])),
+					A2(
+					$Orasund$elm_card_game$Game$Card$element,
+					_List_fromArray(
+						[$Orasund$elm_layout$Html$Style$justifyContentCenter]),
+					A2(
+						$Orasund$elm_layout$Layout$column,
+						_List_fromArray(
+							[$Orasund$elm_layout$Html$Style$justifyContentCenter]),
+						_List_fromArray(
+							[
+								A3(
+								$author$project$View$Goal$toHtml,
+								_List_fromArray(
+									[$Orasund$elm_layout$Html$Style$justifyContentCenter]),
+								{big: false},
+								card.goal)
+							])))
+				]));
+	});
+var $author$project$View$Overlay$shop = F2(
+	function (args, list) {
+		return A2(
+			$Orasund$elm_layout$Layout$column,
+			_List_fromArray(
+				[$Orasund$elm_layout$Layout$contentWithSpaceBetween]),
+			_List_fromArray(
+				[
+					A2(
+					$Orasund$elm_layout$Layout$column,
+					_List_fromArray(
+						[
+							$Orasund$elm_layout$Html$Style$justifyContentCenter,
+							$Orasund$elm_layout$Html$Style$gap('4px')
+						]),
+					A2(
+						$elm$core$List$map,
+						function (_v0) {
+							var card = _v0.a;
+							var l = _v0.b;
+							return A2(
+								$Orasund$elm_layout$Layout$row,
+								_List_fromArray(
+									[
+										$Orasund$elm_layout$Html$Style$gap('4px'),
+										$Orasund$elm_layout$Html$Style$justifyContentCenter
+									]),
+								A2(
+									$elm$core$List$repeat,
+									$elm$core$List$length(l) + 1,
+									A3(
+										$author$project$View$Goal$viewSuit,
+										_List_Nil,
+										{big: true},
+										$elm$core$Maybe$Just(card.suit))));
+						},
+						A2(
+							$elm_community$list_extra$List$Extra$gatherEqualsBy,
+							function ($) {
+								return $.suit;
+							},
+							args.deck))),
+					A2(
+					$Orasund$elm_layout$Layout$text,
+					_List_fromArray(
+						[$Orasund$elm_layout$Html$Style$justifyContentCenter]),
+					'Pick a card to add to the deck'),
+					A2(
+					$Orasund$elm_layout$Layout$row,
+					_List_fromArray(
+						[
+							$Orasund$elm_layout$Html$Style$justifyContentCenter,
+							$Orasund$elm_layout$Html$Style$gap('8px')
+						]),
+					A2(
+						$elm$core$List$map,
+						function (card) {
+							return A3(
+								$author$project$View$Card$toHtml,
+								$Orasund$elm_layout$Layout$asButton(
+									{
+										label: 'Pick',
+										onPress: $elm$core$Maybe$Just(
+											args.onChoose(card))
+									}),
+								{
+									probability: A2(
+										$elm$core$Maybe$withDefault,
+										0,
+										A2(
+											$elm$core$Dict$get,
+											$author$project$Goal$description(card.goal),
+											args.probabilities))
+								},
+								card);
+						},
+						list))
+				]));
+	});
 var $Orasund$elm_card_game$Game$Card$empty = F2(
 	function (attrs, string) {
 		return A2(
@@ -7599,7 +7886,6 @@ var $Orasund$elm_card_game$Game$Card$empty = F2(
 						]))
 				]));
 	});
-var $author$project$View$Card$height = '120px';
 var $author$project$View$Card$empty = function (attrs) {
 	return A2(
 		$Orasund$elm_card_game$Game$Card$empty,
@@ -7643,90 +7929,6 @@ var $author$project$View$Hand$opponent = F2(
 				},
 				list));
 	});
-var $Orasund$elm_card_game$Game$Card$element = F2(
-	function (attrs, content) {
-		return A2(
-			$elm$html$Html$div,
-			_Utils_ap(
-				_List_fromArray(
-					[
-						A2($elm$html$Html$Attributes$style, 'display', 'flex'),
-						A2($elm$html$Html$Attributes$style, 'padding', '8px 8px')
-					]),
-				attrs),
-			_List_fromArray(
-				[content]));
-	});
-var $Orasund$elm_card_game$Game$Card$row = F2(
-	function (attrs, content) {
-		return A2(
-			$elm$html$Html$div,
-			_Utils_ap(
-				_List_fromArray(
-					[
-						A2($elm$html$Html$Attributes$style, 'display', 'flex'),
-						A2($elm$html$Html$Attributes$style, 'flex-direction', 'row'),
-						A2($elm$html$Html$Attributes$style, 'justify-content', 'space-between')
-					]),
-				attrs),
-			content);
-	});
-var $author$project$View$Card$toHtml = F2(
-	function (attrs, card) {
-		return A2(
-			$Orasund$elm_card_game$Game$Card$default,
-			_Utils_ap(
-				_List_fromArray(
-					[
-						$Orasund$elm_layout$Html$Style$height($author$project$View$Card$height),
-						A2(
-						$elm$html$Html$Attributes$style,
-						'background-color',
-						$author$project$Suit$color(card.suit)),
-						$Orasund$elm_layout$Html$Style$boxSizingBorderBox
-					]),
-				attrs),
-			_List_fromArray(
-				[
-					A2(
-					$Orasund$elm_card_game$Game$Card$row,
-					_List_fromArray(
-						[
-							A2($elm$html$Html$Attributes$style, 'font-size', '18px')
-						]),
-					_List_fromArray(
-						[
-							A2(
-							$Orasund$elm_card_game$Game$Card$element,
-							_List_Nil,
-							$elm$html$Html$text(
-								$elm$core$String$fromInt(
-									$author$project$Goal$probability(card.goal)))),
-							A2(
-							$Orasund$elm_card_game$Game$Card$element,
-							_List_Nil,
-							$elm$html$Html$text(
-								$author$project$Suit$icon(card.suit)))
-						])),
-					A2(
-					$Orasund$elm_card_game$Game$Card$element,
-					_List_fromArray(
-						[$Orasund$elm_layout$Html$Style$justifyContentCenter]),
-					A2(
-						$Orasund$elm_layout$Layout$column,
-						_List_fromArray(
-							[$Orasund$elm_layout$Html$Style$justifyContentCenter]),
-						_List_fromArray(
-							[
-								A3(
-								$author$project$View$Goal$toHtml,
-								_List_fromArray(
-									[$Orasund$elm_layout$Html$Style$justifyContentCenter]),
-								{big: false},
-								card.goal)
-							])))
-				]));
-	});
 var $author$project$View$Hand$toHtml = F3(
 	function (attrs, args, list) {
 		return A2(
@@ -7738,11 +7940,16 @@ var $author$project$View$Hand$toHtml = F3(
 			A2(
 				$elm$core$List$map,
 				function (card) {
-					return A2(
+					var probability = A2(
+						$elm$core$Maybe$withDefault,
+						0,
+						A2(
+							$elm$core$Dict$get,
+							$author$project$Goal$description(card.goal),
+							args.probabilities));
+					return A3(
 						$author$project$View$Card$toHtml,
-						(_Utils_cmp(
-							$author$project$Goal$probability(card.goal),
-							args.currentPercentage) < 1) ? A2(
+						(_Utils_cmp(probability, args.currentPercentage) < 1) ? A2(
 							$elm$core$List$cons,
 							A2($elm$html$Html$Attributes$style, 'border', '4px solid #679aff'),
 							$Orasund$elm_layout$Layout$asButton(
@@ -7754,6 +7961,7 @@ var $author$project$View$Hand$toHtml = F3(
 							[
 								A2($elm$html$Html$Attributes$style, 'color', 'rgba(0,0,0,0.5)')
 							]),
+						{probability: probability},
 						card);
 				},
 				list));
@@ -7827,7 +8035,19 @@ var $author$project$View$Game$toHtml = F2(
 													$elm$core$List$map,
 													function (card) {
 														return function (attrs) {
-															return A2($author$project$View$Card$toHtml, attrs, card);
+															return A3(
+																$author$project$View$Card$toHtml,
+																attrs,
+																{
+																	probability: A2(
+																		$elm$core$Maybe$withDefault,
+																		0,
+																		A2(
+																			$elm$core$Dict$get,
+																			$author$project$Goal$description(card.goal),
+																			game.probabilities))
+																},
+																card);
 														};
 													},
 													$elm$core$List$reverse(game.playedCards)))))),
@@ -7857,7 +8077,8 @@ var $author$project$View$Game$toHtml = F2(
 								[$Orasund$elm_layout$Html$Style$justifyContentCenter]),
 							{
 								currentPercentage: $author$project$Game$currentPercentage(game),
-								onPlay: args.onPlay
+								onPlay: args.onPlay,
+								probabilities: game.probabilities
 							},
 							game.yourCards),
 							A2(
@@ -7873,9 +8094,12 @@ var $author$project$View$Game$toHtml = F2(
 											$elm$core$Maybe$withDefault,
 											0,
 											A2(
-												$elm$core$Maybe$map,
+												$elm$core$Maybe$andThen,
 												function (card) {
-													return $author$project$Goal$probability(card.goal);
+													return A2(
+														$elm$core$Dict$get,
+														$author$project$Goal$description(card.goal),
+														game.probabilities);
 												},
 												$elm$core$List$head(game.playedCards)))) + ' CREDITS'),
 									onPress: args.yourTurn ? $elm$core$Maybe$Just(args.onChallenge) : $elm$core$Maybe$Nothing
@@ -7988,9 +8212,10 @@ var $author$project$View$Overlay$tutorial = function (args) {
 									[$Orasund$elm_layout$Html$Style$positionRelative]),
 								_List_fromArray(
 									[
-										A2(
+										A3(
 										$author$project$View$Card$toHtml,
 										_List_Nil,
+										{probability: 42},
 										{goal: goal, suit: suit}),
 										A2(
 										$Orasund$elm_layout$Layout$column,
@@ -8014,8 +8239,7 @@ var $author$project$View$Overlay$tutorial = function (args) {
 												A2(
 												$Orasund$elm_layout$Layout$text,
 												_List_Nil,
-												$elm$core$String$fromInt(
-													$author$project$Goal$probability(goal)) + ' CREDITS')
+												$elm$core$String$fromInt(42) + ' CREDITS')
 											])),
 										A2(
 										$elm$html$Html$div,
@@ -8083,7 +8307,7 @@ var $author$project$View$Overlay$tutorial = function (args) {
 										[
 											A2($elm$html$Html$Attributes$style, 'font-weight', 'bold')
 										]),
-									'\"I bet 50 CREDITS that there are at least three of a kind and two hearts in the game\"')
+									'\"I bet 42 CREDITS that there are at least three of a kind and two hearts in the game\"')
 								])),
 							A2(
 							$Orasund$elm_layout$Layout$el,
@@ -8128,6 +8352,37 @@ var $author$project$View$Overlay$tutorial = function (args) {
 										{goal: _List_Nil, suit: $author$project$Suit$Diamant},
 										{goal: _List_Nil, suit: $author$project$Suit$Diamant}
 									]),
+								probabilities: $elm$core$Dict$fromList(
+									_List_fromArray(
+										[
+											_Utils_Tuple2(
+											$author$project$Goal$description(
+												_List_fromArray(
+													[
+														$author$project$Goal$ThreeOf($author$project$Suit$Club)
+													])),
+											50),
+											_Utils_Tuple2(
+											$author$project$Goal$description(
+												_List_fromArray(
+													[$author$project$Goal$FourOfAKind])),
+											10),
+											_Utils_Tuple2(
+											$author$project$Goal$description(
+												_List_fromArray(
+													[
+														$author$project$Goal$ThreeOf($author$project$Suit$Spade)
+													])),
+											55),
+											_Utils_Tuple2(
+											$author$project$Goal$description(
+												_List_fromArray(
+													[
+														$author$project$Goal$PairOf($author$project$Suit$Spade),
+														$author$project$Goal$ThreeOfAKind
+													])),
+											20)
+										])),
 								yourCards: _List_fromArray(
 									[
 										{
@@ -8156,8 +8411,20 @@ var $author$project$View$Overlay$tutorial = function (args) {
 				default:
 					return _List_fromArray(
 						[
+							A2(
+							$Orasund$elm_layout$Layout$text,
+							_List_fromArray(
+								[
+									A2($elm$html$Html$Attributes$style, 'font-size', '24px'),
+									$Orasund$elm_layout$Html$Style$justifyContentCenter
+								]),
+							'That\'s it'),
 							A2($Orasund$elm_layout$Layout$text, _List_Nil, 'The game ends once you have no CREDITS left'),
-							A2($Orasund$elm_layout$Layout$text, _List_Nil, 'You start with 100 CREDITS'),
+							A2(
+							$Orasund$elm_layout$Layout$text,
+							_List_fromArray(
+								[$Orasund$elm_layout$Html$Style$justifyContentCenter]),
+							'You start with 100 CREDITS'),
 							A2(
 							$Orasund$elm_layout$Layout$el,
 							_List_fromArray(
@@ -8180,9 +8447,12 @@ var $author$project$Main$view = function (model) {
 		$elm$core$Maybe$withDefault,
 		0,
 		A2(
-			$elm$core$Maybe$map,
+			$elm$core$Maybe$andThen,
 			function (card) {
-				return $author$project$Goal$probability(card.goal);
+				return A2(
+					$elm$core$Dict$get,
+					$author$project$Goal$description(card.goal),
+					model.game.probabilities);
 			},
 			$elm$core$List$head(model.game.playedCards)));
 	return A2(
@@ -8211,12 +8481,18 @@ var $author$project$Main$view = function (model) {
 					var _v0 = model.overlay;
 					if (_v0.$ === 'Just') {
 						switch (_v0.a.$) {
+							case 'Shop':
+								var list = _v0.a.a;
+								return A2(
+									$author$project$View$Overlay$shop,
+									{deck: model.deck, onChoose: $author$project$Main$AddCardAndStartNextRound, probabilities: model.game.probabilities},
+									list);
 							case 'EndOfRound':
 								var _v1 = _v0.a;
 								return A2(
 									$author$project$View$Overlay$gameEnd,
 									{
-										onNextRound: $author$project$Main$NewRoundRequested(currentScore),
+										onNextRound: $author$project$Main$EndRoundAndOpenShop(currentScore),
 										yourTurn: model.yourTurn
 									},
 									model.game);

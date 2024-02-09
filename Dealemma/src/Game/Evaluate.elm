@@ -14,7 +14,7 @@ type alias Random a =
     Generator a
 
 
-probabilities : { deck : List Suit } -> List Card -> Dict String Int
+probabilities : { deck : List Suit, open : List Suit } -> List Card -> Dict String Int
 probabilities args cards =
     let
         randomDeck : Random (List Suit)

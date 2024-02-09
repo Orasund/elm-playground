@@ -18,6 +18,7 @@ type alias Game =
     { yourCards : List Card
     , opponentCards : List Card
     , playedCards : List Card
+    , outOfPlay : List Card
     , probabilities : Dict String Int
     }
 
@@ -41,6 +42,7 @@ fromDeck sortedDeck =
                                 { deck =
                                     sortedDeck
                                         |> List.map .suit
+                                , open = []
                                 }
                 in
                 { yourCards =
@@ -54,6 +56,7 @@ fromDeck sortedDeck =
                 , opponentCards = deck |> List.drop Config.cardsPerHand |> List.take Config.cardsPerHand
                 , playedCards = []
                 , probabilities = probabilities
+                , outOfPlay = deck |> List.drop (Config.cardsPerHand * 2)
                 }
             )
 
