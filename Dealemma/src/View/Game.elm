@@ -1,14 +1,14 @@
 module View.Game exposing (..)
 
-import Card exposing (Card)
 import Dict
-import Game exposing (Game)
+import Game exposing (CardId, Game)
 import Game.Entity
 import Goal
 import Html exposing (Html)
 import Html.Attributes
 import Html.Style as Style
 import Layout
+import Set
 import View.Card
 import View.Hand
 import View.Ui
@@ -16,13 +16,20 @@ import View.Ui
 
 toHtml :
     { onChallenge : msg
-    , onPlay : Card -> msg
+    , onPlay : CardId -> msg
     , yourTurn : Bool
     }
     -> Game
     -> Html msg
 toHtml args game =
     [ game.opponentCards
+        |> Set.toList
+        |> List.filterMap
+            (\cardId ->
+                cardId
+                    |> Game.getCardFrom game
+                    |> Maybe.map (Tuple.pair cardId)
+            )
         |> View.Hand.opponent [ Style.justifyContentCenter ]
     , [ "Last Call"
             |> Layout.text
@@ -32,8 +39,14 @@ toHtml args game =
       , [ Layout.el [ Layout.fill ] Layout.none
         , game.playedCards
             |> List.reverse
+            |> List.filterMap
+                (\cardId ->
+                    cardId
+                        |> Game.getCardFrom game
+                        |> Maybe.map (Tuple.pair cardId)
+                )
             |> List.map
-                (\card ->
+                (\( _, card ) ->
                     \attrs ->
                         View.Card.toHtml attrs
                             { probability =
@@ -72,6 +85,13 @@ toHtml args game =
         )
             |> Layout.text [ Style.justifyContentCenter ]
       , game.yourCards
+            |> Set.toList
+            |> List.filterMap
+                (\cardId ->
+                    cardId
+                        |> Game.getCardFrom game
+                        |> Maybe.map (Tuple.pair cardId)
+                )
             |> View.Hand.toHtml
                 [ Style.justifyContentCenter
                 ]
@@ -91,7 +111,13 @@ toHtml args game =
                     ++ (game.playedCards
                             |> List.head
                             |> Maybe.andThen
-                                (\card ->
+                                (\cardId ->
+                                    cardId
+                                        |> Game.getCardFrom game
+                                        |> Maybe.map (Tuple.pair cardId)
+                                )
+                            |> Maybe.andThen
+                                (\( _, card ) ->
                                     game.probabilities
                                         |> Dict.get (Goal.description card.goal)
                                 )

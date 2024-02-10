@@ -10,6 +10,8 @@ import Html.Attributes
 import Html.Style as Style
 import Layout
 import List.Extra
+import Random
+import Set
 import Suit exposing (Suit(..))
 import View.Card
 import View.Game
@@ -171,48 +173,13 @@ tutorial args =
         2 ->
             [ "Each turn a player can either play a card with a lower value or challenge the bet (calling the bluff)."
                 |> Layout.text []
-            , { yourCards =
-                    [ { suit = Heart
-                      , goal =
-                            [ FourOfAKind
-                            ]
-                      }
-                    , { suit = Heart
-                      , goal = [ ThreeOf Spade ]
-                      }
-                    , { suit = Spade
-                      , goal = [ PairOf Spade, ThreeOfAKind ]
-                      }
-                    ]
-              , opponentCards =
-                    { suit = Heart
-                    , goal = []
-                    }
-                        |> List.repeat 2
-              , playedCards =
-                    [ { suit = Spade
-                      , goal = [ ThreeOf Club ]
-                      }
-                    , { suit = Diamant
-                      , goal = []
-                      }
-                    , { suit = Diamant
-                      , goal = []
-                      }
-                    ]
-              , probabilities =
-                    [ ( Goal.description [ ThreeOf Club ], 50 )
-                    , ( Goal.description
-                            [ FourOfAKind
-                            ]
-                      , 10
-                      )
-                    , ( Goal.description [ ThreeOf Spade ], 55 )
-                    , ( Goal.description [ PairOf Spade, ThreeOfAKind ], 20 )
-                    ]
-                        |> Dict.fromList
-              , outOfPlay = []
-              }
+            , Random.initialSeed 42
+                |> Random.step
+                    (Goal.asList
+                        |> Card.newDeck
+                        |> Random.andThen Game.fromDeck
+                    )
+                |> Tuple.first
                 |> View.Game.toHtml
                     { onChallenge = args.onNext (args.page + 1)
                     , onPlay = \_ -> args.onNext (args.page + 1)
@@ -247,6 +214,7 @@ gameEnd args game =
         bet =
             game.playedCards
                 |> List.head
+                |> Maybe.andThen (Game.getCardFrom game)
                 |> Maybe.withDefault { suit = Heart, goal = [] }
     in
     [ (if args.yourTurn then
@@ -283,9 +251,10 @@ gameEnd args game =
                 [ Html.Attributes.style "font-size" "24px"
                 , Style.justifyContentCenter
                 ]
-      , game.yourCards
-            ++ game.opponentCards
+      , Set.toList game.yourCards
+            ++ Set.toList game.opponentCards
             ++ game.playedCards
+            |> List.filterMap (Game.getCardFrom game)
             |> List.sortBy (\card -> Suit.icon card.suit)
             |> List.map
                 (\card ->

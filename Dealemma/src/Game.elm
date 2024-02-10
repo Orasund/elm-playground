@@ -5,8 +5,10 @@ import Config
 import Dict exposing (Dict)
 import Game.Evaluate exposing (probabilities)
 import Goal exposing (Goal)
+import List.Extra
 import Random exposing (Generator)
 import Random.List
+import Set exposing (Set)
 import Suit
 
 
@@ -14,12 +16,17 @@ type alias Random a =
     Generator a
 
 
+type alias CardId =
+    Int
+
+
 type alias Game =
-    { yourCards : List Card
-    , opponentCards : List Card
-    , playedCards : List Card
-    , outOfPlay : List Card
+    { yourCards : Set CardId
+    , opponentCards : Set CardId
+    , playedCards : List CardId
+    , outOfPlay : Set CardId
     , probabilities : Dict String Int
+    , cards : Dict CardId Card
     }
 
 
@@ -44,70 +51,75 @@ fromDeck sortedDeck =
                                         |> List.map .suit
                                 , open = []
                                 }
+
+                    cards =
+                        deck
+                            |> List.indexedMap Tuple.pair
+                            |> Dict.fromList
                 in
                 { yourCards =
-                    List.take Config.cardsPerHand deck
-                        |> List.sortBy
-                            (\card ->
-                                probabilities
-                                    |> Dict.get (Goal.description card.goal)
-                                    |> Maybe.withDefault 0
-                            )
-                , opponentCards = deck |> List.drop Config.cardsPerHand |> List.take Config.cardsPerHand
+                    cards
+                        |> Dict.keys
+                        |> List.take Config.cardsPerHand
+                        |> Set.fromList
+                , opponentCards =
+                    cards
+                        |> Dict.keys
+                        |> List.drop Config.cardsPerHand
+                        |> List.take Config.cardsPerHand
+                        |> Set.fromList
+                , outOfPlay =
+                    cards
+                        |> Dict.keys
+                        |> List.drop (Config.cardsPerHand * 2)
+                        |> Set.fromList
                 , playedCards = []
                 , probabilities = probabilities
-                , outOfPlay = deck |> List.drop (Config.cardsPerHand * 2)
+                , cards = cards
                 }
             )
 
 
-removeYourCard : Card -> Game -> Game
-removeYourCard card game =
+getCardFrom : Game -> CardId -> Maybe Card
+getCardFrom game id =
+    game.cards |> Dict.get id
+
+
+playCard : CardId -> Game -> Game
+playCard cardId game =
     { game
-        | yourCards =
-            game.yourCards
-                |> List.filter ((/=) card)
-    }
-
-
-removeOpponentCard : Card -> Game -> Game
-removeOpponentCard card game =
-    { game
-        | opponentCards =
-            game.opponentCards
-                |> List.filter ((/=) card)
-    }
-
-
-playCard : Card -> Game -> Game
-playCard card game =
-    { game
-        | playedCards = card :: game.playedCards
+        | yourCards = Set.remove cardId game.yourCards
+        , opponentCards = Set.remove cardId game.opponentCards
+        , playedCards = cardId :: game.playedCards
     }
 
 
 isWon : Game -> Bool
 isWon game =
+    let
+        isGoalMet goal =
+            game.cards
+                |> Dict.toList
+                |> List.filterMap
+                    (\( id, card ) ->
+                        if Set.member id game.outOfPlay then
+                            Nothing
+
+                        else
+                            Just card.suit
+                    )
+                |> List.Extra.group
+                |> List.map
+                    (\( suit, l ) ->
+                        ( Suit.icon suit, List.length l + 1 )
+                    )
+                |> Dict.fromList
+                |> Goal.goalMet goal
+    in
     game.playedCards
         |> List.head
-        |> Maybe.map
-            (\{ goal } ->
-                game.yourCards
-                    ++ game.opponentCards
-                    ++ game.playedCards
-                    |> List.foldl
-                        (\card ->
-                            Dict.update (Suit.icon card.suit)
-                                (\maybe ->
-                                    maybe
-                                        |> Maybe.withDefault 0
-                                        |> (+) 1
-                                        |> Just
-                                )
-                        )
-                        Dict.empty
-                    |> Goal.goalMet goal
-            )
+        |> Maybe.andThen (getCardFrom game)
+        |> Maybe.map (\{ goal } -> isGoalMet goal)
         |> Maybe.withDefault False
 
 
@@ -115,6 +127,7 @@ currentPercentage : Game -> Int
 currentPercentage game =
     game.playedCards
         |> List.head
+        |> Maybe.andThen (getCardFrom game)
         |> Maybe.andThen
             (\card ->
                 game.probabilities

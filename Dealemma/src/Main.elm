@@ -3,7 +3,7 @@ module Main exposing (..)
 import Browser
 import Card exposing (Card)
 import Dict
-import Game exposing (Game)
+import Game exposing (CardId, Game)
 import Game.Update
 import Goal
 import Html exposing (Html)
@@ -39,7 +39,7 @@ type alias Model =
 
 type Msg
     = Restart Seed
-    | PlayCard Card
+    | PlayCard CardId
     | ChallengeGoal
     | RequestOpponentTurn
     | EndRoundAndOpenShop Int
@@ -103,7 +103,13 @@ view model =
             model.game.playedCards
                 |> List.head
                 |> Maybe.andThen
-                    (\card ->
+                    (\cardId ->
+                        cardId
+                            |> Game.getCardFrom model.game
+                            |> Maybe.map (Tuple.pair cardId)
+                    )
+                |> Maybe.andThen
+                    (\( _, card ) ->
                         model.game.probabilities
                             |> Dict.get (Goal.description card.goal)
                     )
@@ -221,10 +227,10 @@ challengeGoal model =
     }
 
 
-playCard : Card -> Model -> Model
-playCard card model =
+playCard : CardId -> Model -> Model
+playCard id model =
     model.game
-        |> Game.Update.playCard card
+        |> Game.Update.playCard id
         |> (\game ->
                 { model
                     | game = game
