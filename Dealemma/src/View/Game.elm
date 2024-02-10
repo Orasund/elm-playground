@@ -2,6 +2,7 @@ module View.Game exposing (..)
 
 import Dict
 import Game exposing (CardId, Game)
+import Game.Area
 import Game.Entity
 import Goal
 import Html exposing (Html)
@@ -31,6 +32,7 @@ toHtml args game =
                     |> Maybe.map (Tuple.pair cardId)
             )
         |> View.Hand.opponent [ Style.justifyContentCenter ]
+            { probabilities = game.probabilities }
     , [ "Last Call"
             |> Layout.text
                 [ Html.Attributes.style "font-size" "24px"
@@ -46,17 +48,17 @@ toHtml args game =
                         |> Maybe.map (Tuple.pair cardId)
                 )
             |> List.map
-                (\( _, card ) ->
-                    \attrs ->
-                        View.Card.toHtml attrs
-                            { probability =
-                                game.probabilities
-                                    |> Dict.get (Goal.description card.goal)
-                                    |> Maybe.withDefault 0
-                            }
-                            card
+                (\( cardId, card ) ->
+                    View.Card.toHtml []
+                        { probability =
+                            game.probabilities
+                                |> Dict.get (Goal.description card.goal)
+                                |> Maybe.withDefault 0
+                        , faceUp = True
+                        , active = False
+                        }
+                        ( cardId, card )
                 )
-            |> List.map Game.Entity.new
             |> List.indexedMap
                 (\i ->
                     Game.Entity.move
@@ -64,8 +66,8 @@ toHtml args game =
                         , 0
                         )
                 )
-            |> Game.Entity.pileAbove (View.Card.empty [])
-            |> Game.Entity.toHtml [ Style.justifyContentCenter ]
+            |> Game.Area.pileAbove ( 0, 0 ) ( "discardPile", View.Card.empty )
+            |> Game.Area.toHtml [ Style.justifyContentCenter ]
         , Layout.el [ Layout.fill ] Layout.none
         ]
             |> Layout.row

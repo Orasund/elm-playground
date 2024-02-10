@@ -3,10 +3,11 @@ module View.Hand exposing (..)
 import Card exposing (Card)
 import Dict exposing (Dict)
 import Game exposing (CardId)
+import Game.Area
 import Goal
 import Html exposing (Attribute, Html)
 import Html.Attributes
-import Html.Style as Style
+import Html.Style
 import Layout
 import View.Card
 
@@ -36,27 +37,57 @@ toHtml attrs args list =
                             |> Dict.get (Goal.description card.goal)
                             |> Maybe.withDefault 0
                 in
-                card
+                ( cardId, card )
                     |> View.Card.toHtml
                         (if probability <= args.currentPercentage then
-                            Html.Attributes.style "border" "4px solid #679aff"
-                                :: Layout.asButton
-                                    { label = "play"
-                                    , onPress =
-                                        Just (args.onPlay cardId)
-                                    }
+                            Layout.asButton
+                                { label = "play"
+                                , onPress =
+                                    Just (args.onPlay cardId)
+                                }
 
                          else
-                            [ Html.Attributes.style "color" "rgba(0,0,0,0.5)"
-                            ]
+                            []
                         )
-                        { probability = probability }
+                        { probability = probability
+                        , faceUp = True
+                        , active = probability <= args.currentPercentage
+                        }
             )
-        |> Layout.row (Style.gap "8px" :: attrs)
+        |> Game.Area.withPolarPosition
+            { minAngle = 0
+            , maxAngle = 0
+            , minDistance = -150
+            , maxDistance = 150
+            }
+        |> Game.Area.toHtml
+            (Html.Style.height (String.fromInt View.Card.height ++ "px") :: attrs)
 
 
-opponent : List (Attribute msg) -> List ( CardId, Card ) -> Html msg
-opponent attrs list =
+opponent : List (Attribute msg) -> { probabilities : Dict String Int } -> List ( CardId, Card ) -> Html msg
+opponent attrs args list =
     list
-        |> List.map (\_ -> View.Card.back)
-        |> Layout.row (Style.gap "8px" :: attrs)
+        |> List.map
+            (\( cardId, card ) ->
+                let
+                    probability =
+                        args.probabilities
+                            |> Dict.get (Goal.description card.goal)
+                            |> Maybe.withDefault 0
+                in
+                View.Card.toHtml []
+                    { probability = probability
+                    , faceUp = False
+                    , active = False
+                    }
+                    ( cardId
+                    , card
+                    )
+            )
+        |> Game.Area.withPolarPosition
+            { minAngle = 0
+            , maxAngle = 0
+            , minDistance = -150
+            , maxDistance = 150
+            }
+        |> Game.Area.toHtml attrs

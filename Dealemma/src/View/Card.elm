@@ -1,7 +1,9 @@
 module View.Card exposing (..)
 
 import Card exposing (Card)
+import Game exposing (CardId)
 import Game.Card
+import Game.Entity exposing (Entity)
 import Html exposing (Attribute, Html)
 import Html.Attributes
 import Html.Style as Style
@@ -10,33 +12,31 @@ import Suit
 import View.Goal
 
 
+height : Int
 height =
-    "120px"
+    120
 
 
-back : Html msg
-back =
+back : List (Attribute msg) -> Html msg
+back attrs =
     Game.Card.default
-        [ Style.height height
-        , Html.Attributes.style "background-color" "#c6b8b8"
-        , Style.boxSizingBorderBox
-        ]
+        ([ Style.height (String.fromInt height ++ "px")
+         , Html.Attributes.style "background-color" "#c6b8b8"
+         , Style.boxSizingBorderBox
+         ]
+            ++ attrs
+        )
         []
-
-
-big : List (Attribute msg) -> { probability : Int } -> Card -> Html msg
-big attrs args =
-    toHtml (Style.height "200px" :: attrs) args
 
 
 empty : List (Attribute msg) -> Html msg
 empty attrs =
-    Game.Card.empty ([ Style.height height, Style.boxSizingBorderBox ] ++ attrs)
+    Game.Card.empty ([ Style.height (String.fromInt height ++ "px"), Style.boxSizingBorderBox ] ++ attrs)
         "No card"
 
 
-toHtml : List (Attribute msg) -> { probability : Int } -> Card -> Html msg
-toHtml attrs args card =
+front : List (Attribute msg) -> { a | probability : Int } -> Card -> Html msg
+front attrs args card =
     [ [ String.fromInt args.probability
             |> Html.text
             |> Game.Card.element []
@@ -53,9 +53,36 @@ toHtml attrs args card =
         |> Game.Card.element [ Style.justifyContentCenter ]
     ]
         |> Game.Card.default
-            ([ Style.height height
+            ([ Style.height (String.fromInt height ++ "px")
              , Html.Attributes.style "background-color" (Suit.color card.suit)
              , Style.boxSizingBorderBox
              ]
                 ++ attrs
             )
+
+
+toHtml : List (Attribute msg) -> { probability : Int, faceUp : Bool, active : Bool } -> ( CardId, Card ) -> Entity ( String, List (Attribute msg) -> Html msg )
+toHtml attrs args ( cardId, card ) =
+    Game.Entity.flippable
+        ([ Style.height (String.fromInt height ++ "px")
+         , Style.width (String.fromFloat (toFloat height * 2 / 3) ++ "px")
+         ]
+            ++ attrs
+        )
+        { front =
+            (\a ->
+                front
+                    (if args.active then
+                        [ Html.Attributes.style "border" "4px solid #679aff" ] ++ a
+
+                     else
+                        [ Html.Attributes.style "color" "rgba(0,0,0,0.5)" ] ++ a
+                    )
+                    args
+                    card
+            )
+                |> Game.Entity.new
+        , back = back |> Game.Entity.new
+        , faceUp = args.faceUp
+        }
+        |> Game.Entity.map (Tuple.pair ("card_" ++ String.fromInt cardId))

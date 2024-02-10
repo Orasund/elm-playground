@@ -3,7 +3,9 @@ module View.Overlay exposing (..)
 import Card exposing (Card)
 import Config
 import Dict exposing (Dict)
-import Game exposing (Game)
+import Game exposing (CardId, Game)
+import Game.Area
+import Game.Entity
 import Goal exposing (Category(..))
 import Html exposing (Html)
 import Html.Attributes
@@ -51,8 +53,8 @@ shop args list =
             [ Style.justifyContentCenter
             ]
     , list
-        |> List.map
-            (\card ->
+        |> List.indexedMap
+            (\i card ->
                 View.Card.toHtml
                     (Layout.asButton
                         { label = "Pick"
@@ -63,12 +65,20 @@ shop args list =
                         args.probabilities
                             |> Dict.get (Goal.description card.goal)
                             |> Maybe.withDefault 0
+                    , faceUp = True
+                    , active = True
                     }
-                    card
+                    ( -i, card )
             )
-        |> Layout.row
-            [ Style.justifyContentCenter
-            , Style.gap "8px"
+        |> Game.Area.withPolarPosition
+            { minAngle = 0
+            , maxAngle = 0
+            , minDistance = -4 - toFloat View.Card.height * 2 / 6
+            , maxDistance = 4 + toFloat View.Card.height * 2 / 6
+            }
+        |> Game.Area.toHtml
+            [ Style.height (String.fromInt View.Card.height ++ "px")
+            , Style.justifyContentCenter
             ]
     ]
         |> Layout.column [ Layout.contentWithSpaceBetween ]
@@ -115,9 +125,14 @@ tutorial args =
             in
             [ "A card consists of a value, a suit and a bet"
                 |> Layout.text []
-            , [ { suit = suit, goal = goal }
+            , [ ( -1, { suit = suit, goal = goal } )
                     |> View.Card.toHtml []
-                        { probability = 42 }
+                        { probability = 42
+                        , faceUp = True
+                        , active = False
+                        }
+                    |> Game.Entity.map Tuple.second
+                    |> Game.Entity.toHtml []
               , Layout.column
                     [ Style.positionAbsolute
                     , Style.left "-100px"
