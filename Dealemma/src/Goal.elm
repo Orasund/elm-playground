@@ -16,7 +16,9 @@ type Category
     | Pair
     | ThreeOf Suit
     | ThreeOfAKind
+    | FourOf Suit
     | FourOfAKind
+    | FiveOfAKind
 
 
 type alias Goal =
@@ -42,26 +44,17 @@ asList =
 
 special : List Goal
 special =
-    (Suit.asList
-        |> List.concatMap
-            (\suit ->
-                [ [ PairOf suit ]
-                ]
-            )
-    )
-        ++ ([ ( Heart, Diamant )
-            , ( Heart, Club )
-            , ( Heart, Spade )
-            , ( Diamant, Club )
-            , ( Diamant, Spade )
-            , ( Club, Spade )
-            ]
+    [ []
+    , [ FiveOfAKind ]
+    , [ FourOfAKind, ThreeOfAKind ]
+    ]
+        ++ (Suit.Star
+                :: Suit.asList
                 |> List.concatMap
-                    (\( suit1, suit2 ) ->
-                        [ [ PairOf suit1, PairOf suit2 ]
-                        , [ ThreeOf suit1, PairOf suit2 ]
-                        , [ ThreeOf suit2, PairOf suit1 ]
-                        , [ ThreeOf suit1, ThreeOf suit2 ]
+                    (\suit ->
+                        [ [ PairOf suit ]
+                        , [ FourOf suit ]
+                        , [ ThreeOf suit, FourOfAKind ]
                         ]
                     )
            )
@@ -92,8 +85,14 @@ categoryDescription category =
         ThreeOfAKind ->
             "three of a kind"
 
+        FourOf suit ->
+            "four " ++ Suit.icon suit
+
         FourOfAKind ->
             "four of a kind"
+
+        FiveOfAKind ->
+            "five of a kind"
 
 
 applyCategory : Category -> Dict String Int -> Maybe (Dict String Int)
@@ -156,6 +155,19 @@ applyCategory category dict =
                     )
                 |> Maybe.map (\suit -> Dict.remove (Suit.icon suit) dict)
 
+        FourOf suit ->
+            if
+                Dict.get (Suit.icon suit) dict
+                    |> Maybe.map (\i -> i >= 4)
+                    |> Maybe.withDefault False
+            then
+                dict
+                    |> Dict.remove (Suit.icon suit)
+                    |> Just
+
+            else
+                Nothing
+
         FourOfAKind ->
             Suit.asList
                 |> List.Extra.find
@@ -163,6 +175,17 @@ applyCategory category dict =
                         dict
                             |> Dict.get (Suit.icon suit)
                             |> Maybe.map (\i -> i >= 4)
+                            |> Maybe.withDefault False
+                    )
+                |> Maybe.map (\suit -> Dict.remove (Suit.icon suit) dict)
+
+        FiveOfAKind ->
+            Suit.asList
+                |> List.Extra.find
+                    (\suit ->
+                        dict
+                            |> Dict.get (Suit.icon suit)
+                            |> Maybe.map (\i -> i >= 5)
                             |> Maybe.withDefault False
                     )
                 |> Maybe.map (\suit -> Dict.remove (Suit.icon suit) dict)

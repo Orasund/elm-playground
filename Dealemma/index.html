@@ -5575,8 +5575,13 @@ var $author$project$Goal$categoryDescription = function (category) {
 			return 'three ' + $author$project$Suit$icon(suit);
 		case 'ThreeOfAKind':
 			return 'three of a kind';
-		default:
+		case 'FourOf':
+			var suit = category.a;
+			return 'four ' + $author$project$Suit$icon(suit);
+		case 'FourOfAKind':
 			return 'four of a kind';
+		default:
+			return 'five of a kind';
 	}
 };
 var $author$project$Goal$description = function (list) {
@@ -6342,7 +6347,25 @@ var $author$project$Goal$applyCategory = F2(
 										dict)));
 						},
 						$author$project$Suit$asList));
-			default:
+			case 'FourOf':
+				var suit = category.a;
+				return A2(
+					$elm$core$Maybe$withDefault,
+					false,
+					A2(
+						$elm$core$Maybe$map,
+						function (i) {
+							return i >= 4;
+						},
+						A2(
+							$elm$core$Dict$get,
+							$author$project$Suit$icon(suit),
+							dict))) ? $elm$core$Maybe$Just(
+					A2(
+						$elm$core$Dict$remove,
+						$author$project$Suit$icon(suit),
+						dict)) : $elm$core$Maybe$Nothing;
+			case 'FourOfAKind':
 				return A2(
 					$elm$core$Maybe$map,
 					function (suit) {
@@ -6361,6 +6384,32 @@ var $author$project$Goal$applyCategory = F2(
 									$elm$core$Maybe$map,
 									function (i) {
 										return i >= 4;
+									},
+									A2(
+										$elm$core$Dict$get,
+										$author$project$Suit$icon(suit),
+										dict)));
+						},
+						$author$project$Suit$asList));
+			default:
+				return A2(
+					$elm$core$Maybe$map,
+					function (suit) {
+						return A2(
+							$elm$core$Dict$remove,
+							$author$project$Suit$icon(suit),
+							dict);
+					},
+					A2(
+						$elm_community$list_extra$List$Extra$find,
+						function (suit) {
+							return A2(
+								$elm$core$Maybe$withDefault,
+								false,
+								A2(
+									$elm$core$Maybe$map,
+									function (i) {
+										return i >= 5;
 									},
 									A2(
 										$elm$core$Dict$get,
@@ -6626,11 +6675,24 @@ var $author$project$Game$Evaluate$probabilities = F2(
 				},
 				cards));
 	});
+var $author$project$Suit$Star = {$: 'Star'};
 var $author$project$Card$buildCard = F2(
 	function (value, goal) {
 		return {goal: goal, suit: value};
 	});
+var $author$project$Goal$FiveOfAKind = {$: 'FiveOfAKind'};
+var $author$project$Goal$FourOf = function (a) {
+	return {$: 'FourOf', a: a};
+};
 var $author$project$Goal$special = _Utils_ap(
+	_List_fromArray(
+		[
+			_List_Nil,
+			_List_fromArray(
+			[$author$project$Goal$FiveOfAKind]),
+			_List_fromArray(
+			[$author$project$Goal$FourOfAKind, $author$project$Goal$ThreeOfAKind])
+		]),
 	A2(
 		$elm$core$List$concatMap,
 		function (suit) {
@@ -6639,48 +6701,19 @@ var $author$project$Goal$special = _Utils_ap(
 					_List_fromArray(
 					[
 						$author$project$Goal$PairOf(suit)
+					]),
+					_List_fromArray(
+					[
+						$author$project$Goal$FourOf(suit)
+					]),
+					_List_fromArray(
+					[
+						$author$project$Goal$ThreeOf(suit),
+						$author$project$Goal$FourOfAKind
 					])
 				]);
 		},
-		$author$project$Suit$asList),
-	A2(
-		$elm$core$List$concatMap,
-		function (_v0) {
-			var suit1 = _v0.a;
-			var suit2 = _v0.b;
-			return _List_fromArray(
-				[
-					_List_fromArray(
-					[
-						$author$project$Goal$PairOf(suit1),
-						$author$project$Goal$PairOf(suit2)
-					]),
-					_List_fromArray(
-					[
-						$author$project$Goal$ThreeOf(suit1),
-						$author$project$Goal$PairOf(suit2)
-					]),
-					_List_fromArray(
-					[
-						$author$project$Goal$ThreeOf(suit2),
-						$author$project$Goal$PairOf(suit1)
-					]),
-					_List_fromArray(
-					[
-						$author$project$Goal$ThreeOf(suit1),
-						$author$project$Goal$ThreeOf(suit2)
-					])
-				]);
-		},
-		_List_fromArray(
-			[
-				_Utils_Tuple2($author$project$Suit$Heart, $author$project$Suit$Diamant),
-				_Utils_Tuple2($author$project$Suit$Heart, $author$project$Suit$Club),
-				_Utils_Tuple2($author$project$Suit$Heart, $author$project$Suit$Spade),
-				_Utils_Tuple2($author$project$Suit$Diamant, $author$project$Suit$Club),
-				_Utils_Tuple2($author$project$Suit$Diamant, $author$project$Suit$Spade),
-				_Utils_Tuple2($author$project$Suit$Club, $author$project$Suit$Spade)
-			])));
+		A2($elm$core$List$cons, $author$project$Suit$Star, $author$project$Suit$asList)));
 var $author$project$Card$specialCards = A2(
 	$elm$core$List$concatMap,
 	function (suit) {
@@ -6689,7 +6722,7 @@ var $author$project$Card$specialCards = A2(
 			$author$project$Card$buildCard(suit),
 			$author$project$Goal$special);
 	},
-	$author$project$Suit$asList);
+	A2($elm$core$List$cons, $author$project$Suit$Star, $author$project$Suit$asList));
 var $author$project$Game$fromDeck = function (sortedDeck) {
 	return A2(
 		$elm$random$Random$map,
@@ -6702,7 +6735,8 @@ var $author$project$Game$fromDeck = function (sortedDeck) {
 						function ($) {
 							return $.suit;
 						},
-						sortedDeck)
+						sortedDeck),
+					open: _List_Nil
 				},
 				_Utils_ap(deck, $author$project$Card$specialCards));
 			return {
@@ -6710,6 +6744,7 @@ var $author$project$Game$fromDeck = function (sortedDeck) {
 					$elm$core$List$take,
 					$author$project$Config$cardsPerHand,
 					A2($elm$core$List$drop, $author$project$Config$cardsPerHand, deck)),
+				outOfPlay: A2($elm$core$List$drop, $author$project$Config$cardsPerHand * 2, deck),
 				playedCards: _List_Nil,
 				probabilities: probabilities,
 				yourCards: A2(
@@ -6955,8 +6990,42 @@ var $author$project$Game$removeOpponentCard = F2(
 			});
 	});
 var $author$project$Game$Update$opponentsTurn = function (game) {
-	var currentPercentage = $author$project$Game$currentPercentage(game);
+	var probabilities = A2(
+		$author$project$Game$Evaluate$probabilities,
+		{
+			deck: A2(
+				$elm$core$List$map,
+				function ($) {
+					return $.suit;
+				},
+				_Utils_ap(game.outOfPlay, game.yourCards)),
+			open: A2(
+				$elm$core$List$map,
+				function ($) {
+					return $.suit;
+				},
+				_Utils_ap(game.opponentCards, game.playedCards))
+		},
+		_Utils_ap(
+			game.opponentCards,
+			A2($elm$core$List$take, 1, game.playedCards)));
 	return A2(
+		$elm$core$Maybe$withDefault,
+		true,
+		A2(
+			$elm$core$Maybe$map,
+			function (currentProbability) {
+				return currentProbability > 0;
+			},
+			A2(
+				$elm$core$Maybe$andThen,
+				function (card) {
+					return A2(
+						$elm$core$Dict$get,
+						$author$project$Goal$description(card.goal),
+						probabilities);
+				},
+				$elm$core$List$head(game.playedCards)))) ? A2(
 		$elm$core$Maybe$withDefault,
 		$elm$random$Random$constant($elm$core$Maybe$Nothing),
 		A2(
@@ -6973,7 +7042,7 @@ var $author$project$Game$Update$opponentsTurn = function (game) {
 								A2(
 									$elm$core$Dict$get,
 									$author$project$Goal$description(card.goal),
-									game.probabilities))) < 0) || (currentPercentage === 100)) ? $elm$core$Maybe$Just(
+									probabilities))) < 0) || ($author$project$Game$currentPercentage(game) === 100)) ? $elm$core$Maybe$Just(
 							A2(
 								$author$project$Game$playCard,
 								card,
@@ -6991,7 +7060,7 @@ var $author$project$Game$Update$opponentsTurn = function (game) {
 							A2(
 								$elm$core$Dict$get,
 								$author$project$Goal$description(card.goal),
-								game.probabilities));
+								probabilities));
 					},
 					A2(
 						$elm$core$List$filter,
@@ -7004,9 +7073,9 @@ var $author$project$Game$Update$opponentsTurn = function (game) {
 										$elm$core$Dict$get,
 										$author$project$Goal$description(card.goal),
 										game.probabilities)),
-								currentPercentage) < 1;
+								$author$project$Game$currentPercentage(game)) < 1;
 						},
-						game.opponentCards)))));
+						game.opponentCards))))) : $elm$random$Random$constant($elm$core$Maybe$Nothing);
 };
 var $author$project$Main$requestOpponentTurn = function (model) {
 	return function (_v0) {
@@ -7537,8 +7606,17 @@ var $author$project$View$Goal$viewChallenge = F2(
 					$elm$core$Maybe$Just(suit));
 			case 'ThreeOfAKind':
 				return A3($author$project$View$Goal$viewSuits, args, 3, $elm$core$Maybe$Nothing);
-			default:
+			case 'FourOf':
+				var suit = category.a;
+				return A3(
+					$author$project$View$Goal$viewSuits,
+					args,
+					4,
+					$elm$core$Maybe$Just(suit));
+			case 'FourOfAKind':
 				return A3($author$project$View$Goal$viewSuits, args, 4, $elm$core$Maybe$Nothing);
+			default:
+				return A3($author$project$View$Goal$viewSuits, args, 5, $elm$core$Maybe$Nothing);
 		}
 	});
 var $author$project$View$Goal$toHtml = F3(
@@ -7795,9 +7873,9 @@ var $author$project$View$Overlay$shop = F2(
 						]),
 					A2(
 						$elm$core$List$map,
-						function (_v0) {
-							var card = _v0.a;
-							var l = _v0.b;
+						function (_v1) {
+							var card = _v1.a;
+							var l = _v1.b;
 							return A2(
 								$Orasund$elm_layout$Layout$row,
 								_List_fromArray(
@@ -7815,11 +7893,17 @@ var $author$project$View$Overlay$shop = F2(
 										$elm$core$Maybe$Just(card.suit))));
 						},
 						A2(
-							$elm_community$list_extra$List$Extra$gatherEqualsBy,
-							function ($) {
-								return $.suit;
+							$elm$core$List$sortBy,
+							function (_v0) {
+								var l = _v0.b;
+								return $elm$core$List$length(l);
 							},
-							args.deck))),
+							A2(
+								$elm_community$list_extra$List$Extra$gatherEqualsBy,
+								function ($) {
+									return $.suit;
+								},
+								args.deck)))),
 					A2(
 					$Orasund$elm_layout$Layout$text,
 					_List_fromArray(
@@ -8340,6 +8424,7 @@ var $author$project$View$Overlay$tutorial = function (args) {
 									$elm$core$List$repeat,
 									2,
 									{goal: _List_Nil, suit: $author$project$Suit$Heart}),
+								outOfPlay: _List_Nil,
 								playedCards: _List_fromArray(
 									[
 										{

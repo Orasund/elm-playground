@@ -27,6 +27,7 @@ shop :
 shop args list =
     [ args.deck
         |> List.Extra.gatherEqualsBy .suit
+        |> List.sortBy (\( _, l ) -> List.length l)
         |> List.map
             (\( card, l ) ->
                 card.suit

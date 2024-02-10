@@ -94,8 +94,14 @@ viewChallenge args category =
         ThreeOfAKind ->
             viewSuits args 3 Nothing
 
+        FourOf suit ->
+            viewSuits args 4 (Just suit)
+
         FourOfAKind ->
             viewSuits args 4 Nothing
+
+        FiveOfAKind ->
+            viewSuits args 5 Nothing
 
 
 toHtml : List (Attribute msg) -> { big : Bool } -> Goal -> Html msg

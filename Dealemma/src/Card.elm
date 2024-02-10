@@ -24,7 +24,8 @@ buildCard value goal =
 
 specialCards : List Card
 specialCards =
-    Suit.asList
+    Suit.Star
+        :: Suit.asList
         |> List.concatMap
             (\suit ->
                 Goal.special
