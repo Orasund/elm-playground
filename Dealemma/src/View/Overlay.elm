@@ -3,7 +3,7 @@ module View.Overlay exposing (..)
 import Card exposing (Card)
 import Config
 import Dict exposing (Dict)
-import Game exposing (CardId, Game)
+import Game exposing (Game)
 import Game.Area
 import Game.Entity
 import Goal exposing (Category(..))

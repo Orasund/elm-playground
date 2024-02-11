@@ -73,10 +73,10 @@ toHtml attrs args ( cardId, card ) =
             (\a ->
                 front
                     (if args.active then
-                        [ Html.Attributes.style "border" "4px solid #679aff" ] ++ a
+                        Html.Attributes.style "border" "4px solid #679aff" :: a
 
                      else
-                        [ Html.Attributes.style "color" "rgba(0,0,0,0.5)" ] ++ a
+                        Html.Attributes.style "color" "rgba(0,0,0,0.5)" :: a
                     )
                     args
                     card

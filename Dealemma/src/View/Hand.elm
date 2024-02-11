@@ -6,7 +6,6 @@ import Game exposing (CardId)
 import Game.Area
 import Goal
 import Html exposing (Attribute, Html)
-import Html.Attributes
 import Html.Style
 import Layout
 import View.Card
