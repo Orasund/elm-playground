@@ -5,9 +5,11 @@ import BugSpecies exposing (BugSpecies)
 import Config
 import Dict
 import Game exposing (Game)
+import Game.Update
 import Html
 import Html.Attributes
 import Html.Events
+import Html.Style
 import Layout
 import Process
 import Random exposing (Seed)
@@ -89,7 +91,7 @@ view model =
                 [ Html.Attributes.style "background-color" "rgba(255,255,255,0.2)"
                 , Html.Attributes.style "height" "48px"
                 , Html.Attributes.style "border-radius" "10000px"
-                , Layout.alignCenter
+                , Html.Style.alignItemsCenter
                 ]
         , List.range 0 (Config.gridSize - 1)
             |> List.map
@@ -135,9 +137,9 @@ view model =
                                         , Html.Attributes.style "text-decoration" "none"
                                         ]
                             )
-                        |> Layout.row [ Layout.noWrap, Layout.spacing 8 ]
+                        |> Layout.row [ Layout.noWrap, Layout.gap 8 ]
                 )
-            |> Layout.column (Layout.centered ++ [ Layout.spacing 8 ])
+            |> Layout.column (Layout.centered ++ [ Layout.gap 8 ])
         , [ "Turns remaining: " |> Html.text
           , (Config.maxTurns - model.game.turn |> String.fromInt)
                 |> Html.text
@@ -153,9 +155,9 @@ view model =
           ]
             |> Layout.row
                 [ Html.Attributes.style "justify-content" "flex-end"
-                , Layout.alignCenter
+                , Html.Style.alignItemsCenter
                 , Html.Attributes.style "height" "48px"
-                , Layout.spacing 16
+                , Layout.gap 16
                 ]
         , Layout.none
             |> Layout.container
@@ -178,7 +180,7 @@ view model =
                 |> Layout.el
                     [ Html.Attributes.style "padding" "8px 16px"
                     , Html.Attributes.style "height" "48px"
-                    , Layout.alignCenter
+                    , Html.Style.alignItemsCenter
                     ]
             , (BugSpecies.list
                 |> List.map
@@ -206,8 +208,8 @@ view model =
                 |> Layout.row
                     [ Html.Attributes.style "padding" "16px"
                     , Html.Attributes.style "font-size" "20px"
-                    , Layout.alignCenter
-                    , Layout.spacing 16
+                    , Html.Style.alignItemsCenter
+                    , Layout.gap 16
                     ]
             ]
 
@@ -216,7 +218,7 @@ view model =
                     |> Html.text
                     |> Layout.el
                         [ Html.Attributes.style "padding" "8px 16px"
-                        , Layout.alignCenter
+                        , Html.Style.alignItemsCenter
                         ]
               , (model.game.collectedBugs
                     |> AnySet.toList
@@ -227,10 +229,14 @@ view model =
                     |> Layout.el
                         [ Html.Attributes.style "padding" "8px 16px"
                         , Html.Attributes.style "font-size" "20px"
-                        , Layout.alignCenter
+                        , Html.Style.alignItemsCenter
                         ]
               ]
-                |> Layout.row [ Html.Attributes.style "height" "48px", Layout.alignCenter, Layout.spaceBetween ]
+                |> Layout.row
+                    [ Html.Attributes.style "height" "48px"
+                    , Html.Style.alignItemsCenter
+                    , Layout.contentWithSpaceBetween
+                    ]
                 |> List.singleton
                 |> Html.a
                     [ Html.Attributes.href "#"
@@ -257,7 +263,11 @@ view model =
                        ]
                 )
         ]
-            |> Layout.column [ Layout.spacing 8, Html.Attributes.style "height" "100%", Layout.centerContent ]
+            |> Layout.column
+                [ Layout.gap 8
+                , Html.Attributes.style "height" "100%"
+                , Html.Style.justifyContentCenter
+                ]
             |> Layout.container
                 (Layout.centered
                     ++ [ Html.Attributes.style "background-image" "linear-gradient(#D1884D,#466D22)"
@@ -303,7 +313,7 @@ update msg model =
                         (model.game
                             |> Game.removeCatchedBugs
                             |> Game.reveal pos
-                            |> Game.moveBugs
+                            |> Game.Update.moveBugs
                             |> Random.map (Game.removeLeafs pos)
                         )
                     |> (\( game, newSeed ) ->

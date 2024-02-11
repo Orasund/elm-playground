@@ -1,0 +1,14 @@
+{
+  "name": "bugsweeper",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "elm-live src/Main.elm -- --output=elm.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "elm-live": "^4.0.2"
+  }
+}
