@@ -1,4 +1,4 @@
-module Game exposing (Bug, Game, nearestBug, new, positions, removeCatchedBugs, removeLeafs, reveal)
+module Game exposing (Bug, Game, isValidPos, nearestBug, placeBug, placeTile, removeCatchedBugs, removeLeafs, reveal)
 
 import BugSpecies exposing (BugSpecies(..))
 import Config
@@ -24,43 +24,14 @@ type alias Game =
     }
 
 
-new : Int -> AnySet String BugSpecies -> Generator Game
-new level collectedBugs =
-    positions
-        |> Random.List.choices Config.leafAmount
-        |> Random.andThen
-            (\( leafs, rest ) ->
-                rest
-                    |> Random.List.choices Config.stoneAmount
-                    |> Random.andThen
-                        (\( stones, rest2 ) ->
-                            Random.map2
-                                (\( bugs, _ ) list ->
-                                    { grid =
-                                        List.map (\pos -> ( pos, Leaf )) leafs
-                                            ++ List.map (\pos -> ( pos, Stone )) stones
-                                            |> Dict.fromList
-                                    , bugs =
-                                        List.map2
-                                            (\pos species ->
-                                                ( pos
-                                                , { visible = False
-                                                  , species = species
-                                                  }
-                                                )
-                                            )
-                                            bugs
-                                            list
-                                            |> Dict.fromList
-                                    , collectedBugs = collectedBugs
-                                    , turn = 0
-                                    , level = level
-                                    }
-                                )
-                                (Random.List.choices Config.bugAmount rest2)
-                                (Random.list Config.bugAmount (BugSpecies.generate level))
-                        )
-            )
+placeTile : ( Int, Int ) -> Tile -> Game -> Game
+placeTile pos tile game =
+    { game | grid = Dict.insert pos tile game.grid }
+
+
+placeBug : ( Int, Int ) -> BugSpecies -> Game -> Game
+placeBug pos bug game =
+    { game | bugs = Dict.insert pos { visible = False, species = bug } game.bugs }
 
 
 reveal : ( Int, Int ) -> Game -> Game
@@ -87,16 +58,6 @@ reveal pos game =
                     { game
                         | grid = game.grid |> Dict.insert pos Leaf
                     }
-
-
-positions : List ( Int, Int )
-positions =
-    List.range 0 (Config.gridSize - 1)
-        |> List.concatMap
-            (\x ->
-                List.range 0 (Config.gridSize - 1)
-                    |> List.map (Tuple.pair x)
-            )
 
 
 removeCatchedBugs : Game -> Game
@@ -169,3 +130,11 @@ nearestBug ( x0, y0 ) game =
             )
         |> List.minimum
         |> Maybe.withDefault 0
+
+
+isValidPos : ( Int, Int ) -> Bool
+isValidPos ( x, y ) =
+    (0 <= x)
+        && (x < Config.gridSize)
+        && (0 <= y)
+        && (y < Config.gridSize)

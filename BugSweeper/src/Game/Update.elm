@@ -1,7 +1,6 @@
 module Game.Update exposing (moveBugs)
 
 import BugSpecies exposing (BugSpecies(..))
-import Config
 import Dict
 import Game exposing (Bug, Game)
 import Random exposing (Generator)
@@ -28,43 +27,9 @@ moveBugs game =
 
 moveBug : ( Int, Int ) -> Bug -> Game -> Random Game
 moveBug ( x, y ) bug g =
-    (case bug.species of
-        Grasshopper ->
-            [ ( x + 1, y + 1 )
-            , ( x + 1, y - 1 )
-            , ( x - 1, y + 1 )
-            , ( x - 1, y - 1 )
-            , ( x, y - 2 )
-            , ( x - 2, y )
-            , ( x, y + 2 )
-            , ( x + 2, y )
-            ]
-
-        LadyBeetle ->
-            [ ( x, y - 1 )
-            , ( x - 1, y )
-            , ( x, y + 1 )
-            , ( x + 1, y )
-            , ( x, y - 2 )
-            , ( x - 2, y )
-            , ( x, y + 2 )
-            , ( x + 2, y )
-            ]
-
-        _ ->
-            [ ( x, y - 1 )
-            , ( x - 1, y )
-            , ( x, y + 1 )
-            , ( x + 1, y )
-            ]
-    )
-        |> List.filter
-            (\( x0, y0 ) ->
-                (0 <= x0)
-                    && (x0 < Config.gridSize)
-                    && (0 <= y0)
-                    && (y0 < Config.gridSize)
-            )
+    bug.species
+        |> BugSpecies.movement ( x, y )
+        |> List.filter Game.isValidPos
         |> List.filterMap
             (\p ->
                 case ( g.grid |> Dict.get p, g.bugs |> Dict.get p ) of

@@ -5,6 +5,7 @@ import BugSpecies exposing (BugSpecies)
 import Config
 import Dict
 import Game exposing (Game)
+import Game.Generate
 import Game.Update
 import Html
 import Html.Attributes
@@ -39,7 +40,7 @@ init () =
 
         ( game, _ ) =
             seed
-                |> Random.step (Game.new 1 (AnySet.empty BugSpecies.toString))
+                |> Random.step (Game.Generate.new 1 (AnySet.empty BugSpecies.toString))
     in
     ( { game = game
       , seed = seed
@@ -270,7 +271,7 @@ view model =
                 ]
             |> Layout.container
                 (Layout.centered
-                    ++ [ Html.Attributes.style "background-image" "linear-gradient(#D1884D,#466D22)"
+                    ++ [ Html.Attributes.style "background-image" "linear-gradient(#D1884D,#6a9047)"
                        ]
                 )
             |> List.singleton
@@ -282,7 +283,7 @@ update msg model =
     case msg of
         NewGame { seed, collectedBugs, level } ->
             seed
-                |> Random.step (Game.new level collectedBugs |> Random.map (Game.removeLeafs ( -1, -1 )))
+                |> Random.step (Game.Generate.new level collectedBugs |> Random.map (Game.removeLeafs ( -1, -1 )))
                 |> (\( game, newSeed ) ->
                         ( { game = game
                           , seed = newSeed
