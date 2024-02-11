@@ -1,10 +1,12 @@
-module Game.Generate exposing (..)
+module Game.Generate exposing (new)
 
 import BugSpecies exposing (BugSpecies(..))
 import Config
 import Dict exposing (Dict)
 import Game exposing (Game)
 import Random exposing (Generator)
+import Random.List
+import Set
 import Set.Any exposing (AnySet)
 import Tile exposing (Tile(..))
 
@@ -28,6 +30,7 @@ new level collectedBugs =
             , collectedBugs = collectedBugs
             , turn = 0
             , level = level
+            , revealed = Set.empty
             }
     in
     Random.list Config.bugAmount (BugSpecies.generate level |> Random.map BugBlock)
@@ -58,20 +61,49 @@ new level collectedBugs =
             )
 
 
+requirementsOf : BugSpecies -> List ( Int, Block )
+requirementsOf bug =
+    case bug of
+        Ant ->
+            [ ( 4, EmptyBlock ) ]
+
+        Caterpillar ->
+            [ ( 3, TileBlock Leaf ) ]
+
+        Worm ->
+            [ ( 4, TileBlock Stone ) ]
+
+        Snail ->
+            [ ( 1, TileBlock Stone ) ]
+
+        Grasshopper ->
+            [ ( 1, TileBlock Leaf ) ]
+
+        Beetle ->
+            [ ( 1, TileBlock Leaf )
+            , ( 1, TileBlock Wood )
+            ]
+
+        LadyBeetle ->
+            [ ( 1, TileBlock Wood ) ]
+
+        Spider ->
+            [ ( 1, TileBlock SpiderWeb ) ]
+
+        Cockroach ->
+            [ ( 1, TileBlock Wood )
+            , ( 1, TileBlock Stone )
+            ]
+
+        Butterfly ->
+            []
+
+
 place : Block -> Dict ( Int, Int ) Block -> Random (Dict ( Int, Int ) Block)
 place block =
     case block of
         TileBlock tile ->
             placeTile tile
-
-        BugBlock Ant ->
-            placeAnt
-
-        BugBlock Caterpillar ->
-            placeCaterpillar
-
-        BugBlock Worm ->
-            placeWorm
 
         BugBlock bug ->
             placeBug bug
@@ -102,117 +134,83 @@ placeTile tile game =
             Random.constant game
 
 
-placeAnt : Dict ( Int, Int ) Block -> Random (Dict ( Int, Int ) Block)
-placeAnt dict =
+placeBug : BugSpecies -> Dict ( Int, Int ) Block -> Random (Dict ( Int, Int ) Block)
+placeBug bug dict =
+    let
+        requirements =
+            requirementsOf bug
+    in
     dict
         |> emptyPositions
         |> List.filter
-            (\( x, y ) ->
-                neighborsOf ( x, y )
-                    |> List.all
-                        (\pos ->
-                            Dict.get pos dict
-                                |> Maybe.map ((==) EmptyBlock)
-                                |> Maybe.withDefault True
-                        )
-            )
-        |> (\list ->
-                case list of
-                    head :: tail ->
-                        Random.uniform head tail
-                            |> Random.map
-                                (\pos ->
-                                    neighborsOf pos
-                                        |> List.foldl (\p -> Dict.insert p EmptyBlock)
-                                            dict
-                                        |> Dict.insert pos (BugBlock Ant)
+            (\pos ->
+                let
+                    neighbors =
+                        neighborsOf pos
+                            |> List.map
+                                (\p ->
+                                    Dict.get p dict
+                                        |> Tuple.pair p
                                 )
 
-                    [] ->
-                        Random.constant dict
-           )
+                    requirementsAreMet =
+                        requirements
+                            |> List.all
+                                (\( n, block ) ->
+                                    n
+                                        <= (neighbors
+                                                |> List.filter (\( _, maybe ) -> maybe == Just block || maybe == Nothing)
+                                                |> List.length
+                                           )
+                                )
 
-
-placeCaterpillar : Dict ( Int, Int ) Block -> Random (Dict ( Int, Int ) Block)
-placeCaterpillar dict =
-    dict
-        |> emptyPositions
-        |> List.filter
-            (\( x, y ) ->
-                neighborsOf ( x, y )
-                    |> List.any
-                        (\pos ->
-                            Dict.get pos dict
-                                |> Maybe.map ((==) (TileBlock Leaf))
-                                |> Maybe.withDefault True
-                        )
+                    enoughSpace =
+                        (requirements |> List.map Tuple.first |> List.sum)
+                            <= (neighbors
+                                    |> List.filter
+                                        (\( _, maybe ) ->
+                                            maybe
+                                                |> Maybe.map (\block -> requirements |> List.any (\( _, b ) -> b == block))
+                                                |> Maybe.withDefault True
+                                        )
+                                    |> List.length
+                               )
+                in
+                requirementsAreMet && enoughSpace
             )
         |> pick
         |> Maybe.map
             (Random.andThen
                 (\pos ->
-                    ensureAtLeastOneOf (TileBlock Leaf) pos dict
-                        |> Random.map (Dict.insert pos (BugBlock Caterpillar))
+                    requirements
+                        |> List.foldl
+                            (\( n, block ) ->
+                                Random.andThen (ensureAtLeast n block pos)
+                            )
+                            (Random.constant dict)
+                        |> Random.map (Dict.insert pos (BugBlock bug))
                 )
             )
         |> Maybe.withDefault (Random.constant dict)
 
 
-placeWorm : Dict ( Int, Int ) Block -> Random (Dict ( Int, Int ) Block)
-placeWorm dict =
-    dict
-        |> emptyPositions
-        |> List.filter
-            (\( x, y ) ->
-                neighborsOf ( x, y )
-                    |> List.any
-                        (\pos ->
-                            Dict.get pos dict
-                                |> Maybe.map ((==) (TileBlock Stone))
-                                |> Maybe.withDefault True
-                        )
+ensureAtLeast : Int -> Block -> ( Int, Int ) -> Dict ( Int, Int ) Block -> Random (Dict ( Int, Int ) Block)
+ensureAtLeast n block pos dict =
+    let
+        remaining =
+            n
+                - (neighborsOf pos
+                    |> List.filter (\p -> Dict.get p dict == Just block)
+                    |> List.length
+                  )
+    in
+    neighborsOf pos
+        |> List.filter (\p -> Dict.member p dict |> not)
+        |> Random.List.choices remaining
+        |> Random.map
+            (\( l, _ ) ->
+                l |> List.foldl (\p -> Dict.insert p block) dict
             )
-        |> pick
-        |> Maybe.map
-            (Random.andThen
-                (\pos ->
-                    ensureAtLeastOneOf (TileBlock Stone) pos dict
-                        |> Random.map (Dict.insert pos (BugBlock Worm))
-                )
-            )
-        |> Maybe.withDefault (Random.constant dict)
-
-
-placeBug : BugSpecies -> Dict ( Int, Int ) Block -> Random (Dict ( Int, Int ) Block)
-placeBug bug game =
-    case emptyPositions game of
-        head :: tail ->
-            Random.uniform head tail
-                |> Random.map (\pos -> Dict.insert pos (BugBlock bug) game)
-
-        [] ->
-            Random.constant game
-
-
-ensureAtLeastOneOf : Block -> ( Int, Int ) -> Dict ( Int, Int ) Block -> Random (Dict ( Int, Int ) Block)
-ensureAtLeastOneOf block pos dict =
-    if
-        neighborsOf pos
-            |> List.any (\p -> Dict.get p dict == Just block)
-    then
-        Random.constant dict
-
-    else
-        neighborsOf pos
-            |> List.filter (\p -> Dict.member p dict |> not)
-            |> pick
-            |> Maybe.map
-                (Random.map
-                    (\p ->
-                        Dict.insert p block dict
-                    )
-                )
-            |> Maybe.withDefault (Random.constant dict)
 
 
 pick : List a -> Maybe (Random a)
@@ -228,6 +226,7 @@ pick list =
 neighborsOf : ( Int, Int ) -> List ( Int, Int )
 neighborsOf ( x, y ) =
     [ ( x + 1, y ), ( x - 1, y ), ( x, y + 1 ), ( x, y - 1 ) ]
+        |> List.filter Game.isValidPos
 
 
 emptyPositions : Dict ( Int, Int ) Block -> List ( Int, Int )

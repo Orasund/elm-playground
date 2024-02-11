@@ -6,7 +6,6 @@ import Config
 import Dict
 import Game exposing (Game)
 import Game.Generate
-import Game.Update
 import Html
 import Html.Attributes
 import Html.Events
@@ -14,6 +13,7 @@ import Html.Style
 import Layout
 import Process
 import Random exposing (Seed)
+import Set
 import Set.Any as AnySet exposing (AnySet)
 import Task
 import Tile exposing (Tile(..))
@@ -65,12 +65,12 @@ view model =
         [ (model.game.bugs
             |> Dict.toList
             |> List.filterMap
-                (\( _, { visible, species } ) ->
-                    if not visible then
-                        Just species
+                (\( pos, species ) ->
+                    if Set.member pos model.game.revealed then
+                        Nothing
 
                     else
-                        Nothing
+                        Just species
                 )
             |> List.map
                 (\species ->
@@ -100,21 +100,21 @@ view model =
                     List.range 0 (Config.gridSize - 1)
                         |> List.map
                             (\x ->
-                                (case model.game.grid |> Dict.get ( x, y ) of
-                                    Just tile ->
-                                        Tile.toString tile
+                                (if Set.member ( x, y ) model.game.revealed then
+                                    case model.game.grid |> Dict.get ( x, y ) of
+                                        Just tile ->
+                                            Tile.toString tile
 
-                                    Nothing ->
-                                        case model.game.bugs |> Dict.get ( x, y ) of
-                                            Just { visible, species } ->
-                                                if not Config.hideBugs || visible then
+                                        Nothing ->
+                                            case model.game.bugs |> Dict.get ( x, y ) of
+                                                Just species ->
                                                     BugSpecies.toString species
 
-                                                else
-                                                    ""
+                                                Nothing ->
+                                                    "❌"
 
-                                            Nothing ->
-                                                ""
+                                 else
+                                    ""
                                 )
                                     |> Tuple.pair ( x, y )
                             )
@@ -141,7 +141,7 @@ view model =
                         |> Layout.row [ Layout.noWrap, Layout.gap 8 ]
                 )
             |> Layout.column (Layout.centered ++ [ Layout.gap 8 ])
-        , [ "Turns remaining: " |> Html.text
+        , [ "Remaining guesses: " |> Html.text
           , (Config.maxTurns - model.game.turn |> String.fromInt)
                 |> Html.text
                 |> Layout.el
@@ -283,7 +283,7 @@ update msg model =
     case msg of
         NewGame { seed, collectedBugs, level } ->
             seed
-                |> Random.step (Game.Generate.new level collectedBugs |> Random.map (Game.removeLeafs ( -1, -1 )))
+                |> Random.step (Game.Generate.new level collectedBugs)
                 |> (\( game, newSeed ) ->
                         ( { game = game
                           , seed = newSeed
@@ -309,22 +309,9 @@ update msg model =
                 )
 
             else
-                model.seed
-                    |> Random.step
-                        (model.game
-                            |> Game.removeCatchedBugs
-                            |> Game.reveal pos
-                            |> Game.Update.moveBugs
-                            |> Random.map (Game.removeLeafs pos)
-                        )
-                    |> (\( game, newSeed ) ->
-                            ( { model
-                                | game = { game | turn = game.turn + 1 }
-                                , seed = newSeed
-                              }
-                            , Cmd.none
-                            )
-                       )
+                model.game
+                    |> Game.reveal pos
+                    |> (\game -> ( { model | game = game }, Cmd.none ))
 
         ToggleViewCollection ->
             ( { model | viewCollection = not model.viewCollection }, Cmd.none )

@@ -8,7 +8,7 @@ gridSize =
 
 maxTurns : Int
 maxTurns =
-    10
+    5
 
 
 leafAmount : Int

@@ -13,11 +13,22 @@ type BugSpecies
     | Worm
     | Caterpillar
     | Ant
+    | Butterfly
 
 
 list : List BugSpecies
 list =
-    [ Worm, Caterpillar, Ant, Snail, Beetle, Cockroach, LadyBeetle, Grasshopper, Spider ]
+    [ Worm
+    , Caterpillar
+    , Grasshopper
+    , Snail
+    , Beetle
+    , Cockroach
+    , LadyBeetle
+    , Spider
+    , Ant
+    , Butterfly
+    ]
 
 
 generate : Int -> Generator BugSpecies
@@ -66,51 +77,5 @@ toString species =
         Ant ->
             "🐜"
 
-
-movement : ( Int, Int ) -> BugSpecies -> List ( Int, Int )
-movement ( x, y ) species =
-    let
-        default =
-            [ ( x, y - 1 )
-            , ( x - 1, y )
-            , ( x, y + 1 )
-            , ( x + 1, y )
-            ]
-    in
-    case species of
-        Grasshopper ->
-            [ ( x + 1, y + 1 )
-            , ( x + 1, y - 1 )
-            , ( x - 1, y + 1 )
-            , ( x - 1, y - 1 )
-            , ( x, y - 2 )
-            , ( x - 2, y )
-            , ( x, y + 2 )
-            , ( x + 2, y )
-            ]
-
-        LadyBeetle ->
-            [ ( x, y - 1 )
-            , ( x - 1, y )
-            , ( x, y + 1 )
-            , ( x + 1, y )
-            , ( x, y - 2 )
-            , ( x - 2, y )
-            , ( x, y + 2 )
-            , ( x + 2, y )
-            ]
-
-        Beetle ->
-            default
-
-        Cockroach ->
-            default
-
-        Spider ->
-            default
-
-        Snail ->
-            default
-
-        _ ->
-            []
+        Butterfly ->
+            "🦋"

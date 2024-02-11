@@ -5,16 +5,20 @@ type Tile
     = Stone
     | Leaf
     | SpiderWeb
+    | Wood
 
 
 toString : Tile -> String
 toString tile =
     case tile of
         Stone ->
-            "\u{1FAA8}"
+            "🪨"
 
         Leaf ->
             "🍂"
+
+        Wood ->
+            "🪵"
 
         SpiderWeb ->
             "🕸️"
