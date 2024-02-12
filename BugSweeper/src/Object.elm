@@ -1,14 +1,14 @@
-module Tile exposing (Tile(..), toString)
+module Object exposing (Object(..), toString)
 
 
-type Tile
+type Object
     = Stone
     | Leaf
     | SpiderWeb
     | Wood
 
 
-toString : Tile -> String
+toString : Object -> String
 toString tile =
     case tile of
         Stone ->

@@ -3,9 +3,9 @@ module Game exposing (Bug, Game, isValidPos, placeBug, placeTile, reveal)
 import BugSpecies exposing (BugSpecies(..))
 import Config
 import Dict exposing (Dict)
+import Object exposing (Object(..))
 import Set exposing (Set)
 import Set.Any as AnySet exposing (AnySet)
-import Tile exposing (Tile(..))
 
 
 type alias Bug =
@@ -15,7 +15,7 @@ type alias Bug =
 
 
 type alias Game =
-    { grid : Dict ( Int, Int ) Tile
+    { grid : Dict ( Int, Int ) Object
     , bugs : Dict ( Int, Int ) BugSpecies
     , collectedBugs : AnySet String BugSpecies
     , turn : Int
@@ -24,7 +24,7 @@ type alias Game =
     }
 
 
-placeTile : ( Int, Int ) -> Tile -> Game -> Game
+placeTile : ( Int, Int ) -> Object -> Game -> Game
 placeTile pos tile game =
     { game | grid = Dict.insert pos tile game.grid }
 

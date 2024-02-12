@@ -4,11 +4,11 @@ import BugSpecies exposing (BugSpecies(..))
 import Config
 import Dict exposing (Dict)
 import Game exposing (Game)
+import Object exposing (Object(..))
 import Random exposing (Generator)
 import Random.List
 import Set
 import Set.Any exposing (AnySet)
-import Tile exposing (Tile(..))
 
 
 type alias Random a =
@@ -16,7 +16,7 @@ type alias Random a =
 
 
 type Block
-    = TileBlock Tile
+    = ObjectBlock Object
     | BugBlock BugSpecies
     | EmptyBlock
 
@@ -48,7 +48,7 @@ new level collectedBugs =
                     |> Dict.foldl
                         (\pos block ->
                             case block of
-                                TileBlock tile ->
+                                ObjectBlock tile ->
                                     Game.placeTile pos tile
 
                                 BugBlock bug ->
@@ -64,7 +64,7 @@ new level collectedBugs =
 place : Block -> Dict ( Int, Int ) Block -> Random (Dict ( Int, Int ) Block)
 place block =
     case block of
-        TileBlock tile ->
+        ObjectBlock tile ->
             placeTile tile
 
         BugBlock bug ->
@@ -85,12 +85,12 @@ placeEmpty dict =
             Random.constant dict
 
 
-placeTile : Tile -> Dict ( Int, Int ) Block -> Random (Dict ( Int, Int ) Block)
+placeTile : Object -> Dict ( Int, Int ) Block -> Random (Dict ( Int, Int ) Block)
 placeTile tile game =
     case emptyPositions game of
         head :: tail ->
             Random.uniform head tail
-                |> Random.map (\pos -> Dict.insert pos (TileBlock tile) game)
+                |> Random.map (\pos -> Dict.insert pos (ObjectBlock tile) game)
 
         [] ->
             Random.constant game
@@ -125,7 +125,7 @@ placeBug bug dict =
                                                     (\( _, maybe ) ->
                                                         (maybe == Nothing)
                                                             || (block
-                                                                    |> Maybe.map TileBlock
+                                                                    |> Maybe.map ObjectBlock
                                                                     |> Maybe.withDefault EmptyBlock
                                                                     |> Just
                                                                     |> (==) maybe
@@ -147,7 +147,7 @@ placeBug bug dict =
                                                             |> List.any
                                                                 (\( _, maybeTile ) ->
                                                                     maybeTile
-                                                                        |> Maybe.map TileBlock
+                                                                        |> Maybe.map ObjectBlock
                                                                         |> Maybe.withDefault EmptyBlock
                                                                         |> (==) block
                                                                 )
@@ -169,7 +169,7 @@ placeBug bug dict =
                                 Random.andThen
                                     (ensureAtLeast n
                                         (block
-                                            |> Maybe.map TileBlock
+                                            |> Maybe.map ObjectBlock
                                             |> Maybe.withDefault EmptyBlock
                                         )
                                         pos

@@ -7,8 +7,8 @@ import Html.Attributes
 import Html.Events
 import Html.Style
 import Layout
+import Object
 import Set.Any as AnySet exposing (AnySet)
-import Tile
 
 
 maxDrawerHeight =
@@ -49,7 +49,7 @@ detailCard bug =
             |> List.concatMap
                 (\( n, tile ) ->
                     tile
-                        |> Maybe.map Tile.toString
+                        |> Maybe.map Object.toString
                         |> Maybe.withDefault "❌"
                         |> List.repeat n
                 )

@@ -11,12 +11,12 @@ import Html.Attributes
 import Html.Events
 import Html.Style
 import Layout
+import Object exposing (Object(..))
 import Process
 import Random exposing (Seed)
 import Set
 import Set.Any as AnySet exposing (AnySet)
 import Task
-import Tile exposing (Tile(..))
 import View.Collection
 
 
@@ -110,7 +110,7 @@ view model =
                                 (if Set.member ( x, y ) model.game.revealed then
                                     case model.game.grid |> Dict.get ( x, y ) of
                                         Just tile ->
-                                            Tile.toString tile
+                                            Object.toString tile
 
                                         Nothing ->
                                             case model.game.bugs |> Dict.get ( x, y ) of

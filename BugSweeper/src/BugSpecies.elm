@@ -1,7 +1,7 @@
 module BugSpecies exposing (..)
 
+import Object exposing (Object(..))
 import Random exposing (Generator)
-import Tile exposing (Tile(..))
 
 
 type BugSpecies
@@ -82,7 +82,7 @@ toString species =
             "🦋"
 
 
-requirementsOf : BugSpecies -> List ( Int, Maybe Tile )
+requirementsOf : BugSpecies -> List ( Int, Maybe Object )
 requirementsOf bug =
     case bug of
         Ant ->
