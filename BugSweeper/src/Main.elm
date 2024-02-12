@@ -19,6 +19,7 @@ import Set
 import Set.Any as AnySet exposing (AnySet)
 import Task
 import View.Collection
+import View.Game
 import View.Summary
 
 
@@ -110,7 +111,7 @@ view model =
             |> Layout.text [ Html.Attributes.style "filter" "brightness(0)" ]
             |> Layout.el
                 [ Html.Attributes.style "padding" "8px 16px"
-                , Html.Attributes.style "background-color" "rgba(255,255,255,0.2)"
+                , Html.Attributes.style "background-color" Color.lightTransparent
                 , Html.Attributes.style "height" "48px"
                 , Html.Attributes.style "width" "fit-content"
                 , Html.Attributes.style "min-width" "48px"
@@ -120,61 +121,12 @@ view model =
                 , Html.Style.boxSizingBorderBox
                 , Html.Style.alignItemsCenter
                 ]
-        , List.range 0 (Config.gridSize - 1)
-            |> List.map
-                (\y ->
-                    List.range 0 (Config.gridSize - 1)
-                        |> List.map
-                            (\x ->
-                                (if Set.member ( x, y ) model.game.revealed then
-                                    case model.game.tiles |> Dict.get ( x, y ) of
-                                        Just (ObjectTile object) ->
-                                            Object.toString object
-
-                                        Just (BugTile bug) ->
-                                            BugSpecies.toString bug
-
-                                        Nothing ->
-                                            "❌"
-
-                                 else
-                                    ""
-                                )
-                                    |> Tuple.pair ( x, y )
-                            )
-                        |> List.map
-                            (\( pos, string ) ->
-                                string
-                                    |> Html.text
-                                    |> Layout.el
-                                        (Layout.centered
-                                            ++ [ Html.Attributes.style "height" "64px"
-                                               , Html.Attributes.style "width" "64px"
-                                               , Html.Attributes.style "border-radius" "8px"
-                                               , Html.Attributes.style "background-color" "white"
-                                               ]
-                                        )
-                                    |> List.singleton
-                                    |> Html.a
-                                        [ Html.Attributes.href "#"
-                                        , Html.Events.onClick (TileClicked pos)
-                                        , Html.Attributes.style "font-size" "30px"
-                                        , Html.Attributes.style "text-decoration" "none"
-                                        ]
-                            )
-                        |> Layout.row [ Layout.noWrap, Layout.gap 8 ]
-                )
-            |> Layout.column
-                (Layout.centered
-                    ++ [ Layout.gap 8
-                       , Html.Attributes.class "emoji-color-font"
-                       ]
-                )
+        , View.Game.board { onSelect = TileClicked } model.game
         , (List.repeat model.game.remainingGuesses "❌" |> String.concat)
             |> Html.text
             |> Layout.el
                 (Layout.centered
-                    ++ [ Html.Attributes.style "background-color" "rgba(255,255,255,0.2)"
+                    ++ [ Html.Attributes.style "background-color" Color.lightTransparent
                        , Html.Attributes.style "height" "48px"
                        , Html.Attributes.style "min-width" "48px"
                        , Html.Attributes.style "border-radius" "10000px"

@@ -55,7 +55,7 @@ detailCard bug =
                 )
             |> String.concat
         )
-            |> Layout.text []
+            |> Layout.text [ Html.Style.justifyContentCenter ]
       ]
         |> Layout.column [ Html.Style.gap "8px" ]
     ]

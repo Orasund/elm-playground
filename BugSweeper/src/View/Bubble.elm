@@ -1,5 +1,6 @@
 module View.Bubble exposing (..)
 
+import Color
 import Html exposing (Attribute, Html)
 import Html.Attributes
 import Html.Style
@@ -10,7 +11,7 @@ asAttrs : List (Attribute msg)
 asAttrs =
     Layout.centered
         ++ [ Html.Attributes.style "border-radius" "32px"
-           , Html.Attributes.style "background-color" "rgba(0,0,0,0.1)"
+           , Html.Attributes.style "background-color" Color.darkTransparent
            , Html.Attributes.style "height" "48px"
            , Html.Attributes.style "min-width" "48px"
            , Html.Attributes.style "width" "fit-content"
@@ -49,7 +50,7 @@ button attrs args =
     default
         (Layout.asButton args
             ++ [ Html.Attributes.style "background-color" "transparent"
-               , Html.Attributes.style "border" "4px solid rgba(0,0,0,0.1)"
+               , Html.Attributes.style "border" ("4px solid " ++ Color.darkTransparent)
                ]
             ++ attrs
         )
@@ -76,9 +77,6 @@ new attrs string =
             (asAttrs
                 ++ [ Layout.asEl
                    , Html.Style.positionRelative
-
-                   -- , Html.Attributes.style "border" "4px solid yellow"
-                   --, Html.Attributes.style "background-color" "transparent"
                    ]
                 ++ attrs
             )
