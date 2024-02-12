@@ -4,7 +4,7 @@ import Browser exposing (Document)
 import BugSpecies exposing (BugSpecies)
 import Config
 import Dict
-import Game exposing (Game)
+import Game exposing (Game, Tile(..))
 import Game.Generate
 import Html
 import Html.Attributes
@@ -69,26 +69,31 @@ view : Model -> Document Msg
 view model =
     { title = "Bug Sweeper"
     , body =
-        [ (model.game.bugs
+        [ (model.game.tiles
             |> Dict.toList
             |> List.filterMap
-                (\( pos, species ) ->
+                (\( pos, tile ) ->
                     if Set.member pos model.game.revealed then
                         Nothing
 
                     else
-                        Just species
+                        Just tile
                 )
             |> List.map
-                (\species ->
-                    if
-                        model.game.collectedBugs
-                            |> AnySet.member species
-                    then
-                        BugSpecies.toString species
+                (\tile ->
+                    case tile of
+                        BugTile bug ->
+                            if
+                                model.game.collectedBugs
+                                    |> AnySet.member bug
+                            then
+                                BugSpecies.toString bug
 
-                    else
-                        "❓"
+                            else
+                                "❓"
+
+                        ObjectTile object ->
+                            Object.toString object
                 )
             |> List.sort
             |> String.concat
@@ -108,17 +113,15 @@ view model =
                         |> List.map
                             (\x ->
                                 (if Set.member ( x, y ) model.game.revealed then
-                                    case model.game.grid |> Dict.get ( x, y ) of
-                                        Just tile ->
-                                            Object.toString tile
+                                    case model.game.tiles |> Dict.get ( x, y ) of
+                                        Just (ObjectTile object) ->
+                                            Object.toString object
+
+                                        Just (BugTile bug) ->
+                                            BugSpecies.toString bug
 
                                         Nothing ->
-                                            case model.game.bugs |> Dict.get ( x, y ) of
-                                                Just species ->
-                                                    BugSpecies.toString species
-
-                                                Nothing ->
-                                                    "❌"
+                                            "❌"
 
                                  else
                                     ""

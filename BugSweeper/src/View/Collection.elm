@@ -1,7 +1,6 @@
 module View.Collection exposing (closedCollection, detailCard, openCollection)
 
 import BugSpecies exposing (BugSpecies)
-import Game exposing (Bug)
 import Html exposing (Attribute, Html)
 import Html.Attributes
 import Html.Events

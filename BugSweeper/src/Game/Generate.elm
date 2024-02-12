@@ -24,9 +24,9 @@ type Block
 new : Int -> AnySet String BugSpecies -> Random Game
 new level collectedBugs =
     let
+        initGame : Game
         initGame =
-            { grid = Dict.empty
-            , bugs = Dict.empty
+            { tiles = Dict.empty
             , collectedBugs = collectedBugs
             , turn = 0
             , level = level
@@ -49,7 +49,7 @@ new level collectedBugs =
                         (\pos block ->
                             case block of
                                 ObjectBlock tile ->
-                                    Game.placeTile pos tile
+                                    Game.placeObject pos tile
 
                                 BugBlock bug ->
                                     Game.placeBug pos bug

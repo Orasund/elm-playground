@@ -1,4 +1,4 @@
-module Game exposing (Bug, Game, isValidPos, placeBug, placeTile, reveal)
+module Game exposing (Game, Tile(..), isValidPos, placeBug, placeObject, reveal)
 
 import BugSpecies exposing (BugSpecies(..))
 import Config
@@ -8,15 +8,13 @@ import Set exposing (Set)
 import Set.Any as AnySet exposing (AnySet)
 
 
-type alias Bug =
-    { visible : Bool
-    , species : BugSpecies
-    }
+type Tile
+    = BugTile BugSpecies
+    | ObjectTile Object
 
 
 type alias Game =
-    { grid : Dict ( Int, Int ) Object
-    , bugs : Dict ( Int, Int ) BugSpecies
+    { tiles : Dict ( Int, Int ) Tile
     , collectedBugs : AnySet String BugSpecies
     , turn : Int
     , level : Int
@@ -24,35 +22,34 @@ type alias Game =
     }
 
 
-placeTile : ( Int, Int ) -> Object -> Game -> Game
-placeTile pos tile game =
-    { game | grid = Dict.insert pos tile game.grid }
+placeObject : ( Int, Int ) -> Object -> Game -> Game
+placeObject pos tile game =
+    { game | tiles = Dict.insert pos (ObjectTile tile) game.tiles }
 
 
 placeBug : ( Int, Int ) -> BugSpecies -> Game -> Game
 placeBug pos bug game =
-    { game | bugs = Dict.insert pos bug game.bugs }
+    { game | tiles = Dict.insert pos (BugTile bug) game.tiles }
 
 
 reveal : ( Int, Int ) -> Game -> Game
 reveal pos game =
-    case game.bugs |> Dict.get pos of
-        Just bug ->
-            { game
-                | revealed = Set.insert pos game.revealed
-                , collectedBugs = game.collectedBugs |> AnySet.insert bug
-            }
+    { game
+        | revealed = Set.insert pos game.revealed
+        , collectedBugs =
+            case game.tiles |> Dict.get pos of
+                Just (BugTile bug) ->
+                    game.collectedBugs |> AnySet.insert bug
 
-        _ ->
-            { game
-                | revealed = Set.insert pos game.revealed
-                , turn =
-                    if Dict.get pos game.grid == Nothing then
-                        game.turn + 1
+                _ ->
+                    game.collectedBugs
+        , turn =
+            if Dict.get pos game.tiles == Nothing then
+                game.turn + 1
 
-                    else
-                        game.turn
-            }
+            else
+                game.turn
+    }
 
 
 isValidPos : ( Int, Int ) -> Bool
