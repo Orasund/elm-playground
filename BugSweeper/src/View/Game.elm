@@ -1,6 +1,7 @@
 module View.Game exposing (..)
 
 import BugSpecies
+import Collection exposing (Variant(..))
 import Config
 import Dict
 import Game exposing (Game, Tile(..))
@@ -39,7 +40,12 @@ tile attrs ( x, y ) game =
         |> (if revealed then
                 case currentTile of
                     Just (BugTile _) ->
-                        View.Square.revealedAndCaptured attrs
+                        case Dict.get ( x, y ) game.revealed of
+                            Just Royal ->
+                                View.Square.revealedAndSpecialCaptured attrs
+
+                            _ ->
+                                View.Square.revealedAndCaptured attrs
 
                     _ ->
                         View.Square.revealed attrs

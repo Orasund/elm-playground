@@ -21,8 +21,8 @@ list : List BugSpecies
 list =
     [ Worm
     , Caterpillar
-    , Grasshopper
     , Snail
+    , Grasshopper
     , Beetle
     , Cockroach
     , LadyBeetle
@@ -36,7 +36,7 @@ generate : Int -> Generator BugSpecies
 generate level =
     case
         list
-            |> List.drop (level // 2)
+            --|> List.drop (level // 2)
             |> List.take (level + 1)
             |> List.reverse
             |> List.indexedMap (\i species -> ( ((i + 1) ^ 2 + (i + 1)) // 2 |> toFloat, species ))
@@ -95,10 +95,12 @@ requirementsOf bug =
             [ ( 4, Just Stone ) ]
 
         Snail ->
-            [ ( 1, Just Stone ) ]
+            [ ( 2, Just Stone )
+            , ( 1, Just Leaf )
+            ]
 
         Grasshopper ->
-            [ ( 1, Just Leaf ) ]
+            [ ( 2, Just Leaf ) ]
 
         Beetle ->
             [ ( 1, Just Leaf )

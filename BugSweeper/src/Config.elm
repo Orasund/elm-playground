@@ -23,7 +23,7 @@ stoneAmount =
 
 bugAmount : Int
 bugAmount =
-    6
+    4
 
 
 hideBugs =

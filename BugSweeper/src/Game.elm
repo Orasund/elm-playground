@@ -1,4 +1,4 @@
-module Game exposing (Game, Tile(..), empty, isOver, isValidPos, placeBug, placeObject, reveal)
+module Game exposing (Game, Tile(..), empty, isOver, isValidPos, neighborsOf, placeBug, placeObject, reveal)
 
 import BugSpecies exposing (BugSpecies(..))
 import Collection exposing (Collection, Variant(..))
@@ -63,7 +63,17 @@ reveal : ( Int, Int ) -> Game -> Game
 reveal pos game =
     let
         variant =
-            Cute
+            if
+                List.any
+                    (\p ->
+                        Dict.member p game.revealed
+                    )
+                    (neighborsOf pos)
+            then
+                Cute
+
+            else
+                Royal
     in
     { game
         | revealed = Dict.insert pos variant game.revealed
@@ -71,7 +81,7 @@ reveal pos game =
             case Dict.get pos game.tiles of
                 Just (BugTile bug) ->
                     game.collected
-                        |> Collection.insert bug Cute
+                        |> Collection.insert bug variant
 
                 _ ->
                     game.collected
@@ -82,6 +92,16 @@ reveal pos game =
             else
                 game.remainingGuesses
     }
+
+
+neighborsOf : ( Int, Int ) -> List ( Int, Int )
+neighborsOf ( x, y ) =
+    [ ( x + 1, y )
+    , ( x - 1, y )
+    , ( x, y + 1 )
+    , ( x, y - 1 )
+    ]
+        |> List.filter isValidPos
 
 
 isValidPos : ( Int, Int ) -> Bool

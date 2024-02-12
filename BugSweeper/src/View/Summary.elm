@@ -1,7 +1,7 @@
 module View.Summary exposing (..)
 
 import BugSpecies
-import Collection exposing (Collection, Variant)
+import Collection exposing (Collection, Variant(..))
 import Dict exposing (Dict)
 import Game exposing (Tile(..))
 import Html exposing (Html)
@@ -37,20 +37,34 @@ toHtml args =
     [ Layout.text [ Html.Attributes.style "font-size" "32px" ] "Summary"
     , [ Layout.text [] "Bugs found"
       , revealedBugs
-            |> List.map Tuple.second
+            |> List.filterMap
+                (\( pos, bug ) ->
+                    Dict.get pos args.revealed
+                        |> Maybe.map (Tuple.pair bug)
+                )
             |> List.Extra.gatherEquals
-            |> List.sortBy (\( _, l ) -> List.length l)
+            |> List.sortBy (\( ( _, variant ), l ) -> ( Collection.variantToString variant, List.length l ))
             |> List.map
-                (\( bug, l ) ->
+                (\( ( bug, variant ), l ) ->
                     bug
                         |> BugSpecies.toString
                         |> List.repeat (List.length l + 1)
                         |> String.concat
                         |> (if Collection.member bug args.oldCollection then
-                                View.Bubble.default []
+                                case variant of
+                                    Cute ->
+                                        View.Bubble.default []
+
+                                    Royal ->
+                                        View.Bubble.special []
 
                             else
-                                View.Bubble.new []
+                                case variant of
+                                    Cute ->
+                                        View.Bubble.new []
+
+                                    Royal ->
+                                        View.Bubble.newAndSpecial []
                            )
                 )
             |> Layout.row

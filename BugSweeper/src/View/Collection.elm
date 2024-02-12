@@ -1,7 +1,7 @@
 module View.Collection exposing (closedCollection, detailCard, openCollection)
 
 import BugSpecies exposing (BugSpecies)
-import Collection exposing (Collection)
+import Collection exposing (Collection, Variant(..))
 import Html exposing (Attribute, Html)
 import Html.Attributes
 import Html.Events
@@ -89,16 +89,25 @@ openCollection attrs args collectedBugs =
     , (BugSpecies.list
         |> List.map
             (\species ->
-                if collectedBugs |> Collection.member species then
-                    BugSpecies.toString species
-                        |> View.Bubble.button []
-                            { label = "View details of " ++ BugSpecies.toString species
-                            , onPress = Just (args.onSelect species)
-                            }
+                case collectedBugs |> Collection.get species of
+                    [] ->
+                        BugSpecies.toString species
+                            |> View.Bubble.unkown []
 
-                else
-                    BugSpecies.toString species
-                        |> View.Bubble.unkown []
+                    list ->
+                        if List.member Royal list then
+                            BugSpecies.toString species
+                                |> View.Bubble.specialButton []
+                                    { label = "View details of " ++ BugSpecies.toString species
+                                    , onPress = Just (args.onSelect species)
+                                    }
+
+                        else
+                            BugSpecies.toString species
+                                |> View.Bubble.button []
+                                    { label = "View details of " ++ BugSpecies.toString species
+                                    , onPress = Just (args.onSelect species)
+                                    }
             )
       )
         |> Layout.row

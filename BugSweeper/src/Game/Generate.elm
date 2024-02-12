@@ -96,7 +96,7 @@ placeBug bug dict =
             (\pos ->
                 let
                     neighbors =
-                        neighborsOf pos
+                        Game.neighborsOf pos
                             |> List.map
                                 (\p ->
                                     Dict.get p dict
@@ -175,12 +175,12 @@ ensureAtLeast n block pos dict =
     let
         remaining =
             n
-                - (neighborsOf pos
+                - (Game.neighborsOf pos
                     |> List.filter (\p -> Dict.get p dict == Just block)
                     |> List.length
                   )
     in
-    neighborsOf pos
+    Game.neighborsOf pos
         |> List.filter (\p -> Dict.member p dict |> not)
         |> Random.List.choices remaining
         |> Random.map
@@ -197,21 +197,6 @@ pick list =
 
         [] ->
             Nothing
-
-
-neighborsOf : ( Int, Int ) -> List ( Int, Int )
-neighborsOf ( x, y ) =
-    [ ( x + 1, y )
-    , ( x - 1, y )
-    , ( x, y + 1 )
-    , ( x, y - 1 )
-
-    {--, ( x + 1, y - 1 )
-    , ( x + 1, y + 1 )
-    , ( x - 1, y + 1 )
-    , ( x - 1, y - 1 )--}
-    ]
-        |> List.filter Game.isValidPos
 
 
 emptyPositions : Dict ( Int, Int ) Block -> List ( Int, Int )

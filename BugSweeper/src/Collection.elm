@@ -1,4 +1,4 @@
-module Collection exposing (Collection, Variant(..), add, bugs, empty, insert, member)
+module Collection exposing (Collection, Variant(..), add, bugs, empty, get, insert, member, variantToString)
 
 import BugSpecies exposing (BugSpecies)
 import Dict exposing (Dict)
@@ -37,9 +37,22 @@ insert bug variant =
     Dict.update (BugSpecies.toString bug)
         (\maybe ->
             maybe
+                |> Maybe.map
+                    (\entry ->
+                        { entry | variants = Dict.insert (variantToString variant) variant entry.variants }
+                    )
                 |> Maybe.withDefault { bug = bug, variants = Dict.singleton (variantToString variant) variant }
                 |> Just
         )
+
+
+get : BugSpecies -> Collection -> List Variant
+get bug collection =
+    collection
+        |> Dict.get (BugSpecies.toString bug)
+        |> Maybe.map .variants
+        |> Maybe.map Dict.values
+        |> Maybe.withDefault []
 
 
 member : BugSpecies -> Collection -> Bool

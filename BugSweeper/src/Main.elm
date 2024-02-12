@@ -199,7 +199,7 @@ view model =
             |> Layout.container
                 (Layout.centered
                     ++ [ Html.Attributes.style "background-image"
-                            ("linear-gradient(#D1884D," ++ Color.primary ++ ")")
+                            ("linear-gradient(#ffd3af," ++ Color.primary ++ ")")
                        ]
                 )
             |> List.singleton
@@ -216,7 +216,9 @@ update msg model =
                         ( { game = game
                           , seed = newSeed
                           , overlay = Nothing
-                          , oldCollection = model.oldCollection |> Collection.add model.game.collected
+                          , oldCollection =
+                                model.oldCollection
+                                    |> Collection.add model.game.collected
                           }
                         , Cmd.none
                         )
