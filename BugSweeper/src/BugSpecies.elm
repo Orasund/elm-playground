@@ -1,6 +1,7 @@
 module BugSpecies exposing (..)
 
 import Random exposing (Generator)
+import Tile exposing (Tile(..))
 
 
 type BugSpecies
@@ -79,3 +80,41 @@ toString species =
 
         Butterfly ->
             "🦋"
+
+
+requirementsOf : BugSpecies -> List ( Int, Maybe Tile )
+requirementsOf bug =
+    case bug of
+        Ant ->
+            [ ( 4, Nothing ) ]
+
+        Caterpillar ->
+            [ ( 3, Just Leaf ) ]
+
+        Worm ->
+            [ ( 4, Just Stone ) ]
+
+        Snail ->
+            [ ( 1, Just Stone ) ]
+
+        Grasshopper ->
+            [ ( 1, Just Leaf ) ]
+
+        Beetle ->
+            [ ( 1, Just Leaf )
+            , ( 1, Just Wood )
+            ]
+
+        LadyBeetle ->
+            [ ( 1, Just Wood ) ]
+
+        Spider ->
+            [ ( 1, Just SpiderWeb ) ]
+
+        Cockroach ->
+            [ ( 1, Just Wood )
+            , ( 1, Just Stone )
+            ]
+
+        Butterfly ->
+            []

@@ -17,19 +17,26 @@ import Set
 import Set.Any as AnySet exposing (AnySet)
 import Task
 import Tile exposing (Tile(..))
+import View.Collection
+
+
+type Overlay
+    = Collection (Maybe BugSpecies)
 
 
 type alias Model =
     { game : Game
     , seed : Seed
-    , viewCollection : Bool
+    , overlay : Maybe Overlay
     }
 
 
 type Msg
     = NewGame { seed : Seed, collectedBugs : AnySet String BugSpecies, level : Int }
     | TileClicked ( Int, Int )
-    | ToggleViewCollection
+    | SelectBugSpecies BugSpecies
+    | OpenCollection
+    | CloseOverlay
 
 
 init : () -> ( Model, Cmd Msg )
@@ -44,7 +51,7 @@ init () =
     in
     ( { game = game
       , seed = seed
-      , viewCollection = False
+      , overlay = Nothing
       }
     , Random.independentSeed
         |> Random.map
@@ -165,105 +172,35 @@ view model =
                 (Layout.centered
                     ++ [ Html.Attributes.style "background-color" "rgb(70, 109, 34,0.5)"
                        , Html.Attributes.style "backdrop-filter" "blur(2px)"
-                       , Html.Events.onClick ToggleViewCollection
                        ]
-                    ++ (if model.viewCollection then
-                            []
-
-                        else
+                    ++ (if model.overlay == Nothing then
                             [ Html.Attributes.style "display" "none"
                             ]
-                       )
-                )
-        , (if model.viewCollection then
-            [ "Your collection:"
-                |> Html.text
-                |> Layout.el
-                    [ Html.Attributes.style "padding" "8px 16px"
-                    , Html.Attributes.style "height" "48px"
-                    , Html.Style.alignItemsCenter
-                    ]
-            , (BugSpecies.list
-                |> List.map
-                    (\species ->
-                        if model.game.collectedBugs |> AnySet.member species then
-                            BugSpecies.toString species
 
                         else
-                            "❓"
-                    )
-                |> List.map
-                    (\string ->
-                        string
-                            |> Html.text
-                            |> Layout.el
-                                (Layout.centered
-                                    ++ [ Html.Attributes.style "border-radius" "32px"
-                                       , Html.Attributes.style "background-color" "rgba(0,0,0,0.1)"
-                                       , Html.Attributes.style "height" "48px"
-                                       , Html.Attributes.style "width" "48px"
-                                       ]
-                                )
-                    )
-              )
-                |> Layout.row
-                    [ Html.Attributes.style "padding" "16px"
-                    , Html.Attributes.style "font-size" "20px"
-                    , Html.Style.alignItemsCenter
-                    , Layout.gap 16
-                    ]
-            ]
-
-           else
-            [ [ "Your collection:"
-                    |> Html.text
-                    |> Layout.el
-                        [ Html.Attributes.style "padding" "8px 16px"
-                        , Html.Style.alignItemsCenter
-                        ]
-              , (model.game.collectedBugs
-                    |> AnySet.toList
-                    |> List.map BugSpecies.toString
-                    |> String.concat
-                )
-                    |> Html.text
-                    |> Layout.el
-                        [ Html.Attributes.style "padding" "8px 16px"
-                        , Html.Attributes.style "font-size" "20px"
-                        , Html.Style.alignItemsCenter
-                        ]
-              ]
-                |> Layout.row
-                    [ Html.Attributes.style "height" "48px"
-                    , Html.Style.alignItemsCenter
-                    , Layout.contentWithSpaceBetween
-                    ]
-                |> List.singleton
-                |> Html.a
-                    [ Html.Attributes.href "#"
-                    , Html.Events.onClick ToggleViewCollection
-                    , Html.Attributes.style "text-decoration" "none"
-                    , Html.Attributes.style "color" "black"
-                    ]
-            ]
-          )
-            |> Layout.column
-                ((if model.viewCollection then
-                    [ Html.Attributes.style "height" "250px" ]
-
-                  else
-                    [ Html.Attributes.style "height" "48px" ]
-                 )
-                    ++ [ Html.Attributes.style "position" "fixed"
-                       , Html.Attributes.style "bottom" "0px"
-                       , Html.Attributes.style "width" "352px"
-                       , Html.Attributes.style "background-color" "white"
-                       , Html.Attributes.style "border-top-left-radius" "8px"
-                       , Html.Attributes.style "border-top-right-radius" "8px"
-                       , Html.Attributes.style "transition" "height 0.2s"
-                       ]
+                            [ Html.Events.onClick CloseOverlay ]
+                       )
                 )
         ]
+            ++ (case model.overlay of
+                    Just (Collection maybeSelected) ->
+                        [ maybeSelected
+                            |> Maybe.map View.Collection.detailCard
+                            |> Maybe.withDefault (Html.text "")
+                        , View.Collection.openCollection []
+                            { selected = maybeSelected
+                            , onSelect = SelectBugSpecies
+                            }
+                            model.game.collectedBugs
+                        ]
+
+                    Nothing ->
+                        [ View.Collection.closedCollection []
+                            { onOpen = OpenCollection
+                            }
+                            model.game.collectedBugs
+                        ]
+               )
             |> Layout.column
                 [ Layout.gap 8
                 , Html.Attributes.style "height" "100%"
@@ -287,7 +224,7 @@ update msg model =
                 |> (\( game, newSeed ) ->
                         ( { game = game
                           , seed = newSeed
-                          , viewCollection = False
+                          , overlay = Nothing
                           }
                         , Cmd.none
                         )
@@ -313,8 +250,14 @@ update msg model =
                     |> Game.reveal pos
                     |> (\game -> ( { model | game = game }, Cmd.none ))
 
-        ToggleViewCollection ->
-            ( { model | viewCollection = not model.viewCollection }, Cmd.none )
+        SelectBugSpecies bug ->
+            ( { model | overlay = Just (Collection (Just bug)) }, Cmd.none )
+
+        OpenCollection ->
+            ( { model | overlay = Just (Collection Nothing) }, Cmd.none )
+
+        CloseOverlay ->
+            ( { model | overlay = Nothing }, Cmd.none )
 
 
 subscriptions : Model -> Sub Msg

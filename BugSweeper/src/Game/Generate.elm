@@ -61,44 +61,6 @@ new level collectedBugs =
             )
 
 
-requirementsOf : BugSpecies -> List ( Int, Block )
-requirementsOf bug =
-    case bug of
-        Ant ->
-            [ ( 4, EmptyBlock ) ]
-
-        Caterpillar ->
-            [ ( 3, TileBlock Leaf ) ]
-
-        Worm ->
-            [ ( 4, TileBlock Stone ) ]
-
-        Snail ->
-            [ ( 1, TileBlock Stone ) ]
-
-        Grasshopper ->
-            [ ( 1, TileBlock Leaf ) ]
-
-        Beetle ->
-            [ ( 1, TileBlock Leaf )
-            , ( 1, TileBlock Wood )
-            ]
-
-        LadyBeetle ->
-            [ ( 1, TileBlock Wood ) ]
-
-        Spider ->
-            [ ( 1, TileBlock SpiderWeb ) ]
-
-        Cockroach ->
-            [ ( 1, TileBlock Wood )
-            , ( 1, TileBlock Stone )
-            ]
-
-        Butterfly ->
-            []
-
-
 place : Block -> Dict ( Int, Int ) Block -> Random (Dict ( Int, Int ) Block)
 place block =
     case block of
@@ -138,7 +100,7 @@ placeBug : BugSpecies -> Dict ( Int, Int ) Block -> Random (Dict ( Int, Int ) Bl
 placeBug bug dict =
     let
         requirements =
-            requirementsOf bug
+            BugSpecies.requirementsOf bug
     in
     dict
         |> emptyPositions
@@ -159,7 +121,16 @@ placeBug bug dict =
                                 (\( n, block ) ->
                                     n
                                         <= (neighbors
-                                                |> List.filter (\( _, maybe ) -> maybe == Just block || maybe == Nothing)
+                                                |> List.filter
+                                                    (\( _, maybe ) ->
+                                                        (maybe == Nothing)
+                                                            || (block
+                                                                    |> Maybe.map TileBlock
+                                                                    |> Maybe.withDefault EmptyBlock
+                                                                    |> Just
+                                                                    |> (==) maybe
+                                                               )
+                                                    )
                                                 |> List.length
                                            )
                                 )
@@ -170,7 +141,17 @@ placeBug bug dict =
                                     |> List.filter
                                         (\( _, maybe ) ->
                                             maybe
-                                                |> Maybe.map (\block -> requirements |> List.any (\( _, b ) -> b == block))
+                                                |> Maybe.map
+                                                    (\block ->
+                                                        requirements
+                                                            |> List.any
+                                                                (\( _, maybeTile ) ->
+                                                                    maybeTile
+                                                                        |> Maybe.map TileBlock
+                                                                        |> Maybe.withDefault EmptyBlock
+                                                                        |> (==) block
+                                                                )
+                                                    )
                                                 |> Maybe.withDefault True
                                         )
                                     |> List.length
@@ -185,7 +166,14 @@ placeBug bug dict =
                     requirements
                         |> List.foldl
                             (\( n, block ) ->
-                                Random.andThen (ensureAtLeast n block pos)
+                                Random.andThen
+                                    (ensureAtLeast n
+                                        (block
+                                            |> Maybe.map TileBlock
+                                            |> Maybe.withDefault EmptyBlock
+                                        )
+                                        pos
+                                    )
                             )
                             (Random.constant dict)
                         |> Random.map (Dict.insert pos (BugBlock bug))
@@ -225,7 +213,16 @@ pick list =
 
 neighborsOf : ( Int, Int ) -> List ( Int, Int )
 neighborsOf ( x, y ) =
-    [ ( x + 1, y ), ( x - 1, y ), ( x, y + 1 ), ( x, y - 1 ) ]
+    [ ( x + 1, y )
+    , ( x - 1, y )
+    , ( x, y + 1 )
+    , ( x, y - 1 )
+
+    {--, ( x + 1, y - 1 )
+    , ( x + 1, y + 1 )
+    , ( x - 1, y + 1 )
+    , ( x - 1, y - 1 )--}
+    ]
         |> List.filter Game.isValidPos
 
 
