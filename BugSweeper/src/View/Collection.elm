@@ -1,13 +1,13 @@
 module View.Collection exposing (closedCollection, detailCard, openCollection)
 
 import BugSpecies exposing (BugSpecies)
+import Collection exposing (Collection)
 import Html exposing (Attribute, Html)
 import Html.Attributes
 import Html.Events
 import Html.Style
 import Layout
 import Object
-import Set.Any as AnySet exposing (AnySet)
 import View.Bubble
 
 
@@ -76,7 +76,7 @@ openCollection :
         { selected : Maybe BugSpecies
         , onSelect : BugSpecies -> msg
         }
-    -> AnySet String BugSpecies
+    -> Collection
     -> Html msg
 openCollection attrs args collectedBugs =
     [ "Your collection:"
@@ -89,7 +89,7 @@ openCollection attrs args collectedBugs =
     , (BugSpecies.list
         |> List.map
             (\species ->
-                if collectedBugs |> AnySet.member species then
+                if collectedBugs |> Collection.member species then
                     BugSpecies.toString species
                         |> View.Bubble.button []
                             { label = "View details of " ++ BugSpecies.toString species
@@ -121,7 +121,7 @@ openCollection attrs args collectedBugs =
 closedCollection :
     List (Attribute msg)
     -> { onOpen : msg }
-    -> AnySet String BugSpecies
+    -> Collection
     -> Html msg
 closedCollection attrs args collectedBugs =
     [ [ "Your collection:"
@@ -130,7 +130,7 @@ closedCollection attrs args collectedBugs =
                 , Html.Style.alignItemsCenter
                 ]
       , (collectedBugs
-            |> AnySet.toList
+            |> Collection.bugs
             |> List.map BugSpecies.toString
             |> String.concat
         )

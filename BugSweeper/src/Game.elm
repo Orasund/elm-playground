@@ -1,11 +1,10 @@
-module Game exposing (Game, Tile(..), isOver, isValidPos, placeBug, placeObject, reveal)
+module Game exposing (Game, Tile(..), empty, isOver, isValidPos, placeBug, placeObject, reveal)
 
 import BugSpecies exposing (BugSpecies(..))
+import Collection exposing (Collection, Variant(..))
 import Config
 import Dict exposing (Dict)
 import Object exposing (Object(..))
-import Set exposing (Set)
-import Set.Any as AnySet exposing (AnySet)
 
 
 type Tile
@@ -15,10 +14,20 @@ type Tile
 
 type alias Game =
     { tiles : Dict ( Int, Int ) Tile
-    , collectedBugs : AnySet String BugSpecies
     , remainingGuesses : Int
     , level : Int
-    , revealed : Set ( Int, Int )
+    , revealed : Dict ( Int, Int ) Variant
+    , collected : Collection
+    }
+
+
+empty : Int -> Game
+empty level =
+    { tiles = Dict.empty
+    , remainingGuesses = Config.startingGuesses
+    , level = level
+    , revealed = Dict.empty
+    , collected = Dict.empty
     }
 
 
@@ -31,7 +40,7 @@ isOver game =
                     (\pos tile ->
                         case tile of
                             BugTile _ ->
-                                Set.member pos game.revealed |> not
+                                Dict.member pos game.revealed |> not
 
                             _ ->
                                 False
@@ -52,15 +61,20 @@ placeBug pos bug game =
 
 reveal : ( Int, Int ) -> Game -> Game
 reveal pos game =
+    let
+        variant =
+            Cute
+    in
     { game
-        | revealed = Set.insert pos game.revealed
-        , collectedBugs =
-            case game.tiles |> Dict.get pos of
+        | revealed = Dict.insert pos variant game.revealed
+        , collected =
+            case Dict.get pos game.tiles of
                 Just (BugTile bug) ->
-                    game.collectedBugs |> AnySet.insert bug
+                    game.collected
+                        |> Collection.insert bug Cute
 
                 _ ->
-                    game.collectedBugs
+                    game.collected
         , remainingGuesses =
             if Dict.get pos game.tiles == Nothing then
                 game.remainingGuesses - 1

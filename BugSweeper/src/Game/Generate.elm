@@ -7,8 +7,6 @@ import Game exposing (Game)
 import Object exposing (Object(..))
 import Random exposing (Generator)
 import Random.List
-import Set
-import Set.Any exposing (AnySet)
 
 
 type alias Random a =
@@ -21,18 +19,8 @@ type Block
     | EmptyBlock
 
 
-new : Int -> AnySet String BugSpecies -> Random Game
-new level collectedBugs =
-    let
-        initGame : Game
-        initGame =
-            { tiles = Dict.empty
-            , collectedBugs = collectedBugs
-            , remainingGuesses = Config.startingGuesses
-            , level = level
-            , revealed = Set.empty
-            }
-    in
+new : Int -> Random Game
+new level =
     Random.list Config.bugAmount (BugSpecies.generate level |> Random.map BugBlock)
         --  |> Random.map ((++) (List.repeat Config.leafAmount (TileBlock Leaf)))
         --|> Random.map ((++) (List.repeat Config.stoneAmount (TileBlock Stone)))
@@ -57,7 +45,7 @@ new level collectedBugs =
                                 EmptyBlock ->
                                     identity
                         )
-                        initGame
+                        (Game.empty level)
             )
 
 

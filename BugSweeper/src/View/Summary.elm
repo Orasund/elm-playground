@@ -1,6 +1,7 @@
 module View.Summary exposing (..)
 
-import BugSpecies exposing (BugSpecies)
+import BugSpecies
+import Collection exposing (Collection, Variant)
 import Dict exposing (Dict)
 import Game exposing (Tile(..))
 import Html exposing (Html)
@@ -8,15 +9,13 @@ import Html.Attributes
 import Html.Style
 import Layout
 import List.Extra
-import Set exposing (Set)
-import Set.Any as AnySet exposing (AnySet)
 import View.Bubble
 
 
 toHtml :
     { tiles : Dict ( Int, Int ) Tile
-    , revealed : Set ( Int, Int )
-    , oldCollection : AnySet String BugSpecies
+    , revealed : Dict ( Int, Int ) Variant
+    , oldCollection : Collection
     }
     -> Html msg
 toHtml args =
@@ -33,7 +32,7 @@ toHtml args =
                             _ ->
                                 Nothing
                     )
-                |> List.partition (\( pos, _ ) -> Set.member pos args.revealed)
+                |> List.partition (\( pos, _ ) -> Dict.member pos args.revealed)
     in
     [ Layout.text [ Html.Attributes.style "font-size" "32px" ] "Summary"
     , [ Layout.text [] "Bugs found"
@@ -47,7 +46,7 @@ toHtml args =
                         |> BugSpecies.toString
                         |> List.repeat (List.length l + 1)
                         |> String.concat
-                        |> (if AnySet.member bug args.oldCollection then
+                        |> (if Collection.member bug args.oldCollection then
                                 View.Bubble.default []
 
                             else

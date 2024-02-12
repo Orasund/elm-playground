@@ -1,7 +1,6 @@
 module View.Square exposing (..)
 
 import Color
-import Game exposing (Tile)
 import Html exposing (Attribute, Html)
 import Html.Attributes
 import Html.Style
@@ -27,9 +26,8 @@ default attrs =
 revealed : List (Attribute msg) -> String -> Html msg
 revealed attrs =
     default
-        ([ Html.Attributes.style "background-color" Color.lightTransparent
-         ]
-            ++ attrs
+        (Html.Attributes.style "background-color" Color.lightTransparent
+            :: attrs
         )
 
 

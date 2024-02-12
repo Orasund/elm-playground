@@ -2,21 +2,18 @@ module Main exposing (main)
 
 import Browser exposing (Document)
 import BugSpecies exposing (BugSpecies)
+import Collection exposing (Collection)
 import Color
-import Config
 import Dict
 import Game exposing (Game, Tile(..))
 import Game.Generate
 import Html
 import Html.Attributes
-import Html.Events
 import Html.Style
 import Layout
 import Object exposing (Object(..))
 import Process
 import Random exposing (Seed)
-import Set
-import Set.Any as AnySet exposing (AnySet)
 import Task
 import View.Collection
 import View.Game
@@ -31,7 +28,7 @@ type Overlay
 type alias Model =
     { game : Game
     , seed : Seed
-    , oldCollection : AnySet String BugSpecies
+    , oldCollection : Collection
     , overlay : Maybe Overlay
     }
 
@@ -39,7 +36,6 @@ type alias Model =
 type Msg
     = NewGame
         { seed : Seed
-        , collectedBugs : AnySet String BugSpecies
         , level : Int
         }
     | TileClicked ( Int, Int )
@@ -56,18 +52,17 @@ init () =
 
         ( game, _ ) =
             seed
-                |> Random.step (Game.Generate.new 1 (AnySet.empty BugSpecies.toString))
+                |> Random.step (Game.Generate.new 1)
     in
     ( { game = game
       , seed = seed
       , overlay = Nothing
-      , oldCollection = AnySet.empty BugSpecies.toString
+      , oldCollection = Collection.empty
       }
     , Random.independentSeed
         |> Random.map
             (\s ->
                 { seed = s
-                , collectedBugs = AnySet.empty BugSpecies.toString
                 , level = 1
                 }
             )
@@ -85,7 +80,7 @@ view model =
                 (\( pos, tile ) ->
                     case tile of
                         BugTile bug ->
-                            if Set.member pos model.game.revealed then
+                            if Dict.member pos model.game.revealed then
                                 Nothing
 
                             else
@@ -97,8 +92,8 @@ view model =
             |> List.map
                 (\bug ->
                     if
-                        model.game.collectedBugs
-                            |> AnySet.member bug
+                        model.oldCollection
+                            |> Collection.member bug
                     then
                         BugSpecies.toString bug
 
@@ -158,7 +153,6 @@ view model =
                                     , onPress =
                                         NewGame
                                             { seed = model.seed
-                                            , collectedBugs = model.game.collectedBugs
                                             , level = model.game.level + 1
                                             }
                                             |> Just
@@ -179,7 +173,7 @@ view model =
                             { selected = maybeSelected
                             , onSelect = SelectBugSpecies
                             }
-                            model.game.collectedBugs
+                            model.oldCollection
                         ]
 
                     Just Summary ->
@@ -194,7 +188,7 @@ view model =
                         [ View.Collection.closedCollection []
                             { onOpen = OpenOverlay (Collection Nothing)
                             }
-                            model.game.collectedBugs
+                            model.oldCollection
                         ]
                )
             |> Layout.column
@@ -215,14 +209,14 @@ view model =
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
-        NewGame { seed, collectedBugs, level } ->
+        NewGame { seed, level } ->
             seed
-                |> Random.step (Game.Generate.new level collectedBugs)
+                |> Random.step (Game.Generate.new level)
                 |> (\( game, newSeed ) ->
                         ( { game = game
                           , seed = newSeed
                           , overlay = Nothing
-                          , oldCollection = model.game.collectedBugs
+                          , oldCollection = model.oldCollection |> Collection.add model.game.collected
                           }
                         , Cmd.none
                         )

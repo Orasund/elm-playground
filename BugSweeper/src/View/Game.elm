@@ -6,10 +6,8 @@ import Dict
 import Game exposing (Game, Tile(..))
 import Html exposing (Attribute, Html)
 import Html.Attributes
-import Html.Events
 import Layout
 import Object
-import Set
 import View.Square
 
 
@@ -17,7 +15,7 @@ tile : List (Attribute msg) -> ( Int, Int ) -> Game -> Html msg
 tile attrs ( x, y ) game =
     let
         revealed =
-            Set.member ( x, y ) game.revealed
+            Dict.member ( x, y ) game.revealed
 
         currentTile =
             game.tiles |> Dict.get ( x, y )
@@ -60,7 +58,7 @@ board args game =
                     |> List.map
                         (\x ->
                             tile
-                                (if Set.member ( x, y ) game.revealed then
+                                (if Dict.member ( x, y ) game.revealed then
                                     []
 
                                  else
