@@ -8,6 +8,7 @@ import Html.Style
 import Layout
 import Object
 import Set.Any as AnySet exposing (AnySet)
+import View.Bubble
 
 
 maxDrawerHeight =
@@ -88,30 +89,16 @@ openCollection attrs args collectedBugs =
     , (BugSpecies.list
         |> List.map
             (\species ->
-                (if collectedBugs |> AnySet.member species then
+                if collectedBugs |> AnySet.member species then
                     BugSpecies.toString species
+                        |> View.Bubble.button []
+                            { label = "View details of " ++ BugSpecies.toString species
+                            , onPress = Just (args.onSelect species)
+                            }
 
-                 else
-                    "❓"
-                )
-                    |> Html.text
-                    |> Layout.el
-                        (Layout.centered
-                            ++ [ Html.Attributes.style "border-radius" "32px"
-                               , Html.Attributes.style "background-color" "rgba(0,0,0,0.1)"
-                               , Html.Attributes.style "height" "48px"
-                               , Html.Attributes.style "width" "48px"
-                               ]
-                            ++ (if collectedBugs |> AnySet.member species then
-                                    Layout.asButton
-                                        { label = "View details of " ++ BugSpecies.toString species
-                                        , onPress = Just (args.onSelect species)
-                                        }
-
-                                else
-                                    []
-                               )
-                        )
+                else
+                    BugSpecies.toString species
+                        |> View.Bubble.unkown []
             )
       )
         |> Layout.row

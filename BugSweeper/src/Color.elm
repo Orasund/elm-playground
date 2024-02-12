@@ -3,4 +3,4 @@ module Color exposing (..)
 
 primary : String
 primary =
-    "#D1884D"
+    "#6a9047"

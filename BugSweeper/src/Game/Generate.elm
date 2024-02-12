@@ -28,7 +28,7 @@ new level collectedBugs =
         initGame =
             { tiles = Dict.empty
             , collectedBugs = collectedBugs
-            , turn = 0
+            , remainingGuesses = Config.startingGuesses
             , level = level
             , revealed = Set.empty
             }

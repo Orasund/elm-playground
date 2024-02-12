@@ -1,4 +1,4 @@
-module Game exposing (Game, Tile(..), isValidPos, placeBug, placeObject, reveal)
+module Game exposing (Game, Tile(..), isOver, isValidPos, placeBug, placeObject, reveal)
 
 import BugSpecies exposing (BugSpecies(..))
 import Config
@@ -16,10 +16,28 @@ type Tile
 type alias Game =
     { tiles : Dict ( Int, Int ) Tile
     , collectedBugs : AnySet String BugSpecies
-    , turn : Int
+    , remainingGuesses : Int
     , level : Int
     , revealed : Set ( Int, Int )
     }
+
+
+isOver : Game -> Bool
+isOver game =
+    game.remainingGuesses
+        <= 0
+        || (game.tiles
+                |> Dict.filter
+                    (\pos tile ->
+                        case tile of
+                            BugTile _ ->
+                                Set.member pos game.revealed |> not
+
+                            _ ->
+                                False
+                    )
+                |> Dict.isEmpty
+           )
 
 
 placeObject : ( Int, Int ) -> Object -> Game -> Game
@@ -43,12 +61,12 @@ reveal pos game =
 
                 _ ->
                     game.collectedBugs
-        , turn =
+        , remainingGuesses =
             if Dict.get pos game.tiles == Nothing then
-                game.turn + 1
+                game.remainingGuesses - 1
 
             else
-                game.turn
+                game.remainingGuesses
     }
 
 

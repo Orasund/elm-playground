@@ -2,6 +2,7 @@ module Main exposing (main)
 
 import Browser exposing (Document)
 import BugSpecies exposing (BugSpecies)
+import Color
 import Config
 import Dict
 import Game exposing (Game, Tile(..))
@@ -18,24 +19,31 @@ import Set
 import Set.Any as AnySet exposing (AnySet)
 import Task
 import View.Collection
+import View.Summary
 
 
 type Overlay
     = Collection (Maybe BugSpecies)
+    | Summary
 
 
 type alias Model =
     { game : Game
     , seed : Seed
+    , oldCollection : AnySet String BugSpecies
     , overlay : Maybe Overlay
     }
 
 
 type Msg
-    = NewGame { seed : Seed, collectedBugs : AnySet String BugSpecies, level : Int }
+    = NewGame
+        { seed : Seed
+        , collectedBugs : AnySet String BugSpecies
+        , level : Int
+        }
     | TileClicked ( Int, Int )
     | SelectBugSpecies BugSpecies
-    | OpenCollection
+    | OpenOverlay Overlay
     | CloseOverlay
 
 
@@ -52,6 +60,7 @@ init () =
     ( { game = game
       , seed = seed
       , overlay = Nothing
+      , oldCollection = AnySet.empty BugSpecies.toString
       }
     , Random.independentSeed
         |> Random.map
@@ -73,37 +82,42 @@ view model =
             |> Dict.toList
             |> List.filterMap
                 (\( pos, tile ) ->
-                    if Set.member pos model.game.revealed then
-                        Nothing
-
-                    else
-                        Just tile
-                )
-            |> List.map
-                (\tile ->
                     case tile of
                         BugTile bug ->
-                            if
-                                model.game.collectedBugs
-                                    |> AnySet.member bug
-                            then
-                                BugSpecies.toString bug
+                            if Set.member pos model.game.revealed then
+                                Nothing
 
                             else
-                                "❓"
+                                Just bug
 
-                        ObjectTile object ->
-                            Object.toString object
+                        _ ->
+                            Nothing
+                )
+            |> List.map
+                (\bug ->
+                    if
+                        model.game.collectedBugs
+                            |> AnySet.member bug
+                    then
+                        BugSpecies.toString bug
+
+                    else
+                        "❓"
                 )
             |> List.sort
             |> String.concat
           )
-            |> Html.text
-            |> Layout.el [ Html.Attributes.style "padding" "8px 16px" ]
+            |> Layout.text [ Html.Attributes.style "filter" "brightness(0)" ]
             |> Layout.el
-                [ Html.Attributes.style "background-color" "rgba(255,255,255,0.2)"
+                [ Html.Attributes.style "padding" "8px 16px"
+                , Html.Attributes.style "background-color" "rgba(255,255,255,0.2)"
                 , Html.Attributes.style "height" "48px"
+                , Html.Attributes.style "width" "fit-content"
+                , Html.Attributes.style "min-width" "48px"
                 , Html.Attributes.style "border-radius" "10000px"
+                , Html.Attributes.style "font-size" "20px"
+                , Html.Attributes.class "emoji-color-font"
+                , Html.Style.boxSizingBorderBox
                 , Html.Style.alignItemsCenter
                 ]
         , List.range 0 (Config.gridSize - 1)
@@ -150,25 +164,28 @@ view model =
                             )
                         |> Layout.row [ Layout.noWrap, Layout.gap 8 ]
                 )
-            |> Layout.column (Layout.centered ++ [ Layout.gap 8 ])
-        , [ "Remaining guesses: " |> Html.text
-          , (Config.maxTurns - model.game.turn |> String.fromInt)
-                |> Html.text
-                |> Layout.el
-                    (Layout.centered
-                        ++ [ Html.Attributes.style "font-size" "28px"
-                           , Html.Attributes.style "background-color" "rgba(255,255,255,0.2)"
-                           , Html.Attributes.style "height" "48px"
-                           , Html.Attributes.style "width" "48px"
-                           , Html.Attributes.style "border-radius" "10000px"
-                           ]
-                    )
-          ]
-            |> Layout.row
-                [ Html.Attributes.style "justify-content" "flex-end"
-                , Html.Style.alignItemsCenter
-                , Html.Attributes.style "height" "48px"
-                , Layout.gap 16
+            |> Layout.column
+                (Layout.centered
+                    ++ [ Layout.gap 8
+                       , Html.Attributes.class "emoji-color-font"
+                       ]
+                )
+        , (List.repeat model.game.remainingGuesses "❌" |> String.concat)
+            |> Html.text
+            |> Layout.el
+                (Layout.centered
+                    ++ [ Html.Attributes.style "background-color" "rgba(255,255,255,0.2)"
+                       , Html.Attributes.style "height" "48px"
+                       , Html.Attributes.style "min-width" "48px"
+                       , Html.Attributes.style "border-radius" "10000px"
+                       , Html.Attributes.style "padding" "8px 16px"
+                       , Html.Attributes.style "font-size" "20px"
+                       , Html.Style.boxSizingBorderBox
+                       , Html.Attributes.class "emoji-color-font"
+                       ]
+                )
+            |> Layout.el
+                [ Html.Style.justifyContentCenter
                 ]
         , Layout.none
             |> Layout.container
@@ -176,12 +193,28 @@ view model =
                     ++ [ Html.Attributes.style "background-color" "rgb(70, 109, 34,0.5)"
                        , Html.Attributes.style "backdrop-filter" "blur(2px)"
                        ]
-                    ++ (if model.overlay == Nothing then
-                            [ Html.Attributes.style "display" "none"
-                            ]
+                    ++ (case model.overlay of
+                            Just (Collection _) ->
+                                Layout.asButton
+                                    { label = "Close Overlay"
+                                    , onPress = Just CloseOverlay
+                                    }
 
-                        else
-                            [ Html.Events.onClick CloseOverlay ]
+                            Just Summary ->
+                                Layout.asButton
+                                    { label = "Continue"
+                                    , onPress =
+                                        NewGame
+                                            { seed = model.seed
+                                            , collectedBugs = model.game.collectedBugs
+                                            , level = model.game.level + 1
+                                            }
+                                            |> Just
+                                    }
+
+                            Nothing ->
+                                [ Html.Attributes.style "display" "none"
+                                ]
                        )
                 )
         ]
@@ -197,9 +230,17 @@ view model =
                             model.game.collectedBugs
                         ]
 
+                    Just Summary ->
+                        [ View.Summary.toHtml
+                            { tiles = model.game.tiles
+                            , revealed = model.game.revealed
+                            , oldCollection = model.oldCollection
+                            }
+                        ]
+
                     Nothing ->
                         [ View.Collection.closedCollection []
-                            { onOpen = OpenCollection
+                            { onOpen = OpenOverlay (Collection Nothing)
                             }
                             model.game.collectedBugs
                         ]
@@ -211,7 +252,8 @@ view model =
                 ]
             |> Layout.container
                 (Layout.centered
-                    ++ [ Html.Attributes.style "background-image" "linear-gradient(#D1884D,#6a9047)"
+                    ++ [ Html.Attributes.style "background-image"
+                            ("linear-gradient(#D1884D," ++ Color.primary ++ ")")
                        ]
                 )
             |> List.singleton
@@ -228,36 +270,35 @@ update msg model =
                         ( { game = game
                           , seed = newSeed
                           , overlay = Nothing
+                          , oldCollection = model.game.collectedBugs
                           }
                         , Cmd.none
                         )
                    )
 
         TileClicked pos ->
-            if model.game.turn >= Config.maxTurns then
-                ( model
-                , Process.sleep Config.gameOverCooldownInMs
-                    |> Task.andThen
-                        (\() ->
-                            Task.succeed
-                                { seed = model.seed
-                                , collectedBugs = model.game.collectedBugs
-                                , level = model.game.level + 1
-                                }
-                        )
-                    |> Task.perform NewGame
-                )
+            if Game.isOver model.game then
+                ( model, Cmd.none )
 
             else
                 model.game
                     |> Game.reveal pos
-                    |> (\game -> ( { model | game = game }, Cmd.none ))
+                    |> (\game ->
+                            ( { model | game = game }
+                            , if Game.isOver game then
+                                Process.sleep 1000
+                                    |> Task.perform (\() -> OpenOverlay Summary)
+
+                              else
+                                Cmd.none
+                            )
+                       )
 
         SelectBugSpecies bug ->
             ( { model | overlay = Just (Collection (Just bug)) }, Cmd.none )
 
-        OpenCollection ->
-            ( { model | overlay = Just (Collection Nothing) }, Cmd.none )
+        OpenOverlay overlay ->
+            ( { model | overlay = Just overlay }, Cmd.none )
 
         CloseOverlay ->
             ( { model | overlay = Nothing }, Cmd.none )

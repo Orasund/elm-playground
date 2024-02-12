@@ -1,4 +1,4 @@
-module Config exposing (bugAmount, gameOverCooldownInMs, gridSize, hideBugs, leafAmount, maxTurns, stoneAmount)
+module Config exposing (bugAmount, gameOverCooldownInMs, gridSize, hideBugs, leafAmount, startingGuesses, stoneAmount)
 
 
 gridSize : Int
@@ -6,8 +6,8 @@ gridSize =
     5
 
 
-maxTurns : Int
-maxTurns =
+startingGuesses : Int
+startingGuesses =
     5
 
 
