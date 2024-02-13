@@ -25,19 +25,19 @@ type alias Game =
     , opponentCards : Set CardId
     , playedCards : List CardId
     , outOfPlay : Set CardId
-    , probabilities : Dict String Int
+    , values : Dict String Int
     , cards : Dict CardId Card
     }
 
 
-fromGoals : List Goal -> Random Game
-fromGoals list =
+fromGoals : Float -> List Goal -> Random Game
+fromGoals multiplier list =
     Card.newDeck list
-        |> Random.andThen fromDeck
+        |> Random.andThen (fromDeck multiplier)
 
 
-fromDeck : List Card -> Random Game
-fromDeck sortedDeck =
+fromDeck : Float -> List Card -> Random Game
+fromDeck multiplier sortedDeck =
     Random.List.shuffle sortedDeck
         |> Random.map
             (\deck ->
@@ -74,10 +74,25 @@ fromDeck sortedDeck =
                         |> List.drop (Config.cardsPerHand * 2)
                         |> Set.fromList
                 , playedCards = []
-                , probabilities = probabilities
+                , values = Dict.empty
                 , cards = cards
                 }
+                    |> setValues multiplier probabilities
             )
+
+
+setValues : Float -> Dict String Int -> Game -> Game
+setValues multiplier probabilities game =
+    { game
+        | values =
+            Dict.map
+                (\_ probability ->
+                    toFloat (100 - probability)
+                        * multiplier
+                        |> round
+                )
+                probabilities
+    }
 
 
 getCardFrom : Game -> CardId -> Maybe Card
@@ -123,14 +138,14 @@ isWon game =
         |> Maybe.withDefault False
 
 
-currentPercentage : Game -> Int
-currentPercentage game =
+currentValue : Game -> Int
+currentValue game =
     game.playedCards
         |> List.head
         |> Maybe.andThen (getCardFrom game)
         |> Maybe.andThen
             (\card ->
-                game.probabilities
+                game.values
                     |> Dict.get (Goal.description card.goal)
             )
-        |> Maybe.withDefault 100
+        |> Maybe.withDefault 0

@@ -15,8 +15,8 @@ toHtml :
     List (Attribute msg)
     ->
         { onPlay : CardId -> msg
-        , currentPercentage : Int
-        , probabilities : Dict String Int
+        , currentValue : Int
+        , values : Dict String Int
         }
     -> List ( CardId, Card )
     -> Html msg
@@ -24,21 +24,21 @@ toHtml attrs args list =
     list
         |> List.sortBy
             (\( _, card ) ->
-                args.probabilities
+                args.values
                     |> Dict.get (Goal.description card.goal)
                     |> Maybe.withDefault 0
             )
         |> List.map
             (\( cardId, card ) ->
                 let
-                    probability =
-                        args.probabilities
+                    value =
+                        args.values
                             |> Dict.get (Goal.description card.goal)
                             |> Maybe.withDefault 0
                 in
                 ( cardId, card )
                     |> View.Card.toHtml
-                        (if probability <= args.currentPercentage then
+                        (if value >= args.currentValue then
                             Layout.asButton
                                 { label = "play"
                                 , onPress =
@@ -48,9 +48,9 @@ toHtml attrs args list =
                          else
                             []
                         )
-                        { probability = probability
+                        { value = value
                         , faceUp = True
-                        , active = probability <= args.currentPercentage
+                        , active = value >= args.currentValue
                         }
             )
         |> Game.Area.withPolarPosition
@@ -63,19 +63,19 @@ toHtml attrs args list =
             (Html.Style.height (String.fromInt View.Card.height ++ "px") :: attrs)
 
 
-opponent : List (Attribute msg) -> { probabilities : Dict String Int } -> List ( CardId, Card ) -> Html msg
+opponent : List (Attribute msg) -> { values : Dict String Int } -> List ( CardId, Card ) -> Html msg
 opponent attrs args list =
     list
         |> List.map
             (\( cardId, card ) ->
                 let
-                    probability =
-                        args.probabilities
+                    value =
+                        args.values
                             |> Dict.get (Goal.description card.goal)
                             |> Maybe.withDefault 0
                 in
                 View.Card.toHtml []
-                    { probability = probability
+                    { value = value
                     , faceUp = False
                     , active = False
                     }

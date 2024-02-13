@@ -60,14 +60,14 @@ opponentsTurn game =
                 )
             |> List.filter
                 (\( _, card ) ->
-                    (game.probabilities
+                    (game.values
                         |> Dict.get
                             (card.goal
                                 |> Goal.description
                             )
                         |> Maybe.withDefault 0
                     )
-                        <= Game.currentPercentage game
+                        >= Game.currentValue game
                 )
             |> List.sortBy
                 (\( _, card ) ->
@@ -90,8 +90,8 @@ opponentsTurn game =
                                                 |> Dict.get (Goal.description card.goal)
                                                 |> Maybe.withDefault 0
                                             )
-                                        || Game.currentPercentage game
-                                        == 100
+                                        || Game.currentValue game
+                                        == 0
                                 then
                                     game
                                         |> Game.playCard cardId

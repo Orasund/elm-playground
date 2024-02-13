@@ -24,7 +24,7 @@ import View.Ui
 shop :
     { onChoose : Card -> msg
     , deck : List Card
-    , probabilities : Dict String Int
+    , values : Dict String Int
     }
     -> List Card
     -> Html msg
@@ -61,8 +61,8 @@ shop args list =
                         , onPress = Just (args.onChoose card)
                         }
                     )
-                    { probability =
-                        args.probabilities
+                    { value =
+                        args.values
                             |> Dict.get (Goal.description card.goal)
                             |> Maybe.withDefault 0
                     , faceUp = True
@@ -127,7 +127,7 @@ tutorial args =
                 |> Layout.text []
             , [ ( -1, { suit = suit, goal = goal } )
                     |> View.Card.toHtml []
-                        { probability = 42
+                        { value = 42
                         , faceUp = True
                         , active = False
                         }
@@ -186,13 +186,13 @@ tutorial args =
             ]
 
         2 ->
-            [ "Each turn a player can either play a card with a lower value or challenge the bet (calling the bluff)."
+            [ "Each turn a player can either play a card with a higher value or challenge the bet (calling the bluff)."
                 |> Layout.text []
             , Random.initialSeed 42
                 |> Random.step
                     (Goal.asList
                         |> Card.newDeck
-                        |> Random.andThen Game.fromDeck
+                        |> Random.andThen (Game.fromDeck 1)
                     )
                 |> Tuple.first
                 |> View.Game.toHtml
@@ -209,7 +209,9 @@ tutorial args =
                     , Style.justifyContentCenter
                     ]
             , "The game ends once you have no CREDITS left" |> Layout.text []
-            , "You start with 100 CREDITS"
+            , "You start with "
+                ++ String.fromInt Config.startingCredits
+                ++ " CREDITS"
                 |> Layout.text
                     [ Style.justifyContentCenter
                     ]
@@ -238,7 +240,7 @@ gameEnd args game =
        else
         "They called the bluff for "
       )
-        ++ (game.probabilities
+        ++ (game.values
                 |> Dict.get (Goal.description bet.goal)
                 |> Maybe.withDefault 0
                 |> String.fromInt

@@ -2,6 +2,7 @@ module Main exposing (..)
 
 import Browser
 import Card exposing (Card)
+import Config
 import Dict
 import Game exposing (CardId, Game)
 import Game.Update
@@ -34,6 +35,7 @@ type alias Model =
     , score : Int
     , deck : List Card
     , specialCards : List Card
+    , multiplier : Float
     }
 
 
@@ -58,12 +60,15 @@ init () =
 restartGame : Seed -> Model
 restartGame seed =
     let
+        multiplier =
+            1
+
         rand =
             Card.newDeck Goal.asList
                 |> Random.andThen
                     (\d ->
                         d
-                            |> Game.fromDeck
+                            |> Game.fromDeck multiplier
                             |> Random.map
                                 (\g ->
                                     { deck = d
@@ -90,9 +95,10 @@ restartGame seed =
     , seed = newSeed
     , overlay = Just (Tutorial 0)
     , yourTurn = False
-    , score = 100
+    , score = Config.startingCredits
     , deck = deck
     , specialCards = special
+    , multiplier = multiplier
     }
 
 
@@ -110,7 +116,7 @@ view model =
                     )
                 |> Maybe.andThen
                     (\( _, card ) ->
-                        model.game.probabilities
+                        model.game.values
                             |> Dict.get (Goal.description card.goal)
                     )
                 |> Maybe.withDefault 0
@@ -127,7 +133,7 @@ view model =
             View.Overlay.shop
                 { onChoose = AddCardAndStartNextRound
                 , deck = model.deck
-                , probabilities = model.game.probabilities
+                , values = model.game.values
                 }
                 list
 
@@ -256,8 +262,11 @@ addCardAndStartNextRound card model =
         deck =
             card :: model.deck
 
+        multiplier =
+            model.multiplier * 1.1
+
         ( game, newSeed ) =
-            Game.fromDeck deck
+            Game.fromDeck multiplier deck
                 |> (\rand ->
                         Random.step rand model.seed
                    )
@@ -268,6 +277,7 @@ addCardAndStartNextRound card model =
         , seed = newSeed
         , overlay = Nothing
         , specialCards = model.specialCards |> List.filter ((/=) card)
+        , multiplier = multiplier
     }
 
 

@@ -9,3 +9,8 @@ cardsPerSuit =
 cardsPerHand : Int
 cardsPerHand =
     4
+
+
+startingCredits : Int
+startingCredits =
+    1000

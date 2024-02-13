@@ -35,9 +35,9 @@ empty attrs =
         "No card"
 
 
-front : List (Attribute msg) -> { a | probability : Int } -> Card -> Html msg
+front : List (Attribute msg) -> { a | value : Int } -> Card -> Html msg
 front attrs args card =
-    [ [ String.fromInt args.probability
+    [ [ String.fromInt args.value
             |> Html.text
             |> Game.Card.element []
       , Suit.icon card.suit
@@ -61,7 +61,7 @@ front attrs args card =
             )
 
 
-toHtml : List (Attribute msg) -> { probability : Int, faceUp : Bool, active : Bool } -> ( CardId, Card ) -> Entity ( String, List (Attribute msg) -> Html msg )
+toHtml : List (Attribute msg) -> { value : Int, faceUp : Bool, active : Bool } -> ( CardId, Card ) -> Entity ( String, List (Attribute msg) -> Html msg )
 toHtml attrs args ( cardId, card ) =
     Game.Entity.flippable
         ([ Style.height (String.fromInt height ++ "px")

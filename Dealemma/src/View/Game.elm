@@ -32,7 +32,7 @@ toHtml args game =
                     |> Maybe.map (Tuple.pair cardId)
             )
         |> View.Hand.opponent [ Style.justifyContentCenter ]
-            { probabilities = game.probabilities }
+            { values = game.values }
     , [ "Last Call"
             |> Layout.text
                 [ Html.Attributes.style "font-size" "24px"
@@ -50,8 +50,8 @@ toHtml args game =
             |> List.map
                 (\( cardId, card ) ->
                     View.Card.toHtml []
-                        { probability =
-                            game.probabilities
+                        { value =
+                            game.values
                                 |> Dict.get (Goal.description card.goal)
                                 |> Maybe.withDefault 0
                         , faceUp = True
@@ -83,7 +83,7 @@ toHtml args game =
             "Waiting..."
 
          else
-            "Play a card with a smaller value or call the bluff"
+            "Play a card with a higher value or call the bluff"
         )
             |> Layout.text [ Style.justifyContentCenter ]
       , game.yourCards
@@ -98,8 +98,8 @@ toHtml args game =
                 [ Style.justifyContentCenter
                 ]
                 { onPlay = args.onPlay
-                , currentPercentage = Game.currentPercentage game
-                , probabilities = game.probabilities
+                , currentValue = Game.currentValue game
+                , values = game.values
                 }
       , View.Ui.button []
             { onPress =
@@ -120,7 +120,7 @@ toHtml args game =
                                 )
                             |> Maybe.andThen
                                 (\( _, card ) ->
-                                    game.probabilities
+                                    game.values
                                         |> Dict.get (Goal.description card.goal)
                                 )
                             |> Maybe.withDefault 0

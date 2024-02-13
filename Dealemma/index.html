@@ -5546,50 +5546,6 @@ var $author$project$Goal$asList = _Utils_ap(
 		},
 		$author$project$Suit$asList));
 var $author$project$Config$cardsPerHand = 4;
-var $author$project$Suit$icon = function (suit) {
-	switch (suit.$) {
-		case 'Heart':
-			return '♥';
-		case 'Diamant':
-			return '♦';
-		case 'Spade':
-			return '♠';
-		case 'Club':
-			return '♣';
-		default:
-			return '★';
-	}
-};
-var $author$project$Goal$categoryDescription = function (category) {
-	switch (category.$) {
-		case 'SingleOf':
-			var suit = category.a;
-			return 'one ' + $author$project$Suit$icon(suit);
-		case 'PairOf':
-			var suit = category.a;
-			return 'two ' + $author$project$Suit$icon(suit);
-		case 'Pair':
-			return 'a pair';
-		case 'ThreeOf':
-			var suit = category.a;
-			return 'three ' + $author$project$Suit$icon(suit);
-		case 'ThreeOfAKind':
-			return 'three of a kind';
-		case 'FourOf':
-			var suit = category.a;
-			return 'four ' + $author$project$Suit$icon(suit);
-		case 'FourOfAKind':
-			return 'four of a kind';
-		default:
-			return 'five of a kind';
-	}
-};
-var $author$project$Goal$description = function (list) {
-	return A2(
-		$elm$core$String$join,
-		' and ',
-		A2($elm$core$List$map, $author$project$Goal$categoryDescription, list));
-};
 var $elm$core$List$drop = F2(
 	function (n, list) {
 		drop:
@@ -5611,47 +5567,6 @@ var $elm$core$List$drop = F2(
 			}
 		}
 	});
-var $elm$core$Basics$compare = _Utils_compare;
-var $elm$core$Dict$get = F2(
-	function (targetKey, dict) {
-		get:
-		while (true) {
-			if (dict.$ === 'RBEmpty_elm_builtin') {
-				return $elm$core$Maybe$Nothing;
-			} else {
-				var key = dict.b;
-				var value = dict.c;
-				var left = dict.d;
-				var right = dict.e;
-				var _v1 = A2($elm$core$Basics$compare, targetKey, key);
-				switch (_v1.$) {
-					case 'LT':
-						var $temp$targetKey = targetKey,
-							$temp$dict = left;
-						targetKey = $temp$targetKey;
-						dict = $temp$dict;
-						continue get;
-					case 'EQ':
-						return $elm$core$Maybe$Just(value);
-					default:
-						var $temp$targetKey = targetKey,
-							$temp$dict = right;
-						targetKey = $temp$targetKey;
-						dict = $temp$dict;
-						continue get;
-				}
-			}
-		}
-	});
-var $elm_community$list_extra$List$Extra$count = function (predicate) {
-	return A2(
-		$elm$core$List$foldl,
-		F2(
-			function (x, acc) {
-				return predicate(x) ? (acc + 1) : acc;
-			}),
-		0);
-};
 var $elm$core$Dict$RBEmpty_elm_builtin = {$: 'RBEmpty_elm_builtin'};
 var $elm$core$Dict$empty = $elm$core$Dict$RBEmpty_elm_builtin;
 var $elm$core$Dict$Black = {$: 'Black'};
@@ -5714,6 +5629,7 @@ var $elm$core$Dict$balance = F5(
 			}
 		}
 	});
+var $elm$core$Basics$compare = _Utils_compare;
 var $elm$core$Dict$insertHelp = F3(
 	function (key, value, dict) {
 		if (dict.$ === 'RBEmpty_elm_builtin') {
@@ -5773,6 +5689,76 @@ var $elm$core$Dict$fromList = function (assocs) {
 			}),
 		$elm$core$Dict$empty,
 		assocs);
+};
+var $elm$core$Set$Set_elm_builtin = function (a) {
+	return {$: 'Set_elm_builtin', a: a};
+};
+var $elm$core$Set$empty = $elm$core$Set$Set_elm_builtin($elm$core$Dict$empty);
+var $elm$core$Set$insert = F2(
+	function (key, _v0) {
+		var dict = _v0.a;
+		return $elm$core$Set$Set_elm_builtin(
+			A3($elm$core$Dict$insert, key, _Utils_Tuple0, dict));
+	});
+var $elm$core$Set$fromList = function (list) {
+	return A3($elm$core$List$foldl, $elm$core$Set$insert, $elm$core$Set$empty, list);
+};
+var $elm$core$Tuple$pair = F2(
+	function (a, b) {
+		return _Utils_Tuple2(a, b);
+	});
+var $elm_community$list_extra$List$Extra$count = function (predicate) {
+	return A2(
+		$elm$core$List$foldl,
+		F2(
+			function (x, acc) {
+				return predicate(x) ? (acc + 1) : acc;
+			}),
+		0);
+};
+var $author$project$Suit$icon = function (suit) {
+	switch (suit.$) {
+		case 'Heart':
+			return '♥';
+		case 'Diamant':
+			return '♦';
+		case 'Spade':
+			return '♠';
+		case 'Club':
+			return '♣';
+		default:
+			return '★';
+	}
+};
+var $author$project$Goal$categoryDescription = function (category) {
+	switch (category.$) {
+		case 'SingleOf':
+			var suit = category.a;
+			return 'one ' + $author$project$Suit$icon(suit);
+		case 'PairOf':
+			var suit = category.a;
+			return 'two ' + $author$project$Suit$icon(suit);
+		case 'Pair':
+			return 'a pair';
+		case 'ThreeOf':
+			var suit = category.a;
+			return 'three ' + $author$project$Suit$icon(suit);
+		case 'ThreeOfAKind':
+			return 'three of a kind';
+		case 'FourOf':
+			var suit = category.a;
+			return 'four ' + $author$project$Suit$icon(suit);
+		case 'FourOfAKind':
+			return 'four of a kind';
+		default:
+			return 'five of a kind';
+	}
+};
+var $author$project$Goal$description = function (list) {
+	return A2(
+		$elm$core$String$join,
+		' and ',
+		A2($elm$core$List$map, $author$project$Goal$categoryDescription, list));
 };
 var $elm$core$List$partition = F2(
 	function (pred, list) {
@@ -5856,6 +5842,37 @@ var $elm_community$list_extra$List$Extra$find = F2(
 		}
 	});
 var $elm$core$Basics$ge = _Utils_ge;
+var $elm$core$Dict$get = F2(
+	function (targetKey, dict) {
+		get:
+		while (true) {
+			if (dict.$ === 'RBEmpty_elm_builtin') {
+				return $elm$core$Maybe$Nothing;
+			} else {
+				var key = dict.b;
+				var value = dict.c;
+				var left = dict.d;
+				var right = dict.e;
+				var _v1 = A2($elm$core$Basics$compare, targetKey, key);
+				switch (_v1.$) {
+					case 'LT':
+						var $temp$targetKey = targetKey,
+							$temp$dict = left;
+						targetKey = $temp$targetKey;
+						dict = $temp$dict;
+						continue get;
+					case 'EQ':
+						return $elm$core$Maybe$Just(value);
+					default:
+						var $temp$targetKey = targetKey,
+							$temp$dict = right;
+						targetKey = $temp$targetKey;
+						dict = $temp$dict;
+						continue get;
+				}
+			}
+		}
+	});
 var $elm$core$Maybe$map = F2(
 	function (f, maybe) {
 		if (maybe.$ === 'Just') {
@@ -6675,6 +6692,40 @@ var $author$project$Game$Evaluate$probabilities = F2(
 				},
 				cards));
 	});
+var $elm$core$Dict$map = F2(
+	function (func, dict) {
+		if (dict.$ === 'RBEmpty_elm_builtin') {
+			return $elm$core$Dict$RBEmpty_elm_builtin;
+		} else {
+			var color = dict.a;
+			var key = dict.b;
+			var value = dict.c;
+			var left = dict.d;
+			var right = dict.e;
+			return A5(
+				$elm$core$Dict$RBNode_elm_builtin,
+				color,
+				key,
+				A2(func, key, value),
+				A2($elm$core$Dict$map, func, left),
+				A2($elm$core$Dict$map, func, right));
+		}
+	});
+var $elm$core$Basics$round = _Basics_round;
+var $author$project$Game$setValues = F3(
+	function (multiplier, probabilities, game) {
+		return _Utils_update(
+			game,
+			{
+				values: A2(
+					$elm$core$Dict$map,
+					F2(
+						function (_v0, probability) {
+							return $elm$core$Basics$round((100 - probability) * multiplier);
+						}),
+					probabilities)
+			});
+	});
 var $author$project$Suit$Star = {$: 'Star'};
 var $author$project$Card$buildCard = F2(
 	function (value, goal) {
@@ -6723,46 +6774,55 @@ var $author$project$Card$specialCards = A2(
 			$author$project$Goal$special);
 	},
 	A2($elm$core$List$cons, $author$project$Suit$Star, $author$project$Suit$asList));
-var $author$project$Game$fromDeck = function (sortedDeck) {
-	return A2(
-		$elm$random$Random$map,
-		function (deck) {
-			var probabilities = A2(
-				$author$project$Game$Evaluate$probabilities,
-				{
-					deck: A2(
-						$elm$core$List$map,
-						function ($) {
-							return $.suit;
-						},
-						sortedDeck),
-					open: _List_Nil
-				},
-				_Utils_ap(deck, $author$project$Card$specialCards));
-			return {
-				opponentCards: A2(
-					$elm$core$List$take,
-					$author$project$Config$cardsPerHand,
-					A2($elm$core$List$drop, $author$project$Config$cardsPerHand, deck)),
-				outOfPlay: A2($elm$core$List$drop, $author$project$Config$cardsPerHand * 2, deck),
-				playedCards: _List_Nil,
-				probabilities: probabilities,
-				yourCards: A2(
-					$elm$core$List$sortBy,
-					function (card) {
-						return A2(
-							$elm$core$Maybe$withDefault,
-							0,
-							A2(
-								$elm$core$Dict$get,
-								$author$project$Goal$description(card.goal),
-								probabilities));
+var $author$project$Game$fromDeck = F2(
+	function (multiplier, sortedDeck) {
+		return A2(
+			$elm$random$Random$map,
+			function (deck) {
+				var probabilities = A2(
+					$author$project$Game$Evaluate$probabilities,
+					{
+						deck: A2(
+							$elm$core$List$map,
+							function ($) {
+								return $.suit;
+							},
+							sortedDeck),
+						open: _List_Nil
 					},
-					A2($elm$core$List$take, $author$project$Config$cardsPerHand, deck))
-			};
-		},
-		$elm_community$random_extra$Random$List$shuffle(sortedDeck));
-};
+					_Utils_ap(deck, $author$project$Card$specialCards));
+				var cards = $elm$core$Dict$fromList(
+					A2($elm$core$List$indexedMap, $elm$core$Tuple$pair, deck));
+				return A3(
+					$author$project$Game$setValues,
+					multiplier,
+					probabilities,
+					{
+						cards: cards,
+						opponentCards: $elm$core$Set$fromList(
+							A2(
+								$elm$core$List$take,
+								$author$project$Config$cardsPerHand,
+								A2(
+									$elm$core$List$drop,
+									$author$project$Config$cardsPerHand,
+									$elm$core$Dict$keys(cards)))),
+						outOfPlay: $elm$core$Set$fromList(
+							A2(
+								$elm$core$List$drop,
+								$author$project$Config$cardsPerHand * 2,
+								$elm$core$Dict$keys(cards))),
+						playedCards: _List_Nil,
+						values: $elm$core$Dict$empty,
+						yourCards: $elm$core$Set$fromList(
+							A2(
+								$elm$core$List$take,
+								$author$project$Config$cardsPerHand,
+								$elm$core$Dict$keys(cards)))
+					});
+			},
+			$elm_community$random_extra$Random$List$shuffle(sortedDeck));
+	});
 var $author$project$Config$cardsPerSuit = 4;
 var $author$project$Card$newDeck = function (list) {
 	return A2(
@@ -6776,7 +6836,9 @@ var $author$project$Card$newDeck = function (list) {
 				$elm$core$List$repeat($author$project$Config$cardsPerSuit),
 				$author$project$Suit$asList)));
 };
+var $author$project$Config$startingCredits = 1000;
 var $author$project$Main$restartGame = function (seed) {
+	var multiplier = 1;
 	var rand = A2(
 		$elm$random$Random$andThen,
 		function (out) {
@@ -6795,7 +6857,7 @@ var $author$project$Main$restartGame = function (seed) {
 					function (g) {
 						return {deck: d, game: g};
 					},
-					$author$project$Game$fromDeck(d));
+					A2($author$project$Game$fromDeck, multiplier, d));
 			},
 			$author$project$Card$newDeck($author$project$Goal$asList)));
 	var _v0 = A2($elm$random$Random$step, rand, seed);
@@ -6806,9 +6868,10 @@ var $author$project$Main$restartGame = function (seed) {
 	return {
 		deck: deck,
 		game: game,
+		multiplier: multiplier,
 		overlay: $elm$core$Maybe$Just(
 			$author$project$Main$Tutorial(0)),
-		score: 100,
+		score: $author$project$Config$startingCredits,
 		seed: newSeed,
 		specialCards: special,
 		yourTurn: false
@@ -6839,11 +6902,12 @@ var $elm$core$List$filter = F2(
 	});
 var $author$project$Main$addCardAndStartNextRound = F2(
 	function (card, model) {
+		var multiplier = model.multiplier * 1.1;
 		var deck = A2($elm$core$List$cons, card, model.deck);
 		var _v0 = function (rand) {
 			return A2($elm$random$Random$step, rand, model.seed);
 		}(
-			$author$project$Game$fromDeck(deck));
+			A2($author$project$Game$fromDeck, multiplier, deck));
 		var game = _v0.a;
 		var newSeed = _v0.b;
 		return _Utils_update(
@@ -6851,6 +6915,7 @@ var $author$project$Main$addCardAndStartNextRound = F2(
 			{
 				deck: deck,
 				game: game,
+				multiplier: multiplier,
 				overlay: $elm$core$Maybe$Nothing,
 				seed: newSeed,
 				specialCards: A2(
@@ -6894,40 +6959,31 @@ var $author$project$Main$endRoundAndOpenShop = F2(
 	});
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
+var $elm$core$Set$remove = F2(
+	function (key, _v0) {
+		var dict = _v0.a;
+		return $elm$core$Set$Set_elm_builtin(
+			A2($elm$core$Dict$remove, key, dict));
+	});
 var $author$project$Game$playCard = F2(
-	function (card, game) {
+	function (cardId, game) {
 		return _Utils_update(
 			game,
 			{
-				playedCards: A2($elm$core$List$cons, card, game.playedCards)
+				opponentCards: A2($elm$core$Set$remove, cardId, game.opponentCards),
+				playedCards: A2($elm$core$List$cons, cardId, game.playedCards),
+				yourCards: A2($elm$core$Set$remove, cardId, game.yourCards)
 			});
 	});
-var $author$project$Game$removeYourCard = F2(
-	function (card, game) {
-		return _Utils_update(
-			game,
-			{
-				yourCards: A2(
-					$elm$core$List$filter,
-					$elm$core$Basics$neq(card),
-					game.yourCards)
-			});
-	});
-var $author$project$Game$Update$playCard = F2(
-	function (card, game) {
-		return A2(
-			$author$project$Game$playCard,
-			card,
-			A2($author$project$Game$removeYourCard, card, game));
-	});
+var $author$project$Game$Update$playCard = $author$project$Game$playCard;
 var $author$project$Main$playCard = F2(
-	function (card, model) {
+	function (id, model) {
 		return function (game) {
 			return _Utils_update(
 				model,
 				{game: game, yourTurn: false});
 		}(
-			A2($author$project$Game$Update$playCard, card, model.game));
+			A2($author$project$Game$Update$playCard, id, model.game));
 	});
 var $elm$random$Random$constant = function (value) {
 	return $elm$random$Random$Generator(
@@ -6935,6 +6991,10 @@ var $elm$random$Random$constant = function (value) {
 			return _Utils_Tuple2(value, seed);
 		});
 };
+var $author$project$Game$getCardFrom = F2(
+	function (game, id) {
+		return A2($elm$core$Dict$get, id, game.cards);
+	});
 var $elm$core$List$head = function (list) {
 	if (list.b) {
 		var x = list.a;
@@ -6944,20 +7004,41 @@ var $elm$core$List$head = function (list) {
 		return $elm$core$Maybe$Nothing;
 	}
 };
-var $author$project$Game$currentPercentage = function (game) {
+var $author$project$Game$currentValue = function (game) {
 	return A2(
 		$elm$core$Maybe$withDefault,
-		100,
+		0,
 		A2(
 			$elm$core$Maybe$andThen,
 			function (card) {
 				return A2(
 					$elm$core$Dict$get,
 					$author$project$Goal$description(card.goal),
-					game.probabilities);
+					game.values);
 			},
-			$elm$core$List$head(game.playedCards)));
+			A2(
+				$elm$core$Maybe$andThen,
+				$author$project$Game$getCardFrom(game),
+				$elm$core$List$head(game.playedCards))));
 };
+var $elm$core$List$maybeCons = F3(
+	function (f, mx, xs) {
+		var _v0 = f(mx);
+		if (_v0.$ === 'Just') {
+			var x = _v0.a;
+			return A2($elm$core$List$cons, x, xs);
+		} else {
+			return xs;
+		}
+	});
+var $elm$core$List$filterMap = F2(
+	function (f, xs) {
+		return A3(
+			$elm$core$List$foldr,
+			$elm$core$List$maybeCons(f),
+			_List_Nil,
+			xs);
+	});
 var $elm$core$Basics$abs = function (n) {
 	return (n < 0) ? (-n) : n;
 };
@@ -6978,17 +7059,6 @@ var $elm$random$Random$float = F2(
 					$elm$random$Random$next(seed1));
 			});
 	});
-var $author$project$Game$removeOpponentCard = F2(
-	function (card, game) {
-		return _Utils_update(
-			game,
-			{
-				opponentCards: A2(
-					$elm$core$List$filter,
-					$elm$core$Basics$neq(card),
-					game.opponentCards)
-			});
-	});
 var $author$project$Game$Update$opponentsTurn = function (game) {
 	var probabilities = A2(
 		$author$project$Game$Evaluate$probabilities,
@@ -6998,17 +7068,30 @@ var $author$project$Game$Update$opponentsTurn = function (game) {
 				function ($) {
 					return $.suit;
 				},
-				_Utils_ap(game.outOfPlay, game.yourCards)),
+				A2(
+					$elm$core$List$filterMap,
+					$author$project$Game$getCardFrom(game),
+					_Utils_ap(
+						$elm$core$Set$toList(game.outOfPlay),
+						$elm$core$Set$toList(game.yourCards)))),
 			open: A2(
 				$elm$core$List$map,
 				function ($) {
 					return $.suit;
 				},
-				_Utils_ap(game.opponentCards, game.playedCards))
+				A2(
+					$elm$core$List$filterMap,
+					$author$project$Game$getCardFrom(game),
+					_Utils_ap(
+						$elm$core$Set$toList(game.opponentCards),
+						game.playedCards)))
 		},
-		_Utils_ap(
-			game.opponentCards,
-			A2($elm$core$List$take, 1, game.playedCards)));
+		A2(
+			$elm$core$List$filterMap,
+			$author$project$Game$getCardFrom(game),
+			_Utils_ap(
+				$elm$core$Set$toList(game.opponentCards),
+				A2($elm$core$List$take, 1, game.playedCards))));
 	return A2(
 		$elm$core$Maybe$withDefault,
 		true,
@@ -7025,12 +7108,17 @@ var $author$project$Game$Update$opponentsTurn = function (game) {
 						$author$project$Goal$description(card.goal),
 						probabilities);
 				},
-				$elm$core$List$head(game.playedCards)))) ? A2(
+				A2(
+					$elm$core$Maybe$andThen,
+					$author$project$Game$getCardFrom(game),
+					$elm$core$List$head(game.playedCards))))) ? A2(
 		$elm$core$Maybe$withDefault,
 		$elm$random$Random$constant($elm$core$Maybe$Nothing),
 		A2(
 			$elm$core$Maybe$map,
-			function (card) {
+			function (_v2) {
+				var cardId = _v2.a;
+				var card = _v2.b;
 				return A2(
 					$elm$random$Random$map,
 					function (_float) {
@@ -7042,18 +7130,16 @@ var $author$project$Game$Update$opponentsTurn = function (game) {
 								A2(
 									$elm$core$Dict$get,
 									$author$project$Goal$description(card.goal),
-									probabilities))) < 0) || ($author$project$Game$currentPercentage(game) === 100)) ? $elm$core$Maybe$Just(
-							A2(
-								$author$project$Game$playCard,
-								card,
-								A2($author$project$Game$removeOpponentCard, card, game))) : $elm$core$Maybe$Nothing;
+									probabilities))) < 0) || (!$author$project$Game$currentValue(game))) ? $elm$core$Maybe$Just(
+							A2($author$project$Game$playCard, cardId, game)) : $elm$core$Maybe$Nothing;
 					},
 					A2($elm$random$Random$float, 0, 100));
 			},
 			$elm$core$List$head(
 				A2(
 					$elm$core$List$sortBy,
-					function (card) {
+					function (_v1) {
+						var card = _v1.b;
 						return 100 - A2(
 							$elm$core$Maybe$withDefault,
 							0,
@@ -7064,7 +7150,8 @@ var $author$project$Game$Update$opponentsTurn = function (game) {
 					},
 					A2(
 						$elm$core$List$filter,
-						function (card) {
+						function (_v0) {
+							var card = _v0.b;
 							return _Utils_cmp(
 								A2(
 									$elm$core$Maybe$withDefault,
@@ -7072,10 +7159,18 @@ var $author$project$Game$Update$opponentsTurn = function (game) {
 									A2(
 										$elm$core$Dict$get,
 										$author$project$Goal$description(card.goal),
-										game.probabilities)),
-								$author$project$Game$currentPercentage(game)) < 1;
+										game.values)),
+								$author$project$Game$currentValue(game)) > -1;
 						},
-						game.opponentCards))))) : $elm$random$Random$constant($elm$core$Maybe$Nothing);
+						A2(
+							$elm$core$List$filterMap,
+							function (cardId) {
+								return A2(
+									$elm$core$Maybe$map,
+									$elm$core$Tuple$pair(cardId),
+									A2($author$project$Game$getCardFrom, game, cardId));
+							},
+							$elm$core$Set$toList(game.opponentCards))))))) : $elm$random$Random$constant($elm$core$Maybe$Nothing);
 };
 var $author$project$Main$requestOpponentTurn = function (model) {
 	return function (_v0) {
@@ -7282,18 +7377,67 @@ var $Orasund$elm_layout$Layout$el = F2(
 	});
 var $Orasund$elm_layout$Html$Style$gap = $elm$html$Html$Attributes$style('gap');
 var $Orasund$elm_layout$Html$Style$height = $elm$html$Html$Attributes$style('height');
-var $elm$core$Dict$update = F3(
-	function (targetKey, alter, dictionary) {
-		var _v0 = alter(
-			A2($elm$core$Dict$get, targetKey, dictionary));
-		if (_v0.$ === 'Just') {
-			var value = _v0.a;
-			return A3($elm$core$Dict$insert, targetKey, value, dictionary);
-		} else {
-			return A2($elm$core$Dict$remove, targetKey, dictionary);
-		}
+var $elm_community$list_extra$List$Extra$groupWhile = F2(
+	function (isSameGroup, items) {
+		return A3(
+			$elm$core$List$foldr,
+			F2(
+				function (x, acc) {
+					if (!acc.b) {
+						return _List_fromArray(
+							[
+								_Utils_Tuple2(x, _List_Nil)
+							]);
+					} else {
+						var _v1 = acc.a;
+						var y = _v1.a;
+						var restOfGroup = _v1.b;
+						var groups = acc.b;
+						return A2(isSameGroup, x, y) ? A2(
+							$elm$core$List$cons,
+							_Utils_Tuple2(
+								x,
+								A2($elm$core$List$cons, y, restOfGroup)),
+							groups) : A2(
+							$elm$core$List$cons,
+							_Utils_Tuple2(x, _List_Nil),
+							acc);
+					}
+				}),
+			_List_Nil,
+			items);
+	});
+var $elm_community$list_extra$List$Extra$group = $elm_community$list_extra$List$Extra$groupWhile($elm$core$Basics$eq);
+var $elm$core$Set$member = F2(
+	function (key, _v0) {
+		var dict = _v0.a;
+		return A2($elm$core$Dict$member, key, dict);
 	});
 var $author$project$Game$isWon = function (game) {
+	var isGoalMet = function (goal) {
+		return A2(
+			$author$project$Goal$goalMet,
+			goal,
+			$elm$core$Dict$fromList(
+				A2(
+					$elm$core$List$map,
+					function (_v2) {
+						var suit = _v2.a;
+						var l = _v2.b;
+						return _Utils_Tuple2(
+							$author$project$Suit$icon(suit),
+							$elm$core$List$length(l) + 1);
+					},
+					$elm_community$list_extra$List$Extra$group(
+						A2(
+							$elm$core$List$filterMap,
+							function (_v1) {
+								var id = _v1.a;
+								var card = _v1.b;
+								return A2($elm$core$Set$member, id, game.outOfPlay) ? $elm$core$Maybe$Nothing : $elm$core$Maybe$Just(card.suit);
+							},
+							$elm$core$Dict$toList(game.cards))))));
+	};
 	return A2(
 		$elm$core$Maybe$withDefault,
 		false,
@@ -7301,26 +7445,12 @@ var $author$project$Game$isWon = function (game) {
 			$elm$core$Maybe$map,
 			function (_v0) {
 				var goal = _v0.goal;
-				return A2(
-					$author$project$Goal$goalMet,
-					goal,
-					A3(
-						$elm$core$List$foldl,
-						function (card) {
-							return A2(
-								$elm$core$Dict$update,
-								$author$project$Suit$icon(card.suit),
-								function (maybe) {
-									return $elm$core$Maybe$Just(
-										1 + A2($elm$core$Maybe$withDefault, 0, maybe));
-								});
-						},
-						$elm$core$Dict$empty,
-						_Utils_ap(
-							game.yourCards,
-							_Utils_ap(game.opponentCards, game.playedCards))));
+				return isGoalMet(goal);
 			},
-			$elm$core$List$head(game.playedCards)));
+			A2(
+				$elm$core$Maybe$andThen,
+				$author$project$Game$getCardFrom(game),
+				$elm$core$List$head(game.playedCards))));
 };
 var $Orasund$elm_layout$Html$Style$justifyContent = $elm$html$Html$Attributes$style('justify-content');
 var $Orasund$elm_layout$Html$Style$justifyContentCenter = $Orasund$elm_layout$Html$Style$justifyContent('center');
@@ -7640,7 +7770,10 @@ var $author$project$View$Overlay$gameEnd = F2(
 		var bet = A2(
 			$elm$core$Maybe$withDefault,
 			{goal: _List_Nil, suit: $author$project$Suit$Heart},
-			$elm$core$List$head(game.playedCards));
+			A2(
+				$elm$core$Maybe$andThen,
+				$author$project$Game$getCardFrom(game),
+				$elm$core$List$head(game.playedCards)));
 		return A2(
 			$Orasund$elm_layout$Layout$column,
 			_List_fromArray(
@@ -7661,7 +7794,7 @@ var $author$project$View$Overlay$gameEnd = F2(
 							A2(
 								$elm$core$Dict$get,
 								$author$project$Goal$description(bet.goal),
-								game.probabilities))) + ' CREDITS')),
+								game.values))) + ' CREDITS')),
 					A2(
 					$Orasund$elm_layout$Layout$column,
 					_List_fromArray(
@@ -7720,9 +7853,14 @@ var $author$project$View$Overlay$gameEnd = F2(
 									function (card) {
 										return $author$project$Suit$icon(card.suit);
 									},
-									_Utils_ap(
-										game.yourCards,
-										_Utils_ap(game.opponentCards, game.playedCards)))))
+									A2(
+										$elm$core$List$filterMap,
+										$author$project$Game$getCardFrom(game),
+										_Utils_ap(
+											$elm$core$Set$toList(game.yourCards),
+											_Utils_ap(
+												$elm$core$Set$toList(game.opponentCards),
+												game.playedCards))))))
 						])),
 					A2(
 					$Orasund$elm_layout$Layout$text,
@@ -7772,6 +7910,129 @@ var $elm_community$list_extra$List$Extra$gatherEqualsBy = F2(
 				}),
 			list);
 	});
+var $author$project$View$Card$height = 120;
+var $elm$virtual_dom$VirtualDom$keyedNode = function (tag) {
+	return _VirtualDom_keyedNode(
+		_VirtualDom_noScript(tag));
+};
+var $elm$html$Html$Keyed$node = $elm$virtual_dom$VirtualDom$keyedNode;
+var $Orasund$elm_card_game$Game$Area$toHtml = F2(
+	function (attr, list) {
+		return A3(
+			$elm$html$Html$Keyed$node,
+			'div',
+			_Utils_ap(
+				_List_fromArray(
+					[
+						A2($elm$html$Html$Attributes$style, 'display', 'flex'),
+						A2($elm$html$Html$Attributes$style, 'position', 'relative')
+					]),
+				attr),
+			A2(
+				$elm$core$List$map,
+				function (entity) {
+					return _Utils_Tuple2(
+						entity.content.a,
+						function (f) {
+							return f(
+								_Utils_ap(
+									_List_fromArray(
+										[
+											A2($elm$html$Html$Attributes$style, 'position', 'absolute'),
+											A2($elm$html$Html$Attributes$style, 'transition', 'transform 0.5s')
+										]),
+									$Orasund$elm_card_game$Game$Entity$toAttributes(entity).b));
+						}(entity.content.b));
+				},
+				A2(
+					$elm$core$List$sortBy,
+					function (entity) {
+						return entity.content.a;
+					},
+					list)));
+	});
+var $author$project$View$Card$back = function (attrs) {
+	return A2(
+		$Orasund$elm_card_game$Game$Card$default,
+		_Utils_ap(
+			_List_fromArray(
+				[
+					$Orasund$elm_layout$Html$Style$height(
+					$elm$core$String$fromInt($author$project$View$Card$height) + 'px'),
+					A2($elm$html$Html$Attributes$style, 'background-color', '#c6b8b8'),
+					$Orasund$elm_layout$Html$Style$boxSizingBorderBox
+				]),
+			attrs),
+		_List_Nil);
+};
+var $Orasund$elm_card_game$Game$Entity$flipTransformation = function (_float) {
+	return 'rotateY(' + ($elm$core$String$fromFloat(_float) + 'rad)');
+};
+var $Orasund$elm_card_game$Game$Entity$mapCustomTransformations = F2(
+	function (fun, entity) {
+		return _Utils_update(
+			entity,
+			{
+				customTransformations: fun(entity.customTransformations)
+			});
+	});
+var $elm$core$Basics$pi = _Basics_pi;
+var $Orasund$elm_card_game$Game$Entity$flippable = F2(
+	function (attrs, args) {
+		return A2(
+			$Orasund$elm_card_game$Game$Entity$mapCustomTransformations,
+			$elm$core$Basics$append(
+				(!args.faceUp) ? _List_fromArray(
+					[
+						$Orasund$elm_card_game$Game$Entity$flipTransformation($elm$core$Basics$pi)
+					]) : _List_fromArray(
+					[
+						$Orasund$elm_card_game$Game$Entity$flipTransformation(0)
+					])),
+			$Orasund$elm_card_game$Game$Entity$new(
+				function (a) {
+					return A2(
+						$elm$html$Html$div,
+						_Utils_ap(
+							_List_fromArray(
+								[
+									A2($elm$html$Html$Attributes$style, 'position', 'relative'),
+									A2($elm$html$Html$Attributes$style, 'transition', 'transform 0.5s'),
+									A2($elm$html$Html$Attributes$style, 'height', '200px'),
+									A2($elm$html$Html$Attributes$style, 'transform-style', 'preserve-3d'),
+									A2(
+									$elm$html$Html$Attributes$style,
+									'width',
+									$elm$core$String$fromFloat((200 * 2) / 3) + 'px')
+								]),
+							_Utils_ap(a, attrs)),
+						_List_fromArray(
+							[
+								A2(
+								$Orasund$elm_card_game$Game$Entity$toHtml,
+								_List_fromArray(
+									[
+										A2($elm$html$Html$Attributes$style, 'position', 'absolute')
+									]),
+								A2(
+									$Orasund$elm_card_game$Game$Entity$mapCustomTransformations,
+									$elm$core$List$cons(
+										$Orasund$elm_card_game$Game$Entity$flipTransformation(0)),
+									args.front)),
+								A2(
+								$Orasund$elm_card_game$Game$Entity$toHtml,
+								_List_fromArray(
+									[
+										A2($elm$html$Html$Attributes$style, 'position', 'absolute')
+									]),
+								A2(
+									$Orasund$elm_card_game$Game$Entity$mapCustomTransformations,
+									$elm$core$List$cons(
+										$Orasund$elm_card_game$Game$Entity$flipTransformation($elm$core$Basics$pi)),
+									args.back))
+							]));
+				}));
+	});
 var $Orasund$elm_card_game$Game$Card$element = F2(
 	function (attrs, content) {
 		return A2(
@@ -7786,7 +8047,6 @@ var $Orasund$elm_card_game$Game$Card$element = F2(
 			_List_fromArray(
 				[content]));
 	});
-var $author$project$View$Card$height = '120px';
 var $Orasund$elm_card_game$Game$Card$row = F2(
 	function (attrs, content) {
 		return A2(
@@ -7801,14 +8061,15 @@ var $Orasund$elm_card_game$Game$Card$row = F2(
 				attrs),
 			content);
 	});
-var $author$project$View$Card$toHtml = F3(
+var $author$project$View$Card$front = F3(
 	function (attrs, args, card) {
 		return A2(
 			$Orasund$elm_card_game$Game$Card$default,
 			_Utils_ap(
 				_List_fromArray(
 					[
-						$Orasund$elm_layout$Html$Style$height($author$project$View$Card$height),
+						$Orasund$elm_layout$Html$Style$height(
+						$elm$core$String$fromInt($author$project$View$Card$height) + 'px'),
 						A2(
 						$elm$html$Html$Attributes$style,
 						'background-color',
@@ -7830,7 +8091,7 @@ var $author$project$View$Card$toHtml = F3(
 							$Orasund$elm_card_game$Game$Card$element,
 							_List_Nil,
 							$elm$html$Html$text(
-								$elm$core$String$fromInt(args.probability))),
+								$elm$core$String$fromInt(args.value))),
 							A2(
 							$Orasund$elm_card_game$Game$Card$element,
 							_List_Nil,
@@ -7855,6 +8116,87 @@ var $author$project$View$Card$toHtml = F3(
 								card.goal)
 							])))
 				]));
+	});
+var $Orasund$elm_card_game$Game$Entity$map = F2(
+	function (fun, i) {
+		return {
+			content: fun(i.content),
+			customTransformations: i.customTransformations,
+			position: i.position,
+			rotation: i.rotation,
+			zIndex: i.zIndex
+		};
+	});
+var $author$project$View$Card$toHtml = F3(
+	function (attrs, args, _v0) {
+		var cardId = _v0.a;
+		var card = _v0.b;
+		return A2(
+			$Orasund$elm_card_game$Game$Entity$map,
+			$elm$core$Tuple$pair(
+				'card_' + $elm$core$String$fromInt(cardId)),
+			A2(
+				$Orasund$elm_card_game$Game$Entity$flippable,
+				_Utils_ap(
+					_List_fromArray(
+						[
+							$Orasund$elm_layout$Html$Style$height(
+							$elm$core$String$fromInt($author$project$View$Card$height) + 'px'),
+							$Orasund$elm_layout$Html$Style$width(
+							$elm$core$String$fromFloat(($author$project$View$Card$height * 2) / 3) + 'px')
+						]),
+					attrs),
+				{
+					back: $Orasund$elm_card_game$Game$Entity$new($author$project$View$Card$back),
+					faceUp: args.faceUp,
+					front: $Orasund$elm_card_game$Game$Entity$new(
+						function (a) {
+							return A3(
+								$author$project$View$Card$front,
+								args.active ? A2(
+									$elm$core$List$cons,
+									A2($elm$html$Html$Attributes$style, 'border', '4px solid #679aff'),
+									a) : A2(
+									$elm$core$List$cons,
+									A2($elm$html$Html$Attributes$style, 'color', 'rgba(0,0,0,0.5)'),
+									a),
+								args,
+								card);
+						})
+				}));
+	});
+var $elm$core$Basics$cos = _Basics_cos;
+var $elm$core$Basics$sin = _Basics_sin;
+var $elm$core$Basics$fromPolar = function (_v0) {
+	var radius = _v0.a;
+	var theta = _v0.b;
+	return _Utils_Tuple2(
+		radius * $elm$core$Basics$cos(theta),
+		radius * $elm$core$Basics$sin(theta));
+};
+var $Orasund$elm_card_game$Game$Area$mapPosition = function (fun) {
+	return $elm$core$List$indexedMap(
+		F2(
+			function (i, entity) {
+				return A2(
+					$Orasund$elm_card_game$Game$Entity$mapPosition,
+					A2(fun, i, entity.content),
+					entity);
+			}));
+};
+var $Orasund$elm_card_game$Game$Area$withPolarPosition = F2(
+	function (args, list) {
+		return A2(
+			$Orasund$elm_card_game$Game$Area$mapPosition,
+			F3(
+				function (i, _v0, _v1) {
+					return ($elm$core$List$length(list) === 1) ? $elm$core$Basics$fromPolar(
+						_Utils_Tuple2(args.minDistance + ((args.maxDistance - args.minDistance) / 2), args.minAngle + ((args.maxAngle - args.minAngle) / 2))) : $elm$core$Basics$fromPolar(
+						_Utils_Tuple2(
+							args.minDistance + ((i * (args.maxDistance - args.minDistance)) / ($elm$core$List$length(list) - 1)),
+							args.minAngle + ((i * (args.maxAngle - args.minAngle)) / ($elm$core$List$length(list) - 1))));
+				}),
+			list);
 	});
 var $author$project$View$Overlay$shop = F2(
 	function (args, list) {
@@ -7910,35 +8252,42 @@ var $author$project$View$Overlay$shop = F2(
 						[$Orasund$elm_layout$Html$Style$justifyContentCenter]),
 					'Pick a card to add to the deck'),
 					A2(
-					$Orasund$elm_layout$Layout$row,
+					$Orasund$elm_card_game$Game$Area$toHtml,
 					_List_fromArray(
 						[
-							$Orasund$elm_layout$Html$Style$justifyContentCenter,
-							$Orasund$elm_layout$Html$Style$gap('8px')
+							$Orasund$elm_layout$Html$Style$height(
+							$elm$core$String$fromInt($author$project$View$Card$height) + 'px'),
+							$Orasund$elm_layout$Html$Style$justifyContentCenter
 						]),
 					A2(
-						$elm$core$List$map,
-						function (card) {
-							return A3(
-								$author$project$View$Card$toHtml,
-								$Orasund$elm_layout$Layout$asButton(
-									{
-										label: 'Pick',
-										onPress: $elm$core$Maybe$Just(
-											args.onChoose(card))
-									}),
-								{
-									probability: A2(
-										$elm$core$Maybe$withDefault,
-										0,
-										A2(
-											$elm$core$Dict$get,
-											$author$project$Goal$description(card.goal),
-											args.probabilities))
-								},
-								card);
-						},
-						list))
+						$Orasund$elm_card_game$Game$Area$withPolarPosition,
+						{maxAngle: 0, maxDistance: 4 + (($author$project$View$Card$height * 2) / 6), minAngle: 0, minDistance: (-4) - (($author$project$View$Card$height * 2) / 6)},
+						A2(
+							$elm$core$List$indexedMap,
+							F2(
+								function (i, card) {
+									return A3(
+										$author$project$View$Card$toHtml,
+										$Orasund$elm_layout$Layout$asButton(
+											{
+												label: 'Pick',
+												onPress: $elm$core$Maybe$Just(
+													args.onChoose(card))
+											}),
+										{
+											active: true,
+											faceUp: true,
+											value: A2(
+												$elm$core$Maybe$withDefault,
+												0,
+												A2(
+													$elm$core$Dict$get,
+													$author$project$Goal$description(card.goal),
+													args.values))
+										},
+										_Utils_Tuple2(-i, card));
+								}),
+							list)))
 				]));
 	});
 var $Orasund$elm_card_game$Game$Card$empty = F2(
@@ -7976,7 +8325,8 @@ var $author$project$View$Card$empty = function (attrs) {
 		_Utils_ap(
 			_List_fromArray(
 				[
-					$Orasund$elm_layout$Html$Style$height($author$project$View$Card$height),
+					$Orasund$elm_layout$Html$Style$height(
+					$elm$core$String$fromInt($author$project$View$Card$height) + 'px'),
 					$Orasund$elm_layout$Html$Style$boxSizingBorderBox
 				]),
 			attrs),
@@ -7989,66 +8339,140 @@ var $Orasund$elm_layout$Layout$fillPortion = function (n) {
 		$elm$core$String$fromInt(n));
 };
 var $Orasund$elm_layout$Layout$fill = $Orasund$elm_layout$Layout$fillPortion(1);
-var $author$project$View$Card$back = A2(
-	$Orasund$elm_card_game$Game$Card$default,
-	_List_fromArray(
-		[
-			$Orasund$elm_layout$Html$Style$height($author$project$View$Card$height),
-			A2($elm$html$Html$Attributes$style, 'background-color', '#c6b8b8'),
-			$Orasund$elm_layout$Html$Style$boxSizingBorderBox
-		]),
-	_List_Nil);
-var $author$project$View$Hand$opponent = F2(
-	function (attrs, list) {
+var $author$project$View$Hand$opponent = F3(
+	function (attrs, args, list) {
 		return A2(
-			$Orasund$elm_layout$Layout$row,
+			$Orasund$elm_card_game$Game$Area$toHtml,
+			attrs,
 			A2(
-				$elm$core$List$cons,
-				$Orasund$elm_layout$Html$Style$gap('8px'),
-				attrs),
-			A2(
-				$elm$core$List$map,
-				function (_v0) {
-					return $author$project$View$Card$back;
+				$Orasund$elm_card_game$Game$Area$withPolarPosition,
+				{maxAngle: 0, maxDistance: 150, minAngle: 0, minDistance: -150},
+				A2(
+					$elm$core$List$map,
+					function (_v0) {
+						var cardId = _v0.a;
+						var card = _v0.b;
+						var value = A2(
+							$elm$core$Maybe$withDefault,
+							0,
+							A2(
+								$elm$core$Dict$get,
+								$author$project$Goal$description(card.goal),
+								args.values));
+						return A3(
+							$author$project$View$Card$toHtml,
+							_List_Nil,
+							{active: false, faceUp: false, value: value},
+							_Utils_Tuple2(cardId, card));
+					},
+					list)));
+	});
+var $Orasund$elm_card_game$Game$Entity$mapZIndex = F2(
+	function (fun, entity) {
+		return _Utils_update(
+			entity,
+			{
+				zIndex: fun(entity.zIndex)
+			});
+	});
+var $Orasund$elm_card_game$Game$Area$new = function (offset) {
+	return $elm$core$List$map(
+		function (_v0) {
+			var id = _v0.a;
+			var content = _v0.b;
+			return A2(
+				$Orasund$elm_card_game$Game$Entity$mapPosition,
+				function (_v1) {
+					return offset;
 				},
+				A2(
+					$Orasund$elm_card_game$Game$Entity$map,
+					$elm$core$Tuple$pair(id),
+					$Orasund$elm_card_game$Game$Entity$new(content)));
+		});
+};
+var $elm$core$List$singleton = function (value) {
+	return _List_fromArray(
+		[value]);
+};
+var $Orasund$elm_card_game$Game$Area$pileAbove = F3(
+	function (_v0, empty, list) {
+		var x = _v0.a;
+		var y = _v0.b;
+		return _Utils_ap(
+			A2(
+				$Orasund$elm_card_game$Game$Area$new,
+				_Utils_Tuple2(x, y),
+				$elm$core$List$singleton(empty)),
+			A2(
+				$elm$core$List$indexedMap,
+				F2(
+					function (i, entity) {
+						return A2(
+							$Orasund$elm_card_game$Game$Entity$mapZIndex,
+							$elm$core$Basics$add(i + 1),
+							A2(
+								$Orasund$elm_card_game$Game$Entity$mapPosition,
+								A2(
+									$elm$core$Tuple$mapBoth,
+									$elm$core$Basics$add(x),
+									$elm$core$Basics$add(y)),
+								entity));
+					}),
 				list));
 	});
 var $author$project$View$Hand$toHtml = F3(
 	function (attrs, args, list) {
 		return A2(
-			$Orasund$elm_layout$Layout$row,
+			$Orasund$elm_card_game$Game$Area$toHtml,
 			A2(
 				$elm$core$List$cons,
-				$Orasund$elm_layout$Html$Style$gap('8px'),
+				$Orasund$elm_layout$Html$Style$height(
+					$elm$core$String$fromInt($author$project$View$Card$height) + 'px'),
 				attrs),
 			A2(
-				$elm$core$List$map,
-				function (card) {
-					var probability = A2(
-						$elm$core$Maybe$withDefault,
-						0,
-						A2(
-							$elm$core$Dict$get,
-							$author$project$Goal$description(card.goal),
-							args.probabilities));
-					return A3(
-						$author$project$View$Card$toHtml,
-						(_Utils_cmp(probability, args.currentPercentage) < 1) ? A2(
-							$elm$core$List$cons,
-							A2($elm$html$Html$Attributes$style, 'border', '4px solid #679aff'),
-							$Orasund$elm_layout$Layout$asButton(
+				$Orasund$elm_card_game$Game$Area$withPolarPosition,
+				{maxAngle: 0, maxDistance: 150, minAngle: 0, minDistance: -150},
+				A2(
+					$elm$core$List$map,
+					function (_v1) {
+						var cardId = _v1.a;
+						var card = _v1.b;
+						var value = A2(
+							$elm$core$Maybe$withDefault,
+							0,
+							A2(
+								$elm$core$Dict$get,
+								$author$project$Goal$description(card.goal),
+								args.values));
+						return A3(
+							$author$project$View$Card$toHtml,
+							(_Utils_cmp(value, args.currentValue) > -1) ? $Orasund$elm_layout$Layout$asButton(
 								{
 									label: 'play',
 									onPress: $elm$core$Maybe$Just(
-										args.onPlay(card))
-								})) : _List_fromArray(
-							[
-								A2($elm$html$Html$Attributes$style, 'color', 'rgba(0,0,0,0.5)')
-							]),
-						{probability: probability},
-						card);
-				},
-				list));
+										args.onPlay(cardId))
+								}) : _List_Nil,
+							{
+								active: _Utils_cmp(value, args.currentValue) > -1,
+								faceUp: true,
+								value: value
+							},
+							_Utils_Tuple2(cardId, card));
+					},
+					A2(
+						$elm$core$List$sortBy,
+						function (_v0) {
+							var card = _v0.b;
+							return A2(
+								$elm$core$Maybe$withDefault,
+								0,
+								A2(
+									$elm$core$Dict$get,
+									$author$project$Goal$description(card.goal),
+									args.values));
+						},
+						list))));
 	});
 var $author$project$View$Game$toHtml = F2(
 	function (args, game) {
@@ -8061,11 +8485,20 @@ var $author$project$View$Game$toHtml = F2(
 				]),
 			_List_fromArray(
 				[
-					A2(
+					A3(
 					$author$project$View$Hand$opponent,
 					_List_fromArray(
 						[$Orasund$elm_layout$Html$Style$justifyContentCenter]),
-					game.opponentCards),
+					{values: game.values},
+					A2(
+						$elm$core$List$filterMap,
+						function (cardId) {
+							return A2(
+								$elm$core$Maybe$map,
+								$elm$core$Tuple$pair(cardId),
+								A2($author$project$Game$getCardFrom, game, cardId));
+						},
+						$elm$core$Set$toList(game.opponentCards))),
 					A2(
 					$Orasund$elm_layout$Layout$column,
 					_List_fromArray(
@@ -8098,12 +8531,13 @@ var $author$project$View$Game$toHtml = F2(
 										[$Orasund$elm_layout$Layout$fill]),
 									$Orasund$elm_layout$Layout$none),
 									A2(
-									$Orasund$elm_card_game$Game$Entity$toHtml,
+									$Orasund$elm_card_game$Game$Area$toHtml,
 									_List_fromArray(
 										[$Orasund$elm_layout$Html$Style$justifyContentCenter]),
-									A2(
-										$Orasund$elm_card_game$Game$Entity$pileAbove,
-										$author$project$View$Card$empty(_List_Nil),
+									A3(
+										$Orasund$elm_card_game$Game$Area$pileAbove,
+										_Utils_Tuple2(0, 0),
+										_Utils_Tuple2('discardPile', $author$project$View$Card$empty),
 										A2(
 											$elm$core$List$indexedMap,
 											function (i) {
@@ -8114,25 +8548,32 @@ var $author$project$View$Game$toHtml = F2(
 											},
 											A2(
 												$elm$core$List$map,
-												$Orasund$elm_card_game$Game$Entity$new,
+												function (_v0) {
+													var cardId = _v0.a;
+													var card = _v0.b;
+													return A3(
+														$author$project$View$Card$toHtml,
+														_List_Nil,
+														{
+															active: false,
+															faceUp: true,
+															value: A2(
+																$elm$core$Maybe$withDefault,
+																0,
+																A2(
+																	$elm$core$Dict$get,
+																	$author$project$Goal$description(card.goal),
+																	game.values))
+														},
+														_Utils_Tuple2(cardId, card));
+												},
 												A2(
-													$elm$core$List$map,
-													function (card) {
-														return function (attrs) {
-															return A3(
-																$author$project$View$Card$toHtml,
-																attrs,
-																{
-																	probability: A2(
-																		$elm$core$Maybe$withDefault,
-																		0,
-																		A2(
-																			$elm$core$Dict$get,
-																			$author$project$Goal$description(card.goal),
-																			game.probabilities))
-																},
-																card);
-														};
+													$elm$core$List$filterMap,
+													function (cardId) {
+														return A2(
+															$elm$core$Maybe$map,
+															$elm$core$Tuple$pair(cardId),
+															A2($author$project$Game$getCardFrom, game, cardId));
 													},
 													$elm$core$List$reverse(game.playedCards)))))),
 									A2(
@@ -8154,17 +8595,25 @@ var $author$project$View$Game$toHtml = F2(
 							$Orasund$elm_layout$Layout$text,
 							_List_fromArray(
 								[$Orasund$elm_layout$Html$Style$justifyContentCenter]),
-							(!args.yourTurn) ? 'Waiting...' : 'Play a card with a smaller value or call the bluff'),
+							(!args.yourTurn) ? 'Waiting...' : 'Play a card with a higher value or call the bluff'),
 							A3(
 							$author$project$View$Hand$toHtml,
 							_List_fromArray(
 								[$Orasund$elm_layout$Html$Style$justifyContentCenter]),
 							{
-								currentPercentage: $author$project$Game$currentPercentage(game),
+								currentValue: $author$project$Game$currentValue(game),
 								onPlay: args.onPlay,
-								probabilities: game.probabilities
+								values: game.values
 							},
-							game.yourCards),
+							A2(
+								$elm$core$List$filterMap,
+								function (cardId) {
+									return A2(
+										$elm$core$Maybe$map,
+										$elm$core$Tuple$pair(cardId),
+										A2($author$project$Game$getCardFrom, game, cardId));
+								},
+								$elm$core$Set$toList(game.yourCards))),
 							A2(
 							$Orasund$elm_layout$Layout$el,
 							_List_fromArray(
@@ -8179,13 +8628,22 @@ var $author$project$View$Game$toHtml = F2(
 											0,
 											A2(
 												$elm$core$Maybe$andThen,
-												function (card) {
+												function (_v1) {
+													var card = _v1.b;
 													return A2(
 														$elm$core$Dict$get,
 														$author$project$Goal$description(card.goal),
-														game.probabilities);
+														game.values);
 												},
-												$elm$core$List$head(game.playedCards)))) + ' CREDITS'),
+												A2(
+													$elm$core$Maybe$andThen,
+													function (cardId) {
+														return A2(
+															$elm$core$Maybe$map,
+															$elm$core$Tuple$pair(cardId),
+															A2($author$project$Game$getCardFrom, game, cardId));
+													},
+													$elm$core$List$head(game.playedCards))))) + ' CREDITS'),
 									onPress: args.yourTurn ? $elm$core$Maybe$Just(args.onChallenge) : $elm$core$Maybe$Nothing
 								}))
 						]))
@@ -8296,11 +8754,19 @@ var $author$project$View$Overlay$tutorial = function (args) {
 									[$Orasund$elm_layout$Html$Style$positionRelative]),
 								_List_fromArray(
 									[
-										A3(
-										$author$project$View$Card$toHtml,
+										A2(
+										$Orasund$elm_card_game$Game$Entity$toHtml,
 										_List_Nil,
-										{probability: 42},
-										{goal: goal, suit: suit}),
+										A2(
+											$Orasund$elm_card_game$Game$Entity$map,
+											$elm$core$Tuple$second,
+											A3(
+												$author$project$View$Card$toHtml,
+												_List_Nil,
+												{active: false, faceUp: true, value: 42},
+												_Utils_Tuple2(
+													-1,
+													{goal: goal, suit: suit})))),
 										A2(
 										$Orasund$elm_layout$Layout$column,
 										_List_fromArray(
@@ -8409,7 +8875,7 @@ var $author$project$View$Overlay$tutorial = function (args) {
 				case 2:
 					return _List_fromArray(
 						[
-							A2($Orasund$elm_layout$Layout$text, _List_Nil, 'Each turn a player can either play a card with a lower value or challenge the bet (calling the bluff).'),
+							A2($Orasund$elm_layout$Layout$text, _List_Nil, 'Each turn a player can either play a card with a higher value or challenge the bet (calling the bluff).'),
 							A2(
 							$author$project$View$Game$toHtml,
 							{
@@ -8419,79 +8885,13 @@ var $author$project$View$Overlay$tutorial = function (args) {
 								},
 								yourTurn: true
 							},
-							{
-								opponentCards: A2(
-									$elm$core$List$repeat,
-									2,
-									{goal: _List_Nil, suit: $author$project$Suit$Heart}),
-								outOfPlay: _List_Nil,
-								playedCards: _List_fromArray(
-									[
-										{
-										goal: _List_fromArray(
-											[
-												$author$project$Goal$ThreeOf($author$project$Suit$Club)
-											]),
-										suit: $author$project$Suit$Spade
-									},
-										{goal: _List_Nil, suit: $author$project$Suit$Diamant},
-										{goal: _List_Nil, suit: $author$project$Suit$Diamant}
-									]),
-								probabilities: $elm$core$Dict$fromList(
-									_List_fromArray(
-										[
-											_Utils_Tuple2(
-											$author$project$Goal$description(
-												_List_fromArray(
-													[
-														$author$project$Goal$ThreeOf($author$project$Suit$Club)
-													])),
-											50),
-											_Utils_Tuple2(
-											$author$project$Goal$description(
-												_List_fromArray(
-													[$author$project$Goal$FourOfAKind])),
-											10),
-											_Utils_Tuple2(
-											$author$project$Goal$description(
-												_List_fromArray(
-													[
-														$author$project$Goal$ThreeOf($author$project$Suit$Spade)
-													])),
-											55),
-											_Utils_Tuple2(
-											$author$project$Goal$description(
-												_List_fromArray(
-													[
-														$author$project$Goal$PairOf($author$project$Suit$Spade),
-														$author$project$Goal$ThreeOfAKind
-													])),
-											20)
-										])),
-								yourCards: _List_fromArray(
-									[
-										{
-										goal: _List_fromArray(
-											[$author$project$Goal$FourOfAKind]),
-										suit: $author$project$Suit$Heart
-									},
-										{
-										goal: _List_fromArray(
-											[
-												$author$project$Goal$ThreeOf($author$project$Suit$Spade)
-											]),
-										suit: $author$project$Suit$Heart
-									},
-										{
-										goal: _List_fromArray(
-											[
-												$author$project$Goal$PairOf($author$project$Suit$Spade),
-												$author$project$Goal$ThreeOfAKind
-											]),
-										suit: $author$project$Suit$Spade
-									}
-									])
-							})
+							A2(
+								$elm$random$Random$step,
+								A2(
+									$elm$random$Random$andThen,
+									$author$project$Game$fromDeck(1),
+									$author$project$Card$newDeck($author$project$Goal$asList)),
+								$elm$random$Random$initialSeed(42)).a)
 						]);
 				default:
 					return _List_fromArray(
@@ -8509,7 +8909,7 @@ var $author$project$View$Overlay$tutorial = function (args) {
 							$Orasund$elm_layout$Layout$text,
 							_List_fromArray(
 								[$Orasund$elm_layout$Html$Style$justifyContentCenter]),
-							'You start with 100 CREDITS'),
+							'You start with ' + ($elm$core$String$fromInt($author$project$Config$startingCredits) + ' CREDITS')),
 							A2(
 							$Orasund$elm_layout$Layout$el,
 							_List_fromArray(
@@ -8533,13 +8933,22 @@ var $author$project$Main$view = function (model) {
 		0,
 		A2(
 			$elm$core$Maybe$andThen,
-			function (card) {
+			function (_v3) {
+				var card = _v3.b;
 				return A2(
 					$elm$core$Dict$get,
 					$author$project$Goal$description(card.goal),
-					model.game.probabilities);
+					model.game.values);
 			},
-			$elm$core$List$head(model.game.playedCards)));
+			A2(
+				$elm$core$Maybe$andThen,
+				function (cardId) {
+					return A2(
+						$elm$core$Maybe$map,
+						$elm$core$Tuple$pair(cardId),
+						A2($author$project$Game$getCardFrom, model.game, cardId));
+				},
+				$elm$core$List$head(model.game.playedCards))));
 	return A2(
 		$Orasund$elm_layout$Layout$column,
 		_Utils_ap(
@@ -8570,7 +8979,7 @@ var $author$project$Main$view = function (model) {
 								var list = _v0.a.a;
 								return A2(
 									$author$project$View$Overlay$shop,
-									{deck: model.deck, onChoose: $author$project$Main$AddCardAndStartNextRound, probabilities: model.game.probabilities},
+									{deck: model.deck, onChoose: $author$project$Main$AddCardAndStartNextRound, values: model.game.values},
 									list);
 							case 'EndOfRound':
 								var _v1 = _v0.a;
