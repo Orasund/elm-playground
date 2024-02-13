@@ -59,22 +59,8 @@ placeBug pos bug game =
     { game | tiles = Dict.insert pos (BugTile bug) game.tiles }
 
 
-reveal : ( Int, Int ) -> Game -> Game
-reveal pos game =
-    let
-        variant =
-            if
-                List.any
-                    (\p ->
-                        Dict.member p game.revealed
-                    )
-                    (neighborsOf pos)
-            then
-                Cute
-
-            else
-                Royal
-    in
+reveal : ( Int, Int ) -> Variant -> Game -> Game
+reveal pos variant game =
     { game
         | revealed = Dict.insert pos variant game.revealed
         , collected =

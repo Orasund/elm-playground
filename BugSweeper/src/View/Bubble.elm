@@ -20,6 +20,7 @@ asAttrs =
            , Html.Style.boxSizingBorderBox
            , Html.Attributes.style "font-size" "20px"
            , Html.Attributes.class "emoji-color-font"
+           , Html.Attributes.style "border" "4px solid transparent"
            ]
 
 
@@ -64,13 +65,14 @@ specialButton :
     -> Html msg
 specialButton attrs args string =
     [ Layout.text [] string
-    , shinyCover
-
-    --, starIcon
+    , Variant.royal []
+    , starIcon
     ]
         |> Html.div
             (asAttrs
-                --  ++ [ Html.Attributes.style "background-color" "transparent" ]
+                ++ [ Html.Attributes.style "background-color" "transparent"
+                   , Html.Attributes.style "border" ("4px solid " ++ Color.darkTransparent)
+                   ]
                 ++ Layout.asButton args
                 ++ asSpecialAttrs
                 ++ attrs
@@ -86,13 +88,9 @@ starIcon =
         "⭐️"
         |> Layout.el
             ([ Html.Attributes.style "border-radius" "100%"
-             , Html.Attributes.style "background-color" "yellow"
-             , Html.Attributes.style "font-size" "12px"
+             , Html.Attributes.style "font-size" "8px"
              , Html.Style.positionAbsolute
-             , Html.Attributes.style "padding" "4px"
-             , Html.Style.bottom "-16px"
-             , Html.Style.width "16px"
-             , Html.Style.height "16px"
+             , Html.Style.bottom "4px"
              ]
                 ++ Layout.centered
             )
@@ -121,28 +119,14 @@ asSpecialAttrs =
     ]
 
 
-shinyCover : Html msg
-shinyCover =
-    Layout.el
-        (asAttrs
-            ++ [ Html.Style.positionAbsolute
-               , Html.Style.top "-4px"
-               , Html.Style.width "100%"
-               ]
-            ++ Variant.royal
-        )
-        Layout.none
-
-
 special :
     List (Attribute msg)
     -> String
     -> Html msg
 special attrs string =
     [ Layout.text [] string
-    , shinyCover
-
-    --  , starIcon
+    , Variant.royal []
+    , starIcon
     ]
         |> Html.div
             (asAttrs
@@ -174,9 +158,8 @@ newAndSpecial :
     -> Html msg
 newAndSpecial attrs string =
     [ Layout.text [] string
-    , shinyCover
-
-    --, starIcon
+    , Variant.royal []
+    , starIcon
     , newLabel
     ]
         |> Html.div

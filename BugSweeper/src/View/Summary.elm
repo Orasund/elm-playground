@@ -43,7 +43,17 @@ toHtml args =
                         |> Maybe.map (Tuple.pair bug)
                 )
             |> List.Extra.gatherEquals
-            |> List.sortBy (\( ( _, variant ), l ) -> ( Collection.variantToString variant, List.length l ))
+            |> List.sortBy
+                (\( ( bug, variant ), l ) ->
+                    ( if Collection.member bug args.oldCollection then
+                        1
+
+                      else
+                        0
+                    , Collection.variantToString variant
+                    , List.length l
+                    )
+                )
             |> List.map
                 (\( ( bug, variant ), l ) ->
                     bug

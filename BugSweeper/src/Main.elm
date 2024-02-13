@@ -2,7 +2,7 @@ module Main exposing (main)
 
 import Browser exposing (Document)
 import BugSpecies exposing (BugSpecies)
-import Collection exposing (Collection)
+import Collection exposing (Collection, Variant(..))
 import Color
 import Dict
 import Game exposing (Game, Tile(..))
@@ -229,17 +229,23 @@ update msg model =
                 ( model, Cmd.none )
 
             else
-                model.game
-                    |> Game.reveal pos
-                    |> (\game ->
-                            ( { model | game = game }
-                            , if Game.isOver game then
-                                Process.sleep 1000
-                                    |> Task.perform (\() -> OpenOverlay Summary)
+                Random.step (Random.weighted ( 1, Royal ) [ ( 19, Cute ) ]) model.seed
+                    |> (\( variant, newSeed ) ->
+                            model.game
+                                |> Game.reveal pos variant
+                                |> (\game ->
+                                        ( { model
+                                            | game = game
+                                            , seed = newSeed
+                                          }
+                                        , if Game.isOver game then
+                                            Process.sleep 1000
+                                                |> Task.perform (\() -> OpenOverlay Summary)
 
-                              else
-                                Cmd.none
-                            )
+                                          else
+                                            Cmd.none
+                                        )
+                                   )
                        )
 
         SelectBugSpecies bug ->
