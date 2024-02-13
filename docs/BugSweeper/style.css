@@ -1,0 +1,43 @@
+@font-face {
+    font-family: "NotoColorEmoji";
+    src: url("fonts/NotoColorEmoji-Regular.ttf");
+}
+
+html {
+    margin: 0;
+    padding: 0;
+
+    font-family: sans-serif, "NotoColorEmoji";
+}
+
+body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+}
+
+.emoji-color-font {
+    font-family: "NotoColorEmoji";
+}
+
+
+
+.animated-background {
+    animation: gradient-animation 4s ease infinite;
+
+}
+
+@keyframes gradient-animation {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
