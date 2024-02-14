@@ -21,7 +21,7 @@ import View.Summary
 
 
 type Overlay
-    = Collection (Maybe (Bug,Variant))
+    = Collection (Maybe ( Bug, Variant ))
     | Summary
 
 
@@ -39,7 +39,7 @@ type Msg
         , level : Int
         }
     | TileClicked ( Int, Int )
-    | SelectBugSpecies (Bug,Variant)
+    | SelectBugSpecies ( Bug, Variant )
     | OpenOverlay Overlay
     | CloseOverlay
 
@@ -50,14 +50,17 @@ init () =
         seed =
             Random.initialSeed 42
 
+        collection =
+            Collection.empty
+
         ( game, _ ) =
             seed
-                |> Random.step (Game.Generate.new 1)
+                |> Random.step (Game.Generate.new 1 collection)
     in
     ( { game = game
       , seed = seed
       , overlay = Nothing
-      , oldCollection = Collection.empty
+      , oldCollection = collection
       }
     , Random.independentSeed
         |> Random.map
@@ -210,15 +213,18 @@ update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         NewGame { seed, level } ->
+            let
+                collection =
+                    model.oldCollection
+                        |> Collection.add model.game.collected
+            in
             seed
-                |> Random.step (Game.Generate.new level)
+                |> Random.step (Game.Generate.new level collection)
                 |> (\( game, newSeed ) ->
                         ( { game = game
                           , seed = newSeed
                           , overlay = Nothing
-                          , oldCollection =
-                                model.oldCollection
-                                    |> Collection.add model.game.collected
+                          , oldCollection = collection
                           }
                         , Cmd.none
                         )
@@ -248,8 +254,8 @@ update msg model =
                                    )
                        )
 
-        SelectBugSpecies (bug,variant) ->
-            ( { model | overlay = Just (Collection (Just (bug,variant))) }, Cmd.none )
+        SelectBugSpecies ( bug, variant ) ->
+            ( { model | overlay = Just (Collection (Just ( bug, variant ))) }, Cmd.none )
 
         OpenOverlay overlay ->
             ( { model | overlay = Just overlay }, Cmd.none )

@@ -1,12 +1,14 @@
 module Game.Generate exposing (new)
 
 import Bug exposing (Bug(..))
+import Collection exposing (Collection)
 import Config
 import Dict exposing (Dict)
 import Game exposing (Game)
 import Object exposing (Object(..))
 import Random exposing (Generator)
 import Random.List
+import Set
 
 
 type alias Random a =
@@ -19,9 +21,24 @@ type Block
     | EmptyBlock
 
 
-new : Int -> Random Game
-new level =
-    Random.list Config.bugAmount (Bug.generate level |> Random.map BugBlock)
+new : Int -> Collection -> Random Game
+new level collection =
+    Random.map2 (++)
+        (Collection.bugs collection
+            |> List.map Bug.toString
+            |> Set.fromList
+            |> (\set ->
+                    Bug.list
+                        |> List.filter (\bug -> Set.member (Bug.toString bug) set |> not)
+                        |> List.map BugBlock
+               )
+            |> Random.List.choices 1
+            |> Random.map Tuple.first
+        )
+        (Random.list
+            (Config.bugAmount - 1)
+            (Bug.generate level |> Random.map BugBlock)
+        )
         --  |> Random.map ((++) (List.repeat Config.leafAmount (TileBlock Leaf)))
         --|> Random.map ((++) (List.repeat Config.stoneAmount (TileBlock Stone)))
         |> Random.andThen

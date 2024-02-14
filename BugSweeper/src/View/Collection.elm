@@ -13,7 +13,11 @@ import View.Variant
 
 
 maxDrawerHeight =
-    200
+    180
+
+
+minDrawerHeight =
+    66
 
 
 drawer : List (Attribute msg) -> List (Html msg) -> Html msg
@@ -43,12 +47,12 @@ card attrs =
         )
 
 
-detailCard : (Bug,Variant) -> Html msg
-detailCard (bug ,variant) =
-    [[ Layout.text [ Html.Attributes.style "font-size" "64px" ]
-        (Bug.toString bug)
-    , [ "Found next to " |> Layout.text []
-      , (Bug.requirementsOf bug
+detailCard : ( Bug, Variant ) -> Html msg
+detailCard ( bug, variant ) =
+    [ [ Layout.text [ Html.Attributes.style "font-size" "64px" ]
+            (Bug.toString bug)
+      , [ "Found next to " |> Layout.text []
+        , (Bug.requirementsOf bug
             |> List.concatMap
                 (\( n, tile ) ->
                     tile
@@ -57,26 +61,27 @@ detailCard (bug ,variant) =
                         |> List.repeat n
                 )
             |> String.concat
-        )
+          )
             |> Layout.text [ Html.Style.justifyContentCenter ]
-      ]
-        |> Layout.column [ Html.Style.gap "8px" ]
-    ]
-        |> card [ Html.Style.gap "32px" ]
-        , case variant of
-            Cute -> Layout.el [] Layout.none
-            Royal -> 
-                View.Variant.royal 
-                  [ Html.Attributes.style "border-radius" "16px"
-                  ]
         ]
+            |> Layout.column [ Html.Style.gap "8px" ]
+      ]
+        |> card [ Html.Style.gap "32px" ]
+    , case variant of
+        Cute ->
+            Layout.el [] Layout.none
+
+        Royal ->
+            View.Variant.royal
+                [ Html.Attributes.style "border-radius" "16px"
+                ]
+    ]
         |> Html.div
             (Layout.centered
                 ++ [ Html.Style.positionAbsolute
                    , "calc(50% - " ++ String.fromFloat (maxDrawerHeight / 2) ++ "px)" |> Html.Style.top
                    , Html.Style.left "50%"
                    , Html.Attributes.style "transform" "translate(-50%,-50%)"
-                   
                    ]
             )
 
@@ -84,17 +89,15 @@ detailCard (bug ,variant) =
 openCollection :
     List (Attribute msg)
     ->
-        { onSelect : (Bug,Variant) -> msg
+        { onSelect : ( Bug, Variant ) -> msg
         }
     -> Collection
     -> Html msg
 openCollection attrs args collectedBugs =
-    [ "Your collection:"
-        |> Html.text
-        |> Layout.el
+    [ "Your collection"
+        |> Layout.text
             [ Html.Attributes.style "padding" "8px 16px"
-            , Html.Attributes.style "height" "48px"
-            , Html.Style.alignItemsCenter
+            , Html.Style.justifyContentCenter
             ]
     , (Bug.list
         |> List.map
@@ -108,15 +111,23 @@ openCollection attrs args collectedBugs =
                         (if List.member Royal list then
                             View.Bubble.specialButton []
 
-                        else
+                         else
                             View.Bubble.button []
                         )
-                                    { label = "View details of " ++ Bug.toString species
-                                    , onPress = Just (args.onSelect (species,
-                                    if List.member Royal list then Royal else Cute
-                                    ))
-                                    }
-                                    (Bug.toString species)
+                            { label = "View details of " ++ Bug.toString species
+                            , onPress =
+                                Just
+                                    (args.onSelect
+                                        ( species
+                                        , if List.member Royal list then
+                                            Royal
+
+                                          else
+                                            Cute
+                                        )
+                                    )
+                            }
+                            (Bug.toString species)
             )
       )
         |> Layout.row
@@ -142,10 +153,9 @@ closedCollection :
     -> Collection
     -> Html msg
 closedCollection attrs args collectedBugs =
-    [ [ "Your collection:"
+    [ [ "Your collection"
             |> Layout.text
-                [ Html.Attributes.style "padding" "8px 16px"
-                , Html.Style.alignItemsCenter
+                [ Html.Style.alignItemsCenter
                 ]
       , (collectedBugs
             |> Collection.bugs
@@ -154,15 +164,15 @@ closedCollection attrs args collectedBugs =
         )
             |> Html.text
             |> Layout.el
-                [ Html.Attributes.style "padding" "8px 16px"
-                , Html.Attributes.style "font-size" "20px"
+                [ Html.Attributes.style "font-size" "20px"
                 , Html.Style.alignItemsCenter
                 ]
       ]
-        |> Layout.row
-            [ Html.Attributes.style "height" "48px"
+        |> Layout.column
+            [ Html.Attributes.style "height" (String.fromInt minDrawerHeight ++ "px")
             , Html.Style.alignItemsCenter
-            , Layout.contentWithSpaceBetween
+            , Html.Attributes.style "padding" "8px"
+            , Layout.gap 8
             ]
         |> List.singleton
         |> Html.a
@@ -175,7 +185,7 @@ closedCollection attrs args collectedBugs =
         |> drawer
             ([ Html.Attributes.style "position" "fixed"
              , Html.Attributes.style "bottom" "0"
-             , Html.Attributes.style "height" "48px"
+             , Html.Attributes.style "height" (String.fromInt minDrawerHeight ++ "px")
              , Html.Attributes.style "transition" "height 0.2s"
              ]
                 ++ attrs

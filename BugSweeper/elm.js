@@ -5449,150 +5449,80 @@ var $elm$random$Random$andThen = F2(
 			});
 	});
 var $author$project$Config$bugAmount = 4;
+var $elm$core$Dict$values = function (dict) {
+	return A3(
+		$elm$core$Dict$foldr,
+		F3(
+			function (key, value, valueList) {
+				return A2($elm$core$List$cons, value, valueList);
+			}),
+		_List_Nil,
+		dict);
+};
+var $author$project$Collection$bugs = function (collection) {
+	return A2(
+		$elm$core$List$map,
+		function ($) {
+			return $.bug;
+		},
+		$elm$core$Dict$values(collection));
+};
+var $elm$core$List$append = F2(
+	function (xs, ys) {
+		if (!ys.b) {
+			return xs;
+		} else {
+			return A3($elm$core$List$foldr, $elm$core$List$cons, ys, xs);
+		}
+	});
 var $elm$random$Random$constant = function (value) {
 	return $elm$random$Random$Generator(
 		function (seed) {
 			return _Utils_Tuple2(value, seed);
 		});
 };
-var $author$project$Config$startingGuesses = 5;
-var $author$project$Game$empty = function (level) {
-	return {collected: $elm$core$Dict$empty, level: level, remainingGuesses: $author$project$Config$startingGuesses, revealed: $elm$core$Dict$empty, tiles: $elm$core$Dict$empty};
-};
-var $elm$core$Dict$foldl = F3(
-	function (func, acc, dict) {
-		foldl:
+var $elm$core$List$drop = F2(
+	function (n, list) {
+		drop:
 		while (true) {
-			if (dict.$ === 'RBEmpty_elm_builtin') {
-				return acc;
+			if (n <= 0) {
+				return list;
 			} else {
-				var key = dict.b;
-				var value = dict.c;
-				var left = dict.d;
-				var right = dict.e;
-				var $temp$func = func,
-					$temp$acc = A3(
-					func,
-					key,
-					value,
-					A3($elm$core$Dict$foldl, func, acc, left)),
-					$temp$dict = right;
-				func = $temp$func;
-				acc = $temp$acc;
-				dict = $temp$dict;
-				continue foldl;
+				if (!list.b) {
+					return list;
+				} else {
+					var x = list.a;
+					var xs = list.b;
+					var $temp$n = n - 1,
+						$temp$list = xs;
+					n = $temp$n;
+					list = $temp$list;
+					continue drop;
+				}
 			}
 		}
 	});
-var $author$project$Bug$Snail = {$: 'Snail'};
-var $author$project$Bug$Ant = {$: 'Ant'};
-var $author$project$Bug$Beetle = {$: 'Beetle'};
-var $author$project$Bug$Butterfly = {$: 'Butterfly'};
-var $author$project$Bug$Caterpillar = {$: 'Caterpillar'};
-var $author$project$Bug$Cockroach = {$: 'Cockroach'};
-var $author$project$Bug$Grasshopper = {$: 'Grasshopper'};
-var $author$project$Bug$LadyBeetle = {$: 'LadyBeetle'};
-var $author$project$Bug$Spider = {$: 'Spider'};
-var $author$project$Bug$Worm = {$: 'Worm'};
-var $author$project$Object$Leaf = {$: 'Leaf'};
-var $author$project$Object$SpiderWeb = {$: 'SpiderWeb'};
-var $author$project$Object$Stone = {$: 'Stone'};
-var $author$project$Object$Wood = {$: 'Wood'};
-var $author$project$Bug$requirementsOf = function (bug) {
-	switch (bug.$) {
-		case 'Ant':
-			return _List_fromArray(
-				[
-					_Utils_Tuple2(4, $elm$core$Maybe$Nothing)
-				]);
-		case 'Caterpillar':
-			return _List_fromArray(
-				[
-					_Utils_Tuple2(
-					3,
-					$elm$core$Maybe$Just($author$project$Object$Leaf))
-				]);
-		case 'Worm':
-			return _List_fromArray(
-				[
-					_Utils_Tuple2(
-					4,
-					$elm$core$Maybe$Just($author$project$Object$Stone))
-				]);
-		case 'Snail':
-			return _List_fromArray(
-				[
-					_Utils_Tuple2(
-					2,
-					$elm$core$Maybe$Just($author$project$Object$Stone)),
-					_Utils_Tuple2(
-					1,
-					$elm$core$Maybe$Just($author$project$Object$Leaf))
-				]);
-		case 'Grasshopper':
-			return _List_fromArray(
-				[
-					_Utils_Tuple2(
-					2,
-					$elm$core$Maybe$Just($author$project$Object$Leaf))
-				]);
-		case 'Beetle':
-			return _List_fromArray(
-				[
-					_Utils_Tuple2(
-					1,
-					$elm$core$Maybe$Just($author$project$Object$Leaf)),
-					_Utils_Tuple2(
-					1,
-					$elm$core$Maybe$Just($author$project$Object$Wood))
-				]);
-		case 'LadyBeetle':
-			return _List_fromArray(
-				[
-					_Utils_Tuple2(
-					2,
-					$elm$core$Maybe$Just($author$project$Object$Wood))
-				]);
-		case 'Spider':
-			return _List_fromArray(
-				[
-					_Utils_Tuple2(
-					1,
-					$elm$core$Maybe$Just($author$project$Object$SpiderWeb))
-				]);
-		case 'Cockroach':
-			return _List_fromArray(
-				[
-					_Utils_Tuple2(
-					1,
-					$elm$core$Maybe$Just($author$project$Object$Wood)),
-					_Utils_Tuple2(
-					1,
-					$elm$core$Maybe$Just($author$project$Object$Stone))
-				]);
-		default:
-			return _List_fromArray(
-				[
-					_Utils_Tuple2(2, $elm$core$Maybe$Nothing)
-				]);
+var $elm$core$List$head = function (list) {
+	if (list.b) {
+		var x = list.a;
+		var xs = list.b;
+		return $elm$core$Maybe$Just(x);
+	} else {
+		return $elm$core$Maybe$Nothing;
 	}
 };
-var $elm$core$List$sortBy = _List_sortBy;
-var $elm$core$List$sum = function (numbers) {
-	return A3($elm$core$List$foldl, $elm$core$Basics$add, 0, numbers);
+var $elm_community$random_extra$Random$List$get = F2(
+	function (index, list) {
+		return $elm$core$List$head(
+			A2($elm$core$List$drop, index, list));
+	});
+var $elm$core$List$isEmpty = function (xs) {
+	if (!xs.b) {
+		return true;
+	} else {
+		return false;
+	}
 };
-var $author$project$Bug$list = A2(
-	$elm$core$List$sortBy,
-	function (bug) {
-		return -$elm$core$List$sum(
-			A2(
-				$elm$core$List$map,
-				$elm$core$Tuple$first,
-				$author$project$Bug$requirementsOf(bug)));
-	},
-	_List_fromArray(
-		[$author$project$Bug$Worm, $author$project$Bug$Caterpillar, $author$project$Bug$Snail, $author$project$Bug$Grasshopper, $author$project$Bug$Beetle, $author$project$Bug$Cockroach, $author$project$Bug$LadyBeetle, $author$project$Bug$Spider, $author$project$Bug$Ant, $author$project$Bug$Butterfly]));
-var $elm$core$Basics$pow = _Basics_pow;
 var $elm$core$List$takeReverse = F3(
 	function (n, list, kept) {
 		takeReverse:
@@ -5719,6 +5649,344 @@ var $elm$core$List$take = F2(
 	function (n, list) {
 		return A3($elm$core$List$takeFast, 0, n, list);
 	});
+var $elm_community$random_extra$Random$List$choose = function (list) {
+	if ($elm$core$List$isEmpty(list)) {
+		return $elm$random$Random$constant(
+			_Utils_Tuple2($elm$core$Maybe$Nothing, list));
+	} else {
+		var lastIndex = $elm$core$List$length(list) - 1;
+		var gen = A2($elm$random$Random$int, 0, lastIndex);
+		var front = function (i) {
+			return A2($elm$core$List$take, i, list);
+		};
+		var back = function (i) {
+			return A2($elm$core$List$drop, i + 1, list);
+		};
+		return A2(
+			$elm$random$Random$map,
+			function (index) {
+				return _Utils_Tuple2(
+					A2($elm_community$random_extra$Random$List$get, index, list),
+					A2(
+						$elm$core$List$append,
+						front(index),
+						back(index)));
+			},
+			gen);
+	}
+};
+var $elm$random$Random$lazy = function (callback) {
+	return $elm$random$Random$Generator(
+		function (seed) {
+			var _v0 = callback(_Utils_Tuple0);
+			var gen = _v0.a;
+			return gen(seed);
+		});
+};
+var $elm_community$random_extra$Random$List$choices = F2(
+	function (count, list) {
+		return (count < 1) ? $elm$random$Random$constant(
+			_Utils_Tuple2(_List_Nil, list)) : A2(
+			$elm$random$Random$andThen,
+			function (_v0) {
+				var choice = _v0.a;
+				var remaining = _v0.b;
+				var genRest = $elm$random$Random$lazy(
+					function (_v3) {
+						return A2($elm_community$random_extra$Random$List$choices, count - 1, remaining);
+					});
+				var addToChoices = F2(
+					function (elem, _v2) {
+						var chosen = _v2.a;
+						var unchosen = _v2.b;
+						return _Utils_Tuple2(
+							A2($elm$core$List$cons, elem, chosen),
+							unchosen);
+					});
+				if (choice.$ === 'Nothing') {
+					return $elm$random$Random$constant(
+						_Utils_Tuple2(_List_Nil, list));
+				} else {
+					var elem = choice.a;
+					return A2(
+						$elm$random$Random$map,
+						addToChoices(elem),
+						genRest);
+				}
+			},
+			$elm_community$random_extra$Random$List$choose(list));
+	});
+var $author$project$Config$startingGuesses = 5;
+var $author$project$Game$empty = function (level) {
+	return {collected: $elm$core$Dict$empty, level: level, remainingGuesses: $author$project$Config$startingGuesses, revealed: $elm$core$Dict$empty, tiles: $elm$core$Dict$empty};
+};
+var $elm$core$List$filter = F2(
+	function (isGood, list) {
+		return A3(
+			$elm$core$List$foldr,
+			F2(
+				function (x, xs) {
+					return isGood(x) ? A2($elm$core$List$cons, x, xs) : xs;
+				}),
+			_List_Nil,
+			list);
+	});
+var $elm$core$Dict$foldl = F3(
+	function (func, acc, dict) {
+		foldl:
+		while (true) {
+			if (dict.$ === 'RBEmpty_elm_builtin') {
+				return acc;
+			} else {
+				var key = dict.b;
+				var value = dict.c;
+				var left = dict.d;
+				var right = dict.e;
+				var $temp$func = func,
+					$temp$acc = A3(
+					func,
+					key,
+					value,
+					A3($elm$core$Dict$foldl, func, acc, left)),
+					$temp$dict = right;
+				func = $temp$func;
+				acc = $temp$acc;
+				dict = $temp$dict;
+				continue foldl;
+			}
+		}
+	});
+var $elm$core$Set$Set_elm_builtin = function (a) {
+	return {$: 'Set_elm_builtin', a: a};
+};
+var $elm$core$Set$empty = $elm$core$Set$Set_elm_builtin($elm$core$Dict$empty);
+var $elm$core$Dict$Black = {$: 'Black'};
+var $elm$core$Dict$RBNode_elm_builtin = F5(
+	function (a, b, c, d, e) {
+		return {$: 'RBNode_elm_builtin', a: a, b: b, c: c, d: d, e: e};
+	});
+var $elm$core$Dict$Red = {$: 'Red'};
+var $elm$core$Dict$balance = F5(
+	function (color, key, value, left, right) {
+		if ((right.$ === 'RBNode_elm_builtin') && (right.a.$ === 'Red')) {
+			var _v1 = right.a;
+			var rK = right.b;
+			var rV = right.c;
+			var rLeft = right.d;
+			var rRight = right.e;
+			if ((left.$ === 'RBNode_elm_builtin') && (left.a.$ === 'Red')) {
+				var _v3 = left.a;
+				var lK = left.b;
+				var lV = left.c;
+				var lLeft = left.d;
+				var lRight = left.e;
+				return A5(
+					$elm$core$Dict$RBNode_elm_builtin,
+					$elm$core$Dict$Red,
+					key,
+					value,
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, lK, lV, lLeft, lRight),
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, rK, rV, rLeft, rRight));
+			} else {
+				return A5(
+					$elm$core$Dict$RBNode_elm_builtin,
+					color,
+					rK,
+					rV,
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, key, value, left, rLeft),
+					rRight);
+			}
+		} else {
+			if ((((left.$ === 'RBNode_elm_builtin') && (left.a.$ === 'Red')) && (left.d.$ === 'RBNode_elm_builtin')) && (left.d.a.$ === 'Red')) {
+				var _v5 = left.a;
+				var lK = left.b;
+				var lV = left.c;
+				var _v6 = left.d;
+				var _v7 = _v6.a;
+				var llK = _v6.b;
+				var llV = _v6.c;
+				var llLeft = _v6.d;
+				var llRight = _v6.e;
+				var lRight = left.e;
+				return A5(
+					$elm$core$Dict$RBNode_elm_builtin,
+					$elm$core$Dict$Red,
+					lK,
+					lV,
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, llK, llV, llLeft, llRight),
+					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, key, value, lRight, right));
+			} else {
+				return A5($elm$core$Dict$RBNode_elm_builtin, color, key, value, left, right);
+			}
+		}
+	});
+var $elm$core$Basics$compare = _Utils_compare;
+var $elm$core$Dict$insertHelp = F3(
+	function (key, value, dict) {
+		if (dict.$ === 'RBEmpty_elm_builtin') {
+			return A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, key, value, $elm$core$Dict$RBEmpty_elm_builtin, $elm$core$Dict$RBEmpty_elm_builtin);
+		} else {
+			var nColor = dict.a;
+			var nKey = dict.b;
+			var nValue = dict.c;
+			var nLeft = dict.d;
+			var nRight = dict.e;
+			var _v1 = A2($elm$core$Basics$compare, key, nKey);
+			switch (_v1.$) {
+				case 'LT':
+					return A5(
+						$elm$core$Dict$balance,
+						nColor,
+						nKey,
+						nValue,
+						A3($elm$core$Dict$insertHelp, key, value, nLeft),
+						nRight);
+				case 'EQ':
+					return A5($elm$core$Dict$RBNode_elm_builtin, nColor, nKey, value, nLeft, nRight);
+				default:
+					return A5(
+						$elm$core$Dict$balance,
+						nColor,
+						nKey,
+						nValue,
+						nLeft,
+						A3($elm$core$Dict$insertHelp, key, value, nRight));
+			}
+		}
+	});
+var $elm$core$Dict$insert = F3(
+	function (key, value, dict) {
+		var _v0 = A3($elm$core$Dict$insertHelp, key, value, dict);
+		if ((_v0.$ === 'RBNode_elm_builtin') && (_v0.a.$ === 'Red')) {
+			var _v1 = _v0.a;
+			var k = _v0.b;
+			var v = _v0.c;
+			var l = _v0.d;
+			var r = _v0.e;
+			return A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, k, v, l, r);
+		} else {
+			var x = _v0;
+			return x;
+		}
+	});
+var $elm$core$Set$insert = F2(
+	function (key, _v0) {
+		var dict = _v0.a;
+		return $elm$core$Set$Set_elm_builtin(
+			A3($elm$core$Dict$insert, key, _Utils_Tuple0, dict));
+	});
+var $elm$core$Set$fromList = function (list) {
+	return A3($elm$core$List$foldl, $elm$core$Set$insert, $elm$core$Set$empty, list);
+};
+var $author$project$Bug$Snail = {$: 'Snail'};
+var $author$project$Bug$Ant = {$: 'Ant'};
+var $author$project$Bug$Beetle = {$: 'Beetle'};
+var $author$project$Bug$Butterfly = {$: 'Butterfly'};
+var $author$project$Bug$Caterpillar = {$: 'Caterpillar'};
+var $author$project$Bug$Cockroach = {$: 'Cockroach'};
+var $author$project$Bug$Grasshopper = {$: 'Grasshopper'};
+var $author$project$Bug$LadyBeetle = {$: 'LadyBeetle'};
+var $author$project$Bug$Spider = {$: 'Spider'};
+var $author$project$Bug$Worm = {$: 'Worm'};
+var $author$project$Object$Leaf = {$: 'Leaf'};
+var $author$project$Object$SpiderWeb = {$: 'SpiderWeb'};
+var $author$project$Object$Stone = {$: 'Stone'};
+var $author$project$Object$Wood = {$: 'Wood'};
+var $author$project$Bug$requirementsOf = function (bug) {
+	switch (bug.$) {
+		case 'Ant':
+			return _List_fromArray(
+				[
+					_Utils_Tuple2(4, $elm$core$Maybe$Nothing)
+				]);
+		case 'Caterpillar':
+			return _List_fromArray(
+				[
+					_Utils_Tuple2(
+					3,
+					$elm$core$Maybe$Just($author$project$Object$Leaf))
+				]);
+		case 'Worm':
+			return _List_fromArray(
+				[
+					_Utils_Tuple2(
+					4,
+					$elm$core$Maybe$Just($author$project$Object$Stone))
+				]);
+		case 'Snail':
+			return _List_fromArray(
+				[
+					_Utils_Tuple2(
+					2,
+					$elm$core$Maybe$Just($author$project$Object$Stone)),
+					_Utils_Tuple2(
+					1,
+					$elm$core$Maybe$Just($author$project$Object$Leaf))
+				]);
+		case 'Grasshopper':
+			return _List_fromArray(
+				[
+					_Utils_Tuple2(
+					2,
+					$elm$core$Maybe$Just($author$project$Object$Leaf))
+				]);
+		case 'Beetle':
+			return _List_fromArray(
+				[
+					_Utils_Tuple2(
+					1,
+					$elm$core$Maybe$Just($author$project$Object$Leaf)),
+					_Utils_Tuple2(
+					1,
+					$elm$core$Maybe$Just($author$project$Object$Wood))
+				]);
+		case 'LadyBeetle':
+			return _List_fromArray(
+				[
+					_Utils_Tuple2(
+					2,
+					$elm$core$Maybe$Just($author$project$Object$Wood))
+				]);
+		case 'Spider':
+			return _List_fromArray(
+				[
+					_Utils_Tuple2(
+					1,
+					$elm$core$Maybe$Just($author$project$Object$SpiderWeb))
+				]);
+		case 'Cockroach':
+			return _List_fromArray(
+				[
+					_Utils_Tuple2(
+					1,
+					$elm$core$Maybe$Just($author$project$Object$Wood)),
+					_Utils_Tuple2(
+					1,
+					$elm$core$Maybe$Just($author$project$Object$Stone))
+				]);
+		default:
+			return _List_fromArray(
+				[
+					_Utils_Tuple2(2, $elm$core$Maybe$Nothing)
+				]);
+	}
+};
+var $elm$core$List$sortBy = _List_sortBy;
+var $elm$core$List$sum = function (numbers) {
+	return A3($elm$core$List$foldl, $elm$core$Basics$add, 0, numbers);
+};
+var $author$project$Bug$list = A2(
+	$elm$core$List$sortBy,
+	function (bug) {
+		return -$elm$core$List$sum(
+			A2(
+				$elm$core$List$map,
+				$elm$core$Tuple$first,
+				$author$project$Bug$requirementsOf(bug)));
+	},
+	_List_fromArray(
+		[$author$project$Bug$Worm, $author$project$Bug$Caterpillar, $author$project$Bug$Snail, $author$project$Bug$Grasshopper, $author$project$Bug$Beetle, $author$project$Bug$Cockroach, $author$project$Bug$LadyBeetle, $author$project$Bug$Spider, $author$project$Bug$Ant, $author$project$Bug$Butterfly]));
+var $elm$core$Basics$pow = _Basics_pow;
 var $elm$core$Basics$abs = function (n) {
 	return (n < 0) ? (-n) : n;
 };
@@ -5828,72 +6096,23 @@ var $elm$random$Random$list = F2(
 				return A4($elm$random$Random$listHelp, _List_Nil, n, gen, seed);
 			});
 	});
-var $author$project$Game$Generate$EmptyBlock = {$: 'EmptyBlock'};
-var $author$project$Game$Generate$ObjectBlock = function (a) {
-	return {$: 'ObjectBlock', a: a};
-};
-var $elm$core$List$any = F2(
-	function (isOkay, list) {
-		any:
-		while (true) {
-			if (!list.b) {
-				return false;
-			} else {
-				var x = list.a;
-				var xs = list.b;
-				if (isOkay(x)) {
-					return true;
-				} else {
-					var $temp$isOkay = isOkay,
-						$temp$list = xs;
-					isOkay = $temp$isOkay;
-					list = $temp$list;
-					continue any;
-				}
-			}
-		}
+var $elm$random$Random$map2 = F3(
+	function (func, _v0, _v1) {
+		var genA = _v0.a;
+		var genB = _v1.a;
+		return $elm$random$Random$Generator(
+			function (seed0) {
+				var _v2 = genA(seed0);
+				var a = _v2.a;
+				var seed1 = _v2.b;
+				var _v3 = genB(seed1);
+				var b = _v3.a;
+				var seed2 = _v3.b;
+				return _Utils_Tuple2(
+					A2(func, a, b),
+					seed2);
+			});
 	});
-var $elm$core$Basics$composeL = F3(
-	function (g, f, x) {
-		return g(
-			f(x));
-	});
-var $elm$core$Basics$not = _Basics_not;
-var $elm$core$List$all = F2(
-	function (isOkay, list) {
-		return !A2(
-			$elm$core$List$any,
-			A2($elm$core$Basics$composeL, $elm$core$Basics$not, isOkay),
-			list);
-	});
-var $elm$core$List$append = F2(
-	function (xs, ys) {
-		if (!ys.b) {
-			return xs;
-		} else {
-			return A3($elm$core$List$foldr, $elm$core$List$cons, ys, xs);
-		}
-	});
-var $elm$core$List$concat = function (lists) {
-	return A3($elm$core$List$foldr, $elm$core$List$append, _List_Nil, lists);
-};
-var $elm$core$List$concatMap = F2(
-	function (f, list) {
-		return $elm$core$List$concat(
-			A2($elm$core$List$map, f, list));
-	});
-var $elm$core$List$filter = F2(
-	function (isGood, list) {
-		return A3(
-			$elm$core$List$foldr,
-			F2(
-				function (x, xs) {
-					return isGood(x) ? A2($elm$core$List$cons, x, xs) : xs;
-				}),
-			_List_Nil,
-			list);
-	});
-var $elm$core$Basics$compare = _Utils_compare;
 var $elm$core$Dict$get = F2(
 	function (targetKey, dict) {
 		get:
@@ -5925,6 +6144,66 @@ var $elm$core$Dict$get = F2(
 			}
 		}
 	});
+var $elm$core$Dict$member = F2(
+	function (key, dict) {
+		var _v0 = A2($elm$core$Dict$get, key, dict);
+		if (_v0.$ === 'Just') {
+			return true;
+		} else {
+			return false;
+		}
+	});
+var $elm$core$Set$member = F2(
+	function (key, _v0) {
+		var dict = _v0.a;
+		return A2($elm$core$Dict$member, key, dict);
+	});
+var $elm$core$Basics$not = _Basics_not;
+var $author$project$Game$Generate$EmptyBlock = {$: 'EmptyBlock'};
+var $author$project$Game$Generate$ObjectBlock = function (a) {
+	return {$: 'ObjectBlock', a: a};
+};
+var $elm$core$List$any = F2(
+	function (isOkay, list) {
+		any:
+		while (true) {
+			if (!list.b) {
+				return false;
+			} else {
+				var x = list.a;
+				var xs = list.b;
+				if (isOkay(x)) {
+					return true;
+				} else {
+					var $temp$isOkay = isOkay,
+						$temp$list = xs;
+					isOkay = $temp$isOkay;
+					list = $temp$list;
+					continue any;
+				}
+			}
+		}
+	});
+var $elm$core$Basics$composeL = F3(
+	function (g, f, x) {
+		return g(
+			f(x));
+	});
+var $elm$core$List$all = F2(
+	function (isOkay, list) {
+		return !A2(
+			$elm$core$List$any,
+			A2($elm$core$Basics$composeL, $elm$core$Basics$not, isOkay),
+			list);
+	});
+var $elm$core$List$concat = function (lists) {
+	return A3($elm$core$List$foldr, $elm$core$List$append, _List_Nil, lists);
+};
+var $elm$core$List$concatMap = F2(
+	function (f, list) {
+		return $elm$core$List$concat(
+			A2($elm$core$List$map, f, list));
+	});
 var $author$project$Config$gridSize = 5;
 var $elm$core$Tuple$pair = F2(
 	function (a, b) {
@@ -5948,232 +6227,6 @@ var $author$project$Game$Generate$emptyPositions = function (dict) {
 			},
 			A2($elm$core$List$range, 0, $author$project$Config$gridSize - 1)));
 };
-var $elm$core$List$drop = F2(
-	function (n, list) {
-		drop:
-		while (true) {
-			if (n <= 0) {
-				return list;
-			} else {
-				if (!list.b) {
-					return list;
-				} else {
-					var x = list.a;
-					var xs = list.b;
-					var $temp$n = n - 1,
-						$temp$list = xs;
-					n = $temp$n;
-					list = $temp$list;
-					continue drop;
-				}
-			}
-		}
-	});
-var $elm$core$List$head = function (list) {
-	if (list.b) {
-		var x = list.a;
-		var xs = list.b;
-		return $elm$core$Maybe$Just(x);
-	} else {
-		return $elm$core$Maybe$Nothing;
-	}
-};
-var $elm_community$random_extra$Random$List$get = F2(
-	function (index, list) {
-		return $elm$core$List$head(
-			A2($elm$core$List$drop, index, list));
-	});
-var $elm$core$List$isEmpty = function (xs) {
-	if (!xs.b) {
-		return true;
-	} else {
-		return false;
-	}
-};
-var $elm_community$random_extra$Random$List$choose = function (list) {
-	if ($elm$core$List$isEmpty(list)) {
-		return $elm$random$Random$constant(
-			_Utils_Tuple2($elm$core$Maybe$Nothing, list));
-	} else {
-		var lastIndex = $elm$core$List$length(list) - 1;
-		var gen = A2($elm$random$Random$int, 0, lastIndex);
-		var front = function (i) {
-			return A2($elm$core$List$take, i, list);
-		};
-		var back = function (i) {
-			return A2($elm$core$List$drop, i + 1, list);
-		};
-		return A2(
-			$elm$random$Random$map,
-			function (index) {
-				return _Utils_Tuple2(
-					A2($elm_community$random_extra$Random$List$get, index, list),
-					A2(
-						$elm$core$List$append,
-						front(index),
-						back(index)));
-			},
-			gen);
-	}
-};
-var $elm$random$Random$lazy = function (callback) {
-	return $elm$random$Random$Generator(
-		function (seed) {
-			var _v0 = callback(_Utils_Tuple0);
-			var gen = _v0.a;
-			return gen(seed);
-		});
-};
-var $elm_community$random_extra$Random$List$choices = F2(
-	function (count, list) {
-		return (count < 1) ? $elm$random$Random$constant(
-			_Utils_Tuple2(_List_Nil, list)) : A2(
-			$elm$random$Random$andThen,
-			function (_v0) {
-				var choice = _v0.a;
-				var remaining = _v0.b;
-				var genRest = $elm$random$Random$lazy(
-					function (_v3) {
-						return A2($elm_community$random_extra$Random$List$choices, count - 1, remaining);
-					});
-				var addToChoices = F2(
-					function (elem, _v2) {
-						var chosen = _v2.a;
-						var unchosen = _v2.b;
-						return _Utils_Tuple2(
-							A2($elm$core$List$cons, elem, chosen),
-							unchosen);
-					});
-				if (choice.$ === 'Nothing') {
-					return $elm$random$Random$constant(
-						_Utils_Tuple2(_List_Nil, list));
-				} else {
-					var elem = choice.a;
-					return A2(
-						$elm$random$Random$map,
-						addToChoices(elem),
-						genRest);
-				}
-			},
-			$elm_community$random_extra$Random$List$choose(list));
-	});
-var $elm$core$Dict$Black = {$: 'Black'};
-var $elm$core$Dict$RBNode_elm_builtin = F5(
-	function (a, b, c, d, e) {
-		return {$: 'RBNode_elm_builtin', a: a, b: b, c: c, d: d, e: e};
-	});
-var $elm$core$Dict$Red = {$: 'Red'};
-var $elm$core$Dict$balance = F5(
-	function (color, key, value, left, right) {
-		if ((right.$ === 'RBNode_elm_builtin') && (right.a.$ === 'Red')) {
-			var _v1 = right.a;
-			var rK = right.b;
-			var rV = right.c;
-			var rLeft = right.d;
-			var rRight = right.e;
-			if ((left.$ === 'RBNode_elm_builtin') && (left.a.$ === 'Red')) {
-				var _v3 = left.a;
-				var lK = left.b;
-				var lV = left.c;
-				var lLeft = left.d;
-				var lRight = left.e;
-				return A5(
-					$elm$core$Dict$RBNode_elm_builtin,
-					$elm$core$Dict$Red,
-					key,
-					value,
-					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, lK, lV, lLeft, lRight),
-					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, rK, rV, rLeft, rRight));
-			} else {
-				return A5(
-					$elm$core$Dict$RBNode_elm_builtin,
-					color,
-					rK,
-					rV,
-					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, key, value, left, rLeft),
-					rRight);
-			}
-		} else {
-			if ((((left.$ === 'RBNode_elm_builtin') && (left.a.$ === 'Red')) && (left.d.$ === 'RBNode_elm_builtin')) && (left.d.a.$ === 'Red')) {
-				var _v5 = left.a;
-				var lK = left.b;
-				var lV = left.c;
-				var _v6 = left.d;
-				var _v7 = _v6.a;
-				var llK = _v6.b;
-				var llV = _v6.c;
-				var llLeft = _v6.d;
-				var llRight = _v6.e;
-				var lRight = left.e;
-				return A5(
-					$elm$core$Dict$RBNode_elm_builtin,
-					$elm$core$Dict$Red,
-					lK,
-					lV,
-					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, llK, llV, llLeft, llRight),
-					A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, key, value, lRight, right));
-			} else {
-				return A5($elm$core$Dict$RBNode_elm_builtin, color, key, value, left, right);
-			}
-		}
-	});
-var $elm$core$Dict$insertHelp = F3(
-	function (key, value, dict) {
-		if (dict.$ === 'RBEmpty_elm_builtin') {
-			return A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Red, key, value, $elm$core$Dict$RBEmpty_elm_builtin, $elm$core$Dict$RBEmpty_elm_builtin);
-		} else {
-			var nColor = dict.a;
-			var nKey = dict.b;
-			var nValue = dict.c;
-			var nLeft = dict.d;
-			var nRight = dict.e;
-			var _v1 = A2($elm$core$Basics$compare, key, nKey);
-			switch (_v1.$) {
-				case 'LT':
-					return A5(
-						$elm$core$Dict$balance,
-						nColor,
-						nKey,
-						nValue,
-						A3($elm$core$Dict$insertHelp, key, value, nLeft),
-						nRight);
-				case 'EQ':
-					return A5($elm$core$Dict$RBNode_elm_builtin, nColor, nKey, value, nLeft, nRight);
-				default:
-					return A5(
-						$elm$core$Dict$balance,
-						nColor,
-						nKey,
-						nValue,
-						nLeft,
-						A3($elm$core$Dict$insertHelp, key, value, nRight));
-			}
-		}
-	});
-var $elm$core$Dict$insert = F3(
-	function (key, value, dict) {
-		var _v0 = A3($elm$core$Dict$insertHelp, key, value, dict);
-		if ((_v0.$ === 'RBNode_elm_builtin') && (_v0.a.$ === 'Red')) {
-			var _v1 = _v0.a;
-			var k = _v0.b;
-			var v = _v0.c;
-			var l = _v0.d;
-			var r = _v0.e;
-			return A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, k, v, l, r);
-		} else {
-			var x = _v0;
-			return x;
-		}
-	});
-var $elm$core$Dict$member = F2(
-	function (key, dict) {
-		var _v0 = A2($elm$core$Dict$get, key, dict);
-		if (_v0.$ === 'Just') {
-			return true;
-		} else {
-			return false;
-		}
-	});
 var $author$project$Game$isValidPos = function (_v0) {
 	var x = _v0.a;
 	var y = _v0.b;
@@ -6446,57 +6499,111 @@ var $author$project$Game$placeObject = F3(
 					game.tiles)
 			});
 	});
-var $author$project$Game$Generate$new = function (level) {
-	return A2(
-		$elm$random$Random$map,
-		function (dict) {
-			return A3(
-				$elm$core$Dict$foldl,
-				F2(
-					function (pos, block) {
-						switch (block.$) {
-							case 'ObjectBlock':
-								var tile = block.a;
-								return A2($author$project$Game$placeObject, pos, tile);
-							case 'BugBlock':
-								var bug = block.a;
-								return A2($author$project$Game$placeBug, pos, bug);
-							default:
-								return $elm$core$Basics$identity;
-						}
-					}),
-				$author$project$Game$empty(level),
-				dict);
-		},
-		A2(
-			$elm$random$Random$andThen,
-			function (list) {
+var $author$project$Bug$toString = function (species) {
+	switch (species.$) {
+		case 'Beetle':
+			return '🪲';
+		case 'LadyBeetle':
+			return '🐞';
+		case 'Cockroach':
+			return '🪳';
+		case 'Snail':
+			return '🐌';
+		case 'Grasshopper':
+			return '🦗';
+		case 'Spider':
+			return '🕷️';
+		case 'Worm':
+			return '🪱';
+		case 'Caterpillar':
+			return '🐛';
+		case 'Ant':
+			return '🐜';
+		default:
+			return '🦋';
+	}
+};
+var $author$project$Game$Generate$new = F2(
+	function (level, collection) {
+		return A2(
+			$elm$random$Random$map,
+			function (dict) {
 				return A3(
-					$elm$core$List$foldl,
-					function (tile) {
-						return $elm$random$Random$andThen(
-							$author$project$Game$Generate$place(tile));
-					},
-					$elm$random$Random$constant($elm$core$Dict$empty),
-					list);
+					$elm$core$Dict$foldl,
+					F2(
+						function (pos, block) {
+							switch (block.$) {
+								case 'ObjectBlock':
+									var tile = block.a;
+									return A2($author$project$Game$placeObject, pos, tile);
+								case 'BugBlock':
+									var bug = block.a;
+									return A2($author$project$Game$placeBug, pos, bug);
+								default:
+									return $elm$core$Basics$identity;
+							}
+						}),
+					$author$project$Game$empty(level),
+					dict);
 			},
 			A2(
-				$elm$random$Random$list,
-				$author$project$Config$bugAmount,
-				A2(
-					$elm$random$Random$map,
-					$author$project$Game$Generate$BugBlock,
-					$author$project$Bug$generate(level)))));
-};
+				$elm$random$Random$andThen,
+				function (list) {
+					return A3(
+						$elm$core$List$foldl,
+						function (tile) {
+							return $elm$random$Random$andThen(
+								$author$project$Game$Generate$place(tile));
+						},
+						$elm$random$Random$constant($elm$core$Dict$empty),
+						list);
+				},
+				A3(
+					$elm$random$Random$map2,
+					$elm$core$Basics$append,
+					A2(
+						$elm$random$Random$map,
+						$elm$core$Tuple$first,
+						A2(
+							$elm_community$random_extra$Random$List$choices,
+							1,
+							function (set) {
+								return A2(
+									$elm$core$List$map,
+									$author$project$Game$Generate$BugBlock,
+									A2(
+										$elm$core$List$filter,
+										function (bug) {
+											return !A2(
+												$elm$core$Set$member,
+												$author$project$Bug$toString(bug),
+												set);
+										},
+										$author$project$Bug$list));
+							}(
+								$elm$core$Set$fromList(
+									A2(
+										$elm$core$List$map,
+										$author$project$Bug$toString,
+										$author$project$Collection$bugs(collection)))))),
+					A2(
+						$elm$random$Random$list,
+						$author$project$Config$bugAmount - 1,
+						A2(
+							$elm$random$Random$map,
+							$author$project$Game$Generate$BugBlock,
+							$author$project$Bug$generate(level))))));
+	});
 var $author$project$Main$init = function (_v0) {
 	var seed = $elm$random$Random$initialSeed(42);
+	var collection = $author$project$Collection$empty;
 	var _v1 = A2(
 		$elm$random$Random$step,
-		$author$project$Game$Generate$new(1),
+		A2($author$project$Game$Generate$new, 1, collection),
 		seed);
 	var game = _v1.a;
 	return _Utils_Tuple2(
-		{game: game, oldCollection: $author$project$Collection$empty, overlay: $elm$core$Maybe$Nothing, seed: seed},
+		{game: game, oldCollection: collection, overlay: $elm$core$Maybe$Nothing, seed: seed},
 		A2(
 			$elm$random$Random$generate,
 			$author$project$Main$NewGame,
@@ -6525,30 +6632,6 @@ var $elm$core$Dict$singleton = F2(
 	function (key, value) {
 		return A5($elm$core$Dict$RBNode_elm_builtin, $elm$core$Dict$Black, key, value, $elm$core$Dict$RBEmpty_elm_builtin, $elm$core$Dict$RBEmpty_elm_builtin);
 	});
-var $author$project$Bug$toString = function (species) {
-	switch (species.$) {
-		case 'Beetle':
-			return '🪲';
-		case 'LadyBeetle':
-			return '🐞';
-		case 'Cockroach':
-			return '🪳';
-		case 'Snail':
-			return '🐌';
-		case 'Grasshopper':
-			return '🦗';
-		case 'Spider':
-			return '🕷️';
-		case 'Worm':
-			return '🪱';
-		case 'Caterpillar':
-			return '🐛';
-		case 'Ant':
-			return '🐜';
-		default:
-			return '🦋';
-	}
-};
 var $elm$core$Dict$getMin = function (dict) {
 	getMin:
 	while (true) {
@@ -7040,21 +7123,17 @@ var $author$project$Main$update = F2(
 			case 'NewGame':
 				var seed = msg.a.seed;
 				var level = msg.a.level;
+				var collection = A2($author$project$Collection$add, model.game.collected, model.oldCollection);
 				return function (_v1) {
 					var game = _v1.a;
 					var newSeed = _v1.b;
 					return _Utils_Tuple2(
-						{
-							game: game,
-							oldCollection: A2($author$project$Collection$add, model.game.collected, model.oldCollection),
-							overlay: $elm$core$Maybe$Nothing,
-							seed: newSeed
-						},
+						{game: game, oldCollection: collection, overlay: $elm$core$Maybe$Nothing, seed: newSeed},
 						$elm$core$Platform$Cmd$none);
 				}(
 					A2(
 						$elm$random$Random$step,
-						$author$project$Game$Generate$new(level),
+						A2($author$project$Game$Generate$new, level, collection),
 						seed));
 			case 'TileClicked':
 				var pos = msg.a;
@@ -7267,11 +7346,9 @@ var $author$project$View$Square$revealed = function (attrs) {
 };
 var $author$project$View$Square$revealedAndCaptured = function (attrs) {
 	return $author$project$View$Square$revealed(
-		_Utils_ap(
-			_List_fromArray(
-				[
-					A2($elm$html$Html$Attributes$style, 'border-radius', '100%')
-				]),
+		A2(
+			$elm$core$List$cons,
+			A2($elm$html$Html$Attributes$style, 'border-radius', '100%'),
 			attrs));
 };
 var $Orasund$elm_layout$Layout$asEl = A2($elm$html$Html$Attributes$style, 'display', 'flex');
@@ -7429,28 +7506,9 @@ var $author$project$View$Game$board = F2(
 				A2($elm$core$List$range, 0, $author$project$Config$gridSize - 1)));
 	});
 var $elm$html$Html$a = _VirtualDom_node('a');
-var $elm$core$Dict$values = function (dict) {
-	return A3(
-		$elm$core$Dict$foldr,
-		F3(
-			function (key, value, valueList) {
-				return A2($elm$core$List$cons, value, valueList);
-			}),
-		_List_Nil,
-		dict);
-};
-var $author$project$Collection$bugs = function (collection) {
-	return A2(
-		$elm$core$List$map,
-		function ($) {
-			return $.bug;
-		},
-		$elm$core$Dict$values(collection));
-};
 var $elm$core$String$concat = function (strings) {
 	return A2($elm$core$String$join, '', strings);
 };
-var $Orasund$elm_layout$Layout$contentWithSpaceBetween = A2($elm$html$Html$Attributes$style, 'justify-content', 'space-between');
 var $author$project$View$Collection$drawer = function (attrs) {
 	return $Orasund$elm_layout$Layout$column(
 		_Utils_ap(
@@ -7470,6 +7528,7 @@ var $elm$html$Html$Attributes$href = function (url) {
 		'href',
 		_VirtualDom_noJavaScriptUri(url));
 };
+var $author$project$View$Collection$minDrawerHeight = 66;
 var $elm$core$List$singleton = function (value) {
 	return _List_fromArray(
 		[value]);
@@ -7483,7 +7542,10 @@ var $author$project$View$Collection$closedCollection = F3(
 					[
 						A2($elm$html$Html$Attributes$style, 'position', 'fixed'),
 						A2($elm$html$Html$Attributes$style, 'bottom', '0'),
-						A2($elm$html$Html$Attributes$style, 'height', '48px'),
+						A2(
+						$elm$html$Html$Attributes$style,
+						'height',
+						$elm$core$String$fromInt($author$project$View$Collection$minDrawerHeight) + 'px'),
 						A2($elm$html$Html$Attributes$style, 'transition', 'height 0.2s')
 					]),
 				attrs),
@@ -7500,28 +7562,28 @@ var $author$project$View$Collection$closedCollection = F3(
 						]),
 					$elm$core$List$singleton(
 						A2(
-							$Orasund$elm_layout$Layout$row,
+							$Orasund$elm_layout$Layout$column,
 							_List_fromArray(
 								[
-									A2($elm$html$Html$Attributes$style, 'height', '48px'),
+									A2(
+									$elm$html$Html$Attributes$style,
+									'height',
+									$elm$core$String$fromInt($author$project$View$Collection$minDrawerHeight) + 'px'),
 									$Orasund$elm_layout$Html$Style$alignItemsCenter,
-									$Orasund$elm_layout$Layout$contentWithSpaceBetween
+									A2($elm$html$Html$Attributes$style, 'padding', '8px'),
+									$Orasund$elm_layout$Layout$gap(8)
 								]),
 							_List_fromArray(
 								[
 									A2(
 									$Orasund$elm_layout$Layout$text,
 									_List_fromArray(
-										[
-											A2($elm$html$Html$Attributes$style, 'padding', '8px 16px'),
-											$Orasund$elm_layout$Html$Style$alignItemsCenter
-										]),
-									'Your collection:'),
+										[$Orasund$elm_layout$Html$Style$alignItemsCenter]),
+									'Your collection'),
 									A2(
 									$Orasund$elm_layout$Layout$el,
 									_List_fromArray(
 										[
-											A2($elm$html$Html$Attributes$style, 'padding', '8px 16px'),
 											A2($elm$html$Html$Attributes$style, 'font-size', '20px'),
 											$Orasund$elm_layout$Html$Style$alignItemsCenter
 										]),
@@ -7565,7 +7627,7 @@ var $author$project$View$Collection$card = function (attrs) {
 };
 var $Orasund$elm_layout$Html$Style$gap = $elm$html$Html$Attributes$style('gap');
 var $Orasund$elm_layout$Html$Style$left = $elm$html$Html$Attributes$style('left');
-var $author$project$View$Collection$maxDrawerHeight = 200;
+var $author$project$View$Collection$maxDrawerHeight = 180;
 var $elm$core$List$repeatHelp = F3(
 	function (result, n, value) {
 		repeatHelp:
@@ -7819,14 +7881,13 @@ var $author$project$View$Collection$openCollection = F3(
 			_List_fromArray(
 				[
 					A2(
-					$Orasund$elm_layout$Layout$el,
+					$Orasund$elm_layout$Layout$text,
 					_List_fromArray(
 						[
 							A2($elm$html$Html$Attributes$style, 'padding', '8px 16px'),
-							A2($elm$html$Html$Attributes$style, 'height', '48px'),
-							$Orasund$elm_layout$Html$Style$alignItemsCenter
+							$Orasund$elm_layout$Html$Style$justifyContentCenter
 						]),
-					$elm$html$Html$text('Your collection:')),
+					'Your collection'),
 					A2(
 					$Orasund$elm_layout$Layout$row,
 					_List_fromArray(

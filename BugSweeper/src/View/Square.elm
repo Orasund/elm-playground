@@ -41,9 +41,8 @@ revealed attrs =
 revealedAndCaptured : List (Attribute msg) -> String -> Html msg
 revealedAndCaptured attrs =
     revealed
-        ([ Html.Attributes.style "border-radius" "100%"
-         ]
-            ++ attrs
+        (Html.Attributes.style "border-radius" "100%"
+            :: attrs
         )
 
 
