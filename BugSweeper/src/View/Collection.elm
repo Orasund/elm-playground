@@ -9,6 +9,7 @@ import Html.Style
 import Layout
 import Object
 import View.Bubble
+import View.Variant
 
 
 maxDrawerHeight =
@@ -35,14 +36,16 @@ card attrs =
          , Html.Attributes.style "border-radius" "16px"
          , Html.Attributes.style "width" "200px"
          , Html.Attributes.style "aspect-ratio" "2/3"
+         , Html.Style.alignItemsCenter
+         , Html.Style.justifyContentCenter
          ]
             ++ attrs
         )
 
 
-detailCard : Bug -> Html msg
-detailCard bug =
-    [ Layout.text [ Html.Attributes.style "font-size" "64px" ]
+detailCard : (Bug,Variant) -> Html msg
+detailCard (bug ,variant) =
+    [[ Layout.text [ Html.Attributes.style "font-size" "64px" ]
         (Bug.toString bug)
     , [ "Found next to " |> Layout.text []
       , (Bug.requirementsOf bug
@@ -59,13 +62,21 @@ detailCard bug =
       ]
         |> Layout.column [ Html.Style.gap "8px" ]
     ]
-        |> card
+        |> card [ Html.Style.gap "32px" ]
+        , --case variant of
+           -- Cute -> Layout.el [] Layout.none
+            --Royal -> 
+                View.Variant.royal 
+                  [ Html.Attributes.style "border-radius" "16px"
+                  ]
+        ]
+        |> Html.div
             (Layout.centered
                 ++ [ Html.Style.positionAbsolute
                    , "calc(50% - " ++ String.fromFloat (maxDrawerHeight / 2) ++ "px)" |> Html.Style.top
                    , Html.Style.left "50%"
                    , Html.Attributes.style "transform" "translate(-50%,-50%)"
-                   , Html.Style.gap "32px"
+                   
                    ]
             )
 
@@ -73,8 +84,7 @@ detailCard bug =
 openCollection :
     List (Attribute msg)
     ->
-        { selected : Maybe Bug
-        , onSelect : Bug -> msg
+        { onSelect : (Bug,Variant) -> msg
         }
     -> Collection
     -> Html msg
@@ -95,19 +105,18 @@ openCollection attrs args collectedBugs =
                             |> View.Bubble.unkown []
 
                     list ->
-                        if List.member Royal list then
-                            Bug.toString species
-                                |> View.Bubble.specialButton []
-                                    { label = "View details of " ++ Bug.toString species
-                                    , onPress = Just (args.onSelect species)
-                                    }
+                        (if List.member Royal list then
+                            View.Bubble.specialButton []
 
                         else
-                            Bug.toString species
-                                |> View.Bubble.button []
+                            View.Bubble.button []
+                        )
                                     { label = "View details of " ++ Bug.toString species
-                                    , onPress = Just (args.onSelect species)
+                                    , onPress = Just (args.onSelect (species,
+                                    if List.member Royal list then Royal else Cute
+                                    ))
                                     }
+                                    (Bug.toString species)
             )
       )
         |> Layout.row

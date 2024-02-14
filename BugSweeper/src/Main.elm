@@ -21,7 +21,7 @@ import View.Summary
 
 
 type Overlay
-    = Collection (Maybe Bug)
+    = Collection (Maybe (Bug,Variant))
     | Summary
 
 
@@ -39,7 +39,7 @@ type Msg
         , level : Int
         }
     | TileClicked ( Int, Int )
-    | SelectBugSpecies Bug
+    | SelectBugSpecies (Bug,Variant)
     | OpenOverlay Overlay
     | CloseOverlay
 
@@ -170,8 +170,7 @@ view model =
                             |> Maybe.map View.Collection.detailCard
                             |> Maybe.withDefault (Html.text "")
                         , View.Collection.openCollection []
-                            { selected = maybeSelected
-                            , onSelect = SelectBugSpecies
+                            { onSelect = SelectBugSpecies
                             }
                             model.oldCollection
                         ]
@@ -185,7 +184,8 @@ view model =
                         ]
 
                     Nothing ->
-                        [ View.Collection.closedCollection []
+                        [ Html.text ""
+                        , View.Collection.closedCollection []
                             { onOpen = OpenOverlay (Collection Nothing)
                             }
                             model.oldCollection
@@ -248,8 +248,8 @@ update msg model =
                                    )
                        )
 
-        SelectBugSpecies bug ->
-            ( { model | overlay = Just (Collection (Just bug)) }, Cmd.none )
+        SelectBugSpecies (bug,variant) ->
+            ( { model | overlay = Just (Collection (Just (bug,variant))) }, Cmd.none )
 
         OpenOverlay overlay ->
             ( { model | overlay = Just overlay }, Cmd.none )

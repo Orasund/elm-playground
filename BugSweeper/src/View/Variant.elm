@@ -18,6 +18,8 @@ royal attrs =
          , Html.Attributes.class "animated-background"
          , Html.Attributes.style "background" "linear-gradient(-45deg, rgba(255,255,0,0),rgba(255,255,0,0),rgba(255,255,0,0.5),rgba(255,255,0,0),rgba(255,255,0,0))"
          , Html.Attributes.style "background-size" "400% 400%"
+          , Html.Attributes.style "border" ("4px solid rgba(255,255,0,0.5)")
+              
          ]
             ++ attrs
         )
