@@ -1,6 +1,6 @@
 module View.Summary exposing (..)
 
-import BugSpecies
+import Bug
 import Collection exposing (Collection, Variant(..))
 import Dict exposing (Dict)
 import Game exposing (Tile(..))
@@ -57,7 +57,7 @@ toHtml args =
             |> List.map
                 (\( ( bug, variant ), l ) ->
                     bug
-                        |> BugSpecies.toString
+                        |> Bug.toString
                         |> List.repeat (List.length l + 1)
                         |> String.concat
                         |> (if Collection.member bug args.oldCollection then
@@ -91,7 +91,7 @@ toHtml args =
             |> List.map
                 (\( bug, l ) ->
                     bug
-                        |> BugSpecies.toString
+                        |> Bug.toString
                         |> List.repeat (List.length l + 1)
                         |> String.concat
                         |> View.Bubble.unkown []

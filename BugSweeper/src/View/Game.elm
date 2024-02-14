@@ -1,6 +1,6 @@
 module View.Game exposing (..)
 
-import BugSpecies
+import Bug
 import Collection exposing (Variant(..))
 import Config
 import Dict
@@ -28,7 +28,7 @@ tile attrs ( x, y ) game =
                         Object.toString object
 
                     Just (BugTile bug) ->
-                        BugSpecies.toString bug
+                        Bug.toString bug
 
                     Nothing ->
                         "❌"

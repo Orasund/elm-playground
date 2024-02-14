@@ -1,6 +1,6 @@
 module View.Collection exposing (closedCollection, detailCard, openCollection)
 
-import BugSpecies exposing (BugSpecies)
+import Bug exposing (Bug)
 import Collection exposing (Collection, Variant(..))
 import Html exposing (Attribute, Html)
 import Html.Attributes
@@ -40,12 +40,12 @@ card attrs =
         )
 
 
-detailCard : BugSpecies -> Html msg
+detailCard : Bug -> Html msg
 detailCard bug =
     [ Layout.text [ Html.Attributes.style "font-size" "64px" ]
-        (BugSpecies.toString bug)
+        (Bug.toString bug)
     , [ "Found next to " |> Layout.text []
-      , (BugSpecies.requirementsOf bug
+      , (Bug.requirementsOf bug
             |> List.concatMap
                 (\( n, tile ) ->
                     tile
@@ -73,8 +73,8 @@ detailCard bug =
 openCollection :
     List (Attribute msg)
     ->
-        { selected : Maybe BugSpecies
-        , onSelect : BugSpecies -> msg
+        { selected : Maybe Bug
+        , onSelect : Bug -> msg
         }
     -> Collection
     -> Html msg
@@ -86,26 +86,26 @@ openCollection attrs args collectedBugs =
             , Html.Attributes.style "height" "48px"
             , Html.Style.alignItemsCenter
             ]
-    , (BugSpecies.list
+    , (Bug.list
         |> List.map
             (\species ->
                 case collectedBugs |> Collection.get species of
                     [] ->
-                        BugSpecies.toString species
+                        Bug.toString species
                             |> View.Bubble.unkown []
 
                     list ->
                         if List.member Royal list then
-                            BugSpecies.toString species
+                            Bug.toString species
                                 |> View.Bubble.specialButton []
-                                    { label = "View details of " ++ BugSpecies.toString species
+                                    { label = "View details of " ++ Bug.toString species
                                     , onPress = Just (args.onSelect species)
                                     }
 
                         else
-                            BugSpecies.toString species
+                            Bug.toString species
                                 |> View.Bubble.button []
-                                    { label = "View details of " ++ BugSpecies.toString species
+                                    { label = "View details of " ++ Bug.toString species
                                     , onPress = Just (args.onSelect species)
                                     }
             )
@@ -140,7 +140,7 @@ closedCollection attrs args collectedBugs =
                 ]
       , (collectedBugs
             |> Collection.bugs
-            |> List.map BugSpecies.toString
+            |> List.map Bug.toString
             |> String.concat
         )
             |> Html.text

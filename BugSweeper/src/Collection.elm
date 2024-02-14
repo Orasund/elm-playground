@@ -1,6 +1,6 @@
 module Collection exposing (Collection, Variant(..), add, bugs, empty, get, insert, member, variantToString)
 
-import BugSpecies exposing (BugSpecies)
+import Bug exposing (Bug)
 import Dict exposing (Dict)
 
 
@@ -12,7 +12,7 @@ type Variant
 type alias Collection =
     Dict
         String
-        { bug : BugSpecies
+        { bug : Bug
         , variants : Dict String Variant
         }
 
@@ -32,9 +32,9 @@ empty =
     Dict.empty
 
 
-insert : BugSpecies -> Variant -> Collection -> Collection
+insert : Bug -> Variant -> Collection -> Collection
 insert bug variant =
-    Dict.update (BugSpecies.toString bug)
+    Dict.update (Bug.toString bug)
         (\maybe ->
             maybe
                 |> Maybe.map
@@ -46,18 +46,18 @@ insert bug variant =
         )
 
 
-get : BugSpecies -> Collection -> List Variant
+get : Bug -> Collection -> List Variant
 get bug collection =
     collection
-        |> Dict.get (BugSpecies.toString bug)
+        |> Dict.get (Bug.toString bug)
         |> Maybe.map .variants
         |> Maybe.map Dict.values
         |> Maybe.withDefault []
 
 
-member : BugSpecies -> Collection -> Bool
+member : Bug -> Collection -> Bool
 member bug =
-    Dict.member (BugSpecies.toString bug)
+    Dict.member (Bug.toString bug)
 
 
 add : Collection -> Collection -> Collection
@@ -75,7 +75,7 @@ add c1 c2 =
             c2
 
 
-bugs : Collection -> List BugSpecies
+bugs : Collection -> List Bug
 bugs collection =
     collection
         |> Dict.values

@@ -1,6 +1,6 @@
 module Game exposing (Game, Tile(..), empty, isOver, isValidPos, neighborsOf, placeBug, placeObject, reveal)
 
-import BugSpecies exposing (BugSpecies(..))
+import Bug exposing (Bug(..))
 import Collection exposing (Collection, Variant(..))
 import Config
 import Dict exposing (Dict)
@@ -8,7 +8,7 @@ import Object exposing (Object(..))
 
 
 type Tile
-    = BugTile BugSpecies
+    = BugTile Bug
     | ObjectTile Object
 
 
@@ -54,7 +54,7 @@ placeObject pos tile game =
     { game | tiles = Dict.insert pos (ObjectTile tile) game.tiles }
 
 
-placeBug : ( Int, Int ) -> BugSpecies -> Game -> Game
+placeBug : ( Int, Int ) -> Bug -> Game -> Game
 placeBug pos bug game =
     { game | tiles = Dict.insert pos (BugTile bug) game.tiles }
 

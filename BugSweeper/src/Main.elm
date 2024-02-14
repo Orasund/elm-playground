@@ -1,7 +1,7 @@
 module Main exposing (main)
 
 import Browser exposing (Document)
-import BugSpecies exposing (BugSpecies)
+import Bug exposing (Bug)
 import Collection exposing (Collection, Variant(..))
 import Color
 import Dict
@@ -21,7 +21,7 @@ import View.Summary
 
 
 type Overlay
-    = Collection (Maybe BugSpecies)
+    = Collection (Maybe Bug)
     | Summary
 
 
@@ -39,7 +39,7 @@ type Msg
         , level : Int
         }
     | TileClicked ( Int, Int )
-    | SelectBugSpecies BugSpecies
+    | SelectBugSpecies Bug
     | OpenOverlay Overlay
     | CloseOverlay
 
@@ -95,7 +95,7 @@ view model =
                         model.oldCollection
                             |> Collection.member bug
                     then
-                        BugSpecies.toString bug
+                        Bug.toString bug
 
                     else
                         "❓"

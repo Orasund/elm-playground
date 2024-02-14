@@ -1,6 +1,6 @@
 module Game.Generate exposing (new)
 
-import BugSpecies exposing (BugSpecies(..))
+import Bug exposing (Bug(..))
 import Config
 import Dict exposing (Dict)
 import Game exposing (Game)
@@ -15,13 +15,13 @@ type alias Random a =
 
 type Block
     = ObjectBlock Object
-    | BugBlock BugSpecies
+    | BugBlock Bug
     | EmptyBlock
 
 
 new : Int -> Random Game
 new level =
-    Random.list Config.bugAmount (BugSpecies.generate level |> Random.map BugBlock)
+    Random.list Config.bugAmount (Bug.generate level |> Random.map BugBlock)
         --  |> Random.map ((++) (List.repeat Config.leafAmount (TileBlock Leaf)))
         --|> Random.map ((++) (List.repeat Config.stoneAmount (TileBlock Stone)))
         |> Random.andThen
@@ -84,11 +84,11 @@ placeTile tile game =
             Random.constant game
 
 
-placeBug : BugSpecies -> Dict ( Int, Int ) Block -> Random (Dict ( Int, Int ) Block)
+placeBug : Bug -> Dict ( Int, Int ) Block -> Random (Dict ( Int, Int ) Block)
 placeBug bug dict =
     let
         requirements =
-            BugSpecies.requirementsOf bug
+            Bug.requirementsOf bug
     in
     dict
         |> emptyPositions

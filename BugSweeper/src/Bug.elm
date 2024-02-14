@@ -1,10 +1,10 @@
-module BugSpecies exposing (..)
+module Bug exposing (..)
 
 import Object exposing (Object(..))
 import Random exposing (Generator)
 
 
-type BugSpecies
+type Bug
     = Beetle
     | LadyBeetle
     | Cockroach
@@ -17,7 +17,7 @@ type BugSpecies
     | Butterfly
 
 
-list : List BugSpecies
+list : List Bug
 list =
     [ Worm
     , Caterpillar
@@ -32,7 +32,7 @@ list =
     ]
 
 
-generate : Int -> Generator BugSpecies
+generate : Int -> Generator Bug
 generate level =
     case
         list
@@ -48,7 +48,7 @@ generate level =
             Random.constant Snail
 
 
-toString : BugSpecies -> String
+toString : Bug -> String
 toString species =
     case species of
         Beetle ->
@@ -82,7 +82,7 @@ toString species =
             "🦋"
 
 
-requirementsOf : BugSpecies -> List ( Int, Maybe Object )
+requirementsOf : Bug -> List ( Int, Maybe Object )
 requirementsOf bug =
     case bug of
         Ant ->
