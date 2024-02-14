@@ -30,6 +30,13 @@ list =
     , Ant
     , Butterfly
     ]
+        |> List.sortBy
+            (\bug ->
+                -(requirementsOf bug
+                    |> List.map Tuple.first
+                    |> List.sum
+                 )
+            )
 
 
 generate : Int -> Generator Bug
@@ -108,7 +115,7 @@ requirementsOf bug =
             ]
 
         LadyBeetle ->
-            [ ( 1, Just Wood ) ]
+            [ ( 2, Just Wood ) ]
 
         Spider ->
             [ ( 1, Just SpiderWeb ) ]
@@ -119,4 +126,4 @@ requirementsOf bug =
             ]
 
         Butterfly ->
-            []
+            [ ( 2, Nothing ) ]
