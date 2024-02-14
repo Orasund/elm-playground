@@ -7649,11 +7649,17 @@ var $author$project$View$Collection$detailCard = function (_v0) {
 										$author$project$Bug$requirementsOf(bug))))
 							]))
 					])),
-				$author$project$View$Variant$royal(
-				_List_fromArray(
-					[
-						A2($elm$html$Html$Attributes$style, 'border-radius', '16px')
-					]))
+				function () {
+				if (variant.$ === 'Cute') {
+					return A2($Orasund$elm_layout$Layout$el, _List_Nil, $Orasund$elm_layout$Layout$none);
+				} else {
+					return $author$project$View$Variant$royal(
+						_List_fromArray(
+							[
+								A2($elm$html$Html$Attributes$style, 'border-radius', '16px')
+							]));
+				}
+			}()
 			]));
 };
 var $elm$core$List$maybeCons = F3(

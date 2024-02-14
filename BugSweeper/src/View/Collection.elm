@@ -63,9 +63,9 @@ detailCard (bug ,variant) =
         |> Layout.column [ Html.Style.gap "8px" ]
     ]
         |> card [ Html.Style.gap "32px" ]
-        , --case variant of
-           -- Cute -> Layout.el [] Layout.none
-            --Royal -> 
+        , case variant of
+            Cute -> Layout.el [] Layout.none
+            Royal -> 
                 View.Variant.royal 
                   [ Html.Attributes.style "border-radius" "16px"
                   ]
