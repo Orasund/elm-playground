@@ -9,7 +9,7 @@ import Game.Update
 import Goal
 import Html exposing (Html)
 import Html.Attributes
-import Html.Style as Style
+import Html.Style
 import Layout
 import Process
 import Random exposing (Seed)
@@ -147,27 +147,33 @@ view model =
                 model.game
 
         Just EndOfGame ->
-            [ Layout.el [] Layout.none
+            [ Layout.divWrapper [ Html.Style.displayFlex ] Layout.none
             , [ "You don't have any credits left"
-                    |> Layout.text [ Style.justifyContentCenter ]
+                    |> Layout.divText [ Html.Style.displayFlex, Html.Style.justifyContentCenter ]
               , "Thanks for playing"
-                    |> Layout.text [ Html.Attributes.style "font-size" "36px" ]
+                    |> Layout.divText [ Html.Style.displayFlex, Html.Style.fontSizePx 36 ]
               , "Please subscribe and rate the game"
-                    |> Layout.text [ Style.justifyContentCenter ]
+                    |> Layout.divText [ Html.Style.justifyContentCenter ]
               , "Thanks ;)"
-                    |> Layout.text [ Style.justifyContentCenter ]
+                    |> Layout.divText [ Html.Style.justifyContentCenter ]
               ]
-                |> Layout.column
-                    [ Style.gap "16px"
-                    , Layout.contentWithSpaceBetween
-                    , Style.justifyContentCenter
+                |> Html.div
+                    [ Html.Style.displayFlex
+                    , Html.Style.flexDirectionColumn
+                    , Html.Style.gap "16px"
+                    , Html.Style.justifyContentSpaceBetween
+                    , Html.Style.justifyContentCenter
                     ]
             , View.Ui.button []
                 { label = "Restart the game"
                 , onPress = Just (Restart model.seed)
                 }
             ]
-                |> Layout.column [ Layout.contentWithSpaceBetween ]
+                |> Html.div
+                    [ Html.Style.displayFlex
+                    , Html.Style.flexDirectionColumn
+                    , Html.Style.justifyContentSpaceBetween
+                    ]
 
         Just (Tutorial int) ->
             View.Overlay.tutorial
@@ -183,13 +189,14 @@ view model =
                     , yourTurn = model.yourTurn
                     }
       )
-        |> Layout.el
-            [ Html.Attributes.style "padding" "16px"
-            , Html.Attributes.style "background-color" "#dfeaff"
-            , Style.width "100%"
-            , Style.height "100%"
-            , Style.boxSizingBorderBox
-            , Style.justifyContentCenter
+        |> Layout.divWrapper
+            [ Html.Style.displayFlex
+            , Html.Style.padding "16px"
+            , Html.Style.backgroundColor "#dfeaff"
+            , Html.Style.width "100%"
+            , Html.Style.height "100%"
+            , Html.Style.boxSizingBorderBox
+            , Html.Style.justifyContentCenter
             ]
     , "CREDITS: "
         ++ String.fromInt model.score
@@ -205,12 +212,13 @@ view model =
             else
                 ""
            )
-        |> Layout.text
-            [ Html.Attributes.style "background-color" "#679aff"
-            , Html.Attributes.style "color" "white"
-            , Html.Attributes.style "padding" "32px"
-            , Style.boxSizingBorderBox
-            , Style.width "100%"
+        |> Layout.divText
+            [ Html.Style.displayFlex
+            , Html.Style.backgroundColor "#679aff"
+            , Html.Style.color "white"
+            , Html.Style.padding "32px"
+            , Html.Style.boxSizingBorderBox
+            , Html.Style.width "100%"
             ]
     , Html.node "meta"
         [ Html.Attributes.name "viewport"
@@ -218,12 +226,14 @@ view model =
         ]
         []
     ]
-        |> Layout.column
-            ([ Style.width "400px"
-             , Style.height "700px"
-             ]
-                ++ Layout.centered
-            )
+        |> Html.div
+            [ Html.Style.displayFlex
+            , Html.Style.flexDirectionColumn
+            , Html.Style.widthPx 400
+            , Html.Style.heightPx 700
+            , Html.Style.justifyContentCenter
+            , Html.Style.alignItemsCenter
+            ]
 
 
 challengeGoal : Model -> Model

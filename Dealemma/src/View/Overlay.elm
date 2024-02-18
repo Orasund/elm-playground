@@ -8,8 +8,7 @@ import Game.Area
 import Game.Entity
 import Goal exposing (Category(..))
 import Html exposing (Html)
-import Html.Attributes
-import Html.Style as Style
+import Html.Style
 import Layout
 import List.Extra
 import Random
@@ -39,18 +38,23 @@ shop args list =
                     |> View.Goal.viewSuit []
                         { big = True }
                     |> List.repeat (List.length l + 1)
-                    |> Layout.row
-                        [ Style.gap "4px"
-                        , Style.justifyContentCenter
+                    |> Html.div
+                        [ Html.Style.displayFlex
+                        , Html.Style.flexDirectionRow
+                        , Html.Style.gap "4px"
+                        , Html.Style.justifyContentCenter
                         ]
             )
-        |> Layout.column
-            [ Style.justifyContentCenter
-            , Style.gap "4px"
+        |> Html.div
+            [ Html.Style.displayFlex
+            , Html.Style.flexDirectionColumn
+            , Html.Style.justifyContentCenter
+            , Html.Style.gap "4px"
             ]
     , "Pick a card to add to the deck"
-        |> Layout.text
-            [ Style.justifyContentCenter
+        |> Layout.divText
+            [ Html.Style.displayFlex
+            , Html.Style.justifyContentCenter
             ]
     , list
         |> List.indexedMap
@@ -77,11 +81,15 @@ shop args list =
             , maxDistance = 4 + toFloat View.Card.height * 2 / 6
             }
         |> Game.Area.toHtml
-            [ Style.height (String.fromInt View.Card.height ++ "px")
-            , Style.justifyContentCenter
+            [ Html.Style.height (String.fromInt View.Card.height ++ "px")
+            , Html.Style.justifyContentCenter
             ]
     ]
-        |> Layout.column [ Layout.contentWithSpaceBetween ]
+        |> Html.div
+            [ Html.Style.displayFlex
+            , Html.Style.flexDirectionColumn
+            , Html.Style.justifyContentSpaceBetween
+            ]
 
 
 tutorial : { onNext : Int -> msg, page : Int } -> Html msg
@@ -89,7 +97,7 @@ tutorial args =
     (case args.page of
         0 ->
             [ "There are 16 cards in the deck"
-                |> Layout.text []
+                |> Layout.divText [ Html.Style.displayFlex ]
             , Suit.asList
                 |> List.map
                     (\suit ->
@@ -97,22 +105,37 @@ tutorial args =
                             |> Just
                             |> View.Goal.viewSuit [] { big = True }
                             |> List.repeat Config.cardsPerSuit
-                            |> Layout.row [ Style.gap "4px", Style.justifyContentCenter ]
+                            |> Html.div
+                                [ Html.Style.displayFlex
+                                , Html.Style.flexDirectionRow
+                                , Html.Style.gap "4px"
+                                , Html.Style.justifyContentCenter
+                                ]
                     )
-                |> Layout.column
-                    [ Style.gap "4px"
-                    , Style.justifyContentCenter
+                |> Html.div
+                    [ Html.Style.displayFlex
+                    , Html.Style.flexDirectionColumn
+                    , Html.Style.gap "4px"
+                    , Html.Style.justifyContentCenter
                     ]
-            , "Each round both players draw 4 cards" |> Layout.text []
+            , "Each round both players draw 4 cards" |> Layout.divText []
             , View.Goal.viewSuits { big = True } 4 Nothing
                 |> List.repeat 2
-                |> Layout.row [ Layout.contentWithSpaceBetween ]
+                |> Html.div
+                    [ Html.Style.displayFlex
+                    , Html.Style.flexDirectionRow
+                    , Html.Style.justifyContentSpaceBetween
+                    ]
             , [ View.Ui.button []
                     { label = "Next"
                     , onPress = Just (args.onNext (args.page + 1))
                     }
               ]
-                |> Layout.row [ Layout.contentCentered ]
+                |> Html.div
+                    [ Html.Style.displayFlex
+                    , Html.Style.flexDirectionRow
+                    , Html.Style.justifyContentCenter
+                    ]
             ]
 
         1 ->
@@ -124,7 +147,7 @@ tutorial args =
                     [ ThreeOfAKind, PairOf suit ]
             in
             [ "A card consists of a value, a suit and a bet"
-                |> Layout.text []
+                |> Layout.divText [ Html.Style.displayFlex ]
             , [ ( -1, { suit = suit, goal = goal } )
                     |> View.Card.toHtml []
                         { value = 42
@@ -133,61 +156,84 @@ tutorial args =
                         }
                     |> Game.Entity.map Tuple.second
                     |> Game.Entity.toHtml []
-              , Layout.column
-                    [ Style.positionAbsolute
-                    , Style.left "-100px"
-                    , Style.top "-8px"
-                    , Html.Attributes.style "text-align" "right"
-                    , Style.alignItemsFlexEnd
+              , Html.div
+                    [ Html.Style.displayFlex
+                    , Html.Style.flexDirectionColumn
+                    , Html.Style.positionAbsolute
+                    , Html.Style.leftPx -100
+                    , Html.Style.topPx -8
+                    , Html.Style.textAlignRight
+                    , Html.Style.alignItemsFlexEnd
                     ]
-                    [ "Value: " |> Layout.text [ Html.Attributes.style "font-weight" "bold" ]
+                    [ "Value: "
+                        |> Layout.divText
+                            [ Html.Style.displayFlex
+                            , Html.Style.fontWeight "bold"
+                            ]
                     , String.fromInt 42
                         ++ " CREDITS"
-                        |> Layout.text []
+                        |> Layout.divText [ Html.Style.displayFlex ]
                     ]
               , Html.div
-                    [ Style.positionAbsolute
-                    , Style.right "-50px"
-                    , Style.top "8px"
+                    [ Html.Style.positionAbsolute
+                    , Html.Style.rightPx -50
+                    , Html.Style.topPx 8
                     ]
-                    [ "suit: " |> Layout.text [ Html.Attributes.style "font-weight" "bold" ]
-                    , Suit.icon suit |> Layout.text []
+                    [ "suit: "
+                        |> Layout.divText
+                            [ Html.Style.displayFlex
+                            , Html.Style.fontWeight "bold"
+                            ]
+                    , Suit.icon suit |> Layout.divText [ Html.Style.displayFlex ]
                     ]
               , Html.div
-                    [ Style.positionAbsolute
-                    , Style.left "-5px"
-                    , Style.top "130px"
-                    , Style.width "100px"
+                    [ Html.Style.positionAbsolute
+                    , Html.Style.leftPx -5
+                    , Html.Style.topPx 130
+                    , Html.Style.widthPx 100
                     ]
-                    [ "bet: " |> Layout.text [ Html.Attributes.style "font-weight" "bold" ]
+                    [ "bet: "
+                        |> Layout.divText
+                            [ Html.Style.displayFlex
+                            , Html.Style.fontWeight "bold"
+                            ]
                     , View.Goal.toHtml []
                         { big = False }
                         goal
                     , Goal.description goal
-                        |> Layout.text []
+                        |> Layout.divText [ Html.Style.displayFlex ]
                     ]
               ]
                 |> Html.div
-                    [ Style.positionRelative
+                    [ Html.Style.positionRelative
                     ]
-                |> Layout.el
-                    [ Style.justifyContentCenter
-                    , Style.height "200px"
+                |> Layout.divWrapper
+                    [ Html.Style.displayFlex
+                    , Html.Style.justifyContentCenter
+                    , Html.Style.heightPx 200
                     ]
-            , [ "By playing this card, im saying:" |> Layout.text []
-              , "\"I bet 42 CREDITS that there are at least three of a kind and two hearts in the game\"" |> Layout.text [ Html.Attributes.style "font-weight" "bold" ]
+            , [ "By playing this card, im saying:" |> Layout.divText [ Html.Style.displayFlex ]
+              , "\"I bet 42 CREDITS that there are at least three of a kind and two hearts in the game\""
+                    |> Layout.divText
+                        [ Html.Style.displayFlex
+                        , Html.Style.fontWeight "bold"
+                        ]
               ]
-                |> Layout.column [ Layout.gap 8 ]
+                |> Html.div
+                    [ Html.Style.displayFlex
+                    , Html.Style.flexDirectionColumn
+                    , Html.Style.gap "8px"
+                    ]
             , View.Ui.button []
                 { label = "Next"
                 , onPress = Just (args.onNext (args.page + 1))
                 }
-                |> Layout.el [ Style.justifyContentCenter ]
+                |> Layout.divWrapper [ Html.Style.displayFlex, Html.Style.justifyContentCenter ]
             ]
 
         2 ->
             [ "Each turn a player can either play a card with a higher value or challenge the bet (calling the bluff)."
-                |> Layout.text []
+                |> Layout.divText [ Html.Style.displayFlex ]
             , Random.initialSeed 42
                 |> Random.step
                     (Goal.asList
@@ -204,25 +250,30 @@ tutorial args =
 
         _ ->
             [ "That's it"
-                |> Layout.text
-                    [ Html.Attributes.style "font-size" "24px"
-                    , Style.justifyContentCenter
+                |> Layout.divText
+                    [ Html.Style.fontSizePx 24
+                    , Html.Style.justifyContentCenter
                     ]
-            , "The game ends once you have no CREDITS left" |> Layout.text []
+            , "The game ends once you have no CREDITS left" |> Layout.divText [ Html.Style.displayFlex ]
             , "You start with "
                 ++ String.fromInt Config.startingCredits
                 ++ " CREDITS"
-                |> Layout.text
-                    [ Style.justifyContentCenter
+                |> Layout.divText
+                    [ Html.Style.displayFlex
+                    , Html.Style.justifyContentCenter
                     ]
             , View.Ui.button []
                 { label = "Start Game"
                 , onPress = Just (args.onNext (args.page + 1))
                 }
-                |> Layout.el [ Style.justifyContentCenter ]
+                |> Layout.divWrapper [ Html.Style.displayFlex, Html.Style.justifyContentCenter ]
             ]
     )
-        |> Layout.column [ Layout.contentWithSpaceBetween ]
+        |> Html.div
+            [ Html.Style.displayFlex
+            , Html.Style.flexDirectionColumn
+            , Html.Style.justifyContentSpaceBetween
+            ]
 
 
 gameEnd : { yourTurn : Bool, onNextRound : msg } -> Game -> Html msg
@@ -246,8 +297,9 @@ gameEnd args game =
                 |> String.fromInt
            )
         ++ " CREDITS"
-        |> Layout.text
-            [ Style.justifyContentCenter
+        |> Layout.divText
+            [ Html.Style.displayFlex
+            , Html.Style.justifyContentCenter
             ]
     , [ (if args.yourTurn then
             "Their "
@@ -256,17 +308,22 @@ gameEnd args game =
             "Your "
         )
             ++ "Call"
-            |> Layout.text
-                [ Style.justifyContentCenter
-                , Html.Attributes.style "font-size" "24px"
+            |> Layout.divText
+                [ Html.Style.displayFlex
+                , Html.Style.justifyContentCenter
+                , Html.Style.fontSizePx 24
                 ]
       , View.Goal.toHtml [] { big = True } bet.goal
       ]
-        |> Layout.column [ Style.gap "8px" ]
+        |> Html.div
+            [ Html.Style.displayFlex
+            , Html.Style.flexDirectionColumn
+            , Html.Style.gap "8px"
+            ]
     , [ "Cards in game"
-            |> Layout.text
-                [ Html.Attributes.style "font-size" "24px"
-                , Style.justifyContentCenter
+            |> Layout.divText
+                [ Html.Style.fontSizePx 24
+                , Html.Style.justifyContentCenter
                 ]
       , Set.toList game.yourCards
             ++ Set.toList game.opponentCards
@@ -280,9 +337,17 @@ gameEnd args game =
                         |> View.Goal.viewSuit []
                             { big = True }
                 )
-            |> Layout.row [ Style.gap "4px" ]
+            |> Html.div
+                [ Html.Style.displayFlex
+                , Html.Style.flexDirectionRow
+                , Html.Style.gap "4px"
+                ]
       ]
-        |> Layout.column [ Style.gap "8px" ]
+        |> Html.div
+            [ Html.Style.displayFlex
+            , Html.Style.flexDirectionColumn
+            , Html.Style.gap "8px"
+            ]
     , (if
         Game.isWon game
             |> (if args.yourTurn then
@@ -297,17 +362,23 @@ gameEnd args game =
        else
         "You Loose"
       )
-        |> Layout.text
-            [ Html.Attributes.style "font-size" "64px"
-            , Style.justifyContentCenter
+        |> Layout.divText
+            [ Html.Style.displayFlex
+            , Html.Style.fontSizePx 64
+            , Html.Style.justifyContentCenter
             ]
     , View.Ui.button []
         { label = "Next Round"
         , onPress = Just args.onNextRound
         }
-        |> Layout.el [ Style.justifyContentCenter ]
+        |> Layout.divWrapper
+            [ Html.Style.displayFlex
+            , Html.Style.justifyContentCenter
+            ]
     ]
-        |> Layout.column
-            [ Layout.contentWithSpaceBetween
-            , Style.height "100%"
+        |> Html.div
+            [ Html.Style.displayFlex
+            , Html.Style.flexDirectionColumn
+            , Html.Style.justifyContentSpaceBetween
+            , Html.Style.height "100%"
             ]

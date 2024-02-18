@@ -6,8 +6,7 @@ import Game.Area
 import Game.Entity
 import Goal
 import Html exposing (Html)
-import Html.Attributes
-import Html.Style as Style
+import Html.Style
 import Layout
 import Set
 import View.Card
@@ -31,14 +30,15 @@ toHtml args game =
                     |> Game.getCardFrom game
                     |> Maybe.map (Tuple.pair cardId)
             )
-        |> View.Hand.opponent [ Style.justifyContentCenter ]
+        |> View.Hand.opponent [ Html.Style.justifyContentCenter ]
             { values = game.values }
     , [ "Last Call"
-            |> Layout.text
-                [ Html.Attributes.style "font-size" "24px"
-                , Style.justifyContentCenter
+            |> Layout.divText
+                [ Html.Style.displayFlex
+                , Html.Style.fontSizePx 24
+                , Html.Style.justifyContentCenter
                 ]
-      , [ Layout.el [ Layout.fill ] Layout.none
+      , [ Layout.divWrapper [ Html.Style.displayFlex, Html.Style.flex "1" ] Layout.none
         , game.playedCards
             |> List.reverse
             |> List.filterMap
@@ -67,17 +67,21 @@ toHtml args game =
                         )
                 )
             |> Game.Area.pileAbove ( 0, 0 ) ( "discardPile", View.Card.empty )
-            |> Game.Area.toHtml [ Style.justifyContentCenter ]
-        , Layout.el [ Layout.fill ] Layout.none
+            |> Game.Area.toHtml [ Html.Style.justifyContentCenter ]
+        , Layout.divWrapper [ Html.Style.displayFlex, Html.Style.flex "1" ] Layout.none
         ]
-            |> Layout.row
-                [ Layout.contentWithSpaceBetween
-                , Style.gap "8px"
+            |> Html.div
+                [ Html.Style.displayFlex
+                , Html.Style.flexDirectionRow
+                , Html.Style.justifyContentSpaceBetween
+                , Html.Style.gap "8px"
                 ]
       ]
-        |> Layout.column
-            [ Style.justifyContentCenter
-            , Style.gap "8px"
+        |> Html.div
+            [ Html.Style.displayFlex
+            , Html.Style.flexDirectionColumn
+            , Html.Style.justifyContentCenter
+            , Html.Style.gap "8px"
             ]
     , [ (if not args.yourTurn then
             "Waiting..."
@@ -85,7 +89,7 @@ toHtml args game =
          else
             "Play a card with a higher value or call the bluff"
         )
-            |> Layout.text [ Style.justifyContentCenter ]
+            |> Layout.divText [ Html.Style.justifyContentCenter ]
       , game.yourCards
             |> Set.toList
             |> List.filterMap
@@ -95,7 +99,7 @@ toHtml args game =
                         |> Maybe.map (Tuple.pair cardId)
                 )
             |> View.Hand.toHtml
-                [ Style.justifyContentCenter
+                [ Html.Style.justifyContentCenter
                 ]
                 { onPlay = args.onPlay
                 , currentValue = Game.currentValue game
@@ -128,11 +132,17 @@ toHtml args game =
                        )
                     ++ " CREDITS"
             }
-            |> Layout.el [ Style.justifyContentCenter ]
+            |> Layout.divWrapper [ Html.Style.displayFlex, Html.Style.justifyContentCenter ]
       ]
-        |> Layout.column [ Style.gap "16px" ]
+        |> Html.div
+            [ Html.Style.displayFlex
+            , Html.Style.flexDirectionColumn
+            , Html.Style.gap "16px"
+            ]
     ]
-        |> Layout.column
-            [ Style.height "100%"
-            , Layout.contentWithSpaceBetween
+        |> Html.div
+            [ Html.Style.displayFlex
+            , Html.Style.flexDirectionColumn
+            , Html.Style.height "100%"
+            , Html.Style.justifyContentSpaceBetween
             ]

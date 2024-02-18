@@ -4,8 +4,7 @@ import Game.Card
 import Game.Entity
 import Goal exposing (Category(..), Goal)
 import Html exposing (Attribute, Html)
-import Html.Attributes
-import Html.Style as Style
+import Html.Style
 import Layout
 import Suit exposing (Suit)
 
@@ -40,14 +39,14 @@ viewSuit attrs args maybeSuit =
         |> Maybe.withDefault "?"
         |> Html.text
         |> Game.Card.back
-            ([ Style.height (String.fromFloat (cardHeight args) ++ "px")
-             , Html.Attributes.style "font-size" (fontSize args)
+            ([ Html.Style.heightPx (cardHeight args)
+             , Html.Style.fontSize (fontSize args)
              , maybeSuit
                 |> Maybe.map Suit.color
                 |> Maybe.withDefault "#c6b8b8"
-                |> Html.Attributes.style "background-color"
-             , Style.boxSizingBorderBox
-             , Html.Attributes.style "border" "1px solid rgba(0, 0, 0, 0.2)"
+                |> Html.Style.backgroundColor
+             , Html.Style.boxSizingBorderBox
+             , Html.Style.border "1px solid rgba(0, 0, 0, 0.2)"
              ]
                 ++ attrs
             )
@@ -71,8 +70,8 @@ viewSuits args amount maybeSuit =
             )
         |> Game.Entity.pileAbove Layout.none
         |> Game.Entity.toHtml
-            [ Style.width (String.fromFloat (cardWidth args + (toFloat (amount - 1) * offset)) ++ "px")
-            , Style.height (String.fromFloat (cardHeight args) ++ "px")
+            [ Html.Style.widthPx (cardWidth args + (toFloat (amount - 1) * offset))
+            , Html.Style.heightPx (cardHeight args)
             ]
 
 
@@ -108,9 +107,11 @@ toHtml : List (Attribute msg) -> { big : Bool } -> Goal -> Html msg
 toHtml attrs args list =
     list
         |> List.map (viewChallenge args)
-        |> Layout.row
-            ([ Style.gap "4px"
-             , Style.justifyContentCenter
+        |> Html.div
+            ([ Html.Style.displayFlex
+             , Html.Style.flexDirectionRow
+             , Html.Style.gap "4px"
+             , Html.Style.justifyContentCenter
              ]
                 ++ attrs
             )
