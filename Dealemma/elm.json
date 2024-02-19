@@ -7,7 +7,7 @@
     "dependencies": {
         "direct": {
             "Orasund/elm-card-game": "1.0.0",
-            "Orasund/elm-html-style": "1.2.0",
+            "Orasund/elm-html-style": "1.4.0",
             "Orasund/elm-layout": "3.0.0",
             "elm/browser": "1.0.2",
             "elm/core": "1.0.5",

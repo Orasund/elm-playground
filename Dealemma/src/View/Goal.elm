@@ -110,7 +110,7 @@ toHtml attrs args list =
         |> Html.div
             ([ Html.Style.displayFlex
              , Html.Style.flexDirectionRow
-             , Html.Style.gap "4px"
+             , Html.Style.gapPx 4
              , Html.Style.justifyContentCenter
              ]
                 ++ attrs

@@ -41,7 +41,7 @@ shop args list =
                     |> Html.div
                         [ Html.Style.displayFlex
                         , Html.Style.flexDirectionRow
-                        , Html.Style.gap "4px"
+                        , Html.Style.gapPx 4
                         , Html.Style.justifyContentCenter
                         ]
             )
@@ -49,7 +49,7 @@ shop args list =
             [ Html.Style.displayFlex
             , Html.Style.flexDirectionColumn
             , Html.Style.justifyContentCenter
-            , Html.Style.gap "4px"
+            , Html.Style.gapPx 4
             ]
     , "Pick a card to add to the deck"
         |> Layout.divText
@@ -81,7 +81,7 @@ shop args list =
             , maxDistance = 4 + toFloat View.Card.height * 2 / 6
             }
         |> Game.Area.toHtml
-            [ Html.Style.height (String.fromInt View.Card.height ++ "px")
+            [ Html.Style.heightPx View.Card.height
             , Html.Style.justifyContentCenter
             ]
     ]
@@ -108,14 +108,14 @@ tutorial args =
                             |> Html.div
                                 [ Html.Style.displayFlex
                                 , Html.Style.flexDirectionRow
-                                , Html.Style.gap "4px"
+                                , Html.Style.gapPx 4
                                 , Html.Style.justifyContentCenter
                                 ]
                     )
                 |> Html.div
                     [ Html.Style.displayFlex
                     , Html.Style.flexDirectionColumn
-                    , Html.Style.gap "4px"
+                    , Html.Style.gapPx 4
                     , Html.Style.justifyContentCenter
                     ]
             , "Each round both players draw 4 cards" |> Layout.divText []
@@ -168,7 +168,7 @@ tutorial args =
                     [ "Value: "
                         |> Layout.divText
                             [ Html.Style.displayFlex
-                            , Html.Style.fontWeight "bold"
+                            , Html.Style.fontWeightBold
                             ]
                     , String.fromInt 42
                         ++ " CREDITS"
@@ -182,7 +182,7 @@ tutorial args =
                     [ "suit: "
                         |> Layout.divText
                             [ Html.Style.displayFlex
-                            , Html.Style.fontWeight "bold"
+                            , Html.Style.fontWeightBold
                             ]
                     , Suit.icon suit |> Layout.divText [ Html.Style.displayFlex ]
                     ]
@@ -195,7 +195,7 @@ tutorial args =
                     [ "bet: "
                         |> Layout.divText
                             [ Html.Style.displayFlex
-                            , Html.Style.fontWeight "bold"
+                            , Html.Style.fontWeightBold
                             ]
                     , View.Goal.toHtml []
                         { big = False }
@@ -216,19 +216,22 @@ tutorial args =
               , "\"I bet 42 CREDITS that there are at least three of a kind and two hearts in the game\""
                     |> Layout.divText
                         [ Html.Style.displayFlex
-                        , Html.Style.fontWeight "bold"
+                        , Html.Style.fontWeightBold
                         ]
               ]
                 |> Html.div
                     [ Html.Style.displayFlex
                     , Html.Style.flexDirectionColumn
-                    , Html.Style.gap "8px"
+                    , Html.Style.gapPx 8
                     ]
             , View.Ui.button []
                 { label = "Next"
                 , onPress = Just (args.onNext (args.page + 1))
                 }
-                |> Layout.divWrapper [ Html.Style.displayFlex, Html.Style.justifyContentCenter ]
+                |> Layout.divWrapper
+                    [ Html.Style.displayFlex
+                    , Html.Style.justifyContentCenter
+                    ]
             ]
 
         2 ->
@@ -318,7 +321,7 @@ gameEnd args game =
         |> Html.div
             [ Html.Style.displayFlex
             , Html.Style.flexDirectionColumn
-            , Html.Style.gap "8px"
+            , Html.Style.gapPx 8
             ]
     , [ "Cards in game"
             |> Layout.divText
@@ -340,13 +343,13 @@ gameEnd args game =
             |> Html.div
                 [ Html.Style.displayFlex
                 , Html.Style.flexDirectionRow
-                , Html.Style.gap "4px"
+                , Html.Style.gapPx 4
                 ]
       ]
         |> Html.div
             [ Html.Style.displayFlex
             , Html.Style.flexDirectionColumn
-            , Html.Style.gap "8px"
+            , Html.Style.gapPx 8
             ]
     , (if
         Game.isWon game

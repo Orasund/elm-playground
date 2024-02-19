@@ -38,7 +38,11 @@ toHtml args game =
                 , Html.Style.fontSizePx 24
                 , Html.Style.justifyContentCenter
                 ]
-      , [ Layout.divWrapper [ Html.Style.displayFlex, Html.Style.flex "1" ] Layout.none
+      , [ Layout.divWrapper
+            [ Html.Style.displayFlex
+            , Html.Style.flex "1"
+            ]
+            Layout.none
         , game.playedCards
             |> List.reverse
             |> List.filterMap
@@ -74,14 +78,14 @@ toHtml args game =
                 [ Html.Style.displayFlex
                 , Html.Style.flexDirectionRow
                 , Html.Style.justifyContentSpaceBetween
-                , Html.Style.gap "8px"
+                , Html.Style.gapPx 8
                 ]
       ]
         |> Html.div
             [ Html.Style.displayFlex
             , Html.Style.flexDirectionColumn
             , Html.Style.justifyContentCenter
-            , Html.Style.gap "8px"
+            , Html.Style.gapPx 8
             ]
     , [ (if not args.yourTurn then
             "Waiting..."
@@ -137,7 +141,7 @@ toHtml args game =
         |> Html.div
             [ Html.Style.displayFlex
             , Html.Style.flexDirectionColumn
-            , Html.Style.gap "16px"
+            , Html.Style.gapPx 16
             ]
     ]
         |> Html.div
