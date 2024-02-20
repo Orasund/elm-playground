@@ -5,7 +5,6 @@ import Collection exposing (Collection, Variant(..))
 import Dict exposing (Dict)
 import Game exposing (Tile(..))
 import Html exposing (Html)
-import Html.Attributes
 import Html.Style
 import Layout
 import List.Extra
@@ -34,8 +33,8 @@ toHtml args =
                     )
                 |> List.partition (\( pos, _ ) -> Dict.member pos args.revealed)
     in
-    [ Layout.text [ Html.Attributes.style "font-size" "32px" ] "Summary"
-    , [ Layout.text [] "Bugs found"
+    [ Layout.divText [ Html.Style.fontSizePx 32 ] "Summary"
+    , [ Layout.divText [] "Bugs found"
       , revealedBugs
             |> List.filterMap
                 (\( pos, bug ) ->
@@ -77,13 +76,17 @@ toHtml args =
                                         View.Bubble.newAndSpecial []
                            )
                 )
-            |> Layout.row
-                [ Html.Style.gap "8px"
+            |> Html.div
+                [ Html.Style.gapPx 8
                 , Html.Style.justifyContentCenter
                 ]
       ]
-        |> Layout.column [ Html.Style.gap "16px", Html.Style.alignItemsCenter ]
-    , [ Layout.text [] "Bugs missed"
+        |> Html.div
+            [ Html.Style.flexDirectionColumn
+            , Html.Style.gapPx 16
+            , Html.Style.alignItemsCenter
+            ]
+    , [ Layout.divText [] "Bugs missed"
       , missedBugs
             |> List.map Tuple.second
             |> List.Extra.gatherEquals
@@ -96,24 +99,29 @@ toHtml args =
                         |> String.concat
                         |> View.Bubble.unkown []
                 )
-            |> Layout.row
-                [ Html.Style.gap "8px"
+            |> Html.div
+                [ Html.Style.gapPx 8
                 , Html.Style.justifyContentCenter
                 ]
       ]
-        |> Layout.column [ Html.Style.gap "16px", Html.Style.alignItemsCenter ]
+        |> Html.div
+            [ Html.Style.flexDirectionColumn
+            , Html.Style.gapPx 16
+            , Html.Style.alignItemsCenter
+            ]
     ]
-        |> Layout.column
-            (Layout.centered
-                ++ [ Html.Attributes.style "width" "352px"
-                   , Html.Attributes.style "background-color" "white"
-                   , Html.Attributes.style "border-radius" "8px"
-                   , Html.Style.positionAbsolute
-                   , Html.Style.top "50%"
-                   , Html.Style.left "50%"
-                   , Html.Attributes.style "transform" "translate(-50%,-50%)"
-                   , Html.Attributes.style "padding" "64px"
-                   , Html.Style.boxSizingBorderBox
-                   , Html.Style.gap "32px"
-                   ]
-            )
+        |> Html.div
+            [ Html.Style.justifyContentCenter
+            , Html.Style.alignItemsCenter
+            , Html.Style.flexDirectionColumn
+            , Html.Style.widthPx 352
+            , Html.Style.backgroundColor "white"
+            , Html.Style.borderRadius "8px"
+            , Html.Style.positionAbsolute
+            , Html.Style.top "50%"
+            , Html.Style.left "50%"
+            , Html.Style.transform "translate(-50%,-50%)"
+            , Html.Style.paddingPx 64
+            , Html.Style.boxSizingBorderBox
+            , Html.Style.gapPx 32
+            ]

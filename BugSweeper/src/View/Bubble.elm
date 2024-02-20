@@ -10,23 +10,24 @@ import View.Variant as Variant
 
 asAttrs : List (Attribute msg)
 asAttrs =
-    Layout.centered
-        ++ [ Html.Attributes.style "border-radius" "32px"
-           , Html.Attributes.style "background-color" Color.darkTransparent
-           , Html.Attributes.style "height" "48px"
-           , Html.Attributes.style "min-width" "48px"
-           , Html.Attributes.style "width" "fit-content"
-           , Html.Attributes.style "padding" "8px 8px"
-           , Html.Style.boxSizingBorderBox
-           , Html.Attributes.style "font-size" "20px"
-           , Html.Attributes.class "emoji-color-font"
-           , Html.Attributes.style "border" "4px solid transparent"
-           ]
+    [ Html.Style.justifyContentCenter
+    , Html.Style.alignItemsCenter
+    , Html.Style.borderRadius "32px"
+    , Html.Style.backgroundColor Color.darkTransparent
+    , Html.Style.heightPx 48
+    , Html.Style.minWidthPx 48
+    , Html.Style.widthFitContent
+    , Html.Style.paddingPx 8
+    , Html.Style.boxSizingBorderBox
+    , Html.Style.fontSizePx 20
+    , Html.Style.border "4px solid transparent"
+    , Html.Attributes.class "emoji-color-font"
+    ]
 
 
 default : List (Attribute msg) -> String -> Html msg
 default attrs =
-    Layout.text
+    Layout.divText
         (asAttrs
             ++ attrs
         )
@@ -34,10 +35,10 @@ default attrs =
 
 unkown : List (Attribute msg) -> String -> Html msg
 unkown attrs =
-    Layout.text
+    Layout.divText
         (asAttrs
-            ++ [ Html.Attributes.style "filter" "brightness(0)"
-               , Html.Attributes.style "color" "rgba(0,0,0,0.2)"
+            ++ [ Html.Style.filter "brightness(0)"
+               , Html.Style.color "rgba(0,0,0,0.2)"
                ]
             ++ attrs
         )
@@ -51,8 +52,8 @@ button :
 button attrs args =
     default
         (Layout.asButton args
-            ++ [ Html.Attributes.style "background-color" "transparent"
-               , Html.Attributes.style "border" ("4px solid " ++ Color.darkTransparent)
+            ++ [ Html.Style.backgroundColor "transparent"
+               , Html.Style.border ("4px solid " ++ Color.darkTransparent)
                ]
             ++ attrs
         )
@@ -64,14 +65,14 @@ specialButton :
     -> String
     -> Html msg
 specialButton attrs args string =
-    [ Layout.text [] string
+    [ Layout.divText [] string
     , Variant.royal []
     , starIcon
     ]
         |> Html.div
             (asAttrs
-                ++ [ Html.Attributes.style "background-color" "transparent"
-                   , Html.Attributes.style "border" ("4px solid " ++ Color.darkTransparent)
+                ++ [ Html.Style.backgroundColor "transparent"
+                   , Html.Style.border ("4px solid " ++ Color.darkTransparent)
                    ]
                 ++ Layout.asButton args
                 ++ asSpecialAttrs
@@ -81,41 +82,38 @@ specialButton attrs args string =
 
 starIcon : Html msg
 starIcon =
-    Layout.text
-        [ Html.Attributes.style "filter" "brightness(0)"
-        , Html.Attributes.style "color" "rgba(0,0,0,0.1)"
+    Layout.divText
+        [ Html.Style.filter "brightness(0)"
+        , Html.Style.color "rgba(0,0,0,0.1)"
         ]
         "⭐️"
-        |> Layout.el
-            ([ Html.Attributes.style "border-radius" "100%"
-             , Html.Attributes.style "font-size" "8px"
-             , Html.Style.positionAbsolute
-             , Html.Style.bottom "4px"
-             ]
-                ++ Layout.centered
-            )
+        |> Layout.divWrapper
+            [ Html.Style.borderRadius "100%"
+            , Html.Style.fontSizePx 8
+            , Html.Style.positionAbsolute
+            , Html.Style.bottomPx 4
+            , Html.Style.justifyContentCenter
+            , Html.Style.alignContentCenter
+            ]
 
 
 newLabel : Html msg
 newLabel =
-    Layout.text
-        [ Html.Attributes.style "padding" "4px 8px"
-        , Html.Attributes.style "border-radius" "8px"
-        , Html.Attributes.style "background-color" "yellow"
-        , Html.Attributes.style "font-size" "12px"
+    Layout.divText
+        [ Html.Style.padding "4px 8px"
+        , Html.Style.borderRadius "8px"
+        , Html.Style.backgroundColor "yellow"
+        , Html.Style.fontSizePx 12
         , Html.Style.positionAbsolute
-        , Html.Style.top "-8px"
-        , Html.Style.left "-8px"
+        , Html.Style.topPx -8
+        , Html.Style.leftPx -8
         ]
         "new"
 
 
 asSpecialAttrs : List (Attribute msg)
 asSpecialAttrs =
-    [ Layout.asEl
-    , Html.Style.positionRelative
-
-    -- , Html.Attributes.style "border" "4px solid yellow"
+    [ Html.Style.positionRelative
     ]
 
 
@@ -124,7 +122,7 @@ special :
     -> String
     -> Html msg
 special attrs string =
-    [ Layout.text [] string
+    [ Layout.divText [] string
     , Variant.royal []
     , starIcon
     ]
@@ -140,14 +138,12 @@ new :
     -> String
     -> Html msg
 new attrs string =
-    [ Layout.text [] string
+    [ Layout.divText [] string
     , newLabel
     ]
         |> Html.div
-            (asAttrs
-                ++ [ Layout.asEl
-                   , Html.Style.positionRelative
-                   ]
+            (Html.Style.positionRelative
+                :: asAttrs
                 ++ attrs
             )
 
@@ -157,7 +153,7 @@ newAndSpecial :
     -> String
     -> Html msg
 newAndSpecial attrs string =
-    [ Layout.text [] string
+    [ Layout.divText [] string
     , Variant.royal []
     , starIcon
     , newLabel

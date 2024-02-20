@@ -7,6 +7,7 @@ import Dict
 import Game exposing (Game, Tile(..))
 import Html exposing (Attribute, Html)
 import Html.Attributes
+import Html.Style
 import Layout
 import Object
 import View.Square
@@ -76,11 +77,12 @@ board args game =
                                 ( x, y )
                                 game
                         )
-                    |> Layout.row [ Layout.noWrap, Layout.gap 8 ]
+                    |> Html.div [ Html.Style.gapPx 8 ]
             )
-        |> Layout.column
-            (Layout.centered
-                ++ [ Layout.gap 8
-                   , Html.Attributes.class "emoji-color-font"
-                   ]
-            )
+        |> Html.div
+            [ Html.Style.flexDirectionColumn
+            , Html.Style.justifyContentCenter
+            , Html.Style.alignItemsCenter
+            , Html.Style.gapPx 8
+            , Html.Attributes.class "emoji-color-font"
+            ]

@@ -106,43 +106,44 @@ view model =
             |> List.sort
             |> String.concat
           )
-            |> Layout.text [ Html.Attributes.style "filter" "brightness(0)" ]
-            |> Layout.el
-                [ Html.Attributes.style "padding" "8px 16px"
-                , Html.Attributes.style "background-color" Color.lightTransparent
-                , Html.Attributes.style "height" "48px"
-                , Html.Attributes.style "width" "fit-content"
-                , Html.Attributes.style "min-width" "48px"
-                , Html.Attributes.style "border-radius" "10000px"
-                , Html.Attributes.style "font-size" "20px"
-                , Html.Attributes.class "emoji-color-font"
+            |> Layout.divText [ Html.Style.filter "brightness(0)" ]
+            |> Layout.divWrapper
+                [ Html.Style.padding "8px 16px"
+                , Html.Style.backgroundColor Color.lightTransparent
+                , Html.Style.heightPx 48
+                , Html.Style.widthFitContent
+                , Html.Style.minWidthPx 48
+                , Html.Style.borderRadius "10000px"
+                , Html.Style.fontSizePx 20
                 , Html.Style.boxSizingBorderBox
                 , Html.Style.alignItemsCenter
+                , Html.Attributes.class "emoji-color-font"
                 ]
         , View.Game.board { onSelect = TileClicked } model.game
         , (List.repeat model.game.remainingGuesses "❌" |> String.concat)
             |> Html.text
-            |> Layout.el
-                (Layout.centered
-                    ++ [ Html.Attributes.style "background-color" Color.lightTransparent
-                       , Html.Attributes.style "height" "48px"
-                       , Html.Attributes.style "min-width" "48px"
-                       , Html.Attributes.style "border-radius" "10000px"
-                       , Html.Attributes.style "padding" "8px 16px"
-                       , Html.Attributes.style "font-size" "20px"
-                       , Html.Style.boxSizingBorderBox
-                       , Html.Attributes.class "emoji-color-font"
-                       ]
-                )
-            |> Layout.el
+            |> Layout.divWrapper
+                [ Html.Style.justifyContentCenter
+                , Html.Style.alignItemsCenter
+                , Html.Style.backgroundColor Color.lightTransparent
+                , Html.Style.heightPx 48
+                , Html.Style.minWidthPx 48
+                , Html.Style.borderRadius "10000px"
+                , Html.Style.padding "8px 16px"
+                , Html.Style.fontSizePx 20
+                , Html.Style.boxSizingBorderBox
+                , Html.Attributes.class "emoji-color-font"
+                ]
+            |> Layout.divWrapper
                 [ Html.Style.justifyContentCenter
                 ]
         , Layout.none
-            |> Layout.container
-                (Layout.centered
-                    ++ [ Html.Attributes.style "background-color" "rgb(70, 109, 34,0.5)"
-                       , Html.Attributes.style "backdrop-filter" "blur(2px)"
-                       ]
+            |> Layout.divWrapper
+                ([ Html.Style.justifyContentCenter
+                 , Html.Style.alignItemsCenter
+                 , Html.Style.backgroundColor "rgb(70, 109, 34,0.5)"
+                 , Html.Style.backdropFilter "blur(2px)"
+                 ]
                     ++ (case model.overlay of
                             Just (Collection _) ->
                                 Layout.asButton
@@ -162,7 +163,7 @@ view model =
                                     }
 
                             Nothing ->
-                                [ Html.Attributes.style "display" "none"
+                                [ Html.Style.displayNone
                                 ]
                        )
                 )
@@ -194,17 +195,18 @@ view model =
                             model.oldCollection
                         ]
                )
-            |> Layout.column
-                [ Layout.gap 8
-                , Html.Attributes.style "height" "100%"
+            |> Html.div
+                [ Html.Style.flexDirectionColumn
+                , Html.Style.gapPx 8
+                , Html.Style.height "100%"
                 , Html.Style.justifyContentCenter
                 ]
-            |> Layout.container
-                (Layout.centered
-                    ++ [ Html.Attributes.style "background-image"
-                            ("linear-gradient(#ffd3af," ++ Color.primary ++ ")")
-                       ]
-                )
+            |> Layout.divWrapper
+                [ Html.Style.justifyContentCenter
+                , Html.Style.alignItemsCenter
+                , Html.Style.backgroundImage
+                    ("linear-gradient(#ffd3af," ++ Color.primary ++ ")")
+                ]
             |> List.singleton
     }
 

@@ -6,7 +6,8 @@
     "elm-version": "0.19.1",
     "dependencies": {
         "direct": {
-            "Orasund/elm-layout": "2.2.0",
+            "Orasund/elm-html-style": "1.4.0",
+            "Orasund/elm-layout": "3.0.0",
             "aforemny/material-components-web-elm": "8.0.1",
             "elm/browser": "1.0.2",
             "elm/core": "1.0.5",

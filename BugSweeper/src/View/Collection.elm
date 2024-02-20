@@ -22,11 +22,12 @@ minDrawerHeight =
 
 drawer : List (Attribute msg) -> List (Html msg) -> Html msg
 drawer attrs =
-    Layout.column
-        ([ Html.Attributes.style "width" "352px"
-         , Html.Attributes.style "background-color" "white"
-         , Html.Attributes.style "border-top-left-radius" "8px"
-         , Html.Attributes.style "border-top-right-radius" "8px"
+    Html.div
+        ([ Html.Style.flexDirectionColumn
+         , Html.Style.widthPx 352
+         , Html.Style.backgroundColor "white"
+         , Html.Style.borderTopLeftRadiusPx 8
+         , Html.Style.borderTopRightRadiusPx 8
          , Html.Style.boxSizingBorderBox
          ]
             ++ attrs
@@ -35,11 +36,12 @@ drawer attrs =
 
 card : List (Attribute msg) -> List (Html msg) -> Html msg
 card attrs =
-    Layout.column
-        ([ Html.Attributes.style "background-color" "white"
-         , Html.Attributes.style "border-radius" "16px"
-         , Html.Attributes.style "width" "200px"
-         , Html.Attributes.style "aspect-ratio" "2/3"
+    Html.div
+        ([ Html.Style.flexDirectionColumn
+         , Html.Style.backgroundColor "white"
+         , Html.Style.borderRadius "16px"
+         , Html.Style.widthPx 200
+         , Html.Style.aspectRatio "2/3"
          , Html.Style.alignItemsCenter
          , Html.Style.justifyContentCenter
          ]
@@ -49,9 +51,9 @@ card attrs =
 
 detailCard : ( Bug, Variant ) -> Html msg
 detailCard ( bug, variant ) =
-    [ [ Layout.text [ Html.Attributes.style "font-size" "64px" ]
+    [ [ Layout.divText [ Html.Style.fontSizePx 64 ]
             (Bug.toString bug)
-      , [ "Found next to " |> Layout.text []
+      , [ "Found next to " |> Layout.divText []
         , (Bug.requirementsOf bug
             |> List.concatMap
                 (\( n, tile ) ->
@@ -62,28 +64,31 @@ detailCard ( bug, variant ) =
                 )
             |> String.concat
           )
-            |> Layout.text [ Html.Style.justifyContentCenter ]
+            |> Layout.divText [ Html.Style.justifyContentCenter ]
         ]
-            |> Layout.column [ Html.Style.gap "8px" ]
+            |> Html.div
+                [ Html.Style.flexDirectionColumn
+                , Html.Style.gapPx 8
+                ]
       ]
-        |> card [ Html.Style.gap "32px" ]
+        |> card [ Html.Style.gapPx 32 ]
     , case variant of
         Cute ->
-            Layout.el [] Layout.none
+            Layout.divWrapper [] Layout.none
 
         Royal ->
             View.Variant.royal
-                [ Html.Attributes.style "border-radius" "16px"
+                [ Html.Style.borderRadius "16px"
                 ]
     ]
         |> Html.div
-            (Layout.centered
-                ++ [ Html.Style.positionAbsolute
-                   , "calc(50% - " ++ String.fromFloat (maxDrawerHeight / 2) ++ "px)" |> Html.Style.top
-                   , Html.Style.left "50%"
-                   , Html.Attributes.style "transform" "translate(-50%,-50%)"
-                   ]
-            )
+            [ Html.Style.justifyContentCenter
+            , Html.Style.alignItemsCenter
+            , Html.Style.positionAbsolute
+            , Html.Style.top ("calc(50% - " ++ String.fromFloat (maxDrawerHeight / 2) ++ "px)")
+            , Html.Style.left "50%"
+            , Html.Style.transform "translate(-50%,-50%)"
+            ]
 
 
 openCollection :
@@ -95,8 +100,8 @@ openCollection :
     -> Html msg
 openCollection attrs args collectedBugs =
     [ "Your collection"
-        |> Layout.text
-            [ Html.Attributes.style "padding" "8px 16px"
+        |> Layout.divText
+            [ Html.Style.padding "8px 16px"
             , Html.Style.justifyContentCenter
             ]
     , (Bug.list
@@ -130,18 +135,18 @@ openCollection attrs args collectedBugs =
                             (Bug.toString species)
             )
       )
-        |> Layout.row
-            [ Html.Attributes.style "padding" "16px"
-            , Html.Attributes.style "font-size" "20px"
+        |> Html.div
+            [ Html.Style.paddingPx 16
+            , Html.Style.fontSizePx 20
             , Html.Style.alignItemsCenter
-            , Layout.gap 16
+            , Html.Style.gapPx 16
             ]
     ]
         |> drawer
-            ([ Html.Attributes.style "position" "fixed"
-             , Html.Attributes.style "bottom" "0"
-             , Html.Attributes.style "height" (String.fromFloat maxDrawerHeight ++ "px")
-             , Html.Attributes.style "transition" "height 0.2s"
+            ([ Html.Style.positionFixed
+             , Html.Style.bottomPx 0
+             , Html.Style.heightPx maxDrawerHeight
+             , Html.Style.transition "height 0.2s"
              ]
                 ++ attrs
             )
@@ -154,7 +159,7 @@ closedCollection :
     -> Html msg
 closedCollection attrs args collectedBugs =
     [ [ "Your collection"
-            |> Layout.text
+            |> Layout.divText
                 [ Html.Style.alignItemsCenter
                 ]
       , (collectedBugs
@@ -162,31 +167,31 @@ closedCollection attrs args collectedBugs =
             |> List.map Bug.toString
             |> String.concat
         )
-            |> Html.text
-            |> Layout.el
+            |> Layout.divText
                 [ Html.Attributes.style "font-size" "20px"
                 , Html.Style.alignItemsCenter
                 ]
       ]
-        |> Layout.column
-            [ Html.Attributes.style "height" (String.fromInt minDrawerHeight ++ "px")
+        |> Html.div
+            [ Html.Style.flexDirectionColumn
+            , Html.Style.heightPx minDrawerHeight
             , Html.Style.alignItemsCenter
-            , Html.Attributes.style "padding" "8px"
-            , Layout.gap 8
+            , Html.Style.paddingPx 8
+            , Html.Style.gapPx 8
             ]
         |> List.singleton
         |> Html.a
             [ Html.Attributes.href "#"
             , Html.Events.onClick args.onOpen
-            , Html.Attributes.style "text-decoration" "none"
-            , Html.Attributes.style "color" "black"
+            , Html.Style.textDecorationNone
+            , Html.Style.color "black"
             ]
     ]
         |> drawer
-            ([ Html.Attributes.style "position" "fixed"
-             , Html.Attributes.style "bottom" "0"
-             , Html.Attributes.style "height" (String.fromInt minDrawerHeight ++ "px")
-             , Html.Attributes.style "transition" "height 0.2s"
+            ([ Html.Style.positionFixed
+             , Html.Style.bottomPx 0
+             , Html.Style.heightPx minDrawerHeight
+             , Html.Style.transition "height 0.2s"
              ]
                 ++ attrs
             )
