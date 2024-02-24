@@ -77,10 +77,14 @@ board args game =
                                 ( x, y )
                                 game
                         )
-                    |> Html.div [ Html.Style.gapPx 8 ]
+                    |> Html.div
+                        [ Html.Style.displayFlex
+                        , Html.Style.gapPx 8
+                        ]
             )
         |> Html.div
-            [ Html.Style.flexDirectionColumn
+            [ Html.Style.displayFlex
+            , Html.Style.flexDirectionColumn
             , Html.Style.justifyContentCenter
             , Html.Style.alignItemsCenter
             , Html.Style.gapPx 8

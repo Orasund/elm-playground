@@ -15,6 +15,8 @@ type Bug
     | Caterpillar
     | Ant
     | Butterfly
+    | Mosquito
+    | Bee
 
 
 list : List Bug
@@ -29,6 +31,8 @@ list =
     , Spider
     , Ant
     , Butterfly
+    , Mosquito
+    , Bee
     ]
         |> List.sortBy
             (\bug ->
@@ -88,18 +92,24 @@ toString species =
         Butterfly ->
             "🦋"
 
+        Mosquito ->
+            "🦟"
+
+        Bee ->
+            "🐝"
+
 
 requirementsOf : Bug -> List ( Int, Maybe Object )
 requirementsOf bug =
     case bug of
         Ant ->
-            [ ( 4, Nothing ) ]
+            [ ( 3, Nothing ) ]
 
         Caterpillar ->
             [ ( 3, Just Leaf ) ]
 
         Worm ->
-            [ ( 4, Just Stone ) ]
+            [ ( 3, Just Stone ) ]
 
         Snail ->
             [ ( 2, Just Stone )
@@ -117,13 +127,21 @@ requirementsOf bug =
         LadyBeetle ->
             [ ( 2, Just Wood ) ]
 
-        Spider ->
-            [ ( 1, Just SpiderWeb ) ]
-
         Cockroach ->
             [ ( 1, Just Wood )
             , ( 1, Just Stone )
             ]
 
+        Bee ->
+            [ ( 1, Just Leaf )
+            , ( 1, Nothing )
+            ]
+
+        Mosquito ->
+            [ ( 1, Nothing ) ]
+
+        Spider ->
+            [ ( 1, Just Wood ) ]
+
         Butterfly ->
-            [ ( 2, Nothing ) ]
+            []

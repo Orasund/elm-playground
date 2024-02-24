@@ -4,7 +4,6 @@ module Object exposing (Object(..), toString)
 type Object
     = Stone
     | Leaf
-    | SpiderWeb
     | Wood
 
 
@@ -19,6 +18,3 @@ toString tile =
 
         Wood ->
             "🪵"
-
-        SpiderWeb ->
-            "🕸️"

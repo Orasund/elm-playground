@@ -77,12 +77,14 @@ toHtml args =
                            )
                 )
             |> Html.div
-                [ Html.Style.gapPx 8
+                [ Html.Style.displayFlex
+                , Html.Style.gapPx 8
                 , Html.Style.justifyContentCenter
                 ]
       ]
         |> Html.div
-            [ Html.Style.flexDirectionColumn
+            [ Html.Style.displayFlex
+            , Html.Style.flexDirectionColumn
             , Html.Style.gapPx 16
             , Html.Style.alignItemsCenter
             ]
@@ -100,18 +102,21 @@ toHtml args =
                         |> View.Bubble.unkown []
                 )
             |> Html.div
-                [ Html.Style.gapPx 8
+                [ Html.Style.displayFlex
+                , Html.Style.gapPx 8
                 , Html.Style.justifyContentCenter
                 ]
       ]
         |> Html.div
-            [ Html.Style.flexDirectionColumn
+            [ Html.Style.displayFlex
+            , Html.Style.flexDirectionColumn
             , Html.Style.gapPx 16
             , Html.Style.alignItemsCenter
             ]
     ]
         |> Html.div
-            [ Html.Style.justifyContentCenter
+            [ Html.Style.displayFlex
+            , Html.Style.justifyContentCenter
             , Html.Style.alignItemsCenter
             , Html.Style.flexDirectionColumn
             , Html.Style.widthPx 352

@@ -9,7 +9,8 @@ import View.Variant as Variant
 
 asAttrs : List (Attribute msg)
 asAttrs =
-    [ Html.Style.justifyContentCenter
+    [ Html.Style.displayFlex
+    , Html.Style.justifyContentCenter
     , Html.Style.alignItemsCenter
     , Html.Style.transition "border-radius 1s, background-color 0.5s"
     , Html.Style.heightPx 64

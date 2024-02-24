@@ -67,7 +67,7 @@ reveal pos variant game =
             case Dict.get pos game.tiles of
                 Just (BugTile bug) ->
                     game.collected
-                        |> Collection.insert bug variant
+                        |> Collection.insert 1 bug variant
 
                 _ ->
                     game.collected

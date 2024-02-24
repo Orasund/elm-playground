@@ -13,7 +13,7 @@ import View.Variant
 
 
 maxDrawerHeight =
-    180
+    240
 
 
 minDrawerHeight =
@@ -23,8 +23,9 @@ minDrawerHeight =
 drawer : List (Attribute msg) -> List (Html msg) -> Html msg
 drawer attrs =
     Html.div
-        ([ Html.Style.flexDirectionColumn
-         , Html.Style.widthPx 352
+        ([ Html.Style.displayFlex
+         , Html.Style.flexDirectionColumn
+         , Html.Style.widthPx 400
          , Html.Style.backgroundColor "white"
          , Html.Style.borderTopLeftRadiusPx 8
          , Html.Style.borderTopRightRadiusPx 8
@@ -37,42 +38,55 @@ drawer attrs =
 card : List (Attribute msg) -> List (Html msg) -> Html msg
 card attrs =
     Html.div
-        ([ Html.Style.flexDirectionColumn
+        ([ Html.Style.displayFlex
+         , Html.Style.flexDirectionColumn
          , Html.Style.backgroundColor "white"
          , Html.Style.borderRadius "16px"
          , Html.Style.widthPx 200
          , Html.Style.aspectRatio "2/3"
          , Html.Style.alignItemsCenter
          , Html.Style.justifyContentCenter
+         , Html.Style.padding "16px"
+         , Html.Style.boxSizingBorderBox
          ]
             ++ attrs
         )
 
 
-detailCard : ( Bug, Variant ) -> Html msg
-detailCard ( bug, variant ) =
+detailCard : { bug : Bug, variant : Variant, caught : Int } -> Html msg
+detailCard args =
     [ [ Layout.divText [ Html.Style.fontSizePx 64 ]
-            (Bug.toString bug)
-      , [ "Found next to " |> Layout.divText []
-        , (Bug.requirementsOf bug
-            |> List.concatMap
-                (\( n, tile ) ->
-                    tile
-                        |> Maybe.map Object.toString
-                        |> Maybe.withDefault "❌"
-                        |> List.repeat n
-                )
-            |> String.concat
-          )
-            |> Layout.divText [ Html.Style.justifyContentCenter ]
-        ]
-            |> Html.div
-                [ Html.Style.flexDirectionColumn
-                , Html.Style.gapPx 8
-                ]
+            (Bug.toString args.bug)
+      , if args.caught >= 3 then
+            [ "Found next to " |> Layout.divText []
+            , (Bug.requirementsOf args.bug
+                |> List.concatMap
+                    (\( n, tile ) ->
+                        tile
+                            |> Maybe.map Object.toString
+                            |> Maybe.withDefault "❌"
+                            |> List.repeat n
+                    )
+                |> String.concat
+              )
+                |> Layout.divText
+                    [ Html.Style.displayFlex
+                    , Html.Style.justifyContentCenter
+                    ]
+            ]
+                |> Html.div
+                    [ Html.Style.displayFlex
+                    , Html.Style.flexDirectionColumn
+                    , Html.Style.gapPx 8
+                    ]
+
+        else
+            Layout.divText []
+                ("Catch " ++ (3 - args.caught |> String.fromInt) ++ " more to unlock")
+      , "Caught " ++ String.fromInt args.caught |> Layout.divText []
       ]
         |> card [ Html.Style.gapPx 32 ]
-    , case variant of
+    , case args.variant of
         Cute ->
             Layout.divWrapper [] Layout.none
 
@@ -82,7 +96,8 @@ detailCard ( bug, variant ) =
                 ]
     ]
         |> Html.div
-            [ Html.Style.justifyContentCenter
+            [ Html.Style.displayFlex
+            , Html.Style.justifyContentCenter
             , Html.Style.alignItemsCenter
             , Html.Style.positionAbsolute
             , Html.Style.top ("calc(50% - " ++ String.fromFloat (maxDrawerHeight / 2) ++ "px)")
@@ -101,13 +116,14 @@ openCollection :
 openCollection attrs args collectedBugs =
     [ "Your collection"
         |> Layout.divText
-            [ Html.Style.padding "8px 16px"
+            [ Html.Style.displayFlex
+            , Html.Style.padding "8px 16px"
             , Html.Style.justifyContentCenter
             ]
     , (Bug.list
         |> List.map
             (\species ->
-                case collectedBugs |> Collection.get species of
+                [ case collectedBugs |> Collection.get species of
                     [] ->
                         Bug.toString species
                             |> View.Bubble.unkown []
@@ -133,10 +149,42 @@ openCollection attrs args collectedBugs =
                                     )
                             }
                             (Bug.toString species)
+                , if Collection.count species collectedBugs < 3 then
+                    String.fromInt (Collection.count species collectedBugs)
+                        ++ " / 3"
+                        |> Layout.divText
+                            [ Html.Style.displayFlex
+                            , Html.Style.justifyContentCenter
+                            ]
+
+                  else
+                    (Bug.requirementsOf species
+                        |> List.concatMap
+                            (\( n, tile ) ->
+                                tile
+                                    |> Maybe.map Object.toString
+                                    |> Maybe.withDefault "❌"
+                                    |> List.repeat n
+                            )
+                        |> String.concat
+                    )
+                        |> Layout.divText
+                            [ Html.Style.displayFlex
+                            , Html.Style.justifyContentCenter
+                            ]
+                ]
+                    |> Html.div
+                        [ Html.Style.displayFlex
+                        , Html.Style.flexDirectionColumn
+                        , Html.Style.gapPx 8
+                        , Html.Style.fontSizePx 12
+                        ]
             )
       )
         |> Html.div
-            [ Html.Style.paddingPx 16
+            [ Html.Style.displayGrid
+            , Html.Style.gridTemplateColumns "repeat(6,1fr)"
+            , Html.Style.paddingPx 16
             , Html.Style.fontSizePx 20
             , Html.Style.alignItemsCenter
             , Html.Style.gapPx 16
@@ -160,20 +208,23 @@ closedCollection :
 closedCollection attrs args collectedBugs =
     [ [ "Your collection"
             |> Layout.divText
-                [ Html.Style.alignItemsCenter
+                [ Html.Style.displayFlex
+                , Html.Style.alignItemsCenter
                 ]
       , (collectedBugs
             |> Collection.bugs
-            |> List.map Bug.toString
-            |> String.concat
+            |> List.length
+            |> String.fromInt
         )
             |> Layout.divText
-                [ Html.Attributes.style "font-size" "20px"
+                [ Html.Style.displayFlex
+                , Html.Attributes.style "font-size" "20px"
                 , Html.Style.alignItemsCenter
                 ]
       ]
         |> Html.div
-            [ Html.Style.flexDirectionColumn
+            [ Html.Style.displayFlex
+            , Html.Style.flexDirectionColumn
             , Html.Style.heightPx minDrawerHeight
             , Html.Style.alignItemsCenter
             , Html.Style.paddingPx 8

@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "elm-live src/Main.elm --no-reload -- --output=elm.js"
+    "dev": "npx elm-live src/Main.elm --no-reload -- --output=elm.js"
   },
   "author": "",
   "license": "ISC",

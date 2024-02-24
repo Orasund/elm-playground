@@ -108,7 +108,8 @@ view model =
           )
             |> Layout.divText [ Html.Style.filter "brightness(0)" ]
             |> Layout.divWrapper
-                [ Html.Style.padding "8px 16px"
+                [ Html.Style.displayFlex
+                , Html.Style.padding "8px 16px"
                 , Html.Style.backgroundColor Color.lightTransparent
                 , Html.Style.heightPx 48
                 , Html.Style.widthFitContent
@@ -123,7 +124,8 @@ view model =
         , (List.repeat model.game.remainingGuesses "❌" |> String.concat)
             |> Html.text
             |> Layout.divWrapper
-                [ Html.Style.justifyContentCenter
+                [ Html.Style.displayFlex
+                , Html.Style.justifyContentCenter
                 , Html.Style.alignItemsCenter
                 , Html.Style.backgroundColor Color.lightTransparent
                 , Html.Style.heightPx 48
@@ -135,11 +137,18 @@ view model =
                 , Html.Attributes.class "emoji-color-font"
                 ]
             |> Layout.divWrapper
-                [ Html.Style.justifyContentCenter
+                [ Html.Style.displayFlex
+                , Html.Style.justifyContentCenter
                 ]
         , Layout.none
             |> Layout.divWrapper
-                ([ Html.Style.justifyContentCenter
+                ([ Html.Style.displayFlex
+                 , Html.Style.positionFixed
+                 , Html.Style.topPx 0
+                 , Html.Style.leftPx 0
+                 , Html.Style.width "100%"
+                 , Html.Style.height "100%"
+                 , Html.Style.justifyContentCenter
                  , Html.Style.alignItemsCenter
                  , Html.Style.backgroundColor "rgb(70, 109, 34,0.5)"
                  , Html.Style.backdropFilter "blur(2px)"
@@ -171,7 +180,14 @@ view model =
             ++ (case model.overlay of
                     Just (Collection maybeSelected) ->
                         [ maybeSelected
-                            |> Maybe.map View.Collection.detailCard
+                            |> Maybe.map
+                                (\( bug, variant ) ->
+                                    View.Collection.detailCard
+                                        { bug = bug
+                                        , variant = variant
+                                        , caught = Collection.count bug model.oldCollection
+                                        }
+                                )
                             |> Maybe.withDefault (Html.text "")
                         , View.Collection.openCollection []
                             { onSelect = SelectBugSpecies
@@ -196,13 +212,17 @@ view model =
                         ]
                )
             |> Html.div
-                [ Html.Style.flexDirectionColumn
+                [ Html.Style.displayFlex
+                , Html.Style.flexDirectionColumn
                 , Html.Style.gapPx 8
                 , Html.Style.height "100%"
+                , Html.Style.widthPx 400
                 , Html.Style.justifyContentCenter
                 ]
             |> Layout.divWrapper
-                [ Html.Style.justifyContentCenter
+                [ Html.Style.displayFlex
+                , Html.Style.height "100%"
+                , Html.Style.justifyContentCenter
                 , Html.Style.alignItemsCenter
                 , Html.Style.backgroundImage
                     ("linear-gradient(#ffd3af," ++ Color.primary ++ ")")

@@ -10,7 +10,8 @@ import View.Variant as Variant
 
 asAttrs : List (Attribute msg)
 asAttrs =
-    [ Html.Style.justifyContentCenter
+    [ Html.Style.displayFlex
+    , Html.Style.justifyContentCenter
     , Html.Style.alignItemsCenter
     , Html.Style.borderRadius "32px"
     , Html.Style.backgroundColor Color.darkTransparent
@@ -65,17 +66,18 @@ specialButton :
     -> String
     -> Html msg
 specialButton attrs args string =
-    [ Layout.divText [] string
+    [ Layout.divText
+        []
+        string
     , Variant.royal []
     , starIcon
     ]
         |> Html.div
-            (asAttrs
-                ++ [ Html.Style.backgroundColor "transparent"
-                   , Html.Style.border ("4px solid " ++ Color.darkTransparent)
-                   ]
+            ([ Html.Style.positionRelative
+             , Html.Style.border ("4px solid " ++ Color.darkTransparent)
+             ]
+                ++ asAttrs
                 ++ Layout.asButton args
-                ++ asSpecialAttrs
                 ++ attrs
             )
 
@@ -88,7 +90,8 @@ starIcon =
         ]
         "⭐️"
         |> Layout.divWrapper
-            [ Html.Style.borderRadius "100%"
+            [ Html.Style.displayFlex
+            , Html.Style.borderRadius "100%"
             , Html.Style.fontSizePx 8
             , Html.Style.positionAbsolute
             , Html.Style.bottomPx 4
@@ -111,12 +114,6 @@ newLabel =
         "new"
 
 
-asSpecialAttrs : List (Attribute msg)
-asSpecialAttrs =
-    [ Html.Style.positionRelative
-    ]
-
-
 special :
     List (Attribute msg)
     -> String
@@ -128,7 +125,7 @@ special attrs string =
     ]
         |> Html.div
             (asAttrs
-                ++ asSpecialAttrs
+                ++ [ Html.Style.positionRelative ]
                 ++ attrs
             )
 
@@ -160,6 +157,6 @@ newAndSpecial attrs string =
     ]
         |> Html.div
             (asAttrs
-                ++ asSpecialAttrs
+                ++ [ Html.Style.positionRelative ]
                 ++ attrs
             )

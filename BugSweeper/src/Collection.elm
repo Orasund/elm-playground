@@ -1,4 +1,4 @@
-module Collection exposing (Collection, Variant(..), add, bugs, empty, get, insert, member, variantToString)
+module Collection exposing (Collection, Variant(..), add, bugs, count, empty, get, insert, member, variantToString)
 
 import Bug exposing (Bug)
 import Dict exposing (Dict)
@@ -14,6 +14,7 @@ type alias Collection =
         String
         { bug : Bug
         , variants : Dict String Variant
+        , caught : Int
         }
 
 
@@ -32,16 +33,23 @@ empty =
     Dict.empty
 
 
-insert : Bug -> Variant -> Collection -> Collection
-insert bug variant =
+insert : Int -> Bug -> Variant -> Collection -> Collection
+insert n bug variant =
     Dict.update (Bug.toString bug)
         (\maybe ->
             maybe
                 |> Maybe.map
                     (\entry ->
-                        { entry | variants = Dict.insert (variantToString variant) variant entry.variants }
+                        { entry
+                            | variants = Dict.insert (variantToString variant) variant entry.variants
+                            , caught = entry.caught + n
+                        }
                     )
-                |> Maybe.withDefault { bug = bug, variants = Dict.singleton (variantToString variant) variant }
+                |> Maybe.withDefault
+                    { bug = bug
+                    , variants = Dict.singleton (variantToString variant) variant
+                    , caught = n
+                    }
                 |> Just
         )
 
@@ -68,7 +76,7 @@ add c1 c2 =
                 entry.variants
                     |> Dict.foldl
                         (\_ variant ->
-                            insert entry.bug variant
+                            insert entry.caught entry.bug variant
                         )
                         c
             )
@@ -80,3 +88,10 @@ bugs collection =
     collection
         |> Dict.values
         |> List.map .bug
+
+
+count : Bug -> Collection -> Int
+count bug collection =
+    Dict.get (Bug.toString bug) collection
+        |> Maybe.map .caught
+        |> Maybe.withDefault 0
