@@ -5432,6 +5432,14 @@ var $elm$random$Random$independentSeed = $elm$random$Random$Generator(
 			A4($elm$random$Random$map3, makeIndependentSeed, gen, gen, gen),
 			seed0);
 	});
+var $BrianHicks$elm_particle$Particle$System$System = function (a) {
+	return {$: 'System', a: a};
+};
+var $BrianHicks$elm_particle$Particle$System$init = function (seed) {
+	return $BrianHicks$elm_particle$Particle$System$System(
+		{particles: _List_Nil, seed: seed});
+};
+var $author$project$Firework$init = $BrianHicks$elm_particle$Particle$System$init;
 var $author$project$Game$Generate$BugBlock = function (a) {
 	return {$: 'BugBlock', a: a};
 };
@@ -6618,7 +6626,13 @@ var $author$project$Main$init = function (_v0) {
 		seed);
 	var game = _v1.a;
 	return _Utils_Tuple2(
-		{game: game, oldCollection: collection, overlay: $elm$core$Maybe$Nothing, seed: seed},
+		{
+			firework: $author$project$Firework$init(seed),
+			game: game,
+			oldCollection: collection,
+			overlay: $elm$core$Maybe$Nothing,
+			seed: seed
+		},
 		A2(
 			$elm$random$Random$generate,
 			$author$project$Main$NewGame,
@@ -6629,10 +6643,183 @@ var $author$project$Main$init = function (_v0) {
 				},
 				$elm$random$Random$independentSeed)));
 };
+var $author$project$Main$FireworkRelated = function (a) {
+	return {$: 'FireworkRelated', a: a};
+};
+var $BrianHicks$elm_particle$Particle$System$NewFrame = F3(
+	function (a, b, c) {
+		return {$: 'NewFrame', a: a, b: b, c: c};
+	});
+var $elm$core$Tuple$mapFirst = F2(
+	function (func, _v0) {
+		var x = _v0.a;
+		var y = _v0.b;
+		return _Utils_Tuple2(
+			func(x),
+			y);
+	});
+var $BrianHicks$elm_particle$Particle$System$emitterParticles = F3(
+	function (delta, emitters, _v0) {
+		var seed = _v0.a.seed;
+		return A3(
+			$elm$core$List$foldl,
+			F2(
+				function (emitter, _v1) {
+					var particles = _v1.a;
+					var curSeed = _v1.b;
+					return A2(
+						$elm$core$Tuple$mapFirst,
+						$elm$core$Basics$append(particles),
+						A2(
+							$elm$random$Random$step,
+							emitter(delta),
+							curSeed));
+				}),
+			_Utils_Tuple2(_List_Nil, seed),
+			emitters);
+	});
 var $elm$core$Platform$Sub$batch = _Platform_batch;
 var $elm$core$Platform$Sub$none = $elm$core$Platform$Sub$batch(_List_Nil);
-var $author$project$Main$subscriptions = function (_v0) {
-	return $elm$core$Platform$Sub$none;
+var $elm$browser$Browser$AnimationManager$Delta = function (a) {
+	return {$: 'Delta', a: a};
+};
+var $elm$browser$Browser$AnimationManager$State = F3(
+	function (subs, request, oldTime) {
+		return {oldTime: oldTime, request: request, subs: subs};
+	});
+var $elm$browser$Browser$AnimationManager$init = $elm$core$Task$succeed(
+	A3($elm$browser$Browser$AnimationManager$State, _List_Nil, $elm$core$Maybe$Nothing, 0));
+var $elm$core$Process$kill = _Scheduler_kill;
+var $elm$browser$Browser$AnimationManager$now = _Browser_now(_Utils_Tuple0);
+var $elm$browser$Browser$AnimationManager$rAF = _Browser_rAF(_Utils_Tuple0);
+var $elm$core$Platform$sendToSelf = _Platform_sendToSelf;
+var $elm$core$Process$spawn = _Scheduler_spawn;
+var $elm$browser$Browser$AnimationManager$onEffects = F3(
+	function (router, subs, _v0) {
+		var request = _v0.request;
+		var oldTime = _v0.oldTime;
+		var _v1 = _Utils_Tuple2(request, subs);
+		if (_v1.a.$ === 'Nothing') {
+			if (!_v1.b.b) {
+				var _v2 = _v1.a;
+				return $elm$browser$Browser$AnimationManager$init;
+			} else {
+				var _v4 = _v1.a;
+				return A2(
+					$elm$core$Task$andThen,
+					function (pid) {
+						return A2(
+							$elm$core$Task$andThen,
+							function (time) {
+								return $elm$core$Task$succeed(
+									A3(
+										$elm$browser$Browser$AnimationManager$State,
+										subs,
+										$elm$core$Maybe$Just(pid),
+										time));
+							},
+							$elm$browser$Browser$AnimationManager$now);
+					},
+					$elm$core$Process$spawn(
+						A2(
+							$elm$core$Task$andThen,
+							$elm$core$Platform$sendToSelf(router),
+							$elm$browser$Browser$AnimationManager$rAF)));
+			}
+		} else {
+			if (!_v1.b.b) {
+				var pid = _v1.a.a;
+				return A2(
+					$elm$core$Task$andThen,
+					function (_v3) {
+						return $elm$browser$Browser$AnimationManager$init;
+					},
+					$elm$core$Process$kill(pid));
+			} else {
+				return $elm$core$Task$succeed(
+					A3($elm$browser$Browser$AnimationManager$State, subs, request, oldTime));
+			}
+		}
+	});
+var $elm$browser$Browser$AnimationManager$onSelfMsg = F3(
+	function (router, newTime, _v0) {
+		var subs = _v0.subs;
+		var oldTime = _v0.oldTime;
+		var send = function (sub) {
+			if (sub.$ === 'Time') {
+				var tagger = sub.a;
+				return A2(
+					$elm$core$Platform$sendToApp,
+					router,
+					tagger(
+						$elm$time$Time$millisToPosix(newTime)));
+			} else {
+				var tagger = sub.a;
+				return A2(
+					$elm$core$Platform$sendToApp,
+					router,
+					tagger(newTime - oldTime));
+			}
+		};
+		return A2(
+			$elm$core$Task$andThen,
+			function (pid) {
+				return A2(
+					$elm$core$Task$andThen,
+					function (_v1) {
+						return $elm$core$Task$succeed(
+							A3(
+								$elm$browser$Browser$AnimationManager$State,
+								subs,
+								$elm$core$Maybe$Just(pid),
+								newTime));
+					},
+					$elm$core$Task$sequence(
+						A2($elm$core$List$map, send, subs)));
+			},
+			$elm$core$Process$spawn(
+				A2(
+					$elm$core$Task$andThen,
+					$elm$core$Platform$sendToSelf(router),
+					$elm$browser$Browser$AnimationManager$rAF)));
+	});
+var $elm$browser$Browser$AnimationManager$Time = function (a) {
+	return {$: 'Time', a: a};
+};
+var $elm$browser$Browser$AnimationManager$subMap = F2(
+	function (func, sub) {
+		if (sub.$ === 'Time') {
+			var tagger = sub.a;
+			return $elm$browser$Browser$AnimationManager$Time(
+				A2($elm$core$Basics$composeL, func, tagger));
+		} else {
+			var tagger = sub.a;
+			return $elm$browser$Browser$AnimationManager$Delta(
+				A2($elm$core$Basics$composeL, func, tagger));
+		}
+	});
+_Platform_effectManagers['Browser.AnimationManager'] = _Platform_createManager($elm$browser$Browser$AnimationManager$init, $elm$browser$Browser$AnimationManager$onEffects, $elm$browser$Browser$AnimationManager$onSelfMsg, 0, $elm$browser$Browser$AnimationManager$subMap);
+var $elm$browser$Browser$AnimationManager$subscription = _Platform_leaf('Browser.AnimationManager');
+var $elm$browser$Browser$AnimationManager$onAnimationFrameDelta = function (tagger) {
+	return $elm$browser$Browser$AnimationManager$subscription(
+		$elm$browser$Browser$AnimationManager$Delta(tagger));
+};
+var $elm$browser$Browser$Events$onAnimationFrameDelta = $elm$browser$Browser$AnimationManager$onAnimationFrameDelta;
+var $BrianHicks$elm_particle$Particle$System$sub = F3(
+	function (emitters, msg, outer) {
+		var system = outer.a;
+		return ($elm$core$List$isEmpty(emitters) && $elm$core$List$isEmpty(system.particles)) ? $elm$core$Platform$Sub$none : $elm$browser$Browser$Events$onAnimationFrameDelta(
+			function (delta) {
+				var _v0 = A3($BrianHicks$elm_particle$Particle$System$emitterParticles, delta, emitters, outer);
+				var particles = _v0.a;
+				var seed = _v0.b;
+				return msg(
+					A3($BrianHicks$elm_particle$Particle$System$NewFrame, delta, particles, seed));
+			});
+	});
+var $author$project$Firework$sub = $BrianHicks$elm_particle$Particle$System$sub(_List_Nil);
+var $author$project$Main$subscriptions = function (model) {
+	return A2($author$project$Firework$sub, $author$project$Main$FireworkRelated, model.firework);
 };
 var $author$project$Main$Collection = function (a) {
 	return {$: 'Collection', a: a};
@@ -7079,6 +7266,224 @@ var $author$project$Collection$add = F2(
 			c2,
 			c1);
 	});
+var $author$project$Firework$Blue = {$: 'Blue'};
+var $author$project$Firework$Green = {$: 'Green'};
+var $author$project$Firework$Red = {$: 'Red'};
+var $elm_community$random_extra$Random$Extra$andThen3 = F4(
+	function (constructor, generatorA, generatorB, generatorC) {
+		return A2(
+			$elm$random$Random$andThen,
+			function (a) {
+				return A2(
+					$elm$random$Random$andThen,
+					function (b) {
+						return A2(
+							$elm$random$Random$andThen,
+							function (c) {
+								return A3(constructor, a, b, c);
+							},
+							generatorC);
+					},
+					generatorB);
+			},
+			generatorA);
+	});
+var $BrianHicks$elm_particle$Particle$System$burst = F2(
+	function (generator, _v0) {
+		var system = _v0.a;
+		var _v1 = A2($elm$random$Random$step, generator, system.seed);
+		var particles = _v1.a;
+		var nextSeed = _v1.b;
+		return $BrianHicks$elm_particle$Particle$System$System(
+			_Utils_update(
+				system,
+				{
+					particles: _Utils_ap(particles, system.particles),
+					seed: nextSeed
+				}));
+	});
+var $author$project$Firework$Fizzler = function (a) {
+	return {$: 'Fizzler', a: a};
+};
+var $elm$core$Basics$clamp = F3(
+	function (low, high, number) {
+		return (_Utils_cmp(number, low) < 0) ? low : ((_Utils_cmp(number, high) > 0) ? high : number);
+	});
+var $elm$core$Basics$pi = _Basics_pi;
+var $elm$core$Basics$degrees = function (angleInDegrees) {
+	return (angleInDegrees * $elm$core$Basics$pi) / 180;
+};
+var $BrianHicks$elm_particle$Particle$Particle = function (a) {
+	return {$: 'Particle', a: a};
+};
+var $BrianHicks$elm_particle$Particle$positiveInfinity = 1 / 0;
+var $BrianHicks$elm_particle$Particle$init = function (generator) {
+	return A2(
+		$elm$random$Random$map,
+		function (a) {
+			return $BrianHicks$elm_particle$Particle$Particle(
+				{
+					acceleration: {x: 0, y: 0},
+					data: a,
+					drag: {area: 0, coefficient: 0, density: 0},
+					lifetime: 0,
+					originalLifetime: $BrianHicks$elm_particle$Particle$positiveInfinity,
+					position: {x: 0, y: 0},
+					velocity: {direction: 0, speed: 0}
+				});
+		},
+		generator);
+};
+var $elm$core$Basics$cos = _Basics_cos;
+var $elm$core$Basics$e = _Basics_e;
+var $elm$core$Basics$sqrt = _Basics_sqrt;
+var $elm_community$random_extra$Random$Float$standardNormal = A3(
+	$elm$random$Random$map2,
+	F2(
+		function (u, theta) {
+			return $elm$core$Basics$sqrt(
+				(-2) * A2(
+					$elm$core$Basics$logBase,
+					$elm$core$Basics$e,
+					1 - A2($elm$core$Basics$max, 0, u))) * $elm$core$Basics$cos(theta);
+		}),
+	A2($elm$random$Random$float, 0, 1),
+	A2($elm$random$Random$float, 0, 2 * $elm$core$Basics$pi));
+var $elm_community$random_extra$Random$Float$normal = F2(
+	function (mean, stdDev) {
+		return A2(
+			$elm$random$Random$map,
+			function (u) {
+				return (u * stdDev) + mean;
+			},
+			$elm_community$random_extra$Random$Float$standardNormal);
+	});
+var $BrianHicks$elm_particle$Particle$withDirection = $elm$random$Random$map2(
+	F2(
+		function (direction_, _v0) {
+			var particle = _v0.a;
+			var velocity = particle.velocity;
+			return $BrianHicks$elm_particle$Particle$Particle(
+				_Utils_update(
+					particle,
+					{
+						velocity: _Utils_update(
+							velocity,
+							{
+								direction: direction_ - $elm$core$Basics$degrees(90)
+							})
+					}));
+		}));
+var $BrianHicks$elm_particle$Particle$withLifetime = $elm$random$Random$map2(
+	F2(
+		function (lifetime_, _v0) {
+			var particle = _v0.a;
+			return $BrianHicks$elm_particle$Particle$Particle(
+				_Utils_update(
+					particle,
+					{originalLifetime: lifetime_}));
+		}));
+var $BrianHicks$elm_particle$Particle$withSpeed = $elm$random$Random$map2(
+	F2(
+		function (speed_, _v0) {
+			var particle = _v0.a;
+			var velocity = particle.velocity;
+			return $BrianHicks$elm_particle$Particle$Particle(
+				_Utils_update(
+					particle,
+					{
+						velocity: _Utils_update(
+							velocity,
+							{speed: speed_})
+					}));
+		}));
+var $author$project$Firework$fizzler = function (color) {
+	return A2(
+		$BrianHicks$elm_particle$Particle$withLifetime,
+		A2($elm_community$random_extra$Random$Float$normal, 1.25, 0.1),
+		A2(
+			$BrianHicks$elm_particle$Particle$withSpeed,
+			A2(
+				$elm$random$Random$map,
+				A2($elm$core$Basics$clamp, 0, 200),
+				A2($elm_community$random_extra$Random$Float$normal, 100, 100)),
+			A2(
+				$BrianHicks$elm_particle$Particle$withDirection,
+				A2(
+					$elm$random$Random$map,
+					$elm$core$Basics$degrees,
+					A2($elm$random$Random$float, 0, 360)),
+				$BrianHicks$elm_particle$Particle$init(
+					$elm$random$Random$constant(
+						$author$project$Firework$Fizzler(color))))));
+};
+var $BrianHicks$elm_particle$Particle$withDrag = function (drag) {
+	return $elm$random$Random$map(
+		function (_v0) {
+			var particle = _v0.a;
+			return $BrianHicks$elm_particle$Particle$Particle(
+				_Utils_update(
+					particle,
+					{
+						drag: drag(particle.data)
+					}));
+		});
+};
+var $BrianHicks$elm_particle$Particle$withGravity = function (pxPerSecond) {
+	return $elm$random$Random$map(
+		function (_v0) {
+			var particle = _v0.a;
+			return $BrianHicks$elm_particle$Particle$Particle(
+				_Utils_update(
+					particle,
+					{
+						acceleration: {x: 0, y: pxPerSecond}
+					}));
+		});
+};
+var $BrianHicks$elm_particle$Particle$withLocation = $elm$random$Random$map2(
+	F2(
+		function (position, _v0) {
+			var particle = _v0.a;
+			return $BrianHicks$elm_particle$Particle$Particle(
+				_Utils_update(
+					particle,
+					{position: position}));
+		}));
+var $author$project$Firework$fireworkAt = F3(
+	function (color, x, y) {
+		return A2(
+			$elm$random$Random$list,
+			150,
+			A2(
+				$BrianHicks$elm_particle$Particle$withDrag,
+				function (_v0) {
+					return {area: 2, coefficient: 1, density: 0.015};
+				},
+				A2(
+					$BrianHicks$elm_particle$Particle$withGravity,
+					50,
+					A2(
+						$BrianHicks$elm_particle$Particle$withLocation,
+						$elm$random$Random$constant(
+							{x: x, y: y}),
+						$author$project$Firework$fizzler(color)))));
+	});
+var $author$project$Firework$viewSize = 700;
+var $author$project$Firework$burst = $BrianHicks$elm_particle$Particle$System$burst(
+	A4(
+		$elm_community$random_extra$Random$Extra$andThen3,
+		$author$project$Firework$fireworkAt,
+		A2(
+			$elm$random$Random$uniform,
+			$author$project$Firework$Red,
+			_List_fromArray(
+				[$author$project$Firework$Green, $author$project$Firework$Blue])),
+		A2($elm_community$random_extra$Random$Float$normal, $author$project$Firework$viewSize / 2, 50),
+		A2($elm_community$random_extra$Random$Float$normal, $author$project$Firework$viewSize / 2, 50)));
+var $author$project$Game$isLost = function (game) {
+	return game.remainingGuesses <= 0;
+};
 var $elm$core$Dict$filter = F2(
 	function (isGood, dict) {
 		return A3(
@@ -7097,8 +7502,8 @@ var $elm$core$Dict$isEmpty = function (dict) {
 		return false;
 	}
 };
-var $author$project$Game$isOver = function (game) {
-	return (game.remainingGuesses <= 0) || $elm$core$Dict$isEmpty(
+var $author$project$Game$isWon = function (game) {
+	return $elm$core$Dict$isEmpty(
 		A2(
 			$elm$core$Dict$filter,
 			F2(
@@ -7110,6 +7515,9 @@ var $author$project$Game$isOver = function (game) {
 					}
 				}),
 			game.tiles));
+};
+var $author$project$Game$isOver = function (game) {
+	return $author$project$Game$isLost(game) || $author$project$Game$isWon(game);
 };
 var $elm$core$Platform$Cmd$batch = _Platform_batch;
 var $elm$core$Platform$Cmd$none = $elm$core$Platform$Cmd$batch(_List_Nil);
@@ -7134,6 +7542,95 @@ var $author$project$Game$reveal = F3(
 			});
 	});
 var $elm$core$Process$sleep = _Process_sleep;
+var $elm$core$List$maybeCons = F3(
+	function (f, mx, xs) {
+		var _v0 = f(mx);
+		if (_v0.$ === 'Just') {
+			var x = _v0.a;
+			return A2($elm$core$List$cons, x, xs);
+		} else {
+			return xs;
+		}
+	});
+var $elm$core$List$filterMap = F2(
+	function (f, xs) {
+		return A3(
+			$elm$core$List$foldr,
+			$elm$core$List$maybeCons(f),
+			_List_Nil,
+			xs);
+	});
+var $elm$core$Basics$sin = _Basics_sin;
+var $elm$core$Basics$fromPolar = function (_v0) {
+	var radius = _v0.a;
+	var theta = _v0.b;
+	return _Utils_Tuple2(
+		radius * $elm$core$Basics$cos(theta),
+		radius * $elm$core$Basics$sin(theta));
+};
+var $elm$core$Basics$atan2 = _Basics_atan2;
+var $elm$core$Basics$toPolar = function (_v0) {
+	var x = _v0.a;
+	var y = _v0.b;
+	return _Utils_Tuple2(
+		$elm$core$Basics$sqrt((x * x) + (y * y)),
+		A2($elm$core$Basics$atan2, y, x));
+};
+var $BrianHicks$elm_particle$Particle$update = F2(
+	function (deltaMs, _v0) {
+		var particle = _v0.a;
+		var position = particle.position;
+		var velocity = particle.velocity;
+		var acceleration = particle.acceleration;
+		var drag = particle.drag;
+		var deltaSeconds = deltaMs / 1000;
+		if (_Utils_cmp(particle.lifetime, particle.originalLifetime) > 0) {
+			return $elm$core$Maybe$Nothing;
+		} else {
+			if (particle.lifetime < 0) {
+				return A2($elm$core$Basics$composeL, $elm$core$Maybe$Just, $BrianHicks$elm_particle$Particle$Particle)(
+					{acceleration: particle.acceleration, data: particle.data, drag: particle.drag, lifetime: particle.lifetime + deltaSeconds, originalLifetime: particle.originalLifetime, position: particle.position, velocity: particle.velocity});
+			} else {
+				var _v1 = $elm$core$Basics$fromPolar(
+					_Utils_Tuple2(velocity.speed, velocity.direction));
+				var velocityX = _v1.a;
+				var velocityY = _v1.b;
+				var newPosition = {x: (position.x + (velocityX * deltaSeconds)) + (((acceleration.x * deltaSeconds) * deltaSeconds) / 2), y: (position.y + (velocityY * deltaSeconds)) + (((acceleration.y * deltaSeconds) * deltaSeconds) / 2)};
+				return A2($elm$core$Basics$composeL, $elm$core$Maybe$Just, $BrianHicks$elm_particle$Particle$Particle)(
+					{
+						acceleration: acceleration,
+						data: particle.data,
+						drag: drag,
+						lifetime: particle.lifetime + deltaSeconds,
+						originalLifetime: particle.originalLifetime,
+						position: newPosition,
+						velocity: function () {
+							var _v2 = $elm$core$Basics$toPolar(
+								_Utils_Tuple2(velocityX + (acceleration.x * deltaSeconds), velocityY + (acceleration.y * deltaSeconds)));
+							var speed_ = _v2.a;
+							var direction_ = _v2.b;
+							return {direction: direction_, speed: speed_ - ((((((drag.coefficient * drag.area) * 0.5) * drag.density) * speed_) * speed_) * deltaSeconds)};
+						}()
+					});
+			}
+		}
+	});
+var $BrianHicks$elm_particle$Particle$System$update = F2(
+	function (_v0, _v1) {
+		var delta = _v0.a;
+		var particles = _v0.b;
+		var seed = _v0.c;
+		var system = _v1.a;
+		return $BrianHicks$elm_particle$Particle$System$System(
+			{
+				particles: A2(
+					$elm$core$List$filterMap,
+					$BrianHicks$elm_particle$Particle$update(delta),
+					_Utils_ap(particles, system.particles)),
+				seed: seed
+			});
+	});
+var $author$project$Firework$update = $BrianHicks$elm_particle$Particle$System$update;
 var $author$project$Main$update = F2(
 	function (msg, model) {
 		switch (msg.$) {
@@ -7145,7 +7642,13 @@ var $author$project$Main$update = F2(
 					var game = _v1.a;
 					var newSeed = _v1.b;
 					return _Utils_Tuple2(
-						{game: game, oldCollection: collection, overlay: $elm$core$Maybe$Nothing, seed: newSeed},
+						{
+							firework: $author$project$Firework$init(seed),
+							game: game,
+							oldCollection: collection,
+							overlay: $elm$core$Maybe$Nothing,
+							seed: newSeed
+						},
 						$elm$core$Platform$Cmd$none);
 				}(
 					A2(
@@ -7161,13 +7664,19 @@ var $author$project$Main$update = F2(
 						return _Utils_Tuple2(
 							_Utils_update(
 								model,
-								{game: game, seed: newSeed}),
+								{
+									firework: $author$project$Game$isWon(game) ? $author$project$Firework$burst(
+										$author$project$Firework$burst(
+											$author$project$Firework$burst(model.firework))) : model.firework,
+									game: game,
+									seed: newSeed
+								}),
 							$author$project$Game$isOver(game) ? A2(
 								$elm$core$Task$perform,
 								function (_v3) {
 									return $author$project$Main$OpenOverlay($author$project$Main$Summary);
 								},
-								$elm$core$Process$sleep(1000)) : $elm$core$Platform$Cmd$none);
+								$elm$core$Process$sleep(500)) : $elm$core$Platform$Cmd$none);
 					}(
 						A3($author$project$Game$reveal, pos, variant, model.game));
 				}(
@@ -7204,11 +7713,20 @@ var $author$project$Main$update = F2(
 							overlay: $elm$core$Maybe$Just(overlay)
 						}),
 					$elm$core$Platform$Cmd$none);
-			default:
+			case 'CloseOverlay':
 				return _Utils_Tuple2(
 					_Utils_update(
 						model,
 						{overlay: $elm$core$Maybe$Nothing}),
+					$elm$core$Platform$Cmd$none);
+			default:
+				var m = msg.a;
+				return _Utils_Tuple2(
+					_Utils_update(
+						model,
+						{
+							firework: A2($author$project$Firework$update, m, model.firework)
+						}),
 					$elm$core$Platform$Cmd$none);
 		}
 	});
@@ -7868,24 +8386,11 @@ var $Orasund$elm_html_style$Html$Style$displayNone = $Orasund$elm_html_style$Htm
 var $Orasund$elm_html_style$Html$Style$filter = function (value) {
 	return A2($elm$html$Html$Attributes$style, 'filter', value);
 };
-var $elm$core$List$maybeCons = F3(
-	function (f, mx, xs) {
-		var _v0 = f(mx);
-		if (_v0.$ === 'Just') {
-			var x = _v0.a;
-			return A2($elm$core$List$cons, x, xs);
-		} else {
-			return xs;
-		}
-	});
-var $elm$core$List$filterMap = F2(
-	function (f, xs) {
-		return A3(
-			$elm$core$List$foldr,
-			$elm$core$List$maybeCons(f),
-			_List_Nil,
-			xs);
-	});
+var $BrianHicks$elm_particle$Particle$System$hasParticles = function (_v0) {
+	var particles = _v0.a.particles;
+	return _Utils_eq(particles, _List_Nil);
+};
+var $author$project$Firework$isEmpty = $BrianHicks$elm_particle$Particle$System$hasParticles;
 var $Orasund$elm_html_style$Html$Style$leftPx = function (value) {
 	return $Orasund$elm_html_style$Html$Style$left(
 		A2(
@@ -8217,12 +8722,14 @@ var $author$project$View$Bubble$newAndSpecial = F2(
 	function (attrs, string) {
 		return A2(
 			$elm$html$Html$div,
-			_Utils_ap(
-				$author$project$View$Bubble$asAttrs,
-				_Utils_ap(
-					_List_fromArray(
+			$elm$core$List$concat(
+				_List_fromArray(
+					[
+						$author$project$View$Bubble$asAttrs,
+						_List_fromArray(
 						[$Orasund$elm_html_style$Html$Style$positionRelative]),
-					attrs)),
+						attrs
+					])),
 			_List_fromArray(
 				[
 					A2($Orasund$elm_layout$Layout$divText, _List_Nil, string),
@@ -8239,12 +8746,14 @@ var $author$project$View$Bubble$special = F2(
 	function (attrs, string) {
 		return A2(
 			$elm$html$Html$div,
-			_Utils_ap(
-				$author$project$View$Bubble$asAttrs,
-				_Utils_ap(
-					_List_fromArray(
+			$elm$core$List$concat(
+				_List_fromArray(
+					[
+						$author$project$View$Bubble$asAttrs,
+						_List_fromArray(
 						[$Orasund$elm_html_style$Html$Style$positionRelative]),
-					attrs)),
+						attrs
+					])),
 			_List_fromArray(
 				[
 					A2($Orasund$elm_layout$Layout$divText, _List_Nil, string),
@@ -8421,6 +8930,126 @@ var $author$project$View$Summary$toHtml = function (args) {
 					]))
 			]));
 };
+var $elm$svg$Svg$Attributes$cx = _VirtualDom_attribute('cx');
+var $elm$svg$Svg$Attributes$cy = _VirtualDom_attribute('cy');
+var $BrianHicks$elm_particle$Particle$data = function (_v0) {
+	var particle = _v0.a;
+	return particle.data;
+};
+var $BrianHicks$elm_particle$Particle$direction = function (_v0) {
+	var velocity = _v0.a.velocity;
+	return velocity.direction;
+};
+var $BrianHicks$elm_particle$Particle$directionDegrees = function (particle) {
+	return ($BrianHicks$elm_particle$Particle$direction(particle) * 180) / $elm$core$Basics$pi;
+};
+var $elm$svg$Svg$trustedNode = _VirtualDom_nodeNS('http://www.w3.org/2000/svg');
+var $elm$svg$Svg$ellipse = $elm$svg$Svg$trustedNode('ellipse');
+var $elm$svg$Svg$Attributes$fill = _VirtualDom_attribute('fill');
+var $author$project$Firework$hslString = F3(
+	function (hue, saturation, luminance) {
+		return 'hsl(' + ($elm$core$String$fromFloat(hue) + (',' + ($elm$core$String$fromFloat(saturation) + ('%,' + ($elm$core$String$fromFloat(luminance) + '%)')))));
+	});
+var $BrianHicks$elm_particle$Particle$lifetimePercent = function (_v0) {
+	var particle = _v0.a;
+	return A3($elm$core$Basics$clamp, 0, 1, 1 - (particle.lifetime / particle.originalLifetime));
+};
+var $elm$svg$Svg$Attributes$opacity = _VirtualDom_attribute('opacity');
+var $elm$svg$Svg$Attributes$rx = _VirtualDom_attribute('rx');
+var $elm$svg$Svg$Attributes$ry = _VirtualDom_attribute('ry');
+var $BrianHicks$elm_particle$Particle$speed = function (_v0) {
+	var velocity = _v0.a.velocity;
+	return velocity.speed;
+};
+var $author$project$Firework$toHsl = function (color) {
+	switch (color.$) {
+		case 'Red':
+			return _Utils_Tuple3(0, 86, 75);
+		case 'Green':
+			return _Utils_Tuple3(90, 75, 75);
+		default:
+			return _Utils_Tuple3(211, 49, 83);
+	}
+};
+var $elm$svg$Svg$Attributes$transform = _VirtualDom_attribute('transform');
+var $author$project$Firework$fireworkView = function (particle) {
+	var _v0 = $BrianHicks$elm_particle$Particle$data(particle);
+	var color = _v0.a;
+	var maxLuminance = 100;
+	var lifetime = $BrianHicks$elm_particle$Particle$lifetimePercent(particle);
+	var opacity = (lifetime < 0.1) ? (lifetime * 10) : 1;
+	var length = A2(
+		$elm$core$Basics$max,
+		4,
+		$BrianHicks$elm_particle$Particle$speed(particle) / 15);
+	var _v1 = $author$project$Firework$toHsl(color);
+	var hue = _v1.a;
+	var saturation = _v1.b;
+	var luminance = _v1.c;
+	var luminanceDelta = maxLuminance - luminance;
+	return A2(
+		$elm$svg$Svg$ellipse,
+		_List_fromArray(
+			[
+				$elm$svg$Svg$Attributes$cx(
+				$elm$core$String$fromFloat(length / 2)),
+				$elm$svg$Svg$Attributes$cy('0'),
+				$elm$svg$Svg$Attributes$rx(
+				$elm$core$String$fromFloat(length)),
+				$elm$svg$Svg$Attributes$ry('4'),
+				$elm$svg$Svg$Attributes$transform(
+				'rotate(' + ($elm$core$String$fromFloat(
+					$BrianHicks$elm_particle$Particle$directionDegrees(particle)) + ')')),
+				$elm$svg$Svg$Attributes$opacity(
+				$elm$core$String$fromFloat(opacity)),
+				$elm$svg$Svg$Attributes$fill(
+				A3($author$project$Firework$hslString, hue, saturation, maxLuminance - (luminanceDelta * (1 - lifetime))))
+			]),
+		_List_Nil);
+};
+var $elm$svg$Svg$svg = $elm$svg$Svg$trustedNode('svg');
+var $elm$svg$Svg$g = $elm$svg$Svg$trustedNode('g');
+var $elm$svg$Svg$text = $elm$virtual_dom$VirtualDom$text;
+var $BrianHicks$elm_particle$Particle$view = F2(
+	function (viewData, particle) {
+		var particle_ = particle.a;
+		return (particle_.lifetime <= 0) ? $elm$svg$Svg$text('') : A2(
+			$elm$svg$Svg$g,
+			_List_fromArray(
+				[
+					$elm$svg$Svg$Attributes$transform(
+					'translate(' + ($elm$core$String$fromFloat(particle_.position.x) + (',' + ($elm$core$String$fromFloat(particle_.position.y) + ')'))))
+				]),
+			_List_fromArray(
+				[
+					viewData(particle)
+				]));
+	});
+var $BrianHicks$elm_particle$Particle$System$view = F3(
+	function (viewParticle, attrs, _v0) {
+		var particles = _v0.a.particles;
+		return A2(
+			$elm$svg$Svg$svg,
+			attrs,
+			A2(
+				$elm$core$List$map,
+				$BrianHicks$elm_particle$Particle$view(viewParticle),
+				particles));
+	});
+var $author$project$Firework$view = F2(
+	function (attrs, model) {
+		return A3(
+			$BrianHicks$elm_particle$Particle$System$view,
+			$author$project$Firework$fireworkView,
+			_Utils_ap(
+				_List_fromArray(
+					[
+						$Orasund$elm_html_style$Html$Style$widthPx($author$project$Firework$viewSize),
+						$Orasund$elm_html_style$Html$Style$heightPx($author$project$Firework$viewSize)
+					]),
+				attrs),
+			model);
+	});
 var $author$project$Main$view = function (model) {
 	return {
 		body: $elm$core$List$singleton(
@@ -8559,58 +9188,72 @@ var $author$project$Main$view = function (model) {
 									}()),
 								$Orasund$elm_layout$Layout$none)
 							]),
-						function () {
-							var _v4 = model.overlay;
-							if (_v4.$ === 'Just') {
-								if (_v4.a.$ === 'Collection') {
-									var maybeSelected = _v4.a.a;
+						_Utils_ap(
+							function () {
+								var _v4 = model.overlay;
+								if (_v4.$ === 'Just') {
+									if (_v4.a.$ === 'Collection') {
+										var maybeSelected = _v4.a.a;
+										return _List_fromArray(
+											[
+												A2(
+												$elm$core$Maybe$withDefault,
+												$elm$html$Html$text(''),
+												A2(
+													$elm$core$Maybe$map,
+													function (_v5) {
+														var bug = _v5.a;
+														var variant = _v5.b;
+														return $author$project$View$Collection$detailCard(
+															{
+																bug: bug,
+																caught: A2($author$project$Collection$count, bug, model.oldCollection),
+																variant: variant
+															});
+													},
+													maybeSelected)),
+												A3(
+												$author$project$View$Collection$openCollection,
+												_List_Nil,
+												{onSelect: $author$project$Main$SelectBugSpecies},
+												model.oldCollection)
+											]);
+									} else {
+										var _v6 = _v4.a;
+										return _List_fromArray(
+											[
+												$author$project$View$Summary$toHtml(
+												{oldCollection: model.oldCollection, revealed: model.game.revealed, tiles: model.game.tiles})
+											]);
+									}
+								} else {
 									return _List_fromArray(
 										[
-											A2(
-											$elm$core$Maybe$withDefault,
 											$elm$html$Html$text(''),
-											A2(
-												$elm$core$Maybe$map,
-												function (_v5) {
-													var bug = _v5.a;
-													var variant = _v5.b;
-													return $author$project$View$Collection$detailCard(
-														{
-															bug: bug,
-															caught: A2($author$project$Collection$count, bug, model.oldCollection),
-															variant: variant
-														});
-												},
-												maybeSelected)),
 											A3(
-											$author$project$View$Collection$openCollection,
+											$author$project$View$Collection$closedCollection,
 											_List_Nil,
-											{onSelect: $author$project$Main$SelectBugSpecies},
+											{
+												onOpen: $author$project$Main$OpenOverlay(
+													$author$project$Main$Collection($elm$core$Maybe$Nothing))
+											},
 											model.oldCollection)
 										]);
-								} else {
-									var _v6 = _v4.a;
-									return _List_fromArray(
-										[
-											$author$project$View$Summary$toHtml(
-											{oldCollection: model.oldCollection, revealed: model.game.revealed, tiles: model.game.tiles})
-										]);
 								}
-							} else {
-								return _List_fromArray(
-									[
-										$elm$html$Html$text(''),
-										A3(
-										$author$project$View$Collection$closedCollection,
-										_List_Nil,
-										{
-											onOpen: $author$project$Main$OpenOverlay(
-												$author$project$Main$Collection($elm$core$Maybe$Nothing))
-										},
-										model.oldCollection)
-									]);
-							}
-						}())))),
+							}(),
+							_List_fromArray(
+								[
+									$author$project$Firework$isEmpty(model.firework) ? $Orasund$elm_layout$Layout$none : A2(
+									$author$project$Firework$view,
+									_List_fromArray(
+										[
+											$Orasund$elm_html_style$Html$Style$positionAbsolute,
+											$Orasund$elm_html_style$Html$Style$top('50%'),
+											$Orasund$elm_html_style$Html$Style$left('50%'),
+											$Orasund$elm_html_style$Html$Style$transform('translate(-50%,-50%)')
+										]),
+									model.firework)
+								])))))),
 		title: 'Bug Sweeper'
 	};
 };

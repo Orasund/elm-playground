@@ -5,6 +5,7 @@ import Bug exposing (Bug)
 import Collection exposing (Collection, Variant(..))
 import Color
 import Dict
+import Firework exposing (Firework)
 import Game exposing (Game, Tile(..))
 import Game.Generate
 import Html
@@ -30,6 +31,7 @@ type alias Model =
     , seed : Seed
     , oldCollection : Collection
     , overlay : Maybe Overlay
+    , firework : Firework
     }
 
 
@@ -41,6 +43,7 @@ type Msg
     | TileClicked ( Int, Int )
     | SelectBugSpecies ( Bug, Variant )
     | OpenOverlay Overlay
+    | FireworkRelated Firework.Msg
     | CloseOverlay
 
 
@@ -61,6 +64,7 @@ init () =
       , seed = seed
       , overlay = Nothing
       , oldCollection = collection
+      , firework = Firework.init seed
       }
     , Random.independentSeed
         |> Random.map
@@ -211,6 +215,18 @@ view model =
                             model.oldCollection
                         ]
                )
+            ++ [ if Firework.isEmpty model.firework then
+                    Layout.none
+
+                 else
+                    Firework.view
+                        [ Html.Style.positionAbsolute
+                        , Html.Style.top "50%"
+                        , Html.Style.left "50%"
+                        , Html.Style.transform "translate(-50%,-50%)"
+                        ]
+                        model.firework
+               ]
             |> Html.div
                 [ Html.Style.displayFlex
                 , Html.Style.flexDirectionColumn
@@ -247,6 +263,7 @@ update msg model =
                           , seed = newSeed
                           , overlay = Nothing
                           , oldCollection = collection
+                          , firework = Firework.init seed
                           }
                         , Cmd.none
                         )
@@ -265,9 +282,18 @@ update msg model =
                                         ( { model
                                             | game = game
                                             , seed = newSeed
+                                            , firework =
+                                                if Game.isWon game then
+                                                    model.firework
+                                                        |> Firework.burst
+                                                        |> Firework.burst
+                                                        |> Firework.burst
+
+                                                else
+                                                    model.firework
                                           }
                                         , if Game.isOver game then
-                                            Process.sleep 1000
+                                            Process.sleep 500
                                                 |> Task.perform (\() -> OpenOverlay Summary)
 
                                           else
@@ -280,15 +306,22 @@ update msg model =
             ( { model | overlay = Just (Collection (Just ( bug, variant ))) }, Cmd.none )
 
         OpenOverlay overlay ->
-            ( { model | overlay = Just overlay }, Cmd.none )
+            ( { model
+                | overlay = Just overlay
+              }
+            , Cmd.none
+            )
 
         CloseOverlay ->
             ( { model | overlay = Nothing }, Cmd.none )
 
+        FireworkRelated m ->
+            ( { model | firework = Firework.update m model.firework }, Cmd.none )
+
 
 subscriptions : Model -> Sub Msg
-subscriptions _ =
-    Sub.none
+subscriptions model =
+    Firework.sub FireworkRelated model.firework
 
 
 main : Program () Model Msg

@@ -1,4 +1,4 @@
-module Game exposing (Game, Tile(..), empty, isOver, isValidPos, neighborsOf, placeBug, placeObject, reveal)
+module Game exposing (Game, Tile(..), empty, isOver, isValidPos, isWon, neighborsOf, placeBug, placeObject, reveal)
 
 import Bug exposing (Bug(..))
 import Collection exposing (Collection, Variant(..))
@@ -33,20 +33,29 @@ empty level =
 
 isOver : Game -> Bool
 isOver game =
+    isLost game
+        || isWon game
+
+
+isLost : Game -> Bool
+isLost game =
     game.remainingGuesses
         <= 0
-        || (game.tiles
-                |> Dict.filter
-                    (\pos tile ->
-                        case tile of
-                            BugTile _ ->
-                                Dict.member pos game.revealed |> not
 
-                            _ ->
-                                False
-                    )
-                |> Dict.isEmpty
-           )
+
+isWon : Game -> Bool
+isWon game =
+    game.tiles
+        |> Dict.filter
+            (\pos tile ->
+                case tile of
+                    BugTile _ ->
+                        Dict.member pos game.revealed |> not
+
+                    _ ->
+                        False
+            )
+        |> Dict.isEmpty
 
 
 placeObject : ( Int, Int ) -> Object -> Game -> Game

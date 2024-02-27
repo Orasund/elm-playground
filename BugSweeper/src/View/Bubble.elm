@@ -124,9 +124,11 @@ special attrs string =
     , starIcon
     ]
         |> Html.div
-            (asAttrs
-                ++ [ Html.Style.positionRelative ]
-                ++ attrs
+            ([ asAttrs
+             , [ Html.Style.positionRelative ]
+             , attrs
+             ]
+                |> List.concat
             )
 
 
@@ -156,7 +158,9 @@ newAndSpecial attrs string =
     , newLabel
     ]
         |> Html.div
-            (asAttrs
-                ++ [ Html.Style.positionRelative ]
-                ++ attrs
+            ([ asAttrs
+             , [ Html.Style.positionRelative ]
+             , attrs
+             ]
+                |> List.concat
             )
